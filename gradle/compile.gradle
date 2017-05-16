@@ -41,7 +41,4 @@ tasks.withType(GroovyCompile) {
     options.encoding = 'utf-8'
     options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
     groovyOptions.encoding = 'utf-8'
-    inputs.property('javaToolchain.version') {
-        tasks.getByPath('compileJava').toolChain.version
-    }
 }

@@ -45,7 +45,10 @@ public interface ArtifactView extends HasAttributes {
 
     /**
      * Configuration for a defined artifact view.
+     *
+     * @since 4.0
      */
+    @Incubating
     interface ViewConfiguration extends HasConfigurableAttributes<ViewConfiguration> {
         /**
          * Specify a filter for the components that should be included in this view.

@@ -35,11 +35,9 @@ import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
 
 class JavaPluginTest extends AbstractProjectBuilderSpec {
-    private final def javaPlugin = new JavaPlugin()
-
     def addsConfigurationsToTheProject() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
@@ -191,7 +189,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def addsJarAsPublication() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         def runtimeConfiguration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
@@ -208,7 +206,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def addsJavaLibraryComponent() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
@@ -221,7 +219,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def createsStandardSourceSetsAndAppliesMappings() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         SourceSet set = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
@@ -254,7 +252,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def createsMappingsForCustomSourceSets() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         SourceSet set = project.sourceSets.create('custom')
@@ -270,7 +268,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def createsStandardTasksAndAppliesMappings() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
         new TestFile(project.file("src/main/java/File.java")) << "foo"
         new TestFile(project.file("src/main/resources/thing.txt")) << "foo"
         new TestFile(project.file("src/test/java/File.java")) << "foo"
@@ -396,7 +394,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def "configures test task"() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         def task = project.tasks[JavaPlugin.TEST_TASK_NAME]
@@ -411,7 +409,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def appliesMappingsToTasksAddedByTheBuildScript() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         def task = project.task('customTest', type: org.gradle.api.tasks.testing.Test.class)
@@ -431,10 +429,10 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def appProject = TestUtil.createChildProject(project, "app")
 
         when:
-        javaPlugin.apply(project)
-        javaPlugin.apply(commonProject)
-        javaPlugin.apply(middleProject)
-        javaPlugin.apply(appProject)
+        project.pluginManager.apply(JavaPlugin)
+        commonProject.pluginManager.apply(JavaPlugin)
+        middleProject.pluginManager.apply(JavaPlugin)
+        appProject.pluginManager.apply(JavaPlugin)
 
         appProject.dependencies {
             compile middleProject

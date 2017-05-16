@@ -16,7 +16,5 @@
 
 /**
  * Interfaces and API for the 'Resources' concept.
- *
- * @since 4.0
  */
 package org.gradle.api.resources;

@@ -64,20 +64,20 @@ public class IncrementalCompilerDecorator {
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
         if (!inputs.isIncremental()) {
-            LOG.lifecycle("{} - is not incremental (e.g. outputs have changed, no previous execution, etc.).", displayName);
+            LOG.info("{} - is not incremental (e.g. outputs have changed, no previous execution, etc.).", displayName);
             return cleaningCompiler;
         }
         if (!sourceDirs.canInferSourceRoots()) {
-            LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
+            LOG.info("{} - is not incremental. Unable to infer the source directories.", displayName);
             return cleaningCompiler;
         }
         if (!annotationProcessorPath.isEmpty()) {
-            LOG.lifecycle("{} - is not incremental. Annotation processors are present.", displayName);
+            LOG.info("{} - is not incremental. Annotation processors are present.", displayName);
             return cleaningCompiler;
         }
         ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();
         if (data == null) {
-            LOG.lifecycle("{} - is not incremental. No class analysis data available from the previous build.", displayName);
+            LOG.info("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
         PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());

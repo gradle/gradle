@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.AppliedPlugin
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestFile

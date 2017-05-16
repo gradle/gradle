@@ -32,12 +32,14 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.api.tasks.TaskContainer;
@@ -936,6 +938,22 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     <T> PropertyState<T> property(Class<T> clazz);
+
+    /**
+     * Provides access to methods to create various kinds of {@link Provider} instances.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    ProviderFactory getProviders();
+
+    /**
+     * Provides access to methods to create various kinds of model objects.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    ObjectFactory getObjects();
 
     /**
      * Creates a directory and returns a file pointing to it.

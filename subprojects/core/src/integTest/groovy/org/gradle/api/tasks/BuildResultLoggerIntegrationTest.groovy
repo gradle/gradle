@@ -17,8 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
-class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec {
+class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
         // Force a forking executer
         // This is necessary since for the embedded executer
@@ -29,6 +30,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec {
         file("input.txt") << "data"
         buildFile << """
             task adHocTask {
+                outputs.cacheIf { true }
                 def outputFile = file("\$buildDir/output.txt")
                 inputs.file(file("input.txt"))
                 outputs.file(outputFile)
@@ -53,13 +55,28 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec {
         run "adHocTask", "executedTask"
 
         then:
-        output.contains "2 actionable tasks: 2 executed, 0 avoided (0%)"
+        output.contains "2 actionable tasks: 2 executed"
 
         when:
         run "adHocTask", "executedTask"
 
         then:
-        output.contains "2 actionable tasks: 1 executed, 1 avoided (50%)"
+        output.contains "2 actionable tasks: 1 executed, 1 up-to-date"
+    }
+
+    def "cached task outcome statistics are reported"() {
+        when:
+        withBuildCache().run "adHocTask", "executedTask"
+
+        then:
+        output.contains "2 actionable tasks: 2 executed"
+
+        when:
+        file("build").deleteDir()
+        withBuildCache().run "adHocTask", "executedTask"
+
+        then:
+        output.contains "2 actionable tasks: 1 executed, 1 from cache"
     }
 
     def "tasks with no actions are not counted in stats"() {
@@ -67,7 +84,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec {
         run "noActions"
 
         then:
-        output.contains "1 actionable task: 1 executed, 0 avoided (0%)"
+        output.contains "1 actionable task: 1 executed"
     }
 
     def "skipped tasks are not counted"() {

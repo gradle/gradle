@@ -16,7 +16,6 @@
 
 package org.gradle.language.groovy
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
@@ -59,10 +58,9 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         succeeds ":compileGroovy", "--info"
         then:
         nonSkippedTasks.contains ":compileGroovy"
-        output.contains "Value of input property 'groovyCompilerJvmJavaVersion' has changed for task ':compileGroovy'"
+        output.contains "Value of input property 'groovyCompilerJvmVersion' has changed for task ':compileGroovy'"
     }
 
-    @NotYetImplemented
     def "tracks changes to the Java toolchain used for cross compilation"() {
         given:
         def jdk7 = AvailableJavaHomes.getJdk(VERSION_1_7)
@@ -79,9 +77,10 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         when:
         compileWithJavaJdk(jdk8)
         executer.withJavaHome jdk8.javaHome
-        succeeds "compileGroovy"
+        succeeds "compileGroovy", "--info"
         then:
         nonSkippedTasks.contains ":compileGroovy"
+        output.contains "Value of input property 'javaToolChain.version' has changed for task ':compileGroovy'"
     }
 
     private void compileWithJavaJdk(Jvm jdk) {

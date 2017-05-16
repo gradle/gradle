@@ -41,8 +41,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
             }
         """
 
-    @Rule
-    BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Rule
     HttpBuildCache httpBuildCache = new HttpBuildCache(testDirectoryProvider)

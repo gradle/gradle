@@ -52,7 +52,7 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
 
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putString(implementation.getName());
-        hasher.putBytes(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()).asBytes());
+        hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
 
         // TODO - should snapshot later?
         // TODO - should make params immutable

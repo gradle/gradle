@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
@@ -39,7 +39,7 @@ import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.internal.VariantDisambiguationRule;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -48,13 +48,13 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.attributes.Usage.FOR_RUNTIME;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
@@ -228,32 +228,18 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
     /**
-     * Represents the "classes directory" format of a variant of a Java component. This can be used
-     * when querying artifacts to only get the class directories, instead of, typically, a jar dependency.
-     *
-     * @since 3.4
-     */
-    @Incubating
-    public static final String CLASS_DIRECTORY = "org.gradle.java.classes.directory";
-
-    /**
-     * Represents the "resources directory" format of a variant of a Java component. This can be used
-     * when querying artifacts to only get the resources directories, instead of, typically, a jar dependency.
-     *
-     * @since 3.4
-     */
-    @Incubating
-    public static final String RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
-
-    /**
      * Represents the "jar" format of a variant of a Java component.
      * @since 3.5
      */
     @Incubating
-    public static final String JAR_TYPE = "jar";
+    public static final String JAR_TYPE = ArtifactTypeDefinition.JAR_TYPE;
 
-    // this is a workaround to force the classes variant to be used at compile time when using the Java library
-    public static final String NON_DEFAULT_JAR_TYPE = "org.gradle.java.implicit";
+    private final ObjectFactory objectFactory;
+
+    @Inject
+    public JavaPlugin(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
+    }
 
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
@@ -263,17 +249,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
 
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
-        configureCompatibilityRules(project);
         configureConfigurations(project);
 
         configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
-    }
-
-    private void configureCompatibilityRules(ProjectInternal project) {
-        project.getDependencies().getAttributesSchema().attribute(ArtifactAttributes.ARTIFACT_FORMAT).getDisambiguationRules().add(VariantDisambiguationRule.class);
     }
 
     private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
@@ -322,14 +303,22 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
         ProcessResources processResources = (ProcessResources) project.getTasks().getByPath(PROCESS_RESOURCES_TASK_NAME);
 
-        addVariants(apiElementConfiguration, jarArtifact, javaCompile, processResources);
-        addVariants(runtimeConfiguration, jarArtifact, javaCompile, processResources);
-        addVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
+        addJar(apiElementConfiguration, jarArtifact);
+        addJar(runtimeConfiguration, jarArtifact);
+        addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
 
         project.getComponents().add(new JavaLibrary(project.getConfigurations(), jarArtifact));
     }
 
-    private void addVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
+    private void addJar(Configuration configuration, ArchivePublishArtifact jarArtifact) {
+        ConfigurationPublications publications = configuration.getOutgoing();
+
+        // Configure an implicit variant
+        publications.getArtifacts().add(jarArtifact);
+        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.JAR_TYPE);
+    }
+
+    private void addRuntimeVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
@@ -338,24 +327,22 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         // Define some additional variants
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
-        createVariant(runtimeVariants, "classes", JavaPlugin.CLASS_DIRECTORY, new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
+        ConfigurationVariant classesVariant = runtimeVariants.create("classes");
+        classesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_CLASSES));
+        classesVariant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
                 return javaCompile.getDestinationDir();
             }
         });
-        createVariant(runtimeVariants, "resources", JavaPlugin.RESOURCES_DIRECTORY, new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
+        ConfigurationVariant resourcesVariant = runtimeVariants.create("resources");
+        resourcesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
+        resourcesVariant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
                 return processResources.getDestinationDir();
             }
         });
-    }
-
-    private void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, String artifactType, PublishArtifact artifact) {
-        ConfigurationVariant variant = variants.create(name);
-        variant.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, artifactType);
-        variant.artifact(artifact);
     }
 
     private void configureBuild(Project project) {
@@ -405,7 +392,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.setDescription("API elements for main.");
         apiElementsConfiguration.setCanBeResolved(false);
         apiElementsConfiguration.setCanBeConsumed(true);
-        apiElementsConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_COMPILE);
+        apiElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
         apiElementsConfiguration.extendsFrom(compileConfiguration, runtimeConfiguration);
 
         Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
@@ -413,7 +400,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         runtimeElementsConfiguration.setCanBeConsumed(true);
         runtimeElementsConfiguration.setCanBeResolved(false);
         runtimeElementsConfiguration.setDescription("Elements of runtime for main.");
-        runtimeElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
         runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration);
 
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
@@ -473,7 +460,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * A custom artifact type which allows the getFile call to be done lazily only when the
      * artifact is actually needed.
      */
-    private abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
+    abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
         private final String type;
 
         IntermediateJavaArtifact(String type, Task task) {

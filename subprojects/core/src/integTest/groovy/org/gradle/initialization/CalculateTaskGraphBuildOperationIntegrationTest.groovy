@@ -16,14 +16,14 @@
 
 package org.gradle.initialization
 
+import org.gradle.execution.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.junit.Rule
+import org.gradle.internal.operations.trace.BuildOperationRecord
 
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule
-    public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "requested and filtered tasks are exposed"() {
         settingsFile << """
@@ -50,22 +50,22 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('someTask')
 
         then:
-        operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":b:someTask", ":a:someTask"] as Set
+        operation().result.requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
         operation().result.excludedTaskPaths == []
 
         when:
         succeeds('someTask', '-x', ':b:someTask')
 
         then:
-        operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"] as Set
-        operation().result.excludedTaskPaths as Set == [":b:someTask"] as Set
+        operation().result.requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
+        operation().result.excludedTaskPaths == [":b:someTask"]
 
         when:
         succeeds('someTask', '-x', 'otherTask')
 
         then:
-        operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"] as Set
-        operation().result.excludedTaskPaths as Set == [":b:otherTask", ":a:c:otherTask", ":otherTask", ":a:otherTask"] as Set
+        operation().result.requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
+        operation().result.excludedTaskPaths == [":a:c:otherTask", ":a:otherTask", ":b:otherTask", ":otherTask"]
 
         when:
         succeeds(':a:someTask')
@@ -83,8 +83,8 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().failure.contains("Task 'someNonExisting' not found in root project")
     }
 
-    private BuildOperationsFixture.CompleteBuildOperation operation() {
-        buildOperations.operation("Calculate task graph")
+    private BuildOperationRecord operation() {
+        buildOperations.operation(CalculateTaskGraphBuildOperationType)
     }
 
 }

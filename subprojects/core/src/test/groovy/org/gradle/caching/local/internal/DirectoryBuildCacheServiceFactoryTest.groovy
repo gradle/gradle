@@ -23,7 +23,7 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.VersionStrategy
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices

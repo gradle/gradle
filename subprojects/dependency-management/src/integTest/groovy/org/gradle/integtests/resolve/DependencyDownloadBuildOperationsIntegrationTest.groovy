@@ -18,19 +18,17 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
-import org.gradle.internal.resource.transfer.DownloadBuildOperationDetails
-import org.junit.Rule
+import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.resource.ExternalResourceDownloadBuildOperationType
 import spock.lang.Unroll
 
 /**
- * This is effectively testing BuildOperationExternalResource mechanics.
+ * This is effectively testing DownloadBuildOperationFiringExternalResourceDecorator mechanics.
  * Dependency resolution is the most important usage of this, so is our integration testing vector.
  */
 class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @Rule
-    public final BuildOperationNotificationsFixture buildOperations = new BuildOperationNotificationsFixture(executer, temporaryFolder)
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Unroll
     void "emits events for dependency resolution downloads - chunked: #chunked"() {
@@ -62,10 +60,10 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         then:
         def actualFileLength = m.pom.file.bytes.length
-        def buildOp = buildOperations.first(DownloadBuildOperationDetails)
+        def buildOp = buildOperations.operation(ExternalResourceDownloadBuildOperationType)
         buildOp.details.contentType == 'null'
         buildOp.details.contentLength == chunked ? -1 : actualFileLength
-        buildOp.details.location.path == m.pomPath
+        URI.create(buildOp.details.location).path == m.pomPath
         buildOp.result.readContentLength == actualFileLength
 
         where:

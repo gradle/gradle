@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.AsyncArtifactListener;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.DisplayName;
@@ -93,7 +94,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
         @Override
         public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-            if (listener.requireArtifactFiles())  {
+            if (listener.requireArtifactFiles()) {
                 if (isFromIncludedBuild(artifact)) {
                     // Cannot currently build these artifacts asynchronously due to various locking problems
                     // Build it now instead
@@ -145,7 +146,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName("Resolve artifact " + artifact)
-                .details(new DownloadArtifactBuildOperationDetails(artifact.getId().getDisplayName()));
+                .details(new DownloadArtifactBuildOperationType.DetailsImpl(artifact.getId().getDisplayName()));
         }
     }
 

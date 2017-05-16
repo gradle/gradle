@@ -16,16 +16,34 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.provider.DefaultProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE;
 
 public class DefaultPropertyState<T> implements PropertyState<T> {
+    private static final Provider<Object> NULL_PROVIDER = new Provider<Object>() {
+        @Override
+        public Object get() {
+            throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
+        }
 
-    private Provider<? extends T> provider;
+        @Override
+        public Object getOrNull() {
+            return null;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return false;
+        }
+    };
+
+    private Provider<? extends T> provider = Cast.uncheckedCast(NULL_PROVIDER);
 
     @Override
     public void set(final T value) {
@@ -39,26 +57,22 @@ public class DefaultPropertyState<T> implements PropertyState<T> {
 
     @Override
     public void set(Provider<? extends T> provider) {
-        this.provider = provider;
+        this.provider = Preconditions.checkNotNull(provider);
     }
 
     @Override
     public T get() {
-        if (!isPresent()) {
-            throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
-        }
-
         return provider.get();
     }
 
     @Override
     public T getOrNull() {
-        return isPresent() ? provider.getOrNull() : null;
+        return provider.getOrNull();
     }
 
     @Override
     public boolean isPresent() {
-        return provider != null && provider.isPresent();
+        return provider.isPresent();
     }
 
     @Override

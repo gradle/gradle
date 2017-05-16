@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
@@ -25,15 +24,13 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
-import org.gradle.api.internal.tasks.JavaHomeBasedJavaToolChain;
+import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
@@ -51,18 +48,14 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
-import org.gradle.internal.Factory;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
-import org.gradle.process.internal.ExecActionFactory;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
  * Compiles Java source files.
@@ -108,14 +101,7 @@ public class JavaCompile extends AbstractCompile {
         if (toolChain != null) {
             return toolChain;
         }
-        if (getOptions().isFork()) {
-            ForkOptions forkOptions = getOptions().getForkOptions();
-            File javaHome = forkOptions.getJavaHome();
-            if (javaHome != null) {
-                return new JavaHomeBasedJavaToolChain(javaHome, getJavaCompilerFactory(), getExecActionFactory(), getJvmVersionDetector());
-            }
-        }
-        return new CurrentJvmJavaToolChain(getJavaCompilerFactory(), getExecActionFactory());
+        return getJavaToolChainFactory().forCompileOptions(getOptions());
     }
 
     /**
@@ -187,22 +173,7 @@ public class JavaCompile extends AbstractCompile {
     }
 
     @Inject
-    protected JavaCompilerFactory getJavaCompilerFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected Factory<AntBuilder> getAntBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JvmVersionDetector getJvmVersionDetector() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ExecActionFactory getExecActionFactory() {
+    protected JavaToolChainFactory getJavaToolChainFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -215,7 +186,7 @@ public class JavaCompile extends AbstractCompile {
 
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
-        return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
+        return new CleaningJavaCompiler(javaCompiler, getOutputs());
     }
 
     @Nested

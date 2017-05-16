@@ -64,6 +64,11 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
         }
     }
 
+    protected void execute(BuildTestFile build, String[] tasks, Iterable<String> arguments = []) {
+        prepare(build, arguments)
+        succeeds(tasks)
+    }
+
     protected void execute(BuildTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         succeeds(task)

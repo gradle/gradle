@@ -19,7 +19,7 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.configuration.InitScriptProcessor
 import org.gradle.groovy.scripts.UriScriptSource
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

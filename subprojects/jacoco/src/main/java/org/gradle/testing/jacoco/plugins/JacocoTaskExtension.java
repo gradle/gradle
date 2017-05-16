@@ -103,6 +103,12 @@ public class JacocoTaskExtension {
         return destinationFile.getOrNull();
     }
 
+    /**
+     * Set the provider for calculating the destination file.
+     *
+     * @param destinationFile Destination file provider
+     * @since 4.0
+     */
     public void setDestinationFile(Provider<File> destinationFile) {
         this.destinationFile.set(destinationFile);
     }

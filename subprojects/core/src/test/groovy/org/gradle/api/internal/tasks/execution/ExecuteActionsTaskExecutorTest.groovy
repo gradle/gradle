@@ -87,7 +87,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         state.outcome == TaskExecutionOutcome.UP_TO_DATE
         !state.didWork
         !state.executing
-        !state.actionsWereExecuted
+        state.actionable
     }
 
     def executesEachActionInOrder() {
@@ -139,7 +139,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         state.didWork
         state.outcome == TaskExecutionOutcome.EXECUTED
         !state.failure
-        state.actionsWereExecuted
+        state.actionable
     }
 
     def executeDoesOperateOnNewActionListInstance() {
@@ -211,7 +211,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         !state.executing
         state.didWork
         state.outcome == TaskExecutionOutcome.EXECUTED
-        state.actionsWereExecuted
+        state.actionable
 
         TaskExecutionException wrappedFailure = (TaskExecutionException) state.failure
         wrappedFailure instanceof TaskExecutionException
@@ -304,7 +304,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         state.outcome == TaskExecutionOutcome.EXECUTED
         !state.executing
         !state.failure
-        state.actionsWereExecuted
+        state.actionable
 
         noMoreInteractions()
     }

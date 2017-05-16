@@ -15,11 +15,12 @@
  */
 package org.gradle.initialization;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -27,7 +28,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.execution.taskgraph.CalculateTaskGraphDetails;
+import org.gradle.execution.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -35,8 +36,8 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -154,8 +155,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
 
         if (stage == Stage.Load) {
-            // Configure build
-            buildOperationExecutor.run(new ConfigureBuildBuildOperation());
+            buildOperationExecutor.run(new ConfigureBuild());
             stage = Stage.Configure;
         }
 
@@ -166,11 +166,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         // After this point, the GradleLauncher cannot be reused
         stage = Stage.Build;
 
-        // marker descriptor class for identifying build operation
-        buildOperationExecutor.run(new CalculateTaskGraphBuildOperation());
+        buildOperationExecutor.run(new CalculateTaskGraph());
 
-        // Execute build
-        buildOperationExecutor.run(new RunTasksBuildOperation());
+        buildOperationExecutor.run(new ExecuteTasks());
     }
 
     /**
@@ -192,7 +190,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private class ConfigureBuildBuildOperation implements RunnableBuildOperation {
+    private class ConfigureBuild implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
             buildConfigurer.configure(gradle);
@@ -210,34 +208,47 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private class CalculateTaskGraphBuildOperation implements RunnableBuildOperation {
+    private class CalculateTaskGraph implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext buildOperationContext) {
-            try {
-                buildConfigurationActionExecuter.select(gradle);
-            } catch (RuntimeException ex) {
-                buildOperationContext.failed(ex);
-                throw ex;
-            }
+            buildConfigurationActionExecuter.select(gradle);
 
             if (isConfigureOnDemand()) {
                 projectsEvaluated();
             }
 
-            // make requested tasks available from according build operation.
-            TaskGraphExecuter taskGraph = gradle.getTaskGraph();
-            buildOperationContext.setResult(new CalculateTaskGraphDetails.Result(toTaskPaths(taskGraph.getRequestedTasks()), toTaskPaths(taskGraph.getFilteredTasks())));
+            final TaskGraphExecuter taskGraph = gradle.getTaskGraph();
+            buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
+                @Override
+                public Collection<String> getRequestedTaskPaths() {
+                    return toTaskPaths(taskGraph.getRequestedTasks());
+                }
+
+                @Override
+                public Collection<String> getExcludedTaskPaths() {
+                    return toTaskPaths(taskGraph.getFilteredTasks());
+                }
+
+                private Set<String> toTaskPaths(Set<Task> tasks) {
+                    return ImmutableSortedSet.copyOf(Collections2.transform(tasks, new Function<Task, String>() {
+                        @Override
+                        public String apply(Task task) {
+                            return task.getPath();
+                        }
+                    }));
+                }
+            });
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            StartParameter startParameter = gradle.getStartParameter();
-            CalculateTaskGraphDetails calculateTaskGraphDetails = new CalculateTaskGraphDetails(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames());
-            return BuildOperationDescriptor.displayName("Calculate task graph").details(calculateTaskGraphDetails);
+            return BuildOperationDescriptor.displayName("Calculate task graph")
+                .details(new CalculateTaskGraphBuildOperationType.Details() {
+                });
         }
     }
 
-    private class RunTasksBuildOperation implements RunnableBuildOperation {
+    private class ExecuteTasks implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
             buildExecuter.execute(gradle);
@@ -249,15 +260,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-
-    private static Set<String> toTaskPaths(Set<Task> tasks) {
-        return CollectionUtils.collect(tasks, new Transformer<String, Task>() {
-            @Override
-            public String transform(Task task) {
-                return task.getPath();
-            }
-        });
-    }
 
     private boolean isConfigureOnDemand() {
         return gradle.getStartParameter().isConfigureOnDemand();

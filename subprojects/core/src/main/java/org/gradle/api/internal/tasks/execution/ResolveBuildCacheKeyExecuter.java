@@ -26,7 +26,7 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.tasks.SnapshotTaskInputsOperationDetails;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -39,9 +39,8 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.SortedMap;
-import java.util.SortedSet;
+import java.util.Collection;
+import java.util.Map;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
@@ -84,7 +83,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             @Override
             public void run(BuildOperationContext buildOperationContext) {
                 TaskOutputCachingBuildCacheKey cacheKey = doResolve(task, context);
-                buildOperationContext.setResult(new OperationResultAdapter(cacheKey));
+                buildOperationContext.setResult(new OperationResultImpl(cacheKey));
                 context.setBuildCacheKey(cacheKey);
             }
 
@@ -92,7 +91,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
                     .displayName("Snapshot task inputs for " + task.getIdentityPath())
-                    .details(new SnapshotTaskInputsOperationDetails(task.getPath()));
+                    .details(new OperationDetailsImpl(task));
             }
         });
     }
@@ -109,20 +108,39 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         return cacheKey;
     }
 
+    private static class OperationDetailsImpl implements SnapshotTaskInputsBuildOperationType.Details {
+        private final TaskInternal task;
+
+        private OperationDetailsImpl(TaskInternal task) {
+            this.task = task;
+        }
+
+        @Override
+        public String getTaskPath() {
+            return task.getIdentityPath().getPath();
+        }
+
+        @Override
+        public long getTaskId() {
+            return System.identityHashCode(task);
+        }
+    }
+
     @VisibleForTesting
-    static class OperationResultAdapter implements SnapshotTaskInputsOperationDetails.Result {
+    static class OperationResultImpl implements SnapshotTaskInputsBuildOperationType.Result {
 
         @VisibleForTesting
         final TaskOutputCachingBuildCacheKey key;
 
-        OperationResultAdapter(TaskOutputCachingBuildCacheKey key) {
+        OperationResultImpl(TaskOutputCachingBuildCacheKey key) {
             this.key = key;
         }
 
         @Override
-        public SortedMap<String, String> getInputHashes() {
-            SortedMap<String, HashCode> inputHashes = ImmutableSortedMap.copyOf(key.getInputs().getInputHashes());
-            return Maps.transformValues(inputHashes, new Function<HashCode, String>() {
+        public Map<String, String> getInputHashes() {
+            // Should be a NOOP, as this is already an immutable sorted map upstream.
+            ImmutableSortedMap<String, HashCode> sortedInputHashes = ImmutableSortedMap.copyOf(key.getInputs().getInputHashes());
+            return Maps.transformValues(sortedInputHashes, new Function<HashCode, String>() {
                 @Override
                 public String apply(HashCode input) {
                     return input.toString();
@@ -137,7 +155,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
 
         @Override
-        public List<String> getActionClassLoaderHashes() {
+        public Collection<String> getActionClassLoaderHashes() {
             return Lists.transform(key.getInputs().getActionClassLoaderHashes(), new Function<HashCode, String>() {
                 @Override
                 public String apply(HashCode input) {
@@ -147,7 +165,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
 
         @Override
-        public SortedSet<String> getOutputPropertyNames() {
+        public Collection<String> getOutputPropertyNames() {
+            // Copy should be a NOOP as this is an immutable sorted set upstream.
             return ImmutableSortedSet.copyOf(key.getInputs().getOutputPropertyNames());
         }
 

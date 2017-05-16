@@ -16,6 +16,8 @@
 
 package org.gradle.internal.operations.notify;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 /**
  * Obtained by the build scan plugin via the root project's service registry.
  * A single listener is registered.
@@ -24,6 +26,7 @@ package org.gradle.internal.operations.notify;
  *
  * @since 4.0
  */
+@UsedByScanPlugin
 public interface BuildOperationNotificationListenerRegistrar {
 
     void registerBuildScopeListener(BuildOperationNotificationListener listener);

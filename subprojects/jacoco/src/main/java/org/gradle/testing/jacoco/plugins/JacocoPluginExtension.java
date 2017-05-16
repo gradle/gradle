@@ -78,6 +78,12 @@ public class JacocoPluginExtension {
         return reportsDir.get();
     }
 
+    /**
+     * Set the provider for calculating the report directory.
+     *
+     * @param reportsDir Reports directory provider
+     * @since 4.0
+     */
     public void setReportsDir(Provider<File> reportsDir) {
         this.reportsDir.set(reportsDir);
     }

@@ -83,16 +83,6 @@ public class TaskStateInternal implements TaskState {
         return taskOutputCaching;
     }
 
-    /**
-     * @deprecated Use {@link #getTaskOutputCaching()} instead.
-     *
-     * Older versions of the build-scan plugin use this method, so leave it around longer.
-     */
-    @Deprecated
-    public boolean isCacheable() {
-        return getTaskOutputCaching().isEnabled();
-    }
-
     public Throwable getFailure() {
         return failure;
     }
@@ -131,12 +121,8 @@ public class TaskStateInternal implements TaskState {
         return outcome == TaskExecutionOutcome.FROM_CACHE;
     }
 
-    public boolean isAvoided() {
-        return actionable && getUpToDate();
-    }
-
-    public boolean isActionsWereExecuted() {
-        return actionable && outcome == TaskExecutionOutcome.EXECUTED;
+    public boolean isActionable() {
+        return actionable;
     }
 
     public void setActionable(boolean actionable) {

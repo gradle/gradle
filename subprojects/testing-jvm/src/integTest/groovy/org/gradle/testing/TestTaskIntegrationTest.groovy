@@ -94,7 +94,7 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "test task do not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
+    def "test task does not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
         given:
         def maxParallelForks = maxWorkers + 1
 
@@ -114,7 +114,7 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.withArguments("--max-workers=${maxWorkers}")
+        executer.withArguments("--max-workers=${maxWorkers}", "-i")
         succeeds 'test'
 
         then:

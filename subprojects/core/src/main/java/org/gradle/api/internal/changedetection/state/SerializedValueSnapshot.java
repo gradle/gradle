@@ -81,7 +81,7 @@ public class SerializedValueSnapshot implements ValueSnapshot {
         if (implementationHash == null) {
             hasher.putNull();
         } else {
-            hasher.putBytes(implementationHash.asBytes());
+            hasher.putHash(implementationHash);
         }
         hasher.putBytes(serializedValue);
     }

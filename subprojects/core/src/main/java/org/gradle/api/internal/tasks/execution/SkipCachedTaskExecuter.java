@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Set;
+import java.util.SortedSet;
 
 public class SkipCachedTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipCachedTaskExecuter.class);
@@ -71,15 +71,17 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         final TaskOutputsInternal taskOutputs = task.getOutputs();
         TaskOutputCachingBuildCacheKey cacheKey = context.getBuildCacheKey();
         boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
-        // TODO: This is really something we should at an earlier/higher level so that the output property values
-        // are locked in at this point.
-        final Set<ResolvedTaskOutputFilePropertySpec> outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
+
+        SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties = null;
         if (taskOutputCachingEnabled) {
             if (task.isHasCustomActions()) {
                 LOGGER.info("Custom actions are attached to {}.", task);
             }
             if (cacheKey.isValid()) {
                 TaskArtifactState taskState = context.getTaskArtifactState();
+                // TODO: This is really something we should do at an earlier/higher level so that the input and output
+                // property values are locked in at this point.
+                outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
                     EntryReader reader = new EntryReader(outputProperties, task, clock);
                     boolean found = buildCache.load(cacheKey, reader);
@@ -101,13 +103,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         if (taskOutputCachingEnabled) {
             if (cacheKey.isValid()) {
                 if (state.getFailure() == null) {
-                    buildCache.store(cacheKey, new BuildCacheEntryWriter() {
-                        @Override
-                        public void writeTo(OutputStream output) {
-                            LOGGER.info("Packing {}", task.getPath());
-                            packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
-                        }
-                    });
+                    buildCache.store(cacheKey, new EntryWriter(outputProperties, task, clock));
                 } else {
                     LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
                 }
@@ -119,13 +115,13 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
     private class EntryReader implements BuildCacheEntryReader {
 
-        private final Set<ResolvedTaskOutputFilePropertySpec> outputProperties;
+        private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
         private final TaskInternal task;
         private final Timer clock;
 
         private TaskOutputOriginMetadata originMetadata;
 
-        private EntryReader(Set<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
+        private EntryReader(SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
             this.outputProperties = outputProperties;
             this.task = task;
             this.clock = clock;
@@ -136,6 +132,24 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
             originMetadata = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
+        }
+    }
+
+    private class EntryWriter implements BuildCacheEntryWriter {
+        private final TaskInternal task;
+        private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
+        private final Timer clock;
+
+        public EntryWriter(SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
+            this.task = task;
+            this.outputProperties = outputProperties;
+            this.clock = clock;
+        }
+
+        @Override
+        public void writeTo(OutputStream output) {
+            LOGGER.info("Packing {}", task.getPath());
+            packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
         }
     }
 }

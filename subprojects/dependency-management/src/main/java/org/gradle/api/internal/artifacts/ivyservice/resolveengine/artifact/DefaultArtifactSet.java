@@ -131,6 +131,11 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
 
         @Override
+        public String toString() {
+            return asDescribable().getDisplayName();
+        }
+
+        @Override
         public Describable asDescribable() {
             return Describables.of(componentIdentifier);
         }

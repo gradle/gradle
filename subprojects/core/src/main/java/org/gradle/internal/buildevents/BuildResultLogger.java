@@ -23,8 +23,8 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Success;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.FailureHeader;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHeader;
 
 /**
  * A {@link org.gradle.BuildListener} which logs the final result of the build.
@@ -45,9 +45,9 @@ public class BuildResultLogger extends BuildAdapter {
         textOutput.println();
         String action = result.getAction().toUpperCase();
         if (result.getFailure() == null) {
-            textOutput.withStyle(Success).text(action + " SUCCESSFUL");
+            textOutput.withStyle(SuccessHeader).text(action + " SUCCESSFUL");
         } else {
-            textOutput.withStyle(Failure).text(action + " FAILED");
+            textOutput.withStyle(FailureHeader).text(action + " FAILED");
         }
 
         textOutput.formatln(" in %s", durationFormatter.format(buildTimeClock.getElapsedMillis()));

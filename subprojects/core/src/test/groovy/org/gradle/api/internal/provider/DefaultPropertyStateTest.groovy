@@ -102,9 +102,41 @@ class DefaultPropertyStateTest extends Specification {
         value = propertyState.getOrNull()
 
         then:
-        1 * provider.present >> true
         1 * provider.getOrNull() >> true
         value == true
+    }
+
+    def "does not allow a null provider"() {
+        given:
+        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        when:
+        propertyState.set((Provider)null)
+        then:
+        thrown(NullPointerException)
+    }
+
+    def "get only calls provider once"() {
+        given:
+        def provider = Mock(Provider)
+        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        propertyState.set(provider)
+        when:
+        propertyState.get()
+        then:
+        1 * provider.get() >> true
+        0 * _
+    }
+
+    def "getOrNull only calls provider once"() {
+        given:
+        def provider = Mock(Provider)
+        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        propertyState.set(provider)
+        when:
+        propertyState.getOrNull()
+        then:
+        1 * provider.getOrNull() >> true
+        0 * _
     }
 
     private PropertyState<Boolean> createBooleanPropertyState() {

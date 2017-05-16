@@ -17,20 +17,20 @@
 package org.gradle.internal.buildevents
 
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatistics
-import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 @Subject(TaskExecutionStatisticsReporter)
 class TaskExecutionStatisticsReporterTest extends Specification {
-    private StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
-    private TaskExecutionStatisticsReporter reporter = new TaskExecutionStatisticsReporter(textOutputFactory)
+    def textOutputFactory = new TestStyledTextOutputFactory()
+    def reporter = new TaskExecutionStatisticsReporter(textOutputFactory)
 
     def "does not report statistics given 0 tasks"() {
         when:
-        reporter.buildFinished(new TaskExecutionStatistics(0, 0))
+        reporter.buildFinished(new TaskExecutionStatistics(0, 0, 0))
 
         then:
         (textOutputFactory as String) == ""
@@ -39,7 +39,7 @@ class TaskExecutionStatisticsReporterTest extends Specification {
 
     def "disallows negative task counts as input"() {
         when:
-        reporter.buildFinished(new TaskExecutionStatistics(-1, 12))
+        reporter.buildFinished(new TaskExecutionStatistics(-1, 12, 7))
 
         then:
         thrown IllegalArgumentException
@@ -47,17 +47,26 @@ class TaskExecutionStatisticsReporterTest extends Specification {
 
     def "properly pluralizes output"() {
         when:
-        reporter.buildFinished(new TaskExecutionStatistics(1, 0))
+        reporter.buildFinished(new TaskExecutionStatistics(1, 0, 0))
 
         then:
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}1 actionable task: 1 executed, 0 avoided (0%)\n"
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}1 actionable task: 1 executed\n"
     }
 
-    def "reports statistics with rounded percentages"() {
+    @Unroll
+    def "reports only task counts > 0 (exec: #executed, from cache: #fromCache, up-to-date #upToDate)"() {
         when:
-        reporter.buildFinished(new TaskExecutionStatistics(2, 1))
+        reporter.buildFinished(new TaskExecutionStatistics(executed, fromCache, upToDate))
 
         then:
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}3 actionable tasks: 2 executed, 1 avoided (33%)\n"
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}$expected\n"
+
+        where:
+        executed | fromCache | upToDate | expected
+        2        | 0         | 0        | "2 actionable tasks: 2 executed"
+        2        | 1         | 0        | "3 actionable tasks: 2 executed, 1 from cache"
+        2        | 0         | 1        | "3 actionable tasks: 2 executed, 1 up-to-date"
+        0        | 7         | 0        | "7 actionable tasks: 7 from cache"
+        0        | 0         | 5        | "5 actionable tasks: 5 up-to-date"
     }
 }

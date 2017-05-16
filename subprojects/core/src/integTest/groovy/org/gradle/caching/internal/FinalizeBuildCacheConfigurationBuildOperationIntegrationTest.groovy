@@ -18,12 +18,10 @@ package org.gradle.caching.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.junit.Rule
 
 class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule
-    BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "local build cache configuration is exposed"() {
         given:

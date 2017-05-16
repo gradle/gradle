@@ -26,6 +26,7 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
@@ -34,6 +35,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final Convention _convention;
     private final IConventionAware _source;
+    private final Set<String> _propertyNames;
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
 
     /**
@@ -46,6 +48,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this._source = source;
         this._convention = convention;
+        this._propertyNames = JavaReflectionUtil.propertyNames(source);
     }
 
     private interface Value<T> {
@@ -53,7 +56,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     }
 
     private MappedProperty map(String propertyName, Value<?> value) {
-        if (!JavaReflectionUtil.propertyExists(_source, propertyName)) {
+        if (!_propertyNames.contains(propertyName)) {
             throw new InvalidUserDataException(
                     "You can't map a property that does not exist: propertyName=" + propertyName);
         }

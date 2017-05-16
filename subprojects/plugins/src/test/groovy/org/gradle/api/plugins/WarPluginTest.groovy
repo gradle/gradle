@@ -25,11 +25,9 @@ import org.gradle.util.TestUtil
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 
 class WarPluginTest extends AbstractProjectBuilderSpec {
-    private final WarPlugin warPlugin = new WarPlugin()
-
     def "applies Java plugin and adds convention"() {
         when:
-        warPlugin.apply(project)
+        project.pluginManager.apply(WarPlugin)
 
         then:
         project.getPlugins().hasPlugin(JavaPlugin)
@@ -38,7 +36,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
     def "creates configurations"() {
         given:
-        warPlugin.apply(project)
+        project.pluginManager.apply(WarPlugin)
 
         when:
         def providedCompileConfiguration = project.configurations.getByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)
@@ -77,7 +75,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
     def "adds tasks"() {
         when:
-        warPlugin.apply(project)
+        project.pluginManager.apply(WarPlugin)
 
         then:
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
@@ -94,12 +92,11 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
     def "depends on runtime config"() {
         given:
-        warPlugin.apply(project)
+        project.pluginManager.apply(WarPlugin)
 
         when:
         Project childProject = TestUtil.createChildProject(project, 'child')
-        JavaPlugin javaPlugin = new JavaPlugin()
-        javaPlugin.apply(childProject)
+        childProject.pluginManager.apply(JavaPlugin)
 
         project.dependencies {
             runtime project(path: childProject.path, configuration: 'archives')
@@ -117,7 +114,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         File runtimeJar = project.file('runtime.jar')
         File providedJar = project.file('provided.jar')
 
-        warPlugin.apply(project)
+        project.pluginManager.apply(WarPlugin)
 
         when:
         project.dependencies {
@@ -133,7 +130,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "applies mappings to archive tasks"() {
-        warPlugin.apply(project)
+        project.pluginManager.apply(WarPlugin)
 
         when:
         def task = project.task('customWar', type: War)
@@ -145,7 +142,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
     def "replaces jar as publication"() {
         given:
-        warPlugin.apply(project)
+        project.pluginManager.apply(WarPlugin)
 
         when:
         def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)

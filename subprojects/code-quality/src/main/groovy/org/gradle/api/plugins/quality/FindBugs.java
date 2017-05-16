@@ -544,6 +544,8 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     /**
      * A filter specifying baseline bugs to exclude from being reported.
+     *
+     * @since 2.4
      */
     @Incubating
     public void setExcludeBugsFilterConfig(TextResource excludeBugsFilterConfig) {

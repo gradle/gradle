@@ -666,6 +666,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
         when:
         java api: ["class A { String foo; }"]
+        executer.withArgument("-i")
         run 'impl:compileJava'
 
         then:

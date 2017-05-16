@@ -18,13 +18,12 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
 import org.gradle.api.tasks.TaskPropertyBuilder;
 import org.gradle.internal.Cast;
-import org.gradle.util.CollectionUtils;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
 
 public class TaskPropertyUtils {
 
@@ -54,18 +53,12 @@ public class TaskPropertyUtils {
         }
     }
 
-    public static <T extends TaskFilePropertySpec> Set<ResolvedTaskOutputFilePropertySpec> resolveFileProperties(ImmutableSortedSet<T> properties) {
-        return CollectionUtils.collect(properties, new Transformer<ResolvedTaskOutputFilePropertySpec, T>() {
-            @Override
-            public ResolvedTaskOutputFilePropertySpec transform(T t) {
-                if (t instanceof CacheableTaskOutputFilePropertySpec) {
-                    CacheableTaskOutputFilePropertySpec cacheableProperty = Cast.uncheckedCast(t);
-                    return new ResolvedTaskOutputFilePropertySpec(cacheableProperty.getPropertyName(), cacheableProperty.getOutputType(), cacheableProperty.getOutputFile());
-                } else {
-                    // TODO:
-                    return new ResolvedTaskOutputFilePropertySpec(t.getPropertyName(), null, null);
-                }
-            }
-        });
+    public static <T extends TaskFilePropertySpec> SortedSet<ResolvedTaskOutputFilePropertySpec> resolveFileProperties(ImmutableSortedSet<T> properties) {
+        ImmutableSortedSet.Builder<ResolvedTaskOutputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
+        for (T property : properties) {
+            CacheableTaskOutputFilePropertySpec cacheableProperty = Cast.uncheckedCast(property);
+            builder.add(new ResolvedTaskOutputFilePropertySpec(cacheableProperty.getPropertyName(), cacheableProperty.getOutputType(), cacheableProperty.getOutputFile()));
+        }
+        return builder.build();
     }
 }

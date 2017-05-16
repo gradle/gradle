@@ -98,7 +98,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         // Collect up hash of the input files and of the transform's configuration params and implementation to calculate the key
         Snapshot inputFileSnapshot = fileSystemSnapshotter.snapshotAll(inputFile);
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-        hasher.putBytes(inputsHash.asBytes());
+        hasher.putHash(inputsHash);
         inputFileSnapshot.appendToHasher(hasher);
         final HashCode resultHash = hasher.hash();
 

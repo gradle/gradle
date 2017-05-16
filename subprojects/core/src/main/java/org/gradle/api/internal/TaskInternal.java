@@ -31,7 +31,6 @@ import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
-import java.util.Set;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
@@ -42,9 +41,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     List<ContextAwareTaskAction> getTaskActions();
-
-    @Internal
-    Set<ClassLoader> getActionClassLoaders();
 
     @Internal
     Spec<? super TaskInternal> getOnlyIf();

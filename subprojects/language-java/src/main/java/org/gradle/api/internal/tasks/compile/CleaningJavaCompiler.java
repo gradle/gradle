@@ -15,22 +15,18 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> compiler;
-    private final Factory<AntBuilder> antBuilderFactory;
     private final TaskOutputsInternal taskOutputs;
 
-    public CleaningJavaCompiler(Compiler<JavaCompileSpec> compiler, Factory<AntBuilder> antBuilderFactory,
+    public CleaningJavaCompiler(Compiler<JavaCompileSpec> compiler,
                                 TaskOutputsInternal taskOutputs) {
         this.compiler = compiler;
-        this.antBuilderFactory = antBuilderFactory;
         this.taskOutputs = taskOutputs;
     }
 

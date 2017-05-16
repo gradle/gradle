@@ -65,7 +65,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         result.param2
     }
 
-    def "constructors do not need to be public"() {
+    def "constructors do not need to be public but do need to be annotated"() {
         expect:
         instantiator.newInstance(HasPrivateConstructor, "param") != null
     }
@@ -150,7 +150,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Class $HasNonPublicNoArgsConstructor.name has no constructor that is annotated with @Inject."
+        e.cause.message == "The constructor for class $HasNonPublicNoArgsConstructor.name should be public or package protected or annotated with @Inject."
     }
 
     public static class HasDefaultConstructor {
