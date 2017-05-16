@@ -19,27 +19,11 @@ package org.gradle.language.scala.internal.toolchain;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
-public class ScalaToolChainServiceRegistry implements PluginServiceRegistry {
-
-    @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
+public class ScalaToolChainServiceRegistry extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {

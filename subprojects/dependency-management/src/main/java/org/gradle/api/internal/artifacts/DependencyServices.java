@@ -26,10 +26,10 @@ import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFacto
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
-public class DependencyServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
+public class DependencyServices extends AbstractPluginServiceRegistry implements GradleUserHomeScopePluginServices {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementGlobalScopeServices());
     }
@@ -55,11 +55,5 @@ public class DependencyServices implements PluginServiceRegistry, GradleUserHome
 
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementBuildScopeServices());
-    }
-
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 }

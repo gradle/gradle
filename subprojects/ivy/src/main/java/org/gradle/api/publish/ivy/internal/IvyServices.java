@@ -25,26 +25,17 @@ import org.gradle.api.publish.ivy.internal.publisher.DependencyResolverIvyPublis
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
 import org.gradle.api.publish.ivy.internal.publisher.ValidatingIvyPublisher;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.ivy.IvyDescriptorArtifact;
 import org.gradle.ivy.IvyModule;
 
-public class IvyServices implements PluginServiceRegistry {
+public class IvyServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalServices());
     }
 
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());
-    }
-
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private static class GlobalServices {

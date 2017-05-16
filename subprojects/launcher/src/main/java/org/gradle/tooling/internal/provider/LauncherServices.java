@@ -27,9 +27,9 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
@@ -44,7 +44,7 @@ import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRe
 
 import java.util.List;
 
-public class LauncherServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
+public class LauncherServices extends AbstractPluginServiceRegistry implements GradleUserHomeScopePluginServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new ToolingGlobalScopeServices());
@@ -53,22 +53,6 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
     @Override
     public void registerGradleUserHomeServices(ServiceRegistration registration) {
         registration.addProvider(new ToolingBuildSessionScopeServices());
-    }
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     static class ToolingGlobalScopeServices {

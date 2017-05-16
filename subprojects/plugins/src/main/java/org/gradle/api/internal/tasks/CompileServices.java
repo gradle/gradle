@@ -24,24 +24,15 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
-public class CompileServices implements PluginServiceRegistry {
+public class CompileServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JvmBinaryRenderer.class);
     }
 
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
     public void registerGradleServices(ServiceRegistration registration) {
         registration.addProvider(new GradleScopeCompileServices());
-    }
-
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private static class GradleScopeCompileServices {

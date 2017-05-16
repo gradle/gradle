@@ -43,9 +43,17 @@ public interface PluginServiceRegistry {
     void registerBuildSessionServices(ServiceRegistration registration);
 
     /**
+     * Called once per execution to register any execution session scoped services.  These services are recreated when in
+     * continuous mode and shared between nested builds. They are closed when the outer most build ends.
+     *
+     * <p>Global and shared services are visible to execution scope services, but not vice versa</p>
+     */
+    void registerExecutionServices(ServiceRegistration registration);
+
+    /**
      * Called once per build, to register any build scoped services. These services are closed at the end of the build.
      *
-     * <p>Global, shared and build session scoped services are visible to the build scope services, but not vice versa.</p>
+     * <p>Global, shared, build session scoped and execution services are visible to the build scope services, but not vice versa.</p>
      */
     void registerBuildServices(ServiceRegistration registration);
 

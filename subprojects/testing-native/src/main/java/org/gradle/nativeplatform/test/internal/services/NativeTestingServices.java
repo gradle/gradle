@@ -16,32 +16,12 @@
 package org.gradle.nativeplatform.test.internal.services;
 
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinaryRenderer;
 
-public class NativeTestingServices implements PluginServiceRegistry {
+public class NativeTestingServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(NativeTestSuiteBinaryRenderer.class);
-    }
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-
     }
 }

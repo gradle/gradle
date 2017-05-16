@@ -20,24 +20,12 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 /**
  * Provides the various build initialization services.
  */
-public class BuildInitServices implements PluginServiceRegistry {
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
+public class BuildInitServices extends AbstractPluginServiceRegistry {
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeBuildInitServices());
     }

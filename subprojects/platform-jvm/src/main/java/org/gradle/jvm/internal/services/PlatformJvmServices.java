@@ -27,7 +27,7 @@ import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.internal.resolve.VariantBinarySelector;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.internal.JarBinaryRenderer;
 import org.gradle.jvm.internal.resolve.DefaultJavaPlatformVariantAxisCompatibility;
@@ -45,7 +45,7 @@ import org.gradle.process.internal.ExecActionFactory;
 
 import java.util.List;
 
-public class PlatformJvmServices implements PluginServiceRegistry {
+public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
@@ -55,20 +55,8 @@ public class PlatformJvmServices implements PluginServiceRegistry {
     }
 
     @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeServices());
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private class BuildScopeServices {

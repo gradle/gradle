@@ -40,7 +40,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.SettingScopePluginServiceRegistry;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
@@ -67,15 +67,9 @@ import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceRes
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class PluginUsePluginServiceRegistry implements PluginServiceRegistry, SettingScopePluginServiceRegistry {
+public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistry implements SettingScopePluginServiceRegistry {
 
     public static final String CACHE_NAME = "plugin-resolution";
-
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
 
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeServices());
@@ -84,12 +78,6 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry, Se
     @Override
     public void registerSettingsServices(ServiceRegistration registration) {
         registration.addProvider(new SettingsScopeServices());
-    }
-
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private static class SettingsScopeServices {

@@ -19,12 +19,12 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 
 import java.util.Arrays;
 
-public class ToolingBuilderServices implements PluginServiceRegistry {
+public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
 
@@ -41,19 +41,5 @@ public class ToolingBuilderServices implements PluginServiceRegistry {
                 return new ToolingApiSubscribableBuildActionRunnerRegistration();
             }
         });
-    }
-
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 }

@@ -25,31 +25,18 @@ import org.gradle.api.internal.tasks.compile.JavaHomeBasedJavaCompilerFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.tools.JavaCompiler;
 
-public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
-    @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
+public class JavaToolChainServiceRegistry extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new BuildSessionScopeCompileServices());
     }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeCompileServices());

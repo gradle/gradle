@@ -29,9 +29,9 @@ import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
-public class CompositeBuildServices implements PluginServiceRegistry {
+public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new CompositeBuildGlobalScopeServices());
     }
@@ -42,12 +42,6 @@ public class CompositeBuildServices implements PluginServiceRegistry {
 
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new CompositeBuildBuildScopeServices());
-    }
-
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private static class CompositeBuildGlobalScopeServices {

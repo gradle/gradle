@@ -20,28 +20,16 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
-public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
+public class PlayToolChainServiceRegistry extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(PlayApplicationBinaryRenderer.class);
-    }
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
     }
 
     @Override

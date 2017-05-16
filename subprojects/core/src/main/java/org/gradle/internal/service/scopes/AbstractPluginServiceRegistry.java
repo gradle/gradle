@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.test.internal.services;
+package org.gradle.internal.service.scopes;
 
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.jvm.test.internal.JUnitTestSuiteBinaryRenderer;
 
-public class JvmTestingServices extends AbstractPluginServiceRegistry {
+public class AbstractPluginServiceRegistry implements PluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(JUnitTestSuiteBinaryRenderer.class);
+
+    }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+
+    }
+
+    @Override
+    public void registerExecutionServices(ServiceRegistration registration) {
+
+    }
+
+    @Override
+    public void registerBuildServices(ServiceRegistration registration) {
+
+    }
+
+    @Override
+    public void registerGradleServices(ServiceRegistration registration) {
+
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+
     }
 }

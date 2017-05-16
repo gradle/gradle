@@ -19,30 +19,18 @@ package org.gradle.api.publish.maven.internal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
-import org.gradle.api.publication.maven.internal.pom.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.publication.maven.internal.MavenVersionRangeMapper;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
+import org.gradle.api.publication.maven.internal.pom.DefaultMavenFactory;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.maven.MavenModule;
 import org.gradle.maven.MavenPomArtifact;
 
-public class MavenPublishServices implements PluginServiceRegistry {
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
+public class MavenPublishServices extends AbstractPluginServiceRegistry {
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());
-    }
-
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private static class ComponentRegistrationAction {
