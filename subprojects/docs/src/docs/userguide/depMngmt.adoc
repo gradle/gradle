@@ -393,7 +393,7 @@ To do the same for project dependencies you need to declare:
 [[sec:dependency_reports]]
 ==== Dependency reports
 
-You can generate dependency reports from the command line (see <<para:commandline_dependency_report>>). With the help of the Project report plugin (see <<project_reports_plugin>>) such a report can be created by your build.
+You can generate dependency reports from the command line (see <<sec:listing_dependencies>>). With the help of the Project report plugin (see <<project_reports_plugin>>) such a report can be created by your build.
 
 Since Gradle 1.2 there is also a new programmatic API to access the resolved dependency information. The dependency reports (see the previous paragraph) are using this API under the covers. The API lets you walk the resolved dependency graph and provides information about the dependencies. In future releases the API will grow to provide more information about the resolution result. For more information about the API please refer to the Javadocs on api:org.gradle.api.artifacts.ResolvableDependencies#getResolutionResult[]. Potential usages of the api:org.gradle.api.artifacts.result.ResolutionResult[] API:
 
