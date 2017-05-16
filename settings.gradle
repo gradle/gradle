@@ -3,5 +3,6 @@ rootProject.name = 'gradle-script-kotlin'
 include 'provider',
         'tooling-models',
         'tooling-builders',
+        'compiler-plugin',
         'test-fixtures',
         'samples-tests'

@@ -14,6 +14,7 @@ base {
 dependencies {
     compileOnly(gradleApi())
 
+    compile(project(":compiler-plugin"))
     compile(project(":tooling-models"))
     compile(kotlin("stdlib"))
     compile(kotlin("reflect"))
