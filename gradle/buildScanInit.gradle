@@ -5,7 +5,7 @@ initscript {
     dependencies {
         classpath "com.gradle:build-scan-plugin:latest.integration"
     }
-    configurations.classpath.resolutionStrategy.cacheDynamicVersionsFor 1, 'DAYS'
+    configurations.classpath.resolutionStrategy.cacheDynamicVersionsFor 4, 'HOURS'
 }
 rootProject {
     apply plugin: com.gradle.scan.plugin.BuildScanPlugin
