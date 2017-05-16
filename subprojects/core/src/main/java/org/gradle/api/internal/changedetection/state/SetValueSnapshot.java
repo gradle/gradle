@@ -17,9 +17,14 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public class SetValueSnapshot implements ValueSnapshot {
+import java.util.HashSet;
+import java.util.Set;
+
+public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
     private final ImmutableSet<ValueSnapshot> elements;
 
     public SetValueSnapshot(ImmutableSet<ValueSnapshot> elements) {
@@ -66,5 +71,18 @@ public class SetValueSnapshot implements ValueSnapshot {
     @Override
     public int hashCode() {
         return elements.hashCode();
+    }
+
+    @Override
+    public Set isolate() {
+        Set set = new HashSet();
+        for (ValueSnapshot snapshot : elements) {
+            if (snapshot instanceof Isolatable) {
+                set.add(((Isolatable) snapshot).isolate());
+            } else {
+                throw new IsolationException("Attempted to isolate an object which is not Isolatable.");
+            }
+        }
+        return set;
     }
 }

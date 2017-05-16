@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Specification
 

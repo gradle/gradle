@@ -19,6 +19,10 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableEnumValueSnapshot;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableSerializedValueSnapshot;
+import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.ByteArrayOutputStream;
@@ -43,6 +47,15 @@ public class ValueSnapshotter {
      * @throws UncheckedIOException On failure to snapshot the value.
      */
     public ValueSnapshot snapshot(Object value) throws UncheckedIOException {
+        ValueSnapshot possible = internalSnapshot(value);
+        if (possible instanceof Isolatable) {
+            return possible;
+        } else {
+            return wrap(value, possible);
+        }
+    }
+    
+    private ValueSnapshot internalSnapshot(Object value) throws UncheckedIOException {
         if (value == null) {
             return NullValueSnapshot.INSTANCE;
         }
@@ -127,6 +140,17 @@ public class ValueSnapshotter {
         }
 
         return new SerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), outputStream.toByteArray());
+    }
+
+    private ValueSnapshot wrap(Object value, ValueSnapshot possible) {
+        if (possible instanceof EnumValueSnapshot) {
+            return new IsolatableEnumValueSnapshot((Enum) value);
+        }
+        if (possible instanceof SerializedValueSnapshot) {
+            SerializedValueSnapshot original = (SerializedValueSnapshot) possible;
+            return new IsolatableSerializedValueSnapshot(original.getImplementationHash(), original.getValue(), value.getClass());
+        }
+        throw new IsolationException(String.format("Could not isolate value: [%s] of type: [%s]", value, value.getClass()));
     }
 
     /**
