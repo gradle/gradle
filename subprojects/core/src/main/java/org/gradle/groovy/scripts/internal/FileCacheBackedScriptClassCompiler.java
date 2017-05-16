@@ -222,8 +222,15 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             String owner = remap(name);
-            cv.visit(version, access, owner, remap(signature), remap(superName), remapAndAddInterfaces(interfaces));
-            addContentHash(owner);
+            boolean shouldAddContentHash = shouldAddContentHash(access);
+            cv.visit(version, access, owner, remap(signature), remap(superName), remapAndAddInterfaces(interfaces, shouldAddContentHash));
+            if (shouldAddContentHash) {
+                addContentHash(owner);
+            }
+        }
+
+        private static boolean shouldAddContentHash(int access) {
+            return ((access & ACC_INTERFACE) == 0) && ((access & ACC_ANNOTATION) == 0);
         }
 
         private void addContentHash(String owner) {
@@ -241,7 +248,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             cv.visitSource(scriptSource.getFileName(), debug);
         }
 
-        private String[] remapAndAddInterfaces(String[] interfaces) {
+        private String[] remapAndAddInterfaces(String[] interfaces, boolean shouldAddContentHash) {
+            if (!shouldAddContentHash) {
+                return remap(interfaces);
+            }
             if (interfaces == null) {
                 return new String[]{WITH_CONTENT_HASH};
             }
