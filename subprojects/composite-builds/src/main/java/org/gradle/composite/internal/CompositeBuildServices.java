@@ -36,8 +36,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new CompositeBuildGlobalScopeServices());
     }
 
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.addProvider(new CompositeBuildSessionScopeServices());
+    public void registerExecutionServices(ServiceRegistration registration) {
+        registration.addProvider(new CompositeExecutionScopeServices());
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
@@ -50,7 +50,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
         }
     }
 
-    private static class CompositeBuildSessionScopeServices {
+    private static class CompositeExecutionScopeServices {
         public DefaultIncludedBuilds createIncludedBuilds() {
             return new DefaultIncludedBuilds();
         }
