@@ -33,12 +33,15 @@ import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.BuildSessionScopeServices;
+import org.gradle.internal.service.scopes.ExecutionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -79,7 +82,9 @@ public class ProjectBuilderImpl {
         startParameter.setGradleUserHomeDir(userHomeDir);
         NativeServices.initialize(userHomeDir);
 
-        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(getUserHomeServices(userHomeDir), startParameter, homeDir);
+        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, ClassPath.EMPTY);
+        ExecutionScopeServices executionScopeServices = new ExecutionScopeServices(buildSessionScopeServices);
+        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(executionScopeServices, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),

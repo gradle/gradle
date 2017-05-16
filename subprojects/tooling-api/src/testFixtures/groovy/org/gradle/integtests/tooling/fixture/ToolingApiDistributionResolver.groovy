@@ -37,6 +37,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
+import org.gradle.internal.service.scopes.ExecutionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.service.scopes.ProjectScopeServices
@@ -97,7 +98,8 @@ class ToolingApiDistributionResolver {
         def userHomeScopeServiceRegistry = globalRegistry.get(GradleUserHomeScopeServiceRegistry)
         def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)
         def sessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, ClassPath.EMPTY)
-        def topLevelRegistry = BuildScopeServices.forSession(sessionServices)
+        def executionScopeServices = new ExecutionScopeServices(sessionServices)
+        def topLevelRegistry = new BuildScopeServices(executionScopeServices)
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
 
         def workerLeaseService = sessionServices.get(WorkerLeaseService)
@@ -111,6 +113,7 @@ class ToolingApiDistributionResolver {
 
         stopLater.add(projectRegistry)
         stopLater.add(topLevelRegistry)
+        stopLater.add(executionScopeServices)
         stopLater.add(sessionServices)
         stopLater.add(new Stoppable() {
             @Override

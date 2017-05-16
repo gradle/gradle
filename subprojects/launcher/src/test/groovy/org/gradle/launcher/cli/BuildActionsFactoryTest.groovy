@@ -41,12 +41,6 @@ import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.provider.ContinuousBuildActionExecuter
-import org.gradle.tooling.internal.provider.GradleThreadBuildActionExecuter
-import org.gradle.tooling.internal.provider.ServicesSetupBuildActionExecuter
-import org.gradle.tooling.internal.provider.SessionFailureReportingActionExecuter
-import org.gradle.tooling.internal.provider.SetupLoggingActionExecuter
-import org.gradle.tooling.internal.provider.StartParamsValidatingActionExecuter
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -170,14 +164,10 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     void isInProcess(def action) {
-        assert action instanceof RunBuildAction
-        assert action.executer instanceof SetupLoggingActionExecuter
-        assert action.executer.delegate instanceof SessionFailureReportingActionExecuter
-        assert action.executer.delegate.delegate instanceof StartParamsValidatingActionExecuter
-        assert action.executer.delegate.delegate.delegate instanceof GradleThreadBuildActionExecuter
-        assert action.executer.delegate.delegate.delegate.delegate instanceof ServicesSetupBuildActionExecuter
-        assert action.executer.delegate.delegate.delegate.delegate.delegate instanceof ContinuousBuildActionExecuter
-        assert action.executer.delegate.delegate.delegate.delegate.delegate.delegate instanceof InProcessBuildActionExecuter
+        def delegate = action.executer.delegate
+        while (delegate != null && delegate instanceof InProcessBuildActionExecuter) {
+            delegate = delegate.delegate
+        }
     }
 
     void isSingleUseDaemon(def action) {

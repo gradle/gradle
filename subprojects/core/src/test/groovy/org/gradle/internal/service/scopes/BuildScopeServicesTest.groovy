@@ -125,7 +125,7 @@ class BuildScopeServicesTest extends Specification {
         sessionServices.getAll(_) >> []
         sessionServices.hasService(_) >> true
 
-        registry = new BuildScopeServices(sessionServices, startParameter)
+        registry = new BuildScopeServices(sessionServices)
     }
 
     def cleanup() {
@@ -151,7 +151,7 @@ class BuildScopeServicesTest extends Specification {
         }
 
         when:
-        new BuildScopeServices(sessionServices, startParameter)
+        new BuildScopeServices(sessionServices)
 
         then:
         1 * plugin1.registerBuildServices(_)
