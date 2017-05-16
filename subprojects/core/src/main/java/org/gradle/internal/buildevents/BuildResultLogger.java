@@ -41,12 +41,12 @@ public class BuildResultLogger extends BuildAdapter {
     }
 
     public void buildFinished(BuildResult result) {
-        boolean failed = result.getFailure() != null;
+        boolean buildSucceeded = result.getFailure() == null;
 
-        StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, failed ? LogLevel.ERROR : LogLevel.LIFECYCLE);
+        StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, buildSucceeded ? LogLevel.LIFECYCLE : LogLevel.ERROR);
         textOutput.println();
         String action = result.getAction().toUpperCase();
-        if (result.getFailure() == null) {
+        if (buildSucceeded) {
             textOutput.withStyle(SuccessHeader).text(action + " SUCCESSFUL");
         } else {
             textOutput.withStyle(FailureHeader).text(action + " FAILED");
