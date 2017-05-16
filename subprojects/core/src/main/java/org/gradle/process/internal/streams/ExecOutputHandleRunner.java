@@ -19,6 +19,7 @@ package org.gradle.process.internal.streams;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.operations.PreserveBuildOperationIdentifierRunner;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,7 +63,7 @@ public class ExecOutputHandleRunner implements Runnable {
     }
 
     public void run(Executor executor) {
-        executor.execute(this);
+        executor.execute(PreserveBuildOperationIdentifierRunner.wrap(this));
     }
 
     public void closeInput() throws IOException {

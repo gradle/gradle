@@ -25,6 +25,7 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.operations.PreserveBuildOperationIdentifierRunner;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
 import org.gradle.process.internal.streams.StreamsHandler;
@@ -231,7 +232,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             setState(ExecHandleState.STARTING);
 
             execHandleRunner = new ExecHandleRunner(this, streamsHandler, processLauncher, executorFactory);
-            executor.execute(execHandleRunner);
+            executor.execute(PreserveBuildOperationIdentifierRunner.wrap(execHandleRunner));
 
             while(stateIn(ExecHandleState.STARTING)) {
                 LOGGER.debug("Waiting until process started: {}.", displayName);

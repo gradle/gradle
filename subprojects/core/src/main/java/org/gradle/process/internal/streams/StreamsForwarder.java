@@ -62,11 +62,11 @@ public class StreamsForwarder implements StreamsHandler {
     }
 
     public void start() {
-        executor.execute(standardInputRunner);
+        standardInputRunner.run(executor);
         if (readErrorStream) {
-            executor.execute(errorOutputRunner);
+            errorOutputRunner.run(executor);
         }
-        executor.execute(standardOutputRunner);
+        standardOutputRunner.run(executor);
     }
 
     public void stop() {
