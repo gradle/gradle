@@ -107,7 +107,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("--max-workers=$threadCount")
     }
 
-    def "info is logged when overlapping outputs prevent parallel execution"() {
+    def "overlapping outputs prevent parallel execution"() {
         given:
         executer.withArgument("-i")
         withParallelThreads(2)
@@ -120,8 +120,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         blockingServer.expectSerialExecution(":aPing")
         blockingServer.expectSerialExecution(":bPing")
+
         run":aPing", ":bPing"
-        result.assertOutputContains("Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}")
     }
 
     def "independent tasks from multiple projects execute in parallel"() {
@@ -231,9 +231,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         blockingServer.expectConcurrentExecution(":bPing")
 
         run ":aPing", ":bPing"
-
-        and:
-        output.contains "Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}"
     }
 
     def "tasks are not run in parallel if destroy files overlap with output files in multiproject build"() {
@@ -250,9 +247,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         blockingServer.expectConcurrentExecution(":b:bPing")
 
         run ":a:aPing", ":b:bPing"
-
-        and:
-        output.contains "Cannot execute task :b:bPing in parallel with task :a:aPing due to overlapping output: ${file("dir")}"
     }
 
     def "tasks are not run in parallel if destroy files overlap with input files (destroy first)"() {
@@ -275,9 +269,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         blockingServer.expectConcurrentExecution(":cPing")
 
         run ":aPing", ":cPing"
-
-        and:
-        output.contains "Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("foo")}"
     }
 
     def "tasks are not run in parallel if destroy files overlap with input files (create/use first)"() {
@@ -300,12 +291,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         blockingServer.expectConcurrentExecution(":aPing")
 
         run ":cPing", ":aPing"
-
-        and:
-        output.contains "Cannot execute task :aPing in parallel with task :bPing due to overlapping output: ${file("foo")}"
-
-        and:
-        output.contains "Cannot execute task :aPing in parallel with task :cPing due to overlapping input/destroy: ${file("foo")}"
     }
 
     def "tasks are not run in parallel if destroy files overlap with input files (destroy first) in multi-project build"() {
@@ -332,9 +317,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         blockingServer.expectConcurrentExecution(":b:cPing")
 
         run ":a:aPing", ":b:cPing"
-
-        and:
-        output.contains "Cannot execute task :a:bPing in parallel with task :a:aPing due to overlapping output: ${file("foo")}"
     }
 
     def "explicit task dependency relationships are honored even if it violates destroys/creates/consumes relationships"() {
