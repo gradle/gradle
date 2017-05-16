@@ -20,7 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -71,7 +71,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * May contain duplicates.
          * Order corresponds to execution order of the actions.
          */
-        Collection<String> getActionClassLoaderHashes();
+        List<String> getActionClassLoaderHashes();
 
         /**
          * Hashes of each of the input properties.
@@ -90,7 +90,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * No duplicate values.
          * Ordered lexicographically.
          */
-        Collection<String> getOutputPropertyNames();
+        List<String> getOutputPropertyNames();
 
         /**
          * The overall hash value for the inputs.

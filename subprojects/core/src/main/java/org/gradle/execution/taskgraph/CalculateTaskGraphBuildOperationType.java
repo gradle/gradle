@@ -19,7 +19,7 @@ package org.gradle.execution.taskgraph;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Computing the task graph based on the inputs and build configuration.
@@ -41,14 +41,14 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
          * Never null.
          * Never contains duplicates.
          */
-        Collection<String> getRequestedTaskPaths();
+        List<String> getRequestedTaskPaths();
 
         /**
          * Lexicographically sorted.
          * Never null.
          * Never contains duplicates.
          */
-        Collection<String> getExcludedTaskPaths();
+        List<String> getExcludedTaskPaths();
 
     }
 

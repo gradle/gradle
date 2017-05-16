@@ -37,7 +37,6 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseService;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -220,22 +219,22 @@ public class DefaultGradleLauncher implements GradleLauncher {
             final TaskGraphExecuter taskGraph = gradle.getTaskGraph();
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
-                public Collection<String> getRequestedTaskPaths() {
+                public List<String> getRequestedTaskPaths() {
                     return toTaskPaths(taskGraph.getRequestedTasks());
                 }
 
                 @Override
-                public Collection<String> getExcludedTaskPaths() {
+                public List<String> getExcludedTaskPaths() {
                     return toTaskPaths(taskGraph.getFilteredTasks());
                 }
 
-                private Set<String> toTaskPaths(Set<Task> tasks) {
+                private List<String> toTaskPaths(Set<Task> tasks) {
                     return ImmutableSortedSet.copyOf(Collections2.transform(tasks, new Function<Task, String>() {
                         @Override
                         public String apply(Task task) {
                             return task.getPath();
                         }
-                    }));
+                    })).asList();
                 }
             });
         }

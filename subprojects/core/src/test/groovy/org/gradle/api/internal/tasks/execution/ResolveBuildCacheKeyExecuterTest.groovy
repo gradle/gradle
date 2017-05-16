@@ -155,7 +155,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         inputs.outputPropertyNames >> ["2", "1"].toSet()
 
         then:
-        adapter.outputPropertyNames == new TreeSet(["1", "2"])
+        adapter.outputPropertyNames == ["1", "2"]
 
         when:
         key.hashCode >> HashCode.fromString("ff")

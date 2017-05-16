@@ -49,7 +49,7 @@ package org.gradle.internal.operations;
  * - Should be be practically immutable
  * - Should only expose primitive(ish) JDK types, or other structured types only exposing JDK types
  * - Collection like structures should have deterministic order - either sorted, or meaningful
- * - Should expose either java.util.Collection or java.util.Map, instead of specializations
+ * - Should expose either java.util.List or java.util.Map over specialised collection types
  *
  * Implementations can assume that their getters will be called exactly 0 or 1 times.
  *
