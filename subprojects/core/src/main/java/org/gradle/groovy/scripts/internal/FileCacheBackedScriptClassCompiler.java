@@ -227,11 +227,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         private void addContentHash(String owner) {
-            cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL, "__signature", "Ljava/lang/String;", "", contentHash);
-            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "getContentHash", "()Lorg/gradle/internal/hash/HashValue;", null, null);
+            cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL, "__signature", Type.getDescriptor(String.class), "", contentHash);
+            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "getContentHash", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
             mv.visitCode();
-            mv.visitFieldInsn(GETSTATIC, owner, "__signature", "Ljava/lang/String;");
-            mv.visitMethodInsn(INVOKESTATIC, "org/gradle/internal/hash/HashValue", "parse", "(Ljava/lang/String;)Lorg/gradle/internal/hash/HashValue;", false);
+            mv.visitFieldInsn(GETSTATIC, owner, "__signature", Type.getDescriptor(String.class));
             mv.visitInsn(ARETURN);
             mv.visitMaxs(1, 1);
             mv.visitEnd();

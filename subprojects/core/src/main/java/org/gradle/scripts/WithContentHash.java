@@ -15,11 +15,9 @@
  */
 package org.gradle.scripts;
 
-import org.gradle.internal.hash.HashValue;
-
 /**
  * This interface is implemented by remapped build scripts.
  */
 public interface WithContentHash {
-    HashValue getContentHash();
+    String getContentHash();
 }

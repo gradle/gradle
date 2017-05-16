@@ -527,9 +527,9 @@ task fastTask { }
                     // need to get through reflection to bypass the Groovy MOP on closures, which would cause calling the method on the owner instead of the closure itself
                     def contentHash = o.class.getMethod('getContentHash').invoke(o)
                     assert contentHash
-                    println "Content hash for ${o.class} = ${contentHash.asHexString()}"
-                    if (!seen.add(contentHash.asHexString())) {
-                       throw new AssertionError("Expected a unique hash, but found duplicate: ${o.contentHash.asHexString()} in $seen")
+                    println "Content hash for ${o.class} = ${contentHash}"
+                    if (!seen.add(contentHash)) {
+                       throw new AssertionError("Expected a unique hash, but found duplicate: ${o.contentHash} in $seen")
                     }
                 }
                 
