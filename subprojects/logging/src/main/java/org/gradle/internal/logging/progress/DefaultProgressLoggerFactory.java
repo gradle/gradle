@@ -148,7 +148,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
 
         public void progress(String status) {
             assertRunning();
-            listener.progress(new ProgressEvent(progressOperationId, timeProvider.getCurrentTime(), category, toStatus(status)));
+            listener.progress(new ProgressEvent(progressOperationId, toStatus(status)));
         }
 
         public void completed() {
@@ -159,7 +159,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertRunning();
             state = State.completed;
             current.set(parent);
-            listener.completed(new ProgressCompleteEvent(progressOperationId, timeProvider.getCurrentTime(), category, description, toStatus(status)));
+            listener.completed(new ProgressCompleteEvent(progressOperationId, timeProvider.getCurrentTime(), toStatus(status)));
         }
 
         private String toStatus(String status) {

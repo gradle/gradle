@@ -26,17 +26,13 @@ public class ProgressEventSerializer implements Serializer<ProgressEvent> {
     @Override
     public void write(Encoder encoder, ProgressEvent event) throws Exception {
         encoder.writeSmallLong(event.getProgressOperationId().getId());
-        encoder.writeLong(event.getTimestamp());
-        encoder.writeString(event.getCategory());
         encoder.writeString(event.getStatus());
     }
 
     @Override
     public ProgressEvent read(Decoder decoder) throws Exception {
         OperationIdentifier id = new OperationIdentifier(decoder.readSmallLong());
-        long timestamp = decoder.readLong();
-        String category = decoder.readString();
         String status = decoder.readString();
-        return new ProgressEvent(id, timestamp, category, status);
+        return new ProgressEvent(id, status);
     }
 }

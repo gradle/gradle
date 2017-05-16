@@ -51,7 +51,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
         then: 0 * _
 
-        when: listener.onOutput(new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, CATEGORY, 'Complete: :foo', null))
+        when: listener.onOutput(new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, null))
 
         then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Header>> Execute :foo</Header><Normal>${GroupingProgressLogEventGenerator.EOL}</Normal>".toString() })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" })
@@ -64,8 +64,8 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, new OperationIdentifier(2L), null, BuildOperationType.TASK)
         def subtaskStartEvent = new ProgressStartEvent(new OperationIdentifier(-4L), new OperationIdentifier(-5L), tenAm, CATEGORY, ":foo subtask", "subtask", null, null, new OperationIdentifier(3L), taskStartEvent.buildOperationId, BuildOperationType.UNCATEGORIZED)
         def warningMessage = event('Child task log message', LogLevel.WARN, subtaskStartEvent.buildOperationId)
-        def subTaskCompleteEvent = new ProgressCompleteEvent(subtaskStartEvent.progressOperationId, tenAm, CATEGORY, 'Complete: subtask', 'subtask complete')
-        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, CATEGORY, 'Complete: :foo', 'UP-TO-DATE')
+        def subTaskCompleteEvent = new ProgressCompleteEvent(subtaskStartEvent.progressOperationId, tenAm, 'subtask complete')
+        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, 'UP-TO-DATE')
 
         when: listener.onOutput([taskStartEvent, subtaskStartEvent, warningMessage, subTaskCompleteEvent])
 
@@ -100,8 +100,8 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-5L), new OperationIdentifier(-6L), tenAm, CATEGORY, "Execute :b", ":b", null, null, new OperationIdentifier(3L), null, BuildOperationType.TASK)
         def taskAOutput = event('message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
         def taskBOutput = event('message for task b', LogLevel.WARN, taskBStartEvent.buildOperationId)
-        def taskBCompleteEvent = new ProgressCompleteEvent(taskBStartEvent.progressOperationId, tenAm, CATEGORY, 'Complete: :b', null)
-        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, tenAm, CATEGORY, 'Complete: :a', 'UP-TO-DATE')
+        def taskBCompleteEvent = new ProgressCompleteEvent(taskBStartEvent.progressOperationId, tenAm, null)
+        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, tenAm, 'UP-TO-DATE')
 
         when: listener.onOutput([taskAStartEvent, taskBStartEvent, taskAOutput, taskBOutput, taskBCompleteEvent, taskACompleteEvent])
 
