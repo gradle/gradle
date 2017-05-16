@@ -30,7 +30,7 @@ import spock.lang.Subject
 class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     private final OutputEventListener downstreamListener = Mock(OutputEventListener)
     def timeProvider = new MockTimeProvider()
-    @Subject listener = new GroupingProgressLogEventGenerator(downstreamListener, timeProvider)
+    @Subject listener = new GroupingProgressLogEventGenerator(downstreamListener)
 
     def "forwards logs with no group"() {
         given:
@@ -92,11 +92,6 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
         then: 1 * downstreamListener.onOutput(endBuildEvent)
         then: 0 * _
-
-        and:
-        listener.buildOpIdHierarchy.isEmpty()
-        listener.operationsInProgress.isEmpty()
-        listener.progressToBuildOpIdMap.isEmpty()
     }
 
     def "handles multiple simultaneous operations"() {
