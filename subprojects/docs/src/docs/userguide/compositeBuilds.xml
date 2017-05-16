@@ -220,7 +220,6 @@
                 <listitem><para>Better detection of dependency substitution, for build that publish with custom coordinates, builds that produce multiple components, etc. This will reduce the cases where dependency substitution needs to be explicitly declared for an included build.</para></listitem>
                 <listitem><para>The ability to target a task or tasks in an included build directly from the command line. We are currently exploring syntax options for allowing this functionality, which will remove many cases where a delegating task is required in the composite.</para></listitem>
                 <listitem><para>Execution of included builds in parallel.</para></listitem>
-                <listitem><para>Detection of changes to included builds when running with continuous build (<literal>-t</literal>).</para></listitem>
                 <listitem><para>Making the implicit <literal>buildSrc</literal> project an included build.</para></listitem>
                 <listitem><para>Supporting composite-of-composite builds.</para></listitem>
             </itemizedlist>
