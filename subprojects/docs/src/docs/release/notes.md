@@ -146,6 +146,30 @@ You can increase or decrease the size of the local build cache by configuring yo
 
 This is a _target_ size for the build cache. Gradle will periodically check if the local build cache has grown too large and trim it to below the target size. The least recently used build cache entries will be deleted first.
 
+#### Improved tracking of additional task actions
+
+When computing the build cache key for a task, Gradle takes into account all the inputs of the task. These inputs included the class name and the full classpath of the task's type since 3.0. However, Gradle was not tracking the implementation of additional actions attached to the task via `doFirst` and `doLast`.
+
+Due to this, Gradle 3.5 and before would reuse the result of the `first` task for the `second` task:
+
+    task first {
+        outputs.cacheIf { true }
+        outputs.file file("first.txt")
+        doFirst {
+            file("first.txt").text = "Hello from the first task"
+        }
+    }
+
+    task second {
+        outputs.cacheIf { true }
+        outputs.file file("second.txt")
+        doFirst {
+            file("second.txt").text = "Hello from the second task"
+        }
+    }
+
+Gradle 4.0 recognizes the two `doFirst` actions to be different, and will not reuse cached results between `first` and `second`. 
+
 ### Better modeling of tasks that delete files
 
 A task can now annotate properties with `@Destroys`  to explicitly model that a task deletes a file or collection of files.
