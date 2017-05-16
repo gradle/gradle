@@ -30,7 +30,7 @@ class SerializedOperationFinish {
     final long endTime;
 
     final Object result;
-    final Class<?> resultType;
+    final String resultClassName;
 
     final String failureMsg;
 
@@ -38,22 +38,15 @@ class SerializedOperationFinish {
         this.id = ((OperationIdentifier) descriptor.getId()).getId();
         this.endTime = finishEvent.getEndTime();
         this.result = finishEvent.getResult();
-        this.resultType = result == null ? null : finishEvent.getResult().getClass();
+        this.resultClassName = result == null ? null : finishEvent.getResult().getClass().getName();
         this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().getMessage();
     }
 
-    SerializedOperationFinish(Map<String, ?> map) throws ClassNotFoundException {
+    SerializedOperationFinish(Map<String, ?> map) {
         this.id = map.get("id");
         this.endTime = (Long) map.get("endTime");
         this.result = map.get("result");
-
-        Object resultTypeString = map.get("resultType");
-        if (resultTypeString != null) {
-            this.resultType = getClass().getClassLoader().loadClass(resultTypeString.toString());
-        } else {
-            this.resultType = null;
-        }
-
+        this.resultClassName = (String) map.get("resultClassName");
         this.failureMsg = (String) map.get("failure");
     }
 
@@ -66,7 +59,7 @@ class SerializedOperationFinish {
 
         if (result != null) {
             map.put("result", result);
-            map.put("resultType", resultType.getName());
+            map.put("resultClassName", resultClassName);
         }
 
         if (failureMsg != null) {

@@ -23,11 +23,11 @@ import org.gradle.caching.internal.BuildCacheHasher;
  * Identifies a type in a classloader hierarchy. The type is identified by its name,
  * the classloader hierarchy by its hash code.
  */
-public class TypeImplementation {
+public class ImplementationSnapshot implements Snapshot {
     private final String typeName;
     private final HashCode classLoaderHash;
 
-    public TypeImplementation(String typeName, HashCode classLoaderHash) {
+    public ImplementationSnapshot(String typeName, HashCode classLoaderHash) {
         this.typeName = typeName;
         this.classLoaderHash = classLoaderHash;
     }
@@ -47,8 +47,9 @@ public class TypeImplementation {
         return classLoaderHash == null;
     }
 
+    @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putString(TypeImplementation.class.getName());
+        hasher.putString(ImplementationSnapshot.class.getName());
         hasher.putString(typeName);
         hasher.putHash(classLoaderHash);
     }
@@ -62,7 +63,7 @@ public class TypeImplementation {
             return false;
         }
 
-        TypeImplementation that = (TypeImplementation) o;
+        ImplementationSnapshot that = (ImplementationSnapshot) o;
 
         if (!typeName.equals(that.typeName)) {
             return false;

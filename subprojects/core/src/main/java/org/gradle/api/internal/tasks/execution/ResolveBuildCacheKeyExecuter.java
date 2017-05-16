@@ -39,7 +39,7 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
@@ -155,7 +155,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
 
         @Override
-        public Collection<String> getActionClassLoaderHashes() {
+        public List<String> getActionClassLoaderHashes() {
             return Lists.transform(key.getInputs().getActionClassLoaderHashes(), new Function<HashCode, String>() {
                 @Override
                 public String apply(HashCode input) {
@@ -165,9 +165,14 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
 
         @Override
-        public Collection<String> getOutputPropertyNames() {
+        public List<String> getActionClassNames() {
+            return key.getInputs().getActionClassNames();
+        }
+
+        @Override
+        public List<String> getOutputPropertyNames() {
             // Copy should be a NOOP as this is an immutable sorted set upstream.
-            return ImmutableSortedSet.copyOf(key.getInputs().getOutputPropertyNames());
+            return ImmutableSortedSet.copyOf(key.getInputs().getOutputPropertyNames()).asList();
         }
 
         @Nullable
