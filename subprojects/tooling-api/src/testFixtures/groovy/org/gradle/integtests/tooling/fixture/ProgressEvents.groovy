@@ -83,6 +83,7 @@ class ProgressEvents implements ProgressListener {
                             || descriptor.displayName.startsWith('Resolve artifacts')
                             || descriptor.displayName.startsWith('Executing ')
                             || descriptor.displayName.startsWith('Resolving ')
+                            || descriptor.displayName.startsWith('Receiving test log event')
                         ) {
                             // Ignore this for now
                         } else {
