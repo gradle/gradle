@@ -99,16 +99,9 @@ public class TaskExecutionServices {
                                     BuildCacheService buildCacheService,
                                     StartParameter startParameter,
                                     ListenerManager listenerManager,
-                                    GradleInternal gradle,
                                     TaskOutputOriginFactory taskOutputOriginFactory,
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker) {
-        // TODO - need a more comprehensible way to only collect inputs for the outer build
-        //      - we are trying to ignore buildSrc here, but also avoid weirdness with use of GradleBuild tasks
-        boolean isOuterBuild = gradle.getParent() == null;
-        TaskInputsListener taskInputsListener = isOuterBuild
-            ? listenerManager.getBroadcaster(TaskInputsListener.class)
-            : TaskInputsListener.NOOP;
 
         boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
@@ -138,7 +131,7 @@ public class TaskExecutionServices {
             executer = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), executer, buildOperationExecutor);
         }
         executer = new ValidatingTaskExecuter(executer);
-        executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executer);
+        executer = new SkipEmptySourceFilesTaskExecuter(listenerManager.getBroadcaster(TaskInputsListener.class), executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
         executer = new SkipTaskWithNoActionsExecuter(executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
