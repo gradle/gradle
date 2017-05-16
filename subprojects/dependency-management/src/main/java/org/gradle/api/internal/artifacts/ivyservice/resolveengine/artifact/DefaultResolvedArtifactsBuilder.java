@@ -39,7 +39,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final Map<Long, Set<ArtifactSet>> sortedNodeIds = newLinkedHashMap();
     private final boolean buildProjectDependencies;
-    private final Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
+    private final Map<Long, ArtifactSet> artifactSetsById = newLinkedHashMap();
     private final Set<Long> buildableArtifactSets = new HashSet<Long>();
     private final ResolutionStrategy.SortOrder sortOrder;
 
@@ -55,7 +55,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         }
         List<DependencyGraphNode> sortedNodeList = getSortedNodeList(root);
         for (DependencyGraphNode node : sortedNodeList) {
-            sortedNodeIds.put(node.getNodeId(), Sets.<ArtifactSet>newHashSet());
+            sortedNodeIds.put(node.getNodeId(), Sets.<ArtifactSet>newLinkedHashSet());
         }
     }
 
@@ -89,16 +89,16 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
+    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifacts) {
+        collectArtifactsFor(from, artifacts);
+        artifactSetsById.put(artifacts.getId(), artifacts);
+        buildableArtifactSets.add(artifacts.getId());
     }
 
     @Override
     public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
-        if (sortOrder != ResolutionStrategy.SortOrder.DEFAULT) {
-            sortedNodeIds.get(to.getNodeId()).add(artifacts);
-        } else {
-            artifactSets.put(artifacts.getId(), artifacts);
-        }
+        collectArtifactsFor(to, artifacts);
+        artifactSetsById.put(artifacts.getId(), artifacts);
 
         // Don't collect build dependencies if not required
         if (!buildProjectDependencies) {
@@ -127,26 +127,29 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         buildableArtifactSets.add(artifacts.getId());
     }
 
+    private void collectArtifactsFor(DependencyGraphNode node, ArtifactSet artifacts) {
+        if (sortOrder != ResolutionStrategy.SortOrder.DEFAULT) {
+            sortedNodeIds.get(node.getNodeId()).add(artifacts);
+        } else {
+            Set<ArtifactSet> artifactSets = sortedNodeIds.get(node.getNodeId());
+            if (artifactSets == null) {
+                artifactSets = Sets.newLinkedHashSet();
+                sortedNodeIds.put(node.getNodeId(), artifactSets);
+            }
+            artifactSets.add(artifacts);
+        }
+    }
+
     @Override
     public void finishArtifacts() {
     }
 
     public VisitedArtifactsResults complete() {
         Map<Long, ArtifactSet> artifactsById = newLinkedHashMap();
-
-        if (sortOrder != ResolutionStrategy.SortOrder.DEFAULT) {
-            for (Set<ArtifactSet> sets : sortedNodeIds.values()) {
-                for (ArtifactSet set : sets) {
-                    artifactsById.put(set.getId(), set.snapshot());
-                }
-            }
-        } else {
-            for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
-                ArtifactSet resolvedArtifacts = entry.getValue().snapshot();
-                artifactsById.put(entry.getKey(), resolvedArtifacts);
-            }
+        for (Map.Entry<Long, ArtifactSet> entry : artifactSetsById.entrySet()) {
+            artifactsById.put(entry.getKey(), entry.getValue().snapshot());
         }
 
-        return new DefaultVisitedArtifactResults(artifactsById, buildableArtifactSets);
+        return new DefaultVisitedArtifactResults(sortedNodeIds, artifactsById, buildableArtifactSets);
     }
 }

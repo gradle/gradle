@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -29,7 +27,6 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import java.util.Map;
 
 public class FileDependencyCollectingGraphVisitor implements DependencyArtifactsVisitor {
-    private final SetMultimap<Long, ArtifactSet> filesByNodeId = LinkedHashMultimap.create();
     private final Map<FileCollectionDependency, ArtifactSet> rootFiles = Maps.newLinkedHashMap();
 
     @Override
@@ -45,7 +42,6 @@ public class FileDependencyCollectingGraphVisitor implements DependencyArtifacts
         if (node.isRoot()) {
             rootFiles.put(fileDependency.getSource(), artifactSet);
         }
-        filesByNodeId.put(node.getNodeId(), artifactSet);
     }
 
     @Override
@@ -53,6 +49,6 @@ public class FileDependencyCollectingGraphVisitor implements DependencyArtifacts
     }
 
     public VisitedFileDependencyResults complete() {
-        return new DefaultVisitedFileDependencyResults(filesByNodeId, rootFiles);
+        return new DefaultVisitedFileDependencyResults(rootFiles);
     }
 }

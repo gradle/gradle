@@ -256,6 +256,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.artifact.expectGetBroken()
         m4.artifact.expectGetBroken()
         m4.artifact.expectGetBroken()
+        m4.artifact.expectGetBroken()
+        m4.artifact.expectGetBroken()
 
         expect:
         succeeds "validate"

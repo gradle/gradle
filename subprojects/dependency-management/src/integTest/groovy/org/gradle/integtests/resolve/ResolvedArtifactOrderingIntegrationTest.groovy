@@ -27,40 +27,62 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
             rootProject.name = 'root'
 """
         buildFile << """
-            version = '1.0'
-            repositories {
-                maven { url '$mavenRepo.uri' }
-            }
-            configurations {
-                unordered
-                consumerFirst
-                dependencyFirst
+            allprojects {
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+                configurations {
+                    common
+                    create("default") { extendsFrom common }
+                    unordered { extendsFrom common }
+                    consumerFirst { extendsFrom common }
+                    dependencyFirst { extendsFrom common }
+                }
             }
             dependencies {
-                unordered "org.test:A:1.0"
-                consumerFirst "org.test:A:1.0"
-                dependencyFirst "org.test:A:1.0"
+                common "org.test:A:1.0"
             }
             configurations.consumerFirst.resolutionStrategy.sortArtifacts(ResolutionStrategy.SortOrder.CONSUMER_FIRST)
             configurations.dependencyFirst.resolutionStrategy.sortArtifacts(ResolutionStrategy.SortOrder.DEPENDENCY_FIRST)
 """
     }
 
-    private void checkOrdered(List<MavenModule> ordered) {
+    private void checkOrdered(List<?> ordered) {
         checkArtifacts("consumerFirst", ordered)
         checkArtifacts("dependencyFirst", Lists.reverse(ordered))
     }
 
-    private void checkUnordered(List<MavenModule> unordered) {
+    private void checkUnordered(List<?> unordered) {
         checkArtifacts("unordered", unordered)
     }
 
-    private void checkArtifacts(String name, List<MavenModule> modules) {
-        def fileNames = modules.collect({"'${it.artifactFile.name}'"}).join(',')
+    private void checkLegacyOrder(List<?> ordered) {
+        checkLegacyArtifacts("unordered", ordered)
+        checkLegacyArtifacts("consumerFirst", ordered)
+        checkLegacyArtifacts("dependencyFirst", ordered)
+    }
+
+    private void checkLegacyArtifacts(String name, List<?> modules) {
+        def fileNames = toFileNames(modules).join(',')
+        buildFile << """
+            task checkLegacy${name} {
+                doLast {
+                    assert configurations.${name}.resolvedConfiguration.getFiles { true }.collect { it.name } == [${fileNames}]
+                    assert configurations.${name}.files { true }.collect { it.name } == [${fileNames}]
+                }
+            }
+"""
+
+        assert succeeds("checkLegacy${name}")
+    }
+
+    private void checkArtifacts(String name, List<?> modules) {
+        def fileNames = toFileNames(modules).join(',')
         buildFile << """
             task check${name} {
                 doLast {
                     assert configurations.${name}.collect { it.name } == [${fileNames}]
+                    assert configurations.${name}.resolvedConfiguration.files.collect { it.name } == [${fileNames}]
                     assert configurations.${name}.incoming.artifactView{}.files.collect { it.name } == [${fileNames}]
                     assert configurations.${name}.incoming.artifactView{}.artifacts.collect { it.file.name } == [${fileNames}]
                 }
@@ -68,6 +90,10 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 """
 
         assert succeeds("check${name}")
+    }
+
+    private List<GString> toFileNames(List<?> modules) {
+        modules.collect { it instanceof MavenModule ? "'${it.artifactFile.name}'" : "'${it}'" }
     }
 
     def "artifact collection has resolved artifact files and metadata 1"() {
@@ -80,6 +106,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         then:
         checkOrdered([modA, modB, modC, modD])
         checkUnordered([modA, modB, modC, modD])
+        checkLegacyOrder([modA, modC, modD, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata 2"() {
@@ -92,6 +119,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         then:
         checkOrdered([modA, modB, modC, modD])
         checkUnordered([modA, modB, modD, modC])
+        checkLegacyOrder([modA, modD, modB, modC])
     }
 
     def "artifact collection has resolved artifact files and metadata 3"() {
@@ -104,6 +132,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         then:
         checkOrdered([modA, modB, modC, modD])
         checkUnordered([modA, modD, modB, modC])
+        checkLegacyOrder([modA, modB, modC, modD])
     }
 
     def "artifact collection has resolved artifact files and metadata 4"() {
@@ -116,6 +145,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         then:
         checkOrdered([modA, modB, modC, modD])
         checkUnordered([modA, modB, modD, modC])
+        checkLegacyOrder([modA, modC, modD, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata 5"() {
@@ -128,6 +158,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         then:
         checkOrdered([modA, modB, modC, modD])
         checkUnordered([modA, modB, modC, modD])
+        checkLegacyOrder([modA, modD, modC, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata 6"() {
@@ -140,6 +171,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         then:
         checkOrdered([modA, modB, modC, modD])
         checkUnordered([modA, modD, modB, modC])
+        checkLegacyOrder([modA, modC, modD, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata cycle"() {
@@ -153,5 +185,54 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         then:
         checkOrdered([modA, modB, modC, modD])
         checkUnordered([modA, modB, modC, modD])
+        checkLegacyOrder([modA, modB, modC, modD])
+    }
+
+    def "project and external and file dependencies are ordered"() {
+        when:
+        def modD = mavenRepo.module("org.test", "D").publish()
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modC).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modC).publish()
+
+        settingsFile << "include 'a', 'b', 'c'"
+        buildFile << """
+            allprojects {
+                artifacts {
+                    common file("\${project.name}.jar")
+                }
+            }
+            dependencies {
+                common files("root-lib.jar")
+                common project(":a")
+            }
+            project(":a") {
+                dependencies {
+                    common files("a-lib.jar")
+                    common project(":b")
+                    common "org.test:B:1.0"
+                }
+            }
+            project(":b") {
+                dependencies {
+                    common project(":c")
+                    common files("b-lib.jar")
+                }
+            }
+            project(":c") {
+                dependencies {
+                    common "org.test:C:1.0"
+                    common files("c-lib.jar")
+                }
+            }
+"""
+
+        then:
+        // TODO - fix consumer-first ordering (B should be ordered before C)
+        // TODO - fix dependency-first ordering (file dependencies should be ordered before project artifacts)
+        checkArtifacts('consumerFirst', ['root-lib.jar', modA, 'a.jar', 'a-lib.jar', 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modB, modD])
+        checkArtifacts('dependencyFirst', [modD, modC, modB, 'c.jar', 'c-lib.jar', 'b.jar', 'b-lib.jar', 'a.jar', 'a-lib.jar', modA, 'root-lib.jar'])
+        checkUnordered(['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modC, 'b.jar', 'b-lib.jar', modB,  modD, 'c.jar', 'c-lib.jar'])
+        checkLegacyOrder(['root-lib.jar', modA, 'a.jar', modC, modD, 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar'])
     }
 }

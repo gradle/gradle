@@ -296,9 +296,9 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        outputContains("variants: [{artifactType=size}, {artifactType=size}, {artifactType=size, usage=api}]")
-        outputContains("ids: [lib1.size, lib1.jar.txt (lib1.jar), lib2.size (project :lib)]")
-        outputContains("components: [lib1.size, lib1.jar, project :lib]")
+        outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size}, {artifactType=size}]")
+        outputContains("ids: [lib2.size (project :lib), lib1.size, lib1.jar.txt (lib1.jar)]")
+        outputContains("components: [project :lib, lib1.size, lib1.jar]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.size")
         file("app/build/libs/lib1.jar.txt").text == "9"
         file("app/build/libs/lib1.size").text == "some text"

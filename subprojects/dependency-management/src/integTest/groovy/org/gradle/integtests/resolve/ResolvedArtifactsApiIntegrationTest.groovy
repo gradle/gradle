@@ -107,12 +107,12 @@ task show {
         run 'show'
 
         then:
-        outputContains("files: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar]")
-        outputContains("ids: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar (project :a), test.jar (org:test:1.0), b.jar (project :b), test2.jar (org:test2:1.0)]")
-        outputContains("unique ids: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar (project :a), test.jar (org:test:1.0), b.jar (project :b), test2.jar (org:test2:1.0)]")
-        outputContains("display-names: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar (project :a), test.jar (org:test:1.0), b.jar (project :b), test2.jar (org:test2:1.0)]")
-        outputContains("components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0]")
-        outputContains("unique components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0]")
+        outputContains("files: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar]")
+        outputContains("ids: [test-lib.jar, a.jar (project :a), a-lib.jar, test.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2.jar (org:test2:1.0)]")
+        outputContains("unique ids: [test-lib.jar, a.jar (project :a), a-lib.jar, test.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2.jar (org:test2:1.0)]")
+        outputContains("display-names: [test-lib.jar, a.jar (project :a), a-lib.jar, test.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2.jar (org:test2:1.0)]")
+        outputContains("components: [test-lib.jar, project :a, a-lib.jar, org:test:1.0, project :b, b-lib.jar, org:test2:1.0]")
+        outputContains("unique components: [test-lib.jar, project :a, a-lib.jar, org:test:1.0, project :b, b-lib.jar, org:test2:1.0]")
         outputContains("variants: [{artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}]")
 
         where:
@@ -612,11 +612,11 @@ task show {
         run 'show'
 
         then:
-        outputContains("files: [lib.jar, a/lib.jar, b/lib.jar, a/one/lib.jar, a/two/lib.jar, lib.jar, lib.jar]")
-        outputContains("ids: [lib.jar, lib.jar, lib.jar, lib.jar (project :a), lib.jar (project :a), lib.jar (project :a), lib.jar (project :b)]")
-        outputContains("unique ids: [lib.jar, lib.jar, lib.jar, lib.jar (project :a), lib.jar (project :a), lib.jar (project :a), lib.jar (project :b)]")
-        outputContains("components: [lib.jar, lib.jar, lib.jar, project :a, project :a, project :a, project :b]")
-        outputContains("unique components: [lib.jar, lib.jar, lib.jar, project :a, project :b]")
+        outputContains("files: [lib.jar, a/one/lib.jar, a/two/lib.jar, lib.jar, a/lib.jar, lib.jar, b/lib.jar]")
+        outputContains("ids: [lib.jar, lib.jar (project :a), lib.jar (project :a), lib.jar (project :a), lib.jar, lib.jar (project :b), lib.jar]")
+        outputContains("unique ids: [lib.jar, lib.jar (project :a), lib.jar (project :a), lib.jar (project :a), lib.jar, lib.jar (project :b), lib.jar]")
+        outputContains("components: [lib.jar, project :a, project :a, project :a, lib.jar, project :b, lib.jar]")
+        outputContains("unique components: [lib.jar, project :a, lib.jar, project :b, lib.jar]")
 
         where:
         expression                                                    | _

@@ -733,7 +733,7 @@ allprojects {
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+        output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
 
         output.count("Transforming") == 2
         isTransformed("dir1.classes", "dir1.classes.txt")
@@ -745,7 +745,7 @@ allprojects {
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+        output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
 
         output.count("Transforming") == 0
 
@@ -756,7 +756,7 @@ allprojects {
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+        output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
 
         output.count("Transforming") == 2
         isTransformed("dir1.classes", "dir1.classes.txt")
@@ -768,7 +768,7 @@ allprojects {
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+        output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
 
         output.count("Transforming") == 0
     }
@@ -856,14 +856,14 @@ allprojects {
         run "src1", ":app:resolve", "src2", ":util:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+        output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
         output.count("Transforming") == 4
 
         when:
         run ":app:resolve", ":util:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+        output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
         output.count("Transforming") == 0
     }
 
@@ -941,7 +941,7 @@ allprojects {
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, dir1.classes]") == 2
+        output.count("files: [dir1.classes, lib1.jar.txt]") == 2
 
         output.count("Transforming") == 2
         isTransformed("dir1.classes", "dir1.classes")
@@ -953,7 +953,7 @@ allprojects {
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, dir1.classes]") == 2
+        output.count("files: [dir1.classes, lib1.jar.txt]") == 2
 
         output.count("Transforming") == 0
 
@@ -964,7 +964,7 @@ allprojects {
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, dir1.classes]") == 2
+        output.count("files: [dir1.classes, lib1.jar.txt]") == 2
 
         output.count("Transforming") == 2
         isTransformed("dir1.classes", "dir1.classes")
@@ -976,7 +976,7 @@ allprojects {
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, dir1.classes]") == 2
+        output.count("files: [dir1.classes, lib1.jar.txt]") == 2
 
         output.count("Transforming") == 0
     }
