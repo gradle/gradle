@@ -61,12 +61,7 @@ public class SerializedValueSnapshot implements ValueSnapshot {
             }
 
             // Deserialize the old value and use the equals() implementation. This will be removed at some point
-            Object oldValue;
-            try {
-                oldValue = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), value.getClass().getClassLoader()).readObject();
-            } catch (Exception e) {
-                throw new UncheckedIOException(e);
-            }
+            Object oldValue = populateClass(value.getClass());
             if (oldValue.equals(value)) {
                 // Same value
                 return this;
@@ -96,6 +91,16 @@ public class SerializedValueSnapshot implements ValueSnapshot {
         }
         SerializedValueSnapshot other = (SerializedValueSnapshot) obj;
         return Objects.equal(implementationHash, other.implementationHash) && Arrays.equals(serializedValue, other.serializedValue);
+    }
+
+    protected  Object populateClass(Class<?> originalClass) {
+        Object populated;
+        try {
+            populated = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), originalClass.getClassLoader()).readObject();
+        } catch (Exception e) {
+            throw new UncheckedIOException(e);
+        }
+        return populated;
     }
 
     @Override

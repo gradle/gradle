@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+
 /**
  * A snapshot of an immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
  *

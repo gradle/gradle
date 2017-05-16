@@ -17,11 +17,14 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.BuildCacheHasher;
 
+import java.util.HashMap;
 import java.util.Map;
 
-public class MapValueSnapshot implements ValueSnapshot {
+public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
     private final ImmutableMap<ValueSnapshot, ValueSnapshot> entries;
 
     public MapValueSnapshot(ImmutableMap<ValueSnapshot, ValueSnapshot> entries) {
@@ -69,5 +72,18 @@ public class MapValueSnapshot implements ValueSnapshot {
     @Override
     public int hashCode() {
         return entries.hashCode();
+    }
+
+    @Override
+    public Map isolate() {
+        Map map = new HashMap();
+        for (ValueSnapshot key : entries.keySet()) {
+            if (key instanceof Isolatable && entries.get(key) instanceof Isolatable) {
+                map.put(((Isolatable) key).isolate(), ((Isolatable) entries.get(key)).isolate());
+            } else {
+                throw new IsolationException("Attempted to isolate an object which is not Isolatable.");
+            }
+        }
+        return map;
     }
 }
