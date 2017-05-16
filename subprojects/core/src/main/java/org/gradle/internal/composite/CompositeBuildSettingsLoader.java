@@ -52,11 +52,6 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
         if (!includedBuilds.isEmpty()) {
             gradle.setIncludedBuilds(includedBuilds);
-
-            if (gradle.getStartParameter().isContinuous()) {
-                LOGGER.warn("[composite-build] Warning: continuous build doesn't detect changes in included builds.");
-            }
-
             compositeContextBuilder.addIncludedBuilds(includedBuilds);
         }
 
