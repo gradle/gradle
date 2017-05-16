@@ -652,8 +652,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private boolean canRunWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
-        TaskInternal task = taskInfo.getTask();
-
         Set<String> candidateTaskDestroyables = getDestroyablePaths(taskInfo);
 
         if (!candidateTaskDestroyables.isEmpty() && !taskInfo.getTask().getOutputs().getFileProperties().isEmpty()) {
@@ -669,18 +667,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             Set<String> candidateTaskMutations = !candidateTaskOutputs.isEmpty() ? candidateTaskOutputs : candidateTaskDestroyables;
             Pair<TaskInfo, String> overlap = firstRunningTaskWithOverlappingMutations(candidateTaskMutations);
             if (overlap != null) {
-                LOGGER.info("Cannot execute task {} in parallel with task {} due to overlapping output: {}", task.getPath(), overlap.left.getTask().getPath(), overlap.right);
                 return false;
             }
         }
 
         Pair<TaskInfo, String> overlap = firstTaskWithDestroyedIntermediateInput(taskInfo, candidateTaskDestroyables);
         if (overlap != null) {
-            if (runningTasks.contains(overlap.left)) {
-                LOGGER.info("Cannot execute task {} in parallel with task {} due to overlapping input/destroy: {}", task.getPath(), overlap.left.getTask().getPath(), overlap.right);
-            } else {
-                LOGGER.info("Cannot execute task {} because task {} has not executed and has an overlapping input/destroy: {}", task.getPath(), overlap.left.getTask().getPath(), overlap.right);
-            }
             return false;
         }
 
