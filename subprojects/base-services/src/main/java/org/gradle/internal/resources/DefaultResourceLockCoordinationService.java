@@ -55,6 +55,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                             }
                             break;
                         case FINISHED:
+                            maybeNotifyStateChange(resourceLockState);
                             return true;
                         case FAILED:
                             releaseLocks(resourceLockState);
@@ -82,29 +83,48 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
-    @Override
-    public void notifyStateChange() {
+    private void maybeNotifyStateChange(DefaultResourceLockState resourceLockState) {
+        if (!resourceLockState.getUnlockedResources().isEmpty()) {
+            notifyStateChange();
+        }
+    }
+
+    private void notifyStateChange() {
         synchronized (lock) {
             lock.notifyAll();
         }
     }
 
-    private void releaseLocks(DefaultResourceLockState stateLock) {
-        for (ResourceLock resourceLock : stateLock.getResourceLocks()) {
+    private void releaseLocks(DefaultResourceLockState resourceLockState) {
+        for (ResourceLock resourceLock : Lists.newArrayList(resourceLockState.getLockedResources())) {
             resourceLock.unlock();
         }
     }
 
     private static class DefaultResourceLockState implements ResourceLockState {
-        private final Set<ResourceLock> resourceLocks = Sets.newHashSet();
+        private final Set<ResourceLock> lockedResources = Sets.newHashSet();
+        private final Set<ResourceLock> unlockedResources = Sets.newHashSet();
 
         @Override
         public void registerLocked(ResourceLock resourceLock) {
-            resourceLocks.add(resourceLock);
+            if (!unlockedResources.remove(resourceLock)) {
+                lockedResources.add(resourceLock);
+            }
         }
 
-        Set<ResourceLock> getResourceLocks() {
-            return resourceLocks;
+        @Override
+        public void registerUnlocked(ResourceLock resourceLock) {
+            if (!lockedResources.remove(resourceLock)) {
+                unlockedResources.add(resourceLock);
+            }
+        }
+
+        Set<ResourceLock> getLockedResources() {
+            return lockedResources;
+        }
+
+        public Set<ResourceLock> getUnlockedResources() {
+            return unlockedResources;
         }
     }
 
