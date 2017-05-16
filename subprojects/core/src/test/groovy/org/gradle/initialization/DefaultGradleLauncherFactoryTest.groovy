@@ -25,6 +25,7 @@ import org.gradle.internal.scan.config.BuildScanConfigProvider
 import org.gradle.internal.scan.config.BuildScanPluginMetadata
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
+import org.gradle.internal.service.scopes.ExecutionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -39,12 +40,14 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     final def globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
     final def userHomeServices = globalServices.get(GradleUserHomeScopeServiceRegistry).getServicesFor(tmpDir.createDir("user-home"))
     final def sessionServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY)
+    final def executionServices = new ExecutionScopeServices(sessionServices)
     final def listenerManager = globalServices.get(ListenerManager)
     final def progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
     final def userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
-    final def factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
+    final def factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry)
 
     def cleanup() {
+        executionServices.close()
         sessionServices.close()
         userHomeScopeServiceRegistry.release(userHomeServices)
         globalServices.close()
@@ -59,7 +62,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         }
 
         expect:
-        def launcher = factory.newInstance(startParameter, requestContext, sessionServices)
+        def launcher = factory.newInstance(startParameter, requestContext, executionServices)
         launcher.gradle.parent == null
         launcher.gradle.startParameter == startParameter
         launcher.gradle.services.get(BuildRequestMetaData) == requestContext
@@ -77,7 +80,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
             getEventConsumer() >> eventConsumer
         }
 
-        def parent = factory.newInstance(startParameter, requestContext, sessionServices);
+        def parent = factory.newInstance(startParameter, requestContext, executionServices)
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:
@@ -97,7 +100,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         startParameter.setBuildScan(true)
 
         when:
-        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), executionServices)
         def c = buildScanConfig(launcher)
 
         then:
@@ -110,7 +113,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         startParameter.setNoBuildScan(true)
 
         when:
-        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), executionServices)
         def c = buildScanConfig(launcher)
 
         then:
@@ -120,7 +123,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
 
     def "marks BuildScanRequest as neither enabled or disabled when no parameter is set"() {
         when:
-        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), executionServices)
         def c = buildScanConfig(launcher)
 
         then:

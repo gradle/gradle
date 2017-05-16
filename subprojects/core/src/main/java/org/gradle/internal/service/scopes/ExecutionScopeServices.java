@@ -30,7 +30,11 @@ public class ExecutionScopeServices extends DefaultServiceRegistry {
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    pluginServiceRegistry.registerExecutionServices(registration);
+                    try {
+                        pluginServiceRegistry.registerExecutionServices(registration);
+                    } catch (AbstractMethodError error) {
+                        // TODO(slg): ignore until we update GSK.
+                    }
                 }
             }
         });

@@ -32,6 +32,7 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
+import org.gradle.launcher.exec.ExecutionServicesBuildActionExecuter;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.launcher.exec.RunAsBuildOperationBuildActionRunner;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
@@ -72,12 +73,13 @@ public class LauncherServices extends AbstractPluginServiceRegistry implements G
                         new GradleThreadBuildActionExecuter(
                             new ServicesSetupBuildActionExecuter(
                                 new ContinuousBuildActionExecuter(
-                                    new InProcessBuildActionExecuter(gradleLauncherFactory,
-                                        new SubscribableBuildActionRunner(
-                                            new RunAsBuildOperationBuildActionRunner(
-                                                new ValidatingBuildActionRunner(
-                                                    new ChainingBuildActionRunner(buildActionRunners))),
-                                            buildOperationListenerManager, registrations)),
+                                    new ExecutionServicesBuildActionExecuter(
+                                        new InProcessBuildActionExecuter(gradleLauncherFactory,
+                                            new SubscribableBuildActionRunner(
+                                                new RunAsBuildOperationBuildActionRunner(
+                                                    new ValidatingBuildActionRunner(
+                                                        new ChainingBuildActionRunner(buildActionRunners))),
+                                                buildOperationListenerManager, registrations))),
                                     fileWatcherFactory,
                                     listenerManager,
                                     styledTextOutputFactory,
