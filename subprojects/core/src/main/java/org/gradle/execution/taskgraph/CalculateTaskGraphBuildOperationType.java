@@ -28,7 +28,9 @@ import java.util.Set;
  */
 public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
 
-    public static class Details {
+    @UsedByScanPlugin
+    public interface Details {
+
     }
 
     @UsedByScanPlugin
@@ -37,28 +39,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
         Set<String> getRequestedTaskPaths();
 
         Set<String> getExcludedTaskPaths();
-
-    }
-
-    public static class ResultImpl implements Result {
-
-        private final Set<String> requestedTaskPaths;
-        private final Set<String> excludedTaskPaths;
-
-        public ResultImpl(Set<String> requestedTaskPaths, Set<String> excludedTaskPaths) {
-            this.requestedTaskPaths = requestedTaskPaths;
-            this.excludedTaskPaths = excludedTaskPaths;
-        }
-
-        @Override
-        public Set<String> getRequestedTaskPaths() {
-            return requestedTaskPaths;
-        }
-
-        @Override
-        public Set<String> getExcludedTaskPaths() {
-            return excludedTaskPaths;
-        }
 
     }
 

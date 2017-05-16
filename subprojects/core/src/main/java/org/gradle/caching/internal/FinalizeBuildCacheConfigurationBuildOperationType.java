@@ -39,7 +39,8 @@ import java.util.SortedMap;
  */
 public final class FinalizeBuildCacheConfigurationBuildOperationType implements BuildOperationType<FinalizeBuildCacheConfigurationBuildOperationType.Details, FinalizeBuildCacheConfigurationBuildOperationType.Result> {
 
-    static class Details {
+    @UsedByScanPlugin
+    public interface Details {
 
     }
 
@@ -88,6 +89,10 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
             SortedMap<String, String> getConfig();
 
         }
+    }
+
+    static class DetailsImpl implements Details {
+
     }
 
     static class ResultImpl implements Result {

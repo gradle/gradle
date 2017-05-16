@@ -59,7 +59,12 @@ package org.gradle.internal.operations;
  * They should be housed in a logical package space, which may not be the same as the class
  * that executes the actual operation being represented, as often that is internal detail that may change.
  *
- * Note, some types currently have empty detail objects.
+ * All types have detail objects — some empty.
+ * This makes notification dispatching on the build scan plugin side easier.
+ * Some types have Void result types to indicate that there is no structured result.
+ * A change from a Void result type to a structured type is a compatible change,
+ * the inverse however is not.
+ *
  * This is because the presence of a detail object is the heuristic we use to
  * decide whether to forward an operation notification to the build scan plugin.
  * In such cases the build scan plugin does not use the empty type so we can change this

@@ -131,7 +131,7 @@ public class BuildCacheServiceProvider {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Finalize build cache configuration")
-                    .details(new FinalizeBuildCacheConfigurationBuildOperationType.Details());
+                    .details(new FinalizeBuildCacheConfigurationBuildOperationType.DetailsImpl());
             }
         });
     }

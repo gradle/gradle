@@ -215,14 +215,34 @@ public class DefaultGradleLauncher implements GradleLauncher {
                 projectsEvaluated();
             }
 
-            TaskGraphExecuter taskGraph = gradle.getTaskGraph();
-            buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.ResultImpl(toTaskPaths(taskGraph.getRequestedTasks()), toTaskPaths(taskGraph.getFilteredTasks())));
+            final TaskGraphExecuter taskGraph = gradle.getTaskGraph();
+            buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
+                @Override
+                public Set<String> getRequestedTaskPaths() {
+                    return toTaskPaths(taskGraph.getRequestedTasks());
+                }
+
+                @Override
+                public Set<String> getExcludedTaskPaths() {
+                    return toTaskPaths(taskGraph.getFilteredTasks());
+                }
+
+                private Set<String> toTaskPaths(Set<Task> tasks) {
+                    return CollectionUtils.collect(tasks, new Transformer<String, Task>() {
+                        @Override
+                        public String transform(Task task) {
+                            return task.getPath();
+                        }
+                    });
+                }
+            });
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName("Calculate task graph")
-                .details(new CalculateTaskGraphBuildOperationType.Details());
+                .details(new CalculateTaskGraphBuildOperationType.Details() {
+                });
         }
     }
 
@@ -238,14 +258,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private static Set<String> toTaskPaths(Set<Task> tasks) {
-        return CollectionUtils.collect(tasks, new Transformer<String, Task>() {
-            @Override
-            public String transform(Task task) {
-                return task.getPath();
-            }
-        });
-    }
 
     private boolean isConfigureOnDemand() {
         return gradle.getStartParameter().isConfigureOnDemand();
