@@ -15,10 +15,12 @@
  */
 package org.gradle.initialization;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -34,8 +36,8 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -218,22 +220,22 @@ public class DefaultGradleLauncher implements GradleLauncher {
             final TaskGraphExecuter taskGraph = gradle.getTaskGraph();
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
-                public Set<String> getRequestedTaskPaths() {
+                public Collection<String> getRequestedTaskPaths() {
                     return toTaskPaths(taskGraph.getRequestedTasks());
                 }
 
                 @Override
-                public Set<String> getExcludedTaskPaths() {
+                public Collection<String> getExcludedTaskPaths() {
                     return toTaskPaths(taskGraph.getFilteredTasks());
                 }
 
                 private Set<String> toTaskPaths(Set<Task> tasks) {
-                    return CollectionUtils.collect(tasks, new Transformer<String, Task>() {
+                    return ImmutableSortedSet.copyOf(Collections2.transform(tasks, new Function<Task, String>() {
                         @Override
-                        public String transform(Task task) {
+                        public String apply(Task task) {
                             return task.getPath();
                         }
-                    });
+                    }));
                 }
             });
         }

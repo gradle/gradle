@@ -20,9 +20,8 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.List;
-import java.util.SortedMap;
-import java.util.SortedSet;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Represents the computation of the task artifact state and the task output caching state.
@@ -60,16 +59,42 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
     @UsedByScanPlugin
     public interface Result {
 
+        /**
+         * The hash of the the classloader that loaded the task implementation.
+         */
         @Nullable
         String getClassLoaderHash();
 
-        // Order corresponds to task action order
-        List<String> getActionClassLoaderHashes();
+        /**
+         * The hash of the the classloader that loaded each of the task's actions.
+         *
+         * May contain duplicates.
+         * Order corresponds to execution order of the actions.
+         */
+        Collection<String> getActionClassLoaderHashes();
 
-        SortedMap<String, String> getInputHashes();
+        /**
+         * Hashes of each of the input properties.
+         *
+         * key = property name
+         * value = hash
+         *
+         * Ordered by key, lexicographically.
+         * No null keys or values.
+         */
+        Map<String, String> getInputHashes();
 
-        SortedSet<String> getOutputPropertyNames();
+        /**
+         * The names of the output properties.
+         *
+         * No duplicate values.
+         * Ordered lexicographically.
+         */
+        Collection<String> getOutputPropertyNames();
 
+        /**
+         * The overall hash value for the inputs.
+         */
         String getBuildCacheKey();
 
     }

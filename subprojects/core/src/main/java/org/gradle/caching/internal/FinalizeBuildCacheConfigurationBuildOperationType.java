@@ -20,7 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.SortedMap;
+import java.util.Map;
 
 /**
  * The transformation of the user's build cache config, to the effective configuration.
@@ -81,14 +81,16 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
             boolean isPush();
 
             /**
-             * May contain null values.
-             * Entries with null values are to be treated as {@code true} flag values.
+             * The advertised config parameters of the cache.
+             * No null values or keys.
+             * Ordered by key lexicographically.
              *
              * @see org.gradle.caching.BuildCacheServiceFactory.Describer#config(String, String)
              */
-            SortedMap<String, String> getConfig();
+            Map<String, String> getConfig();
 
         }
+
     }
 
     static class DetailsImpl implements Details {

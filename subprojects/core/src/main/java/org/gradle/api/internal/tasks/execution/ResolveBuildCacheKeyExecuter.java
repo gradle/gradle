@@ -39,9 +39,8 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.SortedMap;
-import java.util.SortedSet;
+import java.util.Collection;
+import java.util.Map;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
@@ -138,9 +137,10 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
 
         @Override
-        public SortedMap<String, String> getInputHashes() {
-            SortedMap<String, HashCode> inputHashes = ImmutableSortedMap.copyOf(key.getInputs().getInputHashes());
-            return Maps.transformValues(inputHashes, new Function<HashCode, String>() {
+        public Map<String, String> getInputHashes() {
+            // Should be a NOOP, as this is already an immutable sorted map upstream.
+            ImmutableSortedMap<String, HashCode> sortedInputHashes = ImmutableSortedMap.copyOf(key.getInputs().getInputHashes());
+            return Maps.transformValues(sortedInputHashes, new Function<HashCode, String>() {
                 @Override
                 public String apply(HashCode input) {
                     return input.toString();
@@ -155,7 +155,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
 
         @Override
-        public List<String> getActionClassLoaderHashes() {
+        public Collection<String> getActionClassLoaderHashes() {
             return Lists.transform(key.getInputs().getActionClassLoaderHashes(), new Function<HashCode, String>() {
                 @Override
                 public String apply(HashCode input) {
@@ -165,7 +165,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
 
         @Override
-        public SortedSet<String> getOutputPropertyNames() {
+        public Collection<String> getOutputPropertyNames() {
+            // Copy should be a NOOP as this is an immutable sorted set upstream.
             return ImmutableSortedSet.copyOf(key.getInputs().getOutputPropertyNames());
         }
 

@@ -43,17 +43,21 @@ package org.gradle.internal.operations;
  * named {@code Details} and {@code Result}.
  * However, this is not required – the types can go anywhere.
  *
- * The following additional restrictions apply to both details and result objects:
+ * The information exposed by details and results objects ultimately needs to be serialized.
+ * As such, these objects should be designed for serialization to non Java formats (e.g. JSON).
  *
- * - Should be be practically immutable to consumers
- * - Should only expose JDK types, or other structured types only exposing JDK types
- * - Unless impractical, collection like structures should have deterministic order (e.g. sorted)
- * - Should not assume they are not accessed outside of build operation notifications
+ * - Should be be practically immutable
+ * - Should only expose primitive(ish) JDK types, or other structured types only exposing JDK types
+ * - Collection like structures should have deterministic order - either sorted, or meaningful
+ * - Should expose either java.util.Collection or java.util.Map, instead of specializations
  *
- * Regarding the last point, the build scan plugin may hold on to the details and/or result
- * outside of listener callback to process it off thread.
- * It can be assumed that the objects are not held longer than is necessary to process/transform them
- * into detached representations suitable for the build scan event stream.
+ * Implementations can assume that their getters will be called exactly 0 or 1 times.
+ *
+ * The lifecycle of details and result objects are effectively undetermined.
+ * The build scan plugin will retain the objects for a short time after the operation has
+ * completed, in order to “process” them on a separate thread.
+ * It can be assumed that this processing happens relatively quickly,
+ * after which the objects are no longer retained.
  *
  * Consideration should be given to the package space of the details and result types.
  * They should be housed in a logical package space, which may not be the same as the class

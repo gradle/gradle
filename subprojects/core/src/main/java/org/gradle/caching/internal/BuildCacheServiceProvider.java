@@ -18,6 +18,7 @@ package org.gradle.caching.internal;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -38,12 +39,9 @@ import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 public class BuildCacheServiceProvider {
     private static final Logger LOGGER = Logging.getLogger(BuildCacheServiceProvider.class);
@@ -160,7 +158,8 @@ public class BuildCacheServiceProvider {
         BuildCacheServiceFactory<T> factory = instantiator.newInstance(castFactoryType);
         Describer describer = new Describer();
         BuildCacheService service = factory.createBuildCacheService(configuration, describer);
-        BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, describer.configParams);
+        ImmutableSortedMap<String, String> config = ImmutableSortedMap.copyOf(describer.configParams);
+        BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, config);
 
         logConfig(buildIdentityPath, role, description);
 
@@ -236,20 +235,11 @@ public class BuildCacheServiceProvider {
         private final String className;
         private final boolean push;
         private final String type;
-        private final SortedMap<String, String> config;
+        private final ImmutableSortedMap<String, String> config;
 
-        private BuildCacheDescription(BuildCache buildCache, String type, Map<String, String> config) {
-            this(
-                GeneratedSubclasses.unpack(buildCache.getClass()).getName(),
-                buildCache.isPush(),
-                type,
-                Collections.unmodifiableSortedMap(new TreeMap<String, String>(config))
-            );
-        }
-
-        private BuildCacheDescription(String className, boolean push, String type, SortedMap<String, String> config) {
-            this.className = className;
-            this.push = push;
+        private BuildCacheDescription(BuildCache buildCache, String type, ImmutableSortedMap<String, String> config) {
+            this.className = GeneratedSubclasses.unpack(buildCache.getClass()).getName();
+            this.push = buildCache.isPush();
             this.type = type;
             this.config = config;
         }
@@ -266,7 +256,7 @@ public class BuildCacheServiceProvider {
             return type;
         }
 
-        public SortedMap<String, String> getConfig() {
+        public Map<String, String> getConfig() {
             return config;
         }
     }
