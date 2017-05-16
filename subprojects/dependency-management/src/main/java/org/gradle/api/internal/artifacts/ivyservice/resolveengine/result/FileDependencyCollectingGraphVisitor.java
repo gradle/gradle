@@ -22,19 +22,15 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 
 import java.util.Map;
-import java.util.Set;
 
 public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor {
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
@@ -48,13 +44,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
 
     @Override
     public void start(DependencyGraphNode root) {
-        Set<LocalFileDependencyMetadata> fileDependencies = ((LocalConfigurationMetadata) root.getMetadata()).getFiles();
         rootFiles = Maps.newLinkedHashMap();
-        for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-            FileDependencyArtifactSet artifactSet = new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, artifactTypeRegistry);
-            rootFiles.put(fileDependency.getSource(), artifactSet);
-            filesByNodeId.put(root.getNodeId(), artifactSet);
-        }
     }
 
     @Override
@@ -67,19 +57,12 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
 
     @Override
     public void visitEdges(DependencyGraphNode node) {
-        // If this node has an incoming transitive dependency, then include its file dependencies in the result. Otherwise ignore
-        ConfigurationMetadata configurationMetadata = node.getMetadata();
-        if (configurationMetadata instanceof LocalConfigurationMetadata) {
-            LocalConfigurationMetadata localConfigurationMetadata = (LocalConfigurationMetadata) configurationMetadata;
-            for (DependencyGraphEdge edge : node.getIncomingEdges()) {
-                if (edge.isTransitive()) {
-                    Set<LocalFileDependencyMetadata> fileDependencies = localConfigurationMetadata.getFiles();
-                    for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-                        filesByNodeId.put(node.getNodeId(), new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, artifactTypeRegistry));
-                    }
-                    break;
-                }
+        for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
+            FileDependencyArtifactSet artifactSet = new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, artifactTypeRegistry);
+            if (node.isRoot()) {
+                rootFiles.put(fileDependency.getSource(), artifactSet);
             }
+            filesByNodeId.put(node.getNodeId(), artifactSet);
         }
     }
 

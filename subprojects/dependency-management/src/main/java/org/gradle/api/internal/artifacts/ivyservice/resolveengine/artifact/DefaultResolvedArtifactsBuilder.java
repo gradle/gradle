@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -37,7 +36,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
  * Collects all artifacts and their build dependencies.
  */
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
-    private final Map<Long, Set<ArtifactSet>> sortedNodeIds = Maps.newLinkedHashMap();
+    private final Map<Long, Set<ArtifactSet>> sortedNodeIds = newLinkedHashMap();
     private final boolean buildProjectDependencies;
     private final Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
     private final Set<Long> buildableArtifactSets = new HashSet<Long>();

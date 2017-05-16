@@ -42,6 +42,8 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
+import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -855,6 +857,11 @@ public class DependencyGraphBuilder {
         }
 
         @Override
+        public boolean isRoot() {
+            return false;
+        }
+
+        @Override
         public ResolvedConfigurationIdentifier getResolvedConfigurationId() {
             return id;
         }
@@ -877,6 +884,19 @@ public class DependencyGraphBuilder {
         @Override
         public ConfigurationMetadata getMetadata() {
             return metaData;
+        }
+
+        @Override
+        public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
+            if (metaData instanceof LocalConfigurationMetadata) {
+                // Only when this node has a transitive incoming edge
+                for (DependencyEdge incomingEdge : incomingEdges) {
+                    if (incomingEdge.isTransitive()) {
+                        return ((LocalConfigurationMetadata)metaData).getFiles();
+                    }
+                }
+            }
+            return Collections.emptySet();
         }
 
         @Override
@@ -1017,6 +1037,16 @@ public class DependencyGraphBuilder {
     private static class RootConfigurationNode extends ConfigurationNode {
         private RootConfigurationNode(Long resultId, ModuleVersionResolveState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
             super(resultId, id, moduleRevision, resolveState);
+        }
+
+        @Override
+        public boolean isRoot() {
+            return true;
+        }
+
+        @Override
+        public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
+            return ((LocalConfigurationMetadata) getMetadata()).getFiles();
         }
 
         @Override
