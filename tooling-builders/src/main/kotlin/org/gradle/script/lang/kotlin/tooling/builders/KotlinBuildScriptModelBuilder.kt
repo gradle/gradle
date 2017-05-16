@@ -17,13 +17,19 @@
 package org.gradle.script.lang.kotlin.tooling.builders
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.jvm.JvmLibrary
+import org.gradle.language.base.artifact.SourcesArtifact
 
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
+import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 import org.gradle.script.lang.kotlin.provider.gradleScriptKotlinApiOf
 import org.gradle.script.lang.kotlin.provider.kotlinScriptClassPathProviderOf
 import org.gradle.script.lang.kotlin.resolver.SourcePathProvider
@@ -50,9 +56,42 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         val implicitImports = implicitImportsOf(project)
         return StandardKotlinBuildScriptModel(
             classPath.bin.asFiles,
-            (classPath.src + sourcePath).asFiles,
+            (classPath.src + sourcePath + kotlinLibSourcesFor(project)).asFiles,
             implicitImports)
     }
+
+    private
+    fun kotlinLibSourcesFor(project: Project) =
+        project.buildscript.run {
+            if (repositories.isEmpty()) DefaultClassPath.EMPTY
+            else resolveKotlinLibSourcesUsing(dependencies)
+        }
+
+    private
+    fun resolveKotlinLibSourcesUsing(dependencyHandler: DependencyHandler): ClassPath =
+        DefaultClassPath.of(
+            dependencyHandler
+                .createArtifactResolutionQuery()
+                .forComponents(kotlinComponent("kotlin-stdlib"), kotlinComponent("kotlin-reflect"))
+                .withArtifacts(JvmLibrary::class.java, SourcesArtifact::class.java)
+                .execute()
+                .resolvedComponents
+                .flatMap { it.getArtifacts(SourcesArtifact::class.java) }
+                .filterIsInstance<ResolvedArtifactResult>()
+                .map { it.file })
+
+    private
+    fun kotlinComponent(module: String): ModuleComponentIdentifier =
+        moduleId("org.jetbrains.kotlin", module, embeddedKotlinVersion)
+
+    private
+    fun moduleId(group: String, module: String, version: String) =
+        object : ModuleComponentIdentifier {
+            override fun getGroup() = group
+            override fun getModule() = module
+            override fun getVersion() = version
+            override fun getDisplayName() = "$group:$module:$version"
+        }
 
     private
     data class ScriptClassPath(val bin: ClassPath, val src: ClassPath)

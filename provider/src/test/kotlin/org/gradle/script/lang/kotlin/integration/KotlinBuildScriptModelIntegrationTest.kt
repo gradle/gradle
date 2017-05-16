@@ -1,6 +1,7 @@
 package org.gradle.script.lang.kotlin.integration
 
 import org.gradle.script.lang.kotlin.concurrent.future
+import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 
 import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
 import org.gradle.script.lang.kotlin.fixtures.DeepThought
@@ -159,6 +160,22 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             canonicalClassPath().map { it.name },
             hasItems("gradle-hello-world-plugin-0.2.jar"))
     }
+
+    @Test
+    fun `sourcePath includes kotlin-stdlib sources`() {
+
+        withBuildScript("""
+            buildscript { repositories { gradleScriptKotlin() } }
+        """)
+
+        assertThat(
+            sourcePath().map { it.name },
+            hasItems("kotlin-stdlib-$embeddedKotlinVersion-sources.jar"))
+    }
+
+    private
+    fun sourcePath() =
+        kotlinBuildScriptModelFor(projectRoot).sourcePath
 
     private
     fun assertContainsGradleScriptKotlinApiJars(classPath: List<File>) {
