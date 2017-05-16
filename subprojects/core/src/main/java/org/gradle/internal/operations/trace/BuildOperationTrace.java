@@ -48,7 +48,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Writes files describing the build operation stream for a build.
- * Can be enabled for any build with `-Dorg.gradle.operations.trace=«path-base»`.
+ * Can be enabled for any build with `-Dorg.gradle.operations.internal.trace=«path-base»`.
  *
  * Imposes no overhead when not enabled.
  * Also used as the basis for asserting on the event stream in integration tests, via BuildOperationFixture.
@@ -73,7 +73,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  */
 public class BuildOperationTrace implements Stoppable {
 
-    public static final String SYSPROP = "org.gradle.operations.trace";
+    public static final String SYSPROP = "org.gradle.operations.internal.trace";
 
     private final String basePath;
     private final OutputStream logOutputStream;
