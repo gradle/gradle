@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.model
 
+import org.gradle.api.GradleException
 import org.gradle.api.Named
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Matchers
@@ -118,7 +119,7 @@ class DefaultObjectFactoryTest extends ConcurrentSpec {
         results.unique().size() == 1
     }
 
-    def "creates instance of abstract class"() {
+    def "creates instance of abstract Java class"() {
         expect:
         def n1 = factory.named(AbstractNamed, "a")
         def n2 = factory.named(AbstractNamed, "b")
@@ -151,7 +152,7 @@ class DefaultObjectFactoryTest extends ConcurrentSpec {
         AbstractNamed.counter == 2
     }
 
-    def "creates instance of class with dummy getName() implementation"() {
+    def "creates instance of Java class with dummy getName() implementation"() {
         expect:
         def n1 = factory.named(DummyNamed, "a")
         def n2 = factory.named(DummyNamed, "b")
@@ -184,6 +185,58 @@ class DefaultObjectFactoryTest extends ConcurrentSpec {
         DummyNamed.counter == 2
     }
 
+    def "creates instance of Groovy class with dummy getName() implementation"() {
+        expect:
+        def n1 = factory.named(DummyGroovyNamed, "a")
+        def n2 = factory.named(DummyGroovyNamed, "b")
+
+        n1.is(n1)
+        !n1.is(n2)
+
+        n1.name == "a"
+        n2.name == "b"
+
+        n1.calculatedValue == "[a]"
+        n2.calculatedValue == "[b]"
+
+        Matchers.strictlyEquals(n1, n1)
+        n2 != n1
+        !n2.equals(n1)
+
+        n1.hashCode() == n1.hashCode()
+        n1.hashCode() != n2.hashCode()
+
+        n1.toString() == "a"
+        n2.toString() == "b"
+
+        n1.is(factory.named(DummyGroovyNamed, "a"))
+        n2.is(factory.named(DummyGroovyNamed, "b"))
+
+        !n1.is(factory.named(Named, "a"))
+        !n2.is(factory.named(Named, "b"))
+    }
+
+    def "class should not have any instance fields"() {
+        when:
+        factory.named(NamedWithFields, "a")
+
+        then:
+        def e = thrown(GradleException)
+        e.message == """Type ${NamedWithFields.name} is not a valid Named implementation class:
+- Field name is not valid: A Named implementation class must not define any instance fields.
+- Field other is not valid: A Named implementation class must not define any instance fields."""
+
+        when:
+        factory.named(NamedWithFields.Sub, "a")
+
+        then:
+        e = thrown(GradleException)
+        e.message == """Type ${NamedWithFields.name}.Sub is not a valid Named implementation class:
+- Field NamedWithFields.name is not valid: A Named implementation class must not define any instance fields.
+- Field NamedWithFields.other is not valid: A Named implementation class must not define any instance fields.
+- Field b is not valid: A Named implementation class must not define any instance fields."""
+    }
+
     @Ignore
     def "interface may not have additional methods"() {
         expect: false
@@ -193,4 +246,10 @@ class DefaultObjectFactoryTest extends ConcurrentSpec {
     def "abstract class may not have additional abstract methods"() {
         expect: false
     }
+}
+
+class DummyGroovyNamed implements Named {
+    String getName() { null }
+
+    String getCalculatedValue() { "[$name]" }
 }

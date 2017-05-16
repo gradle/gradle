@@ -20,14 +20,22 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import groovy.lang.GroovyObject;
+import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.internal.asm.AsmClassGenerator;
+import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
+import org.gradle.model.internal.inspect.ValidationProblemCollector;
+import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -67,6 +75,12 @@ public class DefaultObjectFactory implements ObjectFactory {
         //
         // Generate implementation class
         //
+
+        FormattingValidationProblemCollector problemCollector = new FormattingValidationProblemCollector("Named implementation class", ModelType.of(publicClass));
+        visitFields(publicClass, problemCollector);
+        if (problemCollector.hasProblems()) {
+            throw new GradleException(problemCollector.format());
+        }
 
         AsmClassGenerator generator = new AsmClassGenerator(publicClass, "$Impl");
         Type implementationType = generator.getGeneratedType();
@@ -181,6 +195,24 @@ public class DefaultObjectFactory implements ObjectFactory {
             return (ClassGeneratingLoader) (factoryClass.newInstance());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private void visitFields(Class<?> type, ValidationProblemCollector collector) {
+        if (type.equals(Object.class)) {
+            return;
+        }
+        if (type.getSuperclass() != null) {
+            visitFields(type.getSuperclass(), collector);
+        }
+
+        // Disallow instance fields. This doesn't guarantee that the object is immutable, just makes it less likely
+        // We might tighten this constraint to also disallow any _code_ on immutable types that reaches out to static state
+        for (Field field : type.getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers()) || GroovyObject.class.isAssignableFrom(type) && field.getName().equals("metaClass")) {
+                continue;
+            }
+            collector.add(field, "A Named implementation class must not define any instance fields.");
         }
     }
 

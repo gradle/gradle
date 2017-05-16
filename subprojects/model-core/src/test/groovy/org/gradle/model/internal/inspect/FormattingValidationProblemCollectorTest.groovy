@@ -58,7 +58,7 @@ class FormattingValidationProblemCollectorTest extends Specification {
 
         expect:
         collector.format() == """Type ${fullyQualifiedNameOf(WithConstructor)} is not a valid <thing>:
-- Method SuperClass.thing() is not a valid rule method: is not annotated with anything."""
+- Method FormattingValidationProblemCollectorTest.SuperClass.thing() is not a valid rule method: is not annotated with anything."""
     }
 
     def "formats message with multiple problems"() {
@@ -91,8 +91,8 @@ class FormattingValidationProblemCollectorTest extends Specification {
 
         expect:
         collector.format() == """Type ${fullyQualifiedNameOf(WithConstructor)} is not a valid <thing>:
-- Constructor WithConstructor(java.lang.String) is not valid: doesn't do anything
-- Constructor WithConstructor(java.lang.String) is not valid: should accept an int"""
+- Constructor FormattingValidationProblemCollectorTest.WithConstructor(java.lang.String) is not valid: doesn't do anything
+- Constructor FormattingValidationProblemCollectorTest.WithConstructor(java.lang.String) is not valid: should accept an int"""
     }
 
     def "formats message with field problems"() {
@@ -106,6 +106,6 @@ class FormattingValidationProblemCollectorTest extends Specification {
         collector.format() == """Type ${fullyQualifiedNameOf(WithConstructor)} is not a valid <thing>:
 - Field value is not valid: should have an initializer
 - Field value is not valid: should accept an int
-- Field SuperClass.value is not valid: cannot have fields"""
+- Field FormattingValidationProblemCollectorTest.SuperClass.value is not valid: cannot have fields"""
     }
 }

@@ -31,7 +31,15 @@ public interface ObjectFactory {
     /**
      * Creates a simple immutable {@link Named} object of the given type and name.
      *
-     * <p>The given type can be an interface that extends {@link Named} or an abstract class that implements {@link Named}. An abstract class must provide a zero-args constructor and should not provide an implementation for {@link Named#getName()}.</p>
+     * <p>The given type can be an interface that extends {@link Named} or an abstract class that 'implements' {@link Named}. An abstract class, if provided:</p>
+     * <ul>
+     *     <li>Must provide a zero-args constructor that is not private.</li>
+     *     <li>Must not define or inherit any instance fields.</li>
+     *     <li>Should not provide an implementation for {@link Named#getName()} and should define this method as abstract. Any implementation will be overridden.</li>
+     *     <li>Must not define or inherit any other abstract methods.</li>
+     * </ul>
+     *
+     * <p>An interface, if provided, must not define or inherit any other methods.</p>
      *
      * <p>Objects created using this method are not decorated or extensible.</p>
      */

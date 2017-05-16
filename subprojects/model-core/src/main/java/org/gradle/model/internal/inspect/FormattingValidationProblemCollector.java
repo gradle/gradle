@@ -50,7 +50,7 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
         if (field.getDeclaringClass().equals(source.getConcreteClass())) {
             problems.add("Field " + field.getName() + " is not valid: " + problem);
         } else {
-            problems.add("Field " + field.getDeclaringClass().getSimpleName() + '.' + field.getName() + " is not valid: " + problem);
+            problems.add("Field " + ModelType.of(field.getDeclaringClass()).getDisplayName() + '.' + field.getName() + " is not valid: " + problem);
         }
     }
 
@@ -62,7 +62,7 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
         if (method.getDeclaringClass().equals(source.getConcreteClass())) {
             message.append(description);
         } else {
-            message.append(method.getDeclaringClass().getSimpleName()).append('.').append(description);
+            message.append(ModelType.of(method.getDeclaringClass()).getDisplayName()).append('.').append(description);
         }
         message.append(" is not a valid");
         if (role != null) {
@@ -75,14 +75,14 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
 
     @Override
     public void add(Constructor<?> constructor, String problem) {
-        String description = MethodDescription.name(constructor.getDeclaringClass().getSimpleName())
+        String description = MethodDescription.name(ModelType.of(constructor.getDeclaringClass()).getDisplayName())
                 .takes(constructor.getGenericParameterTypes())
                 .toString();
         problems.add("Constructor " + description + " is not valid: " + problem);
     }
 
     public String format() {
-        StringBuilder errorString = new StringBuilder(String.format("Type %s is not a valid %s:", source, role));
+        StringBuilder errorString = new StringBuilder(String.format("Type %s is not a valid %s:", source.getName(), role));
         if (problems.size() == 1 && errorString.length() + problems.get(0).length() < 80) {
             errorString.append(' ');
             errorString.append(problems.get(0));

@@ -136,8 +136,8 @@ class DefaultStructBindingsStoreTest extends Specification {
         when: extract WithInstanceScopedFieldInSuperclass
         then: def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(WithInstanceScopedFieldInSuperclass)} is not a valid managed type:
-- Field WithInstanceScopedField.name is not valid: Fields must be static final.
-- Field WithInstanceScopedField.age is not valid: Fields must be static final."""
+- Field DefaultStructBindingsStoreTest.WithInstanceScopedField.name is not valid: Fields must be static final.
+- Field DefaultStructBindingsStoreTest.WithInstanceScopedField.age is not valid: Fields must be static final."""
     }
 
     @Managed
@@ -167,8 +167,8 @@ class DefaultStructBindingsStoreTest extends Specification {
         then:
         e = thrown InvalidManagedTypeException
         e.message == """Type ${fullyQualifiedNameOf(ProtectedAbstractMethodsInSuper)} is not a valid managed type:
-- Method ProtectedAbstractMethods.getName() is not a valid method: Protected and private methods are not supported.
-- Method ProtectedAbstractMethods.setName(java.lang.String) is not a valid method: Protected and private methods are not supported."""
+- Method DefaultStructBindingsStoreTest.ProtectedAbstractMethods.getName() is not a valid method: Protected and private methods are not supported.
+- Method DefaultStructBindingsStoreTest.ProtectedAbstractMethods.setName(java.lang.String) is not a valid method: Protected and private methods are not supported."""
     }
 
     @Managed
@@ -198,8 +198,8 @@ class DefaultStructBindingsStoreTest extends Specification {
         when: extract ProtectedAndPrivateNonAbstractMethodsInSuper
         then: def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(ProtectedAndPrivateNonAbstractMethodsInSuper)} is not a valid managed type:
-- Method ProtectedAndPrivateNonAbstractMethods.setName(java.lang.String) is not a valid method: Protected and private methods are not supported.
-- Method ProtectedAndPrivateNonAbstractMethods.getName() is not a valid method: Protected and private methods are not supported."""
+- Method DefaultStructBindingsStoreTest.ProtectedAndPrivateNonAbstractMethods.setName(java.lang.String) is not a valid method: Protected and private methods are not supported.
+- Method DefaultStructBindingsStoreTest.ProtectedAndPrivateNonAbstractMethods.getName() is not a valid method: Protected and private methods are not supported."""
     }
 
     def "fails when implemented property is present in delegate"() {
@@ -403,7 +403,7 @@ class DefaultStructBindingsStoreTest extends Specification {
         when: extract ChildWithExtraNonPropertyMethods
         then: def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(ChildWithExtraNonPropertyMethods)} is not a valid managed type:
-- Method ${HasExtraNonPropertyMethods.simpleName}.foo(java.lang.String) is not a valid managed type method: it must have an implementation"""
+- Method DefaultStructBindingsStoreTest.HasExtraNonPropertyMethods.foo(java.lang.String) is not a valid managed type method: it must have an implementation"""
     }
 
     @Managed
@@ -579,17 +579,17 @@ class DefaultStructBindingsStoreTest extends Specification {
         when: extract ConstructorWithArguments
         then: def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(ConstructorWithArguments)} is not a valid managed type:
-- Constructor ConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
+- Constructor DefaultStructBindingsStoreTest.ConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
 
         when: extract AdditionalConstructorWithArguments
         then: ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(AdditionalConstructorWithArguments)} is not a valid managed type:
-- Constructor AdditionalConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
+- Constructor DefaultStructBindingsStoreTest.AdditionalConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
 
         when: extract CustomConstructorInSuperClass
         then: ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(CustomConstructorInSuperClass)} is not a valid managed type:
-- Constructor SuperConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
+- Constructor DefaultStructBindingsStoreTest.SuperConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
     }
 
     static abstract class MultipleProblemsSuper {
@@ -610,11 +610,11 @@ class DefaultStructBindingsStoreTest extends Specification {
         ex.message == """Type ${fullyQualifiedNameOf(MultipleProblems)} is not a valid managed type:
 - Must be defined as an interface or an abstract class.
 - Cannot be a parameterized type.
-- Constructor MultipleProblems(java.lang.String) is not valid: Custom constructors are not supported.
+- Constructor DefaultStructBindingsStoreTest.MultipleProblems(java.lang.String) is not valid: Custom constructors are not supported.
 - Field field2 is not valid: Fields must be static final.
-- Constructor MultipleProblemsSuper(java.lang.String) is not valid: Custom constructors are not supported.
-- Field MultipleProblemsSuper.field1 is not valid: Fields must be static final.
-- Method MultipleProblemsSuper.getPrivate() is not a valid method: Protected and private methods are not supported."""
+- Constructor DefaultStructBindingsStoreTest.MultipleProblemsSuper(java.lang.String) is not valid: Custom constructors are not supported.
+- Field DefaultStructBindingsStoreTest.MultipleProblemsSuper.field1 is not valid: Fields must be static final.
+- Method DefaultStructBindingsStoreTest.MultipleProblemsSuper.getPrivate() is not a valid method: Protected and private methods are not supported."""
     }
 
 
