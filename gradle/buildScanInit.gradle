@@ -1,14 +1,16 @@
 initscript {
     repositories {
-        maven { url "https://plugins.gradle.org/m2" }
+        maven { url "https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local" }
     }
     dependencies {
-        classpath "com.gradle:build-scan-plugin:1.7.1"
+        classpath "com.gradle:build-scan-plugin:latest.integration"
     }
+    configurations.classpath.resolutionStrategy.cacheDynamicVersionsFor 1, 'DAYS'
 }
 rootProject {
     apply plugin: com.gradle.scan.plugin.BuildScanPlugin
     buildScan {
-        server = "https://e.grdev.net"
+        licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+        licenseAgree = 'yes'
     }
 }
