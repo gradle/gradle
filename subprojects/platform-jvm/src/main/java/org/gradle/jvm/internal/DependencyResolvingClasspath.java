@@ -48,6 +48,7 @@ import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -218,6 +219,11 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void startArtifacts(DependencyGraphNode root) {
+        }
+
+        @Override
+        public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
+            artifactsBuilder.visitArtifacts(from, fileDependency, artifactSet);
         }
 
         @Override

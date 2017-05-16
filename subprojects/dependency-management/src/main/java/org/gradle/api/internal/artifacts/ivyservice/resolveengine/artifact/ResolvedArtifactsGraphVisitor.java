@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -47,7 +48,7 @@ import java.util.Set;
  */
 public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
-    private final Map<Long, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
+    private final Map<Long, ArtifactSet> artifactsByNodeId = Maps.newHashMap();
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final ArtifactResolver artifactResolver;
     private final ArtifactTypeRegistry artifactTypeRegistry;
@@ -80,12 +81,15 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             ArtifactSet artifacts = getArtifacts(dependency, resolvedConfiguration);
             artifactResults.visitArtifacts(parent, resolvedConfiguration, artifacts);
         }
+        for (LocalFileDependencyMetadata fileDependency : resolvedConfiguration.getOutgoingFileEdges()) {
+            artifactResults.visitArtifacts(resolvedConfiguration, fileDependency, new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, artifactTypeRegistry));
+        }
     }
 
     public void finish(DependencyGraphNode root) {
         artifactResults.finishArtifacts();
         allResolvedArtifacts.clear();
-        artifactSetsByConfiguration.clear();
+        artifactsByNodeId.clear();
     }
 
     private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
@@ -99,7 +103,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, artifactTypeRegistry);
         }
 
-        ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(toConfiguration.getNodeId());
+        ArtifactSet configurationArtifactSet = artifactsByNodeId.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
             Set<? extends VariantMetadata> variants = doResolve(component, configuration);
 
@@ -107,7 +111,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
             if (!dependency.getExclusions(moduleExclusions).mayExcludeArtifacts()) {
-                artifactSetsByConfiguration.put(toConfiguration.getNodeId(), configurationArtifactSet);
+                artifactsByNodeId.put(toConfiguration.getNodeId(), configurationArtifactSet);
             }
         }
 

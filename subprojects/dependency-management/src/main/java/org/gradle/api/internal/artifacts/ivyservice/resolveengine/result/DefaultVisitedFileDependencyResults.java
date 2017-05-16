@@ -21,8 +21,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
@@ -35,10 +35,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultVisitedFileDependencyResults implements VisitedFileDependencyResults {
-    private final SetMultimap<Long, FileDependencyArtifactSet> filesByNodeId;
-    private final Map<FileCollectionDependency, FileDependencyArtifactSet> rootFiles;
+    private final SetMultimap<Long, ArtifactSet> filesByNodeId;
+    private final Map<FileCollectionDependency, ArtifactSet> rootFiles;
 
-    public DefaultVisitedFileDependencyResults(SetMultimap<Long, FileDependencyArtifactSet> filesByNodeId, Map<FileCollectionDependency, FileDependencyArtifactSet> rootFiles) {
+    public DefaultVisitedFileDependencyResults(SetMultimap<Long, ArtifactSet> filesByNodeId, Map<FileCollectionDependency, ArtifactSet> rootFiles) {
         this.filesByNodeId = filesByNodeId;
         this.rootFiles = rootFiles;
     }
@@ -50,9 +50,9 @@ public class DefaultVisitedFileDependencyResults implements VisitedFileDependenc
         ImmutableMap.Builder<Long, ResolvedArtifactSet> filesByConfigBuilder = ImmutableMap.builder();
         List<ResolvedArtifactSet> allArtifacts = Lists.newArrayList();
         for (Long key : filesByNodeId.keySet()) {
-            Set<FileDependencyArtifactSet> artifactsForConfiguration = filesByNodeId.get(key);
+            Set<ArtifactSet> artifactsForConfiguration = filesByNodeId.get(key);
             List<ResolvedArtifactSet> selectedArtifactsForConfiguration = new ArrayList<ResolvedArtifactSet>(artifactsForConfiguration.size());
-            for (FileDependencyArtifactSet artifactSet : artifactsForConfiguration) {
+            for (ArtifactSet artifactSet : artifactsForConfiguration) {
                 selectedArtifactsForConfiguration.add(artifactSet.select(componentFilter, selector));
             }
             filesByConfigBuilder.put(key, CompositeArtifactSet.of(selectedArtifactsForConfiguration));
@@ -62,7 +62,7 @@ public class DefaultVisitedFileDependencyResults implements VisitedFileDependenc
         ResolvedArtifactSet allFiles = CompositeArtifactSet.of(allArtifacts);
 
         ImmutableMap.Builder<FileCollectionDependency, ResolvedArtifactSet> rootFilesBuilder = ImmutableMap.builder();
-        for (Map.Entry<FileCollectionDependency, FileDependencyArtifactSet> entry : rootFiles.entrySet()) {
+        for (Map.Entry<FileCollectionDependency, ArtifactSet> entry : rootFiles.entrySet()) {
             rootFilesBuilder.put(entry.getKey(), entry.getValue().select(componentFilter, selector));
         }
         ImmutableMap<Long, ResolvedArtifactSet> filesByConfig = filesByConfigBuilder.build();

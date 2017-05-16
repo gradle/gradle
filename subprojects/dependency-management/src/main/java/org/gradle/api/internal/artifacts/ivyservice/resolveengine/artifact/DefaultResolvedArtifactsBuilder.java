@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.HashSet;
@@ -85,6 +86,10 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
             marked.add(node);
             tempMarked.remove(node);
         }
+    }
+
+    @Override
+    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
     }
 
     @Override

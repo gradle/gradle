@@ -46,4 +46,26 @@ public interface DependencyGraphVisitor {
      * Completes traversal of the graph.
      */
     void finish(DependencyGraphNode root);
+
+    DependencyGraphVisitor NO_OP = new DependencyGraphVisitor() {
+        @Override
+        public void start(DependencyGraphNode root) {
+        }
+
+        @Override
+        public void visitNode(DependencyGraphNode resolvedConfiguration) {
+        }
+
+        @Override
+        public void visitSelector(DependencyGraphSelector selector) {
+        }
+
+        @Override
+        public void visitEdges(DependencyGraphNode resolvedConfiguration) {
+        }
+
+        @Override
+        public void finish(DependencyGraphNode root) {
+        }
+    };
 }

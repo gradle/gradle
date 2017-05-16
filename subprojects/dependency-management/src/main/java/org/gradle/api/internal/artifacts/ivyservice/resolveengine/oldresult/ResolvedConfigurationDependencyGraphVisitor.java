@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.ArrayList;
@@ -77,6 +78,10 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
 
     @Override
     public void startArtifacts(DependencyGraphNode root) {
+    }
+
+    @Override
+    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
     }
 
     @Override
