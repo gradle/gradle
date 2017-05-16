@@ -123,7 +123,7 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      * <p>When the given {@code paths} is a {@link java.util.Map}, then each output file
      * will be associated with an identity. For cacheable tasks this is a requirement.
      * The keys of the map should not be {@code null}, and they must be
-     * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>}.
+     * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>.
      * The values of the map will be evaluated to individual files as per
      * {@link org.gradle.api.Project#file(Object)}.</p>
      *
@@ -137,12 +137,12 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
     TaskOutputFilePropertyBuilder files(Object... paths);
 
     /**
-     * Registers some output files for this task.
+     * Registers some output directories for this task.
      *
      * <p>When the given {@code paths} is a {@link java.util.Map}, then each output directory
      * will be associated with an identity. For cacheable tasks this is a requirement.
      * The keys of the map should not be {@code null}, and they must be
-     * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>}.
+     * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>.
      * The values of the map will be evaluated to individual directories as per
      * {@link org.gradle.api.Project#file(Object)}.</p>
      *

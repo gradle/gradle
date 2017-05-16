@@ -508,11 +508,11 @@ The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compati
 
 | `@api:org.gradle.api.tasks.OutputFiles[]`
 | `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
-| An iterable of output files (no directories)
+| An iterable of output files (no directories). The task outputs can only be <<sec:task_output_caching, cached>> if a `Map` is provided.
 
 | `@api:org.gradle.api.tasks.OutputDirectories[]`
 | `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
-| An iterable of output directories (no files)
+| An iterable of output directories (no files). The task outputs can only be <<sec:task_output_caching, cached>> if a `Map` is provided.
 
 | `@api:org.gradle.api.tasks.Destroys[]`
 | `File` or `Iterable&lt;File&gt;`*
