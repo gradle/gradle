@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
-import spock.lang.Ignore
 
 class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     def setup() {
@@ -50,7 +49,6 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         """
     }
 
-    @Ignore // fails to execute included task when triggered
     def "can watch inputs to composite build tasks"() {
         def outputFile = file("included/build/output.txt")
 
