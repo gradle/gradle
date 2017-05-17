@@ -31,7 +31,7 @@ import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.progress.BuildOperationType;
+import org.gradle.internal.progress.BuildOperationCategory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,15 +81,15 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             progressToBuildOpIdMap.put(startEvent.getProgressOperationId(), buildOpId);
 
             // Create a new group for tasks or configure project
-            if (isGroupedOperation(startEvent.getBuildOperationType())) {
+            if (isGroupedOperation(startEvent.getBuildOperationCategory())) {
                 String header = startEvent.getLoggingHeader() != null ? startEvent.getLoggingHeader() : startEvent.getDescription();
                 operationsInProgress.put(buildOpId, new OperationGroup(startEvent.getCategory(), header, startEvent.getTimestamp(), startEvent.getBuildOperationId()));
             }
         }
     }
 
-    private boolean isGroupedOperation(BuildOperationType buildOperationType) {
-        return buildOperationType == BuildOperationType.TASK || buildOperationType == BuildOperationType.CONFIGURE_PROJECT;
+    private boolean isGroupedOperation(BuildOperationCategory buildOperationCategory) {
+        return buildOperationCategory == BuildOperationCategory.TASK || buildOperationCategory == BuildOperationCategory.CONFIGURE_PROJECT;
     }
 
     private void handleOutput(RenderableOutputEvent event) {

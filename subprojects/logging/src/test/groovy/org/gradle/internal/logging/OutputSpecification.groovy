@@ -21,7 +21,7 @@ import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
-import org.gradle.internal.progress.BuildOperationType
+import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -89,10 +89,10 @@ abstract class OutputSpecification extends Specification {
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
         Object buildOperationId = args.containsKey("buildOperationId") ? args.buildOperationId : null
         Object parentBuildOperationId = args.containsKey("parentBuildOperationId") ? args.parentBuildOperationId : null
-        BuildOperationType buildOperationType = args.containsKey("buildOperationType") ? args.buildOperationType : BuildOperationType.UNCATEGORIZED
+        BuildOperationCategory buildOperationCategory = args.containsKey("buildOperationCategory") ? args.buildOperationCategory : BuildOperationCategory.UNCATEGORIZED
         Long id = args.containsKey("id") ? args.id : ++counter
         String category = args.containsKey("category") ? args.category : CATEGORY
-        return new ProgressStartEvent(new OperationIdentifier(id), parent, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, buildOperationId, parentBuildOperationId, buildOperationType)
+        return new ProgressStartEvent(new OperationIdentifier(id), parent, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, buildOperationId, parentBuildOperationId, buildOperationCategory)
     }
 
     ProgressEvent progress(String status) {

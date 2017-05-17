@@ -28,9 +28,9 @@ public final class BuildOperationDescriptor {
     private final String name;
     private final String progressDisplayName;
     private final Object details;
-    private final BuildOperationType operationType;
+    private final BuildOperationCategory operationType;
 
-    private BuildOperationDescriptor(Object id, Object parentId, String name, String displayName, String progressDisplayName, Object details, BuildOperationType operationType) {
+    private BuildOperationDescriptor(Object id, Object parentId, String name, String displayName, String progressDisplayName, Object details, BuildOperationCategory operationType) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -88,7 +88,7 @@ public final class BuildOperationDescriptor {
         return parentId;
     }
 
-    public BuildOperationType getOperationType() {
+    public BuildOperationCategory getOperationType() {
         return operationType;
     }
 
@@ -102,7 +102,7 @@ public final class BuildOperationDescriptor {
         private String progressDisplayName;
         private Object details;
         private BuildOperationState parent;
-        private BuildOperationType operationType = BuildOperationType.UNCATEGORIZED;
+        private BuildOperationCategory operationType = BuildOperationCategory.UNCATEGORIZED;
 
         private Builder(String displayName) {
             this.displayName = displayName;
@@ -124,7 +124,7 @@ public final class BuildOperationDescriptor {
             return this;
         }
 
-        public Builder operationType(BuildOperationType operationType) {
+        public Builder operationType(BuildOperationCategory operationType) {
             this.operationType = operationType;
             return this;
         }
