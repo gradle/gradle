@@ -48,7 +48,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Writes files describing the build operation stream for a build.
- * Can be enabled for any build with `-Dorg.gradle.operations.internal.trace=«path-base»`.
+ * Can be enabled for any build with `-Dorg.gradle.internal.operations.trace=«path-base»`.
  *
  * Imposes no overhead when not enabled.
  * Also used as the basis for asserting on the event stream in integration tests, via BuildOperationFixture.
@@ -63,7 +63,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * The JSON tree view can be used for more detailed analysis — open in a JSON tree viewer, like Chrome.
  *
  * The «path-base» param is optional.
- * If invoked as `-Dorg.gradle.operations.trace`, a base value of "operations" will be used.
+ * If invoked as `-Dorg.gradle.internal.operations.trace`, a base value of "operations" will be used.
  *
  * The “trace” produced here is different to the trace produced by Gradle Profiler.
  * There, the focus is analyzing the performance profile.
@@ -73,7 +73,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  */
 public class BuildOperationTrace implements Stoppable {
 
-    public static final String SYSPROP = "org.gradle.operations.internal.trace";
+    public static final String SYSPROP = "org.gradle.internal.operations.trace";
 
     private final String basePath;
     private final OutputStream logOutputStream;
