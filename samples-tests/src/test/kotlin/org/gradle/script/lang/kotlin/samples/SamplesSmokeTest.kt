@@ -26,7 +26,6 @@ class SamplesSmokeTest(val sampleDir: File) : AbstractIntegrationTest() {
     @Before
     fun populateProjectRootWithSample() {
         assumeThat(sampleDir.name, not(containsString("android")))
-        assumeThat(sampleDir.name, not(containsString("build-scan")))
         copySampleProject(from = sampleDir, to = projectRoot)
     }
 

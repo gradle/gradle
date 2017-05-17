@@ -70,7 +70,7 @@ open class Benchmark : DefaultTask() {
             .sampleDirs()
             .filter {
                 !it.name.run {
-                    contains("android") || contains("build-scan")
+                    contains("android")
                 }
             }
 
