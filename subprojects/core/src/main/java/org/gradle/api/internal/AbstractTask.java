@@ -58,10 +58,10 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
-import org.gradle.scripts.WithContentHash;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
@@ -687,8 +687,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public String getActionClassName() {
-            if (closure instanceof WithContentHash) {
-                return "closure_" + ((WithContentHash) closure).getContentHash();
+            if (closure instanceof ScriptOrigin) {
+                return ((ScriptOrigin) closure).getOriginalClassName() + "_" + ((ScriptOrigin) closure).getContentHash();
             }
             return closure.getClass().getName();
         }
@@ -732,8 +732,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 return ((ClassLoaderAwareTaskAction) action).getActionClassName();
             } else {
                 String className = action.getClass().getName();
-                if (action instanceof WithContentHash) {
-                    return "action_" + ((WithContentHash) action).getContentHash();
+                if (action instanceof ScriptOrigin) {
+                    return ((ScriptOrigin) action).getOriginalClassName() + "_" + ((ScriptOrigin) action).getContentHash();
                 }
                 return className;
             }

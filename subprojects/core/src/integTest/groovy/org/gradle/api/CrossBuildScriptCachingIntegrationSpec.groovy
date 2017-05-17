@@ -518,16 +518,19 @@ task fastTask { }
         getCompileClasspath(commonHash, 'dsl').length == 1
     }
 
-    def "remapped classes have content hash"() {
+    def "remapped classes have script origin"() {
         root {
             'build.gradle'('''
 
-                void assertContentHash(Object o, Set<String> seen) {
-                    assert (o instanceof org.gradle.scripts.WithContentHash)
+                void assertScriptOrigin(Object o, Set<String> seen) {
+                    assert (o instanceof org.gradle.internal.scripts.ScriptOrigin)
                     // need to get through reflection to bypass the Groovy MOP on closures, which would cause calling the method on the owner instead of the closure itself
+                    def originalClassName = o.class.getMethod('getOriginalClassName').invoke(o)
                     def contentHash = o.class.getMethod('getContentHash').invoke(o)
+                    assert originalClassName
                     assert contentHash
-                    println "Content hash for ${o.class} = ${contentHash}"
+                    println "Action type: ${originalClassName} (remapped name: ${o.class})"
+                    println "Action hash: ${contentHash}"
                     if (!seen.add(contentHash)) {
                        throw new AssertionError("Expected a unique hash, but found duplicate: ${o.contentHash} in $seen")
                     }
@@ -535,26 +538,26 @@ task fastTask { }
                 
                 Set<String> seen = []
     
-                assertContentHash(this, seen)
+                assertScriptOrigin(this, seen)
             
                 task one {
                     doLast {
                         { ->
-                            assertContentHash(owner, seen) // hack to get a handle on the parent closure
+                            assertScriptOrigin(owner, seen) // hack to get a handle on the parent closure
                         }()
                     }
                 }
                 
                 task two {
                     def v
-                    v = { assertContentHash(v, seen) }
+                    v = { assertScriptOrigin(v, seen) }
                     doFirst(v)
                 }
                 
                 task three {
                     doLast(new Action() {
                         void execute(Object o) {
-                            assertContentHash(this, seen)
+                            assertScriptOrigin(this, seen)
                         }
                     })
                 }
@@ -562,7 +565,7 @@ task fastTask { }
                 task four {
                     doLast {
                         def a = new A()
-                        assertContentHash(a, seen)
+                        assertScriptOrigin(a, seen)
                     }
                 }
                 

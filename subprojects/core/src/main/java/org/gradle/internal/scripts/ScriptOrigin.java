@@ -13,11 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.scripts;
+package org.gradle.internal.scripts;
 
 /**
  * This interface is implemented by remapped build scripts.
  */
-public interface WithContentHash {
+public interface ScriptOrigin {
+
+    /**
+     * Returns the non-remapped class name.
+     */
+    String getOriginalClassName();
+
+    /**
+     * Returns the hash of the bytecode of the non-remapped class.
+     */
     String getContentHash();
 }
