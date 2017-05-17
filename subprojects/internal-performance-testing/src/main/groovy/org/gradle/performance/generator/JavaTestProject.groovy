@@ -56,7 +56,7 @@ enum JavaTestProject {
     }
 
     private static String productionFile(String template, int project = 0, int pkg = 0, int file = 0) {
-        if (project>0) {
+        if (project>=0) {
             "project${project}/src/main/java/org/gradle/test/performance/${template.toLowerCase()}/project${project}/p${pkg}/Production${file}.java"
         } else {
             "src/main/java/org/gradle/test/performance/${template.toLowerCase()}/p${pkg}/Production${file}.java"
