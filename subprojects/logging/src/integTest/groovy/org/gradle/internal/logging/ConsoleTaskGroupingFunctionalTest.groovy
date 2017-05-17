@@ -31,6 +31,7 @@ class ConsoleTaskGroupingFunctionalTest extends AbstractConsoleFunctionalSpec {
     def "compiler warnings emitted from compilation task are grouped"() {
         given:
         def javaSourceFile = file("$JAVA_SRC_DIR_PATH/MyClass.java")
+        def normalizedJavaSourceFilePath = normaliseFileSeparators(javaSourceFile.absolutePath)
 
         buildFile << """
             apply plugin: 'java'
@@ -57,10 +58,9 @@ class ConsoleTaskGroupingFunctionalTest extends AbstractConsoleFunctionalSpec {
         succeeds('compileJava')
 
         then:
-        normaliseFileSeparators(result.output).contains("""> Task :compileJava\u001B[m\u001B[0K
-$javaSourceFile:4: warning: [deprecation] Legacy in unnamed package has been deprecated
-                    new Legacy();
-                        ^
-1 warning""")
+        def matcher = result.output =~ /(?ms)(> Task :compileJava.*?1 warning)/
+        matcher.find()
+        def expectedOutput = matcher[0][1]
+        normaliseFileSeparators(expectedOutput).contains("${normalizedJavaSourceFilePath}:4: warning: [deprecation] Legacy in unnamed package has been deprecated")
     }
 }
