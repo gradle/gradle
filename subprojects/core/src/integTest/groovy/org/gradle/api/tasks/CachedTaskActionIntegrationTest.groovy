@@ -33,6 +33,7 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
 
             task second {
                 outputs.file file("second.txt")
+                outputs.cacheIf { true }
                 doFirst {
                     file("second.txt").text = "Hello from the second task"
                 }
