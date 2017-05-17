@@ -38,8 +38,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.execution.MultipleBuildFailures;
@@ -90,8 +88,6 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
  * methods.
  */
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
-    private final static Logger LOGGER = Logging.getLogger(DefaultTaskExecutionPlan.class);
-
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
