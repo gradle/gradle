@@ -11,6 +11,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable
 
 import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
+import org.gradle.script.lang.kotlin.fixtures.customDaemonRegistry
 import org.gradle.script.lang.kotlin.fixtures.customInstallation
 import org.gradle.script.lang.kotlin.fixtures.withDaemonRegistry
 
@@ -37,7 +38,7 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractIntegrationTest() 
 
     private
     fun fetchKotlinScriptTemplateClassPathModelFor(projectDir: File) =
-        withDaemonRegistry(File("build/custom/daemon-registry")) {
+        withDaemonRegistry(customDaemonRegistry()) {
             val connection = GradleConnector.newConnector()
                 .forProjectDirectory(projectDir)
                 .useGradleUserHomeDir(File(projectDir, "gradle-user-home"))

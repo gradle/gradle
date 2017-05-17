@@ -5,8 +5,8 @@ import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 
 import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
 import org.gradle.script.lang.kotlin.fixtures.DeepThought
+import org.gradle.script.lang.kotlin.fixtures.customDaemonRegistry
 import org.gradle.script.lang.kotlin.fixtures.customInstallation
-import org.gradle.script.lang.kotlin.fixtures.customInstallationBuildDir
 import org.gradle.script.lang.kotlin.fixtures.withDaemonRegistry
 import org.gradle.script.lang.kotlin.fixtures.matching
 
@@ -243,8 +243,3 @@ fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): Kotli
             }
         }.get()
     }
-
-
-private
-fun customDaemonRegistry() =
-    File(customInstallationBuildDir, "daemon-registry")

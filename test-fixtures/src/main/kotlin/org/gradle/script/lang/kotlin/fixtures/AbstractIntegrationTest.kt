@@ -138,6 +138,10 @@ fun gradleRunnerFor(projectDir: File): GradleRunner = GradleRunner.create().run 
 }
 
 
+fun customDaemonRegistry() =
+    File(customInstallationBuildDir, "daemon-registry")
+
+
 fun customInstallation() =
     customInstallationBuildDir.listFiles()?.let {
         it.singleOrNull { it.name.startsWith("gradle") } ?:
