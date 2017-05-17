@@ -73,6 +73,7 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationListenerR
 import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.scan.config.BuildScanConfigServices;
 import org.gradle.internal.scopeids.id.BuildScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -103,6 +104,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
+
+        if (gradle.getParent() == null) {
+            addProvider(new BuildScanConfigServices());
+        }
     }
 
     TaskSelector createTaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {

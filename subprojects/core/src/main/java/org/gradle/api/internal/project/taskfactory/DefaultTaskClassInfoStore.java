@@ -147,8 +147,8 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         }
 
         @Override
-        public Class<?> getActionType() {
-            return type;
+        public String getActionClassName() {
+            return type.getName();
         }
     }
 

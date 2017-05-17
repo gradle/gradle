@@ -170,11 +170,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         run 'help'
 
         when:
-        root {
-            module1 {
-                'build.gradle'(this.simpleBuild('different contents'))
-            }
-        }
+        file('module1/build.gradle').text = simpleBuild('different contents')
         run 'help'
 
         then:
@@ -520,6 +516,65 @@ task fastTask { }
         hasCachedScripts(commonHash, settingsHash, coreHash, initHash)
         getCompileClasspath(commonHash, 'cp_dsl').length == 1
         getCompileClasspath(commonHash, 'dsl').length == 1
+    }
+
+    def "remapped classes have content hash"() {
+        root {
+            'build.gradle'('''
+
+                void assertContentHash(Object o, Set<String> seen) {
+                    assert (o instanceof org.gradle.scripts.WithContentHash)
+                    // need to get through reflection to bypass the Groovy MOP on closures, which would cause calling the method on the owner instead of the closure itself
+                    def contentHash = o.class.getMethod('getContentHash').invoke(o)
+                    assert contentHash
+                    println "Content hash for ${o.class} = ${contentHash}"
+                    if (!seen.add(contentHash)) {
+                       throw new AssertionError("Expected a unique hash, but found duplicate: ${o.contentHash} in $seen")
+                    }
+                }
+                
+                Set<String> seen = []
+    
+                assertContentHash(this, seen)
+            
+                task one {
+                    doLast {
+                        { ->
+                            assertContentHash(owner, seen) // hack to get a handle on the parent closure
+                        }()
+                    }
+                }
+                
+                task two {
+                    def v
+                    v = { assertContentHash(v, seen) }
+                    doFirst(v)
+                }
+                
+                task three {
+                    doLast(new Action() {
+                        void execute(Object o) {
+                            assertContentHash(this, seen)
+                        }
+                    })
+                }
+                
+                task four {
+                    doLast {
+                        def a = new A()
+                        assertContentHash(a, seen)
+                    }
+                }
+                
+                class A {}
+            ''')
+        }
+
+        when:
+        run 'one', 'two', 'three', 'four'
+
+        then:
+        noExceptionThrown()
     }
 
     def "same applied script is compiled once for different projects with different classpath"() {

@@ -61,7 +61,7 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
         }
         ImmutableList.Builder<ImplementationSnapshot> actionImpls = ImmutableList.builder();
         for (ContextAwareTaskAction taskAction : taskActions) {
-            String typeName = taskAction.getActionType().getName();
+            String typeName = taskAction.getActionClassName();
             HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskAction.getClassLoader());
             actionImpls.add(new ImplementationSnapshot(typeName, classLoaderHash));
         }

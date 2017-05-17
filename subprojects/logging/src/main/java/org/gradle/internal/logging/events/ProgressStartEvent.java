@@ -18,7 +18,7 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.progress.BuildOperationType;
+import org.gradle.internal.progress.BuildOperationCategory;
 
 public class ProgressStartEvent extends CategorisedOutputEvent {
     private final OperationIdentifier progressOperationId;
@@ -29,7 +29,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
     private final String status;
     private final Object buildOperationId;
     private final Object parentBuildOperationId;
-    private BuildOperationType buildOperationType;
+    private BuildOperationCategory buildOperationCategory;
 
     public ProgressStartEvent(OperationIdentifier progressOperationId,
                               @Nullable OperationIdentifier parentProgressOperationId,
@@ -41,7 +41,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
                               String status,
                               @Nullable Object buildOperationId,
                               @Nullable Object parentBuildOperationId,
-                              BuildOperationType buildOperationType) {
+                              BuildOperationCategory buildOperationCategory) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
@@ -51,7 +51,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
         this.status = status;
         this.buildOperationId = buildOperationId;
         this.parentBuildOperationId = parentBuildOperationId;
-        this.buildOperationType = buildOperationType;
+        this.buildOperationCategory = buildOperationCategory;
     }
 
     @Nullable
@@ -96,7 +96,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
         return parentBuildOperationId;
     }
 
-    public BuildOperationType getBuildOperationType() {
-        return buildOperationType;
+    public BuildOperationCategory getBuildOperationCategory() {
+        return buildOperationCategory;
     }
 }

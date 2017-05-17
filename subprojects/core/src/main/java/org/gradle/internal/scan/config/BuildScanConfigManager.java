@@ -37,7 +37,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
 
     private static final String HELP_LINK = "https://gradle.com/scans/help/gradle-cli";
     private static final String SYSPROP_KEY = "scan";
-    public static final List<String> ENABLED_SYS_PROP_VALUES = Arrays.asList(null, "", "yes", "true");
+    private static final List<String> ENABLED_SYS_PROP_VALUES = Arrays.asList(null, "", "yes", "true");
 
     private final StartParameter startParameter;
     private final ListenerManager listenerManager;
@@ -75,12 +75,13 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
     }
 
     private void warnIfBuildScanPluginNotApplied() {
+        // Note: this listener manager is scoped to the root Gradle object.
         listenerManager.addListener(new BuildAdapter() {
             @Override
             public void projectsEvaluated(Gradle gradle) {
                 if (!collected) {
                     LOGGER.warn(
-                        "Build scan cannot be created since the build scan plugin has not been applied.\n"
+                        "Build scan cannot be created because the build scan plugin was not applied.\n"
                             + "For more information on how to apply the build scan plugin, please visit " + HELP_LINK + "."
                     );
                 }

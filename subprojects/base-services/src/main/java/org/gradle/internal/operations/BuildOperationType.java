@@ -39,7 +39,7 @@ package org.gradle.internal.operations;
  *
  * These details and result types need to maintain backwards binary compatibility.
  * They should be interfaces with minimal dependencies, and should avoid internal Gradle types.
- * The convention for these types is to make them inner types of the BuildOperationType token type,
+ * The convention for these types is to make them inner types of the BuildOperationCategory token type,
  * named {@code Details} and {@code Result}.
  * However, this is not required – the types can go anywhere.
  *
@@ -73,9 +73,6 @@ package org.gradle.internal.operations;
  * decide whether to forward an operation notification to the build scan plugin.
  * In such cases the build scan plugin does not use the empty type so we can change this
  * later and use a more definitive signal of whether to emit a notification.
- *
- * Note, the name of this type collides with {@link org.gradle.internal.progress.BuildOperationType}.
- * The latter will be renamed at some point.
  *
  * @param <D> the type of details object for the operation
  * @param <R> the type of result object for the operation

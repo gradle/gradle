@@ -32,7 +32,7 @@ public class ProgressOperations {
         }
         ProgressOperation operation = new ProgressOperation(description, status, category, operationId, parent);
         if (parent != null) {
-            parent.getChildren().add(operation);
+            parent.addChild(operation);
         }
         operationsById.put(operationId, operation);
         return operation;
@@ -53,7 +53,7 @@ public class ProgressOperations {
             throw new IllegalStateException("Received complete event for an unknown operation (id: " + operationId + ")");
         }
         if (op.getParent() != null) {
-            op.getParent().getChildren().remove(op);
+            op.getParent().removeChild(op);
         }
         return op;
     }

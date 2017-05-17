@@ -211,14 +211,14 @@ class TaskTypeTaskStateChangesTest extends Specification {
 
     private static class TestAction implements ContextAwareTaskAction {
         final ClassLoader classLoader
-        final Class<?> actionType
+        final String actionClassName
 
         TestAction() {
             this(TestAction, TestAction.classLoader)
         }
 
         TestAction(Class<?> actionType, ClassLoader classLoader) {
-            this.actionType = actionType
+            this.actionClassName = actionType.name
             this.classLoader = classLoader
         }
 

@@ -16,6 +16,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
@@ -209,20 +210,57 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     private static class BuildScriptRemapper extends ClassVisitor implements Opcodes {
+        public static final String WITH_CONTENT_HASH = "org/gradle/scripts/WithContentHash";
         private final ScriptSource scriptSource;
+        private final String contentHash;
 
-        public BuildScriptRemapper(ClassVisitor cv, ScriptSource source) {
+        public BuildScriptRemapper(ClassVisitor cv, ScriptSource source, String contentHash) {
             super(ASM5, cv);
             this.scriptSource = source;
+            this.contentHash = contentHash;
         }
 
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-            cv.visit(version, access, remap(name), remap(signature), remap(superName), remap(interfaces));
+            String owner = remap(name);
+            boolean shouldAddContentHash = shouldAddContentHash(access);
+            cv.visit(version, access, owner, remap(signature), remap(superName), remapAndAddInterfaces(interfaces, shouldAddContentHash));
+            if (shouldAddContentHash) {
+                addContentHash(owner);
+            }
+        }
+
+        private static boolean shouldAddContentHash(int access) {
+            return ((access & ACC_INTERFACE) == 0) && ((access & ACC_ANNOTATION) == 0);
+        }
+
+        private void addContentHash(String owner) {
+            cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL, "__signature", Type.getDescriptor(String.class), "", contentHash);
+            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "getContentHash", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
+            mv.visitCode();
+            mv.visitFieldInsn(GETSTATIC, owner, "__signature", Type.getDescriptor(String.class));
+            mv.visitInsn(ARETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
         }
 
         @Override
         public void visitSource(String source, String debug) {
             cv.visitSource(scriptSource.getFileName(), debug);
+        }
+
+        private String[] remapAndAddInterfaces(String[] interfaces, boolean shouldAddContentHash) {
+            if (!shouldAddContentHash) {
+                return remap(interfaces);
+            }
+            if (interfaces == null) {
+                return new String[]{WITH_CONTENT_HASH};
+            }
+            String[] remapped = new String[interfaces.length + 1];
+            for (int i = 0; i < interfaces.length; i++) {
+                remapped[i] = remap(interfaces[i]);
+            }
+            remapped[remapped.length - 1] = WITH_CONTENT_HASH;
+            return remapped;
         }
 
         private String[] remap(String[] names) {
@@ -376,9 +414,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                         renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
                     }
                     ClassWriter cv = new ClassWriter(0);
-                    BuildScriptRemapper remapper = new BuildScriptRemapper(cv, origin);
                     try {
-                        ClassReader cr = new ClassReader(Files.toByteArray(file));
+                        byte[] contents = Files.toByteArray(file);
+                        ClassReader cr = new ClassReader(contents);
+                        BuildScriptRemapper remapper = new BuildScriptRemapper(cv, origin, Hashing.md5().hashBytes(contents).toString());
                         cr.accept(remapper, 0);
                         Files.write(cv.toByteArray(), new File(relocalizedDir, renamed));
                     } catch (IOException ex) {

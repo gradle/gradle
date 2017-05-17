@@ -15,6 +15,12 @@
  */
 package org.gradle.internal.progress;
 
-public enum BuildOperationType {
+/**
+ * Classifies a build operation such that executors and event listeners can
+ * react differently depending on this type.
+ *
+ * @since 4.0
+ */
+public enum BuildOperationCategory {
     CONFIGURE_PROJECT, TASK, UNCATEGORIZED
 }
