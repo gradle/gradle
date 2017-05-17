@@ -21,6 +21,11 @@ import spock.lang.Unroll
 
 class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
+    private static final String PLUGIN_NOT_APPLIED_MSG = """Build scan cannot be created because the build scan plugin was not applied.
+For more information on how to apply the build scan plugin, please visit https://gradle.com/scans/help/gradle-cli."""
+    public static final String VERSION_CHECK_FAIL_MSG = """This version of Gradle requires version 1.7.2 of the build scan plugin or later.
+Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information."""
+
     boolean collect = true
     String pluginVersionNumber = "2.0"
 
@@ -144,14 +149,34 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         assertFailedVersionCheck()
     }
 
+    def "does not warn for each nested build if --scan used"() {
+        given:
+        collect = false
+        file("buildSrc/build.gradle") << ""
+        file("a/buildSrc/build.gradle") << ""
+        file("a/build.gradle") << ""
+        file("a/settings.gradle") << ""
+        file("b/buildSrc/build.gradle") << ""
+        file("b/build.gradle") << ""
+        file("b/settings.gradle") << ""
+        settingsFile << """
+            includeBuild "a"
+            includeBuild "b"
+        """
+
+        when:
+        succeeds "--scan"
+
+        then:
+        output.count(PLUGIN_NOT_APPLIED_MSG) == 1
+    }
+
     void assertFailedVersionCheck() {
-        failureHasCause """This version of Gradle requires version 1.7.2 of the build scan plugin or later.
-Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information."""
+        failureHasCause VERSION_CHECK_FAIL_MSG
     }
 
     boolean issuedNoPluginWarning() {
-        output.contains """Build scan cannot be created since the build scan plugin has not been applied.
-For more information on how to apply the build scan plugin, please visit https://gradle.com/scans/help/gradle-cli."""
+        output.contains PLUGIN_NOT_APPLIED_MSG
     }
 
 }

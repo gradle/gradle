@@ -23,7 +23,7 @@ import org.gradle.internal.scan.BuildScanRequest;
 /**
  * Wiring of the objects that provide the build scan config integration.
  *
- * This is build scoped.
+ * The objects provided here are are requested of the root project of the root build's service registry.
  */
 public class BuildScanConfigServices {
 
