@@ -275,10 +275,14 @@ This will take advantage of performance optimizations in the latest [Zinc](https
 
 Ivy plugin repositories now support the same API for patterns and layouts that Ivy artifact repositories support.
 
-## Track Java version for Groovy compilation
+### Track Java version for Groovy compilation
 
 The Java version used by Groovy compilation influences the compiled Groovy and Java classes for the `GroovyCompile` task.
 Gradle now tracks changes to this version and recompiles whenever necessary.
+
+### Choose a log level via Gradle property
+
+Gradle now allows you to specify the log level as a Gradle property, allowing a default log level to be set for a project, a machine, etc.  See the [user guide](userguide/build_environment.html#sec:gradle_configuration_properties) for more information.
 
 <!--
 ### Example new and noteworthy
