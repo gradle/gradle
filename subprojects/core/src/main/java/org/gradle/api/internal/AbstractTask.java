@@ -58,10 +58,10 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
-import org.gradle.scripts.WithContentHash;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
@@ -687,10 +687,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public String getActionClassName() {
-            if (closure instanceof WithContentHash) {
-                return "closure_" + ((WithContentHash) closure).getContentHash();
-            }
-            return closure.getClass().getName();
+            return AbstractTask.getActionClassName(closure);
         }
     }
 
@@ -731,11 +728,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (action instanceof ClassLoaderAwareTaskAction) {
                 return ((ClassLoaderAwareTaskAction) action).getActionClassName();
             } else {
-                String className = action.getClass().getName();
-                if (action instanceof WithContentHash) {
-                    return "action_" + ((WithContentHash) action).getContentHash();
-                }
-                return className;
+                return AbstractTask.getActionClassName(action);
             }
         }
 
@@ -760,6 +753,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         @Override
         public int hashCode() {
             return action != null ? action.hashCode() : 0;
+        }
+    }
+
+    private static String getActionClassName(Object action) {
+        if (action instanceof ScriptOrigin) {
+            ScriptOrigin origin = (ScriptOrigin) action;
+            return origin.getOriginalClassName() + "_" + origin.getContentHash();
+        } else {
+            return action.getClass().getName();
         }
     }
 
