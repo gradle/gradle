@@ -17,6 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
@@ -24,6 +25,8 @@ import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
@@ -57,6 +60,15 @@ public class ScalaCompile extends AbstractScalaCompile {
     @Classpath
     public FileCollection getScalaClasspath() {
         return scalaClasspath;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileTree getSource() {
+        return super.getSource();
     }
 
     public void setScalaClasspath(FileCollection scalaClasspath) {
