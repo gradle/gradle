@@ -947,13 +947,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             int expectedDeprecationWarnings = AbstractGradleExecuter.this.expectedDeprecationWarnings;
             boolean expectStackTraces = !AbstractGradleExecuter.this.stackTraceChecksOn;
             boolean checkDeprecations = AbstractGradleExecuter.this.checkDeprecations;
-            boolean useRichConsole = AbstractGradleExecuter.this.useRichConsole;
 
             @Override
             public void execute(ExecutionResult executionResult) {
-                if (!useRichConsole) {
-                    validate(executionResult.getNormalizedOutput(), "Standard output");
-                }
+                validate(executionResult.getNormalizedOutput(), "Standard output");
                 String error = executionResult.getError();
                 if (executionResult instanceof ExecutionFailure) {
                     // Axe everything after the expected exception

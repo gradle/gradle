@@ -24,6 +24,10 @@ class ConsoleTaskGroupingFunctionalTest extends AbstractConsoleFunctionalSpec {
 
     private static final String JAVA_SRC_DIR_PATH = 'src/main/java'
 
+    def setup() {
+        executer.expectDeprecationWarning()
+    }
+
     def "compiler warnings emitted from compilation task are grouped"() {
         given:
         def javaSourceFile = file("$JAVA_SRC_DIR_PATH/MyClass.java")
