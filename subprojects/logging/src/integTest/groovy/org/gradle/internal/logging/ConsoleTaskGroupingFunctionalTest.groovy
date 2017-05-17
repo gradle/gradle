@@ -18,10 +18,17 @@ package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 class ConsoleTaskGroupingFunctionalTest extends AbstractConsoleFunctionalSpec {
+
+    private static final String JAVA_SRC_DIR_PATH = 'src/main/java'
 
     def "compiler warnings emitted from compilation task are grouped"() {
         given:
+        def javaSourceFile = file("$JAVA_SRC_DIR_PATH/MyClass.java")
+        def normalizedJavaSourceFilePath = normaliseFileSeparators(javaSourceFile.absolutePath)
+
         buildFile << """
             apply plugin: 'java'
 
@@ -30,12 +37,12 @@ class ConsoleTaskGroupingFunctionalTest extends AbstractConsoleFunctionalSpec {
             }
         """
 
-        file('src/main/java/Legacy.java') << """
+        file("$JAVA_SRC_DIR_PATH/Legacy.java") << """
             @Deprecated
             public class Legacy { }
         """
 
-        file('src/main/java/MyClass.java') << """
+        file("$JAVA_SRC_DIR_PATH/MyClass.java") << """
             public class MyClass {
                 public void instantiateDeprecatedClass() {
                     new Legacy();
@@ -48,7 +55,7 @@ class ConsoleTaskGroupingFunctionalTest extends AbstractConsoleFunctionalSpec {
 
         then:
         result.output.contains("""> Task :compileJava\u001B[m\u001B[0K
-$testDirectory/src/main/java/MyClass.java:4: warning: [deprecation] Legacy in unnamed package has been deprecated
+$normalizedJavaSourceFilePath:4: warning: [deprecation] Legacy in unnamed package has been deprecated
                     new Legacy();
                         ^
 1 warning""")
