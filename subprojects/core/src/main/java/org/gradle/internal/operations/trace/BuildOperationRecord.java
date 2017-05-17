@@ -102,7 +102,7 @@ public final class BuildOperationRecord {
         }
 
         map.put("startTime", startTime);
-        map.put("endTime", startTime);
+        map.put("endTime", endTime);
         map.put("duration", endTime - startTime);
 
         if (details != null) {
