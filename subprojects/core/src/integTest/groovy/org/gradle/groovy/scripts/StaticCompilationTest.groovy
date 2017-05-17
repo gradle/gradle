@@ -32,7 +32,6 @@ class StaticCompilationTest extends AbstractIntegrationSpec {
            information provided by closures annotated with @DelegatesTo and @ClosureArgs
            is actually _correct_.
         */
-        // TODO? How to validate @DelegatesTo strategy?
 
         buildFile << """
 @groovy.transform.CompileStatic
@@ -40,22 +39,27 @@ void setup(Project p) {
     p.task("foo", type: DefaultTask) {
         Task a = it
         Task b = delegate
+        assert name == 'foo'
     }
     p.task("bar") {
         Task a = it
         Task b = delegate
+        assert name == 'bar'
     }
     p.project(":") {
         Project a = it
         Project b = delegate
+        assert path == ':'
     }
     p.files("build.gradle") {
         ConfigurableFileCollection a = it
         ConfigurableFileCollection b = delegate
+        assert getBuiltBy().empty
     }
     p.fileTree(".") {
         ConfigurableFileTree a = it
         ConfigurableFileTree b = delegate
+        assert getBuiltBy().empty
     }
     try {
         p.javaexec {
@@ -65,6 +69,7 @@ void setup(Project p) {
             // be thrown here if we got the types wrong.)
             JavaExecSpec a = it
             JavaExecSpec b = delegate
+            args(['foo', 'bar'])     
         }
     } catch (IllegalStateException ex) {
         // We don't have any Java to execute.
@@ -74,19 +79,24 @@ void setup(Project p) {
         p.exec {
             ExecSpec a = it
             ExecSpec b = delegate
+            args(['foo', 'bar'])
         }
     } catch (IllegalStateException ex) { }
     p.ant {
         AntBuilder a = it
         AntBuilder b = delegate
+        assert getLifecycleLogLevel() == null
     }
     p.configurations {
         ConfigurationContainer a = it
         ConfigurationContainer b = delegate
+        create('foo') {
+        }
     }
     p.artifacts {
         ArtifactHandler a = it
         ArtifactHandler b = delegate
+        add('foo', file('foo.jar'))
     }
     p.subprojects {
         Project a = it
@@ -98,10 +108,12 @@ void setup(Project p) {
     p.buildscript {
         ScriptHandler a = it
         ScriptHandler b = delegate
+        assert sourceURI != null
     }
     p.allprojects {
         Project a = it
         Project b = delegate
+        assert name != null
     }
     p.afterEvaluate {
         Project a = it
@@ -109,10 +121,12 @@ void setup(Project p) {
     p.repositories {
         RepositoryHandler a = it
         RepositoryHandler b = delegate
+        flatDir name: 'libs', dirs: "libs"
     }
     p.dependencies {
         DependencyHandler a = it
         DependencyHandler b = delegate
+        add('foo', 'com:foo:1.0')
     }
     p.copy {
         from "build.gradle"
@@ -123,6 +137,7 @@ void setup(Project p) {
     p.copySpec {
         CopySpec a = it
         CopySpec b = delegate
+        from "build.gradle"
     }
     NamedDomainObjectContainer container = p.container(HashMap.class) {
         String a = it
