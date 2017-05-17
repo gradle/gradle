@@ -47,7 +47,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
                     switch (disposition) {
                         case RETRY:
-                            releaseLocks(resourceLockState);
+                            resourceLockState.releaseLocks();
                             try {
                                 lock.wait();
                             } catch (InterruptedException e) {
@@ -58,13 +58,13 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                             maybeNotifyStateChange(resourceLockState);
                             return true;
                         case FAILED:
-                            releaseLocks(resourceLockState);
+                            resourceLockState.releaseLocks();
                             return false;
                         default:
                             throw new IllegalArgumentException("Unhandled disposition type: " + disposition.name());
                     }
                 } catch (Throwable t) {
-                    releaseLocks(resourceLockState);
+                    resourceLockState.releaseLocks();
                     throw UncheckedException.throwAsUncheckedException(t);
                 } finally {
                     currentState.get().remove(resourceLockState);
@@ -84,7 +84,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     private void maybeNotifyStateChange(DefaultResourceLockState resourceLockState) {
-        if (!resourceLockState.getUnlockedResources().isEmpty()) {
+        if (resourceLockState.hasUnlockedResources()) {
             notifyStateChange();
         }
     }
@@ -95,36 +95,46 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
-    private void releaseLocks(DefaultResourceLockState resourceLockState) {
-        for (ResourceLock resourceLock : Lists.newArrayList(resourceLockState.getLockedResources())) {
-            resourceLock.unlock();
-        }
-    }
-
     private static class DefaultResourceLockState implements ResourceLockState {
-        private final Set<ResourceLock> lockedResources = Sets.newHashSet();
-        private final Set<ResourceLock> unlockedResources = Sets.newHashSet();
+        private Set<ResourceLock> lockedResources;
+        private Set<ResourceLock> unlockedResources;
+        boolean rollback;
 
         @Override
         public void registerLocked(ResourceLock resourceLock) {
-            if (!unlockedResources.remove(resourceLock)) {
+            if (!rollback && (unlockedResources == null || !unlockedResources.remove(resourceLock))) {
+                if (lockedResources == null) {
+                    lockedResources = Sets.newHashSet();
+                }
                 lockedResources.add(resourceLock);
             }
         }
 
         @Override
         public void registerUnlocked(ResourceLock resourceLock) {
-            if (!lockedResources.remove(resourceLock)) {
+            if (!rollback && (lockedResources == null || !lockedResources.remove(resourceLock))) {
+                if (unlockedResources == null) {
+                    unlockedResources = Sets.newHashSet();
+                }
                 unlockedResources.add(resourceLock);
             }
         }
 
-        Set<ResourceLock> getLockedResources() {
-            return lockedResources;
+        boolean hasUnlockedResources() {
+            return unlockedResources != null && !unlockedResources.isEmpty();
         }
 
-        public Set<ResourceLock> getUnlockedResources() {
-            return unlockedResources;
+        void releaseLocks() {
+            if (lockedResources != null) {
+                rollback = true;
+                try {
+                    for (ResourceLock resourceLock : lockedResources) {
+                        resourceLock.unlock();
+                    }
+                } finally {
+                    rollback = false;
+                }
+            }
         }
     }
 
