@@ -688,9 +688,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         @Override
         public String getActionClassName() {
             if (closure instanceof ScriptOrigin) {
-                return ((ScriptOrigin) closure).getOriginalClassName() + "_" + ((ScriptOrigin) closure).getContentHash();
+                ScriptOrigin origin = (ScriptOrigin) this.closure;
+                return origin.getOriginalClassName() + "_" + origin.getContentHash();
+            } else {
+                return closure.getClass().getName();
             }
-            return closure.getClass().getName();
         }
     }
 
@@ -731,11 +733,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (action instanceof ClassLoaderAwareTaskAction) {
                 return ((ClassLoaderAwareTaskAction) action).getActionClassName();
             } else {
-                String className = action.getClass().getName();
                 if (action instanceof ScriptOrigin) {
-                    return ((ScriptOrigin) action).getOriginalClassName() + "_" + ((ScriptOrigin) action).getContentHash();
+                    ScriptOrigin origin = (ScriptOrigin) this.action;
+                    return origin.getOriginalClassName() + "_" + origin.getContentHash();
+                } else {
+                    return action.getClass().getName();
                 }
-                return className;
             }
         }
 
