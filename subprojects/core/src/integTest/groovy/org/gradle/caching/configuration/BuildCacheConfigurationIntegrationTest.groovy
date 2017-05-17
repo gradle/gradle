@@ -168,6 +168,21 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         result.output.contains("Remote build cache is disabled when running with --offline.")
     }
 
+    def "unregistered build cache type is reported even when disabled"() {
+        settingsFile << """
+            class CustomBuildCache extends AbstractBuildCache {}
+            
+            buildCache {
+                remote(CustomBuildCache) {
+                    enabled = false
+                }
+            }            
+        """
+        expect:
+        fails("help")
+        failureHasCause("Build cache type 'CustomBuildCache' has not been registered.")
+    }
+
     def "emits a useful incubating message when using the build cache"() {
         when:
         executer.withBuildCacheEnabled()
