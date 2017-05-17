@@ -18,15 +18,9 @@ package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.internal.filewatch.FileSystemChangeWaiter;
 
 public interface TaskInputsListener {
-
-    TaskInputsListener NOOP = new TaskInputsListener() {
-        @Override
-        public void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs) {
-
-        }
-    };
 
     /**
      * Called when the execution of the given task is imminent, or would have been if the given file collection was not currently empty.
@@ -37,5 +31,7 @@ public interface TaskInputsListener {
      * @param fileSystemInputs the file system inputs relevant to the task execution
      */
     void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs);
+
+    void setFileSystemWaiter(FileSystemChangeWaiter waiter);
 
 }

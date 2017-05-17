@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -62,7 +62,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry implements G
                                           GradleLauncherFactory gradleLauncherFactory,
                                           BuildOperationListenerManager buildOperationListenerManager,
                                           FileWatcherFactory fileWatcherFactory,
-                                          ListenerManager listenerManager,
+                                          TaskInputsListener inputsListener,
                                           StyledTextOutputFactory styledTextOutputFactory,
                                           ExecutorFactory executorFactory,
                                           Factory<LoggingManagerInternal> loggingManagerFactory,
@@ -81,12 +81,16 @@ public class LauncherServices extends AbstractPluginServiceRegistry implements G
                                                         new ChainingBuildActionRunner(buildActionRunners))),
                                                 buildOperationListenerManager, registrations))),
                                     fileWatcherFactory,
-                                    listenerManager,
+                                    inputsListener,
                                     styledTextOutputFactory,
                                     executorFactory),
                                 userHomeServiceRegistry))),
                     styledTextOutputFactory),
                 loggingManagerFactory.create());
+        }
+
+        TaskInputsListener createTaskInputsListener() {
+            return new ContinuousBuildActionExecuter.ContinuousTaskInputsListener();
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

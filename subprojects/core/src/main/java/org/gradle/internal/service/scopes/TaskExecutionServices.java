@@ -99,6 +99,7 @@ public class TaskExecutionServices {
                                     BuildCacheService buildCacheService,
                                     StartParameter startParameter,
                                     ListenerManager listenerManager,
+                                    TaskInputsListener inputsListener,
                                     TaskOutputOriginFactory taskOutputOriginFactory,
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker) {
@@ -131,7 +132,7 @@ public class TaskExecutionServices {
             executer = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), executer, buildOperationExecutor);
         }
         executer = new ValidatingTaskExecuter(executer);
-        executer = new SkipEmptySourceFilesTaskExecuter(listenerManager.getBroadcaster(TaskInputsListener.class), executer);
+        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
         executer = new SkipTaskWithNoActionsExecuter(executer);
         executer = new SkipOnlyIfTaskExecuter(executer);

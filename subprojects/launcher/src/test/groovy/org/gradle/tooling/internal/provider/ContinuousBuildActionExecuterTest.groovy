@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.initialization.BuildRequestMetaData
@@ -25,16 +24,15 @@ import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.util.Clock
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
+import org.gradle.util.Clock
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
 import spock.lang.AutoCleanup
@@ -54,7 +52,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def actionParameters = Stub(BuildActionParameters)
     def waiterFactory = Mock(FileSystemChangeWaiterFactory)
     def waiter = Mock(FileSystemChangeWaiter)
-    def listenerManager = new DefaultListenerManager()
+    def inputsListener = new ContinuousBuildActionExecuter.ContinuousTaskInputsListener()
     @AutoCleanup("stop")
     def executorFactory = new DefaultExecutorFactory()
     def globalServices = Stub(ServiceRegistry)
@@ -177,11 +175,11 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void declareInput(File file) {
-        listenerManager.getBroadcaster(TaskInputsListener).onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
+        inputsListener.onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
     }
 
     private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), OperatingSystem.current(), executorFactory, waiterFactory)
+        new ContinuousBuildActionExecuter(delegate, inputsListener, new TestStyledTextOutputFactory(), OperatingSystem.current(), executorFactory, waiterFactory)
     }
 
 }
