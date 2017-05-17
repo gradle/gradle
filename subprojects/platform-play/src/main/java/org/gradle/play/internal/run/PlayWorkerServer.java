@@ -89,13 +89,18 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     }
 
     @Override
-    public void reload() {
-        runAdapter.reload();
+    public void buildSuccess() {
+        runAdapter.buildSuccess();
     }
 
     @Override
     public void buildError(Throwable throwable) {
         runAdapter.buildError(throwable);
+    }
+
+    @Override
+    public void rebuildInProgress() {
+        runAdapter.rebuildInProgress();
     }
 
 }
