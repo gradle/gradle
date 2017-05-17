@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType;
@@ -245,7 +246,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             @Override
             public void run(BuildOperationContext context) {
                 visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
-
             }
 
             @Override
@@ -300,12 +300,15 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private static class LenientArtifactCollectingVisitor implements ArtifactVisitor {
         final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
-        final Set<File> files = Sets.newLinkedHashSet();
 
         @Override
         public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
             try {
-                files.add(artifact.getFile());
+                if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
+                    // Trigger download
+                    // TODO - get rid of the special case, it's used as a side effect by the IDE plugins to avoid building the JAR for included builds
+                    artifact.getFile();
+                }
                 artifacts.add(artifact);
             } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
                 //ignore
@@ -333,10 +336,31 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
     }
 
-    private static class LenientFilesAndArtifactResolveVisitor extends LenientArtifactCollectingVisitor {
+    private static class LenientFilesAndArtifactResolveVisitor implements ArtifactVisitor {
+        final Set<File> files = Sets.newLinkedHashSet();
+
+        @Override
+        public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
+            try {
+                files.add(artifact.getFile());
+            } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
+                //ignore
+            }
+        }
+
+        @Override
+        public boolean requireArtifactFiles() {
+            return false;
+        }
+
         @Override
         public boolean includeFiles() {
             return true;
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+            throw UncheckedException.throwAsUncheckedException(failure);
         }
 
         @Override
