@@ -35,4 +35,5 @@ class TestProjectGeneratorConfiguration {
     int maxParallelForks
     int testForkEvery
     boolean useTestNG
+    Map<String, String> fileToChangeByScenario = [:]
 }
