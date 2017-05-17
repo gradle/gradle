@@ -52,6 +52,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     private static final Logger LOGGER = Logging.getLogger(DefaultVersionedPlayRunAdapter.class);
 
     private final AtomicBoolean reload = new AtomicBoolean();
+    private final AtomicBoolean ready = new AtomicBoolean(true);
     private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
     private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
     private volatile Throwable buildFailure;
@@ -66,12 +67,18 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
         final ClassLoader assetsClassLoader = createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
         final Class<? extends Throwable> playExceptionClass = Cast.uncheckedCast(classLoader.loadClass(PLAY_EXCEPTION_CLASSNAME));
-        reload();
+        buildSuccess();
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 if (method.getName().equals("projectPath")) {
                     return projectPath;
                 } else if (method.getName().equals("reload")) {
+                    // Wait for any rebuild that may be in progress
+                    synchronized (ready) {
+                        while (!ready.get()) {
+                            ready.wait();
+                        }
+                    }
 
                     // We can't close replaced loaders immediately, because their classes may be used during shutdown,
                     // after the return of the reload() call that caused the loader to be swapped out.
@@ -135,14 +142,28 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
 
     @Override
-    public void reload() {
+    public void buildSuccess() {
         reload.set(true);
         buildFailure = null;
+        makeReady(true);
     }
 
     @Override
     public void buildError(Throwable throwable) {
         buildFailure = throwable;
+        makeReady(true);
+    }
+
+    @Override
+    public void rebuildInProgress() {
+        makeReady(false);
+    }
+
+    private void makeReady(boolean isReady) {
+        synchronized (ready) {
+            ready.set(isReady);
+            ready.notifyAll();
+        }
     }
 
     @Override
