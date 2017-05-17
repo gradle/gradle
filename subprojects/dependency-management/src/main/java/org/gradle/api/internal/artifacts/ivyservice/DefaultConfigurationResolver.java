@@ -106,11 +106,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     @Override
     public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
         ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
-        FileDependencyCollectingGraphVisitor fileDependenciesVisitor = new FileDependencyCollectingGraphVisitor();
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
-        CompositeDependencyArtifactsVisitor allVisitors = new CompositeDependencyArtifactsVisitor(fileDependenciesVisitor, artifactsVisitor);
-        resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, IS_LOCAL_EDGE, DependencyGraphVisitor.NO_OP, allVisitors, attributesSchema, artifactTypeRegistry);
-        result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(configuration, Collections.<UnresolvedDependency>emptySet(), artifactsVisitor.complete(), fileDependenciesVisitor.complete(), artifactTransforms));
+        resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, IS_LOCAL_EDGE, DependencyGraphVisitor.NO_OP, artifactsVisitor, attributesSchema, artifactTypeRegistry);
+        result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(configuration, Collections.<UnresolvedDependency>emptySet(), artifactsVisitor.complete(),  artifactTransforms));
     }
 
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) {
@@ -141,7 +139,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();
         ResolvedGraphResults graphResults = oldModelBuilder.complete();
 
-        results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(configuration, graphResults.getUnresolvedDependencies(), artifactsResults, fileDependencyResults, artifactTransforms));
+        results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(configuration, graphResults.getUnresolvedDependencies(), artifactsResults, artifactTransforms));
 
         results.retainState(new ArtifactResolveState(graphResults, artifactsResults, fileDependencyResults, oldTransientModelBuilder));
     }

@@ -34,14 +34,12 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
     private final Configuration configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
     private final VisitedArtifactsResults artifactsResults;
-    private final VisitedFileDependencyResults fileDependencyResults;
     private final ArtifactTransforms artifactTransforms;
 
-    public BuildDependenciesOnlyVisitedArtifactSet(Configuration configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults, ArtifactTransforms artifactTransforms) {
+    public BuildDependenciesOnlyVisitedArtifactSet(Configuration configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactsResults, ArtifactTransforms artifactTransforms) {
         this.configuration = configuration;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactsResults = artifactsResults;
-        this.fileDependencyResults = fileDependencyResults;
         this.artifactTransforms = artifactTransforms;
     }
 
@@ -49,21 +47,18 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant) {
         VariantSelector variantSelector = artifactTransforms.variantSelector(requestedAttributes, allowNoMatchingVariant);
         ResolvedArtifactSet selectedArtifacts = artifactsResults.select(componentSpec, variantSelector).getArtifacts();
-        ResolvedArtifactSet selectedFiles = fileDependencyResults.select(componentSpec, variantSelector).getArtifacts();
-        return new BuildDependenciesOnlySelectedArtifactSet(configuration, unresolvedDependencies, selectedArtifacts, selectedFiles);
+        return new BuildDependenciesOnlySelectedArtifactSet(configuration, unresolvedDependencies, selectedArtifacts);
     }
 
     private static class BuildDependenciesOnlySelectedArtifactSet implements SelectedArtifactSet {
         private final Configuration configuration;
         private final Set<UnresolvedDependency> unresolvedDependencies;
         private final ResolvedArtifactSet selectedArtifacts;
-        private final ResolvedArtifactSet selectedFiles;
 
-        BuildDependenciesOnlySelectedArtifactSet(Configuration configuration, Set<UnresolvedDependency> unresolvedDependencies, ResolvedArtifactSet selectedArtifacts, ResolvedArtifactSet selectedFiles) {
+        BuildDependenciesOnlySelectedArtifactSet(Configuration configuration, Set<UnresolvedDependency> unresolvedDependencies, ResolvedArtifactSet selectedArtifacts) {
             this.configuration = configuration;
             this.unresolvedDependencies = unresolvedDependencies;
             this.selectedArtifacts = selectedArtifacts;
-            this.selectedFiles = selectedFiles;
         }
 
         @Override
@@ -76,7 +71,6 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
                 visitor.visitFailure(new ResolveException(configuration.toString(), failures));
             }
             selectedArtifacts.collectBuildDependencies(visitor);
-            selectedFiles.collectBuildDependencies(visitor);
         }
 
         @Override

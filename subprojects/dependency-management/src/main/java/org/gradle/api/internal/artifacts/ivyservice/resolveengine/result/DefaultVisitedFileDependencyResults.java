@@ -55,20 +55,5 @@ public class DefaultVisitedFileDependencyResults implements VisitedFileDependenc
         public Map<FileCollectionDependency, ResolvedArtifactSet> getFirstLevelFiles() {
             return rootFiles;
         }
-
-        @Override
-        public ResolvedArtifactSet getArtifactsForNode(long id) {
-            return ResolvedArtifactSet.EMPTY;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifactsWithId(long id) {
-            return ResolvedArtifactSet.EMPTY;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifacts() {
-            return ResolvedArtifactSet.EMPTY;
-        }
     }
 }

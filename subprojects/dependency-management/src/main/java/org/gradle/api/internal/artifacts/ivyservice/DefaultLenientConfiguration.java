@@ -138,7 +138,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 }
 
                 artifactResults.getArtifacts().collectBuildDependencies(visitor);
-                fileDependencyResults.getArtifacts().collectBuildDependencies(visitor);
             }
 
             @Override
@@ -261,16 +260,15 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      * @param dependencySpec dependency spec
      */
     private void visitArtifacts(Spec<? super Dependency> dependencySpec, SelectedArtifactResults artifactResults, SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
-        List<ResolvedArtifactSet> artifactSets = new ArrayList<ResolvedArtifactSet>(2);
 
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
-            artifactSets.add(fileDependencyResults.getArtifacts());
-            artifactSets.add(artifactResults.getArtifacts());
-            ParallelResolveArtifactSet.wrap(CompositeArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
+            ParallelResolveArtifactSet.wrap(artifactResults.getArtifacts(), buildOperationExecutor).visit(visitor);
             return;
         }
+
+        List<ResolvedArtifactSet> artifactSets = new ArrayList<ResolvedArtifactSet>();
 
         if (visitor.includeFiles()) {
             for (Map.Entry<FileCollectionDependency, ResolvedArtifactSet> entry : fileDependencyResults.getFirstLevelFiles().entrySet()) {
