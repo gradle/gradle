@@ -252,12 +252,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m3.pom.expectGetBroken()
         m4.pom.expectGet()
         m4.artifact.expectGetBroken()
-        // TODO: should only query once and reuse the result
-        m4.artifact.expectGetBroken()
-        m4.artifact.expectGetBroken()
-        m4.artifact.expectGetBroken()
-        m4.artifact.expectGetBroken()
-        m4.artifact.expectGetBroken()
 
         expect:
         succeeds "validate"

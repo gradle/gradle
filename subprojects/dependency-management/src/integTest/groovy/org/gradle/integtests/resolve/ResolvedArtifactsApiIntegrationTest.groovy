@@ -885,9 +885,7 @@ task resolve {
         missing.artifact.expectGetMissing()
         def bad = mavenHttpRepo.module('org', 'test-bad', '2.0').publish()
         bad.pom.expectGet()
-        2.times {
-            bad.artifact.expectGetBroken()
-        }
+        bad.artifact.expectGetBroken()
 
         then:
         succeeds 'resolve'
