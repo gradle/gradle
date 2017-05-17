@@ -22,16 +22,16 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
 /**
- * Contains the singleton services for a single execution of a "build" which consists of one or more builds.
+ * Contains the singleton services for a single build tree which consists of one or more builds.
  */
-public class ExecutionScopeServices extends DefaultServiceRegistry {
-    public ExecutionScopeServices(final ServiceRegistry parent) {
+public class BuildTreeScopeServices extends DefaultServiceRegistry {
+    public BuildTreeScopeServices(final ServiceRegistry parent) {
         super(parent);
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                     try {
-                        pluginServiceRegistry.registerExecutionServices(registration);
+                        pluginServiceRegistry.registerBuildTreeServices(registration);
                     } catch (AbstractMethodError error) {
                         // TODO(slg): ignore until we update GSK.
                     }

@@ -24,6 +24,7 @@ import org.gradle.internal.service.ServiceRegistration;
  * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
  *
  * <p>May also implement {@link GradleUserHomeScopePluginServices} and {@link SettingScopePluginServiceRegistry}.</p>
+ *
  */
 public interface PluginServiceRegistry {
     /**
@@ -43,12 +44,12 @@ public interface PluginServiceRegistry {
     void registerBuildSessionServices(ServiceRegistration registration);
 
     /**
-     * Called once per execution to register any execution session scoped services.  These services are recreated when in
+     * Called once per build tree to register any build tree scoped services.  These services are recreated when in
      * continuous mode and shared between nested builds. They are closed when the outer most build ends.
      *
-     * <p>Global and shared services are visible to execution scope services, but not vice versa</p>
+     * <p>Global and shared services are visible to build tree scope services, but not vice versa</p>
      */
-    void registerExecutionServices(ServiceRegistration registration);
+    void registerBuildTreeServices(ServiceRegistration registration);
 
     /**
      * Called once per build, to register any build scoped services. These services are closed at the end of the build.
