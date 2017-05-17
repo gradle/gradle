@@ -498,6 +498,7 @@ We would like to thank the following community members for making contributions 
 - [Pierre Noel](https://github.com/petersg83) - Add missing comma in `FileReferenceFactory.toString()` ([gradle/gradle#1440](https://github.com/gradle/gradle/pull/1440))
 - [Eitan Adler](https://github.com/grimreaper) - Remove some some duplicated words from documentation ([gradle/gradle#1513](https://github.com/gradle/gradle/pull/1513))
 - [Eitan Adler](https://github.com/grimreaper) - Remove extraneous letter in documentation ([gradle/gradle#1459](https://github.com/gradle/gradle/pull/1459))
+- [Robert Hencke](https://github.com/rhencke) - Add `@DelegatesTo` and `@ClosureParams` to `Project` ([gradle/gradle#930](https://github.com/gradle/gradle/pull/930))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
