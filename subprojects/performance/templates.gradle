@@ -21,39 +21,79 @@ import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGener
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 // === Java ===
-task largeMonolithicJavaProject(type: JavaExec) {
-    outputs.dir new File(buildDir, name)
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGenerator'
-    args name, buildDir.absolutePath
+['largeMonolithicJavaProject', 'largeJavaMultiProject',
+ 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG'].each { template ->
+    tasks.create(template, JavaExec) {
+        outputs.dir new File(buildDir, template)
+        classpath = sourceSets.performanceTest.runtimeClasspath
+        main = 'org.gradle.performance.generator.TestProjectGenerator'
+        args name, buildDir.absolutePath
+        doLast {
+            def scenarioFile = file("$buildDir/$template/performance.scenarios")
+            def pkg = template.toLowerCase()
+            def fileToUpdate = pkg.contains('multi')?
+                "project1/src/main/java/org/gradle/test/performance/$pkg/project1/p5/Production103.java":
+                "src/main/java/org/gradle/test/performance/$pkg/project1/p5/Production103.java"
+            scenarioFile.text = """
+nonAbiChange {
+  tasks = ["assemble"]
+  apply-non-abi-change-to = "$fileToUpdate"
+  maven {
+    targets = ["clean", "package", "-Dmaven.test.skip=true", "-T", "4"]
+  }
 }
 
-task largeJavaMultiProject(type: JavaExec) {
-    outputs.dir new File(buildDir, name)
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGenerator'
-    args name, buildDir.absolutePath
+abiChange {
+  tasks = ["assemble"]
+  apply-abi-change-to = "$fileToUpdate"
+  maven {
+    targets = ["clean", "package", "-Dmaven.test.skip=true", "-T", "4"]
+  }
 }
 
-task mediumMonolithicJavaProject(type: JavaExec) {
-    outputs.dir new File(buildDir, name)
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGenerator'
-    args name, buildDir.absolutePath
+cleanAssemble {
+  tasks = ["clean", "assemble"]
 }
 
-task mediumJavaMultiProject(type: JavaExec) {
-    outputs.dir new File(buildDir, name)
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGenerator'
-    args name, buildDir.absolutePath
+cleanAssembleCached {
+  tasks = ["clean", "assemble"]
+  gradle-args = ["--build-cache"]
 }
 
-task mediumJavaMultiProjectWithTestNG(type: JavaExec) {
-    outputs.dir new File(buildDir, name)
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGenerator'
-    args name, buildDir.absolutePath
+cleanBuild {
+  tasks = ["clean", "build"]
+  maven {
+    targets = ["clean", "test", "package", "-T", "4"]
+  }
+}
+
+cleanBuildCached {
+  tasks = ["clean", "build"]
+  maven {
+    targets = ["clean", "test", "package", "-T", "4"]
+  }
+  gradle-args = ["--build-cache"]
+}
+
+incrementalCompile {
+  tasks = ["compileJava"]
+   maven {
+    targets = ["compile", "-T", "4"]
+  }
+  apply-non-abi-change-to = "$fileToUpdate"
+}
+
+incrementalTest {
+  tasks = ["build"]
+  apply-non-abi-change-to = "$fileToUpdate"
+   maven {
+    targets = ["test", "-T", "4"]
+  }
+}
+
+"""
+        }
+    }
 }
 
 // TODO implement VerboseTestOutputPerformanceTest with static project
