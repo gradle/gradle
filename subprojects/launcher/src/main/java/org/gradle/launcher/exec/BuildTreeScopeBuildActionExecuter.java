@@ -20,12 +20,12 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
-import org.gradle.internal.service.scopes.ExecutionScopeServices;
+import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 
-public class ExecutionServicesBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
+public class BuildTreeScopeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
 
-    public ExecutionServicesBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate) {
+    public BuildTreeScopeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate) {
         this.delegate = delegate;
     }
 
@@ -34,11 +34,11 @@ public class ExecutionServicesBuildActionExecuter implements BuildActionExecuter
         if (!(contextServices instanceof BuildSessionScopeServices)) {
             throw new IllegalArgumentException("Service registry must be of build session scope");
         }
-        ExecutionScopeServices executionScopeServices = new ExecutionScopeServices((BuildSessionScopeServices) contextServices);
+        BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices((BuildSessionScopeServices) contextServices);
         try {
-            return delegate.execute(action, requestContext, actionParameters, executionScopeServices);
+            return delegate.execute(action, requestContext, actionParameters, buildTreeScopeServices);
         } finally {
-            executionScopeServices.close();
+            buildTreeScopeServices.close();
         }
     }
 }

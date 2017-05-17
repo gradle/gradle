@@ -37,7 +37,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
-import org.gradle.internal.service.scopes.ExecutionScopeServices
+import org.gradle.internal.service.scopes.BuildTreeScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.service.scopes.ProjectScopeServices
@@ -97,12 +97,12 @@ class ToolingApiDistributionResolver {
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         def userHomeScopeServiceRegistry = globalRegistry.get(GradleUserHomeScopeServiceRegistry)
         def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)
-        def sessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, ClassPath.EMPTY)
-        def executionScopeServices = new ExecutionScopeServices(sessionServices)
-        def topLevelRegistry = new BuildScopeServices(executionScopeServices)
+        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, ClassPath.EMPTY)
+        def buildTreeScopeServices = new BuildTreeScopeServices(buildSessionServices)
+        def topLevelRegistry = new BuildScopeServices(buildTreeScopeServices)
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
 
-        def workerLeaseService = sessionServices.get(WorkerLeaseService)
+        def workerLeaseService = buildSessionServices.get(WorkerLeaseService)
         def workerLeaseCompletion = workerLeaseService.getWorkerLease().start()
         stopLater.add(new Stoppable() {
             @Override
@@ -113,8 +113,8 @@ class ToolingApiDistributionResolver {
 
         stopLater.add(projectRegistry)
         stopLater.add(topLevelRegistry)
-        stopLater.add(executionScopeServices)
-        stopLater.add(sessionServices)
+        stopLater.add(buildTreeScopeServices)
+        stopLater.add(buildSessionServices)
         stopLater.add(new Stoppable() {
             @Override
             void stop() {

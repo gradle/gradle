@@ -30,7 +30,7 @@ public class AbstractPluginServiceRegistry implements PluginServiceRegistry {
     }
 
     @Override
-    public void registerExecutionServices(ServiceRegistration registration) {
+    public void registerBuildTreeServices(ServiceRegistration registration) {
 
     }
 
