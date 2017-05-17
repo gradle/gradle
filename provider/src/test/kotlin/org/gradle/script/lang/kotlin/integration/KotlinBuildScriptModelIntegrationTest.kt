@@ -162,20 +162,38 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `sourcePath includes kotlin-stdlib sources`() {
+    fun `sourcePath includes kotlin-stdlib sources resolved against project`() {
 
-        withBuildScript("""
-            buildscript { repositories { gradleScriptKotlin() } }
-        """)
+        assertSourcePathIncludesKotlinStdlibSourcesGiven(
+            rootProjectScript = "",
+            subProjectScript = "buildscript { repositories { gradleScriptKotlin() } }")
+    }
+
+    @Test
+    fun `sourcePath includes kotlin-stdlib sources resolved against project hierarchy`() {
+
+        assertSourcePathIncludesKotlinStdlibSourcesGiven(
+            rootProjectScript = "buildscript { repositories { gradleScriptKotlin() } }",
+            subProjectScript = "")
+    }
+
+    private
+    fun assertSourcePathIncludesKotlinStdlibSourcesGiven(rootProjectScript: String, subProjectScript: String) {
+
+        val subProjectName = "sub"
+        withFile("settings.gradle", "include '$subProjectName'")
+
+        withBuildScript(rootProjectScript)
+        val subProjectScriptFile = withBuildScriptIn(subProjectName, subProjectScript)
 
         assertThat(
-            sourcePath().map { it.name },
+            sourcePathFor(subProjectScriptFile).map { it.name },
             hasItems("kotlin-stdlib-$embeddedKotlinVersion-sources.jar"))
     }
 
     private
-    fun sourcePath() =
-        kotlinBuildScriptModelFor(projectRoot).sourcePath
+    fun sourcePathFor(scriptFile: File) =
+        kotlinBuildScriptModelFor(projectRoot, scriptFile).sourcePath
 
     private
     fun assertContainsGradleScriptKotlinApiJars(classPath: List<File>) {

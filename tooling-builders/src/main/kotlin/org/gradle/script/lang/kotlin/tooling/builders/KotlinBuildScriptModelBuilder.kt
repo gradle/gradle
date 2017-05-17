@@ -17,19 +17,13 @@
 package org.gradle.script.lang.kotlin.tooling.builders
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.jvm.JvmLibrary
-import org.gradle.language.base.artifact.SourcesArtifact
 
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
-import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 import org.gradle.script.lang.kotlin.provider.gradleScriptKotlinApiOf
 import org.gradle.script.lang.kotlin.provider.kotlinScriptClassPathProviderOf
 import org.gradle.script.lang.kotlin.resolver.SourcePathProvider
@@ -51,91 +45,82 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         modelName == "org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel"
 
     override fun buildAll(modelName: String, project: Project): KotlinBuildScriptModel {
-        val classPath = scriptClassPathOf(project)
-        val sourcePath = sourcePathFor(classPath.bin, project)
-        val implicitImports = implicitImportsOf(project)
+
+        val (targetProject, scriptClassPath) =
+            scriptModelRequestFor(project).let {
+                when (it) {
+                    is ScriptModelRequest.ForProjectScript ->
+                        it.enclosingProject to projectScriptClassPathOf(it.enclosingProject)
+                    is ScriptModelRequest.ForScriptPlugin  ->
+                        project to scriptPluginClassPathOf(project)
+                }
+            }
+
+        val gradleSources = gradleSourcesFor(scriptClassPath.bin, targetProject)
+        val kotlinLibSources = kotlinLibSourcesFor(targetProject)
+        val implicitImports = implicitImportsOf(targetProject)
+
         return StandardKotlinBuildScriptModel(
-            classPath.bin.asFiles,
-            (classPath.src + sourcePath + kotlinLibSourcesFor(project)).asFiles,
+            scriptClassPath.bin.asFiles,
+            (scriptClassPath.src + gradleSources + kotlinLibSources).asFiles,
             implicitImports)
     }
 
     private
-    fun kotlinLibSourcesFor(project: Project) =
-        project.buildscript.run {
-            if (repositories.isEmpty()) DefaultClassPath.EMPTY
-            else resolveKotlinLibSourcesUsing(dependencies)
-        }
+    sealed class ScriptModelRequest {
+
+        data class ForProjectScript(val enclosingProject: Project) : ScriptModelRequest()
+
+        object ForScriptPlugin : ScriptModelRequest()
+    }
 
     private
-    fun resolveKotlinLibSourcesUsing(dependencyHandler: DependencyHandler): ClassPath =
-        DefaultClassPath.of(
-            dependencyHandler
-                .createArtifactResolutionQuery()
-                .forComponents(kotlinComponent("kotlin-stdlib"), kotlinComponent("kotlin-reflect"))
-                .withArtifacts(JvmLibrary::class.java, SourcesArtifact::class.java)
-                .execute()
-                .resolvedComponents
-                .flatMap { it.getArtifacts(SourcesArtifact::class.java) }
-                .filterIsInstance<ResolvedArtifactResult>()
-                .map { it.file })
-
-    private
-    fun kotlinComponent(module: String): ModuleComponentIdentifier =
-        moduleId("org.jetbrains.kotlin", module, embeddedKotlinVersion)
-
-    private
-    fun moduleId(group: String, module: String, version: String) =
-        object : ModuleComponentIdentifier {
-            override fun getGroup() = group
-            override fun getModule() = module
-            override fun getVersion() = version
-            override fun getDisplayName() = "$group:$module:$version"
+    fun scriptModelRequestFor(project: Project): ScriptModelRequest =
+        targetScriptFileForModelRequestOf(project).let {
+            when (it) {
+                null -> ScriptModelRequest.ForProjectScript(project)
+                else -> projectFor(it, project)
+                    ?.let { ScriptModelRequest.ForProjectScript(it) }
+                    ?: ScriptModelRequest.ForScriptPlugin
+            }
         }
 
     private
     data class ScriptClassPath(val bin: ClassPath, val src: ClassPath)
 
     private
-    fun scriptClassPathOf(project: Project): ScriptClassPath {
-        val targetBuildscriptFile = targetBuildscriptFile(project)
-        return when {
-            targetBuildscriptFile != null ->
-                projectFor(targetBuildscriptFile, project)
-                    ?.let { targetProject -> buildScriptClassPathOf(targetProject) }
-                    ?: scriptPluginClassPathOf(project)
-            else ->
-                buildScriptClassPathOf(project)
-        }
-    }
-
-    private
-    fun implicitImportsOf(project: Project) =
-        project.serviceOf<ImplicitImports>().list
-
-    private
-    fun sourcePathFor(classPath: ClassPath, project: Project) =
-        SourcePathProvider.sourcePathFor(classPath, project.rootProject.projectDir, project.gradle.gradleHomeDir)
-
-    private
-    fun targetBuildscriptFile(project: Project) =
-        project.findProperty(kotlinBuildScriptModelTarget)?.let { canonicalFile(it as String) }
-
-    private
-    fun projectFor(targetBuildscriptFile: File?, project: Project) =
-        project.allprojects.find { it.buildFile == targetBuildscriptFile }
-
-    private
-    fun canonicalFile(path: String): File = File(path).canonicalFile
-
-    private
-    fun buildScriptClassPathOf(project: Project): ScriptClassPath {
+    fun projectScriptClassPathOf(project: Project): ScriptClassPath {
         val compilationClassPath = compilationClassPathOf(project)
         val accessorsClassPath = accessorsClassPathFor(project, compilationClassPath)
         return ScriptClassPath(
             compilationClassPath + accessorsClassPath.bin,
             accessorsClassPath.src)
     }
+
+    private
+    fun scriptPluginClassPathOf(project: Project) =
+        ScriptClassPath(
+            DefaultClassPath.of(buildSrcClassPathOf(project) + gradleScriptKotlinApiOf(project)),
+            ClassPath.EMPTY)
+
+    private
+    fun implicitImportsOf(project: Project) =
+        project.serviceOf<ImplicitImports>().list
+
+    private
+    fun gradleSourcesFor(classPath: ClassPath, project: Project) =
+        SourcePathProvider.sourcePathFor(classPath, project.rootProject.projectDir, project.gradle.gradleHomeDir)
+
+    private
+    fun targetScriptFileForModelRequestOf(project: Project) =
+        project.findProperty(kotlinBuildScriptModelTarget)?.let { canonicalFile(it as String) }
+
+    private
+    fun projectFor(targetBuildFile: File, project: Project) =
+        project.allprojects.find { it.buildFile == targetBuildFile }
+
+    private
+    fun canonicalFile(path: String): File = File(path).canonicalFile
 
     private
     fun compilationClassPathOf(project: Project) =
@@ -145,12 +130,6 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun classLoaderScopeOf(project: Project) =
         (project as ProjectInternal).classLoaderScope
-
-    private
-    fun scriptPluginClassPathOf(project: Project) =
-        ScriptClassPath(
-            DefaultClassPath.of(buildSrcClassPathOf(project) + gradleScriptKotlinApiOf(project)),
-            ClassPath.EMPTY)
 
     private
     fun buildSrcClassPathOf(project: Project) =
