@@ -28,25 +28,36 @@ public class TwirlCompilerFactory {
     public static VersionedTwirlCompilerAdapter createAdapter(PlayPlatform playPlatform) {
         String playVersion = playPlatform.getPlayVersion();
         String scalaCompatibilityVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
+        VersionedPlayTwirlAdapter playTwirlAdapter = createPlayTwirlAdapter(playPlatform);
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
             case PLAY_2_2_X:
-                return new TwirlCompilerAdapterV22X("2.2.6", scalaCompatibilityVersion);
+                return new TwirlCompilerAdapterV22X("2.2.6", scalaCompatibilityVersion, playTwirlAdapter);
             case PLAY_2_3_X:
-                return new TwirlCompilerAdapterV10X("1.0.4", scalaCompatibilityVersion);
+                return new TwirlCompilerAdapterV10X("1.0.4", scalaCompatibilityVersion, playTwirlAdapter);
             case PLAY_2_4_X:
             case PLAY_2_5_X:
-                return new TwirlCompilerAdapterV10X("1.1.1", scalaCompatibilityVersion);
+                return new TwirlCompilerAdapterV10X("1.1.1", scalaCompatibilityVersion, playTwirlAdapter);
             case PLAY_2_6_X:
-                // TODO: create a TwirlJavaCompiler for Twirl 1.3.x that uses the Java compiler interface
-                // Rename TwirlCompiler to TwirlScalaCompiler
-                // Waiting for https://github.com/playframework/twirl/pull/136
-                // and https://github.com/gradle/gradle/pull/2062
-                // We don't want to use the legacy TwirlScalaCompiler for Twirl 3.0 because the interface is more
-                // complicated and it would be really frustrating to deal with typed parameters via reflection,
-                // to create Scala Seqs in Java, etc.
-                return new TwirlCompilerAdapterV13X("1.3.13", scalaCompatibilityVersion);
+                return new TwirlCompilerAdapterV13X("1.3.13", scalaCompatibilityVersion, playTwirlAdapter);
             default:
                 throw new RuntimeException("Could not create Twirl compile spec for Play version: " + playVersion);
         }
     }
+
+    public static VersionedPlayTwirlAdapter createPlayTwirlAdapter(PlayPlatform playPlatform) {
+        String playVersion = playPlatform.getPlayVersion();
+        switch (PlayMajorVersion.forPlatform(playPlatform)) {
+            case PLAY_2_2_X:
+                return new PlayTwirlAdapterV22X();
+            case PLAY_2_3_X:
+            case PLAY_2_4_X:
+            case PLAY_2_5_X:
+                return new PlayTwirlAdapterV23X();
+            case PLAY_2_6_X:
+                return new PlayTwirlAdapterV26X();
+            default:
+                throw new RuntimeException("Could not create Twirl adapter spec for Play version: " + playVersion);
+        }
+    }
+
 }
