@@ -687,12 +687,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public String getActionClassName() {
-            if (closure instanceof ScriptOrigin) {
-                ScriptOrigin origin = (ScriptOrigin) this.closure;
-                return origin.getOriginalClassName() + "_" + origin.getContentHash();
-            } else {
-                return closure.getClass().getName();
-            }
+            return AbstractTask.getActionClassName(closure);
         }
     }
 
@@ -733,12 +728,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (action instanceof ClassLoaderAwareTaskAction) {
                 return ((ClassLoaderAwareTaskAction) action).getActionClassName();
             } else {
-                if (action instanceof ScriptOrigin) {
-                    ScriptOrigin origin = (ScriptOrigin) this.action;
-                    return origin.getOriginalClassName() + "_" + origin.getContentHash();
-                } else {
-                    return action.getClass().getName();
-                }
+                return AbstractTask.getActionClassName(action);
             }
         }
 
@@ -763,6 +753,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         @Override
         public int hashCode() {
             return action != null ? action.hashCode() : 0;
+        }
+    }
+
+    private static String getActionClassName(Object action) {
+        if (action instanceof ScriptOrigin) {
+            ScriptOrigin origin = (ScriptOrigin) action;
+            return origin.getOriginalClassName() + "_" + origin.getContentHash();
+        } else {
+            return action.getClass().getName();
         }
     }
 
