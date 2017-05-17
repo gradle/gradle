@@ -21,6 +21,10 @@ import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 
 class BuildResultLoggerFunctionalSpec extends AbstractConsoleFunctionalSpec {
 
+    def setup() {
+        executer.withStackTraceChecksDisabled()
+    }
+
     def "Failure status is logged even in --quiet"() {
         given:
         buildFile << "task fail { doFirst { assert false } }"
