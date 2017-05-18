@@ -497,7 +497,7 @@ There are several different types of repositories you can declare:
 | A pre-configured repository that looks for dependencies in Bintray's JCenter.
 
 | <<sub:maven_google,Maven Google repository>>
-| A pre-configured repository that looks for dependencies in Google repository.
+| A pre-configured repository that looks for dependencies in Google's Maven repository.
 
 | <<sub:maven_local,Maven local repository>>
 | A pre-configured repository that looks for dependencies in the local Maven repository.
