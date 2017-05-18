@@ -56,7 +56,6 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
 
     @Override
     public void waitForCompletion(BuildOperationState operation) {
-        final List<Throwable> failures = Lists.newArrayList();
         final List<AsyncWorkCompletion> workItems;
         lock.lock();
         try {
@@ -75,27 +74,35 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
                         return !workCompletion.isComplete();
                     }
                 });
+                // only release the project lock if we have to wait for items to finish
                 if (workInProgress) {
                     projectLeaseRegistry.withoutProjectLock(new Runnable() {
                         @Override
                         public void run() {
-                            for (AsyncWorkCompletion item : workItems) {
-                                try {
-                                    item.waitForCompletion();
-                                } catch (Throwable t) {
-                                    failures.add(t);
-                                }
-                            }
-
-                            if (failures.size() > 0) {
-                                throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
-                            }
+                            waitForItemsAndGatherFailures(workItems);
                         }
                     });
+                } else {
+                    waitForItemsAndGatherFailures(workItems);
                 }
             }
         } finally {
             stopWaiting(operation);
+        }
+    }
+
+    private void waitForItemsAndGatherFailures(Iterable<AsyncWorkCompletion> workItems) {
+        final List<Throwable> failures = Lists.newArrayList();
+        for (AsyncWorkCompletion item : workItems) {
+            try {
+                item.waitForCompletion();
+            } catch (Throwable t) {
+                failures.add(t);
+            }
+        }
+
+        if (failures.size() > 0) {
+            throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
         }
     }
 
