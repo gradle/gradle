@@ -220,6 +220,14 @@ Please note that this will not affect the runtime classpath that the `Test` task
 
 For more information about this feature, see the corresponding section in the [user guide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
 
+### Convenience method for declaring Google repository
+
+Users of the Google repository `https://maven.google.com` can now use a shortcut method on `RepositoryHandler` to declare that dependencies should be used for dependency resolution. The following example demonstrate the repository declaration:
+
+    repositories {
+        google()
+    }
+
 ### User experience improvements
 
 #### Logs grouped by project and task
