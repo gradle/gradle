@@ -4,18 +4,18 @@ import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
 import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
 import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask
 
+import build.*
+
 buildscript {
 
-    var kotlinVersion: String by extra
-    kotlinVersion = file("kotlin-version.txt").readText().trim()
+    build.loadExtraPropertiesOf(project)
 
-    var kotlinRepo: String by extra
-    kotlinRepo = "https://repo.gradle.org/gradle/repo"
-
+    val kotlinRepo: String by extra
     repositories {
         maven { url = uri(kotlinRepo) }
     }
 
+    val kotlinVersion: String by extra
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
     }

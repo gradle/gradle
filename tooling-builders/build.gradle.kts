@@ -1,4 +1,4 @@
-import extensions.*
+import build.*
 
 plugins {
     base

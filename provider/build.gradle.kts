@@ -1,4 +1,4 @@
-import extensions.*
+import build.*
 
 import codegen.GenerateConfigurationExtensions
 import codegen.GenerateKotlinDependencyExtensions
@@ -35,9 +35,6 @@ val generateConfigurationExtensions by task<GenerateConfigurationExtensions> {
     outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/ConfigurationsExtensions.kt")
 }
 
-val kotlinVersion: String by rootProject.extra
-val kotlinRepo: String by rootProject.extra
-
 val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtensions> {
     outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/KotlinDependencyExtensions.kt")
     embeddedKotlinVersion = kotlinVersion
@@ -66,7 +63,7 @@ tasks {
 withParallelTests()
 
 // --- Utility functions -----------------------------------------------
-fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:${rootProject.extra["kotlinVersion"]}"
+fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
 inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)
 
