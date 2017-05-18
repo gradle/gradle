@@ -29,4 +29,12 @@ public interface ResourceLockState {
      * @param resourceLock
      */
     void registerLocked(ResourceLock resourceLock);
+
+    /**
+     * Registers a resource lock that has been unlocked during the transform so that the coordination service can
+     * notify threads waiting on a lock.
+     *
+     * @param resourceLock
+     */
+    void registerUnlocked(ResourceLock resourceLock);
 }
