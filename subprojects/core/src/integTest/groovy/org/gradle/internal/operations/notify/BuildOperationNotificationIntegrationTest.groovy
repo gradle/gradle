@@ -55,7 +55,8 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
 
     def "emits notifications for nested builds"() {
         when:
-        def initScript = file("init.gradle") << """
+        executer.requireOwnGradleUserHomeDir()
+        executer.gradleUserHomeDir.file("init.d/init.gradle") << """
             if (parent == null) {
                 ${registerListener()}
             }
@@ -71,7 +72,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
             }
         """
 
-        succeeds "t", "-I", initScript.absolutePath
+        succeeds "t"
 
         then:
         started(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
@@ -122,6 +123,29 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         output.count(CalculateTaskGraphBuildOperationType.Result.name) == 0
+    }
+
+    // This test simulates what the build scan plugin does.
+    def "can ignore buildSrc events by deferring registration"() {
+        given:
+        executer.requireOwnGradleUserHomeDir()
+        executer.gradleUserHomeDir.file("init.d/init.gradle") << """
+            if (parent == null) {
+                rootProject {
+                    ${registerListener()}
+                }
+            }
+        """
+
+        file("buildSrc/build.gradle") << ""
+        file("build.gradle") << "task t"
+
+        when:
+        succeeds "t"
+
+        then:
+        output.contains(":buildSrc:compileJava") // executedTasks check fails with in process executer
+        output.count(ConfigureProjectBuildOperationType.Details.name) == 1
     }
 
     void started(Class<?> type, Map<String, ?> payload) {
