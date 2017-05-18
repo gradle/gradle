@@ -25,7 +25,7 @@ package org.gradle.internal.progress;
  *
  * @since 3.5
  * */
-public interface BuildOperationService {
+public interface BuildOperationListenerManager {
 
     void addListener(BuildOperationListener listener);
 

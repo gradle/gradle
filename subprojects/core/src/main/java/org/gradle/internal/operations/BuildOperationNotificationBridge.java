@@ -24,7 +24,7 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationListenerR
 import org.gradle.internal.operations.notify.BuildOperationStartedNotification;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.BuildOperationService;
+import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.slf4j.Logger;
@@ -41,19 +41,19 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
     private final List<Listener> listeners = new CopyOnWriteArrayList<Listener>();
 
-    private final BuildOperationService buildOperationService;
+    private final BuildOperationListenerManager buildOperationListenerManager;
 
-    public BuildOperationNotificationBridge(BuildOperationService buildOperationService) {
-        this.buildOperationService = buildOperationService;
+    public BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager) {
+        this.buildOperationListenerManager = buildOperationListenerManager;
     }
 
     public BuildOperationNotificationListenerRegistrar notificationListenerRegistrar() {
         return new BuildOperationNotificationListenerRegistrar() {
             @Override
             public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
-                Listener listener = new Listener(notificationListener, buildOperationService);
+                Listener listener = new Listener(notificationListener, buildOperationListenerManager);
                 listeners.add(listener);
-                buildOperationService.addListener(listener);
+                buildOperationListenerManager.addListener(listener);
             }
         };
     }
@@ -74,13 +74,13 @@ public class BuildOperationNotificationBridge implements Stoppable {
     private static class Listener implements BuildOperationListener, Stoppable {
 
         private final BuildOperationNotificationListener listener;
-        private final BuildOperationService buildOperationService;
+        private final BuildOperationListenerManager buildOperationListenerManager;
 
         private final Map<Object, Object> active = new ConcurrentHashMap<Object, Object>();
 
-        private Listener(BuildOperationNotificationListener listener, BuildOperationService buildOperationService) {
+        private Listener(BuildOperationNotificationListener listener, BuildOperationListenerManager buildOperationListenerManager) {
             this.listener = listener;
-            this.buildOperationService = buildOperationService;
+            this.buildOperationListenerManager = buildOperationListenerManager;
         }
 
         @Override
@@ -117,7 +117,7 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
         @Override
         public void stop() {
-            buildOperationService.removeListener(this);
+            buildOperationListenerManager.removeListener(this);
             active.clear();
         }
     }

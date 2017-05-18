@@ -21,13 +21,13 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationListener
 import org.gradle.internal.operations.notify.BuildOperationStartedNotification
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
-import org.gradle.internal.progress.BuildOperationService
+import org.gradle.internal.progress.BuildOperationListenerManager
 import org.gradle.internal.progress.OperationFinishEvent
 import org.gradle.testing.internal.util.Specification
 
 class BuildOperationNotificationBridgeTest extends Specification {
 
-    def buildOperationService = Mock(BuildOperationService)
+    def buildOperationService = Mock(BuildOperationListenerManager)
     def bridge = new BuildOperationNotificationBridge(buildOperationService)
     def listener = Mock(BuildOperationNotificationListener)
 

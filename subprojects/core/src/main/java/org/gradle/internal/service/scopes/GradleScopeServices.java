@@ -70,7 +70,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
-import org.gradle.internal.progress.BuildOperationService;
+import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scan.config.BuildScanConfigServices;
@@ -207,8 +207,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         }
     }
 
-    BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationService buildOperationService) {
-        return new BuildOperationNotificationBridge(buildOperationService);
+    BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager) {
+        return new BuildOperationNotificationBridge(buildOperationListenerManager);
     }
 
     BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(BuildOperationNotificationBridge bridge) {

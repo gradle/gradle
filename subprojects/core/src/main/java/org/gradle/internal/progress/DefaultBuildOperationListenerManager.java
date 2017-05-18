@@ -18,10 +18,10 @@ package org.gradle.internal.progress;
 
 import org.gradle.internal.event.ListenerManager;
 
-public class DefaultBuildOperationService implements BuildOperationService {
+public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
     private final ListenerManager globalListenerManager;
 
-    public DefaultBuildOperationService(ListenerManager globalListenerManager) {
+    public DefaultBuildOperationListenerManager(ListenerManager globalListenerManager) {
         this.globalListenerManager = globalListenerManager;
     }
 
