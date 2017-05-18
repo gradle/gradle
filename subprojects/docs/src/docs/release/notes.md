@@ -408,7 +408,7 @@ You can upgrade or downgrade the version of PMD with:
 - Removed class `org.gradle.caching.MapBasedBuildCache`.
 - Removed the [Gradle GUI](https://docs.gradle.org/3.5/userguide/tutorial_gradle_gui.html). All classes for this feature have been removed as well as all leftovers supporting class from the Open API partly removed due to deprecation in Gradle 2.0.
 - Removed the annotation `@OrderSensitive` and the method `TaskInputFilePropertyBuilder.orderSensitive`.
-- Removed `dependencyCacheDir` getter and setters in java plugin and `CompileOptions`
+- Removed `dependencyCacheDir` with getter and setters in java plugin, `JavaPluginConvention`, and `CompileOptions` ([commit edadbed1](https://github.com/gradle/gradle/commit/edadbed1378f439d31bb1d2a8c68c18365e0d1b0))
 - Removed Ant <depend> related classes `AntDepend`, `AntDependsStaleClassCleaner`, and `DependOptions`
 - Removed `Javadoc#setOptions`
 - Removed `Manifest.writeTo(Writer)`. Please use `Manifest.writeTo(Object)`
