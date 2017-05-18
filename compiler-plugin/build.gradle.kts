@@ -9,7 +9,7 @@ base {
 }
 
 dependencies {
-    compile(kotlinModule("compiler-embeddable"))
+    compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
     testCompile(project(":test-fixtures"))
 }
 
