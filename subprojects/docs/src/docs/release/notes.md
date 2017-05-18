@@ -199,7 +199,7 @@ running into evaluation ordering issues:
         }
     }
     
-### Smart Normalization: Ignore classpath resources for up-to-date checks and the build cache
+### Customizable Normalization: Ignore classpath resources for up-to-date checks and the build cache
 
 Gradle 4.0 supports ignoring particular resources on a runtime classpath. This affects up-to-date checks and the calculation of build cache keys.
 
