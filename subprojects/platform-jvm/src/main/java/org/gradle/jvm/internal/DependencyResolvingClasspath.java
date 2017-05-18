@@ -203,6 +203,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
                     notFound.add(failure);
                 }
             }
+            artifactsBuilder.visitNode(resolvedConfiguration);
         }
 
         @Override
