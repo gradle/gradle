@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 
 class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpec {
 
-    def "Parallel tasks logs are still grouped by task"() {
+    def "multi-project build tasks logs are grouped"() {
         given:
         settingsFile << "include '1', '2', '3'"
 
@@ -31,8 +31,6 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         """
 
         when:
-        // run in quiet mode just to make it easier to see
-        executer.withArgument('--parallel')
         succeeds('log')
 
         then:
@@ -41,15 +39,18 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         taskOutputFrom(':3:log') == "Output from 3"
     }
 
-    def "Logs at execution time are grouped"() {
+    def "logs at execution time are grouped"() {
         given:
-        buildFile << """task log { 
-                        logger.quiet 'Logged during configuration'
-                        doFirst { 
-                            logger.quiet 'First line of text' 
-                            logger.quiet 'Second line of text' 
-                        } 
-                    }"""
+        buildFile << """
+            task log { 
+                logger.quiet 'Logged during configuration'
+                doFirst { 
+                    logger.quiet 'First line of text' 
+                    logger.quiet 'Second line of text' 
+                } 
+            }
+        """
+
         when:
         succeeds('log')
 
@@ -57,7 +58,27 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         taskOutputFrom(':log') == "First line of text\nSecond line of text"
     }
 
-    def "Failure is grouped"() {
+    def "system out and err gets grouped"() {
+        given:
+        buildFile << """
+            task log { 
+                logger.quiet 'Logged during configuration'
+                doFirst { 
+                    System.out.println("Standard out")
+                    System.err.println("Standard err")
+                } 
+            }
+        """
+
+        when:
+        succeeds('log')
+
+        then:
+        taskOutputFrom(':log') == "Standard out\nStandard err"
+    }
+
+
+    def "grouped output is displayed for failed tasksd"() {
         given:
         buildFile << """task log { 
                         logger.quiet 'Logged during configuration'
@@ -66,7 +87,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
                             logger.quiet '' 
                             logger.quiet '' 
                             logger.quiet 'Last line of text' 
-                            assert false
+                            throw new GradleException('Forced failure')
                         } 
                     }"""
         when:
