@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -136,49 +137,72 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             this.key = key;
         }
 
+        @Nullable
         @Override
         public Map<String, String> getInputHashes() {
-            // Should be a NOOP, as this is already an immutable sorted map upstream.
-            ImmutableSortedMap<String, HashCode> sortedInputHashes = ImmutableSortedMap.copyOf(key.getInputs().getInputHashes());
-            return Maps.transformValues(sortedInputHashes, new Function<HashCode, String>() {
-                @Override
-                public String apply(HashCode input) {
-                    return input.toString();
-                }
-            });
+            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputHashes();
+            if (inputHashes == null || inputHashes.isEmpty()) {
+                return null;
+            } else {
+                return Maps.transformValues(inputHashes, new Function<HashCode, String>() {
+                    @Override
+                    public String apply(HashCode input) {
+                        return input.toString();
+                    }
+                });
+            }
         }
 
-        @Override
         @Nullable
+        @Override
         public String getClassLoaderHash() {
-            return key.getInputs().getClassLoaderHash() == null ? null : key.getInputs().getClassLoaderHash().toString();
+            HashCode classLoaderHash = key.getInputs().getClassLoaderHash();
+            return classLoaderHash == null ? null : classLoaderHash.toString();
         }
 
+        @Nullable
         @Override
         public List<String> getActionClassLoaderHashes() {
-            return Lists.transform(key.getInputs().getActionClassLoaderHashes(), new Function<HashCode, String>() {
-                @Override
-                public String apply(HashCode input) {
-                    return input.toString();
-                }
-            });
+            List<HashCode> actionClassLoaderHashes = key.getInputs().getActionClassLoaderHashes();
+            if (actionClassLoaderHashes == null || actionClassLoaderHashes.isEmpty()) {
+                return null;
+            } else {
+                return Lists.transform(actionClassLoaderHashes, new Function<HashCode, String>() {
+                    @Override
+                    public String apply(HashCode input) {
+                        return input == null ? null : input.toString();
+                    }
+                });
+            }
         }
 
+        @Nullable
         @Override
         public List<String> getActionClassNames() {
-            return key.getInputs().getActionClassNames();
+            ImmutableList<String> actionClassNames = key.getInputs().getActionClassNames();
+            if (actionClassNames == null || actionClassNames.isEmpty()) {
+                return null;
+            } else {
+                return actionClassNames;
+            }
         }
 
+        @Nullable
         @Override
         public List<String> getOutputPropertyNames() {
             // Copy should be a NOOP as this is an immutable sorted set upstream.
-            return ImmutableSortedSet.copyOf(key.getInputs().getOutputPropertyNames()).asList();
+            ImmutableSortedSet<String> outputPropertyNames = key.getInputs().getOutputPropertyNames();
+            if (outputPropertyNames == null || outputPropertyNames.isEmpty()) {
+                return null;
+            } else {
+                return ImmutableSortedSet.copyOf(outputPropertyNames).asList();
+            }
         }
 
         @Nullable
         @Override
         public String getBuildCacheKey() {
-            return key.getHashCode();
+            return key.isValid() ? key.getHashCode() : null;
         }
     }
 
