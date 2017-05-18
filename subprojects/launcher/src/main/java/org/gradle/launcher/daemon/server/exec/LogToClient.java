@@ -101,12 +101,11 @@ public class LogToClient extends BuildCommandOnly {
 
         @Override
         public void run() {
-            OutputEvent event;
             try {
                 while (!shouldStop) {
-                    event = eventQueue.poll();
+                    OutputEvent event = eventQueue.poll();
                     if (event == null) {
-                        Thread.sleep(5);
+                        Thread.sleep(10);
                     } else {
                         dispatchAsync(event);
                     }

@@ -21,39 +21,14 @@ import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGener
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 // === Java ===
-task largeMonolithicJavaProject(type: JavaExec) {
-    outputs.dir new File(buildDir, name)
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGenerator'
-    args name, buildDir.absolutePath
-}
-
-task largeJavaMultiProject(type: JavaExec) {
-    outputs.dir new File(buildDir, name)
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGenerator'
-    args name, buildDir.absolutePath
-}
-
-task mediumMonolithicJavaProject(type: JavaExec) {
-    outputs.dir new File(buildDir, name)
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGenerator'
-    args name, buildDir.absolutePath
-}
-
-task mediumJavaMultiProject(type: JavaExec) {
-    outputs.dir new File(buildDir, name)
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGenerator'
-    args name, buildDir.absolutePath
-}
-
-task mediumJavaMultiProjectWithTestNG(type: JavaExec) {
-    outputs.dir new File(buildDir, name)
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGenerator'
-    args name, buildDir.absolutePath
+['largeMonolithicJavaProject', 'largeJavaMultiProject',
+ 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG'].each { template ->
+    tasks.create(template, JavaExec) {
+        outputs.dir new File(buildDir, template)
+        classpath = sourceSets.performanceTest.runtimeClasspath
+        main = 'org.gradle.performance.generator.TestProjectGenerator'
+        args name, buildDir.absolutePath
+    }
 }
 
 // TODO implement VerboseTestOutputPerformanceTest with static project

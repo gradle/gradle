@@ -45,6 +45,61 @@ class DefaultResolvedArtifactTest extends Specification {
         artifact != differentId
     }
 
+    def "resolves file once and reuses result"() {
+        def dependency = dep("group", "module1", "1.2")
+        def artifactSource = Mock(Factory)
+        def ivyArt = Stub(IvyArtifactName)
+        def artifactId = Stub(ComponentArtifactIdentifier)
+        def buildDependencies = Stub(TaskDependency)
+        def file = new File("result")
+
+        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource)
+
+        when:
+        def result = artifact.file
+
+        then:
+        result == file
+        1 * artifactSource.create() >> file
+        0 * artifactSource._
+
+        when:
+        result = artifact.file
+
+        then:
+        result == file
+        0 * artifactSource._
+    }
+
+    def "resolves file once and reuses failure"() {
+        def dependency = dep("group", "module1", "1.2")
+        def artifactSource = Mock(Factory)
+        def ivyArt = Stub(IvyArtifactName)
+        def artifactId = Stub(ComponentArtifactIdentifier)
+        def buildDependencies = Stub(TaskDependency)
+        def failure = new RuntimeException()
+
+        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource)
+
+        when:
+        artifact.file
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        1 * artifactSource.create() >> { throw failure }
+        0 * artifactSource._
+
+        when:
+        artifact.file
+
+        then:
+        def e2 = thrown(RuntimeException)
+        e2 == failure
+        0 * artifactSource._
+    }
+
     def dep(String group, String moduleName, String version) {
         new DefaultModuleVersionIdentifier(group, moduleName, version)
     }

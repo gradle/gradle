@@ -16,19 +16,23 @@
 
 package org.gradle.internal.progress;
 
-/**
- * A service to register listeners for BuildOperation start and stop events.
- *
- * The implementor of the listener is responsible for removing the listener when finished.
- *
- * Listeners are not automatically removed when build is finished.
- *
- * @since 3.5
- * */
-public interface BuildOperationService {
+import org.gradle.internal.event.ListenerManager;
 
-    void addListener(BuildOperationListener listener);
+public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
 
-    void removeListener(BuildOperationListener listener);
+    private final ListenerManager listenerManager;
 
+    public DefaultBuildOperationListenerManager(ListenerManager listenerManager) {
+        this.listenerManager = listenerManager;
+    }
+
+    @Override
+    public void addListener(BuildOperationListener listener) {
+        listenerManager.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(BuildOperationListener listener) {
+        listenerManager.removeListener(listener);
+    }
 }

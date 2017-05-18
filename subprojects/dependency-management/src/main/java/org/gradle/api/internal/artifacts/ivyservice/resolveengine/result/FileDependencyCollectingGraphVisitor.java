@@ -16,78 +16,43 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.id.LongIdGenerator;
 
 import java.util.Map;
-import java.util.Set;
 
-public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor {
-    private final IdGenerator<Long> idGenerator = new LongIdGenerator();
-    private final ArtifactTypeRegistry artifactTypeRegistry;
-    private final SetMultimap<Long, FileDependencyArtifactSet> filesByNodeId = LinkedHashMultimap.create();
-    private Map<FileCollectionDependency, FileDependencyArtifactSet> rootFiles;
+public class FileDependencyCollectingGraphVisitor implements DependencyArtifactsVisitor {
+    private final Map<FileCollectionDependency, ArtifactSet> rootFiles = Maps.newLinkedHashMap();
 
-    public FileDependencyCollectingGraphVisitor(ArtifactTypeRegistry artifactTypeRegistry) {
-        this.artifactTypeRegistry = artifactTypeRegistry;
+    @Override
+    public void startArtifacts(DependencyGraphNode root) {
     }
 
     @Override
-    public void start(DependencyGraphNode root) {
-        Set<LocalFileDependencyMetadata> fileDependencies = ((LocalConfigurationMetadata) root.getMetadata()).getFiles();
-        rootFiles = Maps.newLinkedHashMap();
-        for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-            FileDependencyArtifactSet artifactSet = new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, artifactTypeRegistry);
+    public void visitNode(DependencyGraphNode node) {
+    }
+
+    @Override
+    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
+    }
+
+    @Override
+    public void visitArtifacts(DependencyGraphNode node, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
+        if (node.isRoot()) {
             rootFiles.put(fileDependency.getSource(), artifactSet);
-            filesByNodeId.put(root.getNodeId(), artifactSet);
         }
     }
 
     @Override
-    public void visitNode(DependencyGraphNode resolvedConfiguration) {
-    }
-
-    @Override
-    public void visitSelector(DependencyGraphSelector selector) {
-    }
-
-    @Override
-    public void visitEdges(DependencyGraphNode node) {
-        // If this node has an incoming transitive dependency, then include its file dependencies in the result. Otherwise ignore
-        ConfigurationMetadata configurationMetadata = node.getMetadata();
-        if (configurationMetadata instanceof LocalConfigurationMetadata) {
-            LocalConfigurationMetadata localConfigurationMetadata = (LocalConfigurationMetadata) configurationMetadata;
-            for (DependencyGraphEdge edge : node.getIncomingEdges()) {
-                if (edge.isTransitive()) {
-                    Set<LocalFileDependencyMetadata> fileDependencies = localConfigurationMetadata.getFiles();
-                    for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-                        filesByNodeId.put(node.getNodeId(), new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, artifactTypeRegistry));
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
-    @Override
-    public void finish(DependencyGraphNode root) {
+    public void finishArtifacts() {
     }
 
     public VisitedFileDependencyResults complete() {
-        return new DefaultVisitedFileDependencyResults(filesByNodeId, rootFiles);
+        return new DefaultVisitedFileDependencyResults(rootFiles);
     }
 }

@@ -32,12 +32,15 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Reports any unreported failure that causes the session to finish.
  */
 // TODO - move this to the client side
 public class SessionFailureReportingActionExecuter implements BuildExecuter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SessionFailureReportingActionExecuter.class);
     private final BuildExecuter delegate;
     private final StyledTextOutputFactory styledTextOutputFactory;
 
@@ -60,7 +63,12 @@ public class SessionFailureReportingActionExecuter implements BuildExecuter {
             if (action.getStartParameter().getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
                 exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
             }
-            Throwable failure = exceptionAnalyser.transform(e);
+            Throwable failure = e;
+            try {
+                failure = exceptionAnalyser.transform(e);
+            } catch (Throwable innerFailure) {
+                LOGGER.error("Failed to analyze exception", innerFailure);
+            }
             new BuildLogger(Logging.getLogger(ServicesSetupBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext).buildFinished(new BuildResult(null, failure));
             throw new ReportedException(failure);
         }

@@ -45,7 +45,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         return new BuildOperationState() {
             @Override
             public Object getId() {
-                return new OperationIdentifier(0);
+                return new OperationIdentifier(1L);
             }
 
             @Override

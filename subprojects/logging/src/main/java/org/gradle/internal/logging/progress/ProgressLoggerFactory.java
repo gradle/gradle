@@ -22,7 +22,7 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
  * Thread-safe, however the progress logger instances created are not.
  */
 public interface ProgressLoggerFactory {
-    long ROOT_PROGRESS_OPERATION_ID = -1;
+    long ROOT_PROGRESS_OPERATION_ID = 1;
 
     /**
      * Creates a new long-running operation which has not been started.

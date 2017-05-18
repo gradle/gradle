@@ -32,9 +32,9 @@ public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
         }
     }
 
-    public void visitNode(DependencyGraphNode resolvedConfiguration) {
+    public void visitNode(DependencyGraphNode node) {
         for (DependencyGraphVisitor visitor : visitors) {
-            visitor.visitNode(resolvedConfiguration);
+            visitor.visitNode(node);
         }
     }
 
@@ -45,9 +45,9 @@ public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
         }
     }
 
-    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
+    public void visitEdges(DependencyGraphNode node) {
         for (DependencyGraphVisitor visitor : visitors) {
-            visitor.visitEdges(resolvedConfiguration);
+            visitor.visitEdges(node);
         }
     }
 

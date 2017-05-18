@@ -22,20 +22,20 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.BuildOperationService;
+import org.gradle.internal.progress.BuildOperationListenerManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SubscribableBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
-    private final BuildOperationService buildOperationService;
+    private final BuildOperationListenerManager buildOperationListenerManager;
     private final List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>();
     private final List<? extends SubscribableBuildActionRunnerRegistration> registrations;
 
-    public SubscribableBuildActionRunner(BuildActionRunner delegate, BuildOperationService buildOperationService, List<? extends SubscribableBuildActionRunnerRegistration> registrations) {
+    public SubscribableBuildActionRunner(BuildActionRunner delegate, BuildOperationListenerManager buildOperationListenerManager, List<? extends SubscribableBuildActionRunnerRegistration> registrations) {
         this.delegate = delegate;
-        this.buildOperationService = buildOperationService;
+        this.buildOperationListenerManager = buildOperationListenerManager;
         this.registrations = registrations;
     }
 
@@ -51,7 +51,7 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
             delegate.run(action, buildController);
         } finally {
             for (BuildOperationListener listener : listeners) {
-                buildOperationService.removeListener(listener);
+                buildOperationListenerManager.removeListener(listener);
             }
         }
     }
@@ -67,6 +67,6 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
 
     private void registerListener(BuildOperationListener listener) {
         listeners.add(listener);
-        buildOperationService.addListener(listener);
+        buildOperationListenerManager.addListener(listener);
     }
 }

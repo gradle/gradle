@@ -21,9 +21,9 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import java.util.Map;
 
 /**
- * Collects the file dependencies visited during graph traversal. These should be treated as dependencies, but are currently treated separately as a migration step.
+ * Collects the top level file dependencies visited during graph traversal. These should be treated as dependencies, but are currently treated separately as a migration step.
  */
-public interface SelectedFileDependencyResults extends SelectedArtifactResults {
+public interface SelectedFileDependencyResults {
     /**
      * Returns the direct dependencies of the root node.
      */

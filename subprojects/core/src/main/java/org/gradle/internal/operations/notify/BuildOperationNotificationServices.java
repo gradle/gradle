@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator
+package org.gradle.internal.operations.notify;
 
-class TestProjectGeneratorConfiguration {
-    String projectName
+import org.gradle.internal.progress.BuildOperationListenerManager;
 
-    String[] plugins
-    String[] repositories
-    String[] externalApiDependencies
-    String[] externalImplementationDependencies
+/**
+ * Services enabling build operation notifications.
+ *
+ * Build tree scoped.
+ */
+public class BuildOperationNotificationServices {
 
-    int subProjects
-    int sourceFiles
-    int minLinesOfCodePerSourceFile
-    String daemonMemory
-    String compilerMemory
-    String testRunnerMemory
-    boolean parallel
-    int maxWorkers
-    int maxParallelForks
-    int testForkEvery
-    boolean useTestNG
-    Map<String, String> fileToChangeByScenario = [:]
+    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(
+        BuildOperationListenerManager buildOperationListenerManager
+    ) {
+        // The listener manager must be build session scoped, not global.
+        return new BuildOperationNotificationBridge(buildOperationListenerManager);
+    }
+
 }

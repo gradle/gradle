@@ -28,15 +28,8 @@ import org.gradle.caching.configuration.AbstractBuildCache;
  */
 @Incubating
 public class DirectoryBuildCache extends AbstractBuildCache {
-    /**
-     * Default target size of the build cache.
-     *
-     * @since 4.0
-     */
-    public final static long DEFAULT_TARGET_CACHE_SIZE = 5*1024; // 5 GB
-
     private Object directory;
-    private long targetSizeInMB = DEFAULT_TARGET_CACHE_SIZE;
+    private long targetSizeInMB = 5 * 1024; // 5 GB
 
     /**
      * Returns the directory to use to store the build cache.
@@ -56,9 +49,10 @@ public class DirectoryBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Returns the target size of the build cache.
-     *
-     * @return The target size of the build cache in megabytes.
+     * The target size of the build cache in megabytes.
+     * Defaults to 5 GB.
+     * <p>
+     * Must be greater than or equal to 1, although larger cache sizes will be more useful.
      *
      * @since 4.0
      */
@@ -67,12 +61,10 @@ public class DirectoryBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Defaults to {@value DEFAULT_TARGET_CACHE_SIZE} MB.
-     *
+     * The target size of the build cache in megabytes.
+     * Defaults to 5 GB.
      * <p>
      * Must be greater than or equal to 1, although larger cache sizes will be more useful.
-     *
-     * @param targetSizeInMB the new target size of the build cache.
      *
      * @since 4.0
      */

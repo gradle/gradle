@@ -92,14 +92,14 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
     public File getProjectDir() {
         if (canonicalDir == null) {
-            canonicalDir = FileUtils.canonicalize(dir);
+            canonicalDir = fileResolver.resolve(dir);
         }
         return canonicalDir;
     }
 
     public void setProjectDir(File dir) {
         this.canonicalDir = null;
-        this.dir = fileResolver.resolve(dir);
+        this.dir = dir;
     }
 
     public DefaultProjectDescriptor getParent() {
@@ -136,14 +136,14 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
     private File buildFile() {
         if (buildFileName != null) {
-            return new File(dir, buildFileName);
+            return new File(getProjectDir(), buildFileName);
         }
-        File defaultBuildFile = new File(dir, Project.DEFAULT_BUILD_FILE);
+        File defaultBuildFile = new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
         if (defaultBuildFile.isFile()) {
             return defaultBuildFile;
         }
         if (scriptFileResolver != null) {
-            File buildScriptFile = scriptFileResolver.resolveScriptFile(dir, BUILD_SCRIPT_BASENAME);
+            File buildScriptFile = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
             if (buildScriptFile != null) {
                 return buildScriptFile;
             }
