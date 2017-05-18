@@ -21,7 +21,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class TestEventLoggerTest extends Specification {
@@ -29,8 +28,7 @@ class TestEventLoggerTest extends Specification {
 
     def testLogging = new DefaultTestLogging()
     def exceptionFormatter = Mock(TestExceptionFormatter)
-    def buildOperationExecutor = new TestBuildOperationExecutor()
-    def eventLogger = new TestEventLogger(textOutputFactory, LogLevel.INFO, testLogging, exceptionFormatter, buildOperationExecutor)
+    def eventLogger = new TestEventLogger(textOutputFactory, LogLevel.INFO, testLogging, exceptionFormatter)
 
     def rootDescriptor = new SimpleTestDescriptor(name: "", composite: true)
     def workerDescriptor = new SimpleTestDescriptor(name: "worker", composite: true, parent: rootDescriptor)

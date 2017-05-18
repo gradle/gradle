@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
@@ -26,11 +25,6 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.util.TextUtil;
 
 /**
@@ -41,15 +35,11 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
 
     private final TestExceptionFormatter exceptionFormatter;
     private final TestLogging testLogging;
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final BuildOperationState parentOperation;
 
-    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter, BuildOperationExecutor buildOperationExecutor) {
+    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter) {
         super(textOutputFactory, logLevel, testLogging.getDisplayGranularity());
         this.exceptionFormatter = exceptionFormatter;
         this.testLogging = testLogging;
-        this.buildOperationExecutor = buildOperationExecutor;
-        this.parentOperation = buildOperationExecutor.getCurrentOperation();
     }
 
     @Override
@@ -75,17 +65,17 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     @Override
     public void onOutput(TestDescriptor descriptor, TestOutputEvent outputEvent) {
         if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut
-                && isLoggedEventType(TestLogEvent.STANDARD_OUT)) {
-            logEventWithBuildOperation(descriptor, TestLogEvent.STANDARD_OUT, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
+            && isLoggedEventType(TestLogEvent.STANDARD_OUT)) {
+            logEvent(descriptor, TestLogEvent.STANDARD_OUT, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr
-                && isLoggedEventType(TestLogEvent.STANDARD_ERROR)) {
-            logEventWithBuildOperation(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
+            && isLoggedEventType(TestLogEvent.STANDARD_ERROR)) {
+            logEvent(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         }
     }
 
     private void before(TestDescriptor descriptor) {
         if (shouldLogEvent(descriptor, TestLogEvent.STARTED)) {
-            logEventWithBuildOperation(descriptor, TestLogEvent.STARTED, null);
+            logEvent(descriptor, TestLogEvent.STARTED);
         }
     }
 
@@ -94,34 +84,7 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
 
         if (shouldLogEvent(descriptor, event)) {
             String details = shouldLogExceptions(result) ? exceptionFormatter.format(descriptor, result.getExceptions()) : null;
-            logEventWithBuildOperation(descriptor, event, details);
-        }
-    }
-
-    private void logEventWithBuildOperation(TestDescriptor descriptor, TestLogEvent event, @Nullable String details) {
-        buildOperationExecutor.run(new TestLogEventBuildOperation(descriptor, event, details));
-    }
-
-    private class TestLogEventBuildOperation implements RunnableBuildOperation {
-
-        private final TestDescriptor descriptor;
-        private final TestLogEvent event;
-        private final String details;
-
-        public TestLogEventBuildOperation(TestDescriptor descriptor, TestLogEvent event, String details) {
-            this.descriptor = descriptor;
-            this.event = event;
-            this.details = details;
-        }
-
-        @Override
-        public void run(BuildOperationContext context) {
             logEvent(descriptor, event, details);
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Receiving test log event " + event.name()).parent(parentOperation);
         }
     }
 
