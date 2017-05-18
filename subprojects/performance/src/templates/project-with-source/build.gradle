@@ -108,6 +108,19 @@ task resolveDependencies {
 }
 <% } %>
 
+if (hasProperty('compilerMemory')) {
+    tasks.withType(JavaCompile) {
+        options.forkOptions.jvmArgs = ["-Xms\$compilerMemory", "-Xmx\$compilerMemory"]
+    }
+}
+
+if (hasProperty('testRunnerMemory')) {
+    tasks.withType(Test) {
+        minHeapSize = testRunnerMemory
+        maxHeapSize = testRunnerMemory
+    }
+}
+
 task dependencyReport(type: DependencyReportTask) {
     outputs.upToDateWhen { false }
     outputFile = new File(buildDir, "dependencies.txt")
