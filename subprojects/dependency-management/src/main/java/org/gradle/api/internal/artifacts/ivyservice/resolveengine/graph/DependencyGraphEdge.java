@@ -39,8 +39,6 @@ public interface DependencyGraphEdge extends DependencyResult {
 
     ModuleExclusion getExclusions(ModuleExclusions moduleExclusions);
 
-    boolean isTransitive();
-
     Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata metaData);
 
     @Nullable

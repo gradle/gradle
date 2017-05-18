@@ -42,6 +42,8 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
+import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -289,16 +291,59 @@ public class DependencyGraphBuilder {
     private void assembleResult(ResolveState resolveState, DependencyGraphVisitor visitor) {
         visitor.start(resolveState.root);
 
-        // Visit the nodes
-        for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
-            if (resolvedConfiguration.isSelected()) {
-                visitor.visitNode(resolvedConfiguration);
-            }
-        }
-
         // Visit the selectors
         for (DependencyGraphSelector selector : resolveState.getSelectors()) {
             visitor.visitSelector(selector);
+        }
+
+        // Visit the components in consumer-first order
+        List<ModuleVersionResolveState> queue = new ArrayList<ModuleVersionResolveState>();
+        for (ModuleResolveState module : resolveState.getModules()) {
+            if (module.getSelected() != null) {
+                queue.add(module.getSelected());
+            }
+        }
+
+        while (!queue.isEmpty()) {
+            ModuleVersionResolveState node = queue.get(0);
+            if (node.getVisitState() == VisitState.NotSeen) {
+                node.setVisitState(VisitState.Visting);
+                int pos = 0;
+                for (ConfigurationNode configurationNode : node.getNodes()) {
+                    if (!configurationNode.isSelected()) {
+                        continue;
+                    }
+                    for (DependencyEdge dependencyEdge : configurationNode.getIncomingEdges()) {
+                        ModuleVersionResolveState owner = dependencyEdge.getFrom().getOwner();
+                        if (owner.getVisitState() == VisitState.NotSeen) {
+                            queue.add(pos, owner);
+                            pos++;
+                        } // else, already visited or currently visiting (which means a cycle), skip
+                    }
+                }
+                if (pos == 0) {
+                    // have visited all consumers, so visit this node
+                    node.setVisitState(VisitState.Visited);
+                    queue.remove(0);
+                    for (ConfigurationNode configurationNode : node.getNodes()) {
+                        if (configurationNode.isSelected()) {
+                            visitor.visitNode(configurationNode);
+                        }
+                    }
+                }
+            } else if (node.getVisitState() == VisitState.Visting) {
+                // have visited all consumers, so visit this node
+                node.setVisitState(VisitState.Visited);
+                queue.remove(0);
+                for (ConfigurationNode configurationNode : node.getNodes()) {
+                    if (configurationNode.isSelected()) {
+                        visitor.visitNode(configurationNode);
+                    }
+                }
+            } else {
+                // else, already visited previously, skip
+                queue.remove(0);
+            }
         }
 
         // Visit the edges
@@ -339,7 +384,7 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public DependencyGraphNode getFrom() {
+        public ConfigurationNode getFrom() {
             return from;
         }
 
@@ -500,6 +545,10 @@ public class DependencyGraphBuilder {
             root.moduleRevision.module.select(root.moduleRevision);
         }
 
+        public Collection<ModuleResolveState> getModules() {
+            return modules.values();
+        }
+
         public ModuleResolveState getModule(ModuleIdentifier id) {
             ModuleResolveState module = modules.get(id);
             if (module == null) {
@@ -619,6 +668,10 @@ public class DependencyGraphBuilder {
             return versions.values();
         }
 
+        public ModuleVersionResolveState getSelected() {
+            return selected;
+        }
+
         public void select(ModuleVersionResolveState selected) {
             assert this.selected == null;
             this.selected = selected;
@@ -674,7 +727,7 @@ public class DependencyGraphBuilder {
     }
 
     /**
-     * Resolution state for a given module version.
+     * Resolution state for a given component
      */
     public static class ModuleVersionResolveState implements ComponentResolutionState, ComponentResult, DependencyGraphComponent {
         public final ModuleVersionIdentifier id;
@@ -687,6 +740,7 @@ public class DependencyGraphBuilder {
         private ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
         private ModuleVersionResolveException failure;
         private ModuleVersionSelectorResolveState firstReference;
+        private VisitState visitState = VisitState.NotSeen;
 
         private ModuleVersionResolveState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentMetaDataResolver resolver) {
             this.resultId = resultId;
@@ -724,6 +778,18 @@ public class DependencyGraphBuilder {
             return failure;
         }
 
+        public VisitState getVisitState() {
+            return visitState;
+        }
+
+        public void setVisitState(VisitState visitState) {
+            this.visitState = visitState;
+        }
+
+        public Set<ConfigurationNode> getNodes() {
+            return configurations;
+        }
+
         @Override
         public ComponentResolveMetadata getMetadata() {
             return metaData;
@@ -743,6 +809,7 @@ public class DependencyGraphBuilder {
 
         /**
          * Returns true if this module version can be resolved quickly (already resolved or local)
+         *
          * @return true if it has been resolved in a cheap way
          */
         public boolean fastResolve() {
@@ -822,6 +889,10 @@ public class DependencyGraphBuilder {
         }
     }
 
+    enum VisitState {
+        NotSeen, Visting, Visited
+    }
+
     /**
      * Represents a node in the dependency graph.
      */
@@ -855,12 +926,17 @@ public class DependencyGraphBuilder {
         }
 
         @Override
+        public boolean isRoot() {
+            return false;
+        }
+
+        @Override
         public ResolvedConfigurationIdentifier getResolvedConfigurationId() {
             return id;
         }
 
         @Override
-        public DependencyGraphComponent getOwner() {
+        public ModuleVersionResolveState getOwner() {
             return moduleRevision;
         }
 
@@ -877,6 +953,19 @@ public class DependencyGraphBuilder {
         @Override
         public ConfigurationMetadata getMetadata() {
             return metaData;
+        }
+
+        @Override
+        public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
+            if (metaData instanceof LocalConfigurationMetadata) {
+                // Only when this node has a transitive incoming edge
+                for (DependencyEdge incomingEdge : incomingEdges) {
+                    if (incomingEdge.isTransitive()) {
+                        return ((LocalConfigurationMetadata) metaData).getFiles();
+                    }
+                }
+            }
+            return Collections.emptySet();
         }
 
         @Override
@@ -1020,6 +1109,16 @@ public class DependencyGraphBuilder {
         }
 
         @Override
+        public boolean isRoot() {
+            return true;
+        }
+
+        @Override
+        public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
+            return ((LocalConfigurationMetadata) getMetadata()).getFiles();
+        }
+
+        @Override
         public boolean isSelected() {
             return true;
         }
@@ -1137,7 +1236,7 @@ public class DependencyGraphBuilder {
     private static class DownloadMetadataOperation implements RunnableBuildOperation {
         private final ModuleVersionResolveState state;
 
-        public DownloadMetadataOperation(ModuleVersionResolveState state) {
+        DownloadMetadataOperation(ModuleVersionResolveState state) {
             this.state = state;
         }
 

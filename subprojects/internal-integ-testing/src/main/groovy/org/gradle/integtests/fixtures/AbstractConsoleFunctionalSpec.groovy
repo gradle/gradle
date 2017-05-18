@@ -33,7 +33,7 @@ class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     /**
      * Wraps the text in the proper control characters for styled output in the rich console
      */
-    protected String styled(String plainText, Ansi.Color color, Ansi.Attribute ...attributes) {
+    protected String styled(String plainText, Ansi.Color color, Ansi.Attribute... attributes) {
         String styledString = CONTROL_SEQUENCE_START
         styledString += color != null ? color.fg() : Ansi.Color.DEFAULT.fg()
         if (attributes) {

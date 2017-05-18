@@ -56,11 +56,27 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
     }
 
+    /**
+     * The hashes of the inputs.
+     *
+     * If the inputs were not snapshotted, all fields are null.
+     * This may occur if the task had no outputs.
+     */
     @UsedByScanPlugin
     public interface Result {
 
         /**
+         * The overall hash value for the inputs.
+         *
+         * Null if the overall key was not calculated because the inputs were invalid.
+         */
+        @Nullable
+        String getBuildCacheKey();
+
+        /**
          * The hash of the the classloader that loaded the task implementation.
+         *
+         * Null if the classloader is not managed by Gradle.
          */
         @Nullable
         String getClassLoaderHash();
@@ -70,7 +86,10 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          *
          * May contain duplicates.
          * Order corresponds to execution order of the actions.
+         * Never empty.
+         * May contain nulls (non Gradle managed classloader)
          */
+        @Nullable
         List<String> getActionClassLoaderHashes();
 
         /**
@@ -78,7 +97,9 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          *
          * May contain duplicates.
          * Order corresponds to execution order of the actions.
+         * Never empty.
          */
+        @Nullable
         List<String> getActionClassNames();
 
         /**
@@ -89,7 +110,10 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          *
          * Ordered by key, lexicographically.
          * No null keys or values.
+         * Never empty.
+         * Null if the task has no inputs.
          */
+        @Nullable
         Map<String, String> getInputHashes();
 
         /**
@@ -97,13 +121,10 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          *
          * No duplicate values.
          * Ordered lexicographically.
+         * Never empty.
          */
+        @Nullable
         List<String> getOutputPropertyNames();
-
-        /**
-         * The overall hash value for the inputs.
-         */
-        String getBuildCacheKey();
 
     }
 

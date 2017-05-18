@@ -26,7 +26,6 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
-import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
 import java.util.Collection;
@@ -36,17 +35,17 @@ import java.util.Set;
 public class CompositeBuildSettingsLoader implements SettingsLoader {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(CompositeBuildSettingsLoader.class);
     private final SettingsLoader delegate;
-    private final ServiceRegistry buildServices;
+    private final CompositeContextBuilder compositeContextBuilder;
+    private final IncludedBuildFactory includedBuildFactory;
 
-    public CompositeBuildSettingsLoader(SettingsLoader delegate, ServiceRegistry buildServices) {
+    public CompositeBuildSettingsLoader(SettingsLoader delegate, CompositeContextBuilder compositeContextBuilder, IncludedBuildFactory includedBuildFactory) {
         this.delegate = delegate;
-        this.buildServices = buildServices;
+        this.compositeContextBuilder = compositeContextBuilder;
+        this.includedBuildFactory = includedBuildFactory;
     }
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
-        CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
-
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
         compositeContextBuilder.setRootBuild(settings);
 
@@ -69,7 +68,6 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         includedBuildMap.putAll(settings.getIncludedBuilds());
 
         for (File file : startParameter.getIncludedBuilds()) {
-            IncludedBuildFactory includedBuildFactory = buildServices.get(IncludedBuildFactory.class);
             if (!includedBuildMap.containsKey(file)) {
                 includedBuildMap.put(file, includedBuildFactory.createBuild(file));
             }

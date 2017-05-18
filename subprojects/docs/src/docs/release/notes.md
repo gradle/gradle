@@ -199,7 +199,7 @@ running into evaluation ordering issues:
         }
     }
     
-### Smart Normalization: Ignore classpath resources for up-to-date checks and the build cache
+### Customizable Normalization: Ignore classpath resources for up-to-date checks and the build cache
 
 Gradle 4.0 supports ignoring particular resources on a runtime classpath. This affects up-to-date checks and the calculation of build cache keys.
 
@@ -274,10 +274,14 @@ This will take advantage of performance optimizations in the latest [Zinc](https
 
 Ivy plugin repositories now support the same API for patterns and layouts that Ivy artifact repositories support.
 
-## Track Java version for Groovy compilation
+### Track Java version for Groovy compilation
 
 The Java version used by Groovy compilation influences the compiled Groovy and Java classes for the `GroovyCompile` task.
 Gradle now tracks changes to this version and recompiles whenever necessary.
+
+### Configure log level using Gradle properties
+
+Gradle now allows you to specify the log level as a Gradle property, allowing a default log level to be set for a project, a machine, etc.  See the [user guide](userguide/build_environment.html#sec:gradle_configuration_properties) for more information.
 
 <!--
 ### Example new and noteworthy
@@ -408,7 +412,7 @@ You can upgrade or downgrade the version of PMD with:
 - Removed class `org.gradle.caching.MapBasedBuildCache`.
 - Removed the [Gradle GUI](https://docs.gradle.org/3.5/userguide/tutorial_gradle_gui.html). All classes for this feature have been removed as well as all leftovers supporting class from the Open API partly removed due to deprecation in Gradle 2.0.
 - Removed the annotation `@OrderSensitive` and the method `TaskInputFilePropertyBuilder.orderSensitive`.
-- Removed `dependencyCacheDir` getter and setters in java plugin and `CompileOptions`
+- Removed `dependencyCacheDir` with getter and setters in java plugin, `JavaPluginConvention`, and `CompileOptions` ([commit edadbed1](https://github.com/gradle/gradle/commit/edadbed1378f439d31bb1d2a8c68c18365e0d1b0))
 - Removed Ant <depend> related classes `AntDepend`, `AntDependsStaleClassCleaner`, and `DependOptions`
 - Removed `Javadoc#setOptions`
 - Removed `Manifest.writeTo(Writer)`. Please use `Manifest.writeTo(Object)`
@@ -473,6 +477,15 @@ public class InMemoryBuildCacheServiceFactory implements BuildCacheServiceFactor
 - Deprecated `EclipsePlugin.performPostEvaluationActions()` and `IdeaPlugin.performPostEvaluationActions()`. 
   Post-evaluation actions are no longer used.
 
+### Changes to dependency ordering
+
+Several changes have been made to the way that Gradle orders files in the dependency resolution results:  
+
+- Files are now ordered in 'consumer first' order. That means that a particular file appears in the result _before_ all of its dependencies. The order is unspecified in the case of a cycle in the dependency graph.
+- File dependencies, such as `gradleApi()` are now ordered in the same way as other dependencies, in consumer first order. In previous Gradle versions these dependencies were always added at the start of the result.
+
+Beyond this, Gradle does not make any other guarantees about the ordering of files. However, file order is always the same for a given dependency graph.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -498,6 +511,7 @@ We would like to thank the following community members for making contributions 
 - [Pierre Noel](https://github.com/petersg83) - Add missing comma in `FileReferenceFactory.toString()` ([gradle/gradle#1440](https://github.com/gradle/gradle/pull/1440))
 - [Eitan Adler](https://github.com/grimreaper) - Remove some some duplicated words from documentation ([gradle/gradle#1513](https://github.com/gradle/gradle/pull/1513))
 - [Eitan Adler](https://github.com/grimreaper) - Remove extraneous letter in documentation ([gradle/gradle#1459](https://github.com/gradle/gradle/pull/1459))
+- [Robert Hencke](https://github.com/rhencke) - Add `@DelegatesTo` and `@ClosureParams` to `Project` ([gradle/gradle#930](https://github.com/gradle/gradle/pull/930))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

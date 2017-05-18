@@ -16,22 +16,19 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.internal.event.ListenerManager;
+/**
+ * Manages listeners of build operations.
+ *
+ * Be aware that there are two instances of this within the services hierarchy.
+ * One is global scoped (used by TAPI infrastructure).
+ * The other is build tree scoped (used by build operation notifications).
+ *
+ * @since 3.5
+ */
+public interface BuildOperationListenerManager {
 
-public class DefaultBuildOperationService implements BuildOperationService {
-    private final ListenerManager globalListenerManager;
+    void addListener(BuildOperationListener listener);
 
-    public DefaultBuildOperationService(ListenerManager globalListenerManager) {
-        this.globalListenerManager = globalListenerManager;
-    }
+    void removeListener(BuildOperationListener listener);
 
-    @Override
-    public void addListener(BuildOperationListener listener) {
-        globalListenerManager.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(BuildOperationListener listener) {
-        globalListenerManager.removeListener(listener);
-    }
 }

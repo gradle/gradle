@@ -86,10 +86,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Failed to build artifacts for build 'buildC'")
-            .assertHasCause("Could not download buildB.jar (project :buildB:)")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+            .assertHasDescription("Failed to build artifacts for build 'buildC'")
+            .assertHasCause("Failed to build artifacts for build 'buildB'")
+            .assertHasCause("Could not download buildC.jar (project :buildC:)")
+            .assertHasCause("Included build dependency cycle: build 'buildC' -> build 'buildB' -> build 'buildC'")
     }
 
     def "indirect dependency cycle between included builds"() {
@@ -133,11 +133,11 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Failed to build artifacts for build 'buildC'")
+            .assertHasDescription("Failed to build artifacts for build 'buildC'")
             .assertHasCause("Failed to build artifacts for build 'buildD'")
-            .assertHasCause("Could not download buildB.jar (project :buildB:)")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildD' -> build 'buildB'")
+            .assertHasCause("Failed to build artifacts for build 'buildB'")
+            .assertHasCause("Could not download buildC.jar (project :buildC:)")
+            .assertHasCause("Included build dependency cycle: build 'buildC' -> build 'buildD' -> build 'buildB' -> build 'buildC'")
     }
 
     // Not actually a cycle, just documenting behaviour

@@ -141,8 +141,8 @@ allprojects {
                                 it.attribute(artifactType, 'jar') 
                             }
                         }
-                        assert defaultView.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert defaultView.artifacts.collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
+                        assert defaultView.files.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert defaultView.artifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
 
                         // Get a view with additional optional attribute
                         def optionalAttributeView =  configurations.compile.incoming.artifactView {
@@ -151,8 +151,8 @@ allprojects {
                                 it.attribute(otherAttributeOptional, 'anything') 
                             }
                         }
-                        assert optionalAttributeView.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert optionalAttributeView.artifacts.collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
+                        assert optionalAttributeView.files.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert optionalAttributeView.artifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
                     }
                 }
             }
@@ -227,8 +227,8 @@ allprojects {
                     }
                     inputs.files view.files
                     doLast {
-                        assert view.files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'ui.classes', 'some-classes-1.0.classes']
-                        assert view.artifacts.collect { it.id.displayName } == ['lib-util.classes', 'lib.classes (project :lib)', 'ui.classes (project :ui)', 'some-classes.classes (org:test2:1.0)']
+                        assert view.files.collect { it.name } == ['lib.classes', 'lib-util.classes', 'ui.classes', 'some-classes-1.0.classes']
+                        assert view.artifacts.collect { it.id.displayName } == ['lib.classes (project :lib)', 'lib-util.classes', 'ui.classes (project :ui)', 'some-classes.classes (org:test2:1.0)']
                     }
                 }
             }
@@ -653,7 +653,7 @@ task show {
                     files.each { println it.name }
                     inputs.files files
                     doLast {
-                        assert files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'ui.classes', 'some-classes-1.0.classes']
+                        assert files.collect { it.name } == ['lib.classes', 'lib-util.classes', 'ui.classes', 'some-classes-1.0.classes']
                     }
                 }
             }

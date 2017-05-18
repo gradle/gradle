@@ -30,6 +30,8 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifi
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.util.Path;
 
+import java.util.Set;
+
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DefaultCompositeContextBuilder.class);
     private final DefaultIncludedBuilds allIncludedBuilds;
@@ -44,15 +46,10 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
 
     @Override
     public void setRootBuild(SettingsInternal settings) {
-        ProjectRegistry<DefaultProjectDescriptor> projectRegistry = settings.getProjectRegistry();
-        String rootName = projectRegistry.getProject(":").getName();
+        ProjectRegistry<DefaultProjectDescriptor> settingsProjectRegistry = settings.getProjectRegistry();
+        String rootName = settingsProjectRegistry.getRootProject().getName();
         DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootName, true);
-        Path rootProjectIdentityPath = Path.ROOT;
-        for (DefaultProjectDescriptor project : projectRegistry.getAllProjects()) {
-            Path projectIdentityPath = rootProjectIdentityPath.append(project.path());
-            ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, project.getPath());
-            this.projectRegistry.add(projectIdentityPath, projectComponentIdentifier);
-        }
+        registerProjects(Path.ROOT, buildIdentifier, settingsProjectRegistry.getAllProjects());
     }
 
     @Override
@@ -64,13 +61,18 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private void registerProjects(Iterable<IncludedBuild> includedBuilds) {
         for (IncludedBuild includedBuild : includedBuilds) {
             allIncludedBuilds.registerBuild(includedBuild);
-            Path rootProjectIdentityPath = Path.ROOT.child(includedBuild.getName());
+            Path rootProjectPath = Path.ROOT.child(includedBuild.getName());
             BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(includedBuild.getName());
-            for (DefaultProjectDescriptor project : ((IncludedBuildInternal) includedBuild).getLoadedSettings().getProjectRegistry().getAllProjects()) {
-                Path projectIdentityPath = rootProjectIdentityPath.append(project.path());
-                ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, project.getPath());
-                projectRegistry.add(projectIdentityPath, projectComponentIdentifier);
-            }
+            Set<DefaultProjectDescriptor> allProjects = ((IncludedBuildInternal) includedBuild).getLoadedSettings().getProjectRegistry().getAllProjects();
+            registerProjects(rootProjectPath, buildIdentifier, allProjects);
+        }
+    }
+
+    private void registerProjects(Path rootPath, BuildIdentifier buildIdentifier, Set<DefaultProjectDescriptor> allProjects) {
+        for (DefaultProjectDescriptor project : allProjects) {
+            Path projectIdentityPath = rootPath.append(project.path());
+            ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, project.getPath());
+            projectRegistry.add(projectIdentityPath, projectComponentIdentifier);
         }
     }
 

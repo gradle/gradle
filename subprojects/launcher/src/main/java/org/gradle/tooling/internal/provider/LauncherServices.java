@@ -25,7 +25,7 @@ import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.progress.BuildOperationService;
+import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -75,7 +75,7 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
         BuildExecuter createBuildExecuter(List<BuildActionRunner> buildActionRunners,
                                           List<SubscribableBuildActionRunnerRegistration> registrations,
                                           GradleLauncherFactory gradleLauncherFactory,
-                                          BuildOperationService buildOperationService,
+                                          BuildOperationListenerManager buildOperationListenerManager,
                                           FileWatcherFactory fileWatcherFactory,
                                           ListenerManager listenerManager,
                                           StyledTextOutputFactory styledTextOutputFactory,
@@ -93,7 +93,7 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
                                             new RunAsBuildOperationBuildActionRunner(
                                                 new ValidatingBuildActionRunner(
                                                     new ChainingBuildActionRunner(buildActionRunners))),
-                                            buildOperationService, registrations)),
+                                            buildOperationListenerManager, registrations)),
                                     fileWatcherFactory,
                                     listenerManager,
                                     styledTextOutputFactory,

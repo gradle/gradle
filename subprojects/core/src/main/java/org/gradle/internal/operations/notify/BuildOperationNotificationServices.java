@@ -16,21 +16,20 @@
 
 package org.gradle.internal.operations.notify;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.progress.BuildOperationListenerManager;
 
 /**
- * Mechanism by which the scan plugin registers for notifications.
+ * Services enabling build operation notifications.
  *
- * @since 4.0
+ * Build tree scoped.
  */
-@UsedByScanPlugin("obtained from the root build's root project's service registry")
-public interface BuildOperationNotificationListenerRegistrar {
+public class BuildOperationNotificationServices {
 
-    /**
-     * This method is inaccurately named.
-     * The term “build” here is actually what we name “build tree”.
-     * The listener expects to be automatically de-registered.
-     */
-    void registerBuildScopeListener(BuildOperationNotificationListener listener);
+    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(
+        BuildOperationListenerManager buildOperationListenerManager
+    ) {
+        // The listener manager must be build session scoped, not global.
+        return new BuildOperationNotificationBridge(buildOperationListenerManager);
+    }
 
 }

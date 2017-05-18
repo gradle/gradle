@@ -62,7 +62,15 @@ public class Path implements Comparable<Path> {
 
     /**
      * Appends the supplied path to this path, returning the new path.
-     * It makes no difference if the appended path is absolute or relative.
+     * The resulting path with be absolute or relative based on the path being appended _to_.
+     * It makes no difference if the _appended_ path is absolute or relative.
+     *
+     * <pre>
+     * path(':a:b').append(path(':c:d')) == path(':a:b:c:d')
+     * path(':a:b').append(path('c:d')) == path(':a:b:c:d')
+     * path('a:b').append(path(':c:d')) == path('a:b:c:d')
+     * path('a:b').append(path('c:d')) == path('a:b:c:d')
+     * </pre>
      */
     public Path append(Path path) {
         if (path.segments.length == 0) {

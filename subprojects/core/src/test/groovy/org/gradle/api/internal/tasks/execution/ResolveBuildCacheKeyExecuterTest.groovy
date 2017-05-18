@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.execution
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import com.google.common.hash.HashCode
 import org.gradle.api.internal.TaskInternal
@@ -136,7 +137,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         def adapter = new ResolveBuildCacheKeyExecuter.OperationResultImpl(key)
 
         when:
-        inputs.inputHashes >> [b: HashCode.fromString("bb"), a: HashCode.fromString("aa")]
+        inputs.inputHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromString("bb"), a: HashCode.fromString("aa"))
 
         then:
         adapter.inputHashes == [a: "aa", b: "bb"]
@@ -167,6 +168,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         when:
         key.hashCode >> HashCode.fromString("ff")
+        key.valid >> true
 
         then:
         adapter.buildCacheKey == "ff"
