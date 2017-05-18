@@ -222,7 +222,7 @@ For more information about this feature, see the corresponding section in the [u
 
 ### Convenience method for declaring Google repository
 
-Users of the Google repository `https://maven.google.com` can now use a shortcut method on `RepositoryHandler` to declare that dependencies should be used for dependency resolution. The following example demonstrate the repository declaration:
+Users of the Google repository `https://maven.google.com` can now use a shortcut method on `RepositoryHandler` for resolving dependencies. The following example demonstrates the repository declaration:
 
     repositories {
         google()
