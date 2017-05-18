@@ -220,9 +220,11 @@ Please note that this will not affect the runtime classpath that the `Test` task
 
 For more information about this feature, see the corresponding section in the [user guide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
 
-### Convenience method for declaring Google repository
+### Convenience method for adding Google repository
 
-Users of the Google repository `https://maven.google.com` can now use a shortcut method on `RepositoryHandler` for resolving dependencies. The following example demonstrates the repository declaration:
+A convenience method for the [Google repository](https://developer.android.com/studio/build/dependencies.html#google-maven) was added to `RepositoryHandler`.
+
+You can now add Google's Maven repository to your build to resolve Android Support Library dependencies instead of downloading them from the Android SDK Manager. The following example demonstrates using the new shortcut repository declaration:
 
     repositories {
         google()
