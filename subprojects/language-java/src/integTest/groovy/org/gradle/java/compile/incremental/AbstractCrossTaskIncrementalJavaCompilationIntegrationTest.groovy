@@ -480,14 +480,14 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         when:
         run("impl:compileJava") //initial run
         then:
-        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
+        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, hamcrest-core-1.3.jar, objenesis-1.0.jar"
 
         when: //project dependency changes
         java api: ["class A { String change; }"]
         run("impl:compileJava")
 
         then:
-        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
+        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, hamcrest-core-1.3.jar, objenesis-1.0.jar"
 
         when: //transitive dependency is excluded
         file("impl/build.gradle") << "configurations.compile.exclude module: 'hamcrest-core' \n"
