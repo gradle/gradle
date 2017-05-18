@@ -92,6 +92,12 @@ repositories {
 }
 //END SNIPPET maven-jcenter-http
 
+//START SNIPPET maven-google
+repositories {
+    google()
+}
+//END SNIPPET maven-google
+
 //START SNIPPET maven-central-jar-repo
 repositories {
     mavenCentral name: 'single-jar-repo', artifactUrls: ["http://repo.mycompany.com/jars"]

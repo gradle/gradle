@@ -200,6 +200,21 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      */
     MavenArtifactRepository mavenLocal();
 
+    /**
+     * Adds a repository which looks in Google's repository for dependencies.
+     * <p>
+     * The URL used to access this repository is {@literal "https://maven.google.com/"}.
+     * <p>
+     * Examples:
+     * <pre autoTested="">
+     * repositories {
+     *     google()
+     * }
+     * </pre>
+     *
+     * @return the added resolver
+     * @since 4.0
+     */
     @Incubating
     MavenArtifactRepository google();
 
