@@ -69,6 +69,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     @Override
     public void visitNode(DependencyGraphNode resolvedConfiguration) {
+        artifactResults.visitNode(resolvedConfiguration);
     }
 
     @Override

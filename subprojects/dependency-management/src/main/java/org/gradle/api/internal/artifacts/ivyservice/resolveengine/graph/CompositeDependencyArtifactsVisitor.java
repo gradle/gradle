@@ -38,6 +38,13 @@ public class CompositeDependencyArtifactsVisitor implements DependencyArtifactsV
     }
 
     @Override
+    public void visitNode(DependencyGraphNode resolvedConfiguration) {
+        for (DependencyArtifactsVisitor visitor : visitors) {
+            visitor.visitNode(resolvedConfiguration);
+        }
+    }
+
+    @Override
     public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
         for (DependencyArtifactsVisitor visitor : visitors) {
             visitor.visitArtifacts(from, fileDependency, artifactSet);

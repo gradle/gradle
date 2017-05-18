@@ -17,11 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.specs.Spec;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,11 +32,13 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
+    private final ResolutionStrategy.SortOrder sortOrder;
     private final Map<Long, Set<ArtifactSet>> artifactsByNodeId;
     private final Map<Long, ArtifactSet> artifactsById;
     private final Set<Long> buildableArtifacts;
 
-    public DefaultVisitedArtifactResults(Map<Long, Set<ArtifactSet>> artifactsByNodeId, Map<Long, ArtifactSet> artifactsById, Set<Long> buildableArtifacts) {
+    public DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder sortOrder, Map<Long, Set<ArtifactSet>> artifactsByNodeId, Map<Long, ArtifactSet> artifactsById, Set<Long> buildableArtifacts) {
+        this.sortOrder = sortOrder;
         this.artifactsByNodeId = artifactsByNodeId;
         this.artifactsById = artifactsById;
         this.buildableArtifacts = buildableArtifacts;
@@ -58,11 +62,18 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         }
         ImmutableMap<Long, ResolvedArtifactSet> resolvedArtifactsById = builder.build();
 
-        Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
+        Collection<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
         for (Set<ArtifactSet> artifactSets : artifactsByNodeId.values()) {
             for (ArtifactSet artifactSet : artifactSets) {
                 allArtifactSets.add(resolvedArtifactsById.get(artifactSet.getId()));
             }
+        }
+        if (sortOrder == ResolutionStrategy.SortOrder.DEPENDENCY_FIRST) {
+            List<ResolvedArtifactSet> reversed = new ArrayList<ResolvedArtifactSet>(allArtifactSets.size());
+            for (ResolvedArtifactSet artifactSet : allArtifactSets) {
+                reversed.add(0, artifactSet);
+            }
+            allArtifactSets = reversed;
         }
 
         ResolvedArtifactSet composite = CompositeArtifactSet.of(allArtifactSets);

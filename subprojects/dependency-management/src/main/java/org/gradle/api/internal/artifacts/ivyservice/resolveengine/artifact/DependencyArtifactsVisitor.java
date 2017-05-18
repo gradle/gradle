@@ -26,6 +26,11 @@ public interface DependencyArtifactsVisitor {
     void startArtifacts(DependencyGraphNode root);
 
     /**
+     * Visits a node in the graph. Nodes are visited in consumer-first order and prior to visiting any edges
+     */
+    void visitNode(DependencyGraphNode resolvedConfiguration);
+
+    /**
      * Visits the artifacts introduced by a particular edge in the graph. Called for every edge in the graph.
      */
     void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts);

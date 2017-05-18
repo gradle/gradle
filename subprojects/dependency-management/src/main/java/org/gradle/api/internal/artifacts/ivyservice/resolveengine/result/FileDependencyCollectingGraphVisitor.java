@@ -34,6 +34,10 @@ public class FileDependencyCollectingGraphVisitor implements DependencyArtifacts
     }
 
     @Override
+    public void visitNode(DependencyGraphNode resolvedConfiguration) {
+    }
+
+    @Override
     public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
     }
 

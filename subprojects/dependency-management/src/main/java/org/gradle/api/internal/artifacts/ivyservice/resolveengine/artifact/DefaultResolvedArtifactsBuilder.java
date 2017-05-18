@@ -16,18 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,42 +47,11 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
 
     @Override
     public void startArtifacts(DependencyGraphNode root) {
-        if (sortOrder == ResolutionStrategy.SortOrder.DEFAULT) {
-            return;
-        }
-        List<DependencyGraphNode> sortedNodeList = getSortedNodeList(root);
-        for (DependencyGraphNode node : sortedNodeList) {
-            sortedNodeIds.put(node.getNodeId(), Sets.<ArtifactSet>newLinkedHashSet());
-        }
     }
 
-    private List<DependencyGraphNode> getSortedNodeList(DependencyGraphNode root) {
-        Set<DependencyGraphNode> tempMarked = Sets.newHashSet();
-        List<DependencyGraphNode> marked = Lists.newArrayList();
-        topologicalSort(root, tempMarked, marked);
-        return sortOrder == ResolutionStrategy.SortOrder.CONSUMER_FIRST ? Lists.reverse(marked) : marked;
-    }
-
-    /*
-     * Recursively sort the configuration nodes of the resolution graph.
-     * Note that this should really be sorting _component nodes_, not configuration nodes.
-     */
-    private void topologicalSort(DependencyGraphNode node, Set<DependencyGraphNode> tempMarked, List<DependencyGraphNode> marked) {
-        if (tempMarked.contains(node)) {
-            return;
-        }
-        if (!marked.contains(node)) {
-            tempMarked.add(node);
-
-            List<DependencyGraphEdge> edges = Lists.newArrayList(node.getOutgoingEdges());
-            for (DependencyGraphEdge dependencyEdge : Lists.reverse(edges)) {
-                for (DependencyGraphNode targetConfiguration : dependencyEdge.getTargets()) {
-                    topologicalSort(targetConfiguration, tempMarked, marked);
-                }
-            }
-            marked.add(node);
-            tempMarked.remove(node);
-        }
+    @Override
+    public void visitNode(DependencyGraphNode node) {
+        sortedNodeIds.put(node.getNodeId(), Sets.<ArtifactSet>newLinkedHashSet());
     }
 
     @Override
@@ -128,16 +94,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     private void collectArtifactsFor(DependencyGraphNode node, ArtifactSet artifacts) {
-        if (sortOrder != ResolutionStrategy.SortOrder.DEFAULT) {
-            sortedNodeIds.get(node.getNodeId()).add(artifacts);
-        } else {
-            Set<ArtifactSet> artifactSets = sortedNodeIds.get(node.getNodeId());
-            if (artifactSets == null) {
-                artifactSets = Sets.newLinkedHashSet();
-                sortedNodeIds.put(node.getNodeId(), artifactSets);
-            }
-            artifactSets.add(artifacts);
-        }
+        sortedNodeIds.get(node.getNodeId()).add(artifacts);
     }
 
     @Override
@@ -150,6 +107,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
             artifactsById.put(entry.getKey(), entry.getValue().snapshot());
         }
 
-        return new DefaultVisitedArtifactResults(sortedNodeIds, artifactsById, buildableArtifactSets);
+        return new DefaultVisitedArtifactResults(sortOrder, sortedNodeIds, artifactsById, buildableArtifactSets);
     }
 }

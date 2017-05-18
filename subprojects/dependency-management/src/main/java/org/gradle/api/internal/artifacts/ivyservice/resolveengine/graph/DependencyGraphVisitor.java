@@ -29,6 +29,7 @@ public interface DependencyGraphVisitor {
 
     /**
      * Visits a node of the graph. Includes the root. This method is called for all nodes before {@link #visitEdges(DependencyGraphNode)} is called.
+     * Nodes are visited in consumer-first order.
      */
     void visitNode(DependencyGraphNode resolvedConfiguration);
 

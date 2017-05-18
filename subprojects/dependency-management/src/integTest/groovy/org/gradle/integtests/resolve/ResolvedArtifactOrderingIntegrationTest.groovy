@@ -50,10 +50,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
     private void checkOrdered(List<?> ordered) {
         checkArtifacts("consumerFirst", ordered)
         checkArtifacts("dependencyFirst", Lists.reverse(ordered))
-    }
-
-    private void checkUnordered(List<?> unordered) {
-        checkArtifacts("unordered", unordered)
+        checkArtifacts("unordered", ordered)
     }
 
     private void checkLegacyOrder(List<?> ordered) {
@@ -105,7 +102,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkUnordered([modA, modB, modC, modD])
         checkLegacyOrder([modA, modC, modD, modB])
     }
 
@@ -118,7 +114,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkUnordered([modA, modB, modD, modC])
         checkLegacyOrder([modA, modD, modB, modC])
     }
 
@@ -131,7 +126,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkUnordered([modA, modD, modB, modC])
         checkLegacyOrder([modA, modB, modC, modD])
     }
 
@@ -144,7 +138,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkUnordered([modA, modB, modD, modC])
         checkLegacyOrder([modA, modC, modD, modB])
     }
 
@@ -157,7 +150,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkUnordered([modA, modB, modC, modD])
         checkLegacyOrder([modA, modD, modC, modB])
     }
 
@@ -170,7 +162,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkUnordered([modA, modD, modB, modC])
         checkLegacyOrder([modA, modC, modD, modB])
     }
 
@@ -183,8 +174,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         def modA = mavenRepo.module("org.test", "A").dependsOn(modB).publish()
 
         then:
-        checkOrdered([modA, modB, modC, modD])
-        checkUnordered([modA, modB, modC, modD])
+        checkOrdered([modA, modC, modD, modB])
         checkLegacyOrder([modA, modB, modC, modD])
     }
 
@@ -228,11 +218,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 """
 
         then:
-        // TODO - fix consumer-first ordering (B should be ordered before C)
-        // TODO - fix dependency-first ordering (file dependencies should be ordered before project artifacts)
-        checkArtifacts('consumerFirst', ['root-lib.jar', modA, 'a.jar', 'a-lib.jar', 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modB, modD])
-        checkArtifacts('dependencyFirst', [modD, modC, modB, 'c.jar', 'c-lib.jar', 'b.jar', 'b-lib.jar', 'a.jar', 'a-lib.jar', modA, 'root-lib.jar'])
-        checkUnordered(['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modC, 'b.jar', 'b-lib.jar', modB,  modD, 'c.jar', 'c-lib.jar'])
+        checkOrdered(['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modD])
         checkLegacyOrder(['root-lib.jar', modA, 'a.jar', modC, modD, 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar'])
     }
 }
