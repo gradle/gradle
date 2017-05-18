@@ -32,7 +32,6 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.caching.internal.tasks.TaskOutputCachingListener;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -47,12 +46,10 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveBuildCacheKeyExecuter.class);
 
-    private final TaskOutputCachingListener listener;
     private final TaskExecuter delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public ResolveBuildCacheKeyExecuter(TaskOutputCachingListener listener, TaskExecuter delegate, BuildOperationExecutor buildOperationExecutor) {
-        this.listener = listener;
+    public ResolveBuildCacheKeyExecuter(TaskExecuter delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -101,7 +98,6 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         TaskArtifactState taskState = context.getTaskArtifactState();
         TaskOutputCachingBuildCacheKey cacheKey = taskState.calculateCacheKey();
         if (task.getOutputs().getHasOutput()) { // A task with no outputs an no cache key.
-            listener.cacheKeyEvaluated(task, cacheKey);
             if (cacheKey.isValid()) {
                 LOGGER.info("Cache key for {} is {}", task, cacheKey.getHashCode());
             }
