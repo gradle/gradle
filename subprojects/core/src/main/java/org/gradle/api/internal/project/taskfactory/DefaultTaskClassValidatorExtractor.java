@@ -331,11 +331,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
 
         @Override
         public int compareTo(Getter o) {
-            int result = name.compareTo(o.name);
-            if (result != 0) {
-                return result;
-            }
-            // Sort "is"-getters before "get"-getters when both ara available
+            // Sort "is"-getters before "get"-getters when both are available
             return method.getName().compareTo(o.method.getName());
         }
     }
