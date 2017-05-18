@@ -53,9 +53,9 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
         this.root = root;
     }
 
-    public void visitNode(DependencyGraphNode resolvedConfiguration) {
-        builder.newResolvedDependency(resolvedConfiguration);
-        for (DependencyGraphEdge dependency : resolvedConfiguration.getOutgoingEdges()) {
+    public void visitNode(DependencyGraphNode node) {
+        builder.newResolvedDependency(node);
+        for (DependencyGraphEdge dependency : node.getOutgoingEdges()) {
             ModuleVersionResolveException failure = dependency.getFailure();
             if (failure != null) {
                 addUnresolvedDependency(dependency, dependency.getRequestedModuleVersion(), failure);
@@ -67,11 +67,11 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
     public void visitSelector(DependencyGraphSelector selector) {
     }
 
-    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
-        for (DependencyGraphEdge dependency : resolvedConfiguration.getIncomingEdges()) {
+    public void visitEdges(DependencyGraphNode node) {
+        for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
             if (dependency.getFrom() == root) {
                 ModuleDependency moduleDependency = dependency.getModuleDependency();
-                builder.addFirstLevelDependency(moduleDependency, resolvedConfiguration);
+                builder.addFirstLevelDependency(moduleDependency, node);
             }
         }
     }

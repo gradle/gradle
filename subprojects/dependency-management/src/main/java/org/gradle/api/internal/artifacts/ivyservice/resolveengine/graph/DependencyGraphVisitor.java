@@ -31,7 +31,7 @@ public interface DependencyGraphVisitor {
      * Visits a node of the graph. Includes the root. This method is called for all nodes before {@link #visitEdges(DependencyGraphNode)} is called.
      * Nodes are visited in consumer-first order.
      */
-    void visitNode(DependencyGraphNode resolvedConfiguration);
+    void visitNode(DependencyGraphNode node);
 
     /**
      * Visits a selector. This method is called for all selectors before {@link #visitEdges(DependencyGraphNode)} is called.
@@ -41,7 +41,7 @@ public interface DependencyGraphVisitor {
     /**
      * Visits edges to/from a node of the graph. Includes the root. This method is called for all nodes after {@link #visitNode(DependencyGraphNode)} has been called for all nodes.
      */
-    void visitEdges(DependencyGraphNode resolvedConfiguration);
+    void visitEdges(DependencyGraphNode node);
 
     /**
      * Completes traversal of the graph.
@@ -54,7 +54,7 @@ public interface DependencyGraphVisitor {
         }
 
         @Override
-        public void visitNode(DependencyGraphNode resolvedConfiguration) {
+        public void visitNode(DependencyGraphNode node) {
         }
 
         @Override
@@ -62,7 +62,7 @@ public interface DependencyGraphVisitor {
         }
 
         @Override
-        public void visitEdges(DependencyGraphNode resolvedConfiguration) {
+        public void visitEdges(DependencyGraphNode node) {
         }
 
         @Override

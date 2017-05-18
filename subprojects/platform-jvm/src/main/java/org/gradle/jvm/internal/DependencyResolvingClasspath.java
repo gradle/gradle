@@ -196,14 +196,14 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         }
 
         @Override
-        public void visitNode(DependencyGraphNode resolvedConfiguration) {
-            for (DependencyGraphEdge dependency : resolvedConfiguration.getOutgoingEdges()) {
+        public void visitNode(DependencyGraphNode node) {
+            for (DependencyGraphEdge dependency : node.getOutgoingEdges()) {
                 ModuleVersionResolveException failure = dependency.getFailure();
                 if (failure != null) {
                     notFound.add(failure);
                 }
             }
-            artifactsBuilder.visitNode(resolvedConfiguration);
+            artifactsBuilder.visitNode(node);
         }
 
         @Override
@@ -211,7 +211,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         }
 
         @Override
-        public void visitEdges(DependencyGraphNode resolvedConfiguration) {
+        public void visitEdges(DependencyGraphNode node) {
         }
 
         @Override

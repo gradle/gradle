@@ -28,7 +28,7 @@ public interface DependencyArtifactsVisitor {
     /**
      * Visits a node in the graph. Nodes are visited in consumer-first order and prior to visiting any edges
      */
-    void visitNode(DependencyGraphNode resolvedConfiguration);
+    void visitNode(DependencyGraphNode node);
 
     /**
      * Visits the artifacts introduced by a particular edge in the graph. Called for every edge in the graph.
@@ -37,6 +37,7 @@ public interface DependencyArtifactsVisitor {
 
     /**
      * Visits the artifacts introduce by a particular node in the graph. Called *zero or more* times for each node.
+     * Currently local files are treated differently to other dependencies.
      */
     void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet);
 

@@ -38,9 +38,9 @@ public class CompositeDependencyArtifactsVisitor implements DependencyArtifactsV
     }
 
     @Override
-    public void visitNode(DependencyGraphNode resolvedConfiguration) {
+    public void visitNode(DependencyGraphNode node) {
         for (DependencyArtifactsVisitor visitor : visitors) {
-            visitor.visitNode(resolvedConfiguration);
+            visitor.visitNode(node);
         }
     }
 

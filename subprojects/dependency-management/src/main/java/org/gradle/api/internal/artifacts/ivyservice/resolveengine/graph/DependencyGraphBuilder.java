@@ -727,7 +727,7 @@ public class DependencyGraphBuilder {
     }
 
     /**
-     * Resolution state for a given module version.
+     * Resolution state for a given component
      */
     public static class ModuleVersionResolveState implements ComponentResolutionState, ComponentResult, DependencyGraphComponent {
         public final ModuleVersionIdentifier id;
@@ -1236,7 +1236,7 @@ public class DependencyGraphBuilder {
     private static class DownloadMetadataOperation implements RunnableBuildOperation {
         private final ModuleVersionResolveState state;
 
-        public DownloadMetadataOperation(ModuleVersionResolveState state) {
+        DownloadMetadataOperation(ModuleVersionResolveState state) {
             this.state = state;
         }
 
