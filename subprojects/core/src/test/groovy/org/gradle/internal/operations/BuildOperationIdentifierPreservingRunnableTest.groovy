@@ -43,7 +43,7 @@ class BuildOperationIdentifierPreservingRunnableTest extends Specification {
         runner.run()
 
         then:
-        delegate.run() >> {
+        1 * delegate.run() >> {
             assert BuildOperationIdentifierRegistry.currentOperationIdentifier == EXPECTED_BUILD_OPERATION_IDENTIFIER
         }
         BuildOperationIdentifierRegistry.currentOperationIdentifier != EXPECTED_BUILD_OPERATION_IDENTIFIER
