@@ -70,8 +70,8 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                         int actionIndex = 0
                         def implementationHashes = [result.actionClassNames, result.actionClassLoaderHashes].transpose()
                         implementationHashes.each { className, classLoaderHash ->
-                            buildScan.value "${taskPath}-action-classname-${actionIndex}", String.valueOf(className)
-                            buildScan.value "${taskPath}-action-classloader-hash-${actionIndex++}", String.valueOf(classLoaderHash)
+                            buildScan.value "${taskPath}-action-${actionIndex}-classname", String.valueOf(className)
+                            buildScan.value "${taskPath}-action-${actionIndex++}-classloader-hash", String.valueOf(classLoaderHash)
                         }
                         if (tasksToInvestigateForCache.any { taskPath.contains(it) }) {
                             result.inputHashes.each { name, hash ->
