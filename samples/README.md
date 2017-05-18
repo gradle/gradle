@@ -6,6 +6,7 @@ _See instructions below in order to [set up your dev environment](#set-up-dev-en
 The Gradle projects in this directory demonstrate typical use cases with and features available in Gradle Script Kotlin. They include:
 
  - [`build-scan`](./build-scan): demonstrates how to apply and configure the `org.gradle.build-scan` plugin
+ - [`composite-builds`](./composite-builds): demonstrates how to use Composite Builds
  - [`copy`](./copy): demonstrates typed task declarations, and configuration of a Gradle `CopySpec`
  - [`domain-objects`](./domain-objects): demonstrates how to create and configure a `NamedDomainObjectContainer` from a Kotlin build script.
  - [`extra-properties`](./extra-properties): demonstrates the use of `extra` properties (equivalent of the `ext` properties found in Gradle Script Groovy)
@@ -20,6 +21,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`multi-kotlin-project`](./multi-kotlin-project): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects
  - [`multi-project-with-buildSrc`](./multi-project-with-buildSrc): demonstrates a multi-project build with custom build logic in `buildSrc`, including a custom task
  - [`project-properties`](./project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
+ - [`provider-properties`](./provider-properties): demonstrates usage of lazily evaluated properties to [map extension properties to task properties](https://docs.gradle.org/4.0-milestone-2/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties)
  - [`task-dependencies`](./task-dependencies): demonstrates explicit configuration of task dependencies
 
 Set up dev environment
@@ -29,13 +31,13 @@ _Note: Currently, these instructions only address working with IntelliJ IDEA. In
 
 ### Install IntelliJ IDEA
 
-Version 2016.1.2 or better is required, and can be downloaded from https://www.jetbrains.com/idea.
+Version 2017.1.3 or better is required, and can be downloaded from https://www.jetbrains.com/idea.
 
 ### Install IDEA Kotlin Plugin
 
 _Note: the specific version of the Kotlin plugin matters._
 
-All the samples should work against the latest Kotlin plugin, _1.1-M04_ at the time of this writing, from the _Early Access Preview 1.1_ channel accessible via the _Tools_ > _Kotlin_ > _Configure Kotlin Plugin Updates_ action.
+All the samples should work against the latest Kotlin plugin, _1.1.2_ at the time of this writing, from the _Stable_ channel accessible via the _Tools_ > _Kotlin_ > _Configure Kotlin Plugin Updates_ action.
 
 Set up a sample project
 -----------------------
