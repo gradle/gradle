@@ -20,9 +20,7 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG
+import static org.gradle.performance.generator.JavaTestProject.*
 
 class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -34,7 +32,7 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.tasksToRun = ['test']
-        runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange))
+        runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['test']))
         runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
@@ -44,10 +42,10 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                            | warmUpRuns | runs | fileToChange
-        LARGE_JAVA_MULTI_PROJECT               | 2          | 6    | "project450/src/main/java/org/gradle/test/performance/largejavamultiproject/project450/p2250/Production45000.java"
-        MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG | 2          | 6    | "project50/src/main/java/org/gradle/test/performance/mediumjavamultiprojectwithtestng/project50/p250/Production5000.java"
-        LARGE_MONOLITHIC_JAVA_PROJECT          | 2          | 6    | "src/main/java/org/gradle/test/performance/largemonolithicjavaproject/p0/Production0.java"
+        testProject                            | warmUpRuns | runs
+        LARGE_JAVA_MULTI_PROJECT               | 2          | 6
+        MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG | 2          | 6
+        LARGE_MONOLITHIC_JAVA_PROJECT          | 2          | 6
 
         //monolithicJavaTestNGProject" - testNG requires more test workers, which take too long to start up
     }

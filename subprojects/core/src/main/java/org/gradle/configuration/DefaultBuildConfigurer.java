@@ -44,21 +44,10 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
 
         if (startParameter.isParallelProjectExecutionEnabled() && startParameter.isConfigureOnDemand()) {
             SingleMessageLogger.incubatingFeatureUsed("Parallel execution with configuration on demand");
-            maybeInformAboutParallelLimitations(gradle);
         } else if (startParameter.isParallelProjectExecutionEnabled()) {
             SingleMessageLogger.incubatingFeatureUsed("Parallel execution");
-            maybeInformAboutParallelLimitations(gradle);
         } else if (startParameter.isConfigureOnDemand()) {
             SingleMessageLogger.incubatingFeatureUsed("Configuration on demand");
-        }
-    }
-
-    private void maybeInformAboutParallelLimitations(GradleInternal gradle) {
-        StartParameter startParameter = gradle.getStartParameter();
-        int childProjectCount = gradle.getRootProject().getChildProjects().size();
-
-        if (childProjectCount > 1 && startParameter.getTaskNames().size() > 1 && startParameter.getTaskNames().contains("clean")) {
-            LOGGER.warn("Using the 'clean' task in combination with parallel execution may lead to unexpected runtime behavior.");
         }
     }
 }

@@ -39,7 +39,7 @@ public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putBytes(snapshot.getContentMd5().asBytes());
+        hasher.putHash(snapshot.getContentMd5());
     }
 
     @Override

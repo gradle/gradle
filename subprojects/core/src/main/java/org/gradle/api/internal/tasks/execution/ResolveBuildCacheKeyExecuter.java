@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -40,8 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.SortedMap;
-import java.util.SortedSet;
+import java.util.Map;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
@@ -137,42 +137,72 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             this.key = key;
         }
 
-        @Override
-        public SortedMap<String, String> getInputHashes() {
-            SortedMap<String, HashCode> inputHashes = ImmutableSortedMap.copyOf(key.getInputs().getInputHashes());
-            return Maps.transformValues(inputHashes, new Function<HashCode, String>() {
-                @Override
-                public String apply(HashCode input) {
-                    return input.toString();
-                }
-            });
-        }
-
-        @Override
         @Nullable
-        public String getClassLoaderHash() {
-            return key.getInputs().getClassLoaderHash() == null ? null : key.getInputs().getClassLoaderHash().toString();
+        @Override
+        public Map<String, String> getInputHashes() {
+            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputHashes();
+            if (inputHashes == null || inputHashes.isEmpty()) {
+                return null;
+            } else {
+                return Maps.transformValues(inputHashes, new Function<HashCode, String>() {
+                    @Override
+                    public String apply(HashCode input) {
+                        return input.toString();
+                    }
+                });
+            }
         }
 
+        @Nullable
+        @Override
+        public String getClassLoaderHash() {
+            HashCode classLoaderHash = key.getInputs().getClassLoaderHash();
+            return classLoaderHash == null ? null : classLoaderHash.toString();
+        }
+
+        @Nullable
         @Override
         public List<String> getActionClassLoaderHashes() {
-            return Lists.transform(key.getInputs().getActionClassLoaderHashes(), new Function<HashCode, String>() {
-                @Override
-                public String apply(HashCode input) {
-                    return input.toString();
-                }
-            });
+            List<HashCode> actionClassLoaderHashes = key.getInputs().getActionClassLoaderHashes();
+            if (actionClassLoaderHashes == null || actionClassLoaderHashes.isEmpty()) {
+                return null;
+            } else {
+                return Lists.transform(actionClassLoaderHashes, new Function<HashCode, String>() {
+                    @Override
+                    public String apply(HashCode input) {
+                        return input == null ? null : input.toString();
+                    }
+                });
+            }
         }
 
+        @Nullable
         @Override
-        public SortedSet<String> getOutputPropertyNames() {
-            return ImmutableSortedSet.copyOf(key.getInputs().getOutputPropertyNames());
+        public List<String> getActionClassNames() {
+            ImmutableList<String> actionClassNames = key.getInputs().getActionClassNames();
+            if (actionClassNames == null || actionClassNames.isEmpty()) {
+                return null;
+            } else {
+                return actionClassNames;
+            }
+        }
+
+        @Nullable
+        @Override
+        public List<String> getOutputPropertyNames() {
+            // Copy should be a NOOP as this is an immutable sorted set upstream.
+            ImmutableSortedSet<String> outputPropertyNames = key.getInputs().getOutputPropertyNames();
+            if (outputPropertyNames == null || outputPropertyNames.isEmpty()) {
+                return null;
+            } else {
+                return ImmutableSortedSet.copyOf(outputPropertyNames).asList();
+            }
         }
 
         @Nullable
         @Override
         public String getBuildCacheKey() {
-            return key.getHashCode();
+            return key.isValid() ? key.getHashCode() : null;
         }
     }
 

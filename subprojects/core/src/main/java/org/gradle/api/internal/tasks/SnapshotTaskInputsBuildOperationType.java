@@ -21,8 +21,7 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
-import java.util.SortedMap;
-import java.util.SortedSet;
+import java.util.Map;
 
 /**
  * Represents the computation of the task artifact state and the task output caching state.
@@ -57,20 +56,75 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
     }
 
+    /**
+     * The hashes of the inputs.
+     *
+     * If the inputs were not snapshotted, all fields are null.
+     * This may occur if the task had no outputs.
+     */
     @UsedByScanPlugin
     public interface Result {
 
+        /**
+         * The overall hash value for the inputs.
+         *
+         * Null if the overall key was not calculated because the inputs were invalid.
+         */
+        @Nullable
+        String getBuildCacheKey();
+
+        /**
+         * The hash of the the classloader that loaded the task implementation.
+         *
+         * Null if the classloader is not managed by Gradle.
+         */
         @Nullable
         String getClassLoaderHash();
 
-        // Order corresponds to task action order
+        /**
+         * The hashes of the classloader that loaded each of the task's actions.
+         *
+         * May contain duplicates.
+         * Order corresponds to execution order of the actions.
+         * Never empty.
+         * May contain nulls (non Gradle managed classloader)
+         */
+        @Nullable
         List<String> getActionClassLoaderHashes();
 
-        SortedMap<String, String> getInputHashes();
+        /**
+         * The class names of each of the task's actions.
+         *
+         * May contain duplicates.
+         * Order corresponds to execution order of the actions.
+         * Never empty.
+         */
+        @Nullable
+        List<String> getActionClassNames();
 
-        SortedSet<String> getOutputPropertyNames();
+        /**
+         * Hashes of each of the input properties.
+         *
+         * key = property name
+         * value = hash
+         *
+         * Ordered by key, lexicographically.
+         * No null keys or values.
+         * Never empty.
+         * Null if the task has no inputs.
+         */
+        @Nullable
+        Map<String, String> getInputHashes();
 
-        String getBuildCacheKey();
+        /**
+         * The names of the output properties.
+         *
+         * No duplicate values.
+         * Ordered lexicographically.
+         * Never empty.
+         */
+        @Nullable
+        List<String> getOutputPropertyNames();
 
     }
 

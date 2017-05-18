@@ -16,6 +16,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.GUtil;
 
@@ -46,7 +47,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
         }
         return project;
     }
-    
+
     private void addProjectToParentSubProjects(T project) {
         ProjectIdentifier loopProject = project.getParentIdentifier();
         while (loopProject != null) {
@@ -57,6 +58,11 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
 
     public Set<T> getAllProjects() {
         return new HashSet<T>(projects.values());
+    }
+
+    @Override
+    public T getRootProject() {
+        return getProject(Project.PATH_SEPARATOR);
     }
 
     public T getProject(String path) {

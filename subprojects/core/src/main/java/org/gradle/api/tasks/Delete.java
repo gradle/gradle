@@ -77,7 +77,7 @@ public class Delete extends ConventionTask implements DeleteSpec {
      *
      * @return The files. Never returns null.
      */
-    @Internal
+    @Destroys
     public FileCollection getTargetFiles() {
         return getProject().files(delete);
     }

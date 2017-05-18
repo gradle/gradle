@@ -170,11 +170,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         run 'help'
 
         when:
-        root {
-            module1 {
-                'build.gradle'(this.simpleBuild('different contents'))
-            }
-        }
+        file('module1/build.gradle').text = simpleBuild('different contents')
         run 'help'
 
         then:
@@ -520,6 +516,68 @@ task fastTask { }
         hasCachedScripts(commonHash, settingsHash, coreHash, initHash)
         getCompileClasspath(commonHash, 'cp_dsl').length == 1
         getCompileClasspath(commonHash, 'dsl').length == 1
+    }
+
+    def "remapped classes have script origin"() {
+        root {
+            'build.gradle'('''
+
+                void assertScriptOrigin(Object o, Set<String> seen) {
+                    assert (o instanceof org.gradle.internal.scripts.ScriptOrigin)
+                    // need to get through reflection to bypass the Groovy MOP on closures, which would cause calling the method on the owner instead of the closure itself
+                    def originalClassName = o.class.getMethod('getOriginalClassName').invoke(o)
+                    def contentHash = o.class.getMethod('getContentHash').invoke(o)
+                    assert originalClassName
+                    assert contentHash
+                    println "Action type: ${originalClassName} (remapped name: ${o.class})"
+                    println "Action hash: ${contentHash}"
+                    if (!seen.add(contentHash)) {
+                       throw new AssertionError("Expected a unique hash, but found duplicate: ${o.contentHash} in $seen")
+                    }
+                }
+                
+                Set<String> seen = []
+    
+                assertScriptOrigin(this, seen)
+            
+                task one {
+                    doLast {
+                        { ->
+                            assertScriptOrigin(owner, seen) // hack to get a handle on the parent closure
+                        }()
+                    }
+                }
+                
+                task two {
+                    def v
+                    v = { assertScriptOrigin(v, seen) }
+                    doFirst(v)
+                }
+                
+                task three {
+                    doLast(new Action() {
+                        void execute(Object o) {
+                            assertScriptOrigin(this, seen)
+                        }
+                    })
+                }
+                
+                task four {
+                    doLast {
+                        def a = new A()
+                        assertScriptOrigin(a, seen)
+                    }
+                }
+                
+                class A {}
+            ''')
+        }
+
+        when:
+        run 'one', 'two', 'three', 'four'
+
+        then:
+        noExceptionThrown()
     }
 
     def "same applied script is compiled once for different projects with different classpath"() {

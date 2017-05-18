@@ -22,6 +22,7 @@ public interface BuildCacheHasher {
     BuildCacheHasher putByte(byte b);
     BuildCacheHasher putBytes(byte[] bytes);
     BuildCacheHasher putBytes(byte[] bytes, int off, int len);
+    BuildCacheHasher putHash(HashCode hashCode);
     BuildCacheHasher putInt(int i);
     BuildCacheHasher putLong(long l);
     BuildCacheHasher putDouble(double d);

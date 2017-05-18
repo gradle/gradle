@@ -104,13 +104,35 @@ class PropertyAccessorTypeTest extends Specification {
             true
         }
         void settings(String value) {}
+        String getccCompiler() { "CC" }
+
+        String isNotString() { return "string" }
+        Boolean isNotBoolean() { return true }
+
+        DeviantBean setWriteOnly(String s) {
+            return this
+        }
     }
 
-    def "deviant bean properties are not considered as such by Gradle"() {
+    def "deviant bean properties are considered as such by Gradle"() {
         expect:
-        !PropertyAccessorType.isGetterName('gettingStarted')
-        !PropertyAccessorType.isGetterName('isidore')
-        !PropertyAccessorType.isSetterName('settings')
+        PropertyAccessorType.fromName('gettingStarted') == PropertyAccessorType.GET_GETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("gettingStarted")) == PropertyAccessorType.GET_GETTER
+        PropertyAccessorType.fromName('getccCompiler') == PropertyAccessorType.GET_GETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("getccCompiler")) == PropertyAccessorType.GET_GETTER
+        PropertyAccessorType.fromName('isidore') == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("isidore")) == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.fromName('settings') == PropertyAccessorType.SETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("settings", String)) == PropertyAccessorType.SETTER
+    }
+
+    def "deviant bean properties are considered as such by Java"() {
+        expect:
+        def propertyNames = Introspector.getBeanInfo(DeviantBean).propertyDescriptors.collect { it.name }
+        propertyNames.contains("tingStarted")
+        propertyNames.contains("ccCompiler")
+        propertyNames.contains("idore")
+        propertyNames.contains("tings")
     }
 
     def "deviant bean properties are considered as such by Groovy"() {
@@ -121,6 +143,42 @@ class PropertyAccessorTypeTest extends Specification {
         then:
         bean.tingStarted == 'Getting started!'
         bean.idore == true
+    }
+
+    def "is methods with Boolean return type are considered as such by Gradle and Groovy but not Java"() {
+        def bean = new DeviantBean()
+        def propertyNames = Introspector.getBeanInfo(DeviantBean).propertyDescriptors.collect { it.name }
+
+        expect:
+        bean.notBoolean == true
+        try {
+            bean.notString
+            assert false
+        } catch (MissingPropertyException e) {
+            assert e.property == "notString"
+        }
+
+        PropertyAccessorType.fromName('isNotBoolean') == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("isNotBoolean")) == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.fromName('isNotString') == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("isNotString")) == null
+
+        !propertyNames.contains("notBoolean")
+        !propertyNames.contains("notString")
+    }
+
+    def "setter methods with non-void return type are considered as such by Gradle and Groovy but not Java"() {
+        def bean = new DeviantBean()
+        def propertyNames = Introspector.getBeanInfo(DeviantBean).propertyDescriptors.collect { it.name }
+
+        when:
+        bean.writeOnly = "ok"
+
+        then:
+        PropertyAccessorType.fromName('setWriteOnly') == PropertyAccessorType.SETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("setWriteOnly", String)) == PropertyAccessorType.SETTER
+
+        !propertyNames.contains("writeOnly")
     }
 
     static class StaticMethods {

@@ -48,6 +48,8 @@ public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
     /**
      * Returns any failures to resolve the artifacts for this collection.
      *
+     * @since 4.0
+     *
      * @return A collection of exceptions, one for each failure in resolution.
      */
     Collection<Throwable> getFailures();

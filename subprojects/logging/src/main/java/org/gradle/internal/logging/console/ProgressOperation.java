@@ -29,7 +29,7 @@ public class ProgressOperation {
     private final String category;
     private final OperationIdentifier operationId;
     private ProgressOperation parent;
-    private final Set<ProgressOperation> children = new HashSet<ProgressOperation>();
+    private Set<ProgressOperation> children;
 
     public ProgressOperation(String shortDescription, String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
         this.shortDescription = shortDescription;
@@ -65,7 +65,21 @@ public class ProgressOperation {
         return parent;
     }
 
-    public Set<ProgressOperation> getChildren() {
-        return children;
+    public boolean addChild(ProgressOperation operation) {
+        if (children == null) {
+            children = new HashSet<ProgressOperation>();
+        }
+        return children.add(operation);
+    }
+
+    public boolean removeChild(ProgressOperation operation) {
+        if (children == null) {
+            throw new IllegalStateException(String.format("Cannot remove child operation [%s] from operation with no children [%s]", operation.getMessage(), getMessage()));
+        }
+        return children.remove(operation);
+    }
+
+    public boolean hasChildren() {
+        return children != null && !children.isEmpty();
     }
 }

@@ -17,13 +17,14 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 
 import java.util.concurrent.Callable;
 
 /**
  * A factory for creating instances of {@code Provider} and {@code PropertyState}.
  * <p>
- * An instance of the factory can be injected by annotating a public constructor or method with {@code javax.inject.Inject}.
+ * An instance of the factory can be injected into a task or plugin by annotating a public constructor or method with {@code javax.inject.Inject}.
  *
  * <pre autoTested=''>
  * public class MyTask extends DefaultTask {
@@ -38,6 +39,8 @@ import java.util.concurrent.Callable;
  *   }
  * }
  * </pre>
+ *
+ * <p>An instance of the factory is also available using {@link Project#getProviders()}</p>
  *
  * @since 4.0
  */

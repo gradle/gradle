@@ -1079,8 +1079,8 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         @Override
-        void visitNode(DependencyGraphNode resolvedConfiguration) {
-            components.add(resolvedConfiguration.owner.moduleVersion)
+        void visitNode(DependencyGraphNode node) {
+            components.add(node.owner.moduleVersion)
         }
 
         @Override
@@ -1088,8 +1088,8 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         @Override
-        void visitEdges(DependencyGraphNode resolvedConfiguration) {
-            resolvedConfiguration.outgoingEdges.each {
+        void visitEdges(DependencyGraphNode node) {
+            node.outgoingEdges.each {
                 if (it.failure) {
                     def breakage = failures.get(it.requestedModuleVersion)
                     if (breakage == null) {

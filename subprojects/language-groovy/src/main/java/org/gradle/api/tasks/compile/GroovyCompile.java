@@ -131,7 +131,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Incubating
     @Input
-    protected String getGroovyCompilerJvmJavaVersion() {
+    protected String getGroovyCompilerJvmVersion() {
         return JavaVersion.current().getMajorVersion();
     }
 
@@ -204,12 +204,6 @@ public class GroovyCompile extends AbstractCompile {
         this.compiler = compiler;
     }
 
-    /**
-     * Factory for creating the Java toolchain.
-     *
-     * @since 4.0
-     */
-    @Incubating
     @Inject
     protected JavaToolChainFactory getJavaToolChainFactory() {
         throw new UnsupportedOperationException();

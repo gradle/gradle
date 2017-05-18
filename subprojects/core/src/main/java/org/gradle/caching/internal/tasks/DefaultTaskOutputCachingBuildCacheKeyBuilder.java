@@ -17,15 +17,20 @@
 package org.gradle.caching.internal.tasks;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
@@ -36,40 +41,53 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     private BuildCacheHasher hasher = new DefaultBuildCacheHasher();
     private String taskClass;
     private HashCode classLoaderHash;
-    private List<HashCode> actionsClassLoaderHashes;
+    private List<HashCode> actionClassLoaderHashes;
+    private ImmutableList<String> actionTypes;
     private final ImmutableSortedMap.Builder<String, HashCode> inputHashes = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
 
-    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskClass(String taskClass) {
-        this.taskClass = taskClass;
+    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskImplementation(ImplementationSnapshot taskImplementation) {
+        this.taskClass = taskImplementation.getTypeName();
         hasher.putString(taskClass);
         log("taskClass", taskClass);
-        return this;
-    }
 
-    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendClassloaderHash(@Nullable HashCode hashCode) {
-        classLoaderHash = hashCode;
-        if (hashCode != null) {
-            hasher.putBytes(hashCode.asBytes());
+        if (!taskImplementation.hasUnknownClassLoader()) {
+            HashCode hashCode = taskImplementation.getClassLoaderHash();
+            this.classLoaderHash = hashCode;
+            hasher.putHash(hashCode);
+            log("classLoaderHash", hashCode);
         }
-        log("classLoaderHash", hashCode);
         return this;
     }
 
-    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendActionsClassloaderHashes(List<HashCode> actionsClassLoaderHashes) {
-        this.actionsClassLoaderHashes = actionsClassLoaderHashes;
-        for (HashCode hashCode : actionsClassLoaderHashes) {
-            if (hashCode != null) {
-                hasher.putBytes(hashCode.asBytes());
+    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskActionImplementations(Collection<ImplementationSnapshot> taskActionImplementations) {
+        ImmutableList.Builder<String> actionTypes = ImmutableList.builder();
+        List<HashCode> actionClassLoaderHashes = Lists.newArrayListWithCapacity(taskActionImplementations.size());
+        for (ImplementationSnapshot actionImpl : taskActionImplementations) {
+            String actionType = actionImpl.getTypeName();
+            actionTypes.add(actionType);
+            hasher.putString(actionType);
+            log("actionType", actionType);
+
+            HashCode hashCode;
+            if (actionImpl.hasUnknownClassLoader()) {
+                hashCode = null;
+            } else {
+                hashCode = actionImpl.getClassLoaderHash();
+                hasher.putHash(hashCode);
             }
-            log("actionsClassLoaderHash", hashCode);
+            actionClassLoaderHashes.add(hashCode);
+            log("actionClassLoaderHash", hashCode);
         }
+
+        this.actionTypes = actionTypes.build();
+        this.actionClassLoaderHashes = Collections.unmodifiableList(actionClassLoaderHashes);
         return this;
     }
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendInputPropertyHash(String propertyName, HashCode hashCode) {
         hasher.putString(propertyName);
-        hasher.putBytes(hashCode.asBytes());
+        hasher.putHash(hashCode);
         inputHashes.put(propertyName, hashCode);
         LOGGER.debug("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
         return this;
@@ -87,18 +105,19 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     }
 
     public TaskOutputCachingBuildCacheKey build() {
-        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionsClassLoaderHashes, inputHashes.build(), outputPropertyNames.build());
-        if (classLoaderHash == null || actionsClassLoaderHashes.contains(null)) {
+        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionClassLoaderHashes, actionTypes, inputHashes.build(), outputPropertyNames.build());
+        if (classLoaderHash == null || actionClassLoaderHashes.contains(null)) {
             return new DefaultTaskOutputCachingBuildCacheKey(null, inputs);
         }
         return new DefaultTaskOutputCachingBuildCacheKey(hasher.hash(), inputs);
     }
 
     private static class DefaultTaskOutputCachingBuildCacheKey implements TaskOutputCachingBuildCacheKey {
+
         private final HashCode hashCode;
         private final BuildCacheKeyInputs inputs;
 
-        private DefaultTaskOutputCachingBuildCacheKey(HashCode hashCode, BuildCacheKeyInputs inputs) {
+        private DefaultTaskOutputCachingBuildCacheKey(@Nullable HashCode hashCode, BuildCacheKeyInputs inputs) {
             this.hashCode = hashCode;
             this.inputs = inputs;
         }

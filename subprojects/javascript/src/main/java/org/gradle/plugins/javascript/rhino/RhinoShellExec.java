@@ -39,6 +39,9 @@ public class RhinoShellExec extends JavaExec {
     public RhinoShellExec() {
     }
 
+    /**
+     * Rhino options.
+     */
     @Input
     public List<String> getRhinoOptions() {
         return CollectionUtils.stringize(rhinoOptions);
@@ -53,14 +56,23 @@ public class RhinoShellExec extends JavaExec {
         this.rhinoOptions = new LinkedList<Object>(rhinoOptions);
     }
 
+    /**
+     * Sets Rhino options.
+     */
     public void setRhinoOptions(Object... rhinoOptions) {
         this.rhinoOptions = new LinkedList<Object>(Arrays.asList(rhinoOptions));
     }
 
+    /**
+     * Sets Rhino options.
+     */
     public void rhinoOptions(Object... rhinoOptions) {
         this.rhinoOptions.addAll(Arrays.asList(rhinoOptions));
     }
 
+    /**
+     * Script arguments.
+     */
     @Internal("Represented as part of args")
     public List<String> getScriptArgs() {
         return CollectionUtils.stringize(scriptArgs);
@@ -75,14 +87,23 @@ public class RhinoShellExec extends JavaExec {
         this.scriptArgs = new LinkedList<Object>(scriptArgs);
     }
 
+    /**
+     * Sets script arguments.
+     */
     public void setScriptArgs(Object... scriptArgs) {
         this.scriptArgs = new LinkedList<Object>(Arrays.asList(scriptArgs));
     }
 
+    /**
+     * Sets script arguments.
+     */
     public void scriptArgs(Object... scriptArgs) {
         this.scriptArgs.addAll(Arrays.asList(scriptArgs));
     }
 
+    /**
+     * Script file.
+     */
     @InputFile
     @Optional
     public File getScript() {
@@ -98,10 +119,16 @@ public class RhinoShellExec extends JavaExec {
         this.script = script;
     }
 
+    /**
+     * Sets script file.
+     */
     public void setScript(Object script) {
         this.script = script;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<String> getArgs() {
         List<String> args = new ArrayList<String>(rhinoOptions.size() + 1 + scriptArgs.size());
@@ -114,28 +141,49 @@ public class RhinoShellExec extends JavaExec {
         return args;
     }
 
+    /**
+     * Cannot set args directly on RhinoShellExec, use {@link #setRhinoOptions(List)}, {@link #setScriptArgs(List)} and/or {@link #setScript(File)} instead.
+     *
+     * @throws UnsupportedOperationException always
+     * @since 4.0
+     */
     @Override
     public JavaExec setArgs(List<String> applicationArgs) {
         throw argsUnsupportOperationException();
     }
 
+    /**
+     * Cannot set args directly on RhinoShellExec, use {@link #setRhinoOptions(List)}, {@link #setScriptArgs(List)} and/or {@link #setScript(File)} instead.
+     *
+     * @throws UnsupportedOperationException always
+     */
     @Override
     public JavaExec setArgs(Iterable<?> applicationArgs) {
         throw argsUnsupportOperationException();
     }
 
+    /**
+     * Cannot set args directly on RhinoShellExec, use {@link #setRhinoOptions(List)}, {@link #setScriptArgs(List)} and/or {@link #setScript(File)} instead.
+     *
+     * @throws UnsupportedOperationException always
+     */
     @Override
     public JavaExec args(Object... args) {
         throw argsUnsupportOperationException();
     }
 
+    /**
+     * Cannot set args directly on RhinoShellExec, use {@link #setRhinoOptions(List)}, {@link #setScriptArgs(List)} and/or {@link #setScript(File)} instead.
+     *
+     * @throws UnsupportedOperationException always
+     */
     @Override
     public JavaExecSpec args(Iterable<?> args) {
         throw argsUnsupportOperationException();
     }
 
     private UnsupportedOperationException argsUnsupportOperationException() {
-        return new UnsupportedOperationException("Cannot set args directly on RhinoExec, use rhinoOptions, scriptArgs and/or script");
+        return new UnsupportedOperationException("Cannot set args directly on RhinoShellExec, use rhinoOptions, scriptArgs and/or script");
     }
 
     @Override

@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.progress;
 
-import org.gradle.internal.event.ListenerManager;
-
-public class DefaultBuildOperationService implements BuildOperationService {
-    private final ListenerManager globalListenerManager;
-
-    public DefaultBuildOperationService(ListenerManager globalListenerManager) {
-        this.globalListenerManager = globalListenerManager;
-    }
-
-    @Override
-    public void addListener(BuildOperationListener listener) {
-        globalListenerManager.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(BuildOperationListener listener) {
-        globalListenerManager.removeListener(listener);
-    }
+/**
+ * Classifies a build operation such that executors and event listeners can
+ * react differently depending on this type.
+ *
+ * @since 4.0
+ */
+public enum BuildOperationCategory {
+    CONFIGURE_PROJECT, TASK, UNCATEGORIZED
 }

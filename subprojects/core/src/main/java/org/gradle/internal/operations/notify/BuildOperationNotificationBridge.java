@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations;
+package org.gradle.internal.operations.notify;
 
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.operations.notify.BuildOperationFinishedNotification;
-import org.gradle.internal.operations.notify.BuildOperationNotificationListener;
-import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
-import org.gradle.internal.operations.notify.BuildOperationStartedNotification;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.BuildOperationService;
+import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.slf4j.Logger;
@@ -35,27 +32,23 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class BuildOperationNotificationBridge implements Stoppable {
+class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar, Stoppable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
     private final List<Listener> listeners = new CopyOnWriteArrayList<Listener>();
 
-    private final BuildOperationService buildOperationService;
+    private final BuildOperationListenerManager buildOperationListenerManager;
 
-    public BuildOperationNotificationBridge(BuildOperationService buildOperationService) {
-        this.buildOperationService = buildOperationService;
+    BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager) {
+        this.buildOperationListenerManager = buildOperationListenerManager;
     }
 
-    public BuildOperationNotificationListenerRegistrar notificationListenerRegistrar() {
-        return new BuildOperationNotificationListenerRegistrar() {
-            @Override
-            public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
-                Listener listener = new Listener(notificationListener, buildOperationService);
-                listeners.add(listener);
-                buildOperationService.addListener(listener);
-            }
-        };
+    @Override
+    public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
+        Listener listener = new Listener(notificationListener, buildOperationListenerManager);
+        listeners.add(listener);
+        buildOperationListenerManager.addListener(listener);
     }
 
     @Override
@@ -74,20 +67,18 @@ public class BuildOperationNotificationBridge implements Stoppable {
     private static class Listener implements BuildOperationListener, Stoppable {
 
         private final BuildOperationNotificationListener listener;
-        private final BuildOperationService buildOperationService;
+        private final BuildOperationListenerManager buildOperationListenerManager;
 
         private final Map<Object, Object> active = new ConcurrentHashMap<Object, Object>();
 
-        private Listener(BuildOperationNotificationListener listener, BuildOperationService buildOperationService) {
+        private Listener(BuildOperationNotificationListener listener, BuildOperationListenerManager buildOperationListenerManager) {
             this.listener = listener;
-            this.buildOperationService = buildOperationService;
+            this.buildOperationListenerManager = buildOperationListenerManager;
         }
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            // replace this with opt-in to exposing on producer side
-            // it just so happens right now that this is a reasonable heuristic
-            if (buildOperation.getDetails() == null) {
+            if (!isNotificationWorthy(buildOperation)) {
                 return;
             }
 
@@ -117,9 +108,16 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
         @Override
         public void stop() {
-            buildOperationService.removeListener(this);
+            buildOperationListenerManager.removeListener(this);
             active.clear();
         }
+    }
+
+    private static boolean isNotificationWorthy(BuildOperationDescriptor buildOperation) {
+        // replace this with opt-in to exposing on producer side
+        // it just so happens right now that this is a reasonable heuristic
+        Object details = buildOperation.getDetails();
+        return details != null && !(details instanceof ExecuteTaskBuildOperationDetails);
     }
 
     private static class Started implements BuildOperationStartedNotification {

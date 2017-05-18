@@ -15,23 +15,20 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.internal.id.UniqueId;
-
-import java.util.List;
 
 /**
  * The state for a single task execution.
  */
 public abstract class TaskExecution {
     private UniqueId buildId;
-    private String taskClass;
-    private HashCode taskClassLoaderHash;
-    private List<HashCode> taskActionsClassLoaderHashes;
+    private ImplementationSnapshot taskImplementation;
+    private ImmutableList<ImplementationSnapshot> taskActionImplementations;
     private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
@@ -72,28 +69,20 @@ public abstract class TaskExecution {
         this.declaredOutputFilePaths = declaredOutputFilePaths;
     }
 
-    public String getTaskClass() {
-        return taskClass;
+    public ImplementationSnapshot getTaskImplementation() {
+        return taskImplementation;
     }
 
-    public void setTaskClass(String taskClass) {
-        this.taskClass = taskClass;
+    public void setTaskImplementation(ImplementationSnapshot taskImplementation) {
+        this.taskImplementation = taskImplementation;
     }
 
-    public HashCode getTaskClassLoaderHash() {
-        return taskClassLoaderHash;
+    public ImmutableList<ImplementationSnapshot> getTaskActionImplementations() {
+        return taskActionImplementations;
     }
 
-    public void setTaskClassLoaderHash(HashCode taskClassLoaderHash) {
-        this.taskClassLoaderHash = taskClassLoaderHash;
-    }
-
-    public List<HashCode> getTaskActionsClassLoaderHashes() {
-        return taskActionsClassLoaderHashes;
-    }
-
-    public void setTaskActionsClassLoaderHashes(List<HashCode> taskActionsClassLoaderHashes) {
-        this.taskActionsClassLoaderHashes = taskActionsClassLoaderHashes;
+    public void setTaskActionImplementations(ImmutableList<ImplementationSnapshot> taskActionImplementations) {
+        this.taskActionImplementations = taskActionImplementations;
     }
 
     public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {

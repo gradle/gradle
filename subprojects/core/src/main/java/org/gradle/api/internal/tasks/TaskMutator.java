@@ -83,25 +83,7 @@ public class TaskMutator {
     }
 
     public ContextAwareTaskAction leftShift(final ContextAwareTaskAction action) {
-        return new ContextAwareTaskAction() {
-            public void execute(Task task) {
-                executingleftShiftAction = true;
-                try {
-                    action.execute(task);
-                } finally {
-                    executingleftShiftAction = false;
-                }
-            }
-
-            public void contextualise(TaskExecutionContext context) {
-                action.contextualise(context);
-            }
-
-            @Override
-            public ClassLoader getClassLoader() {
-                return action.getClassLoader();
-            }
-        };
+        return new LeftShiftTaskAction(action);
     }
 
     private String format(String method) {
@@ -109,5 +91,36 @@ public class TaskMutator {
             return String.format("Cannot call %s on %s after task has started execution. Check the configuration of %s as you may have misused '<<' at task declaration.", method, task, task);
         }
         return String.format("Cannot call %s on %s after task has started execution.", method, task);
+    }
+
+    private class LeftShiftTaskAction implements ContextAwareTaskAction {
+        private final ContextAwareTaskAction action;
+
+        public LeftShiftTaskAction(ContextAwareTaskAction action) {
+            this.action = action;
+        }
+
+        public void execute(Task task) {
+            executingleftShiftAction = true;
+            try {
+                action.execute(task);
+            } finally {
+                executingleftShiftAction = false;
+            }
+        }
+
+        public void contextualise(TaskExecutionContext context) {
+            action.contextualise(context);
+        }
+
+        @Override
+        public ClassLoader getClassLoader() {
+            return action.getClassLoader();
+        }
+
+        @Override
+        public String getActionClassName() {
+            return action.getActionClassName();
+        }
     }
 }

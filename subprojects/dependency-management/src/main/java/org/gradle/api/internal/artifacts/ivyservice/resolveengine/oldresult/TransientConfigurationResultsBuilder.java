@@ -182,7 +182,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        child.addParentSpecificArtifacts(parent, artifactResults.getArtifacts(decoder.readSmallLong()));
+                        child.addParentSpecificArtifacts(parent, artifactResults.getArtifactsWithId(decoder.readSmallLong()));
                         break;
                     default:
                         throw new IOException("Unknown value type read from stream: " + type);

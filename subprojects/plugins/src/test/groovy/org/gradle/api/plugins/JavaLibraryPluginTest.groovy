@@ -23,12 +23,9 @@ import org.gradle.util.TestUtil
 import static org.gradle.util.WrapUtil.toSet
 
 class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
-    private final def javaLibraryPlugin = new JavaLibraryPlugin()
-    private final def javaPlugin = new JavaPlugin()
-
     def "applies Java plugin"() {
         when:
-        javaLibraryPlugin.apply(project)
+        project.pluginManager.apply(JavaLibraryPlugin)
 
         then:
         project.plugins.findPlugin(JavaPlugin)
@@ -36,7 +33,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
     def "adds configurations to the project"() {
         given:
-        javaLibraryPlugin.apply(project)
+        project.pluginManager.apply(JavaLibraryPlugin)
 
         when:
         def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
@@ -191,10 +188,10 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def toolsProject = TestUtil.createChildProject(project, "tools")
         def internalProject = TestUtil.createChildProject(project, "internal")
 
-        javaPlugin.apply(project)
-        javaLibraryPlugin.apply(commonProject)
-        javaLibraryPlugin.apply(toolsProject)
-        javaLibraryPlugin.apply(internalProject)
+        project.pluginManager.apply(JavaPlugin)
+        commonProject.pluginManager.apply(JavaLibraryPlugin)
+        toolsProject.pluginManager.apply(JavaLibraryPlugin)
+        internalProject.pluginManager.apply(JavaLibraryPlugin)
 
         when:
         project.dependencies {
@@ -219,7 +216,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
     def "adds Java library component"() {
         given:
-        javaLibraryPlugin.apply(project)
+        project.pluginManager.apply(JavaLibraryPlugin)
 
         when:
         def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)

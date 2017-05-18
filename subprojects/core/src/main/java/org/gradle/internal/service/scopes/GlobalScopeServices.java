@@ -43,7 +43,9 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
@@ -88,8 +90,8 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.progress.BuildOperationService;
-import org.gradle.internal.progress.DefaultBuildOperationService;
+import org.gradle.internal.progress.BuildOperationListenerManager;
+import org.gradle.internal.progress.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -165,8 +167,8 @@ public class GlobalScopeServices {
         return new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
     }
 
-    BuildOperationService createBuildOperationService(ListenerManager listenerManager) {
-        return new DefaultBuildOperationService(listenerManager);
+    BuildOperationListenerManager createBuildOperationService(ListenerManager listenerManager) {
+        return new DefaultBuildOperationListenerManager(listenerManager);
     }
 
     TemporaryFileProvider createTemporaryFileProvider() {
@@ -374,6 +376,10 @@ public class GlobalScopeServices {
 
     MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
+    }
+
+    ObjectFactory createObjectFactory() {
+        return DefaultObjectFactory.INSTANCE;
     }
 
     ProviderFactory createProviderFactory() {

@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.Set;
 
 public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
-    private final Set<File> artifactFiles = Sets.newLinkedHashSet();
     private final Set<File> files = Sets.newLinkedHashSet();
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
 
@@ -35,7 +34,7 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
         try {
             File file = artifact.getFile(); // triggering file resolve
-            this.artifactFiles.add(file);
+            this.files.add(file);
         } catch (Throwable t) {
             failures.add(t);
         }
@@ -62,21 +61,10 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     public Set<File> getFiles() {
-        addArtifactFiles();
         return files;
     }
 
     public Collection<Throwable> getFailures() {
-        addArtifactFiles();
         return failures;
-    }
-
-    private void addArtifactFiles() {
-        if (!artifactFiles.isEmpty()) {
-            for (File artifactFile : artifactFiles) {
-                this.files.add(artifactFile);
-            }
-            artifactFiles.clear();
-        }
     }
 }

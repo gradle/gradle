@@ -35,10 +35,10 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
     }
 
     @Override
-    public void visitNode(DependencyGraphNode resolvedConfiguration) {
-        ComponentIdentifier componentId = resolvedConfiguration.getOwner().getComponentId();
+    public void visitNode(DependencyGraphNode node) {
+        ComponentIdentifier componentId = node.getOwner().getComponentId();
         if (!rootId.equals(componentId) && componentId instanceof ProjectComponentIdentifier) {
-            resolvedProjectConfigurations.add(new DefaultResolvedProjectConfiguration((ProjectComponentIdentifier) componentId, resolvedConfiguration.getResolvedConfigurationId().getConfiguration()));
+            resolvedProjectConfigurations.add(new DefaultResolvedProjectConfiguration((ProjectComponentIdentifier) componentId, node.getResolvedConfigurationId().getConfiguration()));
         }
     }
 
@@ -47,7 +47,7 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
     }
 
     @Override
-    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
+    public void visitEdges(DependencyGraphNode node) {
     }
 
     @Override

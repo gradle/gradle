@@ -39,18 +39,18 @@ class DefaultFileCollectionSnapshotTest extends Specification {
         oldSnapshot.appendToHasher(hasher)
         then:
         1 * hasher.putString("file1.txt")
-        1 * hasher.putBytes(HashCode.fromInt(123).asBytes())
+        1 * hasher.putHash(HashCode.fromInt(123))
         1 * hasher.putString("file2.txt")
-        1 * hasher.putBytes(HashCode.fromInt(234).asBytes())
+        1 * hasher.putHash(HashCode.fromInt(234))
         0 * _
 
         when:
         newSnapshot.appendToHasher(hasher)
         then:
         1 * hasher.putString("file1.txt")
-        1 * hasher.putBytes(HashCode.fromInt(123).asBytes())
+        1 * hasher.putHash(HashCode.fromInt(123))
         1 * hasher.putString("file2.txt")
-        1 * hasher.putBytes(HashCode.fromInt(234).asBytes())
+        1 * hasher.putHash(HashCode.fromInt(234))
         0 * _
     }
 
@@ -68,18 +68,18 @@ class DefaultFileCollectionSnapshotTest extends Specification {
         oldSnapshot.appendToHasher(hasher)
         then:
         1 * hasher.putString("file1.txt")
-        1 * hasher.putBytes(HashCode.fromInt(123).asBytes())
+        1 * hasher.putHash(HashCode.fromInt(123))
         1 * hasher.putString("file2.txt")
-        1 * hasher.putBytes(HashCode.fromInt(234).asBytes())
+        1 * hasher.putHash(HashCode.fromInt(234))
         0 * _
 
         when:
         newSnapshot.appendToHasher(hasher)
         then:
         1 * hasher.putString("file2.txt")
-        1 * hasher.putBytes(HashCode.fromInt(234).asBytes())
+        1 * hasher.putHash(HashCode.fromInt(234))
         1 * hasher.putString("file1.txt")
-        1 * hasher.putBytes(HashCode.fromInt(123).asBytes())
+        1 * hasher.putHash(HashCode.fromInt(123))
         0 * _
     }
 }

@@ -34,7 +34,7 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
         hasher.putString(getNormalizedPath());
-        hasher.putBytes(getSnapshot().getContentMd5().asBytes());
+        hasher.putHash(getSnapshot().getContentMd5());
     }
 
     @Override

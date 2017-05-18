@@ -16,47 +16,36 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
 class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @NotYetImplemented
     def "ad hoc tasks with different actions don't share results"() {
-        file("input.txt").text = "data"
         buildFile << """
-            def input = file("input.txt")
-
-            task taskA {
-                def output = file("build/task-a/output.txt")
-                inputs.file input
-                outputs.file output
+            task first {
+                outputs.file file("first.txt")
                 outputs.cacheIf { true }
                 doFirst {
-                    mkdir(output.parentFile)
-                    output.text = input.text + " from task A"
+                    file("first.txt").text = "Hello from the first task"
                 }
             }
- 
-            task taskB {
-                def output = file("build/task-b/output.txt")
-                inputs.file input
-                outputs.file output
+
+            task second {
+                outputs.file file("second.txt")
                 outputs.cacheIf { true }
                 doFirst {
-                    mkdir(output.parentFile)
-                    output.text = input.text + " from task B"
+                    file("second.txt").text = "Hello from the second task"
                 }
             }
         """
 
         when:
-        withBuildCache().succeeds "taskA", "taskB"
+        withBuildCache().succeeds "first", "second"
         then:
-        nonSkippedTasks == [":taskA", ":taskB"]
-        file("build/task-a/output.txt").text == "data from task A"
-        file("build/task-b/output.txt").text == "data from task B"
+        nonSkippedTasks == [":first", ":second"]
+        file("first.txt").text == "Hello from the first task"
+        file("second.txt").text == "Hello from the second task"
     }
 
     def "ad hoc tasks with the same action share results"() {
@@ -91,7 +80,6 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
         skippedTasks as List == [":taskB"]
     }
 
-    @NotYetImplemented
     def "built-in tasks with different actions don't share results"() {
         file("src/main/java/Main.java").text = "public class Main {}"
         buildFile << """

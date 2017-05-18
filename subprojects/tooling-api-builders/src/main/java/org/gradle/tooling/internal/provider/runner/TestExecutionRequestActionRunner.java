@@ -23,7 +23,7 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.progress.BuildOperationService;
+import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
@@ -34,10 +34,10 @@ import java.util.Collections;
 public class TestExecutionRequestActionRunner implements BuildActionRunner {
 
 
-    private final BuildOperationService buildOperationService;
+    private final BuildOperationListenerManager buildOperationListenerManager;
 
-    public TestExecutionRequestActionRunner(BuildOperationService buildOperationService) {
-        this.buildOperationService = buildOperationService;
+    public TestExecutionRequestActionRunner(BuildOperationListenerManager buildOperationListenerManager) {
+        this.buildOperationListenerManager = buildOperationListenerManager;
     }
 
     @Override
@@ -50,11 +50,11 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         try {
             TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
             TestExecutionResultEvaluator testExecutionResultEvaluator = new TestExecutionResultEvaluator(testExecutionRequestAction);
-            buildOperationService.addListener(testExecutionResultEvaluator);
+            buildOperationListenerManager.addListener(testExecutionResultEvaluator);
             try {
                 doRun(testExecutionRequestAction, buildController);
             } finally {
-                buildOperationService.removeListener(testExecutionResultEvaluator);
+                buildOperationListenerManager.removeListener(testExecutionResultEvaluator);
             }
             testExecutionResultEvaluator.evaluate();
         } catch (RuntimeException rex) {

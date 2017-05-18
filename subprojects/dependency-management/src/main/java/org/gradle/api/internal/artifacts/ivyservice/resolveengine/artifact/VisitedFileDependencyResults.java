@@ -23,10 +23,9 @@ import org.gradle.api.specs.Spec;
 /**
  * Collects the file dependencies visited during graph traversal. These should be treated as dependencies, but are currently treated separately as a migration step.
  */
-public interface VisitedFileDependencyResults extends VisitedArtifactsResults {
+public interface VisitedFileDependencyResults {
     /**
      * Selects the artifacts (files) for the matching variant of each node seen during traversal. The implementation should attempt to select artifacts eagerly, but may be lazy where the selection cannot happen until the results are queried.
      */
-    @Override
     SelectedFileDependencyResults select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector);
 }

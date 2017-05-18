@@ -16,38 +16,49 @@
 
 package org.gradle.caching.internal.tasks;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Records the inputs which constitute the {@link TaskOutputCachingBuildCacheKey}.
  */
 public class BuildCacheKeyInputs {
+
     private final String taskClass;
     private final HashCode classLoaderHash;
     private final List<HashCode> actionClassLoaderHashes;
+    private final ImmutableList<String> actionClassNames;
     private final ImmutableSortedMap<String, HashCode> inputHashes;
     private final ImmutableSortedSet<String> outputPropertyNames;
 
-    public BuildCacheKeyInputs(String taskClass, HashCode classLoaderHash, List<HashCode> actionClassLoaderHashes, ImmutableSortedMap<String, HashCode> inputHashes, ImmutableSortedSet<String> outputPropertyNames) {
+    public BuildCacheKeyInputs(
+        @Nullable String taskClass,
+        @Nullable HashCode classLoaderHash,
+        @Nullable List<HashCode> actionClassLoaderHashes,
+        @Nullable ImmutableList<String> actionClassNames,
+        @Nullable ImmutableSortedMap<String, HashCode> inputHashes,
+        @Nullable ImmutableSortedSet<String> outputPropertyNames
+    ) {
         this.taskClass = taskClass;
         this.inputHashes = inputHashes;
         this.classLoaderHash = classLoaderHash;
         this.actionClassLoaderHashes = actionClassLoaderHashes;
+        this.actionClassNames = actionClassNames;
         this.outputPropertyNames = outputPropertyNames;
     }
 
+    @Nullable
     public String getTaskClass() {
         return taskClass;
     }
 
-    public Map<String, HashCode> getInputHashes() {
+    @Nullable
+    public ImmutableSortedMap<String, HashCode> getInputHashes() {
         return inputHashes;
     }
 
@@ -56,11 +67,18 @@ public class BuildCacheKeyInputs {
         return classLoaderHash;
     }
 
+    @Nullable
     public List<HashCode> getActionClassLoaderHashes() {
         return actionClassLoaderHashes;
     }
 
-    public Set<String> getOutputPropertyNames() {
+    @Nullable
+    public ImmutableList<String> getActionClassNames() {
+        return actionClassNames;
+    }
+
+    @Nullable
+    public ImmutableSortedSet<String> getOutputPropertyNames() {
         return outputPropertyNames;
     }
 
@@ -68,7 +86,8 @@ public class BuildCacheKeyInputs {
     public String toString() {
         return "BuildCacheKeyInputs{"
             + "classLoaderHash=" + classLoaderHash
-            + ", actionsClassLoaderHash=" + actionClassLoaderHashes
+            + ", actionClassLoaderHashes=" + actionClassLoaderHashes
+            + ", actionClassNames=" + actionClassNames
             + ", inputHashes=" + inputHashes
             + ", outputPropertyNames=" + outputPropertyNames
             + '}';

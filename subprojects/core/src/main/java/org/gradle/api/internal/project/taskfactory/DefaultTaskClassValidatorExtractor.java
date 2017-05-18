@@ -28,7 +28,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import groovy.lang.GroovyObject;
 import org.gradle.api.DefaultTask;
@@ -53,6 +52,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +74,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         new OutputDirectoryPropertyAnnotationHandler(),
         new OutputDirectoriesPropertyAnnotationHandler(),
         new InputPropertyAnnotationHandler(),
+        new DestroysPropertyAnnotationHandler(),
         new NestedBeanPropertyAnnotationHandler(),
         new NoOpPropertyAnnotationHandler(Inject.class),
         new NoOpPropertyAnnotationHandler(Console.class),
@@ -142,15 +143,10 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
             @Override
             public void visitType(Class<? super T> type) {
                 Map<String, Field> fields = getFields(type);
-                Method[] methods = type.getDeclaredMethods();
-                Arrays.sort(methods, Ordering.usingToString());
-                for (Method method : methods) {
-                    PropertyAccessorType accessorType = PropertyAccessorType.of(method);
-                    if (accessorType == null || accessorType == PropertyAccessorType.SETTER || method.isBridge() || GroovyMethods.isObjectMethod(method)) {
-                        continue;
-                    }
-
-                    String fieldName = accessorType.propertyNameFor(method);
+                List<Getter> getters = getGetters(type);
+                for (Getter getter : getters) {
+                    Method method = getter.getMethod();
+                    String fieldName = getter.getName();
                     Field field = fields.get(fieldName);
                     String propertyName = parent != null ? parent.getName() + '.' + fieldName : fieldName;
 
@@ -295,6 +291,49 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
             fields.put(field.getName(), field);
         }
         return fields;
+    }
+
+    private static List<Getter> getGetters(Class<?> type) {
+        Method[] methods = type.getDeclaredMethods();
+        List<Getter> getters = Lists.newArrayListWithCapacity(methods.length);
+        for (Method method : methods) {
+            PropertyAccessorType accessorType = PropertyAccessorType.of(method);
+            // We only care about getters
+            if (accessorType == null || accessorType == PropertyAccessorType.SETTER) {
+                continue;
+            }
+            // We only care about actual methods the user added
+            if (method.isBridge() || GroovyMethods.isObjectMethod(method)) {
+                continue;
+            }
+            getters.add(new DefaultTaskClassValidatorExtractor.Getter(method, accessorType.propertyNameFor(method)));
+        }
+        Collections.sort(getters);
+        return getters;
+    }
+
+    private static class Getter implements Comparable<Getter> {
+        private final Method method;
+        private final String name;
+
+        public Getter(Method method, String name) {
+            this.method = method;
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Method getMethod() {
+            return method;
+        }
+
+        @Override
+        public int compareTo(Getter o) {
+            // Sort "is"-getters before "get"-getters when both are available
+            return method.getName().compareTo(o.method.getName());
+        }
     }
 
     private static class DefaultTaskPropertyActionContext implements TaskPropertyActionContext {

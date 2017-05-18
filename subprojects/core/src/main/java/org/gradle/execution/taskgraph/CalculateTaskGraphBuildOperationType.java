@@ -19,7 +19,7 @@ package org.gradle.execution.taskgraph;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Computing the task graph based on the inputs and build configuration.
@@ -28,37 +28,27 @@ import java.util.Set;
  */
 public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
 
-    public static class Details {
+    @UsedByScanPlugin
+    public interface Details {
+
     }
 
     @UsedByScanPlugin
     public interface Result {
 
-        Set<String> getRequestedTaskPaths();
+        /**
+         * Lexicographically sorted.
+         * Never null.
+         * Never contains duplicates.
+         */
+        List<String> getRequestedTaskPaths();
 
-        Set<String> getExcludedTaskPaths();
-
-    }
-
-    public static class ResultImpl implements Result {
-
-        private final Set<String> requestedTaskPaths;
-        private final Set<String> excludedTaskPaths;
-
-        public ResultImpl(Set<String> requestedTaskPaths, Set<String> excludedTaskPaths) {
-            this.requestedTaskPaths = requestedTaskPaths;
-            this.excludedTaskPaths = excludedTaskPaths;
-        }
-
-        @Override
-        public Set<String> getRequestedTaskPaths() {
-            return requestedTaskPaths;
-        }
-
-        @Override
-        public Set<String> getExcludedTaskPaths() {
-            return excludedTaskPaths;
-        }
+        /**
+         * Lexicographically sorted.
+         * Never null.
+         * Never contains duplicates.
+         */
+        List<String> getExcludedTaskPaths();
 
     }
 

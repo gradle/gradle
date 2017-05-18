@@ -34,7 +34,7 @@ class FileContentGenerator {
 
         def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')
 
-        ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ") }
+        ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
         
         String compilerMemory = getProperty('compilerMemory')
         String testRunnerMemory = getProperty('testRunnerMemory')
@@ -79,7 +79,7 @@ class FileContentGenerator {
             return ""
         }
         """ 
-        ${(0..config.subProjects-1).collect { "include 'project$it'" }.join("\n")}
+        ${(0..config.subProjects - 1).collect { "include 'project$it'" }.join("\n")}
         """
     }
 
@@ -103,7 +103,7 @@ class FileContentGenerator {
         if (!hasSources) {
             body = """
             <modules>
-                ${(0..config.subProjects-1).collect { "<module>project$it</module>" }.join("\n                ")}
+                ${(0..config.subProjects - 1).collect { "<module>project$it</module>" }.join("\n                ")}
             </modules>
             """
         } else {
@@ -112,7 +112,7 @@ class FileContentGenerator {
             if (subProjectNumbers?.size() > 0) {
                 subProjectDependencies = subProjectNumbers.collect { convertToPomDependency("org.gradle.test.performance:project$it:1.0") }.join()
             }
-            body  = """
+            body = """
             <dependencies>
                 ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join()}
                 ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join()}
@@ -172,12 +172,76 @@ class FileContentGenerator {
         """
     }
 
+    def generatePerformanceScenarios(boolean isRoot) {
+        if (isRoot) {
+            def fileToChange = config.fileToChangeByScenario['assemble']
+            """
+                nonAbiChange {
+                  tasks = ["assemble"]
+                  apply-non-abi-change-to = "${fileToChange}"
+                  maven {
+                    targets = ["clean", "package", "-Dmaven.test.skip=true", "-T", "4"]
+                  }
+                }
+                
+                abiChange {
+                  tasks = ["assemble"]
+                  apply-abi-change-to = "${fileToChange}"
+                  maven {
+                    targets = ["clean", "package", "-Dmaven.test.skip=true", "-T", "4"]
+                  }
+                }
+                
+                cleanAssemble {
+                  tasks = ["clean", "assemble"]
+                }
+                
+                cleanAssembleCached {
+                  tasks = ["clean", "assemble"]
+                  gradle-args = ["--build-cache"]
+                }
+                
+                cleanBuild {
+                  tasks = ["clean", "build"]
+                  maven {
+                    targets = ["clean", "test", "package", "-T", "4"]
+                  }
+                }
+                
+                cleanBuildCached {
+                  tasks = ["clean", "build"]
+                  maven {
+                    targets = ["clean", "test", "package", "-T", "4"]
+                  }
+                  gradle-args = ["--build-cache"]
+                }
+                
+                incrementalCompile {
+                  tasks = ["compileJava"]
+                   maven {
+                    targets = ["compile", "-T", "4"]
+                  }
+                  apply-non-abi-change-to = "${fileToChange}"
+                }
+                
+                incrementalTest {
+                  tasks = ["build"]
+                  apply-non-abi-change-to = "${fileToChange}"
+                   maven {
+                    targets = ["test", "-T", "4"]
+                  }
+                }
+                
+            """.stripIndent()
+        }
+    }
+
     def generateProductionClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
         def properties = ''
         def ownPackageName = packageName(classNumber, subProjectNumber)
         def imports = ''
         def children = dependencyTree.getTransitiveChildClassIds(classNumber)
-        (0..Math.max(propertyCount, children.size())-1).each {
+        (0..Math.max(propertyCount, children.size()) - 1).each {
             def propertyType
             if (it < children.size()) {
                 def childNumber = children.get(it)
@@ -217,7 +281,7 @@ class FileContentGenerator {
         def ownPackageName = packageName(classNumber, subProjectNumber)
         def imports = ''
         def children = dependencyTree.getTransitiveChildClassIds(classNumber)
-        (0..Math.max(propertyCount, children.size())-1).each {
+        (0..Math.max(propertyCount, children.size()) - 1).each {
             def propertyType
             def propertyValue
             if (it < children.size()) {
@@ -283,7 +347,9 @@ class FileContentGenerator {
         def subProjectDependencies = ''
         if (subProjectNumbers?.size() > 0) {
             def abiProjectNumber = subProjectNumbers.get(DependencyTree.API_DEPENDENCY_INDEX)
-            subProjectDependencies = subProjectNumbers.collect { it == abiProjectNumber ? "${hasParent ? api : implementation} project(':project${abiProjectNumber}')" : "$implementation project(':project$it')" }.join("\n            ")
+            subProjectDependencies = subProjectNumbers.collect {
+                it == abiProjectNumber ? "${hasParent ? api : implementation} project(':project${abiProjectNumber}')" : "$implementation project(':project$it')"
+            }.join("\n            ")
         }
         """
         if (missingJavaLibrarySupport) {
@@ -312,7 +378,7 @@ class FileContentGenerator {
         def groupId = parts[0]
         def artifactId = parts[1]
         def version = parts[2]
-                """
+        """
                 <dependency>
                     <groupId>$groupId</groupId>
                     <artifactId>$artifactId</artifactId>

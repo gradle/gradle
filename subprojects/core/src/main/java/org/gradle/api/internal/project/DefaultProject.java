@@ -64,6 +64,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.PropertyState;
@@ -804,8 +805,16 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         throw new UnsupportedOperationException();
     }
 
+    @Override
     @Inject
-    protected ProviderFactory getProviderFactory() {
+    public ProviderFactory getProviders() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Inject
+    public ObjectFactory getObjects() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
@@ -876,12 +885,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public <T> Provider<T> provider(Callable<T> value) {
-        return getProviderFactory().provider(value);
+        return getProviders().provider(value);
     }
 
     @Override
     public <T> PropertyState<T> property(Class<T> clazz) {
-        return getProviderFactory().property(clazz);
+        return getProviders().property(clazz);
     }
 
     @Override

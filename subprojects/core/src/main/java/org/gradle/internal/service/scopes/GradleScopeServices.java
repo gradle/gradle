@@ -68,11 +68,10 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationNotificationBridge;
-import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
-import org.gradle.internal.progress.BuildOperationService;
+import org.gradle.internal.operations.notify.BuildOperationNotificationServices;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.scan.config.BuildScanConfigServices;
 import org.gradle.internal.scopeids.id.BuildScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -103,6 +102,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
+
+        if (gradle.getParent() == null) {
+            // Should move to build tree scope once it is there
+            addProvider(new BuildScanConfigServices());
+            addProvider(new BuildOperationNotificationServices());
+        }
     }
 
     TaskSelector createTaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {
@@ -200,14 +205,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         } else {
             return gradle.getRoot().getServices().get(BuildScopeId.class);
         }
-    }
-
-    BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationService buildOperationService) {
-        return new BuildOperationNotificationBridge(buildOperationService);
-    }
-
-    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(BuildOperationNotificationBridge bridge) {
-        return bridge.notificationListenerRegistrar();
     }
 
     @Override

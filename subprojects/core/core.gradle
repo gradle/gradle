@@ -58,6 +58,7 @@ dependencies {
 
     testRuntimeOnly libraries.xerces
     testRuntimeOnly project(":diagnostics")
+    testRuntimeOnly project(":compositeBuilds")
 
     testFixturesImplementation project(":internalTesting")
     testFixturesImplementation libraries.ivy

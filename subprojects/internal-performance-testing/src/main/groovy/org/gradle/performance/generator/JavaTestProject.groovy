@@ -16,19 +16,22 @@
 
 package org.gradle.performance.generator
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 enum JavaTestProject {
 
-    LARGE_MONOLITHIC_JAVA_PROJECT("largeMonolithicJavaProject", 50000, 0, '4g'),
-    LARGE_JAVA_MULTI_PROJECT("largeJavaMultiProject", 100, 500, '256m'),
+    LARGE_MONOLITHIC_JAVA_PROJECT("largeMonolithicJavaProject", 50000, 0, '4g', false, [assemble: productionFile('largeMonolithicJavaProject', -1), test: productionFile('largeMonolithicJavaProject', -1)]),
+    LARGE_JAVA_MULTI_PROJECT("largeJavaMultiProject", 100, 500, '256m', false, [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]),
 
-    MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 10000, 0, '4g'),
-    MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", 100, 100, '256m'),
+    MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 10000, 0, '4g', false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),
+    MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", 100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
 
-    MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", 100, 100, '256m', true)
+    MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", 100, 100, '256m', true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)])
 
     private TestProjectGeneratorConfiguration config
 
-    JavaTestProject(String projectName, int sourceFiles, int subProjects, String compilerMemory, boolean useTestNG = false) {
+    JavaTestProject(String projectName, int sourceFiles, int subProjects, String compilerMemory, boolean useTestNG, Map<String, String> filesToUpdate) {
         this.config = new TestProjectGeneratorConfiguration()
         config.projectName = projectName
 
@@ -49,6 +52,15 @@ enum JavaTestProject {
         config.maxParallelForks = subProjects > 0 ? 1 : 4
         config.testForkEvery = 10000
         config.useTestNG = useTestNG
+        config.fileToChangeByScenario = filesToUpdate
+    }
+
+    private static String productionFile(String template, int project = 0, int pkg = 0, int file = 0) {
+        if (project>=0) {
+            "project${project}/src/main/java/org/gradle/test/performance/${template.toLowerCase()}/project${project}/p${pkg}/Production${file}.java"
+        } else {
+            "src/main/java/org/gradle/test/performance/${template.toLowerCase()}/p${pkg}/Production${file}.java"
+        }
     }
 
     TestProjectGeneratorConfiguration getConfig() {

@@ -43,4 +43,22 @@ class ProgressOperationTest extends Specification {
         expect:
         progressOperation.getMessage() == null
     }
+
+    def "allows children to be managed"() {
+        given:
+        ProgressOperation progressOperation = new ProgressOperation("SHORT_DESCRIPTION", "STATUS", "CATEGORY", new OperationIdentifier(1), null)
+        def mockOperation = Mock(ProgressOperation)
+
+        when:
+        progressOperation.addChild(mockOperation)
+
+        then:
+        progressOperation.hasChildren()
+
+        when:
+        progressOperation.removeChild(mockOperation)
+
+        then:
+        !progressOperation.hasChildren()
+    }
 }

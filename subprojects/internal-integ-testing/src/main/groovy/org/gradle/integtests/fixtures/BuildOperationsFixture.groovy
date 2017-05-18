@@ -23,47 +23,38 @@ import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.BuildOperationTypes
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.operations.trace.BuildOperationTrace
+import org.gradle.internal.operations.trace.BuildOperationTree
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class BuildOperationsFixture {
 
-    private final TestFile traceFile
+    private final String path
 
-    private Map<Object, BuildOperationRecord> operations
-    private Map<Object, List<BuildOperationRecord>> children
+    private BuildOperationTree operations
 
     BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
-        this.traceFile = projectDir.testDirectory.file("operations.txt")
+        this.path = projectDir.testDirectory.file("operations").absolutePath
+
         executer.beforeExecute {
-            executer.withArgument("-D$BuildOperationTrace.SYSPROP=$traceFile.absolutePath")
+            executer.withArgument("-D$BuildOperationTrace.SYSPROP=$path")
         }
         executer.afterExecute {
-            traceFile.withInputStream {
-                operations = BuildOperationTrace.read(it)
-            }
-
-            children = [:].withDefault { [] }
-            operations.values().each {
-                if (it.parentId != null) {
-                    children[it.parentId] << it
-                }
-            }
+            operations = BuildOperationTrace.read(path)
         }
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord operation(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)
-        operations.values().find {
+        operations.records.values().find {
             it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
         }
     }
 
     BuildOperationRecord operation(String displayName) {
-        operations.values().find { it.displayName == displayName }
+        operations.records.values().find { it.displayName == displayName }
     }
 
     Map<String, ?> result(String displayName) {
@@ -92,7 +83,7 @@ class BuildOperationsFixture {
             if (predicate.isSatisfiedBy(operation)) {
                 matches << operation
             }
-            search.addAll(children[operation.id])
+            search.addAll(operation.children)
             operation = search.poll()
         }
 

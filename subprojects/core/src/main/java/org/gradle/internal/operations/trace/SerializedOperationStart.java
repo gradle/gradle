@@ -34,8 +34,7 @@ class SerializedOperationStart {
     final long startTime;
 
     final Object details;
-
-    final Class<?> detailsType;
+    final String detailsClassName;
 
     SerializedOperationStart(BuildOperationDescriptor descriptor, OperationStartEvent startEvent) {
         this.id = ((OperationIdentifier) descriptor.getId()).getId();
@@ -43,7 +42,7 @@ class SerializedOperationStart {
         this.displayName = descriptor.getDisplayName();
         this.startTime = startEvent.getStartTime();
         this.details = transform(descriptor.getDetails());
-        this.detailsType = details == null ? null : descriptor.getDetails().getClass();
+        this.detailsClassName = details == null ? null : descriptor.getDetails().getClass().getName();
     }
 
     private Object transform(Object details) {
@@ -55,19 +54,13 @@ class SerializedOperationStart {
         return details;
     }
 
-    SerializedOperationStart(Map<String, ?> map) throws ClassNotFoundException {
+    SerializedOperationStart(Map<String, ?> map) {
         this.id = map.get("id");
         this.parentId = map.get("parentId");
         this.displayName = (String) map.get("displayName");
         this.startTime = (Long) map.get("startTime");
         this.details = map.get("details");
-
-        Object detailsTypeString = map.get("detailsType");
-        if (detailsTypeString != null) {
-            this.detailsType = getClass().getClassLoader().loadClass(detailsTypeString.toString());
-        } else {
-            this.detailsType = null;
-        }
+        this.detailsClassName = (String) map.get("detailsClassName");
     }
 
     Map<String, ?> toMap() {
@@ -79,7 +72,7 @@ class SerializedOperationStart {
 
         if (details != null) {
             map.put("details", details);
-            map.put("detailsType", detailsType.getName());
+            map.put("detailsClassName", detailsClassName);
         }
 
         map.put("id", id);

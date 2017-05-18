@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
@@ -42,7 +41,6 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -248,9 +246,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
          */
         LazyTaskExecution(TaskExecutionSnapshot taskExecutionSnapshot) {
             setBuildId(taskExecutionSnapshot.getBuildId());
-            setTaskClass(taskExecutionSnapshot.getTaskClass());
-            setTaskClassLoaderHash(taskExecutionSnapshot.getTaskClassLoaderHash());
-            setTaskActionsClassLoaderHashes(taskExecutionSnapshot.getTaskActionsClassLoaderHashes());
+            setTaskImplementation(taskExecutionSnapshot.getTaskImplementation());
+            setTaskActionImplementations(taskExecutionSnapshot.getTaskActionsImplementations());
             setInputProperties(taskExecutionSnapshot.getInputProperties());
             setOutputPropertyNamesForCacheKey(taskExecutionSnapshot.getCacheableOutputProperties());
             setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
@@ -317,11 +314,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public TaskExecutionSnapshot snapshot() {
             return new TaskExecutionSnapshot(
                 getBuildId(),
-                getTaskClass(),
+                getTaskImplementation(),
+                getTaskActionImplementations(),
                 getOutputPropertyNamesForCacheKey(),
                 getDeclaredOutputFilePaths(),
-                getTaskClassLoaderHash(),
-                getTaskActionsClassLoaderHashes(),
                 getInputProperties(),
                 inputFilesSnapshotIds,
                 discoveredFilesSnapshotId,
@@ -344,23 +340,17 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 ImmutableSortedMap<String, Long> inputFilesSnapshotIds = readSnapshotIds(decoder);
                 ImmutableSortedMap<String, Long> outputFilesSnapshotIds = readSnapshotIds(decoder);
                 Long discoveredFilesSnapshotId = decoder.readLong();
-                String taskClass = decoder.readString();
 
-                HashCode taskClassLoaderHash;
-                if (decoder.readBoolean()) {
-                    taskClassLoaderHash = HashCode.fromBytes(decoder.readBinary());
-                } else {
-                    taskClassLoaderHash = null;
-                }
+                ImplementationSnapshot taskImplementation = readImplementation(decoder);
 
                 // We can't use an immutable list here because some hashes can be null
-                int taskActionsClassLoaderHashesCount = decoder.readSmallInt();
-                List<HashCode> mutableTaskActionsClassLoaderHashes = Lists.newArrayListWithCapacity(taskActionsClassLoaderHashesCount);
-                for (int j = 0; j < taskActionsClassLoaderHashesCount; j++) {
-                    HashCode taskActionsClassLoaderHash = decoder.readBoolean() ? HashCode.fromBytes(decoder.readBinary()) : null;
-                    mutableTaskActionsClassLoaderHashes.add(taskActionsClassLoaderHash);
+                int taskActionsCount = decoder.readSmallInt();
+                ImmutableList.Builder<ImplementationSnapshot> taskActionImplementationsBuilder = ImmutableList.builder();
+                for (int j = 0; j < taskActionsCount; j++) {
+                    ImplementationSnapshot actionImpl = readImplementation(decoder);
+                    taskActionImplementationsBuilder.add(actionImpl);
                 }
-                List<HashCode> taskActionsClassLoaderHashes = Collections.unmodifiableList(mutableTaskActionsClassLoaderHashes);
+                ImmutableList<ImplementationSnapshot> taskActionImplementations = taskActionImplementationsBuilder.build();
 
                 int cacheableOutputPropertiesCount = decoder.readSmallInt();
                 ImmutableSortedSet.Builder<String> cacheableOutputPropertiesBuilder = ImmutableSortedSet.naturalOrder();
@@ -380,11 +370,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
                 return new TaskExecutionSnapshot(
                     buildId,
-                    taskClass,
+                    taskImplementation,
+                    taskActionImplementations,
                     cacheableOutputProperties,
                     declaredOutputFilePaths,
-                    taskClassLoaderHash,
-                    taskActionsClassLoaderHashes,
                     inputProperties,
                     inputFilesSnapshotIds,
                     discoveredFilesSnapshotId,
@@ -397,22 +386,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 writeSnapshotIds(encoder, execution.getInputFilesSnapshotIds());
                 writeSnapshotIds(encoder, execution.getOutputFilesSnapshotIds());
                 encoder.writeLong(execution.getDiscoveredFilesSnapshotId());
-                encoder.writeString(execution.getTaskClass());
-                HashCode classLoaderHash = execution.getTaskClassLoaderHash();
-                if (classLoaderHash == null) {
-                    encoder.writeBoolean(false);
-                } else {
-                    encoder.writeBoolean(true);
-                    encoder.writeBinary(classLoaderHash.asBytes());
-                }
-                encoder.writeSmallInt(execution.getTaskActionsClassLoaderHashes().size());
-                for (HashCode actionsClassLoaderHash : execution.getTaskActionsClassLoaderHashes()) {
-                    if (actionsClassLoaderHash == null) {
-                        encoder.writeBoolean(false);
-                    } else {
-                        encoder.writeBoolean(true);
-                        encoder.writeBinary(actionsClassLoaderHash.asBytes());
-                    }
+                writeImplementation(encoder, execution.getTaskImplementation());
+                encoder.writeSmallInt(execution.getTaskActionsImplementations().size());
+                for (ImplementationSnapshot actionImpl : execution.getTaskActionsImplementations()) {
+                    writeImplementation(encoder, actionImpl);
                 }
                 encoder.writeSmallInt(execution.getCacheableOutputProperties().size());
                 for (String outputFile : execution.getCacheableOutputProperties()) {
@@ -423,6 +400,22 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     encoder.writeString(outputFile);
                 }
                 inputPropertiesSerializer.write(encoder, execution.getInputProperties());
+            }
+
+            private static ImplementationSnapshot readImplementation(Decoder decoder) throws IOException {
+                String typeName = decoder.readString();
+                HashCode classLoaderHash = decoder.readBoolean() ? HashCode.fromBytes(decoder.readBinary()) : null;
+                return new ImplementationSnapshot(typeName, classLoaderHash);
+            }
+
+            private static void writeImplementation(Encoder encoder, ImplementationSnapshot implementation) throws IOException {
+                encoder.writeString(implementation.getTypeName());
+                if (implementation.hasUnknownClassLoader()) {
+                    encoder.writeBoolean(false);
+                } else {
+                    encoder.writeBoolean(true);
+                    encoder.writeBinary(implementation.getClassLoaderHash().asBytes());
+                }
             }
 
             private static ImmutableSortedMap<String, Long> readSnapshotIds(Decoder decoder) throws IOException {

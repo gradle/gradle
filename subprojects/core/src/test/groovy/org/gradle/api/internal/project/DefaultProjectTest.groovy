@@ -54,6 +54,7 @@ import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.normalization.ResourceNormalizationHandler
@@ -233,6 +234,8 @@ class DefaultProjectTest {
             allowing(build).getIdentityPath()
             will(returnValue(Path.ROOT))
             allowing(attributesSchema).attribute(withParam(notNullValue()), withParam(notNullValue()));
+
+            allowing(serviceRegistryMock).get((Type) ObjectFactory); will(returnValue(context.mock(ObjectFactory)))
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()

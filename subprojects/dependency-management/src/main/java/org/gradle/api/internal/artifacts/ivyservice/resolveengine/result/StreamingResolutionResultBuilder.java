@@ -90,8 +90,8 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     }
 
     @Override
-    public void visitNode(DependencyGraphNode resolvedConfiguration) {
-        final DependencyGraphComponent component = resolvedConfiguration.getOwner();
+    public void visitNode(DependencyGraphNode node) {
+        final DependencyGraphComponent component = node.getOwner();
         if (visitedComponents.add(component.getResultId())) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {
@@ -115,9 +115,9 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     }
 
     @Override
-    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
-        final Long fromComponent = resolvedConfiguration.getOwner().getResultId();
-        final Set<? extends DependencyGraphEdge> dependencies = resolvedConfiguration.getOutgoingEdges();
+    public void visitEdges(DependencyGraphNode node) {
+        final Long fromComponent = node.getOwner().getResultId();
+        final Set<? extends DependencyGraphEdge> dependencies = node.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {

@@ -60,7 +60,10 @@ public interface BuildCacheServiceFactory<T extends BuildCache> {
      * <p>
      * The description is for human consumption.
      * It may be logged and displayed by tooling.
+     *
+     * @since 4.0
      */
+    @Incubating
     interface Describer {
 
         /**

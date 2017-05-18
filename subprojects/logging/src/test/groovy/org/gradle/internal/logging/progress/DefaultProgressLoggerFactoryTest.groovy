@@ -49,10 +49,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.progress('progress')
 
         then:
-        1 * timeProvider.getCurrentTime() >> 200L
         1 * progressListener.progress(!null) >> { ProgressEvent event ->
-            assert event.timestamp == 200L
-            assert event.category == 'logger'
             assert event.status == 'progress'
         }
 
@@ -63,14 +60,12 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         1 * timeProvider.getCurrentTime() >> 300L
         1 * progressListener.completed(!null) >> { ProgressCompleteEvent event ->
             assert event.timestamp == 300L
-            assert event.category == 'logger'
             assert event.status == 'completed'
         }
     }
 
     def "attaches current running operation as parent when operation is started"() {
         given:
-        def notStarted = factory.newOperation("category").setDescription("ignore-me")
         def completed = factory.newOperation("category").setDescription("ignore-me")
         def child = factory.newOperation("category").setDescription("child")
         def parent = factory.newOperation("category").setDescription("parent")

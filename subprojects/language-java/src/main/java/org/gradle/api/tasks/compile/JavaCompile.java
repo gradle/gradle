@@ -172,12 +172,6 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Factory for creating the Java toolchain.
-     *
-     * @since 4.0
-     */
-    @Incubating
     @Inject
     protected JavaToolChainFactory getJavaToolChainFactory() {
         throw new UnsupportedOperationException();

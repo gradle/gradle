@@ -279,14 +279,6 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     }
 
     private static ModelType<?> determineManagedPropertyType(StructBindingExtractionContext<?> extractionContext, String propertyName, Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings) {
-        Collection<StructMethodBinding> isGetter = accessorBindings.get(IS_GETTER);
-        for (StructMethodBinding isGetterBinding : isGetter) {
-            if (!((ManagedPropertyMethodBinding) isGetterBinding).getDeclaredPropertyType().equals(ModelType.of(Boolean.TYPE))) {
-                WeaklyTypeReferencingMethod<?, ?> isGetterMethod = isGetterBinding.getViewMethod();
-                extractionContext.add(isGetterMethod, String.format("it should either return 'boolean', or its name should be '%s()'",
-                    "get" + isGetterMethod.getName().substring(2)));
-            }
-        }
         Set<ModelType<?>> potentialPropertyTypes = Sets.newLinkedHashSet();
         for (StructMethodBinding binding : accessorBindings.values()) {
             if (binding.getAccessorType() == SETTER) {

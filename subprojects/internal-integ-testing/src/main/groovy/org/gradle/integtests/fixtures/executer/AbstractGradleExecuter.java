@@ -124,6 +124,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean useOnlyRequestedJvmOpts;
     private boolean requiresGradleDistribution;
     private boolean useOwnUserHomeServices;
+    private boolean useRichConsole;
 
     private int expectedDeprecationWarnings;
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -201,6 +202,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         interactive = false;
         checkDeprecations = true;
         durationMeasurement = null;
+        useRichConsole = false;
         return this;
     }
 
@@ -334,6 +336,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (durationMeasurement != null) {
             executer.withDurationMeasurement(durationMeasurement);
+        }
+
+        if (useRichConsole) {
+            executer.withRichConsole();
         }
 
         return executer;
@@ -656,6 +662,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    @Override
+    public GradleExecuter withRichConsole() {
+        useRichConsole = true;
+        return this;
+    }
+
     /**
      * Performs cleanup at completion of the test.
      */
@@ -771,6 +783,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (getGradleUserHomeDir() != null) {
             allArgs.add("--gradle-user-home");
             allArgs.add(getGradleUserHomeDir().getAbsolutePath());
+        }
+
+        if (useRichConsole) {
+            allArgs.add("--console=rich");
         }
 
         allArgs.addAll(args);

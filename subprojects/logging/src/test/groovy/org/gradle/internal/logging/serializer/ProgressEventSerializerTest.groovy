@@ -21,15 +21,13 @@ import spock.lang.Subject
 
 @Subject(ProgressEventSerializer)
 class ProgressEventSerializerTest extends LogSerializerSpec {
-    private static final long TIMESTAMP = 42L
-    private static final String CATEGORY = "category"
     private static final OperationIdentifier OPERATION_ID = new OperationIdentifier(1234L)
 
     ProgressEventSerializer serializer = new ProgressEventSerializer()
 
     def "can serialize ProgressEvent messages"() {
         given:
-        def event = new ProgressEvent(OPERATION_ID, TIMESTAMP, "category", "status")
+        def event = new ProgressEvent(OPERATION_ID, "status")
 
         when:
         def result = serialize(event, serializer)
@@ -37,14 +35,12 @@ class ProgressEventSerializerTest extends LogSerializerSpec {
         then:
         result instanceof ProgressEvent
         result.progressOperationId == OPERATION_ID
-        result.timestamp == TIMESTAMP
-        result.category == CATEGORY
         result.status == "status"
     }
 
     def "can serialize ProgressEvent messages with empty fields"() {
         given:
-        def event = new ProgressEvent(OPERATION_ID, TIMESTAMP, "category", "")
+        def event = new ProgressEvent(OPERATION_ID, "")
 
         when:
         def result = serialize(event, serializer)
@@ -52,8 +48,6 @@ class ProgressEventSerializerTest extends LogSerializerSpec {
         then:
         result instanceof ProgressEvent
         result.progressOperationId == OPERATION_ID
-        result.timestamp == TIMESTAMP
-        result.category == CATEGORY
         result.status == ""
     }
 }

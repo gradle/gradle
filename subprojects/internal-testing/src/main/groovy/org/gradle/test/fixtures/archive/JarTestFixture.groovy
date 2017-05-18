@@ -16,11 +16,13 @@
 
 package org.gradle.test.fixtures.archive
 
+import org.apache.commons.io.IOUtils
 import org.apache.tools.zip.ZipFile
 import org.gradle.test.fixtures.file.ClassFile
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
+import java.util.jar.Manifest
 
 class JarTestFixture extends ZipTestFixture {
     final int classFileDescriptor = 0xCAFEBABE
@@ -80,5 +82,9 @@ class JarTestFixture extends ZipTestFixture {
         } finally {
             jarFile.close()
         }
+    }
+
+    Manifest getManifest() {
+        new Manifest(IOUtils.toInputStream(content('META-INF/MANIFEST.MF'), contentCharset))
     }
 }

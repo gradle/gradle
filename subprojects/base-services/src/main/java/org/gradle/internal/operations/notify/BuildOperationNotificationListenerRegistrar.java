@@ -19,16 +19,18 @@ package org.gradle.internal.operations.notify;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * Obtained by the build scan plugin via the root project's service registry.
- * A single listener is registered.
- *
- * The listener is to be discarded after the build has completed.
+ * Mechanism by which the scan plugin registers for notifications.
  *
  * @since 4.0
  */
-@UsedByScanPlugin
+@UsedByScanPlugin("obtained from the root build's root project's service registry")
 public interface BuildOperationNotificationListenerRegistrar {
 
+    /**
+     * This method is inaccurately named.
+     * The term “build” here is actually what we name “build tree”.
+     * The listener expects to be automatically de-registered.
+     */
     void registerBuildScopeListener(BuildOperationNotificationListener listener);
 
 }

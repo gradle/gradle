@@ -19,7 +19,7 @@ package org.gradle.caching.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 
-class FinalizeBuildCacheConfigurationBuildOperationIntegrationTestBuildOperation extends AbstractIntegrationSpec {
+class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 

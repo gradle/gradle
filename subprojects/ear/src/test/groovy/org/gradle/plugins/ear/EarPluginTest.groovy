@@ -118,8 +118,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
         and:
         def childProject = TestUtil.createChildProject(project, 'child')
-        def javaPlugin = new JavaPlugin()
-        javaPlugin.apply(childProject)
+        childProject.pluginManager.apply(JavaPlugin)
 
         and:
         project.dependencies {
@@ -245,8 +244,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         def childProject = TestUtil.createChildProject(project, 'child')
         childProject.file("src/main/resources").mkdirs()
         childProject.file("src/main/resources/test.txt").createNewFile()
-        def javaPlugin = new JavaPlugin()
-        javaPlugin.apply(childProject)
+        childProject.pluginManager.apply(JavaPlugin)
 
         when:
         project.pluginManager.apply(EarPlugin)

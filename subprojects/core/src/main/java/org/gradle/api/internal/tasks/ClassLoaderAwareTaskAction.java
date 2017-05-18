@@ -25,4 +25,10 @@ public interface ClassLoaderAwareTaskAction extends Action<Task> {
      * of the implementing class, or the classloader of some delegate action.
      */
     ClassLoader getClassLoader();
+
+    /**
+     * Returns the name of the action class. This can be the
+     * implementing class itself, or the type of some delegate action.
+     */
+    String getActionClassName();
 }

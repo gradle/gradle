@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Set;
@@ -31,6 +32,8 @@ public interface DependencyGraphNode {
      */
     Long getNodeId();
 
+    boolean isRoot();
+
     ResolvedConfigurationIdentifier getResolvedConfigurationId();
 
     DependencyGraphComponent getOwner();
@@ -38,6 +41,11 @@ public interface DependencyGraphNode {
     Set<? extends DependencyGraphEdge> getIncomingEdges();
 
     Set<? extends DependencyGraphEdge> getOutgoingEdges();
+
+    /**
+     * The outgoing file dependencies of this node. Should be modelled edges to another node, but are treated separately for now.
+     */
+    Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges();
 
     ConfigurationMetadata getMetadata();
 }

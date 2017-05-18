@@ -376,7 +376,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
             
             task processDependency {
                 def lazyInputs = configurations.runtimeClasspath.incoming.artifactView {
-                    attributes{ attribute(Usage.USAGE_ATTRIBUTE, org.gradle.api.internal.attributes.Usages.usage(Usage.${token})) }
+                    attributes{ attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.${token})) }
                 }.files
                 inputs.files(lazyInputs)
                 doLast {

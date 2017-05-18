@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.progress.BuildOperationService;
+import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
@@ -29,11 +29,11 @@ public class ToolingBuilderServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
 
         registration.addProvider(new Object() {
-            BuildActionRunner createBuildActionRunner(final BuildOperationService buildOperationService) {
+            BuildActionRunner createBuildActionRunner(final BuildOperationListenerManager buildOperationListenerManager) {
                 return new ChainingBuildActionRunner(
                     Arrays.asList(
                         new BuildModelActionRunner(),
-                        new TestExecutionRequestActionRunner(buildOperationService),
+                        new TestExecutionRequestActionRunner(buildOperationListenerManager),
                         new ClientProvidedBuildActionRunner()));
             }
 

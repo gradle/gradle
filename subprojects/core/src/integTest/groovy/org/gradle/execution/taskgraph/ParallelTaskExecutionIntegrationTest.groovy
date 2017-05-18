@@ -107,7 +107,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("--max-workers=$threadCount")
     }
 
-    def "info is logged when overlapping outputs prevent parallel execution"() {
+    def "overlapping outputs prevent parallel execution"() {
         given:
         executer.withArgument("-i")
         withParallelThreads(2)
@@ -120,8 +120,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         blockingServer.expectSerialExecution(":aPing")
         blockingServer.expectSerialExecution(":bPing")
+
         run":aPing", ":bPing"
-        result.assertOutputContains("Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}")
     }
 
     def "independent tasks from multiple projects execute in parallel"() {
@@ -215,5 +215,158 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         blockingServer.expectConcurrentExecution(":b:aPing", ":b:bPing")
 
         run ":a:aSerialPing", ":b:aPing", ":b:bPing"
+    }
+
+    def "tasks are not run in parallel if destroy files overlap with output files"() {
+        given:
+        withParallelThreads(2)
+        buildFile << """
+            aPing.destroyables.file rootProject.file("dir")
+        
+            bPing.outputs.file rootProject.file("dir")
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":aPing")
+        blockingServer.expectConcurrentExecution(":bPing")
+
+        run ":aPing", ":bPing"
+    }
+
+    def "tasks are not run in parallel if destroy files overlap with output files in multiproject build"() {
+        given:
+        withParallelThreads(2)
+        buildFile << """
+            project(':a') { aPing.destroyables.file rootProject.file("dir") }
+        
+            project(':b') { bPing.outputs.file rootProject.file("dir") }
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":a:aPing")
+        blockingServer.expectConcurrentExecution(":b:bPing")
+
+        run ":a:aPing", ":b:bPing"
+    }
+
+    def "tasks are not run in parallel if destroy files overlap with input files (destroy first)"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            aPing.destroyables.file file("foo")
+        
+            bPing.outputs.file file("foo")
+            bPing.doLast { file("foo") << "foo" }
+            
+            cPing.inputs.file file("foo")
+            cPing.dependsOn bPing
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":aPing")
+        blockingServer.expectConcurrentExecution(":bPing")
+        blockingServer.expectConcurrentExecution(":cPing")
+
+        run ":aPing", ":cPing"
+    }
+
+    def "tasks are not run in parallel if destroy files overlap with input files (create/use first)"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            aPing.destroyables.file file("foo")
+        
+            bPing.outputs.file file("foo")
+            bPing.doLast { file("foo") << "foo" }
+            
+            cPing.inputs.file file("foo")
+            cPing.dependsOn bPing
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":bPing")
+        blockingServer.expectConcurrentExecution(":cPing")
+        blockingServer.expectConcurrentExecution(":aPing")
+
+        run ":cPing", ":aPing"
+    }
+
+    def "tasks are not run in parallel if destroy files overlap with input files (destroy first) in multi-project build"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            project(':a') { 
+                aPing.destroyables.file rootProject.file("foo")
+                
+                bPing.outputs.file rootProject.file("foo")
+                bPing.doLast { rootProject.file("foo") << "foo" }
+            }
+        
+            project(':b') {
+                cPing.inputs.file rootProject.file("foo")
+                cPing.dependsOn ":a:bPing"
+            }
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":a:aPing")
+        blockingServer.expectConcurrentExecution(":a:bPing")
+        blockingServer.expectConcurrentExecution(":b:cPing")
+
+        run ":a:aPing", ":b:cPing"
+    }
+
+    def "explicit task dependency relationships are honored even if it violates destroys/creates/consumes relationships"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            aPing.destroyables.file file("foo")
+            aPing.dependsOn ":bPing"
+            
+            task aIntermediate { dependsOn aPing }
+        
+            bPing.outputs.file file("foo")
+            bPing.doLast { file("foo") << "foo" }
+            
+            cPing.inputs.file file("foo")
+            cPing.dependsOn bPing, aIntermediate
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":bPing")
+        blockingServer.expectConcurrentExecution(":aPing")
+        blockingServer.expectConcurrentExecution(":cPing")
+
+        run ":cPing", ":aPing"
+    }
+
+    def "explicit ordering relationships are honored even if it violates destroys/creates/consumes relationships"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            aPing.destroyables.file file("foo")
+            aPing.mustRunAfter ":bPing"
+            
+            task aIntermediate { dependsOn aPing }
+        
+            bPing.outputs.file file("foo")
+            bPing.doLast { file("foo") << "foo" }
+            
+            cPing.inputs.file file("foo")
+            cPing.dependsOn bPing
+            cPing.mustRunAfter aPing
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":bPing")
+        blockingServer.expectConcurrentExecution(":aPing")
+        blockingServer.expectConcurrentExecution(":cPing")
+
+        run ":cPing", ":aPing"
     }
 }

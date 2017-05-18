@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -36,10 +37,10 @@ public class ManagedCollectionProxyClassGenerator extends AbstractProxyClassGene
      * </ul>
      */
     public Class<?> generate(Class<?> implClass, Class<?> publicContractType) {
-        ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+        AsmClassGenerator classGenerator = new AsmClassGenerator(publicContractType, "_Impl");
+        ClassWriter visitor = classGenerator.getVisitor();
 
-        String generatedTypeName = publicContractType.getName() + "_Impl";
-        Type generatedType = Type.getType("L" + generatedTypeName.replaceAll("\\.", "/") + ";");
+        Type generatedType = classGenerator.getGeneratedType();
 
         Type superclassType = Type.getType(implClass);
         Type publicType = Type.getType(publicContractType);
@@ -48,7 +49,7 @@ public class ManagedCollectionProxyClassGenerator extends AbstractProxyClassGene
         generateConstructors(visitor, implClass, superclassType);
         visitor.visitEnd();
 
-        return defineClass(visitor, publicContractType.getClassLoader(), generatedTypeName);
+        return classGenerator.define();
     }
 
     private <T> void generateConstructors(ClassWriter visitor, Class<? extends T> implClass, Type superclassType) {

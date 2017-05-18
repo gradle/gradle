@@ -102,6 +102,8 @@ class DefaultSettingsTest {
 
             allowing(scriptFileResolver).resolveScriptFile(withParam(notNullValue()), withParam(notNullValue()));
             will(returnValue(null));
+            allowing(fileResolver).resolve(withParam(notNullValue()))
+            will { File file -> file.canonicalFile }
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
