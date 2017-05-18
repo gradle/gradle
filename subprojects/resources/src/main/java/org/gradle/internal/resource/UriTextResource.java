@@ -28,30 +28,52 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Serializable;
 import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 
 /**
- * A {@link TextResource} implementation backed by a URI. Assumes content is encoded using UTF-8.
+ * A {@link TextResource} implementation backed by a URI. Defaults content encoding to UTF-8.
  */
 public class UriTextResource implements TextResource {
+
+    public static final String DEFAULT_ENCODING = "utf-8";
+
     private final File sourceFile;
     private final URI sourceUri;
     private final String description;
+    private final Serializable sourcePath;
+    private final String encoding;
     private String displayName;
 
     public UriTextResource(String description, File sourceFile) {
         this.description = description;
         this.sourceFile = FileUtils.canonicalize(sourceFile);
         this.sourceUri = sourceFile.toURI();
+        this.sourcePath = buildSourcePath(sourceFile, sourceUri);
+        this.encoding = DEFAULT_ENCODING;
     }
 
     public UriTextResource(String description, URI sourceUri) {
         this.description = description;
         this.sourceFile = sourceUri.getScheme().equals("file") ? FileUtils.canonicalize(new File(sourceUri.getPath())) : null;
         this.sourceUri = sourceUri;
+        this.sourcePath = buildSourcePath(sourceFile, sourceUri);
+        this.encoding = DEFAULT_ENCODING;
+    }
+
+    public UriTextResource(String description, File resource, URI sourceUri, String encoding) {
+        this.description = description;
+        this.sourceFile = canonicalise(resource);
+        this.sourceUri = sourceFile.toURI();
+        this.sourcePath = sourceUri;
+        this.encoding = encoding != null ? encoding : DEFAULT_ENCODING;
+    }
+
+    private Serializable buildSourcePath(File sourceFile, URI sourceUri) {
+        return sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri;
     }
 
     @Override
@@ -60,7 +82,7 @@ public class UriTextResource implements TextResource {
             StringBuilder builder = new StringBuilder();
             builder.append(description);
             builder.append(" '");
-            builder.append(sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
+            builder.append(sourcePath);
             builder.append("'");
             displayName = builder.toString();
         }
@@ -140,7 +162,7 @@ public class UriTextResource implements TextResource {
             urlConnection.setUseCaches(false);
         }
         urlConnection.connect();
-        String charset = extractCharacterEncoding(urlConnection.getContentType(), "utf-8");
+        String charset = extractCharacterEncoding(urlConnection.getContentType(), encoding);
         return new InputStreamReader(urlConnection.getInputStream(), charset);
     }
 
@@ -152,7 +174,7 @@ public class UriTextResource implements TextResource {
     @Override
     public Charset getCharset() {
         if (getFile() != null) {
-            return Charset.forName("utf-8");
+            return Charset.forName(encoding);
         }
         return null;
     }

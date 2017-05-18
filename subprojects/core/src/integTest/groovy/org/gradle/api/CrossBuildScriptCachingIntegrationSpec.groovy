@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.fixtures.server.http.NotFoundResourceHandler
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Issue
@@ -299,6 +300,8 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(buildHash, sharedHash)
 
         when:
+        server.expectSerialExecution(server.resource("shared.gradle", ""), "HEAD")
+        server.expectSerialExecution(server.resourceNotFound("shared.gradle.sha1"))
         server.expectSerialExecution(server.resource("shared.gradle", "println 'Echo 1'"))
 
         run 'tasks'

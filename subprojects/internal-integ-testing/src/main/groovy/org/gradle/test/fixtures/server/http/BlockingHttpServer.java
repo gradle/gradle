@@ -155,6 +155,13 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
+     * Expect a GET request to the given path, and return 404
+     */
+    public Resource resourceNotFound(String path) {
+        return new NotFoundResourceHandler(path);
+    }
+
+    /**
      * Expects exactly the given number of calls to be made concurrently from any combination of the expected calls. Blocks each call until they are explicitly released.
      * Is not considered "complete" until all expected calls have been received.
      */
@@ -192,8 +199,15 @@ public class BlockingHttpServer extends ExternalResource {
     /**
      * Expects the given request to be made.
      */
+    public void expectSerialExecution(Resource expectedCall, String method) {
+        handler.addHandler(new CyclicBarrierRequestHandler(method, lock, timeoutMs, Collections.singleton((ResourceHandler) expectedCall)));
+    }
+
+    /**
+     * Expects the given request to be made.
+     */
     public void expectSerialExecution(Resource expectedCall) {
-        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, Collections.singleton((ResourceHandler) expectedCall)));
+        expectSerialExecution(expectedCall, "GET");
     }
 
     public void start() {

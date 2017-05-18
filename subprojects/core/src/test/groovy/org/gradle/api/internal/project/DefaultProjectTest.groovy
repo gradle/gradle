@@ -43,6 +43,7 @@ import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.dsl.dependencies.UriTextResourceLoader
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -142,6 +143,7 @@ class DefaultProjectTest {
     ManagedProxyFactory managedProxyFactory = context.mock(ManagedProxyFactory.class)
     AntLoggingAdapter antLoggingAdapter = context.mock(AntLoggingAdapter.class)
     AttributesSchema attributesSchema = context.mock(AttributesSchema)
+    UriTextResourceLoader uriTextResourceLoader = context.mock(UriTextResourceLoader)
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
 
@@ -199,6 +201,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
             allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))
+            allowing(serviceRegistryMock).get((Type) UriTextResourceLoader); will(returnValue(uriTextResourceLoader))
             allowing(serviceRegistryMock).get(ManagedProxyFactory); will(returnValue(managedProxyFactory))
             allowing(serviceRegistryMock).get(AttributesSchema) ; will(returnValue(attributesSchema))
             allowing(serviceRegistryMock).get(BuildOperationExecutor) ; will(returnValue(buildOperationExecutor))

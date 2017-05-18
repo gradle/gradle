@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.internal.resource.CachingTextResource;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.UriTextResource;
@@ -38,6 +39,10 @@ public class UriScriptSource extends AbstractUriScriptSource {
 
     public UriScriptSource(String description, File sourceFile) {
         resource = new UriTextResource(description, sourceFile);
+    }
+
+    public UriScriptSource(TextResource textResource) {
+        resource = new CachingTextResource(textResource);
     }
 
     public UriScriptSource(String description, URI sourceUri) {

@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UriTextResourceLoader;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
@@ -312,7 +313,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ModelRuleSourceDetector.class),
             get(PluginRepositoryRegistry.class),
             get(PluginRepositoryFactory.class),
-            get(ProviderFactory.class));
+            get(ProviderFactory.class),
+            get(UriTextResourceLoader.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,

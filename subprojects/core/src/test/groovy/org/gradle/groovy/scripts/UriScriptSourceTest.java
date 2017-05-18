@@ -151,7 +151,7 @@ public class UriScriptSourceTest {
         UriScriptSource source = new UriScriptSource("<file-type>", new URI("http://www.gradle.org/unknown.txt"));
         assertThat(source.getFileName(), equalTo("http://www.gradle.org/unknown.txt"));
     }
-    
+
     @Test
     public void generatesClassNameFromFileNameByRemovingExtensionAndAddingHashOfFileURL() {
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
@@ -194,7 +194,7 @@ public class UriScriptSourceTest {
         ScriptSource source3 = new UriScriptSource("<file-type>", new File(testDir, "build.gradle"));
         assertThat(source1.getClassName(), equalTo(source3.getClassName()));
     }
-    
+
     @Test
     public void filesWithSameNameAndUriHaveDifferentClassName() throws URISyntaxException {
         ScriptSource source1 = new UriScriptSource("<file-type>", new File(testDir, "build.gradle"));
@@ -203,5 +203,11 @@ public class UriScriptSourceTest {
 
         ScriptSource source3 = new UriScriptSource("<file-type>", new File(testDir, "build.gradle"));
         assertThat(source1.getClassName(), equalTo(source3.getClassName()));
+    }
+
+    @Test
+    public void whenBothFileAndUriAreSetWillUseURIName() throws URISyntaxException {
+        ScriptSource source1 = new UriScriptSource(new UriTextResource("<file-type>", new File(testDir, "build.gradle"), new URI("http://localhost/build.gradle")));
+        assertThat(source1.getDisplayName(), equalTo("<file-type> 'http://localhost/build.gradle'"));
     }
 }

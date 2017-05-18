@@ -105,8 +105,9 @@ class ChainingHttpHandler implements HttpHandler {
                 System.out.println(String.format("[%d] received request %s %s after HTTP server has stopped.", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI()));
                 return null;
             }
-            if (httpExchange.getRequestMethod().equals("GET")) {
-                for (TrackingHttpHandler handler : handlers) {
+
+            for (TrackingHttpHandler handler : handlers) {
+                if (handler.acceptsMethod(httpExchange.getRequestMethod())) {
                     ResourceHandler resourceHandler = handler.handle(id, httpExchange);
                     if (resourceHandler != null) {
                         return resourceHandler;

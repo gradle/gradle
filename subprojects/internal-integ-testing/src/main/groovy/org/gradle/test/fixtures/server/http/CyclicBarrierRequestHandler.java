@@ -31,6 +31,7 @@ import java.util.concurrent.locks.Lock;
 
 class CyclicBarrierRequestHandler extends TrackingHttpHandler {
     private final TimeProvider timeProvider = new TrueTimeProvider();
+    private final String method;
     private final Lock lock;
     private final Condition condition;
     private final List<String> received = new ArrayList<String>();
@@ -40,6 +41,11 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
     private AssertionError failure;
 
     CyclicBarrierRequestHandler(Lock lock, int timeoutMs, Collection<? extends ResourceHandler> expectedCalls) {
+        this("GET", lock, timeoutMs, expectedCalls);
+    }
+
+    CyclicBarrierRequestHandler(String method, Lock lock, int timeoutMs, Collection<? extends ResourceHandler> expectedCalls) {
+        this.method = method;
         this.lock = lock;
         condition = lock.newCondition();
         this.timeoutMs = timeoutMs;
@@ -47,6 +53,11 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
         for (ResourceHandler call : expectedCalls) {
             pending.put(call.getPath(), call);
         }
+    }
+
+    @Override
+    public boolean acceptsMethod(String method) {
+        return this.method.equals(method);
     }
 
     @Override
