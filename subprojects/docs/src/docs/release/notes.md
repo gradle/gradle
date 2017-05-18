@@ -477,6 +477,15 @@ public class InMemoryBuildCacheServiceFactory implements BuildCacheServiceFactor
 - Deprecated `EclipsePlugin.performPostEvaluationActions()` and `IdeaPlugin.performPostEvaluationActions()`. 
   Post-evaluation actions are no longer used.
 
+### Changes to dependency ordering
+
+Several changes have been made to the way that Gradle orders files in the dependency resolution results:  
+
+- Files are now ordered in 'consumer first' order. That means that a particular file appears in the result _before_ all of its dependencies. The order is unspecified in the case of a cycle in the dependency graph.
+- File dependencies, such as `gradleApi()` are now ordered in the same way as other dependencies, in consumer first order. In previous Gradle versions these dependencies were always added at the start of the result.
+
+Beyond this, Gradle does not make any other guarantees about the ordering of files. However, file order is always the same for a given dependency graph.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
