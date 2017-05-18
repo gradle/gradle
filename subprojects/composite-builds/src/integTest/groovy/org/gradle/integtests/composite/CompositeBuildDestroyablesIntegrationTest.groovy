@@ -18,8 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
-import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
-
 class CompositeBuildDestroyablesIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
 
@@ -53,13 +51,13 @@ class CompositeBuildDestroyablesIntegrationTest extends AbstractCompositeBuildIn
         execute(buildA, "clean", "build")
 
         then:
-        result.assertTaskOrder(':buildB:clean', ':clean', ':compileJava', ':buildB:compileJava')
+        result.assertTaskOrder(':buildB:clean', ':buildB:compileJava', ':clean', ':compileJava')
 
         when:
         args "--parallel"
         execute(buildA, "build", "clean")
 
         then:
-        result.assertTaskOrder(':compileJava', ':buildB:compileJava', ':buildB:clean', ':clean')
+        result.assertTaskOrder(':buildB:compileJava', ':buildB:clean', ':compileJava', ':clean')
     }
 }
