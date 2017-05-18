@@ -19,12 +19,10 @@ package org.gradle.process.internal.streams;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.Executor;
 
 public class ExecOutputHandleRunner implements Runnable {
     private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
