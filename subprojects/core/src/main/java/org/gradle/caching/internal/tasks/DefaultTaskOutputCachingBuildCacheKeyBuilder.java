@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -112,10 +113,11 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     }
 
     private static class DefaultTaskOutputCachingBuildCacheKey implements TaskOutputCachingBuildCacheKey {
+
         private final HashCode hashCode;
         private final BuildCacheKeyInputs inputs;
 
-        private DefaultTaskOutputCachingBuildCacheKey(HashCode hashCode, BuildCacheKeyInputs inputs) {
+        private DefaultTaskOutputCachingBuildCacheKey(@Nullable HashCode hashCode, BuildCacheKeyInputs inputs) {
             this.hashCode = hashCode;
             this.inputs = inputs;
         }
