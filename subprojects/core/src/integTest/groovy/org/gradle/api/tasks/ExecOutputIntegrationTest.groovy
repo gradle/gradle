@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import spock.lang.Issue
 import spock.util.environment.OperatingSystem
 
-class ExecFamilyIntegrationTest extends AbstractConsoleFunctionalSpec {
+class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
     private static final String EXPECTED_OUTPUT = "Hello, World!"
 
     @Issue("https://github.com/gradle/gradle/issues/2009")

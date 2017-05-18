@@ -18,6 +18,7 @@ package org.gradle.process.internal.streams;
 
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
 import org.gradle.util.DisconnectableInputStream;
 
 import java.io.IOException;
@@ -62,11 +63,15 @@ public class StreamsForwarder implements StreamsHandler {
     }
 
     public void start() {
-        standardInputRunner.run(executor);
+        executor.execute(wrapInBuildOperation(standardInputRunner));
         if (readErrorStream) {
-            errorOutputRunner.run(executor);
+            executor.execute(wrapInBuildOperation(errorOutputRunner));
         }
-        standardOutputRunner.run(executor);
+        executor.execute(wrapInBuildOperation(standardOutputRunner));
+    }
+
+    private Runnable wrapInBuildOperation(Runnable runnable) {
+        return new BuildOperationIdentifierPreservingRunnable(runnable);
     }
 
     public void stop() {

@@ -62,10 +62,6 @@ public class ExecOutputHandleRunner implements Runnable {
         }
     }
 
-    public void run(Executor executor) {
-        executor.execute(new BuildOperationIdentifierPreservingRunnable(this));
-    }
-
     public void closeInput() throws IOException {
         inputStream.close();
     }
