@@ -18,13 +18,12 @@ package org.gradle.internal.operations
 
 import spock.lang.Specification
 
-class PreserveBuildOperationIdentifierRunnerTest extends Specification {
+class BuildOperationIdentifierPreservingRunnableTest extends Specification {
+    private static final EXPECTED_BUILD_OPERATION_IDENTIFIER = "42"
     def delegate = Mock(Runnable)
+    def runner = new BuildOperationIdentifierPreservingRunnable(delegate, EXPECTED_BUILD_OPERATION_IDENTIFIER)
 
     def "forward execution to delegate runnable"() {
-        given:
-        def runner = PreserveBuildOperationIdentifierRunner.wrap(delegate)
-
         when:
         runner.run()
 
@@ -34,15 +33,10 @@ class PreserveBuildOperationIdentifierRunnerTest extends Specification {
     }
 
     def "preserve build operation identifier during execution of the delegate runnable"() {
-        given:
+        given: "save previous build operation id"
         def previousBuildOperationId = BuildOperationIdentifierRegistry.currentOperationIdentifier
 
-        // Wrap the delegated
-        def expectedBuildOperationId = "42"
-        BuildOperationIdentifierRegistry.currentOperationIdentifier = expectedBuildOperationId
-        def runner = PreserveBuildOperationIdentifierRunner.wrap(delegate)
-
-        // Simulate a new thread state
+        and: "clear current build operation id to simulate a new thread state"
         BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier()
 
         when:
@@ -50,8 +44,9 @@ class PreserveBuildOperationIdentifierRunnerTest extends Specification {
 
         then:
         delegate.run() >> {
-            assert BuildOperationIdentifierRegistry.currentOperationIdentifier == expectedBuildOperationId
+            assert BuildOperationIdentifierRegistry.currentOperationIdentifier == EXPECTED_BUILD_OPERATION_IDENTIFIER
         }
+        BuildOperationIdentifierRegistry.currentOperationIdentifier != EXPECTED_BUILD_OPERATION_IDENTIFIER
 
         cleanup:
         BuildOperationIdentifierRegistry.currentOperationIdentifier = previousBuildOperationId
