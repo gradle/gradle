@@ -28,7 +28,7 @@ plugins {
 
 allprojects {
     group = "org.gradle"
-    version = "0.9.0"
+    version = "0.9.1-SNAPSHOT"
 }
 
 // --- Configure publications ------------------------------------------
