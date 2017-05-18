@@ -44,6 +44,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.gradle.util.Path.path
+
 class DefaultGradleLauncherSpec extends Specification {
     def initScriptHandlerMock = Mock(InitScriptHandler.class);
     def settingsLoaderMock = Mock(SettingsLoader.class);
@@ -127,6 +129,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testRun() {
         when:
+        isRootBuild();
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
@@ -142,8 +145,32 @@ class DefaultGradleLauncherSpec extends Specification {
 
     }
 
+    void testRunWithNestedBuild() {
+        when:
+        isNestedBuild()
+
+        expectInitScriptsExecuted();
+        expectSettingsBuilt();
+        expectDagBuilt();
+        expectTasksRun();
+        expectBuildListenerCallbacks();
+        DefaultGradleLauncher gradleLauncher = launcher();
+        BuildResult buildResult = gradleLauncher.run();
+
+        then:
+        buildResult.getGradle() is gradleMock
+        buildResult.failure == null
+
+        and:
+        assert buildOperationExecutor.operations.size() == 3
+        assert buildOperationExecutor.operations[0].displayName == "Configure build (:nested)"
+        assert buildOperationExecutor.operations[1].displayName == "Calculate task graph (:nested)"
+        assert buildOperationExecutor.operations[2].displayName == "Run tasks (:nested)"
+    }
+
     void testGetBuildAnalysis() {
         when:
+        isRootBuild();
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
@@ -160,6 +187,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testNotifiesListenerOfBuildAnalysisStages() {
         when:
+        isRootBuild()
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
@@ -172,6 +200,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testNotifiesListenerOfBuildStages() {
         when:
+        isRootBuild()
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
@@ -217,6 +246,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testNotifiesListenerOnBuildCompleteWithFailure() {
         given:
+        isRootBuild()
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
@@ -253,6 +283,15 @@ class DefaultGradleLauncherSpec extends Specification {
         assert buildOperationExecutor.operations[0].displayName == "Configure build"
         assert buildOperationExecutor.operations[1].displayName == "Calculate task graph"
         assert buildOperationExecutor.operations[2].displayName == "Run tasks"
+    }
+
+    private void isNestedBuild() {
+        _ * gradleMock.parent >> Mock(GradleInternal)
+        _ * gradleMock.identityPath >> path(":nested")
+    }
+
+    private void isRootBuild() {
+        _ * gradleMock.parent >> null
     }
 
     private void expectInitScriptsExecuted() {

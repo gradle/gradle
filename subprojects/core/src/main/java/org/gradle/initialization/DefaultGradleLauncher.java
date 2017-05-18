@@ -203,7 +203,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Configure build");
+            return BuildOperationDescriptor.displayName(contextualize("Configure build"));
         }
     }
 
@@ -241,7 +241,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Calculate task graph")
+            return BuildOperationDescriptor.displayName(contextualize("Calculate task graph"))
                 .details(new CalculateTaskGraphBuildOperationType.Details() {
                 });
         }
@@ -255,7 +255,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Run tasks");
+            return BuildOperationDescriptor.displayName(contextualize("Run tasks"));
         }
     }
 
@@ -266,5 +266,16 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void projectsEvaluated() {
         buildListener.projectsEvaluated(gradle);
+    }
+
+    private String contextualize(String descriptor) {
+        if (isNestedBuild()) {
+            return descriptor + " (" + gradle.getIdentityPath() + ")";
+        }
+        return descriptor;
+    }
+
+    private boolean isNestedBuild() {
+        return gradle.getParent() != null;
     }
 }
