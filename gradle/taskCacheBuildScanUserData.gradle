@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.caching.internal.tasks.TaskOutputCachingListener
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.operations.notify.BuildOperationNotificationListener
+import org.gradle.internal.operations.notify.BuildOperationStartedNotification
+import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.buildCacheEnabled) {
@@ -54,28 +55,35 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         publishCacheConfiguration('local', cacheConfiguration.local)
         publishCacheConfiguration('remote', cacheConfiguration.remote)
 
-        gradle.addListener(new TaskOutputCachingListener() {
-            @Override
-            void cacheKeyEvaluated(Task task, TaskOutputCachingBuildCacheKey key) {
-                def buildScan = task.project.buildScan
-                if (key.valid) {
-                    buildScan.value "${task.path}-build-cache-key", String.valueOf(key.hashCode)
-                    def inputs = key.inputs
-                    buildScan.value "${task.path}-classloader-hash", String.valueOf(inputs.classLoaderHash)
-                    int actionIndex = 0
-                    inputs.actionClassLoaderHashes.each {
-                        buildScan.value "${task.path}-action-classloader-hash-${actionIndex++}", String.valueOf(it)
-                    }
-                    if (tasksToInvestigateForCache.any { task.getPath().contains(it) }) {
-                        inputs.inputHashes.each { name, hash ->
-                            buildScan.value "${task.path}-input-${name}", String.valueOf(hash)
+        gradle.services.get(org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar)
+            .registerBuildScopeListener(new BuildOperationNotificationListener() {
+            void started(BuildOperationStartedNotification notification) {}
+
+            void finished(BuildOperationFinishedNotification notification) {
+                def anyDetails = notification.notificationOperationDetails
+                if (anyDetails instanceof SnapshotTaskInputsBuildOperationType.Details) {
+                    String taskPath = anyDetails.taskPath
+                    SnapshotTaskInputsBuildOperationType.Result result = (SnapshotTaskInputsBuildOperationType.Result) notification.notificationOperationResult
+                    if (result.buildCacheKey) {
+                        buildScan.value "${taskPath}-build-cache-key", String.valueOf(result.buildCacheKey)
+                        buildScan.value "${taskPath}-classloader-hash", String.valueOf(result.classLoaderHash)
+                        int actionIndex = 0
+                        def implementationHashes = [result.actionClassNames, result.actionClassLoaderHashes].transpose()
+                        implementationHashes.each { className, classLoaderHash ->
+                            buildScan.value "${taskPath}-action-classname-${actionIndex}", String.valueOf(className)
+                            buildScan.value "${taskPath}-action-classloader-hash-${actionIndex++}", String.valueOf(classLoaderHash)
                         }
-                        if (inputs.outputPropertyNames) {
-                            buildScan.value "${task.path}-output-property-names", String.valueOf((inputs.outputPropertyNames as List).sort().join(', '))
+                        if (tasksToInvestigateForCache.any { taskPath.contains(it) }) {
+                            result.inputHashes.each { name, hash ->
+                                buildScan.value "${taskPath}-input-${name}", String.valueOf(hash)
+                            }
+                            if (result.outputPropertyNames) {
+                                buildScan.value "${taskPath}-output-property-names", String.valueOf((result.outputPropertyNames as List).join(', '))
+                            }
                         }
+                    } else {
+                        buildScan.value "${taskPath}-build-cache-key", '<No cache key>'
                     }
-                } else {
-                    buildScan.value "${task.path}-build-cache-key", '<No cache key>'
                 }
             }
         })
@@ -92,8 +100,6 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                             def snapshotter = gradle.services.get(inputProperty.snapshotter)
                             def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getCompareStrategy(), inputProperty.getSnapshotNormalizationStrategy(), task.project.normalization.buildFinalStrategy())
                             def prefix = "${task.path}-input-${name}"
-                            buildScan.value "${prefix}-hash", hashKey(snapshot)
-
                             if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
                                 publishPaths(inputProperty.propertyFiles, prefix)
                             }
@@ -110,17 +116,15 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             }
 
             private publishIndividualFileHashes(snapshot, prefix) {
-                snapshot.appendToHasher(new org.gradle.caching.internal.DefaultBuildCacheHasher() {
-                    private int idx = 0
-                    @Override
-                    public DefaultBuildCacheHasher putBytes(byte[] bytes) {
-                        buildScan.value("${prefix}-snapshot-${String.format('%04d', idx++)}-hash", bytes.encodeHex().toString())
+                int idx = 0
+                snapshot.snapshots.each { path, normalizedSnapshot ->
+                    def normalizedPath = normalizedSnapshot.normalizedPath
+                    buildScan.value("${prefix}-snapshot-${String.format('%04d', idx)}-filename", new File(path).name)
+                    if (normalizedPath) {
+                        buildScan.value("${prefix}-snapshot-${String.format('%04d', idx)}-path", normalizedPath)
                     }
-                    @Override
-                    public DefaultBuildCacheHasher putString(CharSequence charSequence) {
-                        buildScan.value("${prefix}-snapshot-${String.format('%04d', idx)}-path", charSequence)
-                    }
-                })
+                    buildScan.value("${prefix}-snapshot-${String.format('%04d', idx++)}-hash", normalizedSnapshot.snapshot.contentMd5.toString())
+                }
             }
 
             private publishPaths(propertyFiles, String prefix) {
@@ -168,7 +172,7 @@ def publishCacheConfiguration(String role, cache) {
 }
 
 
-class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
+class Visitor extends ClassLoaderVisitor {
     final buildScan
     final ClassLoaderHierarchyHasher hasher
     final String prefix
