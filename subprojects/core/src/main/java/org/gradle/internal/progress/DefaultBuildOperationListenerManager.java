@@ -19,19 +19,20 @@ package org.gradle.internal.progress;
 import org.gradle.internal.event.ListenerManager;
 
 public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
-    private final ListenerManager globalListenerManager;
 
-    public DefaultBuildOperationListenerManager(ListenerManager globalListenerManager) {
-        this.globalListenerManager = globalListenerManager;
+    private final ListenerManager listenerManager;
+
+    public DefaultBuildOperationListenerManager(ListenerManager listenerManager) {
+        this.listenerManager = listenerManager;
     }
 
     @Override
     public void addListener(BuildOperationListener listener) {
-        globalListenerManager.addListener(listener);
+        listenerManager.addListener(listener);
     }
 
     @Override
     public void removeListener(BuildOperationListener listener) {
-        globalListenerManager.removeListener(listener);
+        listenerManager.removeListener(listener);
     }
 }

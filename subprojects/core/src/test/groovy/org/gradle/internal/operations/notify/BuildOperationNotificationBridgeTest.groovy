@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations
+package org.gradle.internal.operations.notify
 
-import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
-import org.gradle.internal.operations.notify.BuildOperationNotificationListener
-import org.gradle.internal.operations.notify.BuildOperationStartedNotification
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationListenerManager
@@ -27,8 +24,8 @@ import org.gradle.testing.internal.util.Specification
 
 class BuildOperationNotificationBridgeTest extends Specification {
 
-    def buildOperationService = Mock(BuildOperationListenerManager)
-    def bridge = new BuildOperationNotificationBridge(buildOperationService)
+    def listenerManager = Mock(BuildOperationListenerManager)
+    def bridge = new BuildOperationNotificationBridge(listenerManager)
     def listener = Mock(BuildOperationNotificationListener)
 
     def "adapts listener"() {
@@ -36,7 +33,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         register(listener)
 
         then:
-        1 * buildOperationService.addListener(_)
+        1 * listenerManager.addListener(_)
     }
 
     def "removes listener when stopped"() {
@@ -47,7 +44,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         register(listener)
 
         then:
-        1 * buildOperationService.addListener(_) >> {
+        1 * listenerManager.addListener(_) >> {
             buildOperationListener = it[0]
         }
 
@@ -55,7 +52,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         bridge.stop()
 
         then:
-        1 * buildOperationService.removeListener(_) >> {
+        1 * listenerManager.removeListener(_) >> {
             assert buildOperationListener == it[0]
         }
     }
@@ -72,7 +69,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         register(listener)
 
         then:
-        1 * buildOperationService.addListener(_) >> {
+        1 * listenerManager.addListener(_) >> {
             buildOperationListener = it[0]
         }
 
@@ -154,6 +151,6 @@ class BuildOperationNotificationBridgeTest extends Specification {
     }
 
     void register(BuildOperationNotificationListener listener) {
-        bridge.notificationListenerRegistrar().registerBuildScopeListener(listener)
+        bridge.registerBuildScopeListener(listener)
     }
 }

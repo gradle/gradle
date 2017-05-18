@@ -17,14 +17,14 @@
 package org.gradle.internal.progress;
 
 /**
- * A service to register listeners for BuildOperation start and stop events.
+ * Manages listeners of build operations.
  *
- * The implementor of the listener is responsible for removing the listener when finished.
- *
- * Listeners are not automatically removed when build is finished.
+ * Be aware that there are two instances of this within the services hierarchy.
+ * One is global scoped (used by TAPI infrastructure).
+ * The other is build tree scoped (used by build operation notifications).
  *
  * @since 3.5
- * */
+ */
 public interface BuildOperationListenerManager {
 
     void addListener(BuildOperationListener listener);
