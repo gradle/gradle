@@ -21,9 +21,8 @@ import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec {
 
     private static final String TEST_TASK_NAME = 'test'
+    private static final String TEST_TASK_PATH = ":$TEST_TASK_NAME"
     private static final String JAVA_TEST_FILE_PATH = 'src/test/java/MyTest.java'
-    private static final String TEST_TASK_GROUP_HEADER = "> Task :$TEST_TASK_NAME"
-    private static final String BUILD_SUCCESSFUL_OUTPUT = 'BUILD SUCCESSFUL'
 
     def setup() {
         buildFile << javaProject()
@@ -38,10 +37,12 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         }
 
         when:
-        fails(TEST_TASK_NAME, "-Dorg.gradle.internal.operations.trace=${file().absolutePath}")
+        fails(TEST_TASK_NAME)
 
         then:
-        parseAndAssertTaskOutput(output, TEST_TASK_GROUP_HEADER, '1 test completed, 1 failed', testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
+        def taskOutput = taskOutput(TEST_TASK_PATH)
+        taskOutput.size() == 1
+        matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
     }
 
     def "can group skipped test log event with task if configured"() {
@@ -63,7 +64,9 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         succeeds(TEST_TASK_NAME)
 
         then:
-        parseAndAssertTaskOutput(output, TEST_TASK_GROUP_HEADER, BUILD_SUCCESSFUL_OUTPUT, testLogEventRegex(TestLogEvent.SKIPPED.consoleMarker))
+        def taskOutput = taskOutput(TEST_TASK_PATH)
+        taskOutput.size() == 1
+        matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.SKIPPED.consoleMarker))
     }
 
     def "can group started test log event with task if configured"() {
@@ -75,7 +78,9 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         succeeds(TEST_TASK_NAME)
 
         then:
-        parseAndAssertTaskOutput(output, TEST_TASK_GROUP_HEADER, BUILD_SUCCESSFUL_OUTPUT, testLogEventRegex(TestLogEvent.STARTED.consoleMarker))
+        def taskOutput = taskOutput(TEST_TASK_PATH)
+        taskOutput.size() == 1
+        matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.STARTED.consoleMarker))
     }
 
     def "can group standard output streams with task if configured"() {
@@ -93,10 +98,11 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         succeeds(TEST_TASK_NAME)
 
         then:
-        def groupedTaskOutput = parseTaskOutput(output, TEST_TASK_GROUP_HEADER, BUILD_SUCCESSFUL_OUTPUT)
-        groupedTaskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
+        def taskOutput = taskOutput(TEST_TASK_PATH)
+        taskOutput.size() == 1
+        taskOutput[0].contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
     standard output""")
-        groupedTaskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
+        taskOutput[0].contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
     standard error""")
     }
 
@@ -118,11 +124,12 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         fails(TEST_TASK_NAME)
 
         then:
-        def groupedTaskOutput = parseTaskOutput(output, TEST_TASK_GROUP_HEADER, '1 test completed, 1 failed')
-        groupedTaskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.name()}
+        def taskOutput = taskOutput(TEST_TASK_PATH)
+        taskOutput.size() == 1
+        taskOutput[0].contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
     standard output""")
-        assertTaskOutput(groupedTaskOutput, testLogEventRegex(TestLogEvent.STARTED.consoleMarker))
-        assertTaskOutput(groupedTaskOutput, testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
+        matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.STARTED.consoleMarker))
+        matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
     }
 
     static String javaProject() {
@@ -172,19 +179,8 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         """
     }
 
-    static void parseAndAssertTaskOutput(String output, String taskOutputStart, String taskOutputEnd, String regexToFind) {
-        def groupedTaskOutput = parseTaskOutput(output, taskOutputStart, taskOutputEnd)
-        assertTaskOutput(groupedTaskOutput, regexToFind)
-    }
-
-    static String parseTaskOutput(String output, String taskOutputStart, String taskOutputEnd) {
-        def matcher = output =~ /(?ms)($taskOutputStart.*?$taskOutputEnd)/
-        assert matcher.find()
-        matcher[0][1]
-    }
-
-    static void assertTaskOutput(String groupedTaskOutput, String regexToFind) {
-        assert (groupedTaskOutput =~ /(?ms)($regexToFind)/).matches()
+    static boolean matchesTaskOutput(List<String> taskOutput, String regexToFind) {
+        taskOutput.any { (taskOutput =~ /(?ms)($regexToFind)/).matches() }
     }
 
     static String testLogEventRegex(String event) {
