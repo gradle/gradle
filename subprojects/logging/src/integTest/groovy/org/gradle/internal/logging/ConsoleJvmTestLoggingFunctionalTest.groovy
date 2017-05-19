@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 
 class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec {
