@@ -71,4 +71,28 @@ Second incremental output
         fixture.outputs[':longRunningTask'] == 'First incremental output\nSecond incremental output'
     }
 
+    def "parses tasks with progress bar interference"() {
+        given:
+        def consoleOutput = """EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[1A\u001B[1m
+\u001B[1m> Task :1:log\u001B[m\u001B[0K
+Output from 1
+
+\u001B[0K
+\u001B[1A [1m<====---------> 33% EXECUTING [6s] [m [34D [1B
+\u001B[1m> Task :2:log\u001B[m
+Output from 2
+
+
+\u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 1s
+3 actionable tasks: 3 executed
+\u001B[2K
+"""
+        when:
+        TaskGroupingFixture fixture = new TaskGroupingFixture(consoleOutput)
+
+        then:
+        assert fixture.taskNames.size() == 2
+        fixture.outputs[':1:log'] == 'Output from 1'
+        fixture.outputs[':2:log'] == 'Output from 2'
+    }
 }
