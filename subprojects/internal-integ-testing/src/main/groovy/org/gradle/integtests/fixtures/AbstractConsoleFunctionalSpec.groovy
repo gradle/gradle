@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures
 
 import org.fusesource.jansi.Ansi
-import org.gradle.integtests.fixtures.logging.TaskGroupingFixture
 
 /**
  * A base class for testing the console in rich mode. Executes with a Gradle distribution and {@code "--console=rich"} command line option.
@@ -47,10 +46,6 @@ class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
         styledString += CONTROL_SEQUENCE_END + plainText + CONTROL_SEQUENCE_START + DEFAULT_TEXT + CONTROL_SEQUENCE_END
 
         return styledString
-    }
-
-    protected Map<String, String> getGroupedOutputs() {
-        return new TaskGroupingFixture(result.output).outputs
     }
 
     def setup() {

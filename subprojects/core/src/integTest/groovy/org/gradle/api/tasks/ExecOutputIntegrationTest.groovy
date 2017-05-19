@@ -46,7 +46,7 @@ class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
         succeeds("run")
 
         then:
-        groupedOutputs[':run'] == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
+        result.groupedOutput.task(':run').output == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
     }
 
     def "JavaExec task output is grouped with its task output"() {
@@ -66,7 +66,7 @@ class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
         succeeds("run")
 
         then:
-        groupedOutputs[':run'] == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
+        result.groupedOutput.task(':run').output == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
     }
 
     def "Project#exec output is grouped with its task output"() {
@@ -85,7 +85,7 @@ class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
         succeeds("run")
 
         then:
-        groupedOutputs[':run'] == EXPECTED_OUTPUT
+        result.groupedOutput.task(':run').output == EXPECTED_OUTPUT
     }
 
     def "Exec task output is grouped with its task output"() {
@@ -100,7 +100,7 @@ class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
         succeeds("run")
 
         then:
-        groupedOutputs[':run'] == EXPECTED_OUTPUT
+        result.groupedOutput.task(':run').output == EXPECTED_OUTPUT
     }
 
     private static String echo(String s) {

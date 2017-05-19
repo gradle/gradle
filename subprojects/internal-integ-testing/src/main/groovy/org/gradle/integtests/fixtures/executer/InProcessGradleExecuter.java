@@ -37,6 +37,7 @@ import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ReportedException;
+import org.gradle.integtests.fixtures.logging.TaskGroupingFixture;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
@@ -401,6 +402,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         private final List<String> plannedTasks;
         private final Set<String> skippedTasks;
         private final OutputScrapingExecutionResult outputResult;
+        private TaskGroupingFixture groupedOutputFixture;
 
         public InProcessExecutionResult(List<String> plannedTasks, Set<String> skippedTasks, OutputScrapingExecutionResult outputResult) {
             this.plannedTasks = plannedTasks;
@@ -415,6 +417,14 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         @Override
         public String getNormalizedOutput() {
             return outputResult.getNormalizedOutput();
+        }
+
+        @Override
+        public TaskGroupingFixture getGroupedOutput() {
+            if (groupedOutputFixture == null) {
+                this.groupedOutputFixture = new TaskGroupingFixture(getOutput());
+            }
+            return groupedOutputFixture;
         }
 
         public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {

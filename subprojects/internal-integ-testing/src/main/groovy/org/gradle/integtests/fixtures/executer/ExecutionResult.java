@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.integtests.fixtures.logging.TaskGroupingFixture;
+
 import java.util.List;
 import java.util.Set;
 
@@ -35,6 +37,13 @@ public interface ExecutionResult {
      * </ul>
      */
     String getNormalizedOutput();
+
+    /**
+     * Returns a fixture that parses the output and forms them into the expected groups
+     *
+     * <b>NOTE:</b> this is only supported when using {@link org.gradle.api.logging.configuration.ConsoleOutput#Rich}
+     */
+    TaskGroupingFixture getGroupedOutput();
 
     /**
      * Stderr of the Gradle execution, normalized to use new-line char as line separator.

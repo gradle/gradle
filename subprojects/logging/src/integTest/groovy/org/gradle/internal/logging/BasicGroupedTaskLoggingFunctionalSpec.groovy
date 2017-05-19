@@ -35,10 +35,10 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         succeeds('log')
 
         then:
-        groupedOutputs.size() == 3
-        groupedOutputs[':1:log'] == "Output from 1"
-        groupedOutputs[':2:log'] == "Output from 2"
-        groupedOutputs[':3:log'] == "Output from 3"
+        result.groupedOutput.taskCount == 3
+        result.groupedOutput.task(':1:log').output == "Output from 1"
+        result.groupedOutput.task(':2:log').output == "Output from 2"
+        result.groupedOutput.task(':3:log').output == "Output from 3"
     }
 
     def "logs at execution time are grouped"() {
@@ -57,7 +57,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         succeeds('log')
 
         then:
-        groupedOutputs[':log'] == "First line of text\nSecond line of text"
+        result.groupedOutput.task(':log').output == "First line of text\nSecond line of text"
     }
 
     def "system out and err gets grouped"() {
@@ -76,7 +76,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         succeeds('log')
 
         then:
-        groupedOutputs[':log'] == "Standard out\nStandard err"
+        result.groupedOutput.task(':log').output == "Standard out\nStandard err"
     }
 
     @Issue("gradle/gradle#2038")
@@ -88,7 +88,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         succeeds('log')
 
         then:
-        groupedOutputs.isEmpty()
+        result.groupedOutput.task(':log').output.isEmpty()
     }
 
     def "grouped output is displayed for failed tasks"() {
@@ -110,6 +110,6 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         fails('log')
 
         then:
-        groupedOutputs[':log'] == "First line of text\n\n\nLast line of text"
+        result.groupedOutput.task(':log').output == "First line of text\n\n\nLast line of text"
     }
 }

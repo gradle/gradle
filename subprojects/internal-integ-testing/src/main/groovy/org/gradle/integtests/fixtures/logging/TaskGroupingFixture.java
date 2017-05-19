@@ -3,12 +3,12 @@ package org.gradle.integtests.fixtures.logging;
 import org.apache.commons.collections.map.HashedMap;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Parses rich console output into its pieces for verification in functional tests
+ * TODO: Rename to GroupedOutputFixture
  */
 public class TaskGroupingFixture {
 
@@ -23,20 +23,23 @@ public class TaskGroupingFixture {
     private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + PROGRESS_BAR;
 
     private static String PRECOMPILED_PATTERN;
+    private static final Pattern TASK_OUTPUT_PATTERN;
+
     static {
         PRECOMPILED_PATTERN = "(?ms)";
         PRECOMPILED_PATTERN += TASK_HEADER;
         // Capture all output, lazily up until two new lines and an END_OF_TASK designation
         PRECOMPILED_PATTERN += "(.*?(?=\\n\\n(?:[^\\n]*?" + END_OF_TASK_OUTPUT + ")))";
+        TASK_OUTPUT_PATTERN = Pattern.compile(PRECOMPILED_PATTERN);
+        //TODO: Remove once stable
         System.err.println(PRECOMPILED_PATTERN);
     }
-    private static final Pattern TASK_OUTPUT_PATTERN = Pattern.compile(PRECOMPILED_PATTERN);
 
     /**
      * Don't need this if we parse all of the output during construction
      */
     private final String output;
-    private Map<String, String> taskToOutput;
+    private Map<String, GroupedTaskFixture> tasks;
 
     public TaskGroupingFixture(String output) {
         this.output = output;
@@ -44,30 +47,29 @@ public class TaskGroupingFixture {
     }
 
     private void parse(String output) {
-        taskToOutput = new HashedMap();
+        tasks = new HashedMap();
         Matcher matcher = TASK_OUTPUT_PATTERN.matcher(output);
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutput = matcher.group(2);
-            if(taskToOutput.containsKey(taskName)) {
-                String combinedOutput = taskToOutput.get(taskName) + "\n" + taskOutput;
-                taskToOutput.put(taskName, combinedOutput);
+            if (tasks.containsKey(taskName)) {
+                tasks.get(taskName).addOutput(taskOutput);
             } else {
-                taskToOutput.put(taskName, taskOutput);
+                GroupedTaskFixture task = new GroupedTaskFixture(taskName);
+                task.addOutput(taskOutput);
+                tasks.put(taskName, task);
             }
         }
     }
 
-    public Set<String> getTaskNames() {
-        return taskToOutput.keySet();
+    public int getTaskCount() {
+        return tasks.size();
     }
 
-    public String getOutput(String taskName) {
-        return taskToOutput.get(taskName);
+    public GroupedTaskFixture task(String taskName) {
+        if (tasks.containsKey(taskName)) {
+            return tasks.get(taskName);
+        }
+        return new GroupedTaskFixture(taskName);
     }
-
-    public Map<String, String> getOutputs() {
-        return taskToOutput;
-    }
-
 }
