@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import org.fusesource.jansi.Ansi
+import org.gradle.integtests.fixtures.logging.TaskGroupingFixture
 
 /**
  * A base class for testing the console in rich mode. Executes with a Gradle distribution and {@code "--console=rich"} command line option.
@@ -46,22 +47,8 @@ class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
         return styledString
     }
 
-    /**
-     * Grabs the grouped output of a task
-     * @param taskName a fully qualified task name e.g. :project:task1
-     * @return
-     */
-    protected String taskOutputFrom(String taskName) {
-        // Starting with >, including the task name, and going till the first new line
-        def taskHeader = "> Task $taskName[^\\n]*\n"
-        // Start of the next task
-        def taskFooter = "\n\n[^\\n]*> Task"
-        // End of the build, or the build failure message
-        def buildFooter = "\n\n\n[^\\n]*(BUILD SUCCESSFUL|BUILD FAILED|FAILURE:)"
-        //Find all output between the header and footer
-        def matcher = result.output =~ /(?msU)\$taskHeader(.*?)(\$taskFooter|\$buildFooter)/
-
-        return matcher[0][1]
+    protected Map<String, String> getGroupedOutputs() {
+        return new TaskGroupingFixture(result.output).outputs
     }
 
     def setup() {

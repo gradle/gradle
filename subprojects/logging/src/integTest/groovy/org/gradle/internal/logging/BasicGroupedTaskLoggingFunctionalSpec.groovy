@@ -17,6 +17,7 @@
 package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import spock.lang.Issue
 
 class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpec {
 
@@ -34,9 +35,10 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         succeeds('log')
 
         then:
-        taskOutputFrom(':1:log') == "Output from 1"
-        taskOutputFrom(':2:log') == "Output from 2"
-        taskOutputFrom(':3:log') == "Output from 3"
+        groupedOutputs.size() == 3
+        groupedOutputs[':1:log'] == "Output from 1"
+        groupedOutputs[':2:log'] == "Output from 2"
+        groupedOutputs[':3:log'] == "Output from 3"
     }
 
     def "logs at execution time are grouped"() {
@@ -55,7 +57,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         succeeds('log')
 
         then:
-        taskOutputFrom(':log') == "First line of text\nSecond line of text"
+        groupedOutputs[':log'] == "First line of text\nSecond line of text"
     }
 
     def "system out and err gets grouped"() {
@@ -74,27 +76,40 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         succeeds('log')
 
         then:
-        taskOutputFrom(':log') == "Standard out\nStandard err"
+        groupedOutputs[':log'] == "Standard out\nStandard err"
     }
 
-
-    def "grouped output is displayed for failed tasksd"() {
+    @Issue("gradle/gradle#2038")
+    def "tasks with no actions are not displayed"() {
         given:
-        buildFile << """task log { 
-                        logger.quiet 'Logged during configuration'
-                        doFirst { 
-                            logger.quiet 'First line of text' 
-                            logger.quiet '' 
-                            logger.quiet '' 
-                            logger.quiet 'Last line of text' 
-                            throw new GradleException('Forced failure')
-                        } 
-                    }"""
+        buildFile << "task log"
+
+        when:
+        succeeds('log')
+
+        then:
+        groupedOutputs.isEmpty()
+    }
+
+    def "grouped output is displayed for failed tasks"() {
+        given:
+        buildFile << """
+            task log { 
+                logger.quiet 'Logged during configuration'
+                doFirst { 
+                    logger.quiet 'First line of text' 
+                    logger.quiet '' 
+                    logger.quiet '' 
+                    logger.quiet 'Last line of text' 
+                    throw new GradleException('Forced failure')
+                } 
+            }
+        """
         when:
         executer.withStackTraceChecksDisabled()
         fails('log')
 
         then:
-        taskOutputFrom(':log') == "First line of text\n\n\nLast line of text"
+        groupedOutputs[':log'] == "First line of text\n\n\nLast line of text"
     }
 }
