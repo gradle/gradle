@@ -25,7 +25,6 @@ import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.sink.OutputEventRenderer
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.progress.BuildOperationCategory
-import org.gradle.internal.progress.BuildProgressLogger
 import org.gradle.internal.time.TimeProvider
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.RedirectStdOutAndErr
@@ -131,8 +130,8 @@ class ConsoleFunctionalTest extends Specification {
         _ * metaData.getCols() >> 35
 
         when:
-        renderer.onOutput(startEvent(1, null, BuildProgressLogger.class.simpleName, 'FULL DESCRIPTION', '123456789012345678901234567890123456789'))
-        renderer.onOutput(startEvent(2, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJK'))
+        renderer.onOutput(startEvent(2, null, "org.gradle.internal.progress.BuildProgressLogger", 'FULL DESCRIPTION', '123456789012345678901234567890123456789'))
+        renderer.onOutput(startEvent(3, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJK'))
 
         then:
         ConcurrentTestUtil.poll(1) {

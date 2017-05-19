@@ -56,7 +56,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
-    private static final long ROOT_BUILD_OPERATION_ID_VALUE = 1L;
 
     private final BuildOperationListener listener;
     private final TimeProvider timeProvider;
@@ -64,7 +63,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final StoppableExecutor fixedSizePool;
 
-    private final AtomicLong nextId = new AtomicLong(ROOT_BUILD_OPERATION_ID_VALUE);
+    private final AtomicLong nextId = new AtomicLong(OperationIdentifier.ROOT_ID);
     private final ThreadLocal<DefaultBuildOperationState> currentOperation = new ThreadLocal<DefaultBuildOperationState>();
 
     public DefaultBuildOperationExecutor(BuildOperationListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory,
@@ -251,7 +250,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
      */
     protected void createRunningRootOperation(String displayName) {
         assert currentOperation.get() == null;
-        OperationIdentifier rootBuildOpId = new OperationIdentifier(ROOT_BUILD_OPERATION_ID_VALUE);
+        OperationIdentifier rootBuildOpId = new OperationIdentifier(OperationIdentifier.ROOT_ID);
         DefaultBuildOperationState operation = new DefaultBuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), timeProvider.getCurrentTime());
         operation.setRunning(true);
         currentOperation.set(operation);
