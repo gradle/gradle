@@ -1053,8 +1053,8 @@ public class ToolImpl {
                // beginning of a list, when the collection is ordered. It has been agreed not to fix it now, but
                // rather change the incremental compiler not to rely on this incorrect information
                
-               $config 'net.jcip:jcip-annotations:1.0'
-               $config 'org.slf4j:slf4j-api:1.7.10'
+               implementation 'net.jcip:jcip-annotations:1.0'
+               implementation 'org.slf4j:slf4j-api:1.7.10'
             }
         """
         file("src/main/java/Client.java") << """import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -1073,65 +1073,6 @@ public class ToolImpl {
         noExceptionThrown()
 
         when: "Apache Commons is removed from classpath"
-        fails ':compileJava'
-
-        then:
-        failure.assertHasCause('Compilation failed; see the compiler error output for details.')
-
-        where:
-        config << ['api', 'implementation', 'compile']
-    }
-
-    @Unroll
-    def "detects changes in compile classpath order with #config"() {
-        given:
-        ['a', 'b'].each {
-            // Same class is defined in both project `a` and `b` but with a different ABI
-            // so one shadows the other depending on the order on classpath
-            file("$it/src/main/java/A.java") << """
-                public class A {
-                    public static String m_$it() { return "ok"; }
-                }
-            """
-        }
-        buildFile << """
-            apply plugin: 'java-library'
-               
-            repositories {
-               jcenter()
-            }
-            
-            dependencies {
-               switch (project.getProperty('order') as int) {
-                  case 0:
-                    $config 'org.apache.commons:commons-lang3:3.5'
-                    $config project(':a')
-                    $config project(':b')
-                    break
-                  case 1:
-                    $config 'org.apache.commons:commons-lang3:3.5'
-                    $config project(':b')
-                    $config project(':a')
-               }
-            }
-        """
-        file("src/main/java/Client.java") << """import org.apache.commons.lang3.exception.ExceptionUtils;
-            public class Client {
-                public void doSomething() {
-                    ExceptionUtils.rethrow(new RuntimeException(A.m_a()));
-                }
-            }
-        """
-
-        when:
-        executer.withArgument('-Porder=0')
-        succeeds ':compileJava'
-
-        then:
-        noExceptionThrown()
-
-        when: "Order is changed"
-        executer.withArgument('-Porder=1')
         fails ':compileJava'
 
         then:

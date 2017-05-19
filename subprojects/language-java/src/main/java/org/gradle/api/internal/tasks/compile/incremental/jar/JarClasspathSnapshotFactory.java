@@ -21,7 +21,6 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,7 +33,7 @@ public class JarClasspathSnapshotFactory {
     }
 
     JarClasspathSnapshot createSnapshot(Iterable<JarArchive> jarArchives) {
-        LinkedHashMap<File, JarSnapshot> jarSnapshots = Maps.newLinkedHashMap();
+        Map<File, JarSnapshot> jarSnapshots = Maps.newHashMap();
         Map<File, HashCode> jarHashes = Maps.newHashMap();
         Set<String> allClasses = Sets.newHashSet();
         Set<String> duplicateClasses = Sets.newHashSet();

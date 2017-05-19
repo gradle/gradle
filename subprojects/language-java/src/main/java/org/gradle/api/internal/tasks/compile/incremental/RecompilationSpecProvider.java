@@ -27,12 +27,9 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.internal.util.Alignment;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -66,30 +63,18 @@ public class RecompilationSpecProvider {
     }
 
     private void processJarChanges(Map<File, JarSnapshot> previousCompilationJarSnapshots, JarClasspathSnapshot currentJarSnapshots, JarChangeProcessor jarChangeProcessor, RecompilationSpec spec) {
-        Set<File> previousCompilationJars = previousCompilationJarSnapshots.keySet();
-        Set<File> currentCompilationJars = currentJarSnapshots.getJars();
-        List<Alignment<File>> alignment = Alignment.align(currentCompilationJars.toArray(new File[0]), previousCompilationJars.toArray(new File[0]));
-        for (Alignment<File> fileAlignment : alignment) {
-            switch (fileAlignment.getKind()) {
-                case added:
-                    jarChangeProcessor.processChange(new FileChange(fileAlignment.getCurrentValue().getAbsolutePath(), ChangeType.ADDED, "jar"), spec);
-                    break;
-                case removed:
-                    jarChangeProcessor.processChange(new FileChange(fileAlignment.getPreviousValue().getAbsolutePath(), ChangeType.REMOVED, "jar"), spec);
-                    break;
-                case transformed:
-                    // If we detect a transformation in the classpath, we need to recompile, because we could typically be facing the case where
-                    // 2 jars are reversed in the order of classpath elements, and one class that was shadowing the other is now visible
-                    spec.setFullRebuildCause("Classpath has been changed", null);
-                    return;
-                case identical:
-                    File key = fileAlignment.getPreviousValue();
-                    JarSnapshot previousSnapshot = previousCompilationJarSnapshots.get(key);
-                    JarSnapshot snapshot = currentJarSnapshots.getSnapshot(key);
-                    if (!snapshot.getHash().equals(previousSnapshot.getHash())) {
-                        jarChangeProcessor.processChange(new FileChange(key.getAbsolutePath(), ChangeType.MODIFIED, "jar"), spec);
-                    }
-                    break;
+        for (Map.Entry<File, JarSnapshot> entry : previousCompilationJarSnapshots.entrySet()) {
+            File key = entry.getKey();
+            JarSnapshot value = entry.getValue();
+            JarSnapshot snapshot = currentJarSnapshots.getSnapshot(key);
+            if (snapshot == null || !snapshot.getHash().equals(value.getHash())) {
+                ChangeType changeType = snapshot==null ? ChangeType.REMOVED : ChangeType.MODIFIED;
+                jarChangeProcessor.processChange(new FileChange(key.getAbsolutePath(), changeType, "jar"), spec);
+            }
+        }
+        for (File file : currentJarSnapshots.getJars()) {
+            if (!previousCompilationJarSnapshots.containsKey(file)) {
+                jarChangeProcessor.processChange(new FileChange(file.getAbsolutePath(), ChangeType.ADDED, "jar"), spec);
             }
         }
     }
