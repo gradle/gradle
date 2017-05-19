@@ -27,6 +27,7 @@ public class BuildProgressLogger implements LoggerProvider {
     public static final String CONFIGURATION_PHASE_SHORT_DESCRIPTION = "CONFIGURING";
     public static final String EXECUTION_PHASE_DESCRIPTION = "EXECUTION PHASE";
     public static final String EXECUTION_PHASE_SHORT_DESCRIPTION = "EXECUTING";
+    public static final String WAITING_PHASE_DESCRIPTION = "WAITING";
     public static final int PROGRESS_BAR_WIDTH = 13;
     public static final String PROGRESS_BAR_PREFIX = "<";
     public static final char PROGRESS_BAR_COMPLETE_CHAR = '=';
@@ -82,8 +83,8 @@ public class BuildProgressLogger implements LoggerProvider {
         buildProgress.progress(buildProgressFormatter.incrementAndGetProgress());
     }
 
-    public void buildFinished() {
-        buildProgress.completed();
+    public void beforeComplete() {
+        buildProgress.completed(newProgressBar(WAITING_PHASE_DESCRIPTION, 1).getProgress());
         buildProgress = null;
         buildProgressFormatter = null;
     }
