@@ -33,14 +33,6 @@ Limitations
 -----------
 
  * `settings.gradle` cannot yet be written Kotlin, continue to use Groovy there for now.
-
- * Gradle does not yet have auto-detection of Kotlin-based build scripts, meaning you must either:
-
-   a. use `./gradlew -b build.gradle.kts`, or
-
-   b. add `rootProject.buildFileName='build.gradle.kts'` to your `settings.gradle` file.
-
-   Due to this limitation, importing projects into IDEA currently requires the presence of a `settings.gradle` in order for IDEA to recognize the project as a Gradle project
    
 License
 -------
