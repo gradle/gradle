@@ -43,32 +43,13 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultArtifactSet {
-    private final ComponentIdentifier componentIdentifier;
-    private final ModuleVersionIdentifier moduleVersionIdentifier;
-    private final ModuleSource moduleSource;
-    private final ModuleExclusion exclusions;
-    private final Set<? extends VariantMetadata> variants;
-    private final AttributesSchemaInternal schema;
-    private final ArtifactResolver artifactResolver;
-    private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
+public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet {
     private final long id;
-    private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final ComponentIdentifier componentIdentifier;
+    private final Set<ResolvedVariant> variants;
+    private final AttributesSchemaInternal schema;
 
-    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema,  ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ArtifactTypeRegistry artifactTypeRegistry) {
-        this.componentIdentifier = componentIdentifier;
-        this.moduleVersionIdentifier = ownerId;
-        this.moduleSource = moduleSource;
-        this.exclusions = exclusions;
-        this.variants = variants;
-        this.schema = schema;
-        this.artifactResolver = artifactResolver;
-        this.allResolvedArtifacts = allResolvedArtifacts;
-        this.id = id;
-        this.artifactTypeRegistry = artifactTypeRegistry;
-    }
-
-    public ArtifactSet snapshot() {
+    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ArtifactTypeRegistry artifactTypeRegistry) {
         ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
         for (VariantMetadata variant : variants) {
             Set<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
@@ -79,68 +60,57 @@ public class DefaultArtifactSet {
 
             for (ComponentArtifactMetadata artifact : artifacts) {
                 IvyArtifactName artifactName = artifact.getName();
-                if (exclusions.excludeArtifact(moduleVersionIdentifier.getModule(), artifactName)) {
+                if (exclusions.excludeArtifact(ownerId.getModule(), artifactName)) {
                     continue;
                 }
 
                 ResolvedArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
                 if (resolvedArtifact == null) {
                     Factory<File> artifactSource = new LazyArtifactSource(artifact, moduleSource, artifactResolver);
-                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource);
+                    resolvedArtifact = new DefaultResolvedArtifact(ownerId, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource);
                     allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
                 }
                 resolvedArtifacts.add(resolvedArtifact);
             }
             result.add(ArtifactBackedResolvedVariant.create(variant.asDescribable(), attributes, resolvedArtifacts));
         }
-        return new ArtifactSetSnapshot(id, componentIdentifier, result.build(), schema);
+        this.id = id;
+        this.componentIdentifier = componentIdentifier;
+        this.variants = result.build();
+        this.schema = schema;
     }
 
-    private static class ArtifactSetSnapshot implements ArtifactSet, ResolvedVariantSet {
-        private final long id;
-        private final ComponentIdentifier componentIdentifier;
-        private final Set<ResolvedVariant> variants;
-        private final AttributesSchemaInternal schema;
+    @Override
+    public long getId() {
+        return id;
+    }
 
-        ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants, AttributesSchemaInternal schema) {
-            this.id = id;
-            this.componentIdentifier = componentIdentifier;
-            this.variants = variants;
-            this.schema = schema;
-        }
+    @Override
+    public String toString() {
+        return asDescribable().getDisplayName();
+    }
 
-        @Override
-        public long getId() {
-            return id;
-        }
+    @Override
+    public Describable asDescribable() {
+        return Describables.of(componentIdentifier);
+    }
 
-        @Override
-        public String toString() {
-            return asDescribable().getDisplayName();
-        }
+    @Override
+    public AttributesSchemaInternal getSchema() {
+        return schema;
+    }
 
-        @Override
-        public Describable asDescribable() {
-            return Describables.of(componentIdentifier);
-        }
+    @Override
+    public Set<ResolvedVariant> getVariants() {
+        return variants;
+    }
 
-        @Override
-        public AttributesSchemaInternal getSchema() {
-            return schema;
-        }
-
-        @Override
-        public Set<ResolvedVariant> getVariants() {
-            return variants;
-        }
-
-        @Override
-        public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
-            if (!componentFilter.isSatisfiedBy(componentIdentifier)) {
-                return ResolvedArtifactSet.EMPTY;
-            } else {
-                return selector.select(this);
-            }
+    @Override
+    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
+        if (!componentFilter.isSatisfiedBy(componentIdentifier)) {
+            return ResolvedArtifactSet.EMPTY;
+        } else {
+            return selector.select(this);
         }
     }
 
@@ -161,5 +131,4 @@ public class DefaultArtifactSet {
             return result.getResult();
         }
     }
-
 }
