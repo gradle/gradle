@@ -35,13 +35,11 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     private final ResolutionStrategy.SortOrder sortOrder;
     private final Map<Long, Set<Long>> artifactsByNodeId;
     private final Map<Long, ArtifactSet> artifactsById;
-    private final Set<Long> buildableArtifacts;
 
-    public DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder sortOrder, Map<Long, Set<Long>> artifactsByNodeId, Map<Long, ArtifactSet> artifactsById, Set<Long> buildableArtifacts) {
+    public DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder sortOrder, Map<Long, Set<Long>> artifactsByNodeId, Map<Long, ArtifactSet> artifactsById) {
         this.sortOrder = sortOrder;
         this.artifactsByNodeId = artifactsByNodeId;
         this.artifactsById = artifactsById;
-        this.buildableArtifacts = buildableArtifacts;
     }
 
     @Override
@@ -55,9 +53,6 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
             ArtifactSet artifactSet = entry.getValue();
             Long id = entry.getKey();
             ResolvedArtifactSet resolvedArtifacts = artifactSet.select(componentFilter, selector);
-            if (!buildableArtifacts.contains(id)) {
-                resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
-            }
             builder.put(id, resolvedArtifacts);
         }
         ImmutableMap<Long, ResolvedArtifactSet> resolvedArtifactsById = builder.build();

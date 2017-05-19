@@ -16,29 +16,52 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class NoBuildDependenciesArtifactSet implements ResolvedArtifactSet {
-    private final ResolvedArtifactSet set;
+public class NoBuildDependenciesArtifactSet implements ArtifactSet {
+    private final ArtifactSet set;
 
-    private NoBuildDependenciesArtifactSet(ResolvedArtifactSet set) {
+    public NoBuildDependenciesArtifactSet(ArtifactSet set) {
         this.set = set;
     }
 
-    public static ResolvedArtifactSet of(ResolvedArtifactSet set) {
-        if (set == ResolvedArtifactSet.EMPTY || set instanceof NoBuildDependenciesArtifactSet) {
-            return set;
+    @Override
+    public long getId() {
+        return set.getId();
+    }
+
+    @Override
+    public ArtifactSet snapshot() {
+        return new NoBuildDependenciesArtifactSet(set.snapshot());
+    }
+
+    @Override
+    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
+        final ResolvedArtifactSet selectedArtifacts = set.select(componentFilter, selector);
+        if (selectedArtifacts == ResolvedArtifactSet.EMPTY) {
+            return selectedArtifacts;
         }
-        return new NoBuildDependenciesArtifactSet(set);
+        return new NoDepsResolvedArtifactSet(selectedArtifacts);
     }
 
-    @Override
-    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        return set.startVisit(actions, listener);
-    }
+    private static class NoDepsResolvedArtifactSet implements ResolvedArtifactSet {
+        private final ResolvedArtifactSet selectedArtifacts;
 
-    @Override
-    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+        public NoDepsResolvedArtifactSet(ResolvedArtifactSet selectedArtifacts) {
+            this.selectedArtifacts = selectedArtifacts;
+        }
+
+        @Override
+        public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+            return selectedArtifacts.startVisit(actions, listener);
+        }
+
+        @Override
+        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+        }
     }
 }

@@ -35,7 +35,7 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(spec, selector) >> variant1Artifacts
         artifacts2.select(spec, selector) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [:], [1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
+        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [:], [1L: artifacts1, 2L: artifacts2])
         def selected = results.select(spec, selector)
 
         expect:
