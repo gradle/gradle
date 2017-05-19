@@ -137,6 +137,13 @@ buildTypes {
     }
 }
 
+task printLastInputMd5(type: org.gradle.diagnostics.ShowInputFilesMd5sFromHistory) {
+    taskPath = project.findProperty('lastInputMd5.taskPath')
+    propertyName = project.findProperty('lastInputMd5.propertyName')
+    def outputFileString = project.findProperty('lastInputMd5.outputFile')
+    outputFile = outputFileString ? file(outputFileString) : null
+}
+
 apply from: "gradle/testGroupings.gradle"
 apply from: 'gradle/buildSplits.gradle'
 ext {
