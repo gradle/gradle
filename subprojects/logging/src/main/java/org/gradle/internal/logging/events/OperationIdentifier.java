@@ -21,8 +21,6 @@ import com.google.common.base.Preconditions;
 import java.io.Serializable;
 
 public class OperationIdentifier implements Serializable {
-    public static final long ROOT_ID = 1L;
-
     private final long id;
 
     public OperationIdentifier(long id) {
