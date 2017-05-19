@@ -47,6 +47,33 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << ISOLATION_MODES
     }
 
+    @Unroll
+    def "produces a sensible error when there is a failure in the worker runnable and work completes before the task in #isolationMode"() {
+        withRunnableClassInBuildSrc()
+
+        buildFile << """
+            $runnableThatFails
+            $workerTaskThatWaits
+
+            task runInWorker(type: WorkerTaskThatWaits) {
+                isolationMode = $isolationMode
+                runnableClass = RunnableThatFails.class
+            }
+        """.stripIndent()
+
+        when:
+        fails("runInWorker")
+
+        then:
+        failureHasCause("A failure occurred while executing RunnableThatFails")
+
+        and:
+        failureHasCause("Failure from runnable")
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
     def "produces a sensible error when there is a failure starting a worker daemon"() {
         executer.withStackTraceChecksDisabled()
         withRunnableClassInBuildSrc()
@@ -270,11 +297,37 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getRunnableThatFails() {
         return """
             public class RunnableThatFails implements Runnable {
+                private final File outputDir;
+                
                 @javax.inject.Inject
-                public RunnableThatFails(List<String> files, File outputDir, Foo foo) { }
+                public RunnableThatFails(List<String> files, File outputDir, Foo foo) { 
+                    this.outputDir = outputDir;
+                }
 
                 public void run() {
-                    throw new RuntimeException("Failure from runnable");
+                    try {
+                        throw new RuntimeException("Failure from runnable");
+                    } finally {
+                        outputDir.mkdirs();
+                        new File(outputDir, "finished").createNewFile();
+                    }                    
+                }
+            }
+        """
+    }
+
+    String getWorkerTaskThatWaits() {
+        return """
+            public class WorkerTaskThatWaits extends WorkerTask {
+                @TaskAction
+                void executeTask() {
+                    super.executeTask();
+                    while (true) {
+                        if (new File("\${outputFileDirPath}/finished").exists()) {
+                            break;
+                        }
+                        Thread.sleep(100);
+                    }
                 }
             }
         """

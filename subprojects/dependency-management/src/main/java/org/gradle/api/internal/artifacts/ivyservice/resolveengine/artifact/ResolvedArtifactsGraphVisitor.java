@@ -76,6 +76,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     public void visitSelector(DependencyGraphSelector selector) {
     }
 
+    @Override
     public void visitEdges(DependencyGraphNode node) {
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
             DependencyGraphNode parent = dependency.getFrom();
@@ -87,6 +88,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         }
     }
 
+    @Override
     public void finish(DependencyGraphNode root) {
         artifactResults.finishArtifacts();
         allResolvedArtifacts.clear();

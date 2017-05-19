@@ -28,12 +28,19 @@ import java.util.logging.LogManager
 
 class ConfigureLogging extends ExternalResource {
     private final OutputEventListener listener
+    private final LogLevel level
     private final OutputEventListenerBackedLoggerContext context
     private final OutputEventListenerBackedLogger logger
     private OutputEventListener originalListener
+    private LogLevel originalLevel
 
     ConfigureLogging(OutputEventListener listener) {
+        this(listener, LogLevel.DEBUG)
+    }
+
+    ConfigureLogging(OutputEventListener listener, LogLevel level) {
         this.listener = listener
+        this.level = level
         context = LoggerFactory.ILoggerFactory as OutputEventListenerBackedLoggerContext
         logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as OutputEventListenerBackedLogger
     }
@@ -43,12 +50,13 @@ class ConfigureLogging extends ExternalResource {
         attachListener()
     }
 
-    public void attachListener() {
-        // Retain the previously configured listener
+    void attachListener() {
+        // Retain the previously configured listener and level
         originalListener = context.outputEventListener
+        originalLevel = context.level
 
         context.outputEventListener = listener
-        context.level = LogLevel.DEBUG
+        context.level = level
     }
 
     @Override
@@ -56,17 +64,20 @@ class ConfigureLogging extends ExternalResource {
         resetLogging()
     }
 
-    public void resetLogging() {
+    void resetLogging() {
         context.reset()
         LogManager.getLogManager().reset()
 
-        // Reinstate the previously configured listener, if any
+        // Reinstate the previously configured listener and level, if any
         if (originalListener != null) {
             context.outputEventListener = originalListener
         }
+        if (originalLevel != null) {
+            context.level = originalLevel
+        }
     }
 
-    public void setLevel(LogLevel level) {
+    void setLevel(LogLevel level) {
         context.level = level
     }
 }

@@ -496,6 +496,9 @@ There are several different types of repositories you can declare:
 | <<sub:maven_jcenter,Maven JCenter repository>>
 | A pre-configured repository that looks for dependencies in Bintray's JCenter.
 
+| <<sub:maven_google,Maven Google repository>>
+| A pre-configured repository that looks for dependencies in Google's Maven repository.
+
 | <<sub:maven_local,Maven local repository>>
 | A pre-configured repository that looks for dependencies in the local Maven repository.
 
@@ -544,6 +547,18 @@ Now Gradle will look for your dependencies in the JCenter repository. _jcenter()
             </sample>
 ++++
 
+[[sub:maven_google]]
+==== Maven Google repository
+
+The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples please the [relevant documentation](https://developer.android.com/studio/build/dependencies.html#google-maven).
+
+To add the Google Maven repository (https://maven.google.com[]) simply add this to your build script:
+
+++++
+<sample id="mavenGoogleRepo" dir="userguide/artifacts/defineRepository" title="Adding Google Maven repository">
+    <sourcefile file="build.gradle" snippet="maven-google"/>
+</sample>
+++++
 
 [[sub:maven_local]]
 ==== Local Maven repository
