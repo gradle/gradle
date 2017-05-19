@@ -30,7 +30,6 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         buildFile << javaProject()
     }
 
-    @NotYetImplemented
     def "can group failed test log event with task by default"() {
         executer.withStackTraceChecksDisabled()
 
@@ -40,13 +39,12 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         }
 
         when:
-        fails(TEST_TASK_NAME)
+        fails(TEST_TASK_NAME, "-Dorg.gradle.internal.operations.trace=${file().absolutePath}")
 
         then:
         parseAndAssertTaskOutput(output, TEST_TASK_GROUP_HEADER, '1 test completed, 1 failed', testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
     }
 
-    @NotYetImplemented
     def "can group skipped test log event with task if configured"() {
         given:
         buildFile << testLoggingEvents(TestLogEvent.SKIPPED.testLoggingIdentifier)
@@ -69,7 +67,6 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         parseAndAssertTaskOutput(output, TEST_TASK_GROUP_HEADER, BUILD_SUCCESSFUL_OUTPUT, testLogEventRegex(TestLogEvent.SKIPPED.consoleMarker))
     }
 
-    @NotYetImplemented
     def "can group started test log event with task if configured"() {
         given:
         buildFile << testLoggingEvents(TestLogEvent.STARTED.testLoggingIdentifier)
@@ -82,7 +79,6 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         parseAndAssertTaskOutput(output, TEST_TASK_GROUP_HEADER, BUILD_SUCCESSFUL_OUTPUT, testLogEventRegex(TestLogEvent.STARTED.consoleMarker))
     }
 
-    @NotYetImplemented
     def "can group standard output streams with task if configured"() {
         given:
         buildFile << testLoggingStandardStream()
@@ -105,7 +101,6 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
     standard error""")
     }
 
-    @NotYetImplemented
     def "can group multiple test log events with task"() {
         executer.withStackTraceChecksDisabled()
 

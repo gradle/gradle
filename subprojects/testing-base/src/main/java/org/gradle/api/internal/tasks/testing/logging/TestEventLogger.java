@@ -25,6 +25,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.util.TextUtil;
 
 /**
@@ -35,11 +36,13 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
 
     private final TestExceptionFormatter exceptionFormatter;
     private final TestLogging testLogging;
+    private final Object parentBuildOperationId;
 
-    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter) {
+    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter, Object parentBuildOperationId) {
         super(textOutputFactory, logLevel, testLogging.getDisplayGranularity());
         this.exceptionFormatter = exceptionFormatter;
         this.testLogging = testLogging;
+        this.parentBuildOperationId = parentBuildOperationId;
     }
 
     @Override
@@ -66,16 +69,16 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     public void onOutput(TestDescriptor descriptor, TestOutputEvent outputEvent) {
         if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut
             && isLoggedEventType(TestLogEvent.STANDARD_OUT)) {
-            logEvent(descriptor, TestLogEvent.STANDARD_OUT, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
+            log(descriptor, TestLogEvent.STANDARD_OUT, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr
             && isLoggedEventType(TestLogEvent.STANDARD_ERROR)) {
-            logEvent(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
+            log(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         }
     }
 
     private void before(TestDescriptor descriptor) {
         if (shouldLogEvent(descriptor, TestLogEvent.STARTED)) {
-            logEvent(descriptor, TestLogEvent.STARTED);
+            log(descriptor, TestLogEvent.STARTED, null);
         }
     }
 
@@ -84,7 +87,7 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
 
         if (shouldLogEvent(descriptor, event)) {
             String details = shouldLogExceptions(result) ? exceptionFormatter.format(descriptor, result.getExceptions()) : null;
-            logEvent(descriptor, event, details);
+            log(descriptor, event, details);
         }
     }
 
@@ -94,6 +97,16 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
             case FAILURE: return TestLogEvent.FAILED;
             case SKIPPED: return TestLogEvent.SKIPPED;
             default: throw new AssertionError();
+        }
+    }
+
+    private void log(TestDescriptor descriptor, TestLogEvent event, String details) {
+        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(parentBuildOperationId);
+
+        try {
+            logEvent(descriptor, event, details);
+        } finally {
+            BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
         }
     }
 
