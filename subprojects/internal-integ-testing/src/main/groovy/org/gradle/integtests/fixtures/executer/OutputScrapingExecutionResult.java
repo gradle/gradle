@@ -19,7 +19,7 @@ import com.google.common.io.CharSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.integtests.fixtures.logging.TaskGroupingFixture;
+import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.util.TextUtil;
@@ -69,12 +69,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return normalize(output);
     }
 
-    TaskGroupingFixture groupedOutputFixture;
+    GroupedOutputFixture groupedOutputFixture;
 
     @Override
-    public TaskGroupingFixture getGroupedOutput() {
+    public GroupedOutputFixture getGroupedOutput() {
         if (groupedOutputFixture == null) {
-            groupedOutputFixture = new TaskGroupingFixture(getOutput());
+            groupedOutputFixture = new GroupedOutputFixture(getOutput());
         }
         return groupedOutputFixture;
     }

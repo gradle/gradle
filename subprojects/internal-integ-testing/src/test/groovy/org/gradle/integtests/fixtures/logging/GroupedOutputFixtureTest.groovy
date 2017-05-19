@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.logging
 
 import spock.lang.Specification
 
-class TaskGroupingFixtureTest extends Specification {
+class GroupedOutputFixtureTest extends Specification {
 
     def "parses task names"() {
         given:
@@ -42,13 +42,13 @@ Handles lots of newline characters
 \u001B[2K
 """
         when:
-        TaskGroupingFixture fixture = new TaskGroupingFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
 
         then:
-        assert fixture.taskNames.size() == 3
-        fixture.getOutput(':1:log') == 'Output from 1'
-        fixture.outputs[':2:log'] == 'Output from 2\nMore output from 2'
-        fixture.getOutput(':3:log') == 'Output from 3\n\n\n\nHandles lots of newline characters'
+        groupedOutput.taskCount == 3
+        groupedOutput.task(':1:log').output == 'Output from 1'
+        groupedOutput.task(':2:log').output == 'Output from 2\nMore output from 2'
+        groupedOutput.task(':3:log').output == 'Output from 3\n\n\n\nHandles lots of newline characters'
     }
 
     def "parses incremental tasks"() {
@@ -64,11 +64,11 @@ Second incremental output
 \u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 1s
 """
         when:
-        TaskGroupingFixture fixture = new TaskGroupingFixture(consoleOutput)
+        GroupedOutputFixture fixture = new GroupedOutputFixture(consoleOutput)
 
         then:
-        assert fixture.taskNames.size() == 1
-        fixture.outputs[':longRunningTask'] == 'First incremental output\nSecond incremental output'
+        fixture.taskCount == 1
+        fixture.task(':longRunningTask').output == 'First incremental output\nSecond incremental output'
     }
 
     def "parses tasks with progress bar interference"() {
@@ -88,11 +88,11 @@ Output from 2
 \u001B[2K
 """
         when:
-        TaskGroupingFixture fixture = new TaskGroupingFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
 
         then:
-        assert fixture.taskNames.size() == 2
-        fixture.outputs[':1:log'] == 'Output from 1'
-        fixture.outputs[':2:log'] == 'Output from 2'
+        groupedOutput.taskCount == 2
+        groupedOutput.task(':1:log').output == 'Output from 1'
+        groupedOutput.task(':2:log').output == 'Output from 2'
     }
 }

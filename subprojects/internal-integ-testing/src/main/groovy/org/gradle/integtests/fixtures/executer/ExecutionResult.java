@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.integtests.fixtures.logging.TaskGroupingFixture;
+import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 
 import java.util.List;
 import java.util.Set;
@@ -43,7 +43,7 @@ public interface ExecutionResult {
      *
      * <b>NOTE:</b> this is only supported when using {@link org.gradle.api.logging.configuration.ConsoleOutput#Rich}
      */
-    TaskGroupingFixture getGroupedOutput();
+    GroupedOutputFixture getGroupedOutput();
 
     /**
      * Stderr of the Gradle execution, normalized to use new-line char as line separator.

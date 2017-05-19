@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.gradle.integtests.fixtures.logging;
 
 import org.apache.commons.collections.map.HashedMap;
@@ -10,7 +26,7 @@ import java.util.regex.Pattern;
  * Parses rich console output into its pieces for verification in functional tests
  * TODO: Rename to GroupedOutputFixture
  */
-public class TaskGroupingFixture {
+public class GroupedOutputFixture {
 
     /**
      * All tasks will start with > Task, captures everything starting with : and going until a control char
@@ -22,17 +38,17 @@ public class TaskGroupingFixture {
     private final static String PROGRESS_BAR = "\u001B\\[0K\\n\u001B\\[1A \\[1m<";
     private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + PROGRESS_BAR;
 
-    private static String PRECOMPILED_PATTERN;
     private static final Pattern TASK_OUTPUT_PATTERN;
+    private static String precompiledPattern;
 
     static {
-        PRECOMPILED_PATTERN = "(?ms)";
-        PRECOMPILED_PATTERN += TASK_HEADER;
+        precompiledPattern = "(?ms)";
+        precompiledPattern += TASK_HEADER;
         // Capture all output, lazily up until two new lines and an END_OF_TASK designation
-        PRECOMPILED_PATTERN += "(.*?(?=\\n\\n(?:[^\\n]*?" + END_OF_TASK_OUTPUT + ")))";
-        TASK_OUTPUT_PATTERN = Pattern.compile(PRECOMPILED_PATTERN);
+        precompiledPattern += "(.*?(?=\\n\\n(?:[^\\n]*?" + END_OF_TASK_OUTPUT + ")))";
+        TASK_OUTPUT_PATTERN = Pattern.compile(precompiledPattern);
         //TODO: Remove once stable
-        System.err.println(PRECOMPILED_PATTERN);
+        System.err.println(precompiledPattern);
     }
 
     /**
@@ -41,7 +57,7 @@ public class TaskGroupingFixture {
     private final String output;
     private Map<String, GroupedTaskFixture> tasks;
 
-    public TaskGroupingFixture(String output) {
+    public GroupedOutputFixture(String output) {
         this.output = output;
         parse(output);
     }
