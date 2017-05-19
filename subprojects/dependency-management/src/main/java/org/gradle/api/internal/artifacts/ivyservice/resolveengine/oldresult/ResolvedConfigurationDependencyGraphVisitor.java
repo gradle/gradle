@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -40,7 +39,7 @@ import java.util.Map;
  * Adapts a {@link ResolvedConfigurationBuilder}, which is responsible for assembling the resolved configuration result, to a {@link DependencyGraphVisitor} and
  * {@link DependencyArtifactsVisitor}.
  */
-public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisitor, DependencyArtifactsVisitor {
+public class ResolvedConfigurationDependencyGraphVisitor implements DependencyArtifactsVisitor {
     private final ResolvedConfigurationBuilder builder;
     private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
     private DependencyGraphNode root;
@@ -49,10 +48,7 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
         this.builder = builder;
     }
 
-    public void start(DependencyGraphNode root) {
-        this.root = root;
-    }
-
+    @Override
     public void visitNode(DependencyGraphNode node) {
         builder.newResolvedDependency(node);
         for (DependencyGraphEdge dependency : node.getOutgoingEdges()) {
@@ -61,13 +57,6 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
                 addUnresolvedDependency(dependency, dependency.getRequestedModuleVersion(), failure);
             }
         }
-    }
-
-    @Override
-    public void visitSelector(DependencyGraphSelector selector) {
-    }
-
-    public void visitEdges(DependencyGraphNode node) {
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
             if (dependency.getFrom() == root) {
                 ModuleDependency moduleDependency = dependency.getModuleDependency();
@@ -78,6 +67,7 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
 
     @Override
     public void startArtifacts(DependencyGraphNode root) {
+        this.root = root;
     }
 
     @Override
@@ -89,12 +79,10 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
         builder.addChild(from, to, artifacts.getId());
     }
 
-    public void finish(DependencyGraphNode root) {
+    @Override
+    public void finishArtifacts() {
         attachFailures(builder);
         builder.done(root);
-    }
-
-    public void finishArtifacts() {
     }
 
     private void attachFailures(ResolvedConfigurationBuilder result) {

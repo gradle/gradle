@@ -26,12 +26,14 @@ public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
         this.visitors = Arrays.asList(visitors);
     }
 
+    @Override
     public void start(DependencyGraphNode root) {
         for (DependencyGraphVisitor visitor : visitors) {
             visitor.start(root);
         }
     }
 
+    @Override
     public void visitNode(DependencyGraphNode node) {
         for (DependencyGraphVisitor visitor : visitors) {
             visitor.visitNode(node);
@@ -45,12 +47,14 @@ public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
         }
     }
 
+    @Override
     public void visitEdges(DependencyGraphNode node) {
         for (DependencyGraphVisitor visitor : visitors) {
             visitor.visitEdges(node);
         }
     }
 
+    @Override
     public void finish(DependencyGraphNode root) {
         for (DependencyGraphVisitor visitor : visitors) {
             visitor.finish(root);
