@@ -35,11 +35,6 @@ public class NoBuildDependenciesArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public ArtifactSet snapshot() {
-        return new NoBuildDependenciesArtifactSet(set.snapshot());
-    }
-
-    @Override
     public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
         final ResolvedArtifactSet selectedArtifacts = set.select(componentFilter, selector);
         if (selectedArtifacts == ResolvedArtifactSet.EMPTY) {

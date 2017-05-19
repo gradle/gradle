@@ -37,7 +37,7 @@ class DefaultArtifactSetTest extends Specification {
 
     def "returns empty set when component id does not match spec"() {
         def variant1 = Stub(VariantMetadata)
-        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, artifactTypeRegistry)
+        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, artifactTypeRegistry).snapshot()
 
         expect:
         def selected = artifactSet.select({false}, Stub(VariantSelector))
@@ -48,7 +48,7 @@ class DefaultArtifactSetTest extends Specification {
         def variant1 = Stub(VariantMetadata)
         def resolvedVariant1 = Stub(ResolvedArtifactSet)
         def selector = Stub(VariantSelector)
-        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, artifactTypeRegistry)
+        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, artifactTypeRegistry).snapshot()
 
         given:
         selector.select(_) >> resolvedVariant1

@@ -43,7 +43,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultArtifactSet implements ArtifactSet {
+public class DefaultArtifactSet {
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleSource moduleSource;
@@ -68,17 +68,6 @@ public class DefaultArtifactSet implements ArtifactSet {
         this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
-    @Override
-    public long getId() {
-        return id;
-    }
-
-    @Override
-    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
-        return snapshot().select(componentFilter, selector);
-    }
-
-    @Override
     public ArtifactSet snapshot() {
         ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
         for (VariantMetadata variant : variants) {
@@ -123,11 +112,6 @@ public class DefaultArtifactSet implements ArtifactSet {
         @Override
         public long getId() {
             return id;
-        }
-
-        @Override
-        public ArtifactSet snapshot() {
-            return this;
         }
 
         @Override

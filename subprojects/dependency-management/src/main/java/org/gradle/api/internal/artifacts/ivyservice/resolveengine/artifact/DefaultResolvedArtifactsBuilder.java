@@ -87,11 +87,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     public VisitedArtifactsResults complete() {
-        Map<Long, ArtifactSet> artifactsById = newLinkedHashMap();
-        for (Map.Entry<Long, ArtifactSet> entry : artifactSetsById.entrySet()) {
-            artifactsById.put(entry.getKey(), entry.getValue().snapshot());
-        }
-
-        return new DefaultVisitedArtifactResults(sortOrder, sortedNodeIds, artifactsById);
+        return new DefaultVisitedArtifactResults(sortOrder, sortedNodeIds, artifactSetsById);
     }
 }
