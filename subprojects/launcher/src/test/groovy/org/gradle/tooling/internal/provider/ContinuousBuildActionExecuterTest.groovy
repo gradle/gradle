@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.api.execution.internal.DefaultTaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.initialization.BuildRequestMetaData
@@ -52,7 +53,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def actionParameters = Stub(BuildActionParameters)
     def waiterFactory = Mock(FileSystemChangeWaiterFactory)
     def waiter = Mock(FileSystemChangeWaiter)
-    def inputsListener = new ContinuousBuildActionExecuter.ContinuousTaskInputsListener()
+    def inputsListener = new DefaultTaskInputsListener()
     @AutoCleanup("stop")
     def executorFactory = new DefaultExecutorFactory()
     def globalServices = Stub(ServiceRegistry)

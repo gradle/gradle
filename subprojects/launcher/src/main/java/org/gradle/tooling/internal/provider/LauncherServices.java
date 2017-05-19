@@ -89,10 +89,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry implements G
                 loggingManagerFactory.create());
         }
 
-        TaskInputsListener createTaskInputsListener() {
-            return new ContinuousBuildActionExecuter.ContinuousTaskInputsListener();
-        }
-
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
             return new ExecuteBuildActionRunner();
         }

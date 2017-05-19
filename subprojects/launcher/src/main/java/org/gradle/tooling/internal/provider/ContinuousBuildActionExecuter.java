@@ -18,9 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
@@ -163,23 +160,5 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             inputsListener.setFileSystemWaiter(null);
         }
 
-    }
-
-    static class ContinuousTaskInputsListener implements TaskInputsListener {
-        private FileSystemChangeWaiter waiter;
-
-        @Override
-        public void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs) {
-            if (waiter!=null) {
-                FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
-                fileSystemInputs.registerWatchPoints(fileSystemSubsetBuilder);
-                waiter.watch(fileSystemSubsetBuilder.build());
-            }
-        }
-
-        @Override
-        public void setFileSystemWaiter(FileSystemChangeWaiter waiter) {
-            this.waiter = waiter;
-        }
     }
 }

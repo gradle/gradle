@@ -18,6 +18,8 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
+import org.gradle.api.execution.internal.DefaultTaskInputsListener;
+import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -392,5 +394,9 @@ public class GlobalScopeServices {
 
     ScriptFileResolver createScriptFileResolver(ScriptingLanguages scriptingLanguages) {
         return DefaultScriptFileResolver.forScriptingLanguages(scriptingLanguages);
+    }
+
+    TaskInputsListener createTaskInputsListener() {
+        return new DefaultTaskInputsListener();
     }
 }
