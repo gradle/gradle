@@ -18,8 +18,6 @@ package org.gradle.internal.logging.serializer
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.progress.BuildOperationCategory
-import org.gradle.internal.serialize.BaseSerializerFactory
-import org.gradle.internal.serialize.Serializer
 import spock.lang.Subject
 
 @Subject(ProgressStartEventSerializer)
@@ -32,14 +30,12 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
     ProgressStartEventSerializer serializer
 
     def setup() {
-        BaseSerializerFactory serializerFactory = new BaseSerializerFactory()
-        Serializer<BuildOperationCategory> buildOperationCategorySerializer = serializerFactory.getSerializerFor(BuildOperationCategory.class)
-        serializer = new ProgressStartEventSerializer(buildOperationCategorySerializer)
+        serializer = new ProgressStartEventSerializer()
     }
 
-    def "can serialize ProgressStartEvent messages"() {
+    def "can serialize ProgressStartEvent messages"(BuildOperationCategory category) {
         given:
-        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, DESCRIPTION, "short", "header", "status", new OperationIdentifier(42L), new OperationIdentifier(43L), BuildOperationCategory.TASK)
+        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, DESCRIPTION, "short", "header", "status", new OperationIdentifier(42L), new OperationIdentifier(43L), category)
 
         when:
         def result = serialize(event, serializer)
@@ -56,7 +52,10 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         result.status == "status"
         result.buildOperationId == new OperationIdentifier(42L)
         result.parentBuildOperationId == new OperationIdentifier(43L)
-        result.buildOperationCategory == BuildOperationCategory.TASK
+        result.buildOperationCategory == category
+
+        where:
+        category << BuildOperationCategory.values()
     }
 
     def "can serialize ProgressStartEvent messages with empty fields"() {
