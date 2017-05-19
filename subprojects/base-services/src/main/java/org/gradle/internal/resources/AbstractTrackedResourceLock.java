@@ -60,7 +60,7 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
             releaseLock();
             LOGGER.debug("{}: released lock on {}", Thread.currentThread().getName(), displayName);
             unlockAction.execute(this);
-            coordinationService.notifyStateChange();
+            coordinationService.getCurrent().registerUnlocked(this);
         }
     }
 

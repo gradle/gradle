@@ -47,7 +47,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
                     switch (disposition) {
                         case RETRY:
-                            releaseLocks(resourceLockState);
+                            resourceLockState.releaseLocks();
                             try {
                                 lock.wait();
                             } catch (InterruptedException e) {
@@ -55,15 +55,16 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                             }
                             break;
                         case FINISHED:
+                            maybeNotifyStateChange(resourceLockState);
                             return true;
                         case FAILED:
-                            releaseLocks(resourceLockState);
+                            resourceLockState.releaseLocks();
                             return false;
                         default:
                             throw new IllegalArgumentException("Unhandled disposition type: " + disposition.name());
                     }
                 } catch (Throwable t) {
-                    releaseLocks(resourceLockState);
+                    resourceLockState.releaseLocks();
                     throw UncheckedException.throwAsUncheckedException(t);
                 } finally {
                     currentState.get().remove(resourceLockState);
@@ -82,29 +83,58 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
-    @Override
-    public void notifyStateChange() {
+    private void maybeNotifyStateChange(DefaultResourceLockState resourceLockState) {
+        if (resourceLockState.hasUnlockedResources()) {
+            notifyStateChange();
+        }
+    }
+
+    private void notifyStateChange() {
         synchronized (lock) {
             lock.notifyAll();
         }
     }
 
-    private void releaseLocks(DefaultResourceLockState stateLock) {
-        for (ResourceLock resourceLock : stateLock.getResourceLocks()) {
-            resourceLock.unlock();
-        }
-    }
-
     private static class DefaultResourceLockState implements ResourceLockState {
-        private final Set<ResourceLock> resourceLocks = Sets.newHashSet();
+        private Set<ResourceLock> lockedResources;
+        private Set<ResourceLock> unlockedResources;
+        boolean rollback;
 
         @Override
         public void registerLocked(ResourceLock resourceLock) {
-            resourceLocks.add(resourceLock);
+            if (!rollback && (unlockedResources == null || !unlockedResources.remove(resourceLock))) {
+                if (lockedResources == null) {
+                    lockedResources = Sets.newHashSet();
+                }
+                lockedResources.add(resourceLock);
+            }
         }
 
-        Set<ResourceLock> getResourceLocks() {
-            return resourceLocks;
+        @Override
+        public void registerUnlocked(ResourceLock resourceLock) {
+            if (!rollback && (lockedResources == null || !lockedResources.remove(resourceLock))) {
+                if (unlockedResources == null) {
+                    unlockedResources = Sets.newHashSet();
+                }
+                unlockedResources.add(resourceLock);
+            }
+        }
+
+        boolean hasUnlockedResources() {
+            return unlockedResources != null && !unlockedResources.isEmpty();
+        }
+
+        void releaseLocks() {
+            if (lockedResources != null) {
+                rollback = true;
+                try {
+                    for (ResourceLock resourceLock : lockedResources) {
+                        resourceLock.unlock();
+                    }
+                } finally {
+                    rollback = false;
+                }
+            }
         }
     }
 

@@ -46,6 +46,9 @@
                 <td>jcenter</td>
             </tr>
             <tr>
+                <td>google</td>
+            </tr>
+            <tr>
                 <td>mavenLocal</td>
             </tr>
             <tr>
