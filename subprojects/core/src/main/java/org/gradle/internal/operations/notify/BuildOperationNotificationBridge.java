@@ -17,7 +17,6 @@
 package org.gradle.internal.operations.notify;
 
 import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
@@ -27,17 +26,14 @@ import org.gradle.internal.progress.OperationStartEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar, Stoppable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
-    private final List<Listener> listeners = new CopyOnWriteArrayList<Listener>();
-
+    private Listener operationListener;
     private final BuildOperationListenerManager buildOperationListenerManager;
 
     BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager) {
@@ -46,14 +42,19 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
 
     @Override
     public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
-        Listener listener = new Listener(notificationListener, buildOperationListenerManager);
-        listeners.add(listener);
-        buildOperationListenerManager.addListener(listener);
+        if (operationListener == null) {
+            operationListener = new Listener(notificationListener);
+            buildOperationListenerManager.addListener(operationListener);
+        } else {
+            throw new IllegalStateException("listener is already registered");
+        }
     }
 
     @Override
     public void stop() {
-        CompositeStoppable.stoppable(listeners).stop();
+        if (operationListener != null) {
+            buildOperationListenerManager.removeListener(operationListener);
+        }
     }
 
     /*
@@ -64,17 +65,15 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
         OperationStartEvent. This will happen later.
      */
 
-    private static class Listener implements BuildOperationListener, Stoppable {
+    private static class Listener implements BuildOperationListener {
 
-        private final BuildOperationNotificationListener listener;
-        private final BuildOperationListenerManager buildOperationListenerManager;
+        private final BuildOperationNotificationListener notificationListener;
 
         private final Map<Object, Object> parents = new ConcurrentHashMap<Object, Object>();
         private final Map<Object, Object> active = new ConcurrentHashMap<Object, Object>();
 
-        private Listener(BuildOperationNotificationListener listener, BuildOperationListenerManager buildOperationListenerManager) {
-            this.listener = listener;
-            this.buildOperationListenerManager = buildOperationListenerManager;
+        private Listener(BuildOperationNotificationListener notificationListener) {
+            this.notificationListener = notificationListener;
         }
 
         @Override
@@ -100,7 +99,7 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
 
             Started notification = new Started(id, parentId, buildOperation.getDetails());
             try {
-                listener.started(notification);
+                notificationListener.started(notification);
             } catch (Exception e) {
                 LOGGER.debug("Build operation notification listener threw an error on " + notification, e);
             }
@@ -116,16 +115,10 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
 
             Finished notification = new Finished(id, buildOperation.getDetails(), finishEvent.getResult(), finishEvent.getFailure());
             try {
-                listener.finished(notification);
+                notificationListener.finished(notification);
             } catch (Exception e) {
                 LOGGER.debug("Build operation notification listener threw an error on " + notification, e);
             }
-        }
-
-        @Override
-        public void stop() {
-            buildOperationListenerManager.removeListener(this);
-            active.clear();
         }
     }
 

@@ -54,6 +54,15 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
     }
 
+    def "does not allow duplicate registration"() {
+        when:
+        register(listener)
+        register(listener)
+
+        then:
+        thrown IllegalStateException
+    }
+
     def "forwards operations with details"() {
         given:
         def d1 = d(1, null, 1)
@@ -231,7 +240,9 @@ class BuildOperationNotificationBridgeTest extends Specification {
     }
 
     void register(BuildOperationNotificationListener listener) {
-        bridge = new BuildOperationNotificationBridge(listenerManager)
+        if (bridge == null) {
+            bridge = new BuildOperationNotificationBridge(listenerManager)
+        }
         bridge.registerBuildScopeListener(listener)
     }
 }
