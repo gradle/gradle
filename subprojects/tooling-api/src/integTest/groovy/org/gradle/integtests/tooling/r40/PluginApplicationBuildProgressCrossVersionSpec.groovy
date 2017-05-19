@@ -432,19 +432,20 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
 
         def buildSrc = events.operation("Build buildSrc")
         def groovyPlugin = buildSrc.child("Apply plugin org.gradle.api.plugins.GroovyPlugin to project ':buildSrc'")
+        def configureBuildSrcBuild = buildSrc.child({ it.startsWith("Configure build") })
 
-        def configureBuildSrcRoot = buildSrc.child("Configure build").child("Configure project :buildSrc")
+        def configureBuildSrcRoot = configureBuildSrcBuild.child("Configure project :buildSrc")
         configureBuildSrcRoot.child("Apply plugin org.gradle.help-tasks to project ':buildSrc'")
         configureBuildSrcRoot.children("Apply plugin org.gradle.java to project ':buildSrc'").empty
 
         def applyBuildSrcBuildGradle = events.operation("Apply script build.gradle to project ':buildSrc'")
         applyBuildSrcBuildGradle.children("Apply plugin org.gradle.java to project ':buildSrc'").empty
 
-        def configureBuildSrcA = buildSrc.child("Configure build").child("Configure project :buildSrc:a")
+        def configureBuildSrcA = configureBuildSrcBuild.child("Configure project :buildSrc:a")
         configureBuildSrcA.child("Apply plugin org.gradle.help-tasks to project ':buildSrc:a'")
         configureBuildSrcA.children("Apply plugin org.gradle.java to project ':buildSrc:a'").empty
 
-        def configureBuildSrcB = buildSrc.child("Configure build").child("Configure project :buildSrc:b")
+        def configureBuildSrcB = configureBuildSrcBuild.child("Configure project :buildSrc:b")
         configureBuildSrcB.child("Apply plugin org.gradle.help-tasks to project ':buildSrc:b'")
         configureBuildSrcB.children("Apply plugin org.gradle.java to project ':buildSrc:b'").empty
 

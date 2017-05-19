@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.fixture
 
 import junit.framework.AssertionFailedError
+import org.gradle.api.specs.Spec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.FailureResult
@@ -315,6 +316,14 @@ class ProgressEvents implements ProgressListener {
         List<Failure> getFailures() {
             assert result instanceof FailureResult
             return result.failures
+        }
+
+        Operation child(Spec<String> displayNameSpec) {
+            def child = children.find { displayNameSpec.isSatisfiedBy(it.descriptor.displayName) }
+            if (child == null) {
+                throw new AssertionFailedError("No operation matching display name found in children of '$descriptor.displayName':\n${describeList(children)}")
+            }
+            return child
         }
 
         Operation child(String... displayNames) {
