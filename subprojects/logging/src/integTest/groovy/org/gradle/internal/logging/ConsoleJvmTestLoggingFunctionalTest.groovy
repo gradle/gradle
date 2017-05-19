@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 
 class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec {
@@ -130,6 +131,30 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
     standard output""")
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.STARTED.consoleMarker))
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
+    }
+
+    @NotYetImplemented
+    def "can group output from custom test listener with task"() {
+        buildFile << """
+            test {
+                beforeTest { descriptor ->
+                    logger.quiet 'Starting test: ' + descriptor.className + ' > ' + descriptor.name
+                }
+                afterTest { descriptor, result ->
+                    logger.quiet 'Finishing test: ' + descriptor.className + ' > ' + descriptor.name
+                }
+            }
+        """
+        file(JAVA_TEST_FILE_PATH) << javaTestClass { '' }
+
+        when:
+        succeeds(TEST_TASK_NAME)
+
+        then:
+        def taskOutput = taskOutput(TEST_TASK_PATH)
+        taskOutput.size() == 1
+        taskOutput[0].contains('Starting test: MyTest > testExpectation')
+        taskOutput[0].contains('Finishing test: MyTest > testExpectation')
     }
 
     static String javaProject() {
