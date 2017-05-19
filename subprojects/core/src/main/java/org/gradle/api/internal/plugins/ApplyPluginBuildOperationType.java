@@ -19,7 +19,6 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Nullable;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.plugin.use.PluginId;
 
 /**
  * Details about a plugin being applied.
@@ -31,30 +30,33 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
     @UsedByScanPlugin
     public interface Details {
 
+        /**
+         * The fully qualified plugin ID, if known.
+         */
         @Nullable
         String getPluginId();
 
+        /**
+         * The fully qualified class name of the Plugin implementation.
+         */
         String getClassName();
 
-    }
+        /**
+         * The target of the plugin.
+         * One of "gradle", "settings", "project" or null.
+         */
+        String getTargetType();
 
-    static class DetailsImpl implements Details {
-        private PluginId pluginId;
-        private String className;
-
-        DetailsImpl(@Nullable PluginId pluginId, String className) {
-            this.pluginId = pluginId;
-            this.className = className;
-        }
-
+        /**
+         * If the target is a project, its path.
+         */
         @Nullable
-        public String getPluginId() {
-            return pluginId.getId();
-        }
+        String getTargetPath();
 
-        public String getClassName() {
-            return className;
-        }
+        /**
+         * The build path of the target.
+         */
+        String getBuildPath();
     }
 
     private ApplyPluginBuildOperationType() {

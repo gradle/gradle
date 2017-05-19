@@ -18,15 +18,21 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
+import org.gradle.configuration.ConfigurationTargetIdentifier;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class ImperativeOnlyPluginTarget<T> implements PluginTarget {
+public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implements PluginTarget {
 
     private final T target;
 
     public ImperativeOnlyPluginTarget(T target) {
         this.target = target;
+    }
+
+    @Override
+    public ConfigurationTargetIdentifier getConfigurationTargetIdentifier() {
+        return target.getConfigurationTargetIdentifier();
     }
 
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {

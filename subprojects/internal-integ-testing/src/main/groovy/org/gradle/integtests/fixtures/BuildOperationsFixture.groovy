@@ -46,39 +46,64 @@ class BuildOperationsFixture {
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
-    public <T extends BuildOperationType<?, ?>> BuildOperationRecord operation(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+    public <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.records.values().find {
             it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
         }
     }
 
-    BuildOperationRecord operation(String displayName) {
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> all(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        def detailsType = BuildOperationTypes.detailsType(type)
+        operations.records.values().findAll {
+            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+        }
+    }
+
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> BuildOperationRecord only(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        def records = all(type, predicate)
+        assert records.size() == 1
+        records.first()
+    }
+
+    BuildOperationRecord first(String displayName) {
         operations.records.values().find { it.displayName == displayName }
     }
 
     Map<String, ?> result(String displayName) {
-        operation(displayName).result
+        first(displayName).result
     }
 
     String failure(String displayName) {
-        operation(displayName).failure
+        first(displayName).failure
     }
 
     boolean hasOperation(String displayName) {
-        operation(displayName) != null
+        first(displayName) != null
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> boolean hasOperation(Class<T> type) {
-        operation(type) != null
+        first(type) != null
     }
 
-    List<BuildOperationRecord> search(BuildOperationRecord parent, Spec<? super BuildOperationRecord> predicate) {
-        def matches = []
-        def search = new ConcurrentLinkedQueue<BuildOperationRecord>()
+    @SuppressWarnings(["GrMethodMayBeStatic", "GrUnnecessaryPublicModifier"])
+    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> search(BuildOperationRecord parent, Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
+        def detailsType = BuildOperationTypes.detailsType(type)
+        Spec<BuildOperationRecord> typeSpec = {
+            it.detailsType && detailsType.isAssignableFrom(it.detailsType)
+        }
+        search(parent, Specs.intersect(typeSpec, predicate))
+    }
 
-        def operation = parent
+    @SuppressWarnings("GrMethodMayBeStatic")
+    List<BuildOperationRecord> search(BuildOperationRecord parent, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
+        def matches = []
+        def search = new ConcurrentLinkedQueue<BuildOperationRecord>(parent.children)
+
+        def operation = search.poll()
         while (operation != null) {
             if (predicate.isSatisfiedBy(operation)) {
                 matches << operation

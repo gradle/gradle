@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
+import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -37,6 +38,11 @@ public class RuleBasedPluginTarget<T extends ModelRegistryScope & PluginAwareInt
         this.ruleInspector = ruleInspector;
         this.ruleDetector = ruleDetector;
         this.imperativeTarget = new ImperativeOnlyPluginTarget<T>(target);
+    }
+
+    @Override
+    public ConfigurationTargetIdentifier getConfigurationTargetIdentifier() {
+        return imperativeTarget.getConfigurationTargetIdentifier();
     }
 
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
