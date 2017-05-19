@@ -164,6 +164,9 @@ import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
+import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.util.List;
 
@@ -465,5 +468,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
         return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
+    }
+
+    protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions) {
+        ToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry();
+        for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
+            registryAction.execute(registry);
+        }
+        return registry;
     }
 }
