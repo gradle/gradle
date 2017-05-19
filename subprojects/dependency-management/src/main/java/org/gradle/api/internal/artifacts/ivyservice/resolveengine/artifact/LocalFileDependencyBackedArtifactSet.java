@@ -86,7 +86,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             selectedArtifacts.add(selector.select(variant));
         }
 
-        return CompositeArtifactSet.of(selectedArtifacts).startVisit(actions, listener);
+        return CompositeResolvedArtifactSet.of(selectedArtifacts).startVisit(actions, listener);
     }
 
     @Override

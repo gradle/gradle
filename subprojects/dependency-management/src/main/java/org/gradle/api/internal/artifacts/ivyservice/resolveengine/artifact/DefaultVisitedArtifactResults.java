@@ -71,7 +71,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
             allArtifactSets = reversed;
         }
 
-        ResolvedArtifactSet composite = CompositeArtifactSet.of(allArtifactSets);
+        ResolvedArtifactSet composite = CompositeResolvedArtifactSet.of(allArtifactSets);
         return new DefaultSelectedArtifactResults(composite, resolvedArtifactsById, artifactsByNodeId);
     }
 
@@ -121,7 +121,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
             for (Long artifactSetId : artifactSets) {
                 resolvedArtifactSets.add(resolvedArtifactsById.get(artifactSetId));
             }
-            return CompositeArtifactSet.of(resolvedArtifactSets);
+            return CompositeResolvedArtifactSet.of(resolvedArtifactSets);
         }
 
         @Override

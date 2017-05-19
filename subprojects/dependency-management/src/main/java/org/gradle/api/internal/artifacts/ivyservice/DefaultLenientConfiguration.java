@@ -34,7 +34,7 @@ import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
@@ -285,7 +285,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             walker.add(node);
         }
         walker.findValues();
-        ParallelResolveArtifactSet.wrap(CompositeArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
+        ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
     }
 
     public ConfigurationInternal getConfiguration() {

@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class CompositeArtifactSet implements ResolvedArtifactSet {
+public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     private final List<ResolvedArtifactSet> sets;
 
-    private CompositeArtifactSet(List<ResolvedArtifactSet> sets) {
+    private CompositeResolvedArtifactSet(List<ResolvedArtifactSet> sets) {
         this.sets = sets;
     }
 
@@ -43,7 +43,7 @@ public class CompositeArtifactSet implements ResolvedArtifactSet {
         if (filtered.size() == 1) {
             return filtered.get(0);
         }
-        return new CompositeArtifactSet(filtered);
+        return new CompositeResolvedArtifactSet(filtered);
     }
 
     @Override
