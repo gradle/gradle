@@ -16,32 +16,28 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.internal.logging.text.Span
+import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 
-class TestStyledLabel implements StyledLabel {
-    String display = ""
+class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
+    def "shows progress bar and percent phase completion"() {
+        given:
+        buildFile << "task hello { doFirst { println 'hello world' } }"
 
-    String getDisplay() {
-        display
+        when:
+        succeeds('hello')
+
+        then:
+        result.output =~ "<=*-*> \\d% EXECUTING"
     }
 
-    @Override
-    void setText(String text) {
-        display = text;
-    }
+    def "shows build timer after build phase"() {
+        given:
+        buildFile << "task hello { doFirst { println 'hello world' } }"
 
-    @Override
-    void setText(List<Span> spans) {
-        String text = ""
-        for (Span span : spans) {
-            text += span.text
-        }
+        when:
+        succeeds('hello')
 
-        setText(text)
-    }
-
-    @Override
-    void setText(Span... spans) {
-        setText(Arrays.asList(spans))
+        then:
+        result.output =~ "\\d% EXECUTING \\[\\d+s\\]"
     }
 }
