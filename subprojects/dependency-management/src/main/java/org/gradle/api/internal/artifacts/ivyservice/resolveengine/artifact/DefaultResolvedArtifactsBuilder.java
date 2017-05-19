@@ -34,11 +34,11 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
  * Collects all artifacts and their build dependencies.
  */
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
-    private final Map<Long, Set<ArtifactSet>> sortedNodeIds = newLinkedHashMap();
     private final boolean buildProjectDependencies;
+    private final ResolutionStrategy.SortOrder sortOrder;
+    private final Map<Long, Set<Long>> sortedNodeIds = newLinkedHashMap();
     private final Map<Long, ArtifactSet> artifactSetsById = newLinkedHashMap();
     private final Set<Long> buildableArtifactSets = new HashSet<Long>();
-    private final ResolutionStrategy.SortOrder sortOrder;
 
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
         this.buildProjectDependencies = buildProjectDependencies;
@@ -51,20 +51,18 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
 
     @Override
     public void visitNode(DependencyGraphNode node) {
-        sortedNodeIds.put(node.getNodeId(), Sets.<ArtifactSet>newLinkedHashSet());
+        sortedNodeIds.put(node.getNodeId(), Sets.<Long>newLinkedHashSet());
     }
 
     @Override
     public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifacts) {
         collectArtifactsFor(from, artifacts);
-        artifactSetsById.put(artifacts.getId(), artifacts);
         buildableArtifactSets.add(artifacts.getId());
     }
 
     @Override
     public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
         collectArtifactsFor(to, artifacts);
-        artifactSetsById.put(artifacts.getId(), artifacts);
 
         // Don't collect build dependencies if not required
         if (!buildProjectDependencies) {
@@ -94,7 +92,8 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     private void collectArtifactsFor(DependencyGraphNode node, ArtifactSet artifacts) {
-        sortedNodeIds.get(node.getNodeId()).add(artifacts);
+        artifactSetsById.put(artifacts.getId(), artifacts);
+        sortedNodeIds.get(node.getNodeId()).add(artifacts.getId());
     }
 
     @Override

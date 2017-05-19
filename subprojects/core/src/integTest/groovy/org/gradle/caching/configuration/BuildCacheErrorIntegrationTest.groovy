@@ -105,6 +105,6 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         fails("compileJava")
         then:
-        result.error.contains("No build cache service factory for configuration type 'TestBuildCache' could be found.")
+        result.error.contains("Build cache type 'TestBuildCache' has not been registered.")
     }
 }

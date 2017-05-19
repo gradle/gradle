@@ -18,6 +18,8 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.AnnotationProcessorFixture
+import spock.lang.Issue
+import spock.lang.Unroll
 
 abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -1029,4 +1031,114 @@ public class ToolImpl {
         executedAndNotSkipped ':c:compileJava'
         executedAndNotSkipped ':d:compileJava'
     }
+
+    @Unroll
+    @Issue("gradle/gradle#1913")
+    def "detects changes in compile classpath with #config change"() {
+        given:
+        buildFile << """
+            apply plugin: 'java-library'
+               
+            repositories {
+               jcenter()
+            }
+            
+            dependencies {
+               if (project.hasProperty('useCommons')) {
+                  $config 'org.apache.commons:commons-lang3:3.5'
+               }
+               
+               // There MUST be at least 3 dependencies, in that specific order, for the bug to show up.
+               // The reason is that `IncrementalTaskInputs` reports wrong information about deletions at the
+               // beginning of a list, when the collection is ordered. It has been agreed not to fix it now, but
+               // rather change the incremental compiler not to rely on this incorrect information
+               
+               $config 'net.jcip:jcip-annotations:1.0'
+               $config 'org.slf4j:slf4j-api:1.7.10'
+            }
+        """
+        file("src/main/java/Client.java") << """import org.apache.commons.lang3.exception.ExceptionUtils;
+            public class Client {
+                public void doSomething() {
+                    ExceptionUtils.rethrow(new RuntimeException("ok"));
+                }
+            }
+        """
+
+        when:
+        executer.withArgument('-PuseCommons')
+        succeeds ':compileJava'
+
+        then:
+        noExceptionThrown()
+
+        when: "Apache Commons is removed from classpath"
+        fails ':compileJava'
+
+        then:
+        failure.assertHasCause('Compilation failed; see the compiler error output for details.')
+
+        where:
+        config << ['api', 'implementation', 'compile']
+    }
+
+    @Unroll
+    def "detects changes in compile classpath order with #config"() {
+        given:
+        ['a', 'b'].each {
+            // Same class is defined in both project `a` and `b` but with a different ABI
+            // so one shadows the other depending on the order on classpath
+            file("$it/src/main/java/A.java") << """
+                public class A {
+                    public static String m_$it() { return "ok"; }
+                }
+            """
+        }
+        buildFile << """
+            apply plugin: 'java-library'
+               
+            repositories {
+               jcenter()
+            }
+            
+            dependencies {
+               switch (project.getProperty('order') as int) {
+                  case 0:
+                    $config 'org.apache.commons:commons-lang3:3.5'
+                    $config project(':a')
+                    $config project(':b')
+                    break
+                  case 1:
+                    $config 'org.apache.commons:commons-lang3:3.5'
+                    $config project(':b')
+                    $config project(':a')
+               }
+            }
+        """
+        file("src/main/java/Client.java") << """import org.apache.commons.lang3.exception.ExceptionUtils;
+            public class Client {
+                public void doSomething() {
+                    ExceptionUtils.rethrow(new RuntimeException(A.m_a()));
+                }
+            }
+        """
+
+        when:
+        executer.withArgument('-Porder=0')
+        succeeds ':compileJava'
+
+        then:
+        noExceptionThrown()
+
+        when: "Order is changed"
+        executer.withArgument('-Porder=1')
+        fails ':compileJava'
+
+        then:
+        failure.assertHasCause('Compilation failed; see the compiler error output for details.')
+
+        where:
+        config << ['api', 'implementation', 'compile']
+    }
+
 }

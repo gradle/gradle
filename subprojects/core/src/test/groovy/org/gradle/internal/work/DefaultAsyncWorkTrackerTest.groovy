@@ -168,6 +168,34 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         instant.waitFinished >= instant.completeWorker2
     }
 
+    def "can capture failures from work that is already complete"() {
+        def operation1 = Mock(BuildOperationState)
+
+        given:
+        asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
+            @Override
+            void waitForCompletion() {
+                throw new RuntimeException("BOOM!")
+            }
+
+            @Override
+            boolean isComplete() {
+                return true
+            }
+        })
+        asyncWorkTracker.registerWork(operation1, completedWorkCompletion())
+
+        when:
+        asyncWorkTracker.waitForCompletion(operation1)
+
+        then:
+        def e = thrown(DefaultMultiCauseException)
+        e.causes.size() == 1
+
+        and:
+        e.causes.get(0).message == "BOOM!"
+    }
+
     def "an error is thrown when work is submitted while being waited on"() {
         def operation1 = Mock(BuildOperationState)
 

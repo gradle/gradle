@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
-import org.gradle.caching.internal.tasks.TaskOutputCachingListener
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.Path
@@ -43,12 +42,11 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def taskArtifactState = Mock(TaskArtifactState)
     def taskOutputs = Mock(TaskOutputsInternal)
     def delegate = Mock(TaskExecuter)
-    def listener = Mock(TaskOutputCachingListener)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def executer = new ResolveBuildCacheKeyExecuter(listener, delegate, buildOperationExecutor)
+    def executer = new ResolveBuildCacheKeyExecuter(delegate, buildOperationExecutor)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
 
-    def "notifies listener after calculating cache key"() {
+    def "calculates build cache key"() {
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -70,7 +68,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         then:
         1 * task.getOutputs() >> taskOutputs
         1 * taskOutputs.getHasOutput() >> true
-        1 * listener.cacheKeyEvaluated(task, cacheKey)
         1 * cacheKey.isValid() >> true
         1 * cacheKey.getHashCode() >> "0123456789abcdef"
 
@@ -102,7 +99,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         buildOpFailure().is(failure)
     }
 
-    def "does not call listener if task has no outputs"() {
+    def "does not calculate cache key when task has no outputs"() {
         when:
         executer.execute(task, taskState, taskContext)
 

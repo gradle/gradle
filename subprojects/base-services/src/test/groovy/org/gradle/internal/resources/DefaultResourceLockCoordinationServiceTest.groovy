@@ -92,7 +92,13 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
             }
 
             lock2.lockedState = false
-            coordinationService.notifyStateChange()
+            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                @Override
+                ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                    resourceLockState.registerUnlocked(lock2)
+                    return FINISHED
+                }
+            })
 
             thread.blockUntil.executed2
         }
