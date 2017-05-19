@@ -31,11 +31,15 @@ public class BuildOperationIdentifierPreservingRunnable implements Runnable {
 
     @Override
     public void run() {
-        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(buildOperationId);
-        try {
+        if (buildOperationId == null) {
             delegate.run();
-        } finally {
-            BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
+        } else {
+            BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(buildOperationId);
+            try {
+                delegate.run();
+            } finally {
+                BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
+            }
         }
     }
 }

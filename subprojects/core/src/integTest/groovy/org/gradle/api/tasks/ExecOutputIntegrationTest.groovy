@@ -20,11 +20,13 @@ import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import spock.lang.Issue
 import spock.util.environment.OperatingSystem
 
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
     private static final String EXPECTED_OUTPUT = "Hello, World!"
 
     @Issue("https://github.com/gradle/gradle/issues/2009")
-    def "Project#javaexec output is grouped with it's task output"() {
+    def "Project#javaexec output is grouped with its task output"() {
         given:
         generateMainJavaFileEchoing(EXPECTED_OUTPUT)
         buildFile << """apply plugin: 'java'
@@ -44,11 +46,11 @@ task run {
         succeeds("run")
 
         then:
-        (result.output =~ /(?ms)(> Task :run.*?$EXPECTED_OUTPUT)/).find()
+        normaliseLineSeparators(taskOutput(":run")[0]) == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2009")
-    def "JavaExec task output is grouped with it's task output"() {
+    def "JavaExec task output is grouped with its task output"() {
         given:
         generateMainJavaFileEchoing(EXPECTED_OUTPUT)
         buildFile << """apply plugin: 'java'
@@ -64,11 +66,11 @@ task run(type: JavaExec) {
         succeeds("run")
 
         then:
-        (result.output =~ /(?ms)(> Task :run.*?$EXPECTED_OUTPUT)/).find()
+        normaliseLineSeparators(taskOutput(":run")[0]) == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2009")
-    def "Project#exec output is grouped with it's task output"() {
+    def "Project#exec output is grouped with its task output"() {
         given:
         buildFile << """task run {
     doLast {
@@ -83,11 +85,11 @@ task run(type: JavaExec) {
         succeeds("run")
 
         then:
-        (result.output =~ /(?ms)(> Task :run.*?$EXPECTED_OUTPUT)/).find()
+        taskOutput(":run")[0] == EXPECTED_OUTPUT
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2009")
-    def "Exec task output is grouped with it's task output"() {
+    def "Exec task output is grouped with its task output"() {
         given:
         buildFile << """task run(type: Exec) {
     commandLine ${echo(EXPECTED_OUTPUT)}
@@ -98,7 +100,7 @@ task run(type: JavaExec) {
         succeeds("run")
 
         then:
-        (result.output =~ /(?ms)(> Task :run.*?$EXPECTED_OUTPUT)/).find()
+        taskOutput(":run")[0] == EXPECTED_OUTPUT
     }
 
     private static String echo(String s) {
@@ -112,6 +114,7 @@ task run(type: JavaExec) {
         file("src/main/java/Main.java") << """public class Main {
     public static void main(String[] args) {
         System.out.println("$s");
+        System.err.println("$s");
     }
 }"""
     }

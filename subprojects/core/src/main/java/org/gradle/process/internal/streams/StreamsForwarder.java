@@ -63,7 +63,7 @@ public class StreamsForwarder implements StreamsHandler {
     }
 
     public void start() {
-        executor.execute(wrapInBuildOperation(standardInputRunner));
+        executor.execute(standardInputRunner);
         if (readErrorStream) {
             executor.execute(wrapInBuildOperation(errorOutputRunner));
         }
