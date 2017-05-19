@@ -69,6 +69,7 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
         private final BuildOperationNotificationListener listener;
         private final BuildOperationListenerManager buildOperationListenerManager;
 
+        private final Map<Object, Object> parents = new ConcurrentHashMap<Object, Object>();
         private final Map<Object, Object> active = new ConcurrentHashMap<Object, Object>();
 
         private Listener(BuildOperationNotificationListener listener, BuildOperationListenerManager buildOperationListenerManager) {
@@ -78,13 +79,26 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            Object id = buildOperation.getId();
+            Object parentId = buildOperation.getParentId();
+            if (parentId != null) {
+                if (active.containsKey(parentId)) {
+                    parents.put(id, parentId);
+                } else {
+                    parentId = parents.get(parentId);
+                    if (parentId != null) {
+                        parents.put(id, parentId);
+                    }
+                }
+            }
+
             if (!isNotificationWorthy(buildOperation)) {
                 return;
             }
 
-            active.put(buildOperation.getId(), 1);
+            active.put(id, "");
 
-            Started notification = new Started(buildOperation.getId(), buildOperation.getDetails());
+            Started notification = new Started(id, parentId, buildOperation.getDetails());
             try {
                 listener.started(notification);
             } catch (Exception e) {
@@ -94,11 +108,13 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            if (active.remove(buildOperation.getId()) == null) {
+            Object id = buildOperation.getId();
+            parents.remove(id);
+            if (active.remove(id) == null) {
                 return;
             }
 
-            Finished notification = new Finished(buildOperation.getId(), buildOperation.getDetails(), finishEvent.getResult(), finishEvent.getFailure());
+            Finished notification = new Finished(id, buildOperation.getDetails(), finishEvent.getResult(), finishEvent.getFailure());
             try {
                 listener.finished(notification);
             } catch (Exception e) {
@@ -123,16 +139,23 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
     private static class Started implements BuildOperationStartedNotification {
 
         private final Object id;
+        private final Object parentId;
         private final Object details;
 
-        private Started(Object id, Object details) {
+        private Started(Object id, Object parentId, Object details) {
             this.id = id;
+            this.parentId = parentId;
             this.details = details;
         }
 
         @Override
         public Object getNotificationOperationId() {
             return id;
+        }
+
+        @Override
+        public Object getNotificationOperationParentId() {
+            return parentId;
         }
 
         @Override
@@ -144,6 +167,7 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
         public String toString() {
             return "BuildOperationStartedNotification{"
                 + "id=" + id
+                + ", parentId=" + parentId
                 + ", details=" + details
                 + '}';
         }
