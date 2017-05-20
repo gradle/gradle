@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
@@ -33,10 +32,11 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifac
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     private final ResolutionStrategy.SortOrder sortOrder;
-    private final Map<Long, Set<Long>> artifactsByNodeId;
-    private final Map<Long, ArtifactSet> artifactsById;
+    private final Map<Long, Set<Integer>> artifactsByNodeId;
+    // Index of the artifact set == the id of the artifact set
+    private final List<ArtifactSet> artifactsById;
 
-    public DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder sortOrder, Map<Long, Set<Long>> artifactsByNodeId, Map<Long, ArtifactSet> artifactsById) {
+    public DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder sortOrder, Map<Long, Set<Integer>> artifactsByNodeId, List<ArtifactSet> artifactsById) {
         this.sortOrder = sortOrder;
         this.artifactsByNodeId = artifactsByNodeId;
         this.artifactsById = artifactsById;
@@ -48,18 +48,15 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
             return NoArtifactResults.INSTANCE;
         }
 
-        ImmutableMap.Builder<Long, ResolvedArtifactSet> builder = ImmutableMap.builder();
-        for (Map.Entry<Long, ArtifactSet> entry : artifactsById.entrySet()) {
-            ArtifactSet artifactSet = entry.getValue();
-            Long id = entry.getKey();
+        List<ResolvedArtifactSet> resolvedArtifactsById = new ArrayList<ResolvedArtifactSet>(artifactsById.size());
+        for (ArtifactSet artifactSet : artifactsById) {
             ResolvedArtifactSet resolvedArtifacts = artifactSet.select(componentFilter, selector);
-            builder.put(id, resolvedArtifacts);
+            resolvedArtifactsById.add(resolvedArtifacts);
         }
-        ImmutableMap<Long, ResolvedArtifactSet> resolvedArtifactsById = builder.build();
 
         Collection<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
-        for (Set<Long> artifactSets : artifactsByNodeId.values()) {
-            for (Long artifactSetId : artifactSets) {
+        for (Set<Integer> artifactSets : artifactsByNodeId.values()) {
+            for (Integer artifactSetId : artifactSets) {
                 allArtifactSets.add(resolvedArtifactsById.get(artifactSetId));
             }
         }
@@ -97,10 +94,11 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
 
     private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {
         private final ResolvedArtifactSet allArtifacts;
-        private final Map<Long, ResolvedArtifactSet> resolvedArtifactsById;
-        private final Map<Long, Set<Long>> artifactsByNodeId;
+        // Index of the artifact set == the id of the artifact set
+        private final List<ResolvedArtifactSet> resolvedArtifactsById;
+        private final Map<Long, Set<Integer>> artifactsByNodeId;
 
-        DefaultSelectedArtifactResults(ResolvedArtifactSet allArtifacts, Map<Long, ResolvedArtifactSet> resolvedArtifactsById, Map<Long, Set<Long>> artifactsByNodeId) {
+        DefaultSelectedArtifactResults(ResolvedArtifactSet allArtifacts, List<ResolvedArtifactSet> resolvedArtifactsById, Map<Long, Set<Integer>> artifactsByNodeId) {
             this.allArtifacts = allArtifacts;
             this.resolvedArtifactsById = resolvedArtifactsById;
             this.artifactsByNodeId = artifactsByNodeId;
@@ -113,12 +111,12 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
 
         @Override
         public ResolvedArtifactSet getArtifactsForNode(long id) {
-            Set<Long> artifactSets = artifactsByNodeId.get(id);
+            Set<Integer> artifactSets = artifactsByNodeId.get(id);
             if (artifactSets == null || artifactSets.isEmpty()) {
                 return EMPTY;
             }
             List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<ResolvedArtifactSet>(artifactSets.size());
-            for (Long artifactSetId : artifactSets) {
+            for (Integer artifactSetId : artifactSets) {
                 resolvedArtifactSets.add(resolvedArtifactsById.get(artifactSetId));
             }
             return CompositeResolvedArtifactSet.of(resolvedArtifactSets);
@@ -126,7 +124,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
 
         @Override
         public ResolvedArtifactSet getArtifactsWithId(long id) {
-            return resolvedArtifactsById.get(id);
+            return resolvedArtifactsById.get((int) id);
         }
     }
 }

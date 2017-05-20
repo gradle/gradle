@@ -24,6 +24,8 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,8 +37,8 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final boolean buildProjectDependencies;
     private final ResolutionStrategy.SortOrder sortOrder;
-    private final Map<Long, Set<Long>> sortedNodeIds = newLinkedHashMap();
-    private final Map<Long, ArtifactSet> artifactSetsById = newLinkedHashMap();
+    private final Map<Long, Set<Integer>> sortedNodeIds = newLinkedHashMap();
+    private final List<ArtifactSet> artifactSetsById = new ArrayList<ArtifactSet>();
 
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
         this.buildProjectDependencies = buildProjectDependencies;
@@ -49,7 +51,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
 
     @Override
     public void visitNode(DependencyGraphNode node) {
-        sortedNodeIds.put(node.getNodeId(), Sets.<Long>newLinkedHashSet());
+        sortedNodeIds.put(node.getNodeId(), Sets.<Integer>newLinkedHashSet());
     }
 
     @Override
@@ -78,7 +80,11 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     private void collectArtifactsFor(DependencyGraphNode node, ArtifactSet artifacts) {
-        artifactSetsById.put(artifacts.getId(), artifacts);
+        // Collect artifact sets in a list, using the id of the set as its index in the list
+        assert artifactSetsById.size() >= artifacts.getId();
+        if (artifactSetsById.size() == artifacts.getId()) {
+            artifactSetsById.add(artifacts);
+        }
         sortedNodeIds.get(node.getNodeId()).add(artifacts.getId());
     }
 

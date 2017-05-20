@@ -30,7 +30,7 @@ public class NoBuildDependenciesArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public long getId() {
+    public int getId() {
         return set.getId();
     }
 

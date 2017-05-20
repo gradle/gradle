@@ -26,7 +26,7 @@ import org.gradle.api.specs.Spec;
  * Instances are retained during the lifetime of a build, so should avoid retaining unnecessary state.
  */
 public interface ArtifactSet {
-    long getId();
+    int getId();
 
     /**
      * Selects the artifacts of this set that meet the given criteria. Implementation should be eager where possible, so that selection happens immediately, but may be lazy.

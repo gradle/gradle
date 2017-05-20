@@ -47,7 +47,7 @@ import java.util.Set;
  * Adapts a {@link DependencyArtifactsVisitor} to a {@link DependencyGraphVisitor}. Calculates the artifacts contributed by each edge in the graph and forwards the results to the artifact visitor.
  */
 public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
-    private final IdGenerator<Long> idGenerator = new LongIdGenerator();
+    private int nextId;
     private final Map<Long, ArtifactSet> artifactsByNodeId = Maps.newHashMap();
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final ArtifactResolver artifactResolver;
@@ -84,7 +84,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             artifactResults.visitArtifacts(parent, node, artifacts);
         }
         for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
-            artifactResults.visitArtifacts(node, fileDependency, new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, artifactTypeRegistry));
+            artifactResults.visitArtifacts(node, fileDependency, new FileDependencyArtifactSet(nextId++, fileDependency, artifactTypeRegistry));
         }
     }
 
@@ -96,21 +96,20 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
-        long id = idGenerator.generateId();
         ConfigurationMetadata configuration = toConfiguration.getMetadata();
         ComponentResolveMetadata component = toConfiguration.getOwner().getMetadata();
 
         Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
         if (!artifacts.isEmpty()) {
             Set<DefaultVariantMetadata> variants = ImmutableSet.of(new DefaultVariantMetadata(Describables.of(component.getComponentId()), ImmutableAttributes.EMPTY, artifacts));
-            return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, artifactTypeRegistry);
+            return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, nextId++, artifactTypeRegistry);
         }
 
         ArtifactSet configurationArtifactSet = artifactsByNodeId.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
             Set<? extends VariantMetadata> variants = doResolve(component, configuration);
 
-            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, artifactTypeRegistry);
+            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, nextId++, artifactTypeRegistry);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
             if (!dependency.getExclusions(moduleExclusions).mayExcludeArtifacts()) {

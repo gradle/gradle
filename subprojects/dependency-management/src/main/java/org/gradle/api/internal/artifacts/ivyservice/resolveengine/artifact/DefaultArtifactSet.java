@@ -44,12 +44,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet {
-    private final long id;
+    private final int id;
     private final ComponentIdentifier componentIdentifier;
     private final Set<ResolvedVariant> variants;
     private final AttributesSchemaInternal schema;
 
-    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ArtifactTypeRegistry artifactTypeRegistry) {
+    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, int id, ArtifactTypeRegistry artifactTypeRegistry) {
         ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
         for (VariantMetadata variant : variants) {
             Set<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
@@ -81,7 +81,7 @@ public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet {
     }
 
     @Override
-    public long getId() {
+    public int getId() {
         return id;
     }
 

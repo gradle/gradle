@@ -23,18 +23,18 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 public class FileDependencyArtifactSet implements ArtifactSet {
-    private final long id;
+    private final int id;
     private final LocalFileDependencyMetadata fileDependency;
     private final ArtifactTypeRegistry artifactTypeRegistry;
 
-    public FileDependencyArtifactSet(long id, LocalFileDependencyMetadata fileDependency, ArtifactTypeRegistry artifactTypeRegistry) {
+    public FileDependencyArtifactSet(int id, LocalFileDependencyMetadata fileDependency, ArtifactTypeRegistry artifactTypeRegistry) {
         this.id = id;
         this.fileDependency = fileDependency;
         this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
     @Override
-    public long getId() {
+    public int getId() {
         return id;
     }
 
