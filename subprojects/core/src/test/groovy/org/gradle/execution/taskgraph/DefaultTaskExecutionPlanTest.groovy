@@ -23,6 +23,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -945,8 +946,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     private TaskDestroyables emptyTaskDestroys() {
-        Mock(TaskDestroyables) {
-            getFiles() >> root.files()
+        Mock(TaskDestroyablesInternal) {
+            getFilesReadOnly() >> []
         }
     }
 

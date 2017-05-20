@@ -25,14 +25,13 @@ import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
@@ -43,8 +42,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.TestBuildOperationExecutor;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
-import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -64,6 +63,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.util.TestUtil.toClosure;
@@ -549,7 +549,7 @@ public class DefaultTaskGraphExecuterTest {
         final TaskInternal task = context.mock(TaskInternal.class);
         final TaskStateInternal state = context.mock(TaskStateInternal.class);
         final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
-        final TaskDestroyables destroys = context.mock(DefaultTaskDestroyables.class);
+        final TaskDestroyablesInternal destroys = context.mock(TaskDestroyablesInternal.class);
         setExpectations(name, task, state, outputs, destroys);
         dependsOn(task, dependsOn);
         context.checking(new Expectations() {{
@@ -567,7 +567,7 @@ public class DefaultTaskGraphExecuterTest {
         final TaskInternal task = context.mock(TaskInternal.class);
         final TaskStateInternal state = context.mock(TaskStateInternal.class);
         final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
-        final TaskDestroyables destroys = context.mock(DefaultTaskDestroyables.class);
+        final TaskDestroyablesInternal destroys = context.mock(TaskDestroyablesInternal.class);
         setExpectations(name, task, state, outputs, destroys);
         dependsOn(task, dependsOn);
         context.checking(new Expectations() {{
@@ -583,12 +583,12 @@ public class DefaultTaskGraphExecuterTest {
         TaskInternal task = context.mock(TaskInternal.class);
         TaskStateInternal state = context.mock(TaskStateInternal.class);
         final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
-        final TaskDestroyables destroys = context.mock(DefaultTaskDestroyables.class);
+        final TaskDestroyablesInternal destroys = context.mock(TaskDestroyablesInternal.class);
         setExpectations(name, task, state, outputs, destroys);
         return task;
     }
 
-    private void setExpectations(final String name, final TaskInternal task, final TaskStateInternal state, final TaskOutputs outputs, final TaskDestroyables destroys) {
+    private void setExpectations(final String name, final TaskInternal task, final TaskStateInternal state, final TaskOutputs outputs, final TaskDestroyablesInternal destroys) {
         context.checking(new Expectations() {{
             allowing(task).getProject();
             will(returnValue(root));
@@ -624,8 +624,8 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(root.files()));
             allowing(task).getDestroyables();
             will(returnValue(destroys));
-            allowing(destroys).getFiles();
-            will(returnValue(root.files()));
+            allowing(destroys).getFilesReadOnly();
+            will(returnValue(Collections.emptyList()));
         }});
     }
 
