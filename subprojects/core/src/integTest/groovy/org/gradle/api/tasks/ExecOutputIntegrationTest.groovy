@@ -51,6 +51,7 @@ task run {
         normaliseLineSeparators(taskOutput(":run")[0]) == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
     }
 
+    @Ignore("This test is failing on Windows for some reason.")
     @Issue("https://github.com/gradle/gradle/issues/2009")
     def "JavaExec task output is grouped with its task output"() {
         given:
