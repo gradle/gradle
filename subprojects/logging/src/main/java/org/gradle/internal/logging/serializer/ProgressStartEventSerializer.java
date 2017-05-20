@@ -23,63 +23,124 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+/**
+ * Since Gradle creates a high volume of progress events, this serializer trades simplicity
+ * for the smallest possible serialized form. It uses a single byte indicating the presence of optional
+ * fields instead of writing an "absent" byte for each of them like most of our serializers do.
+ * It also encodes the {@link BuildOperationCategory} in this byte, since that enum only has 3 values
+ * for the forseeable future.
+ */
 public class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
-    private final Serializer<BuildOperationCategory> buildOperationCategorySerializer;
-    private static final long EMPTY_BUILD_OPERATION_ID = 0;
-    private static final long EMPTY_PROGRESS_OPERATION_ID = 0;
-
-    public ProgressStartEventSerializer(Serializer<BuildOperationCategory> buildOperationCategorySerializer) {
-        this.buildOperationCategorySerializer = buildOperationCategorySerializer;
-    }
+    private static final byte PARENT_PROGRESS_ID = 1;
+    private static final byte SHORT_DESCRIPTION = 2;
+    private static final byte LOGGING_HEADER = 4;
+    private static final byte BUILD_OPERATION_ID = 8;
+    private static final byte PARENT_BUILD_OPERATION_ID = 16;
+    private static final byte BUILD_OPERATION_CATEGORY_TASK = 32;
+    private static final byte BUILD_OPERATION_CATEGORY_PROJECT = 64;
 
     @Override
     public void write(Encoder encoder, ProgressStartEvent event) throws Exception {
+        byte flags = 0;
+        OperationIdentifier parentProgressOperationId = event.getParentProgressOperationId();
+        if (parentProgressOperationId != null) {
+            flags |= PARENT_PROGRESS_ID;
+        }
+        String shortDescription = event.getShortDescription();
+        if (shortDescription != null) {
+            flags |= SHORT_DESCRIPTION;
+        }
+        String loggingHeader = event.getLoggingHeader();
+        if (loggingHeader != null) {
+            flags |= LOGGING_HEADER;
+        }
+        Object buildOperationId = event.getBuildOperationId();
+        if (buildOperationId != null) {
+            flags |= BUILD_OPERATION_ID;
+        }
+        Object parentBuildOperationId = event.getParentBuildOperationId();
+        if (parentBuildOperationId != null) {
+            flags |= PARENT_BUILD_OPERATION_ID;
+        }
+        BuildOperationCategory buildOperationCategory = event.getBuildOperationCategory();
+        if (buildOperationCategory == BuildOperationCategory.CONFIGURE_PROJECT) {
+            flags |= BUILD_OPERATION_CATEGORY_PROJECT;
+        } else if (buildOperationCategory == BuildOperationCategory.TASK) {
+            flags |= BUILD_OPERATION_CATEGORY_TASK;
+        } else if (buildOperationCategory != BuildOperationCategory.UNCATEGORIZED) {
+            throw new IllegalArgumentException("Can't handle build operation category " + buildOperationCategory);
+        }
+
+        encoder.writeByte(flags);
+
         encoder.writeSmallLong(event.getProgressOperationId().getId());
-        if (event.getParentProgressOperationId() == null) {
-            encoder.writeSmallLong(EMPTY_PROGRESS_OPERATION_ID);
-        } else {
-            encoder.writeSmallLong(event.getParentProgressOperationId().getId());
+        if (parentProgressOperationId != null) {
+            encoder.writeSmallLong(parentProgressOperationId.getId());
         }
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getCategory());
         encoder.writeString(event.getDescription());
-        encoder.writeNullableString(event.getShortDescription());
-        encoder.writeNullableString(event.getLoggingHeader());
+        if (shortDescription != null) {
+            encoder.writeString(shortDescription);
+        }
+        if (loggingHeader != null) {
+            encoder.writeString(loggingHeader);
+        }
         encoder.writeString(event.getStatus());
-        if (event.getBuildOperationId() == null) {
-            encoder.writeSmallLong(EMPTY_BUILD_OPERATION_ID);
-        } else {
-            encoder.writeSmallLong(((OperationIdentifier) event.getBuildOperationId()).getId());
+        if (buildOperationId != null) {
+            encoder.writeSmallLong(((OperationIdentifier) buildOperationId).getId());
         }
-        if (event.getParentBuildOperationId() == null) {
-            encoder.writeSmallLong(EMPTY_BUILD_OPERATION_ID);
-        } else {
-            encoder.writeSmallLong(((OperationIdentifier) event.getParentBuildOperationId()).getId());
+        if (parentBuildOperationId != null) {
+            encoder.writeSmallLong(((OperationIdentifier) parentBuildOperationId).getId());
         }
-        buildOperationCategorySerializer.write(encoder, event.getBuildOperationCategory());
     }
 
     @Override
     public ProgressStartEvent read(Decoder decoder) throws Exception {
+        byte flags = decoder.readByte();
         OperationIdentifier progressOperationId = new OperationIdentifier(decoder.readSmallLong());
 
-        long parentProgressOpIdValue = decoder.readSmallLong();
-        OperationIdentifier parentProgressOperationId = parentProgressOpIdValue == EMPTY_PROGRESS_OPERATION_ID ? null : new OperationIdentifier(parentProgressOpIdValue);
+        OperationIdentifier parentProgressOperationId = null;
+        if ((flags & PARENT_PROGRESS_ID) != 0) {
+            parentProgressOperationId = new OperationIdentifier(decoder.readSmallLong());
+        }
 
         long timestamp = decoder.readLong();
         String category = decoder.readString();
         String description = decoder.readString();
-        String shortDescription = decoder.readNullableString();
-        String loggingHeader = decoder.readNullableString();
+
+        String shortDescription = null;
+        if ((flags & SHORT_DESCRIPTION) != 0) {
+            shortDescription = decoder.readString();
+        }
+
+        String loggingHeader = null;
+        if ((flags & LOGGING_HEADER) != 0) {
+            loggingHeader = decoder.readString();
+        }
+
         String status = decoder.readString();
 
-        long buildOpIdValue = decoder.readSmallLong();
-        Object buildOperationId = buildOpIdValue == EMPTY_BUILD_OPERATION_ID ? null : new OperationIdentifier(buildOpIdValue);
+        Object buildOperationId = null;
+        if ((flags & BUILD_OPERATION_ID) != 0) {
+            buildOperationId = new OperationIdentifier(decoder.readSmallLong());
+        }
 
-        long parentBuildOpIdValue = decoder.readSmallLong();
-        Object parentBuildOperationId = parentBuildOpIdValue == EMPTY_BUILD_OPERATION_ID ? null : new OperationIdentifier(parentBuildOpIdValue);
+        Object parentBuildOperationId = null;
+        if ((flags & PARENT_BUILD_OPERATION_ID) != 0) {
+            parentBuildOperationId = new OperationIdentifier(decoder.readSmallLong());
 
-        BuildOperationCategory buildOperationCategory = buildOperationCategorySerializer.read(decoder);
+        }
+
+        BuildOperationCategory buildOperationCategory;
+        if ((flags & BUILD_OPERATION_CATEGORY_PROJECT) == BUILD_OPERATION_CATEGORY_PROJECT) {
+            buildOperationCategory = BuildOperationCategory.CONFIGURE_PROJECT;
+        } else if ((flags & BUILD_OPERATION_CATEGORY_TASK) == BUILD_OPERATION_CATEGORY_TASK) {
+            buildOperationCategory = BuildOperationCategory.TASK;
+        } else {
+            buildOperationCategory = BuildOperationCategory.UNCATEGORIZED;
+        }
+
         return new ProgressStartEvent(progressOperationId, parentProgressOperationId, timestamp, category, description, shortDescription, loggingHeader, status, buildOperationId, parentBuildOperationId, buildOperationCategory);
     }
 }
