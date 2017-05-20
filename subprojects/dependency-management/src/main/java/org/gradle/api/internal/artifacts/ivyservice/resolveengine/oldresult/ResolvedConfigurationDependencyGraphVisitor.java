@@ -71,13 +71,13 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
-        builder.addNodeArtifacts(from, artifactSet.getId());
+    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
+        builder.addNodeArtifacts(from, artifactSetId);
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
-        builder.addChild(from, to, artifacts.getId());
+    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
+        builder.addChild(from, to, artifactSetId);
     }
 
     @Override

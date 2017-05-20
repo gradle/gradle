@@ -30,11 +30,6 @@ public class NoBuildDependenciesArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public int getId() {
-        return set.getId();
-    }
-
-    @Override
     public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
         final ResolvedArtifactSet selectedArtifacts = set.select(componentFilter, selector);
         if (selectedArtifacts == ResolvedArtifactSet.EMPTY) {

@@ -17,13 +17,22 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifacts;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -41,7 +50,8 @@ public class FixedComponentArtifacts implements ComponentArtifacts {
     }
 
     @Override
-    public Set<? extends VariantMetadata> getVariantsFor(ConfigurationMetadata configuration) {
-        return ImmutableSet.of(new DefaultVariantMetadata(configuration.asDescribable(), ImmutableAttributes.EMPTY, artifacts));
+    public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
+        Set<? extends VariantMetadata> variants = ImmutableSet.of(new DefaultVariantMetadata(configuration.asDescribable(), ImmutableAttributes.EMPTY, artifacts));
+        return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), exclusions, variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry);
     }
 }

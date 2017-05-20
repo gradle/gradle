@@ -16,12 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifacts;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
-import java.util.Set;
+import java.util.Map;
 
 public class ProjectDependencyComponentArtifacts implements ComponentArtifacts {
     private final ProjectArtifactBuilder builder;
@@ -33,13 +40,12 @@ public class ProjectDependencyComponentArtifacts implements ComponentArtifacts {
     }
 
     @Override
-    public Set<? extends VariantMetadata> getVariantsFor(ConfigurationMetadata configuration) {
-        Set<? extends VariantMetadata> variants = delegate.getVariantsFor(configuration);
-        for (VariantMetadata variant : variants) {
-            for (ComponentArtifactMetadata artifactMetadata : variant.getArtifacts()) {
-                builder.willBuild(artifactMetadata);
+    public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
+        for (VariantMetadata variant : configuration.getVariants()) {
+            for (ComponentArtifactMetadata artifact : variant.getArtifacts()) {
+                builder.willBuild(artifact);
             }
         }
-        return variants;
+        return delegate.getArtifactsFor(component, configuration, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, exclusions);
     }
 }

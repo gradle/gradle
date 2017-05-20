@@ -16,18 +16,25 @@
 
 package org.gradle.internal.component.external.model;
 
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.internal.component.model.ComponentArtifacts;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Uses the artifacts attached to each configuration.
  */
 public class MetadataSourcedComponentArtifacts implements ComponentArtifacts {
     @Override
-    public Set<? extends VariantMetadata> getVariantsFor(ConfigurationMetadata configuration) {
-        return configuration.getVariants();
+    public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
+        return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry);
     }
 }

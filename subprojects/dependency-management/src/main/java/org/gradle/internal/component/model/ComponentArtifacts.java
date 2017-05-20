@@ -16,14 +16,21 @@
 
 package org.gradle.internal.component.model;
 
-import java.util.Set;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
+
+import java.util.Map;
 
 /**
  * Represents the variants associated with each configuration of a particular component. Implementations must be immutable.
  */
 public interface ComponentArtifacts {
     /**
-     * Returns the variants for the given configuration. The values that are returned are retained for the life of the current build, so should reference as little state as possible. Should also be immutable.
+     * Returns the variants for the given configuration. The values that are returned are retained for the life of the current build, so should reference as little state as possible. Should also be thread safe.
      */
-    Set<? extends VariantMetadata> getVariantsFor(ConfigurationMetadata configuration);
+    ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions);
 }

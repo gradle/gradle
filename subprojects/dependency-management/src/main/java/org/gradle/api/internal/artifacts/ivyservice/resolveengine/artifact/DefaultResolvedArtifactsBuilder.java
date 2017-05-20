@@ -48,12 +48,12 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifacts) {
-        collectArtifacts(artifacts);
+    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifacts) {
+        collectArtifacts(artifactSetId, artifacts);
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
+    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
         // Don't collect build dependencies if not required
         if (!buildProjectDependencies) {
             artifacts = new NoBuildDependenciesArtifactSet(artifacts);
@@ -69,13 +69,13 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
                 }
             }
         }
-        collectArtifacts(artifacts);
+        collectArtifacts(artifactSetId, artifacts);
     }
 
-    private void collectArtifacts(ArtifactSet artifacts) {
+    private void collectArtifacts(int artifactSetId, ArtifactSet artifacts) {
         // Collect artifact sets in a list, using the id of the set as its index in the list
-        assert artifactSetsById.size() >= artifacts.getId();
-        if (artifactSetsById.size() == artifacts.getId()) {
+        assert artifactSetsById.size() >= artifactSetId;
+        if (artifactSetsById.size() == artifactSetId) {
             artifactSetsById.add(artifacts);
         }
     }
