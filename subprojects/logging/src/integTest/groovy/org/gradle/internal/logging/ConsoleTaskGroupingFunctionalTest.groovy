@@ -59,6 +59,7 @@ class ConsoleTaskGroupingFunctionalTest extends AbstractConsoleFunctionalSpec {
 
         then:
         def expectedOutput = "${normalizedJavaSourceFilePath}:4: warning: [deprecation] Legacy in unnamed package has been deprecated"
-        result.groupedOutput.task(':compileJava').output.contains(expectedOutput)
+        def actualOutput = result.groupedOutput.task(':compileJava').output
+        normaliseFileSeparators(actualOutput).contains(expectedOutput)
     }
 }

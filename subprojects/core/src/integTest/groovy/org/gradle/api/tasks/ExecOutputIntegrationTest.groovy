@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.util.environment.OperatingSystem
 
@@ -25,11 +24,11 @@ import spock.util.environment.OperatingSystem
 class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
 
     private static final String EXPECTED_OUTPUT = "Hello, World!"
+    private static final String EXPECTED_ERROR = "Goodbye, World!"
 
-    @Ignore("This test is flaky, and is failing on CI Java 7 for some reason.")
     def "Project#javaexec output is grouped with its task output"() {
         given:
-        generateMainJavaFileEchoing(EXPECTED_OUTPUT)
+        generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
         buildFile << """
             apply plugin: 'java'
 
@@ -48,12 +47,14 @@ class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
         succeeds("run")
 
         then:
-        result.groupedOutput.task(':run').output == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
+        def output = result.groupedOutput.task(':run').output
+        output.contains(EXPECTED_OUTPUT)
+        output.contains(EXPECTED_ERROR)
     }
 
     def "JavaExec task output is grouped with its task output"() {
         given:
-        generateMainJavaFileEchoing(EXPECTED_OUTPUT)
+        generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
         buildFile << """
             apply plugin: 'java'
 
@@ -68,7 +69,9 @@ class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
         succeeds("run")
 
         then:
-        result.groupedOutput.task(':run').output == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
+        def output = result.groupedOutput.task(':run').output
+        output.contains(EXPECTED_OUTPUT)
+        output.contains(EXPECTED_ERROR)
     }
 
     def "Project#exec output is grouped with its task output"() {
@@ -112,12 +115,12 @@ class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
         return "'echo', '$s'"
     }
 
-    private void generateMainJavaFileEchoing(String s) {
+    private void generateMainJavaFileEchoing(String out, String err) {
         file("src/main/java/Main.java") << """
             public class Main {
                 public static void main(String[] args) {
-                    System.out.println("$s");
-                    System.err.println("$s");
+                    System.out.println("$out");
+                    System.err.println("$err");
                 }
             }
         """
