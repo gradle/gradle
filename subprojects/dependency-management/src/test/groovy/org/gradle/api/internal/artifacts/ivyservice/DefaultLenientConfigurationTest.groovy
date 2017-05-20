@@ -164,7 +164,7 @@ class DefaultLenientConfigurationTest extends Specification {
         }
 
         @Override
-        ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult from) {
+        ResolvedArtifactSet getArtifactsForNode() {
             throw new UnsupportedOperationException()
         }
 

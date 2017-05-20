@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -34,7 +32,6 @@ import java.util.List;
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final boolean buildProjectDependencies;
     private final ResolutionStrategy.SortOrder sortOrder;
-    private final SetMultimap<Long, Integer> nodeArtifacts = LinkedHashMultimap.create();
     private final List<ArtifactSet> artifactSetsById = new ArrayList<ArtifactSet>();
 
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
@@ -52,8 +49,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
 
     @Override
     public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifacts) {
-        collectArtifactsFor(from, artifacts);
-        nodeArtifacts.put(from.getNodeId(), artifacts.getId());
+        collectArtifacts(artifacts);
     }
 
     @Override
@@ -73,10 +69,10 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
                 }
             }
         }
-        collectArtifactsFor(to, artifacts);
+        collectArtifacts(artifacts);
     }
 
-    private void collectArtifactsFor(DependencyGraphNode node, ArtifactSet artifacts) {
+    private void collectArtifacts(ArtifactSet artifacts) {
         // Collect artifact sets in a list, using the id of the set as its index in the list
         assert artifactSetsById.size() >= artifacts.getId();
         if (artifactSetsById.size() == artifacts.getId()) {
@@ -89,6 +85,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     public VisitedArtifactsResults complete() {
-        return new DefaultVisitedArtifactResults(sortOrder, nodeArtifacts, artifactSetsById);
+        return new DefaultVisitedArtifactResults(sortOrder, artifactSetsById);
     }
 }

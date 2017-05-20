@@ -72,6 +72,7 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
 
     @Override
     public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
+        builder.addNodeArtifacts(from, artifactSet.getId());
     }
 
     @Override

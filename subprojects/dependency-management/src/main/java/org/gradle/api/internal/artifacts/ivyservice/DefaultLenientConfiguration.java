@@ -279,9 +279,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(artifactResults, artifactSets));
-        DependencyGraphNodeResult rootNode = loadTransientGraphResults(artifactResults).getRootNode();
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
-            artifactSets.add(node.getArtifactsForIncomingEdge(rootNode));
             walker.add(node);
         }
         walker.findValues();
@@ -396,13 +394,12 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         @Override
         public void getNodeValues(DependencyGraphNodeResult node, Collection<? super ResolvedArtifact> values, Collection<? super DependencyGraphNodeResult> connectedNodes) {
             connectedNodes.addAll(node.getOutgoingEdges());
-            dest.add(selectedArtifactResults.getArtifactsForNode(node.getNodeId()));
+            dest.add(node.getArtifactsForNode());
         }
 
         @Override
         public void getEdgeValues(DependencyGraphNodeResult from, DependencyGraphNodeResult to,
                                   Collection<ResolvedArtifact> values) {
-            dest.add(to.getArtifactsForIncomingEdge(from));
         }
     }
 }

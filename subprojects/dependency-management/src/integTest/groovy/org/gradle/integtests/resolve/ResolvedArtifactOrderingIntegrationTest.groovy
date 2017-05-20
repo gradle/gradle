@@ -102,7 +102,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modB, modC])
+        checkLegacyOrder([modA, modC, modD, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata 2"() {
@@ -114,7 +114,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modC, modB])
+        checkLegacyOrder([modA, modD, modB, modC])
     }
 
     def "artifact collection has resolved artifact files and metadata 3"() {
@@ -126,7 +126,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modC, modB])
+        checkLegacyOrder([modA, modD, modB, modC])
     }
 
     def "artifact collection has resolved artifact files and metadata 4"() {
@@ -138,7 +138,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modB, modC])
+        checkLegacyOrder([modA, modD, modC, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata 5"() {
@@ -150,7 +150,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modB, modC])
+        checkLegacyOrder([modA, modD, modC, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata 6"() {
@@ -162,7 +162,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modB, modC])
+        checkLegacyOrder([modA, modD, modC, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata cycle"() {
@@ -175,7 +175,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modC, modD, modB])
-        checkLegacyOrder([modA, modB, modD, modC])
+        checkLegacyOrder([modA, modB, modC, modD])
     }
 
     def "project and external and file dependencies are ordered"() {
@@ -219,6 +219,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered(['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modD])
-        checkLegacyOrder(['root-lib.jar', modA, 'a.jar', modD, modC, 'a-lib.jar','b-lib.jar', 'c-lib.jar', 'c.jar', modB, 'b.jar'])
+        checkLegacyOrder(['root-lib.jar', modA, modC, modD, 'a.jar', 'a-lib.jar', 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modB])
     }
 }

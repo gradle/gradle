@@ -57,6 +57,11 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
     }
 
     @Override
+    public void addNodeArtifacts(DependencyGraphNode node, int artifactsId) {
+        builder.nodeArtifacts(node.getNodeId(), artifactsId);
+    }
+
+    @Override
     public void newResolvedDependency(DependencyGraphNode node) {
         builder.resolvedDependency(node.getNodeId(), node.getResolvedConfigurationId());
     }

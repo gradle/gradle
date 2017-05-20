@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
-import com.google.common.collect.LinkedHashMultimap
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.specs.Spec
@@ -35,12 +34,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         given:
         artifacts1.select(spec, selector) >> variant1Artifacts
         artifacts2.select(spec, selector) >> variant2Artifacts
-        def nodesIds = LinkedHashMultimap.create()
-        nodesIds.put(12L, 0)
-        nodesIds.put(123L, 0)
-        nodesIds.put(123L, 1)
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, nodesIds, [artifacts1, artifacts2])
+        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
         def selected = results.select(spec, selector)
 
         expect:
@@ -49,8 +44,6 @@ class DefaultVisitedArtifactResultsTest extends Specification {
 
         selected.getArtifactsWithId(0) == variant1Artifacts
         selected.getArtifactsWithId(1) == variant2Artifacts
-
-        selected.getArtifactsForNode(12) == variant1Artifacts
     }
 
 }

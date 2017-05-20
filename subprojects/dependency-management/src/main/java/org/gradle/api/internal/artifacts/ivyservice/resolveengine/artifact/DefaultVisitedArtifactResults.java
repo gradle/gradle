@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
@@ -25,19 +24,16 @@ import org.gradle.api.specs.Spec;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     private final ResolutionStrategy.SortOrder sortOrder;
-    private final SetMultimap<Long, Integer> artifactsByNodeId;
     // Index of the artifact set == the id of the artifact set
     private final List<ArtifactSet> artifactsById;
 
-    public DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder sortOrder, SetMultimap<Long, Integer> artifactsByNodeId, List<ArtifactSet> artifactsById) {
+    public DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder sortOrder, List<ArtifactSet> artifactsById) {
         this.sortOrder = sortOrder;
-        this.artifactsByNodeId = artifactsByNodeId;
         this.artifactsById = artifactsById;
     }
 
@@ -58,7 +54,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         }
 
         ResolvedArtifactSet composite = CompositeResolvedArtifactSet.of(resolvedArtifactSets);
-        return new DefaultSelectedArtifactResults(sortOrder, composite, resolvedArtifactSets, artifactsByNodeId);
+        return new DefaultSelectedArtifactResults(sortOrder, composite, resolvedArtifactSets);
     }
 
     private static class NoArtifactResults implements SelectedArtifactResults {
@@ -67,11 +63,6 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
 
         @Override
         public ResolvedArtifactSet getArtifacts() {
-            return EMPTY;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifactsForNode(long id) {
             return EMPTY;
         }
 
@@ -86,31 +77,16 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         private final ResolutionStrategy.SortOrder sortOrder;
         // Index of the artifact set == the id of the artifact set, but reversed when sort order is dependency first
         private final List<ResolvedArtifactSet> resolvedArtifactsById;
-        private final SetMultimap<Long, Integer> artifactsByNodeId;
 
-        DefaultSelectedArtifactResults(ResolutionStrategy.SortOrder sortOrder, ResolvedArtifactSet allArtifacts, List<ResolvedArtifactSet> resolvedArtifactsById, SetMultimap<Long, Integer> artifactsByNodeId) {
+        DefaultSelectedArtifactResults(ResolutionStrategy.SortOrder sortOrder, ResolvedArtifactSet allArtifacts, List<ResolvedArtifactSet> resolvedArtifactsById) {
             this.sortOrder = sortOrder;
             this.allArtifacts = allArtifacts;
             this.resolvedArtifactsById = resolvedArtifactsById;
-            this.artifactsByNodeId = artifactsByNodeId;
         }
 
         @Override
         public ResolvedArtifactSet getArtifacts() {
             return allArtifacts;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifactsForNode(long id) {
-            Set<Integer> artifactSets = artifactsByNodeId.get(id);
-            if (artifactSets == null || artifactSets.isEmpty()) {
-                return EMPTY;
-            }
-            List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<ResolvedArtifactSet>(artifactSets.size());
-            for (Integer artifactSetId : artifactSets) {
-                resolvedArtifactSets.add(getArtifactsWithId(artifactSetId));
-            }
-            return CompositeResolvedArtifactSet.of(resolvedArtifactSets);
         }
 
         @Override

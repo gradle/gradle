@@ -129,7 +129,11 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     @Override
-    public ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult parent) {
+    public ResolvedArtifactSet getArtifactsForNode() {
+        return CompositeResolvedArtifactSet.of(moduleArtifacts);
+    }
+
+    private ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult parent) {
         if (!parents.contains(parent)) {
             throw new InvalidUserDataException("Provided dependency (" + parent + ") must be a parent of: " + this);
         }
@@ -187,6 +191,10 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
 
     public void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedArtifactSet artifacts) {
         this.parentArtifacts.put(parent, artifacts);
+        moduleArtifacts.add(artifacts);
+    }
+
+    public void addModuleArtifacts(ResolvedArtifactSet artifacts) {
         moduleArtifacts.add(artifacts);
     }
 

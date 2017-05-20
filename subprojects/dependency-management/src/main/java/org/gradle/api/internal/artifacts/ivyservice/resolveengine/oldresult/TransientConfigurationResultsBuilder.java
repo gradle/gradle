@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
@@ -49,10 +50,11 @@ public class TransientConfigurationResultsBuilder {
 
     private final static Logger LOG = Logging.getLogger(TransientConfigurationResultsBuilder.class);
 
-    private static final byte NEW_DEP = 1;
+    private static final byte NODE = 1;
     private static final byte ROOT = 2;
-    private static final byte FIRST_LVL = 3;
-    private static final byte PARENT_CHILD = 4;
+    private static final byte FIRST_LEVEL = 3;
+    private static final byte EDGE = 4;
+    private static final byte NODE_ARTIFACTS = 5;
 
     private final Object lock = new Object();
 
@@ -73,7 +75,7 @@ public class TransientConfigurationResultsBuilder {
         binaryStore.write(new BinaryStore.WriteAction() {
             @Override
             public void write(Encoder encoder) throws IOException {
-                encoder.writeByte(NEW_DEP);
+                encoder.writeByte(NODE);
                 encoder.writeSmallLong(id);
                 resolvedConfigurationIdentifierSerializer.write(encoder, details);
             }
@@ -96,7 +98,7 @@ public class TransientConfigurationResultsBuilder {
         binaryStore.write(new BinaryStore.WriteAction() {
             @Override
             public void write(Encoder encoder) throws IOException {
-                encoder.writeByte(FIRST_LVL);
+                encoder.writeByte(FIRST_LEVEL);
                 encoder.writeSmallLong(id);
             }
         });
@@ -105,9 +107,19 @@ public class TransientConfigurationResultsBuilder {
     public void parentChildMapping(final Long parent, final Long child, final int artifactId) {
         binaryStore.write(new BinaryStore.WriteAction() {
             public void write(Encoder encoder) throws IOException {
-                encoder.writeByte(PARENT_CHILD);
+                encoder.writeByte(EDGE);
                 encoder.writeSmallLong(parent);
                 encoder.writeSmallLong(child);
+                encoder.writeSmallInt(artifactId);
+            }
+        });
+    }
+
+    public void nodeArtifacts(final Long node, final int artifactId) {
+        binaryStore.write(new BinaryStore.WriteAction() {
+            public void write(Encoder encoder) throws IOException {
+                encoder.writeByte(NODE_ARTIFACTS);
+                encoder.writeSmallLong(node);
                 encoder.writeSmallInt(artifactId);
             }
         });
@@ -142,13 +154,14 @@ public class TransientConfigurationResultsBuilder {
         DependencyGraphNodeResult root;
         int valuesRead = 0;
         byte type = -1;
+        long id;
+        ResolvedArtifactSet artifacts;
         try {
             while (true) {
                 type = decoder.readByte();
-                long id;
                 valuesRead++;
                 switch (type) {
-                    case NEW_DEP:
+                    case NODE:
                         id = decoder.readSmallLong();
                         ResolvedConfigurationIdentifier details = resolvedConfigurationIdentifierSerializer.read(decoder);
                         allDependencies.put(id, new DefaultResolvedDependency(id, details, buildOperationProcessor));
@@ -162,7 +175,7 @@ public class TransientConfigurationResultsBuilder {
                         //root should be the last entry
                         LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getElapsed(), binaryStore);
                         return new DefaultTransientConfigurationResults(root, firstLevelDependencies);
-                    case FIRST_LVL:
+                    case FIRST_LEVEL:
                         id = decoder.readSmallLong();
                         DefaultResolvedDependency dependency = allDependencies.get(id);
                         if (dependency == null) {
@@ -170,7 +183,7 @@ public class TransientConfigurationResultsBuilder {
                         }
                         firstLevelDependencies.put(graphResults.getModuleDependency(id), dependency);
                         break;
-                    case PARENT_CHILD:
+                    case EDGE:
                         long parentId = decoder.readSmallLong();
                         long childId = decoder.readSmallLong();
                         DefaultResolvedDependency parent = allDependencies.get(parentId);
@@ -182,7 +195,17 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        child.addParentSpecificArtifacts(parent, artifactResults.getArtifactsWithId(decoder.readSmallInt()));
+                        artifacts = artifactResults.getArtifactsWithId(decoder.readSmallInt());
+                        child.addParentSpecificArtifacts(parent, artifacts);
+                        break;
+                    case NODE_ARTIFACTS:
+                        id = decoder.readSmallLong();
+                        DefaultResolvedDependency node = allDependencies.get(id);
+                        if (node == null) {
+                            throw new IllegalStateException(String.format("Unexpected node id %s. Seen ids: %s", node, allDependencies.keySet()));
+                        }
+                        artifacts = artifactResults.getArtifactsWithId(decoder.readSmallInt());
+                        node.addModuleArtifacts(artifacts);
                         break;
                     default:
                         throw new IOException("Unknown value type read from stream: " + type);
