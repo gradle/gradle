@@ -168,10 +168,10 @@ task show {
         outputContains("files 5: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
 
         // the filtered views order files differently. This is documenting existing behaviour rather than desired behaviour
-        outputContains("files 6: [test-lib.jar, a.jar, test-1.0.jar, test-1.0-from-main.jar, a-lib.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, b.jar, b-lib.jar, test2-1.0.jar]")
-        outputContains("files 7: [test-lib.jar, a.jar, test-1.0.jar, test-1.0-from-main.jar, a-lib.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, b.jar, b-lib.jar, test2-1.0.jar]")
-        outputContains("files 8: [test-lib.jar, a.jar, test-1.0.jar, test-1.0-from-main.jar, a-lib.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, b.jar, b-lib.jar, test2-1.0.jar]")
-        outputContains("files 9: [test-lib.jar, a.jar, test-1.0.jar, test-1.0-from-main.jar, a-lib.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, b.jar, b-lib.jar, test2-1.0.jar]")
-        outputContains("files 10: [test-lib.jar, a.jar, test-1.0.jar, test-1.0-from-main.jar, a-lib.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, b.jar, b-lib.jar, test2-1.0.jar]")
+        outputContains("files 6: [test-lib.jar, a.jar, test-1.0.jar, test-1.0-from-main.jar, a-lib.jar, c-lib.jar, test-1.0-from-c.jar, test3-1.0.jar, b-lib.jar, c.jar, test2-1.0.jar, b.jar, test-1.0-from-a.jar]")
+        outputContains("files 7: [test-lib.jar, a.jar, test-1.0.jar, test-1.0-from-main.jar, a-lib.jar, c-lib.jar, test-1.0-from-c.jar, test3-1.0.jar, b-lib.jar, c.jar, test2-1.0.jar, b.jar, test-1.0-from-a.jar]")
+        outputContains("files 8: [test-lib.jar, a.jar, test-1.0.jar, test-1.0-from-main.jar, a-lib.jar, c-lib.jar, test-1.0-from-c.jar, test3-1.0.jar, b-lib.jar, c.jar, test2-1.0.jar, b.jar, test-1.0-from-a.jar]")
+        outputContains("files 9: [test-lib.jar, a.jar, test-1.0.jar, test-1.0-from-main.jar, a-lib.jar, c-lib.jar, test-1.0-from-c.jar, test3-1.0.jar, b-lib.jar, c.jar, test2-1.0.jar, b.jar, test-1.0-from-a.jar]")
+        outputContains("files 10: [test-lib.jar, a.jar, test-1.0.jar, test-1.0-from-main.jar, a-lib.jar, c-lib.jar, test-1.0-from-c.jar, test3-1.0.jar, b-lib.jar, c.jar, test2-1.0.jar, b.jar, test-1.0-from-a.jar]")
     }
 }

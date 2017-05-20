@@ -110,11 +110,11 @@ task show {
         outputContains("files 6: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
         outputContains("files 7: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
         // Note: the filtered views order files differently. This is documenting existing behaviour rather than necessarily desired behaviour
-        outputContains("files 8: [test-lib.jar, a.jar, test-1.0.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        outputContains("files 9: [test-lib.jar, a.jar, test-1.0.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        outputContains("files 10: [test-lib.jar, a.jar, test-1.0.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        outputContains("files 11: [test-lib.jar, a.jar, test-1.0.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        outputContains("files 12: [test-lib.jar, a.jar, test-1.0.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar")
+        outputContains("files 8: [test-lib.jar, a.jar, test-1.0.jar, a-lib.jar, b-lib.jar, test2-1.0.jar, b.jar")
+        outputContains("files 9: [test-lib.jar, a.jar, test-1.0.jar, a-lib.jar, b-lib.jar, test2-1.0.jar, b.jar")
+        outputContains("files 10: [test-lib.jar, a.jar, test-1.0.jar, a-lib.jar, b-lib.jar, test2-1.0.jar, b.jar")
+        outputContains("files 11: [test-lib.jar, a.jar, test-1.0.jar, a-lib.jar, b-lib.jar, test2-1.0.jar, b.jar")
+        outputContains("files 12: [test-lib.jar, a.jar, test-1.0.jar, a-lib.jar, b-lib.jar, test2-1.0.jar, b.jar")
     }
 
     @Unroll

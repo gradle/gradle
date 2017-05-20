@@ -102,13 +102,13 @@ public class TransientConfigurationResultsBuilder {
         });
     }
 
-    public void parentChildMapping(final Long parent, final Long child, final long artifactId) {
+    public void parentChildMapping(final Long parent, final Long child, final int artifactId) {
         binaryStore.write(new BinaryStore.WriteAction() {
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(PARENT_CHILD);
                 encoder.writeSmallLong(parent);
                 encoder.writeSmallLong(child);
-                encoder.writeSmallLong(artifactId);
+                encoder.writeSmallInt(artifactId);
             }
         });
     }
@@ -182,7 +182,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        child.addParentSpecificArtifacts(parent, artifactResults.getArtifactsWithId(decoder.readSmallLong()));
+                        child.addParentSpecificArtifacts(parent, artifactResults.getArtifactsWithId(decoder.readSmallInt()));
                         break;
                     default:
                         throw new IOException("Unknown value type read from stream: " + type);

@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -26,10 +27,6 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.collect.Maps.newLinkedHashMap;
 
 /**
  * Collects all artifacts and their build dependencies.
@@ -37,7 +34,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final boolean buildProjectDependencies;
     private final ResolutionStrategy.SortOrder sortOrder;
-    private final Map<Long, Set<Integer>> sortedNodeIds = newLinkedHashMap();
+    private final SetMultimap<Long, Integer> nodeArtifacts = LinkedHashMultimap.create();
     private final List<ArtifactSet> artifactSetsById = new ArrayList<ArtifactSet>();
 
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
@@ -51,12 +48,12 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
 
     @Override
     public void visitNode(DependencyGraphNode node) {
-        sortedNodeIds.put(node.getNodeId(), Sets.<Integer>newLinkedHashSet());
     }
 
     @Override
     public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifacts) {
         collectArtifactsFor(from, artifacts);
+        nodeArtifacts.put(from.getNodeId(), artifacts.getId());
     }
 
     @Override
@@ -85,7 +82,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         if (artifactSetsById.size() == artifacts.getId()) {
             artifactSetsById.add(artifacts);
         }
-        sortedNodeIds.get(node.getNodeId()).add(artifacts.getId());
     }
 
     @Override
@@ -93,6 +89,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     public VisitedArtifactsResults complete() {
-        return new DefaultVisitedArtifactResults(sortOrder, sortedNodeIds, artifactSetsById);
+        return new DefaultVisitedArtifactResults(sortOrder, nodeArtifacts, artifactSetsById);
     }
 }
