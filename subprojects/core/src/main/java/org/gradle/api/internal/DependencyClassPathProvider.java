@@ -20,7 +20,6 @@ import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 
 import java.util.Arrays;
 
@@ -49,7 +48,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath gradleApi() {
-        ClassPath classpath = new DefaultClassPath();
+        ClassPath classpath = ClassPath.EMPTY;
         for (String moduleName : Arrays.asList("gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
             for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
                 classpath = classpath.plus(module.getClasspath());

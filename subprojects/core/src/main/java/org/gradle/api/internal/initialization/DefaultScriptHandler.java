@@ -68,7 +68,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     @Override
     public ClassPath getScriptClassPath() {
         if (classpathConfiguration == null) {
-            return new DefaultClassPath();
+            return ClassPath.EMPTY;
         }
         return new DefaultClassPath(classpathConfiguration.getFiles());
     }

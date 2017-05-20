@@ -18,7 +18,6 @@ package org.gradle.api.internal;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 
 public class DefaultClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
@@ -29,7 +28,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
 
     public ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_RUNTIME")) {
-            ClassPath classpath = new DefaultClassPath();
+            ClassPath classpath = ClassPath.EMPTY;
             for (Module module : moduleRegistry.getModule("gradle-launcher").getAllRequiredModules()) {
                 classpath = classpath.plus(module.getClasspath());
             }
@@ -42,7 +41,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             return moduleRegistry.getExternalModule("commons-cli").getClasspath();
         }
         if (name.equals("ANT")) {
-            ClassPath classpath = new DefaultClassPath();
+            ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getExternalModule("ant").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("ant-launcher").getClasspath());
             return classpath;

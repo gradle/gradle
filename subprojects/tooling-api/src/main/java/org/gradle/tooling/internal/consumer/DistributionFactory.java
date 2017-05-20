@@ -186,8 +186,8 @@ public class DistributionFactory {
         }
 
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
-            ClassPath classpath = new DefaultClassPath();
             DefaultModuleRegistry registry = new DefaultModuleRegistry(null);
+            ClassPath classpath = ClassPath.EMPTY;
             for (Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
                 classpath = classpath.plus(module.getClasspath());
             }

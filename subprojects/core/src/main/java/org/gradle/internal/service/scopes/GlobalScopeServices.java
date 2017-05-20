@@ -76,7 +76,6 @@ import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
@@ -142,7 +141,7 @@ public class GlobalScopeServices {
     private GradleBuildEnvironment environment;
 
     public GlobalScopeServices(final boolean longLiving) {
-        this(longLiving, new DefaultClassPath());
+        this(longLiving, ClassPath.EMPTY);
     }
 
     public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath) {
