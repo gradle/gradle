@@ -25,12 +25,12 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 
 public interface ArtifactResolver {
     /**
-     * Resolves the set of artifacts belonging to the given component. Any failures are packaged up in the result.
+     * Discovers the set of artifacts belonging to the given component, but does not download them. Any failures are packaged up in the result.
      */
     void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result);
 
     /**
-     * Resolves a set of artifacts belonging to the given component, with the type specified. Any failures are packaged up in the result.
+     * Discovers the set of artifacts belonging to the given component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.
      */
     void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
 
