@@ -45,6 +45,7 @@ public class CompositeBuildIdeProjectResolver {
     public CompositeBuildIdeProjectResolver(LocalComponentRegistry registry, IncludedBuildExecuter executer, BuildIdentity buildIdentity) {
         this.registry = registry;
         // Can't use the session-scope `IncludedBuildTaskGraph`, because we don't want to be execute jar tasks (which are pre-registered)
+        // This should be addressed in gradle/composite-builds#104
         IncludedBuildTaskGraph taskGraph = new DefaultIncludedBuildTaskGraph(executer);
         artifactBuilder = new CompositeProjectArtifactBuilder(new IncludedBuildArtifactBuilder(taskGraph), buildIdentity);
     }
