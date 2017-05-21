@@ -463,7 +463,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                compile 'org.test:buildB:1.0'
+                compileOnly 'org.test:buildB:1.0'
             }
 """
         when:
