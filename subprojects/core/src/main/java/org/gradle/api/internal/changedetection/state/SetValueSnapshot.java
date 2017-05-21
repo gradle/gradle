@@ -21,7 +21,7 @@ import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.BuildCacheHasher;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
@@ -90,8 +90,9 @@ public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Set isolate() {
-        Set set = new HashSet();
+        Set set = new LinkedHashSet();
         for (ValueSnapshot snapshot : elements) {
             if (snapshot instanceof Isolatable) {
                 set.add(((Isolatable) snapshot).isolate());
