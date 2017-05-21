@@ -467,7 +467,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             }
 """
         when:
-        execute(buildA, ":jar", arguments)
+        execute(buildA, ":jar")
 
         then:
         executedInOrder ":buildB:compileJava", ":buildB:classes", ":compileJava", ":jar"
