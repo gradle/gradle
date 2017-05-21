@@ -46,7 +46,7 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
         final IncludedBuildTaskReference ref = (IncludedBuildTaskReference) reference;
 
         final BuildIdentifier sourceBuild = buildIdentity.getCurrentBuild();
-        BuildIdentifier targetBuild = new DefaultBuildIdentifier(ref.getBuildName());
+        final BuildIdentifier targetBuild = new DefaultBuildIdentifier(ref.getBuildName());
 
         includedBuilds.addTask(sourceBuild, targetBuild, ref.getTaskPath());
 
@@ -57,7 +57,7 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
             return tasks.create(delegateTaskName, CompositeBuildTaskDelegate.class, new Action<CompositeBuildTaskDelegate>() {
                 @Override
                 public void execute(CompositeBuildTaskDelegate compositeBuildTaskDelegate) {
-                    compositeBuildTaskDelegate.setBuild(ref.getBuildName());
+                    compositeBuildTaskDelegate.setBuild(targetBuild);
                 }
             });
         }
