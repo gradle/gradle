@@ -35,7 +35,7 @@ public class GroupedOutputFixture {
 
     private final static String BUILD_STATUS_FOOTER = "\\n[^\\n]*?BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "\\n[^\\n]*?FAILURE:";
-    private final static String PROGRESS_BAR = "\u001B\\[0K\\n\u001B\\[1A \\[1m<";
+    private final static String PROGRESS_BAR = ".?\\[0K.*?";
     private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + PROGRESS_BAR;
 
     private static final Pattern TASK_OUTPUT_PATTERN;
