@@ -30,16 +30,12 @@ import java.util.Set;
 import static org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult.State.Listed;
 
 class InMemoryMetaDataCache {
-    private final Object lock = new Object();
     private final Map<ModuleVersionSelector, Set<String>> moduleVersionListing = Maps.newConcurrentMap();
     private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = Maps.newConcurrentMap();
     private final Map<ModuleComponentIdentifier, MetadataFetchingCost> fetchingCosts = Maps.newConcurrentMap();
 
     public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
-        Set<String> versions;
-        synchronized (lock) {
-            versions = moduleVersionListing.get(requested);
-        }
+        Set<String> versions = moduleVersionListing.get(requested);
         if (versions == null) {
             return false;
         }
@@ -49,17 +45,12 @@ class InMemoryMetaDataCache {
 
     public void newModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
         if (result.getState() == Listed) {
-            synchronized (lock) {
-                moduleVersionListing.put(requested, result.getVersions());
-            }
+            moduleVersionListing.put(requested, result.getVersions());
         }
     }
 
     boolean supplyMetaData(ModuleComponentIdentifier requested, BuildableModuleComponentMetaDataResolveResult result) {
-        CachedModuleVersionResult fromCache;
-        synchronized (lock) {
-            fromCache = metaData.get(requested);
-        }
+        CachedModuleVersionResult fromCache = metaData.get(requested);
         if (fromCache == null) {
             return false;
         }
@@ -70,17 +61,12 @@ class InMemoryMetaDataCache {
     void newDependencyResult(ModuleComponentIdentifier requested, BuildableModuleComponentMetaDataResolveResult result) {
         CachedModuleVersionResult cachedResult = new CachedModuleVersionResult(result);
         if (cachedResult.isCacheable()) {
-            synchronized (lock) {
-                metaData.put(requested, cachedResult);
-            }
+            metaData.put(requested, cachedResult);
         }
     }
 
     MetadataFetchingCost getOrCacheFetchingCost(ModuleComponentIdentifier id, Factory<MetadataFetchingCost> costFactory) {
-        MetadataFetchingCost cost;
-        synchronized (lock) {
-            cost = fetchingCosts.get(id);
-        }
+        MetadataFetchingCost cost = fetchingCosts.get(id);
         if (cost == null) {
             cost = costFactory.create();
             fetchingCosts.put(id, cost);
@@ -89,8 +75,6 @@ class InMemoryMetaDataCache {
     }
 
     void cacheFetchingCost(ModuleComponentIdentifier id, MetadataFetchingCost cost) {
-        synchronized (lock) {
-            fetchingCosts.put(id, cost);
-        }
+        fetchingCosts.put(id, cost);
     }
 }

@@ -15,18 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 class InMemoryModuleComponentRepositoryCaches {
     public final InMemoryMetaDataCache localMetaDataCache;
     public final InMemoryMetaDataCache remoteMetaDataCache;
     public final InMemoryArtifactsCache localArtifactsCache;
     public final InMemoryArtifactsCache remoteArtifactsCache;
-    public final Map<ComponentArtifactIdentifier, ResolvedArtifact> resolvedArtifactsCache = new ConcurrentHashMap<ComponentArtifactIdentifier, ResolvedArtifact>();
+    public final Map<ComponentArtifactIdentifier, ResolvedArtifact> resolvedArtifactsCache = Maps.newConcurrentMap();
 
     public InMemoryModuleComponentRepositoryCaches() {
         this(new InMemoryArtifactsCache(), new InMemoryArtifactsCache(), new InMemoryMetaDataCache(), new InMemoryMetaDataCache());
