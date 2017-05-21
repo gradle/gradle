@@ -55,7 +55,7 @@ import org.gradle.platform.base.VariantComponent;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final VariantBinarySelector variantSelector;
@@ -191,10 +191,10 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, Map<ComponentArtifactIdentifier, ResolvedArtifact> candidates, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
         ComponentIdentifier componentId = component.getComponentId();
         if (isLibrary(componentId)) {
-            return new MetadataSourcedComponentArtifacts().getArtifactsFor(component, configuration, this, candidates, artifactTypeRegistry, exclusions);
+            return new MetadataSourcedComponentArtifacts().getArtifactsFor(component, configuration, this, new ConcurrentHashMap<ComponentArtifactIdentifier, ResolvedArtifact>(), artifactTypeRegistry, exclusions);
         }
         return null;
     }

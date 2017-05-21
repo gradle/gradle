@@ -60,7 +60,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         def artifactSet = Stub(ArtifactSet)
 
         when:
-        def result = resolver.resolveArtifacts(component, configuration, [:], artifactTypeRegistry, exclusion)
+        def result = resolver.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusion)
 
         then:
         result == artifactSet
@@ -68,6 +68,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         and:
         _ * component.getSource() >> repo2Source
         1 * component.withSource(originalSource) >> component
+        1 * repo2.artifactCache >> [:]
         1 * repo2.getLocalAccess() >> localAccess2
         1 * localAccess2.resolveArtifacts(component, _) >> {
             it[1].resolved(artifacts)
@@ -84,7 +85,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         def artifactSet = Stub(ArtifactSet)
 
         when:
-        def result = resolver.resolveArtifacts(component, configuration, [:], artifactTypeRegistry, exclusion)
+        def result = resolver.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusion)
 
         then:
         result == artifactSet
@@ -92,6 +93,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         and:
         _ * component.getSource() >> repo2Source
         1 * component.withSource(originalSource) >> component
+        1 * repo2.artifactCache >> [:]
         1 * repo2.getLocalAccess() >> localAccess2
         1 * localAccess2.resolveArtifacts(component, _)
         1 * repo2.getRemoteAccess() >> remoteAccess2

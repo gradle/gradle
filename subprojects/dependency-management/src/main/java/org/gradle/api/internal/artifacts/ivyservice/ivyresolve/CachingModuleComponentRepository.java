@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -57,6 +59,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.Map;
 import java.util.Set;
 
 public class CachingModuleComponentRepository implements ModuleComponentRepository {
@@ -115,6 +118,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     public ComponentMetadataSupplier createMetadataSupplier() {
         return delegate.createMetadataSupplier();
+    }
+
+    @Override
+    public Map<ComponentArtifactIdentifier, ResolvedArtifact> getArtifactCache() {
+        throw new UnsupportedOperationException();
     }
 
     private ModuleIdentifier getCacheKey(ModuleVersionSelector requested) {

@@ -215,7 +215,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         result.hasResult()
 
         when:
-        def artifacts = resolver.resolveArtifacts(component, configuration, [:], Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone())
+        def artifacts = resolver.resolveArtifacts(component, configuration, Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone())
 
         then:
         artifacts != null
@@ -235,7 +235,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         !result.hasResult()
 
         when:
-        def artifacts = resolver.resolveArtifacts(component, configuration, [:], Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone())
+        def artifacts = resolver.resolveArtifacts(component, configuration, Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone())
 
         then:
         artifacts == null
