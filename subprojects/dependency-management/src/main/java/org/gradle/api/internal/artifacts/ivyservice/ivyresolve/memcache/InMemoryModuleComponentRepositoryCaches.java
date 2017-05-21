@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-public class InMemoryModuleComponentRepositoryCaches {
+class InMemoryModuleComponentRepositoryCaches {
     public final InMemoryMetaDataCache localMetaDataCache;
     public final InMemoryMetaDataCache remoteMetaDataCache;
     public final InMemoryArtifactsCache localArtifactsCache;
