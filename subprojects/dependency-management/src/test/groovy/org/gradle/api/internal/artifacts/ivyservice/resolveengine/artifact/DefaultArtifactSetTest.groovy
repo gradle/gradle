@@ -37,24 +37,35 @@ class DefaultArtifactSetTest extends Specification {
 
     def "returns empty set when component id does not match spec"() {
         def variant1 = Stub(VariantMetadata)
-        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry)
+        def variant2 = Stub(VariantMetadata)
+
+        given:
+        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry)
+        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry)
+        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, null, [] as Set, null, null, schema, null, null, artifactTypeRegistry)
 
         expect:
-        def selected = artifactSet.select({false}, Stub(VariantSelector))
-        selected == ResolvedArtifactSet.EMPTY
+        artifacts1.select({false}, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
+        artifacts2.select({false}, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
+        artifacts3.select({false}, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
     }
 
     def "selects artifacts when component id matches spec"() {
         def variant1 = Stub(VariantMetadata)
+        def variant2 = Stub(VariantMetadata)
         def resolvedVariant1 = Stub(ResolvedArtifactSet)
         def selector = Stub(VariantSelector)
-        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry)
 
         given:
+        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry)
+        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry)
+        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, null, [] as Set, null, null, schema, null, null, artifactTypeRegistry)
+
         selector.select(_) >> resolvedVariant1
 
         expect:
-        def selected = artifactSet.select({true}, selector)
-        selected == resolvedVariant1
+        artifacts1.select({true}, selector) == resolvedVariant1
+        artifacts2.select({true}, selector) == resolvedVariant1
+        artifacts3.select({true}, selector) == resolvedVariant1
     }
 }
