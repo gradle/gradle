@@ -18,6 +18,7 @@ package org.gradle.internal.resolve.resolver;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -34,4 +35,9 @@ public interface ArtifactSelector {
      * Creates a set that will resolve the given artifacts of the given component.
      */
     ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends ComponentArtifactMetadata> artifacts);
+
+    /**
+     * Creates a set that will resolve the artifacts of the file dependency.
+     */
+    ArtifactSet resolveArtifacts(LocalFileDependencyMetadata fileDependencyMetadata);
 }

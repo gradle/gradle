@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -40,14 +39,12 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private int nextId;
     private final Map<Long, ArtifactsForNode> artifactsByNodeId = Maps.newHashMap();
     private final ArtifactSelector artifactSelector;
-    private final ArtifactTypeRegistry artifactTypeRegistry;
     private final DependencyArtifactsVisitor artifactResults;
     private final ModuleExclusions moduleExclusions;
 
-    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusions moduleExclusions) {
+    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactSelector artifactSelector, ModuleExclusions moduleExclusions) {
         this.artifactResults = artifactsBuilder;
         this.artifactSelector = artifactSelector;
-        this.artifactTypeRegistry = artifactTypeRegistry;
         this.moduleExclusions = moduleExclusions;
     }
 
@@ -74,7 +71,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         }
         for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
             int id = nextId++;
-            artifactResults.visitArtifacts(node, fileDependency, id, new FileDependencyArtifactSet(fileDependency, artifactTypeRegistry));
+            artifactResults.visitArtifacts(node, fileDependency, id, artifactSelector.resolveArtifacts(fileDependency));
         }
     }
 

@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -42,7 +43,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import java.io.File;
 
-public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver {
+public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
     private final ProjectArtifactBuilder artifactBuilder;
     private final ComponentIdentifierFactory componentIdentifierFactory;
@@ -51,6 +52,21 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         this.localComponentRegistry = localComponentRegistry;
         this.artifactBuilder = artifactBuilder;
         this.componentIdentifierFactory = componentIdentifierFactory;
+    }
+
+    @Override
+    public ArtifactResolver getArtifactResolver() {
+        return this;
+    }
+
+    @Override
+    public DependencyToComponentIdResolver getComponentIdResolver() {
+        return this;
+    }
+
+    @Override
+    public ComponentMetaDataResolver getComponentResolver() {
+        return this;
     }
 
     @Override

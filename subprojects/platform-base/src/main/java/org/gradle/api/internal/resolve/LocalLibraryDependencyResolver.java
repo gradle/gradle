@@ -22,6 +22,7 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
@@ -49,7 +50,7 @@ import org.gradle.platform.base.VariantComponent;
 import java.util.Collection;
 import java.util.Collections;
 
-public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver, ComponentResolvers {
     private final VariantBinarySelector variantSelector;
     private final LibraryResolutionErrorMessageBuilder errorMessageBuilder;
     private final LocalLibraryMetaDataAdapter libraryMetaDataAdapter;
@@ -81,6 +82,21 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 });
             }
         };
+    }
+
+    @Override
+    public ArtifactResolver getArtifactResolver() {
+        return this;
+    }
+
+    @Override
+    public DependencyToComponentIdResolver getComponentIdResolver() {
+        return this;
+    }
+
+    @Override
+    public ComponentMetaDataResolver getComponentResolver() {
+        return this;
     }
 
     @Override
