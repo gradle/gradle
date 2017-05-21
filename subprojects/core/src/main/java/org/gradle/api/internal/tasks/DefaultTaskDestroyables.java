@@ -16,19 +16,25 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.tasks.TaskDestroyables;
 
-public class DefaultTaskDestroyables implements TaskDestroyables {
-    private final DefaultConfigurableFileCollection destroyFiles;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+
+public class DefaultTaskDestroyables implements TaskDestroyables, TaskDestroyablesInternal {
+    private final FileResolver resolver;
+    private final TaskInternal task;
     private final TaskMutator taskMutator;
+    private DefaultConfigurableFileCollection destroyFiles;
 
     public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
+        this.resolver = resolver;
+        this.task = task;
         this.taskMutator = taskMutator;
-        this.destroyFiles = new DefaultConfigurableFileCollection(task + " destroy files", resolver, null);
     }
 
     @Override
@@ -36,7 +42,7 @@ public class DefaultTaskDestroyables implements TaskDestroyables {
         taskMutator.mutate("TaskDestroys.files(Object...)", new Runnable() {
             @Override
             public void run() {
-                destroyFiles.from(paths);
+                getFiles().from(paths);
             }
         });
     }
@@ -46,13 +52,25 @@ public class DefaultTaskDestroyables implements TaskDestroyables {
         taskMutator.mutate("TaskDestroys.file(Object...)", new Runnable() {
             @Override
             public void run() {
-                destroyFiles.from(path);
+                getFiles().from(path);
             }
         });
     }
 
     @Override
-    public FileCollection getFiles() {
+    public DefaultConfigurableFileCollection getFiles() {
+        if (destroyFiles == null) {
+            destroyFiles = new DefaultConfigurableFileCollection(task + " destroy files", resolver, null);
+
+        }
         return destroyFiles;
+    }
+
+    @Override
+    public Collection<File> getFilesReadOnly() {
+        if (destroyFiles != null) {
+            return destroyFiles.getFiles();
+        }
+        return Collections.emptySet();
     }
 }

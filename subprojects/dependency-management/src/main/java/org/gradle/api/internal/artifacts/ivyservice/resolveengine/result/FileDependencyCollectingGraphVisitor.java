@@ -38,11 +38,11 @@ public class FileDependencyCollectingGraphVisitor implements DependencyArtifacts
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
+    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode node, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
+    public void visitArtifacts(DependencyGraphNode node, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
         if (node.isRoot()) {
             rootFiles.put(fileDependency.getSource(), artifactSet);
         }

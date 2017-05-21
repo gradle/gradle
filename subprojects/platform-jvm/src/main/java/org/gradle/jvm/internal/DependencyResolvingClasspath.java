@@ -223,13 +223,13 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         }
 
         @Override
-        public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
-            artifactsBuilder.visitArtifacts(from, fileDependency, artifactSet);
+        public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
+            artifactsBuilder.visitArtifacts(from, fileDependency, artifactSetId, artifactSet);
         }
 
         @Override
-        public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
-            artifactsBuilder.visitArtifacts(from, to, artifacts);
+        public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
+            artifactsBuilder.visitArtifacts(from, to, artifactSetId, artifacts);
         }
 
         @Override

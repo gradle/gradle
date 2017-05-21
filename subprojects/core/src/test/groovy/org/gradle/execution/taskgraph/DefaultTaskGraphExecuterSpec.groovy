@@ -23,16 +23,15 @@ import org.gradle.api.execution.internal.InternalTaskExecutionListener
 import org.gradle.api.execution.internal.TaskOperationInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factories
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.internal.event.DefaultListenerManager
-
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -190,8 +189,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.outputs >> Stub(TaskOutputsInternal) {
             getFiles() >> project.files()
         }
-        _ * mock.destroyables >> Stub(TaskDestroyables) {
-            getFiles() >> project.files()
+        _ * mock.destroyables >> Stub(TaskDestroyablesInternal) {
+            getFilesReadOnly() >> []
         }
         _ * mock.path >> ":${name}"
         return mock
@@ -213,8 +212,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.outputs >> Stub(TaskOutputsInternal) {
             getFiles() >> project.files()
         }
-        _ * mock.destroyables >> Stub(TaskDestroyables) {
-            getFiles() >> project.files()
+        _ * mock.destroyables >> Stub(TaskDestroyablesInternal) {
+            getFiles() >> []
         }
         _ * mock.path >> ":${name}"
         return mock

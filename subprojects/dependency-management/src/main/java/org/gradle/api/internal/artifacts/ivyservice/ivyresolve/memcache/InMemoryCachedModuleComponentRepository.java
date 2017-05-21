@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepositoryAccess;
@@ -35,14 +37,18 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
+import java.util.Map;
+
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleComponentRepositoryAccess localAccess;
     private final ModuleComponentRepositoryAccess remoteAccess;
+    private final Map<ComponentArtifactIdentifier, ResolvedArtifact> resolvedArtifactsCache;
 
     public InMemoryCachedModuleComponentRepository(InMemoryModuleComponentRepositoryCaches cache, ModuleComponentRepository delegate) {
         super(delegate);
         this.localAccess = new CachedAccess(delegate.getLocalAccess(), cache.localArtifactsCache, cache.localMetaDataCache);
         this.remoteAccess = new CachedAccess(delegate.getRemoteAccess(), cache.remoteArtifactsCache, cache.remoteMetaDataCache);
+        resolvedArtifactsCache = cache.resolvedArtifactsCache;
     }
 
     @Override
@@ -53,6 +59,11 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
     @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
+    }
+
+    @Override
+    public Map<ComponentArtifactIdentifier, ResolvedArtifact> getArtifactCache() {
+        return resolvedArtifactsCache;
     }
 
     private class CachedAccess extends BaseModuleComponentRepositoryAccess {

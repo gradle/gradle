@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -32,6 +34,8 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+
+import java.util.Map;
 
 public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository {
     private final ModuleComponentRepository delegate;
@@ -71,6 +75,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
     public ComponentMetadataSupplier createMetadataSupplier() {
         return delegate.createMetadataSupplier();
+    }
+
+    @Override
+    public Map<ComponentArtifactIdentifier, ResolvedArtifact> getArtifactCache() {
+        return delegate.getArtifactCache();
     }
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {

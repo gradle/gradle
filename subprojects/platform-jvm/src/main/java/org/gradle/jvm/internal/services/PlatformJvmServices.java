@@ -18,7 +18,6 @@ package org.gradle.jvm.internal.services;
 
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.project.taskfactory.ClasspathPropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.CompileClasspathPropertyAnnotationHandler;
@@ -90,16 +89,14 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
             VariantsMetaData variants = ((JvmLibraryResolveContext) context).getVariants();
             VariantBinarySelector variantSelector = new JvmVariantSelector(factories, JvmBinarySpec.class, schemaStore, variants);
             JvmLocalLibraryMetaDataAdapter libraryMetaDataAdapter = new JvmLocalLibraryMetaDataAdapter();
-            LocalLibraryDependencyResolver delegate =
-                    new LocalLibraryDependencyResolver(
-                            JvmBinarySpec.class,
-                            projectModelResolver,
-                            new DefaultLocalLibraryResolver(),
-                            variantSelector,
-                            libraryMetaDataAdapter,
-                            new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
-                    );
-            return DelegatingComponentResolvers.of(delegate);
+            return new LocalLibraryDependencyResolver(
+                    JvmBinarySpec.class,
+                    projectModelResolver,
+                    new DefaultLocalLibraryResolver(),
+                    variantSelector,
+                    libraryMetaDataAdapter,
+                    new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
+            );
         }
     }
 }

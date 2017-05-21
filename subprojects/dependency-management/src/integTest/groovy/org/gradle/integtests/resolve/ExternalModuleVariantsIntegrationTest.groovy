@@ -453,4 +453,94 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         output.contains("b.aar {androidType=library-archive, artifactType=aar}")
         output.contains("c.thing {artifactType=widget, usage=unknown}")
     }
+
+    def "each project can define different artifact types"() {
+        mavenRepo.module("test", "test-jar", "1.2").publish()
+        mavenRepo.module("test", "test-aar", "1.2")
+            .hasPackaging('aar')
+            .hasType('aar')
+            .publish()
+        mavenRepo.module("test", "test-thing", "1.2")
+            .hasPackaging('thing')
+            .hasType('thing')
+            .publish()
+
+        settingsFile << "include 'a', 'b'"
+
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                configurations {
+                    compile
+                    create('default') { extendsFrom configurations.compile }
+                }
+                task show {
+                    def artifacts = configurations.compile.incoming.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        artifacts.each {
+                            println it.file.name + ' ' + it.variant.attributes
+                        }
+                    }
+                }
+            }
+            project(':a') {
+                dependencies {
+                    compile 'test:test-jar:1.2'
+                    compile 'test:test-aar:1.2'
+                    compile 'test:test-thing:1.2'
+                    artifacts {
+                        compile file("a.jar")
+                    }
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(Attribute.of('usage', String), 'java-runtime')
+                            attributes.attribute(Attribute.of('javaVersion', String), '1.8')
+                        }
+                        aar {
+                            attributes.attribute(Attribute.of('artifactType', String), 'aar')
+                            attributes.attribute(Attribute.of('androidType', String), 'library-archive')
+                        }
+                        thing {
+                            attributes.attribute(Attribute.of('artifactType', String), 'widget')
+                            attributes.attribute(Attribute.of('usage', String), 'unknown')
+                        }
+                    }
+                }
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                    artifactTypes {
+                        aar {
+                            attributes.attribute(Attribute.of('artifactType', String), 'android-lib')
+                        }
+                        thing {
+                            attributes.attribute(Attribute.of('artifactType', String), 'a-thing')
+                            attributes.attribute(Attribute.of('usage', String), 'a-thing')
+                        }
+                    }
+                }
+            }
+"""
+
+        when:
+        run ':a:show'
+
+        then:
+        output.contains("test-jar-1.2.jar {artifactType=jar, javaVersion=1.8, usage=java-runtime}")
+        output.contains("test-aar-1.2.aar {androidType=library-archive, artifactType=aar}")
+        output.contains("test-thing-1.2.thing {artifactType=widget, usage=unknown}")
+
+        when:
+        run ':b:show'
+
+        then:
+        output.contains("a.jar {artifactType=jar}")
+        output.contains("test-jar-1.2.jar {artifactType=jar}")
+        output.contains("test-aar-1.2.aar {artifactType=android-lib}")
+        output.contains("test-thing-1.2.thing {artifactType=a-thing, usage=a-thing}")
+    }
 }

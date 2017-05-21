@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -24,11 +23,8 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.collect.Maps.newLinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Collects all artifacts and their build dependencies.
@@ -36,9 +32,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final boolean buildProjectDependencies;
     private final ResolutionStrategy.SortOrder sortOrder;
-    private final Map<Long, Set<Long>> sortedNodeIds = newLinkedHashMap();
-    private final Map<Long, ArtifactSet> artifactSetsById = newLinkedHashMap();
-    private final Set<Long> buildableArtifactSets = new HashSet<Long>();
+    private final List<ArtifactSet> artifactSetsById = new ArrayList<ArtifactSet>();
 
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
         this.buildProjectDependencies = buildProjectDependencies;
@@ -51,49 +45,39 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
 
     @Override
     public void visitNode(DependencyGraphNode node) {
-        sortedNodeIds.put(node.getNodeId(), Sets.<Long>newLinkedHashSet());
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifacts) {
-        collectArtifactsFor(from, artifacts);
-        buildableArtifactSets.add(artifacts.getId());
+    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifacts) {
+        collectArtifacts(artifactSetId, artifacts);
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
-        collectArtifactsFor(to, artifacts);
-
+    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
         // Don't collect build dependencies if not required
         if (!buildProjectDependencies) {
-            return;
-        }
-        if (buildableArtifactSets.contains(artifacts.getId())) {
-            return;
-        }
-
-        // Collect the build dependencies in 2 steps: collect the artifact sets while traversing and at the end of traversal unpack the build dependencies for each
-        // We need to discard the artifact sets to avoid keeping strong references
-
-        ConfigurationMetadata configurationMetadata = to.getMetadata();
-        if (!(configurationMetadata instanceof LocalConfigurationMetadata)) {
-            return;
-        }
-
-        if (from.getOwner().getComponentId() instanceof ProjectComponentIdentifier) {
-            // This is here to attempt to leave out build dependencies that would cause a cycle in the task graph for the current build, so that the cross-build cycle detection kicks in. It's not fully correct
-            ProjectComponentIdentifier incomingId = (ProjectComponentIdentifier) from.getOwner().getComponentId();
-            if (!incomingId.getBuild().isCurrentBuild()) {
-                return;
+            artifacts = new NoBuildDependenciesArtifactSet(artifacts);
+        } else {
+            ConfigurationMetadata configurationMetadata = to.getMetadata();
+            if (configurationMetadata instanceof LocalConfigurationMetadata) {
+                if (from.getOwner().getComponentId() instanceof ProjectComponentIdentifier) {
+                    // This is here to attempt to leave out build dependencies that would cause a cycle in the task graph for the current build, so that the cross-build cycle detection kicks in. It's not fully correct
+                    ProjectComponentIdentifier incomingId = (ProjectComponentIdentifier) from.getOwner().getComponentId();
+                    if (!incomingId.getBuild().isCurrentBuild()) {
+                        artifacts = new NoBuildDependenciesArtifactSet(artifacts);
+                    }
+                }
             }
         }
-
-        buildableArtifactSets.add(artifacts.getId());
+        collectArtifacts(artifactSetId, artifacts);
     }
 
-    private void collectArtifactsFor(DependencyGraphNode node, ArtifactSet artifacts) {
-        artifactSetsById.put(artifacts.getId(), artifacts);
-        sortedNodeIds.get(node.getNodeId()).add(artifacts.getId());
+    private void collectArtifacts(int artifactSetId, ArtifactSet artifacts) {
+        // Collect artifact sets in a list, using the id of the set as its index in the list
+        assert artifactSetsById.size() >= artifactSetId;
+        if (artifactSetsById.size() == artifactSetId) {
+            artifactSetsById.add(artifacts);
+        }
     }
 
     @Override
@@ -101,11 +85,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     public VisitedArtifactsResults complete() {
-        Map<Long, ArtifactSet> artifactsById = newLinkedHashMap();
-        for (Map.Entry<Long, ArtifactSet> entry : artifactSetsById.entrySet()) {
-            artifactsById.put(entry.getKey(), entry.getValue().snapshot());
-        }
-
-        return new DefaultVisitedArtifactResults(sortOrder, sortedNodeIds, artifactsById, buildableArtifactSets);
+        return new DefaultVisitedArtifactResults(sortOrder, artifactSetsById);
     }
 }

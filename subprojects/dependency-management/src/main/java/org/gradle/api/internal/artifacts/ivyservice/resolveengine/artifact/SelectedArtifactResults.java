@@ -23,12 +23,7 @@ public interface SelectedArtifactResults {
     ResolvedArtifactSet getArtifacts();
 
     /**
-     * Returns the set of artifacts for the node with the given id.
-     */
-    ResolvedArtifactSet getArtifactsForNode(long id);
-
-    /**
      * Returns the set of artifacts with the given id.
      */
-    ResolvedArtifactSet getArtifactsWithId(long id);
+    ResolvedArtifactSet getArtifactsWithId(int id);
 }

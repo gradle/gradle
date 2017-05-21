@@ -26,20 +26,22 @@ public interface DependencyArtifactsVisitor {
     void startArtifacts(DependencyGraphNode root);
 
     /**
-     * Visits a node in the graph. Nodes are visited in consumer-first order and prior to visiting any edges
+     * Visits a node in the graph. All nodes are visited prior to visiting the edges
      */
     void visitNode(DependencyGraphNode node);
 
     /**
      * Visits the artifacts introduced by a particular edge in the graph. Called for every edge in the graph.
+     * The nodes are visited in consumer-first order.
      */
-    void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts);
+    void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts);
 
     /**
      * Visits the artifacts introduce by a particular node in the graph. Called *zero or more* times for each node.
      * Currently local files are treated differently to other dependencies.
+     * The nodes are visited in consumer-first order
      */
-    void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet);
+    void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet);
 
     /**
      * Completes visiting.
