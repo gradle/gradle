@@ -30,18 +30,22 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultArtifactSelector implements ArtifactSelector {
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
+    private final List<OriginArtifactSelector> selectors;
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
 
-    public DefaultArtifactSelector(ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry) {
+    public DefaultArtifactSelector(List<OriginArtifactSelector> selectors, ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry) {
+        this.selectors = selectors;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
     }
@@ -54,7 +58,16 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ModuleExclusion exclusions) {
         BuildableComponentArtifactsResolveResult result = new DefaultBuildableComponentArtifactsResolveResult();
-        artifactResolver.resolveArtifacts(component, result);
+        for (OriginArtifactSelector selector : selectors) {
+            if (result.hasResult()) {
+                break;
+            }
+            try {
+                selector.resolveArtifacts(component, result);
+            } catch (Throwable t) {
+                result.failed(new ArtifactResolveException(component.getComponentId(), t));
+            }
+        }
         return result.getResult().getArtifactsFor(component, configuration, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, exclusions);
     }
 

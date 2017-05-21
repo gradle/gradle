@@ -27,6 +27,7 @@ import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
@@ -36,7 +37,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 /**
  * Used as a fallback when no repositories are defined for a given resolution.
  */
-public class NoRepositoriesResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+public class NoRepositoriesResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver, OriginArtifactSelector {
     @Override
     public DependencyToComponentIdResolver getComponentIdResolver() {
         return this;
@@ -49,6 +50,11 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
 
     @Override
     public ArtifactResolver getArtifactResolver() {
+        return this;
+    }
+
+    @Override
+    public OriginArtifactSelector getArtifactSelector() {
         return this;
     }
 

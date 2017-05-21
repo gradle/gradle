@@ -35,6 +35,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
@@ -43,7 +44,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import java.io.File;
 
-public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, ComponentResolvers {
+public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
     private final ProjectArtifactBuilder artifactBuilder;
     private final ComponentIdentifierFactory componentIdentifierFactory;
@@ -66,6 +67,11 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Override
     public ComponentMetaDataResolver getComponentResolver() {
+        return this;
+    }
+
+    @Override
+    public OriginArtifactSelector getArtifactSelector() {
         return this;
     }
 

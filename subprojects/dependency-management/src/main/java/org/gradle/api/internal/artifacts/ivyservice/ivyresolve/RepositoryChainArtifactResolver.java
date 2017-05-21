@@ -21,6 +21,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
@@ -28,7 +29,7 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-class RepositoryChainArtifactResolver implements ArtifactResolver {
+class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifactSelector {
     private final Map<String, ModuleComponentRepository> repositories = new LinkedHashMap<String, ModuleComponentRepository>();
 
     void add(ModuleComponentRepository repository) {

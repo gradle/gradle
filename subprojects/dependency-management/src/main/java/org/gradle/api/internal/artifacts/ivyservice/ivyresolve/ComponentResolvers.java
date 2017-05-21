@@ -18,11 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 
 public interface ComponentResolvers {
     DependencyToComponentIdResolver getComponentIdResolver();
 
     ComponentMetaDataResolver getComponentResolver();
+
+    OriginArtifactSelector getArtifactSelector();
 
     ArtifactResolver getArtifactResolver();
 }

@@ -29,16 +29,16 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DefaultArtifactSelector;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ComponentResolversChain implements ComponentResolvers {
+public class ComponentResolversChain {
     private final DependencyToComponentIdResolverChain dependencyToComponentIdResolver;
     private final ComponentMetaDataResolverChain componentMetaDataResolver;
     private final ArtifactResolver artifactResolverChain;
@@ -48,32 +48,31 @@ public class ComponentResolversChain implements ComponentResolvers {
         List<DependencyToComponentIdResolver> depToComponentIdResolvers = new ArrayList<DependencyToComponentIdResolver>(providers.size());
         List<ComponentMetaDataResolver> componentMetaDataResolvers = new ArrayList<ComponentMetaDataResolver>(providers.size());
         List<ArtifactResolver> artifactResolvers = new ArrayList<ArtifactResolver>(providers.size());
+        List<OriginArtifactSelector> artifactSelectors = new ArrayList<OriginArtifactSelector>(providers.size());
         for (ComponentResolvers provider : providers) {
             depToComponentIdResolvers.add(provider.getComponentIdResolver());
             componentMetaDataResolvers.add(provider.getComponentResolver());
+            artifactSelectors.add(provider.getArtifactSelector());
             artifactResolvers.add(provider.getArtifactResolver());
         }
         dependencyToComponentIdResolver = new DependencyToComponentIdResolverChain(depToComponentIdResolvers);
         componentMetaDataResolver = new ComponentMetaDataResolverChain(componentMetaDataResolvers);
         artifactResolverChain = new ErrorHandlingArtifactResolver(new ArtifactResolverChain(artifactResolvers));
-        artifactSelector = new DefaultArtifactSelector(artifactResolverChain, artifactTypeRegistry);
+        artifactSelector = new DefaultArtifactSelector(artifactSelectors, artifactResolverChain, artifactTypeRegistry);
     }
 
     public DefaultArtifactSelector getArtifactSelector() {
         return artifactSelector;
     }
 
-    @Override
     public DependencyToComponentIdResolver getComponentIdResolver() {
         return dependencyToComponentIdResolver;
     }
 
-    @Override
     public ComponentMetaDataResolver getComponentResolver() {
         return componentMetaDataResolver;
     }
 
-    @Override
     public ArtifactResolver getArtifactResolver() {
         return artifactResolverChain;
     }
@@ -120,16 +119,6 @@ public class ComponentResolversChain implements ComponentResolvers {
                     return;
                 }
                 resolver.resolveArtifact(artifact, moduleSource, result);
-            }
-        }
-
-        @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
-            for (ArtifactResolver resolver : resolvers) {
-                if (result.hasResult()) {
-                    return;
-                }
-                resolver.resolveArtifacts(component, result);
             }
         }
 

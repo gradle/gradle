@@ -21,14 +21,8 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 
 public interface ArtifactResolver {
-    /**
-     * Discovers the set of artifacts belonging to the given component, but does not download them. Any failures are packaged up in the result.
-     */
-    void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result);
-
     /**
      * Discovers the set of artifacts belonging to the given component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.
      */
