@@ -24,6 +24,7 @@ import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildTaskGraph;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.util.Path;
 
 import java.util.Collection;
 import java.util.List;
@@ -62,7 +63,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         for (BuildIdentifier nextTarget : buildDependencies.get(targetBuild)) {
             if (sourceBuild.equals(nextTarget)) {
                 candidateCycle.add(nextTarget);
-                ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(candidateCycle.get(0), ":");
+                ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(candidateCycle.get(0), Path.ROOT.getPath());
                 throw new ModuleVersionResolveException(selector, "Included build dependency cycle: " + reportCycle(candidateCycle));
             }
 
