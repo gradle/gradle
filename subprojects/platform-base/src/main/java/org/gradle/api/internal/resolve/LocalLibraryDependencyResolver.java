@@ -19,10 +19,15 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
@@ -30,6 +35,7 @@ import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMet
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -40,7 +46,6 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
@@ -50,6 +55,7 @@ import org.gradle.platform.base.VariantComponent;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final VariantBinarySelector variantSelector;
@@ -183,12 +189,14 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         return identifier instanceof LibraryBinaryIdentifier;
     }
 
+    @Nullable
     @Override
-    public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, Map<ComponentArtifactIdentifier, ResolvedArtifact> candidates, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
         ComponentIdentifier componentId = component.getComponentId();
         if (isLibrary(componentId)) {
-            result.resolved(new MetadataSourcedComponentArtifacts());
+            return new MetadataSourcedComponentArtifacts().getArtifactsFor(component, configuration, this, candidates, artifactTypeRegistry, exclusions);
         }
+        return null;
     }
 
     @Override

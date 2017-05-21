@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
@@ -34,11 +36,11 @@ import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
-import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
 import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmBinarySpec
@@ -201,8 +203,10 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
     def "handles library module artifacts"() {
         given:
         def component = Mock(ComponentResolveMetadata)
+        def configuration = Mock(ConfigurationMetadata)
         def result = new DefaultBuildableArtifactSetResolveResult()
         component.componentId >> Mock(LibraryBinaryIdentifier)
+        configuration.variants >> ([] as Set)
 
         when:
         resolver.resolveArtifactsWithType(component, ArtifactType.SOURCES, result)
@@ -211,16 +215,16 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         result.hasResult()
 
         when:
-        result = new DefaultBuildableComponentArtifactsResolveResult()
-        resolver.resolveArtifacts(component, result)
+        def artifacts = resolver.resolveArtifacts(component, configuration, [:], Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone())
 
         then:
-        result.hasResult()
+        artifacts != null
     }
 
     def "ignores non library module artifacts"() {
         given:
         def component = Mock(ComponentResolveMetadata)
+        def configuration = Mock(ConfigurationMetadata)
         def result = new DefaultBuildableArtifactSetResolveResult()
         component.componentId >> Mock(ModuleComponentIdentifier)
 
@@ -231,11 +235,10 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         !result.hasResult()
 
         when:
-        result = new DefaultBuildableComponentArtifactsResolveResult()
-        resolver.resolveArtifacts(component, result)
+        def artifacts = resolver.resolveArtifacts(component, configuration, [:], Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone())
 
         then:
-        !result.hasResult()
+        artifacts == null
     }
 
     private ModelMap<? extends LibrarySpec> mockLibraries(Project project, List<String> libraries) {

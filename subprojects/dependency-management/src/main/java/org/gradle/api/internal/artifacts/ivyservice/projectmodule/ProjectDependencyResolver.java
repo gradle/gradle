@@ -15,11 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -29,6 +35,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifacts;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -38,16 +45,19 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import java.io.File;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
     private final ProjectArtifactBuilder artifactBuilder;
     private final ComponentIdentifierFactory componentIdentifierFactory;
+    // This should live closer to the project itself
+    private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allProjectArtifacts = new ConcurrentHashMap<ComponentArtifactIdentifier, ResolvedArtifact>();
 
     public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ProjectArtifactBuilder artifactBuilder, ComponentIdentifierFactory componentIdentifierFactory) {
         this.localComponentRegistry = localComponentRegistry;
@@ -114,13 +124,15 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         }
     }
 
+    @Nullable
     @Override
-    public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, Map<ComponentArtifactIdentifier, ResolvedArtifact> candidates, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
         if (isProjectModule(component.getComponentId())) {
             ComponentArtifacts artifacts = new MetadataSourcedComponentArtifacts();
             artifacts = new ProjectDependencyComponentArtifacts(artifactBuilder, artifacts);
-            result.resolved(artifacts);
+            return artifacts.getArtifactsFor(component, configuration, this, allProjectArtifacts, artifactTypeRegistry, exclusions);
         }
+        return null;
     }
 
     @Override

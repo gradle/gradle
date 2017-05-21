@@ -16,12 +16,21 @@
 
 package org.gradle.internal.resolve.resolver;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+
+import java.util.Map;
 
 public interface OriginArtifactSelector {
     /**
-     * Discovers the set of artifacts belonging to the given component, but does not download them. Any failures are packaged up in the result.
+     * Creates a set that will resolve the artifacts of the given configuration, minus those artifacts that are excluded.
      */
-    void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result);
+    @Nullable
+    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, Map<ComponentArtifactIdentifier, ResolvedArtifact> candidates, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions);
 }
