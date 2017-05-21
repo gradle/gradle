@@ -47,13 +47,29 @@ public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot newSnapshot = snapshotter.snapshot(value);
+        if (isEqualSetValueSnapshot(newSnapshot)) {
+            return this;
+        }
+        return newSnapshot;
+    }
+
+    @Override
+    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot newSnapshot = snapshotter.isolatableSnapshot(value);
+        if (isEqualSetValueSnapshot(newSnapshot)) {
+            return this;
+        }
+        return newSnapshot;
+    }
+
+    private boolean isEqualSetValueSnapshot(ValueSnapshot newSnapshot) {
         if (newSnapshot instanceof SetValueSnapshot) {
             SetValueSnapshot other = (SetValueSnapshot) newSnapshot;
             if (elements.equals(other.elements)) {
-                return this;
+                return true;
             }
         }
-        return newSnapshot;
+        return false;
     }
 
     @Override
@@ -80,7 +96,7 @@ public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
             if (snapshot instanceof Isolatable) {
                 set.add(((Isolatable) snapshot).isolate());
             } else {
-                throw new IsolationException("Attempted to isolate an object which is not Isolatable.");
+                throw new IsolationException(snapshot);
             }
         }
         return set;

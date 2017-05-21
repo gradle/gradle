@@ -59,7 +59,7 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         // TODO - should snapshot later?
         ValueSnapshot snapshot;
         try {
-            snapshot = valueSnapshotter.snapshot(params);
+            snapshot = valueSnapshotter.isolatableSnapshot(params);
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(String.format("Could not snapshot configuration values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
         }

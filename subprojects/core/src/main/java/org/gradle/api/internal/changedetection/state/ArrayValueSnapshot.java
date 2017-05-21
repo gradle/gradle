@@ -46,13 +46,29 @@ public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot other = snapshotter.snapshot(value);
+        if (isEqualArrayValueSnapshot(other)) {
+            return this;
+        }
+        return other;
+    }
+
+    @Override
+    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot other = snapshotter.isolatableSnapshot(value);
+        if (isEqualArrayValueSnapshot(other)) {
+            return this;
+        }
+        return other;
+    }
+
+    private boolean isEqualArrayValueSnapshot(ValueSnapshot other) {
         if (other instanceof ArrayValueSnapshot) {
             ArrayValueSnapshot otherArray = (ArrayValueSnapshot) other;
             if (Arrays.equals(elements, otherArray.elements)) {
-                return this;
+                return true;
             }
         }
-        return other;
+        return false;
     }
 
     @Override
@@ -81,7 +97,7 @@ public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
             if (snapshot instanceof Isolatable) {
                 toReturn[i] = ((Isolatable) snapshot).isolate();
             } else {
-                throw new IsolationException("Attempted to isolate an object which is not Isolatable.");
+                throw new IsolationException(snapshot);
             }
         }
         return toReturn;

@@ -48,11 +48,17 @@ public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot newSnapshot = snapshotter.snapshot(value);
-        if (newSnapshot instanceof MapValueSnapshot) {
-            MapValueSnapshot mapSnapshot = (MapValueSnapshot) newSnapshot;
-            if (entries.equals(mapSnapshot.entries)) {
-                return this;
-            }
+        if (equals(newSnapshot)) {
+            return this;
+        }
+        return newSnapshot;
+    }
+
+    @Override
+    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot newSnapshot = snapshotter.isolatableSnapshot(value);
+        if (equals(newSnapshot)) {
+            return this;
         }
         return newSnapshot;
     }
@@ -77,11 +83,15 @@ public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
     @Override
     public Map isolate() {
         Map map = new HashMap();
-        for (ValueSnapshot key : entries.keySet()) {
-            if (key instanceof Isolatable && entries.get(key) instanceof Isolatable) {
-                map.put(((Isolatable) key).isolate(), ((Isolatable) entries.get(key)).isolate());
+        for (Map.Entry<ValueSnapshot, ValueSnapshot> entry : entries.entrySet()) {
+            if (entry.getKey() instanceof Isolatable) {
+                if (entry.getValue() instanceof Isolatable) {
+                    map.put(((Isolatable) entry.getKey()).isolate(), ((Isolatable) entry.getValue()).isolate());
+                } else {
+                    throw new IsolationException(entry.getValue());
+                }
             } else {
-                throw new IsolationException("Attempted to isolate an object which is not Isolatable.");
+                throw new IsolationException(entry.getKey());
             }
         }
         return map;

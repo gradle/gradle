@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.isolation;
+package org.gradle.api.internal.changedetection.state;
 
 /**
- * Represents a problem while attempting to isolate an instance.
+ * Encapsulates a strategy for making {@link ValueSnapshot}s
  */
-public class IsolationException extends RuntimeException {
-    private static final String MSG_FORMAT="Could not isolate value: [%s] of type: [%s]";
+public class ValueSnapshotStrategy {
+    protected final ValueSnapshotter snapshotter;
 
-    public IsolationException(String msg) {
-        super(msg);
+    public ValueSnapshotStrategy(ValueSnapshotter snapshotter) {
+        this.snapshotter = snapshotter;
     }
 
-    public IsolationException(Object value) {
-        super(String.format(MSG_FORMAT, value, value.getClass()));
+    public ValueSnapshot snapshot(Object value) {
+        return snapshotter.snapshot(value);
+    }
+
+    public ValueSnapshot snapshot(Object value, ValueSnapshot candidate) {
+        return snapshotter.snapshot(value, candidate);
     }
 }

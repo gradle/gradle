@@ -63,7 +63,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.snapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
+        1 * valueSnapshotter.isolatableSnapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -100,7 +100,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray);
+        1 * valueSnapshotter.isolatableSnapshot(["EXTRA_1", "EXTRA_2"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray);
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -138,7 +138,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.snapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
+        1 * valueSnapshotter.isolatableSnapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(AbstractArtifactTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -175,7 +175,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
+        1 * valueSnapshotter.isolatableSnapshot(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransformWithParams.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -209,7 +209,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.snapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
+        1 * valueSnapshotter.isolatableSnapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(BrokenTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
