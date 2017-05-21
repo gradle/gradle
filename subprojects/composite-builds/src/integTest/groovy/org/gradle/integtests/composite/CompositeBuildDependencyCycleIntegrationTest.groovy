@@ -135,10 +135,13 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         failure
             .assertHasDescription("Failed to build artifacts for build 'buildB'")
             .assertHasCause("Failed to build artifacts for build 'buildC'")
-
-        // TODO:DAZ Reporting the incorrect dependency cycle (well it's kind-of correct, but not very helpful)
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
-//            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildD' -> build 'buildB'")
+
+        // TODO:DAZ This is technically correct, but not ideal.
+        // Since 'buildB' is an API dependency of 'buildD', 'buildC' actually does require 'buildB',
+        // but this message is probably not what a user would expect.
+        // A more helpful cycle report would be something like:
+        //    "Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildD' -> build 'buildB'"
     }
 
     // Not actually a cycle, just documenting behaviour
