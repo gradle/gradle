@@ -35,6 +35,7 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
         def actualOutput = result.normalizedOutput
         String cleaned = actualOutput.substring(0, actualOutput.lastIndexOf("BUILD SUCCESSFUL"))
         cleaned = cleaned.replaceAll(/Download .*\n/, "")
+        cleaned = cleaned.trim()
         assert cleaned == expected(expectedOutput)
         return true
     }
@@ -46,9 +47,7 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
 Root project
 ------------------------------------------------------------
 """ + normalised + """
-Note: currently not all plugins register their components, so some components may not be visible here.
-
-"""
+Note: currently not all plugins register their components, so some components may not be visible here."""
         return formatter.transform(raw)
     }
 

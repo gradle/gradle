@@ -550,7 +550,7 @@ public class DefaultTaskGraphExecuterTest {
         final TaskStateInternal state = context.mock(TaskStateInternal.class);
         final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
         final TaskDestroyablesInternal destroys = context.mock(TaskDestroyablesInternal.class);
-        setExpectations(name, task, state, outputs, destroys);
+        setExpectations(name, task, state, outputs, destroys, failure);
         dependsOn(task, dependsOn);
         context.checking(new Expectations() {{
             atMost(1).of(executer).execute(with(sameInstance(task)), with(sameInstance(state)), with(notNullValue(TaskExecutionContext.class)));
@@ -568,12 +568,14 @@ public class DefaultTaskGraphExecuterTest {
         final TaskStateInternal state = context.mock(TaskStateInternal.class);
         final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
         final TaskDestroyablesInternal destroys = context.mock(TaskDestroyablesInternal.class);
-        setExpectations(name, task, state, outputs, destroys);
+        setExpectations(name, task, state, outputs, destroys, null);
         dependsOn(task, dependsOn);
         context.checking(new Expectations() {{
             atMost(1).of(executer).execute(with(sameInstance(task)), with(sameInstance(state)), with(notNullValue(TaskExecutionContext.class)));
             will(new ExecuteTaskAction(task));
             allowing(state).getFailure();
+            will(returnValue(null));
+            allowing(state).getSkipMessage();
             will(returnValue(null));
         }});
         return task;
@@ -584,11 +586,11 @@ public class DefaultTaskGraphExecuterTest {
         TaskStateInternal state = context.mock(TaskStateInternal.class);
         final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
         final TaskDestroyablesInternal destroys = context.mock(TaskDestroyablesInternal.class);
-        setExpectations(name, task, state, outputs, destroys);
+        setExpectations(name, task, state, outputs, destroys, null);
         return task;
     }
 
-    private void setExpectations(final String name, final TaskInternal task, final TaskStateInternal state, final TaskOutputs outputs, final TaskDestroyablesInternal destroys) {
+    private void setExpectations(final String name, final TaskInternal task, final TaskStateInternal state, final TaskOutputs outputs, final TaskDestroyablesInternal destroys, final Throwable failure) {
         context.checking(new Expectations() {{
             allowing(task).getProject();
             will(returnValue(root));
@@ -602,6 +604,10 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(state));
             allowing((Task) task).getState();
             will(returnValue(state));
+            allowing(state).getFailure();
+            will(returnValue(failure));
+            allowing(state).getSkipMessage();
+            will(returnValue(null));
             allowing(task).getMustRunAfter();
             will(returnValue(new DefaultTaskDependency()));
             allowing(task).getFinalizedBy();

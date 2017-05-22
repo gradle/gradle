@@ -177,7 +177,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
                     worker.execute(buildOperation, context);
                 } finally {
                     LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-                    progressLogger.completed();
+                    progressLogger.completed(context.status);
                 }
                 assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
             } catch (Throwable t) {
@@ -274,6 +274,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private static class DefaultBuildOperationContext implements BuildOperationContext {
         Throwable failure;
         Object result;
+        private String status;
 
         @Override
         public void failed(Throwable t) {
@@ -283,6 +284,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         @Override
         public void setResult(Object result) {
             this.result = result;
+        }
+
+        @Override
+        public void setStatus(String status) {
+            this.status = status;
         }
     }
 
