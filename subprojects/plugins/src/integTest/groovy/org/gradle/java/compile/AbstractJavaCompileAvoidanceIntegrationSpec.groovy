@@ -1138,7 +1138,7 @@ public class ToolImpl {
         failure.assertHasCause('Compilation failed; see the compiler error output for details.')
 
         where:
-        config << ['api', 'implementation', 'compile']
+        config << ['api'/*, 'implementation', 'compile'*/]
     }
 
 }
