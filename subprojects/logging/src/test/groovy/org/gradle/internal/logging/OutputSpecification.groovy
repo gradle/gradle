@@ -64,6 +64,10 @@ abstract class OutputSpecification extends Specification {
         return new LogEvent(timestamp, 'category', logLevel, text, null)
     }
 
+    LogEvent event(long timestamp, String text, LogLevel logLevel, Object buildOperationId) {
+        return new LogEvent(timestamp, 'category', logLevel, text, null, buildOperationId)
+    }
+
     LogEvent event(long timestamp, String text) {
         return new LogEvent(timestamp, 'category', LogLevel.INFO, text, null)
     }
