@@ -146,6 +146,7 @@ class DefaultPluginManagerTest extends Specification {
 
         then:
         1 * target.applyRules(null, rulesClass)
+        1 * target.getConfigurationTargetIdentifier()
         1 * action.execute(_)
         0 * target._
         0 * action._
@@ -273,6 +274,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(hybridClass)
 
         then:
+        1 * target.getConfigurationTargetIdentifier()
         1 * target.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
         0 * target._
         1 * action.execute(_)
@@ -355,6 +357,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.pluginContainer.apply(imperativeClass)
 
         then:
+        1 * target.getConfigurationTargetIdentifier()
         1 * target.applyImperative(null, { imperativeClass.isInstance(it) })
         0 * target._
 
@@ -378,6 +381,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(imperativeClass)
 
         then:
+        1 * target.getConfigurationTargetIdentifier()
         1 * target.applyImperative(null, { imperativeClass.isInstance(it) })
         0 * target._
         1 * action.execute(_)
@@ -523,6 +527,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(imperativeClass)
 
         then:
+        1 * target.getConfigurationTargetIdentifier()
         1 * target.applyImperative("bar", { imperativeClass.isInstance(it) })
         0 * target._
         1 * action.execute(_)

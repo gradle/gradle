@@ -17,7 +17,6 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import java.util.LinkedHashMap;
@@ -32,9 +31,9 @@ public final class BuildOperationRecord {
     public final long startTime;
     public final long endTime;
     public final Map<String, ?> details;
-    public final String detailsClassName;
+    private final String detailsClassName;
     public final Map<String, ?> result;
-    public final String resultClassName;
+    private final String resultClassName;
     public final String failure;
 
     public final List<BuildOperationRecord> children;
@@ -57,38 +56,12 @@ public final class BuildOperationRecord {
         this.displayName = displayName;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.details = details;
+        this.details = details == null ? null : new StrictMap<String, Object>(details);
         this.detailsClassName = detailsClassName;
-        this.result = result;
+        this.result = result == null ? null : new StrictMap<String, Object>(result);
         this.resultClassName = resultClassName;
         this.failure = failure;
         this.children = children;
-    }
-
-    BuildOperationRecord(Map<String, ?> serialized) {
-        this.id = serialized.get("id");
-        this.parentId = serialized.get("parentId");
-        this.displayName = (String) serialized.get("displayName");
-        this.startTime = (Long) serialized.get("startTime");
-        this.endTime = (Long) serialized.get("endTime");
-
-        this.detailsClassName = (String) serialized.get("detailsClassName");
-        @SuppressWarnings("unchecked") Map<String, ?> detailsMap = (Map<String, ?>) serialized.get("details");
-        this.details = detailsMap;
-
-        this.resultClassName = (String) serialized.get("resultClassName");
-        @SuppressWarnings("unchecked") Map<String, ?> resultMap = (Map<String, ?>) serialized.get("result");
-        this.result = resultMap;
-
-        this.failure = (String) serialized.get("failure");
-
-        @SuppressWarnings("unchecked") List<Map<String, ?>> children = (List<Map<String, ?>>) serialized.get("children");
-        this.children = ImmutableList.copyOf(Lists.transform(children, new Function<Map<String, ?>, BuildOperationRecord>() {
-            @Override
-            public BuildOperationRecord apply(Map<String, ?> input) {
-                return new BuildOperationRecord(input);
-            }
-        }));
     }
 
     Map<String, ?> toSerializable() {

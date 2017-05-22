@@ -16,28 +16,25 @@
 
 package org.gradle.internal.operations.notify
 
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationListenerManager
+import org.gradle.internal.progress.DefaultBuildOperationListenerManager
 import org.gradle.internal.progress.OperationFinishEvent
 import org.gradle.testing.internal.util.Specification
 
 class BuildOperationNotificationBridgeTest extends Specification {
 
-    def listenerManager = Mock(BuildOperationListenerManager)
-    def bridge = new BuildOperationNotificationBridge(listenerManager)
+    def rawListenerManager = new DefaultListenerManager()
+    def listenerManager = new DefaultBuildOperationListenerManager(rawListenerManager)
+    BuildOperationNotificationBridge bridge
+    def broadcast = rawListenerManager.getBroadcaster(BuildOperationListener)
     def listener = Mock(BuildOperationNotificationListener)
-
-    def "adapts listener"() {
-        when:
-        register(listener)
-
-        then:
-        1 * listenerManager.addListener(_)
-    }
 
     def "removes listener when stopped"() {
         given:
+        listenerManager = Mock(BuildOperationListenerManager)
         def buildOperationListener
 
         when:
@@ -57,25 +54,26 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
     }
 
-    def "forwards operations with details"() {
-        given:
-        BuildOperationListener buildOperationListener
-        def d1 = BuildOperationDescriptor.displayName("a").details(1).build(1, null)
-        def d2 = BuildOperationDescriptor.displayName("a").build(2, null)
-        def d3 = BuildOperationDescriptor.displayName("a").details(1).build(3, null)
-        def e1 = new Exception()
-
+    def "does not allow duplicate registration"() {
         when:
+        register(listener)
         register(listener)
 
         then:
-        1 * listenerManager.addListener(_) >> {
-            buildOperationListener = it[0]
-        }
+        thrown IllegalStateException
+    }
+
+    def "forwards operations with details"() {
+        given:
+        def d1 = d(1, null, 1)
+        def d2 = d(2, null, null)
+        def d3 = d(3, null, 3)
+        def e1 = new Exception()
+        register(listener)
 
         // operation with details and non null result
         when:
-        buildOperationListener.started(d1, null)
+        broadcast.started(d1, null)
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
@@ -84,7 +82,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
 
         when:
-        buildOperationListener.finished(d1, new OperationFinishEvent(-1, -1, null, 10))
+        broadcast.finished(d1, new OperationFinishEvent(-1, -1, null, 10))
 
         then:
         1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
@@ -96,20 +94,20 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
         // operation with no details
         when:
-        buildOperationListener.started(d2, null)
+        broadcast.started(d2, null)
 
         then:
         0 * listener.started(_)
 
         when:
-        buildOperationListener.finished(d2, new OperationFinishEvent(-1, -1, null, 10))
+        broadcast.finished(d2, new OperationFinishEvent(-1, -1, null, 10))
 
         then:
         0 * listener.finished(_)
 
         // operation with details and null result
         when:
-        buildOperationListener.started(d3, null)
+        broadcast.started(d3, null)
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
@@ -118,7 +116,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
 
         when:
-        buildOperationListener.finished(d3, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.finished(d3, new OperationFinishEvent(-1, -1, null, null))
 
         then:
         1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
@@ -130,7 +128,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
         // operation with details and failure
         when:
-        buildOperationListener.started(d3, null)
+        broadcast.started(d3, null)
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
@@ -139,7 +137,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
 
         when:
-        buildOperationListener.finished(d3, new OperationFinishEvent(-1, -1, e1, null))
+        broadcast.finished(d3, new OperationFinishEvent(-1, -1, e1, null))
 
         then:
         1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
@@ -150,7 +148,101 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
     }
 
+    BuildOperationDescriptor d(Long id, Long parentId, Long details) {
+        BuildOperationDescriptor.displayName(id.toString()).details(details).build(id, parentId)
+    }
+
+    def "parentId is of last parent that a notification was sent for"() {
+        given:
+        register(listener)
+        def d1 = d(1, null, 1)
+        def d2 = d(2, 1, null)
+        def d3 = d(3, 2, 3)
+        def d4 = d(4, 2, 4)
+        def d5 = d(5, 4, 5)
+        def d6 = d(6, 5, null)
+        def d7 = d(7, 6, 7)
+
+        when:
+        broadcast.started(d1, null)
+        broadcast.started(d2, null)
+
+        broadcast.started(d3, null)
+        broadcast.finished(d3, new OperationFinishEvent(-1, -1, null, null))
+
+        broadcast.started(d4, null)
+        broadcast.started(d5, null)
+        broadcast.started(d6, null)
+        broadcast.started(d7, null)
+
+        broadcast.finished(d7, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.finished(d6, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.finished(d5, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.finished(d4, new OperationFinishEvent(-1, -1, null, null))
+
+        broadcast.finished(d2, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.finished(d1, new OperationFinishEvent(-1, -1, null, null))
+
+        then:
+        1 * listener.started(_) >> { BuildOperationStartedNotification n ->
+            assert n.notificationOperationId == d1.id
+        }
+
+        then:
+        1 * listener.started(_) >> { BuildOperationStartedNotification n ->
+            assert n.notificationOperationId == d3.id
+            assert n.notificationOperationParentId == d1.id
+        }
+
+        then:
+        1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
+            assert n.notificationOperationId == d3.id
+        }
+
+        then:
+        1 * listener.started(_) >> { BuildOperationStartedNotification n ->
+            assert n.notificationOperationId == d4.id
+            assert n.notificationOperationParentId == d1.id
+        }
+
+        then:
+        1 * listener.started(_) >> { BuildOperationStartedNotification n ->
+            assert n.notificationOperationId == d5.id
+            assert n.notificationOperationParentId == d4.id
+        }
+
+        then:
+        1 * listener.started(_) >> { BuildOperationStartedNotification n ->
+            assert n.notificationOperationId == d7.id
+            assert n.notificationOperationParentId == d5.id
+        }
+
+        then:
+        1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
+            assert n.notificationOperationId == d7.id
+        }
+
+        then:
+        1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
+            assert n.notificationOperationId == d5.id
+        }
+
+        then:
+        1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
+            assert n.notificationOperationId == d4.id
+        }
+
+        then:
+        1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
+            assert n.notificationOperationId == d1.id
+        }
+
+    }
+
     void register(BuildOperationNotificationListener listener) {
+        if (bridge == null) {
+            bridge = new BuildOperationNotificationBridge(listenerManager)
+        }
         bridge.registerBuildScopeListener(listener)
     }
 }
