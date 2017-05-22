@@ -23,7 +23,7 @@ import org.fusesource.jansi.Ansi
  * <p>
  * <b>Note:</b> The console output contains formatting characters.
  */
-class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
+abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     private static final String ESC = "\u001b"
     private static final String NEWLINE = "\r?\n"
 
@@ -33,8 +33,7 @@ class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     public final static String DEFAULT_TEXT = "0;39"
 
     static String workInProgressLine(String plainText) {
-        // TODO - check for some styling
-        return plainText
+        return boldOn() + plainText + reset()
     }
 
     /**
@@ -64,13 +63,21 @@ class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
      * @return a collection of the output group for the specified task
      */
     Collection<String> taskOutput(String taskPath) {
-        def matcher = result.output =~ /(?ms)(> Task $taskPath${reset()}(${eraseEndOfLine()})?$NEWLINE)(.*)$NEWLINE$NEWLINE$NEWLINE((.*${boldOn()})|(BUILD ))?/
+        def matcher = result.output =~ /(?ms)(> Task $taskPath${quote(reset())}(${quote(eraseEndOfLine())})?$NEWLINE)(.*)$NEWLINE$NEWLINE$NEWLINE((.*${quote(boldOn())})|(BUILD ))?/
         List<String> result = new ArrayList<String>()
         while (matcher.find()) {
-            result.add(matcher[0][3])
+            String text = matcher[0][3]
+            if (text.endsWith(eraseEndOfLine())) {
+                text = text.substring(0, text.length() - eraseEndOfLine().length())
+            }
+            result.add(text)
         }
 
         return result
+    }
+
+    private static String quote(String ansi) {
+        return ansi.replace("[", "\\[")
     }
 
     private static String boldOn() {
@@ -90,6 +97,6 @@ class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     }
 
     private static String ansi(String command) {
-        "$ESC\\[${command}"
+        "$ESC[${command}"
     }
 }
