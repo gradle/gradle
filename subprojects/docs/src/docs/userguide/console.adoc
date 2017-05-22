@@ -38,12 +38,12 @@ The visual representation of the console is broken up into various elements with
 - <<sec:console_build_progress_bar,The build progress bar>>: When will my build finish?
 - <<sec:console_work_in_progress_display,The work in-progress display>>: What is Gradle doing right now?
 - <<sec:console_build_result,The build result>>: Are there other interesting outcomes e.g. tasks that have been skipped or were up-to-date?
-- <<sec:console_output,The build output>>: Is there anything I should know about my build right now e.g. tests have failed and emitted warnings?
+- <<sec:console_build_output,The build output>>: Is there anything I should know about my build right now e.g. tests have failed and emitted warnings?
 
 [[sec:console_build_progress_bar]]
 ==== Build progress bar
 
-The build progress bar gives the user a very fast way of telling whether the build will be finished soon. As the build performs work, the progress indicator, the `=` character, will move from left to right. At any given time the build progress bar clearly renders the currently executed phase of the <<build_lifecycle,build lifecycle phase>> as well as the time spent during that phase.
+The build progress bar gives the user a very fast way of telling whether the build will be finished soon. As the build performs work, the progress indicator, the `=` character, will move from left to right. At any given time the build progress bar clearly renders the currently executed phase of the build lifecycle (see xref:build_phases[]) as well as the time spent during that phase.
 
 The following examples shows the progress bar during the initializing, configuration and execution phase of the build lifecycle:
 
@@ -82,12 +82,12 @@ BUILD SUCCESSFUL in 2m 10s
 411 actionable tasks: 381 executed, 30 up-to-date
 ----
 
-[[sec:console_output]]
-==== Console output
+[[sec:console_build_output]]
+==== Build output
 
-Console output is rendered right above the build progress bar. Typical output includes log messages, messages from the standard output and error streams, compile warnings, test output events and many more.
+Build output is rendered right above the build progress bar. Typical output includes log messages, messages from the standard output and error streams, compile warnings, test output events and many more.
 
-Starting with version 4.0 of Gradle, the console output has been reduced dramatically. The console does not render every task with its build status anymore - it only renders output that is emitted during a build lifecycle phase or a task execution. Avoiding an abundance of information keeps output as readable as possible. Gradle grouped output originating from a specific context e.g. all warnings from a compilation task. Grouped output is especially useful in a project setup that enables <<multi_project_builds,parallel project execution>> as it prevents concurrent interleaved messages to be interleaved without clearly indicating its origin.
+Starting with version 4.0 of Gradle, the console output has been reduced dramatically. The console does not render every task with its build status anymore - it only renders output that is emitted during a build lifecycle phase or a task execution. Avoiding an abundance of information keeps output as readable as possible. Gradle grouped output originating from a specific context e.g. all warnings from a compilation task. Grouped output is especially useful in a project setup that enables parallel project execution as it prevents concurrent interleaved messages to be interleaved without clearly indicating its origin (see xref:parallel_execution[]).
 
 NOTE: To render console output with the formatting of pre-4.0 versions of Gradle, add the <<gradle_command_line,command line>> option `--console=plain`.
 
