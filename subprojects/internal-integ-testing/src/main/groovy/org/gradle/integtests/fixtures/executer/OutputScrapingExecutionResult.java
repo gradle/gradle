@@ -19,6 +19,7 @@ import com.google.common.io.CharSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.util.TextUtil;
@@ -66,6 +67,16 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public String getNormalizedOutput() {
         return normalize(output);
+    }
+
+    GroupedOutputFixture groupedOutputFixture;
+
+    @Override
+    public GroupedOutputFixture getGroupedOutput() {
+        if (groupedOutputFixture == null) {
+            groupedOutputFixture = new GroupedOutputFixture(getOutput());
+        }
+        return groupedOutputFixture;
     }
 
     public static String normalize(String output) {

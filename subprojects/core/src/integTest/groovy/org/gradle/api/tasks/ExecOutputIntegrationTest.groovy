@@ -17,93 +17,95 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.util.environment.OperatingSystem
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
-
+@Issue("https://github.com/gradle/gradle/issues/2009")
 class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
-    private static final String EXPECTED_OUTPUT = "Hello, World!"
 
-    @Ignore("This test is flaky, and is failing on CI Java 7 for some reason.")
-    @Issue("https://github.com/gradle/gradle/issues/2009")
+    private static final String EXPECTED_OUTPUT = "Hello, World!"
+    private static final String EXPECTED_ERROR = "Goodbye, World!"
+
     def "Project#javaexec output is grouped with its task output"() {
         given:
-        generateMainJavaFileEchoing(EXPECTED_OUTPUT)
-        buildFile << """apply plugin: 'java'
+        generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
+        buildFile << """
+            apply plugin: 'java'
 
-task run {
-    dependsOn 'compileJava'
-    doLast {
-        project.javaexec {
-            classpath = sourceSets.main.runtimeClasspath
-            main = 'Main'
-        }
-    }
-}
-"""
+            task run {
+                dependsOn 'compileJava'
+                doLast {
+                    project.javaexec {
+                        classpath = sourceSets.main.runtimeClasspath
+                        main = 'Main'
+                    }
+                }
+            }
+        """
 
         when:
         succeeds("run")
 
         then:
-        normaliseLineSeparators(taskOutput(":run")[0]) == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
+        def output = result.groupedOutput.task(':run').output
+        output.contains(EXPECTED_OUTPUT)
+        output.contains(EXPECTED_ERROR)
     }
 
-    @Ignore("This test is failing on Windows for some reason.")
-    @Issue("https://github.com/gradle/gradle/issues/2009")
     def "JavaExec task output is grouped with its task output"() {
         given:
-        generateMainJavaFileEchoing(EXPECTED_OUTPUT)
-        buildFile << """apply plugin: 'java'
+        generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
+        buildFile << """
+            apply plugin: 'java'
 
-task run(type: JavaExec) {
-    dependsOn 'compileJava'
-    classpath = sourceSets.main.runtimeClasspath
-    main = 'Main'
-}
-"""
+            task run(type: JavaExec) {
+                dependsOn 'compileJava'
+                classpath = sourceSets.main.runtimeClasspath
+                main = 'Main'
+            }
+        """
 
         when:
         succeeds("run")
 
         then:
-        normaliseLineSeparators(taskOutput(":run")[0]) == "$EXPECTED_OUTPUT\n$EXPECTED_OUTPUT"
+        def output = result.groupedOutput.task(':run').output
+        output.contains(EXPECTED_OUTPUT)
+        output.contains(EXPECTED_ERROR)
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/2009")
     def "Project#exec output is grouped with its task output"() {
         given:
-        buildFile << """task run {
-    doLast {
-        project.exec {
-            commandLine ${echo(EXPECTED_OUTPUT)}
-        }
-    }
-}
-"""
+        buildFile << """
+            task run {
+                doLast {
+                    project.exec {
+                        commandLine ${echo(EXPECTED_OUTPUT)}
+                    }
+                }
+            }
+        """
 
         when:
         succeeds("run")
 
         then:
-        taskOutput(":run")[0] == EXPECTED_OUTPUT
+        result.groupedOutput.task(':run').output == EXPECTED_OUTPUT
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/2009")
     def "Exec task output is grouped with its task output"() {
         given:
-        buildFile << """task run(type: Exec) {
-    commandLine ${echo(EXPECTED_OUTPUT)}
-}
-"""
+        buildFile << """
+            task run(type: Exec) {
+                commandLine ${echo(EXPECTED_OUTPUT)}
+            }
+        """
 
         when:
         succeeds("run")
 
         then:
-        taskOutput(":run")[0] == EXPECTED_OUTPUT
+        result.groupedOutput.task(':run').output == EXPECTED_OUTPUT
     }
 
     private static String echo(String s) {
@@ -113,12 +115,14 @@ task run(type: JavaExec) {
         return "'echo', '$s'"
     }
 
-    private void generateMainJavaFileEchoing(String s) {
-        file("src/main/java/Main.java") << """public class Main {
-    public static void main(String[] args) {
-        System.out.println("$s");
-        System.err.println("$s");
-    }
-}"""
+    private void generateMainJavaFileEchoing(String out, String err) {
+        file("src/main/java/Main.java") << """
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("$out");
+                    System.err.println("$err");
+                }
+            }
+        """
     }
 }
