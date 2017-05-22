@@ -224,8 +224,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, ":delegate")
 
         then:
-        // TODO:DAZ This message is incorrect: we are not trying to build artifacts here
-        failure.assertHasDescription("Failed to build artifacts for build 'buildB'")
+        failure.assertHasDescription("Failed to execute tasks for build 'buildB'")
         failure.assertHasCause("Task 'does-not-exist' not found in project ':buildB'.")
     }
 

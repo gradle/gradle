@@ -42,7 +42,7 @@ class ErrorHandlingIncludedBuildExecuter implements IncludedBuildExecuter {
     private RuntimeException contextualizeFailure(BuildIdentifier buildId, ReportedException e) {
         if (e.getCause() instanceof LocationAwareException) {
             LocationAwareException lae = (LocationAwareException) e.getCause();
-            IncludedBuildExecutionException wrappedCause = new IncludedBuildExecutionException("Failed to build artifacts for " + buildId, lae.getCause());
+            IncludedBuildExecutionException wrappedCause = new IncludedBuildExecutionException("Failed to execute tasks for " + buildId, lae.getCause());
             LocationAwareException newLae = new LocationAwareException(wrappedCause, lae.getSourceDisplayName(), lae.getLineNumber());
             return new ReportedException(newLae);
         }
