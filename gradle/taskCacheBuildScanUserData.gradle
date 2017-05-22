@@ -18,13 +18,15 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.internal.classloader.ClassLoaderVisitor
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.internal.progress.BuildOperationDescriptor
+import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.OperationFinishEvent
 import org.gradle.internal.progress.OperationStartEvent
-import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
+
+import java.util.regex.Pattern
 
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.buildCacheEnabled) {
@@ -58,6 +60,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
 
         def listener = new BuildOperationListener() {
             private buildScan = project.buildScan
+            private Pattern storeToCache = Pattern.compile(/Store entry (.*) in (.*) build cache/)
 
             void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {}
 
@@ -86,6 +89,8 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     } else {
                         buildScan.value "${taskPath}-build-cache-key", '<No cache key>'
                     }
+                } else if (finishEvent.failure && storeToCache.matcher(buildOperation.name).matches()) {
+                    buildScan.tag "BUILD_CACHE_UPLOAD_FAILED"
                 }
             }
         }
