@@ -71,7 +71,7 @@ public class GroupedOutputFixture {
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutput = matcher.group(2);
-            taskOutput = taskOutput.replace(ERASE_TO_END_OF_LINE, "");
+            taskOutput = taskOutput.replace(ERASE_TO_END_OF_LINE, "").trim();
             if (tasks.containsKey(taskName)) {
                 tasks.get(taskName).addOutput(taskOutput);
             } else {
