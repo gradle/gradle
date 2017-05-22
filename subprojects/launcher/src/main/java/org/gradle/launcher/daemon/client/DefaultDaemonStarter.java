@@ -136,7 +136,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
     }
 
     private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {
-        LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
+        LOGGER.debug("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         Timer clock = Timers.startTimer();
         try {
             GFileUtils.mkdirs(workingDir);

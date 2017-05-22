@@ -28,16 +28,27 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.remote.internal.Connection;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
-import org.gradle.launcher.daemon.protocol.*;
+import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.daemon.protocol.BuildEvent;
+import org.gradle.launcher.daemon.protocol.BuildStarted;
+import org.gradle.launcher.daemon.protocol.CloseInput;
+import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
+import org.gradle.launcher.daemon.protocol.Failure;
+import org.gradle.launcher.daemon.protocol.Finished;
+import org.gradle.launcher.daemon.protocol.ForwardInput;
+import org.gradle.launcher.daemon.protocol.Message;
+import org.gradle.launcher.daemon.protocol.OutputMessage;
+import org.gradle.launcher.daemon.protocol.Result;
+import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.remote.internal.Connection;
 
 import java.io.InputStream;
 import java.util.List;
@@ -145,7 +156,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     protected Object executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {
         Object result;
         try {
-            LOGGER.info("Connected to daemon {}. Dispatching request {}.", connection.getDaemon(), build);
+            LOGGER.debug("Connected to daemon {}. Dispatching request {}.", connection.getDaemon(), build);
             connection.dispatch(build);
             result = connection.receive();
         } catch (StaleDaemonAddressException e) {
@@ -159,7 +170,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");
         }
 
-        LOGGER.info("Received result {} from daemon {} (build should be starting).", result, connection.getDaemon());
+        LOGGER.debug("Received result {} from daemon {} (build should be starting).", result, connection.getDaemon());
 
         DaemonDiagnostics diagnostics = null;
         if (result instanceof BuildStarted) {
@@ -167,7 +178,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             result = monitorBuild(build, diagnostics, connection, cancellationToken, buildEventConsumer);
         }
 
-        LOGGER.info("Received result {} from daemon {} (build should be done).", result, connection.getDaemon());
+        LOGGER.debug("Received result {} from daemon {} (build should be done).", result, connection.getDaemon());
 
         connection.dispatch(new Finished());
 
