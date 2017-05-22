@@ -36,7 +36,7 @@ public class DefaultComponentIdentifierFactory implements ComponentIdentifierFac
     public ComponentIdentifier createComponentIdentifier(Module module) {
         String projectPath = module.getProjectPath();
 
-        if(projectPath != null) {
+        if (projectPath != null) {
             return new DefaultProjectComponentIdentifier(buildIdentity.getCurrentBuild(), projectPath);
         }
 

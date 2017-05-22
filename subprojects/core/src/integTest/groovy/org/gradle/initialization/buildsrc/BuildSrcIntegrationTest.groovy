@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildSrcIntegrationTest extends AbstractIntegrationSpec {
     def "includes build identifier in error message on failure to resolve dependencies of buildSrc build"() {
+        def m = mavenRepo.module("org.test", "test", "1.2")
+
         given:
         def buildSrc = file("buildSrc/build.gradle")
         buildSrc << """
@@ -39,10 +41,15 @@ class BuildSrcIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':buildSrc:runtimeClasspath'.")
-        failure.assertHasCause("Could not find org.test:test:1.2.")
+        failure.assertHasCause("""Could not find org.test:test:1.2.
+Searched in the following locations:
+    ${m.pom.file.toURL()}
+    ${m.artifact.file.toURL()}
+Required by:
+    project :buildSrc""")
 
         when:
-        def m = mavenRepo.module("org.test", "test", "1.2").publish()
+        m.publish()
         m.artifact.file.delete()
 
         fails()

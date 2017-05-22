@@ -34,7 +34,7 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
 
     def "can create project component identifier"() {
         given:
-        BuildIdentifier buildId = Mock(BuildIdentifier)
+        BuildIdentifier buildId = new DefaultBuildIdentifier("build")
         Project project = Mock(ProjectInternal)
         Module module = new ProjectBackedModule(project)
 

@@ -99,7 +99,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
         }
@@ -126,10 +126,10 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+            edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
                 compositeSubstitute()
             }
         }
@@ -176,7 +176,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
                 edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
                     compositeSubstitute()
@@ -206,7 +206,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
                 module("org.test:transitive2:1.0") {
                     module("org.test:transitive1:1.0")
@@ -242,7 +242,7 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
                 project(":buildB:b1", "org.test:b1:2.0") {
                     project(":buildB:b1:b11", "org.test:b11:2.0") {}
@@ -273,7 +273,7 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
                 module("org.test:transitive2:1.0")
             }
@@ -304,9 +304,9 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
                     compositeSubstitute()
                 }
             }
@@ -329,7 +329,7 @@ include ':b1:b11'
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+                edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                     compositeSubstitute()
                 }
             }
@@ -349,7 +349,7 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
         }
@@ -372,7 +372,7 @@ include ':b1:b11'
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+                edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                     compositeSubstitute()
                 }
             }
@@ -408,7 +408,7 @@ include ':b1:b11'
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:something:1.0", "project :buildB:", "org.test:buildB:2.0") {
+                edge("org.test:something:1.0", "project :buildB", "org.test:buildB:2.0") {
                     compositeSubstitute()
                 }
                 edge("org.other:something-else:1.0", "project :buildB:b1", "org.test:b1:2.0") {
@@ -476,10 +476,10 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+            edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
                 compositeSubstitute()
             }
         }
@@ -589,7 +589,7 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
                 project(":buildB:b1", "org.test:b1:2.0") {}
             }
@@ -636,7 +636,7 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
         }
@@ -657,10 +657,12 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Project : declares a dependency from configuration 'compile' to configuration 'default' which is not declared in the descriptor for project :buildC:.")
+        failure.assertHasCause("Project : declares a dependency from configuration 'compile' to configuration 'default' which is not declared in the descriptor for project :buildC.")
     }
 
     def "includes build identifier in error message on failure to resolve dependencies of included build"() {
+        def m = mavenRepo.module("org.test", "test", "1.2")
+
         given:
         def buildC = singleProjectBuild("buildC")
         includedBuilds << buildC
@@ -703,10 +705,15 @@ afterEvaluate {
         failure.assertHasDescription("Failed to build artifacts for build 'buildC'")
         failure.assertHasCause("Could not determine the dependencies of task ':buildC:buildOutputs'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':buildC:buildInputs'.")
-        failure.assertHasCause("Could not find org.test:test:1.2.")
+        failure.assertHasCause("""Could not find org.test:test:1.2.
+Searched in the following locations:
+    ${m.pom.file.toURL()}
+    ${m.artifact.file.toURL()}
+Required by:
+    project :buildC""")
 
         when:
-        def m = mavenRepo.module("org.test", "test", "1.2").publish()
+        m.publish()
         m.artifact.file.delete()
 
         checkDependenciesFails()
