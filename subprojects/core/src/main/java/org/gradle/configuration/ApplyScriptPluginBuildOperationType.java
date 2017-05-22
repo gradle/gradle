@@ -20,8 +20,6 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.io.File;
-
 /**
  * Details about a script plugin being applied.
  *
@@ -33,33 +31,40 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
     public interface Details {
 
         /**
-         * The absolute path to the file.
+         * The absolute path to the script file.
+         * Null if was not a script file.
+         * Null if uri != null.
          */
         @Nullable
         String getFile();
 
-        String getDisplayName();
-
-    }
-
-    public static class DetailsImpl implements Details {
-
-        private File file;
-        private String displayName;
-
-        public DetailsImpl(@Nullable File file, String displayName) {
-            this.file = file;
-            this.displayName = displayName;
-        }
-
+        /**
+         * The URI of the script.
+         * Null if was not applied as URI.
+         * Null if file != null.
+         */
         @Nullable
-        public String getFile() {
-            return file.getAbsolutePath();
-        }
+        String getUri();
 
-        public String getDisplayName() {
-            return displayName;
-        }
+        /**
+         * The target of the script.
+         * One of "gradle", "settings", "project" or null.
+         * If null, the target is an arbitrary object.
+         */
+        @Nullable
+        String getTargetType();
+
+        /**
+         * If the target is a project, its path.
+         */
+        @Nullable
+        String getTargetPath();
+
+        /**
+         * The build path, if the target is a known type (i.e. targetType != null)
+         */
+        @Nullable
+        String getBuildPath();
 
     }
 

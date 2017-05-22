@@ -53,11 +53,11 @@ import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.normalization.ResourceNormalizationHandler
+import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
@@ -128,7 +128,8 @@ class DefaultProjectTest {
     ComponentMetadataHandler moduleHandlerMock = context.mock(ComponentMetadataHandler)
     ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
-    Gradle build = context.mock(GradleInternal)
+    GradleInternal build = context.mock(GradleInternal)
+    ConfigurationTargetIdentifier configurationTargetIdentifier = context.mock(ConfigurationTargetIdentifier)
     FileOperations fileOperationsMock = context.mock(FileOperations)
     ProviderFactory propertyStateFactoryMock = context.mock(ProviderFactory)
     ProcessOperations processOperationsMock = context.mock(ProcessOperations)
@@ -182,6 +183,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
             allowing(serviceRegistryMock).get((Type) ComponentMetadataHandler); will(returnValue(moduleHandlerMock))
+            allowing(serviceRegistryMock).get((Type) ConfigurationTargetIdentifier); will(returnValue(configurationTargetIdentifier))
             allowing(serviceRegistryMock).get((Type) SoftwareComponentContainer); will(returnValue(softwareComponentsMock))
             allowing(serviceRegistryMock).get((Type) ResourceNormalizationHandler); will(returnValue(resourceNormalizationHandler))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.internal.operations.trace;
 
-import org.gradle.api.plugins.PluginAware;
-import org.gradle.configuration.ConfigurationTargetIdentifier;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
-public interface PluginAwareInternal extends PluginAware {
-    PluginManagerInternal getPluginManager();
+class StrictMap<K, V> extends HashMap<K, V> {
 
-    ConfigurationTargetIdentifier getConfigurationTargetIdentifier();
+    public StrictMap(Map<? extends K, ? extends V> m) {
+        super(m);
+    }
+
+    @Override
+    public V get(Object key) {
+        if (!containsKey(key)) {
+            throw new NoSuchElementException("No entry with key: " + key + " (keys: " + keySet() +  ")");
+        }
+
+        return super.get(key);
+    }
 }
