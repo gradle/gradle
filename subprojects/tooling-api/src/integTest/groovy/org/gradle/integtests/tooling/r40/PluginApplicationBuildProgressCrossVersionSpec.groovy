@@ -200,7 +200,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def java = events.operation("Apply plugin org.gradle.java to root project 'single'")
         def javaBase = events.operation("Apply plugin org.gradle.api.plugins.JavaBasePlugin to root project 'single'")
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
-        def rootProjectAction = rootOperation.child("Executing 'rootProject {}' action")
+        def rootProjectAction = rootOperation.child("Execute 'rootProject {}' action")
 
         java.parent == rootProjectAction.child("Cross-configure project :")
         javaBase.parent == java
@@ -233,9 +233,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def java = events.operation("Apply plugin org.gradle.java to root project 'single'")
         def javaBase = events.operation("Apply plugin org.gradle.api.plugins.JavaBasePlugin to root project 'single'")
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
-        def rootProjectAction = rootOperation.child("Executing 'rootProject {}' action")
+        def rootProjectAction = rootOperation.child("Execute 'rootProject {}' action")
 
-        java.parent == rootProjectAction.child("Cross-configure project :").child("Executing 'allprojects {}' action").child("Cross-configure project :")
+        java.parent == rootProjectAction.child("Cross-configure project :").child("Execute 'allprojects {}' action").child("Cross-configure project :")
         javaBase.parent == java
         base.parent == javaBase
     }
@@ -333,9 +333,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         configureB.child("Apply plugin org.gradle.help-tasks to project ':b'")
         configureB.children("Apply plugin'org.gradle.java' to project ':b'").empty
 
-        applyBuildGradle.child("Executing 'allprojects {}' action").child("Cross-configure project :").child("Apply plugin org.gradle.java to root project 'multi'")
-        applyBuildGradle.child("Executing 'allprojects {}' action").child("Cross-configure project :a").child("Apply plugin org.gradle.java to project ':a'")
-        applyBuildGradle.child("Executing 'allprojects {}' action").child("Cross-configure project :b").child("Apply plugin org.gradle.java to project ':b'")
+        applyBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :").child("Apply plugin org.gradle.java to root project 'multi'")
+        applyBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :a").child("Apply plugin org.gradle.java to project ':a'")
+        applyBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :b").child("Apply plugin org.gradle.java to project ':b'")
     }
 
     def "generates plugin application events where project configuration is subprojects closure"() {
@@ -360,8 +360,8 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def applyBuildGradle = events.operation("Apply script build.gradle to root project 'multi'")
 
         applyBuildGradle.children.size() == 1
-        applyBuildGradle.child("Executing 'subprojects {}' action").child("Cross-configure project :a").child("Apply plugin org.gradle.java to project ':a'")
-        applyBuildGradle.child("Executing 'subprojects {}' action").child("Cross-configure project :b").child("Apply plugin org.gradle.java to project ':b'")
+        applyBuildGradle.child("Execute 'subprojects {}' action").child("Cross-configure project :a").child("Apply plugin org.gradle.java to project ':a'")
+        applyBuildGradle.child("Execute 'subprojects {}' action").child("Cross-configure project :b").child("Apply plugin org.gradle.java to project ':b'")
     }
 
     def "generates plugin application events where project configuration is project closure"() {
@@ -449,9 +449,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         configureBuildSrcB.children("Apply plugin org.gradle.java to project ':buildSrc:b'").empty
 
         groovyPlugin.child("Apply plugin org.gradle.api.plugins.JavaPlugin to project ':buildSrc'")
-        applyBuildSrcBuildGradle.child("Executing 'allprojects {}' action").child("Cross-configure project :buildSrc").children.empty //Java plugin is applied by groovy plugin, so it is not applied again
-        applyBuildSrcBuildGradle.child("Executing 'allprojects {}' action").child("Cross-configure project :buildSrc:a").child("Apply plugin org.gradle.java to project ':buildSrc:a'")
-        applyBuildSrcBuildGradle.child("Executing 'allprojects {}' action").child("Cross-configure project :buildSrc:b").child("Apply plugin org.gradle.java to project ':buildSrc:b'")
+        applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc").children.empty //Java plugin is applied by groovy plugin, so it is not applied again
+        applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc:a").child("Apply plugin org.gradle.java to project ':buildSrc:a'")
+        applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc:b").child("Apply plugin org.gradle.java to project ':buildSrc:b'")
     }
 
     private buildSrc() {
