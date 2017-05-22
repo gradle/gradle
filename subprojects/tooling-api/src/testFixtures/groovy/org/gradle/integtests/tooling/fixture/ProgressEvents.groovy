@@ -81,7 +81,7 @@ class ProgressEvents implements ProgressListener {
                             || descriptor.displayName.startsWith('Apply plugin ')
                             || descriptor.displayName.startsWith('Configure project ')
                             || descriptor.displayName.startsWith('Cross-configure project ')
-                            || descriptor.displayName.startsWith('Resolve artifacts')
+                            || descriptor.displayName.startsWith('Resolve files of')
                             || descriptor.displayName.startsWith('Executing ')
                             || descriptor.displayName.startsWith('Resolving ')
                         ) {

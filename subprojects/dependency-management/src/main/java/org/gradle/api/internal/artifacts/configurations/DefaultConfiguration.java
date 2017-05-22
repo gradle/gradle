@@ -483,7 +483,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Resolve dependencies of " + identityPath);
+                return BuildOperationDescriptor.displayName("Resolve dependencies of " + identityPath).progressDisplayName("Resolve dependencies " + identityPath);
             }
         });
     }
@@ -697,6 +697,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    public Path getIdentityPath() {
+        return identityPath;
+    }
+
+    @Override
     public Configuration resolutionStrategy(Closure closure) {
         configure(closure, getResolutionStrategy());
         return this;
@@ -860,7 +865,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
         }
-        throw new DefaultLenientConfiguration.ArtifactResolveException(type, getPath(), getDisplayName(), failures);
+        throw new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures);
     }
 
 

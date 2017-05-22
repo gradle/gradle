@@ -19,12 +19,12 @@ package org.gradle.api.resources.normalization;
 import org.gradle.api.Incubating;
 
 /**
- * Resource normalization configuration.
+ * Input normalization configuration.
  *
- * Resource normalization is used when Gradle tries to determine if two resources are different.
- * Gradle then normalizes both resources and the resources are different if and only if the normalizations are different.
+ * Input normalization is used when Gradle tries to determine if two task inputs are different.
+ * Gradle normalizes both inputs and the inputs are considered different if and only if the normalizations are different.
  *
  * @since 4.0
  */
 @Incubating
-public interface ResourceNormalization {}
+public interface InputNormalization {}

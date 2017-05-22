@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.LenientConfiguration;
@@ -93,13 +92,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    private BuildOperationDescriptor.Builder computeResolveAllBuildOperationDetails(AttributeContainer requestedAttributes) {
-        String displayName = "Resolve artifacts "
-            + (requestedAttributes == null || requestedAttributes.isEmpty() ? "of " : "view of ") + configuration.getPath();
-        return BuildOperationDescriptor.displayName(displayName)
-            .details(new ResolveArtifactsBuildOperationType.DetailsImpl(configuration.getPath()));
-    }
-
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
             artifactsForThisConfiguration = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false));
@@ -146,7 +138,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                     visitor.visitFailure(getFailure());
                 }
 
-                DefaultLenientConfiguration.this.visitArtifactsWithBuildOperation(dependencySpec, artifactResults, fileDependencyResults, visitor, requestedAttributes);
+                DefaultLenientConfiguration.this.visitArtifactsWithBuildOperation(dependencySpec, artifactResults, fileDependencyResults, visitor);
             }
         };
     }
@@ -222,7 +214,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      */
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
-        visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), getSelectedFiles(), visitor, null);
+        visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), getSelectedFiles(), visitor);
         return visitor.files;
     }
 
@@ -236,11 +228,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      */
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
-        visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), getSelectedFiles(), visitor, null);
+        visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), getSelectedFiles(), visitor);
         return visitor.artifacts;
     }
 
-    private void visitArtifactsWithBuildOperation(final Spec<? super Dependency> dependencySpec, final SelectedArtifactResults artifactResults, final SelectedFileDependencyResults fileDependencyResults, final ArtifactVisitor visitor, @Nullable final AttributeContainer requestedAttributes) {
+    private void visitArtifactsWithBuildOperation(final Spec<? super Dependency> dependencySpec, final SelectedArtifactResults artifactResults, final SelectedFileDependencyResults fileDependencyResults, final ArtifactVisitor visitor) {
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
@@ -249,7 +241,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return computeResolveAllBuildOperationDetails(requestedAttributes);
+                String displayName = "Resolve files of " + configuration.getIdentityPath();
+                return BuildOperationDescriptor
+                    .displayName(displayName)
+                    .progressDisplayName(displayName)
+                    .details(new ResolveArtifactsBuildOperationType.DetailsImpl(configuration.getPath()));
             }
         });
     }
@@ -278,7 +274,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             }
         }
 
-        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(artifactResults, artifactSets));
+        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(artifactSets));
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
             walker.add(node);
         }
@@ -383,11 +379,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private static class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<DependencyGraphNodeResult, ResolvedArtifact> {
-        private final SelectedArtifactResults selectedArtifactResults;
         private final List<ResolvedArtifactSet> dest;
 
-        ResolvedDependencyArtifactsGraph(SelectedArtifactResults selectedArtifactResults, List<ResolvedArtifactSet> dest) {
-            this.selectedArtifactResults = selectedArtifactResults;
+        ResolvedDependencyArtifactsGraph(List<ResolvedArtifactSet> dest) {
             this.dest = dest;
         }
 

@@ -124,7 +124,7 @@ public class DefaultTestReport implements TestReporter {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("generating html test report for ".concat(results.getTitle()));
+            return BuildOperationDescriptor.displayName("Generate HTML test report for ".concat(results.getTitle()));
         }
 
         @Override

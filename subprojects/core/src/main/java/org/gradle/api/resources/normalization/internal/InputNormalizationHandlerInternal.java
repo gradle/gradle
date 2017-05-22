@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-/**
- * Interfaces and API for input normalization.
- *
- * @since 4.0
- */
-@org.gradle.api.Incubating
-package org.gradle.api.resources.normalization;
+package org.gradle.api.resources.normalization.internal;
+
+import org.gradle.api.resources.normalization.InputNormalizationHandler;
+
+public interface InputNormalizationHandlerInternal extends InputNormalizationHandler {
+    InputNormalizationStrategy buildFinalStrategy();
+}

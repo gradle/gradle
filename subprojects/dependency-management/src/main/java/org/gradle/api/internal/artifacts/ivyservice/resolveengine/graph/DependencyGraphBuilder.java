@@ -1248,7 +1248,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Resolving " + state);
+            return BuildOperationDescriptor.displayName("Resolve " + state);
         }
     }
 }

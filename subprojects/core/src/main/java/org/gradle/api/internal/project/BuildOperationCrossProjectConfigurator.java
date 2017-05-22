@@ -130,7 +130,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         }
 
         private static BuildOperationDescriptor.Builder computeConfigurationBlockBuildOperationDetails(String configurationBlockName) {
-            return BuildOperationDescriptor.displayName("Executing '" + configurationBlockName + " {}' action").name(configurationBlockName);
+            return BuildOperationDescriptor.displayName("Execute '" + configurationBlockName + " {}' action").name(configurationBlockName);
         }
 
         @Override

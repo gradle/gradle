@@ -14,10 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization.internal;
+package org.gradle.integtests.fixtures.logging;
 
-import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
+import org.gradle.util.CollectionUtils;
 
-public interface ResourceNormalizationHandlerInternal extends ResourceNormalizationHandler {
-    ResourceNormalizationStrategy buildFinalStrategy();
+import java.util.ArrayList;
+import java.util.List;
+
+public class GroupedTaskFixture {
+
+    private final String taskName;
+
+    private final List<String> outputs = new ArrayList<String>(1);
+
+    public GroupedTaskFixture(String taskName) {
+        this.taskName = taskName;
+    }
+
+    protected void addOutput(String output) {
+        outputs.add(output);
+    }
+
+    public String getName() {
+        return taskName;
+    }
+
+    public String getOutput() {
+        return CollectionUtils.join("\n", outputs);
+    }
 }

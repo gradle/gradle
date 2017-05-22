@@ -122,13 +122,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def configureRoot = events.operation("Configure project :")
 
         def applyRootBuildScript = configureRoot.child("Apply script build.gradle to root project 'multi'")
-        def resolveArtifactsInRoot = applyRootBuildScript.child("Resolve artifacts of :compile")
+        def resolveArtifactsInRoot = applyRootBuildScript.child("Resolve files of :compile")
         def resolveCompile = applyRootBuildScript.child("Resolve dependencies of :compile")
         resolveArtifactsInRoot.child("Resolve artifact a.jar (project :a)")
         resolveArtifactsInRoot.child("Resolve artifact b.jar (project :b)")
 
         def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply script build.gradle to project ':a'")
-        def resolveArtifactsInProjectA = applyProjectABuildScript.child("Resolve artifacts of :a:compile")
+        def resolveArtifactsInProjectA = applyProjectABuildScript.child("Resolve files of :a:compile")
         def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies of :a:compile")
         resolveArtifactsInProjectA.child("Resolve artifact b.jar (project :b)")
 
@@ -187,7 +187,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         def applyBuildScript = events.operation "Apply script build.gradle to root project 'root'"
-        def resolveArtifacts = applyBuildScript.child("Resolve artifacts of :compile")
 
         applyBuildScript.child("Resolve dependencies of :compile").with {
             it.child "Configure project :a"
@@ -198,6 +197,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             it.descendant "Download http://localhost:${server.port}${projectD.pomPath}"
         }
 
+        def resolveArtifacts = applyBuildScript.child("Resolve files of :compile")
         resolveArtifacts.child("Resolve artifact a.jar (project :a)").children.isEmpty()
 
         resolveArtifacts.child("Resolve artifact projectB.jar (group:projectB:1.0)")
