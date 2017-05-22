@@ -45,11 +45,10 @@ public interface PluginId {
      */
     String getName();
 
-
     /**
      * Takes this unqualified plugin ID and adds a namespace.
      *
-     * @param namespace the namepsace to add.
+     * @param namespace the namespace to add.
      * @return the plugin ID qualified with the given namespace
      * @throws IllegalArgumentException if the ID already had a namespace
      */
