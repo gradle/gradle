@@ -24,9 +24,11 @@ import java.util.regex.Pattern;
 
 /**
  * Parses rich console output into its pieces for verification in functional tests
- * TODO: Rename to GroupedOutputFixture
  */
 public class GroupedOutputFixture {
+
+    //TODO: Combine with AbstractConsoleTest
+    protected final static String ERASE_TO_END_OF_LINE = "\u001B[0K";
 
     /**
      * All tasks will start with > Task, captures everything starting with : and going until a control char
@@ -37,6 +39,7 @@ public class GroupedOutputFixture {
     private final static String BUILD_FAILED_FOOTER = "\\n[^\\n]*?FAILURE:";
     private final static String PROGRESS_BAR = ".?\\[0K.*?";
     private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + PROGRESS_BAR;
+
 
     private static final Pattern TASK_OUTPUT_PATTERN;
     private static String precompiledPattern;
@@ -68,6 +71,7 @@ public class GroupedOutputFixture {
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutput = matcher.group(2);
+            taskOutput = taskOutput.replace(ERASE_TO_END_OF_LINE, "");
             if (tasks.containsKey(taskName)) {
                 tasks.get(taskName).addOutput(taskOutput);
             } else {
