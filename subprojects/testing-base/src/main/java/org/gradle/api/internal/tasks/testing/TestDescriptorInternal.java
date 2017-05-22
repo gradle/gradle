@@ -18,7 +18,9 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+@UsedByScanPlugin
 public interface TestDescriptorInternal extends TestDescriptor {
     @Nullable
     @Override

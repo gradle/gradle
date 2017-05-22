@@ -19,7 +19,9 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.progress.BuildOperationCategory;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+@UsedByScanPlugin
 public class ProgressStartEvent extends CategorisedOutputEvent {
     private final OperationIdentifier progressOperationId;
     private final OperationIdentifier parentProgressOperationId;

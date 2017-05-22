@@ -24,6 +24,7 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.Path;
@@ -80,6 +81,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      */
     BuildListener getBuildListenerBroadcaster();
 
+    @UsedByScanPlugin
     ServiceRegistry getServices();
 
     ServiceRegistryFactory getServiceRegistryFactory();

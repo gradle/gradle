@@ -33,6 +33,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -75,6 +76,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
 
     FileResolver getFileResolver();
 
+    @UsedByScanPlugin
     ServiceRegistry getServices();
 
     ServiceRegistryFactory getServiceRegistryFactory();

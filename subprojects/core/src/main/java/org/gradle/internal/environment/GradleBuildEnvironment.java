@@ -16,6 +16,9 @@
 
 package org.gradle.internal.environment;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
+@UsedByScanPlugin
 public interface GradleBuildEnvironment {
 
     boolean isLongLivingProcess();
