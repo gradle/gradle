@@ -17,7 +17,6 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.DefaultProducerGuard;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -36,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private final Map<Object, byte[]> entries = new ConcurrentHashMap<Object, byte[]>();
-    private final ProducerGuard<K> producerGuard = new DefaultProducerGuard<K>();
+    private final ProducerGuard<K> producerGuard = ProducerGuard.serial();
     private final Serializer<V> valueSerializer;
 
     public InMemoryIndexedCache(Serializer<V> valueSerializer) {

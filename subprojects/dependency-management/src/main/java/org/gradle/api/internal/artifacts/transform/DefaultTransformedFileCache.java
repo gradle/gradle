@@ -28,7 +28,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.DefaultProducerGuard;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -57,7 +56,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     private final PersistentCache cache;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
     private final FileStore<String> fileStore;
-    private final ProducerGuard<HashCode> producing = new DefaultProducerGuard<HashCode>();
+    private final ProducerGuard<HashCode> producing = ProducerGuard.adaptive();
     private final Map<HashCode, List<File>> resultHashToResult = new ConcurrentHashMap<HashCode, List<File>>();
     private final FileSystemSnapshotter fileSystemSnapshotter;
 
