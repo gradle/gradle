@@ -109,7 +109,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         fails 'configureNormalization'
 
         then:
-        failureHasCause 'Cannot configure resource normalization after execution started.'
+        failureHasCause 'Cannot configure input normalization after execution started.'
     }
 
     class ProjectWithRuntimeClasspathNormalization {

@@ -167,7 +167,7 @@ Wrongly declared task inputs can lead to cache misses especially when containing
 In order to ensure that the inputs and outputs are properly declared use integration tests (for example using TestKit) to check that a task produces the same outputs for identical inputs and captures all output files for the task.
 We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see `@api:org.gradle.api.tasks.PathSensitive[]`).
 
-In order to handle volatile inputs for your tasks consider configuring <<sec:custom_resource_normalization,resource normalization>>.
+In order to handle volatile inputs for your tasks consider <<sec:configure_input_normalization,configuring input normalization>>.
 
 [[sec:task_output_caching_known_issues]]
 ==== Feedback and known issues

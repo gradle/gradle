@@ -15,7 +15,7 @@
  */
 
 /**
- * Interfaces and API for resource normalization.
+ * Interfaces and API for input normalization.
  *
  * @since 4.0
  */

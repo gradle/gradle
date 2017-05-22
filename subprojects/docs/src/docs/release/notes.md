@@ -2,7 +2,7 @@ The Gradle team is pleased to announce Gradle 4.0.
 
 We are excited to share some great new features and improvements with you in this release:
 
-First and foremost, Gradle's [Build Cache](https://blog.gradle.org/introducing-gradle-build-cache) is now **production-ready for Java and Groovy** compilation and test tasks! This is further improved by overlapping outputs detection, customizable classpath analysis that avoids unnecessary task execution, and more listed in the [full release notes](#build-cache-improvements). The cacheability of other tasks, including other languages, will be completed in future releases.
+First and foremost, Gradle's [Build Cache](https://blog.gradle.org/introducing-gradle-build-cache) is now **production-ready for Java and Groovy** compilation and test tasks! This is further improved by overlapping outputs detection, configurable classpath analysis that avoids unnecessary task execution, and more listed in the [full release notes](#build-cache-improvements). The cacheability of other tasks, including other languages, will be completed in future releases.
 <!-- and invite you to check out our upcoming guides for maximizing effectiveness of the Gradle Build Cache. -->
 
 Now on to user experience: this release has a number of enhancements in logging and terminal display. Log output is now **grouped by project and task** when attached to a terminal — output from tasks run in parallel will no longer be interleaved. However, logging behaves the same as previous Gradle versions in non-interactive environments, and with `--console=plain`, to allow automated tools like CI systems to parse the logs they expect. Logs from forked processes like Java compilation and tests are not grouped in this milestone, but will be in the 4.0 RC.
@@ -199,7 +199,7 @@ running into evaluation ordering issues:
         }
     }
     
-### Customizable Normalization: Ignore classpath resources for up-to-date checks and the build cache
+### Configurable Input Normalization: Ignore classpath resources for up-to-date checks and the build cache
 
 Gradle 4.0 supports ignoring particular resources on a runtime classpath. This affects up-to-date checks and the calculation of build cache keys.
 
@@ -207,7 +207,7 @@ It's common for a project to have a file that contains volatile data that freque
 
 Including files like this on your runtime classpath can cause tasks like the `test` task to never be up-to-date or cause build cache misses since every build can have a different build cache key.
 
-It is now possible to tell Gradle about these files by configuring a project level [resource normalization strategy](userguide/more_about_tasks.html#sec:custom_resource_normalization):
+It is now possible to tell Gradle about these files by configuring project level [input normalization](userguide/more_about_tasks.html#sec:configure_input_normalization):
 
     normalization {
         runtimeClasspath {
@@ -218,7 +218,7 @@ It is now possible to tell Gradle about these files by configuring a project lev
 This configuration tells Gradle to ignore changes to files named `build-info.properties` on the runtime classpath.
 Please note that this will not affect the runtime classpath that the `Test` task will use. In other words, any test is still free to load `build-info.properties` as it is still available on the classpath.
 
-For more information about this feature, see the corresponding section in the [user guide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
+For more information about this feature, see the corresponding section in the [user guide](userguide/more_about_tasks.html#sec:configure_input_normalization).
 
 ### Convenience method for adding Google repository
 
