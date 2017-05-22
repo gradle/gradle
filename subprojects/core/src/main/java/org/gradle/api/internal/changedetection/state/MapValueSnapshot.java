@@ -21,7 +21,7 @@ import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.BuildCacheHasher;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
@@ -82,7 +82,7 @@ public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
 
     @Override
     public Map isolate() {
-        Map map = new HashMap();
+        Map map = new LinkedHashMap();
         for (Map.Entry<ValueSnapshot, ValueSnapshot> entry : entries.entrySet()) {
             if (entry.getKey() instanceof Isolatable) {
                 if (entry.getValue() instanceof Isolatable) {
