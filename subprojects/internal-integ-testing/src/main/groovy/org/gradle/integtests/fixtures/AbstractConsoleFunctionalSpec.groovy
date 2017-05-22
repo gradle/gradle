@@ -32,6 +32,11 @@ class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     public final static String CONTROL_SEQUENCE_END = "m"
     public final static String DEFAULT_TEXT = "0;39"
 
+    static String workInProgressLine(String plainText) {
+        // TODO - check for some styling
+        return plainText
+    }
+
     /**
      * Wraps the text in the proper control characters for styled output in the rich console
      */

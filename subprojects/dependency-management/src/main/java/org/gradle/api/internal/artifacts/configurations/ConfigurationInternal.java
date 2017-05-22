@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.util.Path;
 
 public interface ConfigurationInternal extends ResolveContext, Configuration, DependencyMetaDataProvider {
     enum InternalState {UNRESOLVED, GRAPH_RESOLVED, ARTIFACTS_RESOLVED}
@@ -29,6 +30,8 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     AttributeContainerInternal getAttributes();
 
     String getPath();
+
+    Path getIdentityPath();
 
     void triggerWhenEmptyActionsIfNecessary();
 
