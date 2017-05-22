@@ -27,7 +27,7 @@ class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
         succeeds('hello')
 
         then:
-        result.output =~ "<=*-*> \\d% EXECUTING"
+        result.output =~ "<=*-*> \\d% (INITIALIZ|CONFIGUR|EXECUT)ING"
     }
 
     def "shows build timer after build phase"() {
@@ -38,6 +38,6 @@ class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
         succeeds('hello')
 
         then:
-        result.output =~ "\\d% EXECUTING \\[\\d+s\\]"
+        result.output =~ "\\d% (INITIALIZ|CONFIGUR|EXECUT)ING \\[\\d+s\\]"
     }
 }
