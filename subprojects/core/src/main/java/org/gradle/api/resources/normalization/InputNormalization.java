@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization.internal;
+package org.gradle.api.resources.normalization;
 
-import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
+import org.gradle.api.Incubating;
 
-public interface ResourceNormalizationHandlerInternal extends ResourceNormalizationHandler {
-    ResourceNormalizationStrategy buildFinalStrategy();
-}
+/**
+ * Input normalization configuration.
+ *
+ * Input normalization is used when Gradle tries to determine if two task inputs are different.
+ * Gradle normalizes both inputs and the inputs are considered different if and only if the normalizations are different.
+ *
+ * @since 4.0
+ */
+@Incubating
+public interface InputNormalization {}

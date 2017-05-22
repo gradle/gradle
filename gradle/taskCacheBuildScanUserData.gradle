@@ -20,9 +20,10 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.operations.notify.BuildOperationNotificationListener
-import org.gradle.internal.operations.notify.BuildOperationStartedNotification
-import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
+import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.progress.BuildOperationDescriptor
+import org.gradle.internal.progress.OperationFinishEvent
+import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 
 pluginManager.withPlugin("com.gradle.build-scan") {
@@ -55,15 +56,16 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         publishCacheConfiguration('local', cacheConfiguration.local)
         publishCacheConfiguration('remote', cacheConfiguration.remote)
 
-        gradle.services.get(org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar)
-            .registerBuildScopeListener(new BuildOperationNotificationListener() {
-            void started(BuildOperationStartedNotification notification) {}
+        def listener = new BuildOperationListener() {
+            private buildScan = project.buildScan
 
-            void finished(BuildOperationFinishedNotification notification) {
-                def anyDetails = notification.notificationOperationDetails
+            void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {}
+
+            void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+                def anyDetails = buildOperation.details
                 if (anyDetails instanceof SnapshotTaskInputsBuildOperationType.Details) {
                     String taskPath = anyDetails.taskPath
-                    SnapshotTaskInputsBuildOperationType.Result result = (SnapshotTaskInputsBuildOperationType.Result) notification.notificationOperationResult
+                    SnapshotTaskInputsBuildOperationType.Result result = (SnapshotTaskInputsBuildOperationType.Result) finishEvent.result
                     if (result.buildCacheKey) {
                         buildScan.value "${taskPath}-build-cache-key", String.valueOf(result.buildCacheKey)
                         buildScan.value "${taskPath}-classloader-hash", String.valueOf(result.classLoaderHash)
@@ -86,7 +88,9 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     }
                 }
             }
-        })
+        }
+
+        gradle.services.get(org.gradle.internal.progress.BuildOperationListenerManager).addListener(listener)
 
         project.buildScan.buildFinished(new Action() {
             public void execute(result) {

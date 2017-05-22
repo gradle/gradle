@@ -16,14 +16,17 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
+import java.net.URI;
 
 /**
  * A decorating {@link ScriptPlugin} implementation that delegates to a given
@@ -61,15 +64,62 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    ScriptSource source = getSource();
-                    File file = source.getResource().getFile();
+                    final ScriptSource source = getSource();
+                    final ResourceLocation resourceLocation = source.getResource().getLocation();
+                    final File file = resourceLocation.getFile();
                     String name = "Apply script " + (file != null ? file.getName() : source.getDisplayName());
-                    String displayName = name + " to " + target;
+                    final String displayName = name + " to " + target;
+
                     return BuildOperationDescriptor.displayName(displayName)
                         .name(name)
-                        .details(new ApplyScriptPluginBuildOperationType.DetailsImpl(file, displayName));
+                        .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target)));
                 }
             });
+        }
+    }
+
+    private static class OperationDetails implements ApplyScriptPluginBuildOperationType.Details {
+
+        private final File file;
+        private final ResourceLocation resourceLocation;
+        private final ConfigurationTargetIdentifier identifier;
+
+        private OperationDetails(File file, ResourceLocation resourceLocation, @Nullable ConfigurationTargetIdentifier identifier) {
+            this.file = file;
+            this.resourceLocation = resourceLocation;
+            this.identifier = identifier;
+        }
+
+        @Nullable
+        public String getFile() {
+            return file == null ? null : file.getAbsolutePath();
+        }
+
+        @Nullable
+        @Override
+        public String getUri() {
+            if (file == null) {
+                URI uri = resourceLocation.getURI();
+                return uri == null ? null : uri.toASCIIString();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public String getTargetType() {
+            return identifier == null ? null : identifier.getTargetType().label;
+        }
+
+        @Nullable
+        @Override
+        public String getTargetPath() {
+            return identifier == null ? null : identifier.getTargetPath();
+        }
+
+        @Override
+        public String getBuildPath() {
+            return identifier == null ? null : identifier.getBuildPath();
         }
     }
 }

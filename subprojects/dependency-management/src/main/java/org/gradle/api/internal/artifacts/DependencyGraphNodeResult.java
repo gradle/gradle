@@ -28,5 +28,5 @@ public interface DependencyGraphNodeResult {
 
     Collection<? extends DependencyGraphNodeResult> getOutgoingEdges();
 
-    ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult from);
+    ResolvedArtifactSet getArtifactsForNode();
 }

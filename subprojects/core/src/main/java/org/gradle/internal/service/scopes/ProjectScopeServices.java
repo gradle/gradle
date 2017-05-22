@@ -52,11 +52,12 @@ import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
-import org.gradle.api.resources.normalization.internal.DefaultResourceNormalizationHandler;
+import org.gradle.api.resources.normalization.InputNormalizationHandler;
+import org.gradle.api.resources.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.api.resources.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
@@ -158,7 +159,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
-        PluginTarget target = new RuleBasedPluginTarget<ProjectInternal>(project, get(ModelRuleExtractor.class), get(ModelRuleSourceDetector.class));
+        PluginTarget target = new RuleBasedPluginTarget<ProjectInternal>(
+            project,
+            get(ModelRuleExtractor.class),
+            get(ModelRuleSourceDetector.class)
+        );
         return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor);
     }
 
@@ -194,9 +199,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected ScriptHandler createScriptHandler() {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
-                get(DependencyManagementServices.class),
-                get(FileResolver.class),
-                get(DependencyMetaDataProvider.class));
+            get(DependencyManagementServices.class),
+            get(FileResolver.class),
+            get(DependencyMetaDataProvider.class));
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), project);
     }
 
@@ -230,7 +235,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultRuntimeClasspathNormalization.class);
     }
 
-    protected ResourceNormalizationHandler createResourceNormalizationHandler(Instantiator instantiator, RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
-        return instantiator.newInstance(DefaultResourceNormalizationHandler.class, runtimeClasspathNormalizationStrategy);
+    protected InputNormalizationHandler createInputNormalizationHandler(Instantiator instantiator, RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
+        return instantiator.newInstance(DefaultInputNormalizationHandler.class, runtimeClasspathNormalizationStrategy);
     }
+
+    protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {
+        return ConfigurationTargetIdentifier.of(project);
+    }
+
 }

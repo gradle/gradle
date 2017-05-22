@@ -40,9 +40,9 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
@@ -154,6 +154,11 @@ public class ResolveIvyFactory {
         }
 
         @Override
+        public OriginArtifactSelector getArtifactSelector() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void resolve(final DependencyMetadata dependency, final BuildableComponentIdResolveResult result) {
             cacheLockingManager.useCache(new Runnable() {
                 public void run() {
@@ -181,15 +186,6 @@ public class ResolveIvyFactory {
             cacheLockingManager.useCache(new Runnable() {
                 public void run() {
                     delegate.getArtifactResolver().resolveArtifactsWithType(component, artifactType, result);
-                }
-            });
-        }
-
-        @Override
-        public void resolveArtifacts(final ComponentResolveMetadata component, final BuildableComponentArtifactsResolveResult result) {
-            cacheLockingManager.useCache(new Runnable() {
-                public void run() {
-                    delegate.getArtifactResolver().resolveArtifacts(component, result);
                 }
             });
         }

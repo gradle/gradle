@@ -33,9 +33,26 @@ class ConsoleLayoutCalculatorTest extends Specification {
 
     def "lines should be half the console size for small consoles"() {
         given:
-        1 * consoleMetaData.getRows() >> 4
+        1 * consoleMetaData.getRows() >> rows
 
         expect:
-        consoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(5) == 2
+        consoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(10) == lines
+
+        where:
+        rows | lines
+        6    | 3
+        5    | 2
+        4    | 2
+        3    | 1
+        2    | 1
+        1    | 0
+    }
+
+    def "default to 4 when console size is unknown"() {
+        given:
+        1 * consoleMetaData.getRows() >> 0
+
+        expect:
+        consoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(5) == 4
     }
 }

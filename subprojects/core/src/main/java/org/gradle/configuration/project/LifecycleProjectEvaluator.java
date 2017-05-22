@@ -106,7 +106,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            String name = "Configure project " + project.getIdentityPath().toString();
+            String name = "Configure project " + project.getIdentityPath();
             return BuildOperationDescriptor.displayName(name)
                 .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
                 .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));

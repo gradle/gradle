@@ -32,16 +32,12 @@ import java.util.Map;
 import java.util.Set;
 
 class InMemoryArtifactsCache {
-    private final Object lock = new Object();
-    private final Map<ComponentArtifactIdentifier, File> artifacts = Maps.newHashMap();
-    private final Map<ComponentIdentifier, ComponentArtifacts> componentArtifacts = Maps.newHashMap();
-    private final Map<TypedArtifactsKey, Set<ComponentArtifactMetadata>> typedArtifacts = Maps.newHashMap();
+    private final Map<ComponentArtifactIdentifier, File> artifacts = Maps.newConcurrentMap();
+    private final Map<ComponentIdentifier, ComponentArtifacts> componentArtifacts = Maps.newConcurrentMap();
+    private final Map<TypedArtifactsKey, Set<ComponentArtifactMetadata>> typedArtifacts = Maps.newConcurrentMap();
 
     public boolean supplyArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {
-        File fromCache;
-        synchronized (lock){
-            fromCache = artifacts.get(id);
-        }
+        File fromCache = artifacts.get(id);
         if (fromCache != null) {
             result.resolved(fromCache);
             return true;
@@ -52,17 +48,12 @@ class InMemoryArtifactsCache {
 
     public void newArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {
         if (result.isSuccessful()) {
-            synchronized (lock) {
-                artifacts.put(id, result.getResult());
-            }
+            artifacts.put(id, result.getResult());
         }
     }
 
     public boolean supplyArtifacts(ComponentIdentifier component, ArtifactType type, BuildableArtifactSetResolveResult result) {
-        Set<ComponentArtifactMetadata> artifacts;
-        synchronized (lock){
-            artifacts = typedArtifacts.get(new TypedArtifactsKey(component, type));
-        }
+        Set<ComponentArtifactMetadata> artifacts = typedArtifacts.get(new TypedArtifactsKey(component, type));
         if (artifacts != null) {
             result.resolved(artifacts);
             return true;
@@ -72,17 +63,12 @@ class InMemoryArtifactsCache {
 
     public void newArtifacts(ComponentIdentifier component, ArtifactType type, BuildableArtifactSetResolveResult result) {
         if (result.isSuccessful()) {
-            synchronized (lock) {
-                this.typedArtifacts.put(new TypedArtifactsKey(component, type), ImmutableSet.copyOf(result.getResult()));
-            }
+            this.typedArtifacts.put(new TypedArtifactsKey(component, type), ImmutableSet.copyOf(result.getResult()));
         }
     }
 
     public boolean supplyArtifacts(ComponentIdentifier component, BuildableComponentArtifactsResolveResult result) {
-        ComponentArtifacts artifacts;
-        synchronized (lock){
-            artifacts = this.componentArtifacts.get(component);
-        }
+        ComponentArtifacts artifacts = this.componentArtifacts.get(component);
         if (artifacts != null) {
             result.resolved(artifacts);
             return true;
@@ -92,9 +78,7 @@ class InMemoryArtifactsCache {
 
     public void newArtifacts(ComponentIdentifier component, BuildableComponentArtifactsResolveResult result) {
         if (result.isSuccessful()) {
-            synchronized (lock) {
-                componentArtifacts.put(component, result.getResult());
-            }
+            componentArtifacts.put(component, result.getResult());
         }
     }
 

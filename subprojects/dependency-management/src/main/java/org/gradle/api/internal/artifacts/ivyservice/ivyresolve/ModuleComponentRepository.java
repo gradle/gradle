@@ -17,6 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+
+import java.util.Map;
 
 /**
  * A repository of module components.
@@ -32,4 +36,6 @@ public interface ModuleComponentRepository {
 
     ComponentMetadataSupplier createMetadataSupplier();
 
+    // TODO - put this somewhere else
+    Map<ComponentArtifactIdentifier, ResolvedArtifact> getArtifactCache();
 }

@@ -28,7 +28,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
-import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategy;
+import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
@@ -45,9 +45,9 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     private final FileCollectionSnapshotterRegistry snapshotterRegistry;
     protected final TaskExecution previous;
     protected final TaskExecution current;
-    private final ResourceNormalizationStrategy normalizationStrategy;
+    private final InputNormalizationStrategy normalizationStrategy;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, ResourceNormalizationStrategy normalizationStrategy) {
+    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, InputNormalizationStrategy normalizationStrategy) {
         this.taskName = taskName;
         this.previous = previous;
         this.current = current;

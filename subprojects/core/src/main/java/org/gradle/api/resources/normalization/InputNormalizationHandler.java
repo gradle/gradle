@@ -21,15 +21,15 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Used to configure resource normalizations.
+ * Used to configure input normalization.
  *
- * Currently, it is only possible to configure resource normalizations for the runtime classpath.
+ * Currently, it is only possible to configure runtime classpath normalization.
  *
  * @since 4.0
  */
 @Incubating
 @HasInternalProtocol
-public interface ResourceNormalizationHandler {
+public interface InputNormalizationHandler {
     /**
      * Returns the normalization strategy for the runtime classpath.
      */

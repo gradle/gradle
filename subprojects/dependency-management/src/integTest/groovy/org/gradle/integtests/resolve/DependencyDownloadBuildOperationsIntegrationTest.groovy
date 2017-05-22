@@ -60,7 +60,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         then:
         def actualFileLength = m.pom.file.bytes.length
-        def buildOp = buildOperations.operation(ExternalResourceDownloadBuildOperationType)
+        def buildOp = buildOperations.first(ExternalResourceDownloadBuildOperationType)
         buildOp.details.contentType == 'null'
         buildOp.details.contentLength == chunked ? -1 : actualFileLength
         URI.create(buildOp.details.location).path == m.pomPath

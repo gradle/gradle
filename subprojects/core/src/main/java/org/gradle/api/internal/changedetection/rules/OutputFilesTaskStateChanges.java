@@ -25,14 +25,14 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategy;
+import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy;
 
 import java.util.Map;
 
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     private final OutputFilesSnapshotter outputSnapshotter;
 
-    public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter, ResourceNormalizationStrategy normalizationStrategy) {
+    public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter, InputNormalizationStrategy normalizationStrategy) {
         super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties(), normalizationStrategy);
         this.outputSnapshotter = outputSnapshotter;
         detectOverlappingOutputs();

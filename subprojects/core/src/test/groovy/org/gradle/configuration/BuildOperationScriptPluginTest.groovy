@@ -18,6 +18,7 @@ package org.gradle.configuration
 
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.resource.ResourceLocation
 import org.gradle.internal.resource.TextResource
 import spock.lang.Specification
 
@@ -28,6 +29,7 @@ class BuildOperationScriptPluginTest extends Specification {
         def buildOperationExecutor = new TestBuildOperationExecutor()
         def scriptSource = Mock(ScriptSource)
         def scriptSourceResource = Mock(TextResource)
+        def scriptSourceResourceLocation = Mock(ResourceLocation)
         def decoratedScriptPlugin = Mock(ScriptPlugin)
         def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationExecutor)
         def target = "Test Target"
@@ -37,6 +39,7 @@ class BuildOperationScriptPluginTest extends Specification {
 
         then:
         2 * scriptSource.getResource() >> scriptSourceResource
+        1 * scriptSourceResource.getLocation() >> scriptSourceResourceLocation
         1 * scriptSourceResource.isContentCached() >> true
         1 * scriptSourceResource.getHasEmptyContent() >> false
         2 * decoratedScriptPlugin.getSource() >> scriptSource
@@ -54,6 +57,7 @@ class BuildOperationScriptPluginTest extends Specification {
         def buildOperationExecutor = new TestBuildOperationExecutor()
         def scriptSource = Mock(ScriptSource)
         def scriptSourceResource = Mock(TextResource)
+        def scriptSourceResourceLocation = Mock(ResourceLocation)
         def decoratedScriptPlugin = Mock(ScriptPlugin)
         def scriptFile = Mock(File)
         def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationExecutor)
@@ -64,9 +68,10 @@ class BuildOperationScriptPluginTest extends Specification {
 
         then:
         2 * scriptSource.getResource() >> scriptSourceResource
+        1 * scriptSourceResource.getLocation() >> scriptSourceResourceLocation
         1 * scriptSourceResource.isContentCached() >> true
         1 * scriptSourceResource.getHasEmptyContent() >> false
-        1 * scriptSourceResource.getFile() >> scriptFile
+        1 * scriptSourceResourceLocation.getFile() >> scriptFile
         1 * scriptFile.getName() >> "build.gradle"
         2 * decoratedScriptPlugin.getSource() >> scriptSource
         0 * scriptSource.getDisplayName() >> "test.source"

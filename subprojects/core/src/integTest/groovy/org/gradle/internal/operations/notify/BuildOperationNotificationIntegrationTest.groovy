@@ -27,11 +27,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         """
             def listener = new $BuildOperationNotificationListener.name() {
                 void started($BuildOperationStartedNotification.name notification) {
-                    println "STARTED: \${notification.details.class.interfaces.first().name} - \${${JsonOutput.name}.toJson(notification.details)}"   
+                    println "STARTED: \${notification.details.class.interfaces.first().name} - \${${JsonOutput.name}.toJson(notification.details)} - \$notification.notificationOperationId - \$notification.notificationOperationParentId"   
                 }
 
                 void finished($BuildOperationFinishedNotification.name notification) {
-                    println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${${JsonOutput.name}.toJson(notification.result)}"
+                    println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${${JsonOutput.name}.toJson(notification.result)} - \$notification.notificationOperationId"
                 }
             }
             def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)

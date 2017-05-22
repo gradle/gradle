@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -103,7 +103,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     public Set<ResolvedArtifact> getModuleArtifacts() {
-        return sort(CompositeArtifactSet.of(moduleArtifacts));
+        return sort(CompositeResolvedArtifactSet.of(moduleArtifacts));
     }
 
     public Set<ResolvedArtifact> getAllModuleArtifacts() {
@@ -129,11 +129,15 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     @Override
-    public ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult parent) {
+    public ResolvedArtifactSet getArtifactsForNode() {
+        return CompositeResolvedArtifactSet.of(moduleArtifacts);
+    }
+
+    private ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult parent) {
         if (!parents.contains(parent)) {
             throw new InvalidUserDataException("Provided dependency (" + parent + ") must be a parent of: " + this);
         }
-        return CompositeArtifactSet.of(parentArtifacts.get((ResolvedDependency) parent));
+        return CompositeResolvedArtifactSet.of(parentArtifacts.get((ResolvedDependency) parent));
     }
 
     public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
@@ -187,6 +191,10 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
 
     public void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedArtifactSet artifacts) {
         this.parentArtifacts.put(parent, artifacts);
+        moduleArtifacts.add(artifacts);
+    }
+
+    public void addModuleArtifacts(ResolvedArtifactSet artifacts) {
         moduleArtifacts.add(artifacts);
     }
 

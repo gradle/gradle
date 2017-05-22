@@ -19,15 +19,15 @@ package org.gradle.api.resources.normalization.internal;
 import java.util.Collections;
 
 /**
- * The resource normalization strategy.
+ * The input normalization strategy.
  */
-public class ResourceNormalizationStrategy {
-    public static final ResourceNormalizationStrategy NOT_CONFIGURED = new ResourceNormalizationStrategy(
+public class InputNormalizationStrategy {
+    public static final InputNormalizationStrategy NOT_CONFIGURED = new InputNormalizationStrategy(
         new RuntimeClasspathNormalizationStrategy(Collections.<String>emptySet())
     );
     private final RuntimeClasspathNormalizationStrategy runtimeClasspathNormalizationStrategy;
 
-    public ResourceNormalizationStrategy(RuntimeClasspathNormalizationStrategy runtimeClasspathNormalizationStrategy) {
+    public InputNormalizationStrategy(RuntimeClasspathNormalizationStrategy runtimeClasspathNormalizationStrategy) {
         this.runtimeClasspathNormalizationStrategy = runtimeClasspathNormalizationStrategy;
     }
 
