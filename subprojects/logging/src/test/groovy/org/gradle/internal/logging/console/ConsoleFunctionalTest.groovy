@@ -39,7 +39,6 @@ class ConsoleFunctionalTest extends Specification {
     private OutputEventRenderer renderer
     private long currentTimeMs;
     private static final String IDLE = '> IDLE'
-    private static final String CATEGORY = 'CATEGORY'
 
     def setup() {
         renderer = new OutputEventRenderer(timeProvider)
@@ -128,13 +127,15 @@ class ConsoleFunctionalTest extends Specification {
 
     def "trims progress display to console width"() {
         given:
-        _ * metaData.getCols() >> 25
+        _ * metaData.getCols() >> 35
 
         when:
-        renderer.onOutput(startEvent(1, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJK'))
+        renderer.onOutput(startEvent(2, null, "org.gradle.internal.progress.BuildProgressLogger", 'FULL DESCRIPTION', '123456789012345678901234567890123456789'))
+        renderer.onOutput(startEvent(3, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJK'))
 
         then:
         ConcurrentTestUtil.poll(1) {
+            assert statusBar.display == '1234567890123456789012345678901234'
             assert progressArea.display == ['> abcdefghijklmnopqrstuvwxyzABCDEF']
         }
     }
