@@ -27,9 +27,8 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 
-public class DependencyServices extends AbstractPluginServiceRegistry implements GradleUserHomeScopePluginServices {
+public class DependencyServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementGlobalScopeServices());
     }

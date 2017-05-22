@@ -25,6 +25,11 @@ public class AbstractPluginServiceRegistry implements PluginServiceRegistry {
     }
 
     @Override
+    public void registerGradleUserHomeServices(ServiceRegistration registration) {
+
+    }
+
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
 
     }
@@ -36,6 +41,11 @@ public class AbstractPluginServiceRegistry implements PluginServiceRegistry {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
+
+    }
+
+    @Override
+    public void registerSettingsServices(ServiceRegistration registration) {
 
     }
 

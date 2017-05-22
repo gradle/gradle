@@ -28,11 +28,10 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.exec.BuildExecuter;
-import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.BuildTreeScopeBuildActionExecuter;
+import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.launcher.exec.RunAsBuildOperationBuildActionRunner;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
@@ -45,7 +44,7 @@ import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRe
 
 import java.util.List;
 
-public class LauncherServices extends AbstractPluginServiceRegistry implements GradleUserHomeScopePluginServices {
+public class LauncherServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new ToolingGlobalScopeServices());
