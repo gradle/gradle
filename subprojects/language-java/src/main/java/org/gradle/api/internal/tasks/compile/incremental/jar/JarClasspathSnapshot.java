@@ -20,15 +20,15 @@ import org.gradle.api.Action;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class JarClasspathSnapshot {
 
-    private final LinkedHashMap<File, JarSnapshot> jarSnapshots;
+    private final Map<File, JarSnapshot> jarSnapshots;
     private final JarClasspathSnapshotData data;
 
-    public JarClasspathSnapshot(LinkedHashMap<File, JarSnapshot> jarSnapshots, JarClasspathSnapshotData data) {
+    public JarClasspathSnapshot(Map<File, JarSnapshot> jarSnapshots, JarClasspathSnapshotData data) {
         this.jarSnapshots = jarSnapshots;
         this.data = data;
     }
