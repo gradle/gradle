@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>classes</td>
-                <td><literal><replaceable>sourceSet</replaceable>.output</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>.output.classesDirs</literal></td>
             </tr>
             <tr>
                 <td>classpath</td>

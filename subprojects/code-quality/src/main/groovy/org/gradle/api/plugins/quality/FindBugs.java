@@ -50,6 +50,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -328,12 +329,26 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     @SkipWhenEmpty
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
+    public FileCollection getCandidateClasses() {
+        return getClasses().getAsFileTree().matching(new Action<PatternFilterable>() {
+            @Override
+            public void execute(PatternFilterable patternFilterable) {
+                patternFilterable.include("**/*.class");
+            }
+        });
+    }
+
+    /**
+     * The class directories to be analyzed.
+     */
+    @Internal
     public FileCollection getClasses() {
         return classes;
     }
 
+
     /**
-     * The classes to be analyzed.
+     * The class directories to be analyzed.
      */
     public void setClasses(FileCollection classes) {
         this.classes = classes;
