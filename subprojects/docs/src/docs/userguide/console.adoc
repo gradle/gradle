@@ -1,0 +1,147 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[console]]
+== The Gradle Console
+
+NOTE: This feature is a work in progress.
+
+[[sec:console_overview]]
+=== Overview
+
+The console is the central user interface for any user executing Gradle from the command line. Gradle's console is optimized for rendering performance, showing only relevant information while at the same time providing a visually appealing feedback loop.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Gradle console in action</title>
+    <imageobject>
+        <imagedata fileref="img/console-animation.gif"/>
+    </imageobject>
+</figure>
++++++
+
+=== Visual elements
+
+The visual representation of the console is broken up into various elements with the goal of being able to concentrate on the information of interest. Each of these visual elements help with answering specific questions while executing a Gradle build.
+
+- <<sec:console_build_progress_bar,The build progress bar>>: When will my build finish?
+- <<sec:console_work_in_progress_display,The work in-progress display>>: What is Gradle doing right now?
+- <<sec:console_build_result,The build result>>: Are there other interesting outcomes e.g. tasks that have been skipped or were up-to-date?
+- <<sec:console_output,The build output>>: Is there anything I should know about my build right now e.g. tests have failed and emitted warnings?
+
+[[sec:console_build_progress_bar]]
+==== Build progress bar
+
+The build progress bar gives the user a very fast way of telling whether the build will be finished soon. As the build performs work, the progress indicator, the `=` character, will move from left to right. At any given time the build progress bar clearly renders the currently executed phase of the <<build_lifecycle,build lifecycle phase>> as well as the time spent during that phase.
+
+The following examples shows the progress bar during the initializing, configuration and execution phase of the build lifecycle:
+
+----
+<-------------> 0% INITIALIZING [2s]
+<==-----------> 25% CONFIGURING [4s]
+<=========----> 64% EXECUTING [17s]
+----
+
+[[sec:console_work_in_progress_display]]
+==== Work in-progress display
+
+The console provides a more fined-grained view of the actual work being performed. This information can be found directly underneath the build progress bar. Each line represents a worker thread or process that can perform work in parallel e.g. resolving dependencies, executing a task action. If an available worker is not utilized then it is marked with `IDLE`. The number of available workers equates to the number of processors on the machine executing the build. If needed a user can provide the number of workers through the <<gradle_command_line,command line>>  option `--max-workers`.
+
+The following portion of the console output shows the work in-progress display in action:
+
+----
+<==========---> 77% EXECUTING [10s]
+> :codeQuality:classpathManifest > Resolve dependencies :codeQuality:runtimeClasspath
+> :ivy:classpathManifest > Resolve dependencies :ivy:runtimeClasspath
+> IDLE
+> :antlr:classpathManifest > Resolve dependencies :antlr:runtimeClasspath
+> :scala:compileJava > Resolve dependencies :scala:compileClasspath
+> :buildInit:classpathManifest > Resolve dependencies :buildInit:runtimeClasspath
+> :jacoco:classpathManifest > Resolve dependencies :jacoco:runtimeClasspath
+> IDLE
+----
+
+[[sec:console_build_result]]
+==== Build result
+
+After finishing the build, the console will render the outcome of the build and a ratio of work performed vs. work avoided. The outcome indicates if the build was successful or failed. It also displays the elapsed time it took to run the overall build. The work ratio gives the user an idea about the number of performed tasks or tasks that did not need to be executed. The intention of the summarized view is to avoid too much information in the console output during the build.
+
+----
+BUILD SUCCESSFUL in 2m 10s
+411 actionable tasks: 381 executed, 30 up-to-date
+----
+
+[[sec:console_output]]
+==== Console output
+
+Console output is rendered right above the build progress bar. Typical output includes log messages, messages from the standard output and error streams, compile warnings, test output events and many more.
+
+Starting with version 4.0 of Gradle, the console output has been reduced dramatically. The console does not render every task with its build status anymore - it only renders output that is emitted during a build lifecycle phase or a task execution. Avoiding an abundance of information keeps output as readable as possible. Gradle grouped output originating from a specific context e.g. all warnings from a compilation task. Grouped output is especially useful in a project setup that enables <<multi_project_builds,parallel project execution>> as it prevents concurrent interleaved messages to be interleaved without clearly indicating its origin.
+
+NOTE: To render console output with the formatting of pre-4.0 versions of Gradle, add the <<gradle_command_line,command line>> option `--console=plain`.
+
+The following console output shows grouped output for the configuration phase and the task `:compileJava`:
+
+----
+> Configure project :
+Configuring project version.
+Using a single directory for all classes from a source set. This behaviour has been deprecated and is scheduled to be removed in Gradle 5.0
+        at jmh_6ef4kuwkdiq4mwpxq9wis0xfk.run(/Users/foobar/dev/projects/gradle/gradle/jmh.gradle:28)
+
+> Task :compileJava
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+----
+
+The console does not wait until a unit of work is fully completed. It flushes the output to the console after a short amount of time to ensure that relevant information is made available as soon as possible. In a build environment that executes projects in a parallel the output could look as follows:
+
+
+----
+> Task :compileJava
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :generateCode
+Generating JAXB classed from XSD files.
+
+> Task :compileJava
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+----
+
+[[sec:console_non_interactive_environments]]
+=== Look & feel in non-interactive environments
+
+By default Gradle tries to enable rich console output so that it can be color coded and apply additional formatting. Non-interactive environments fall back to plain console output. The plain output format does not support some of the rich visual elements mentioned above e.g. output grouping.
+
+NOTE: Gradle builds executed from an IDE e.g. Buildship, IntelliJ or a Continuous Integration product like Jenkins or TeamCity use a plain console by default.
+
+The following output demonstrates the use of a plain console:
+
+----
+:compileJava
+:processResources
+:classes
+:jar
+:assemble
+:compileTestJava NO-SOURCE
+:processTestResources NO-SOURCE
+:testClasses UP-TO-DATE
+:test NO-SOURCE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL in 6s
+11 actionable tasks: 6 executed, 5 up-to-date
+----

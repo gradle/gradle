@@ -366,7 +366,10 @@ configure([userguideDocbook, pdfUserguideDocbook]) {
     sourceFile new File(userguideSrcDir, 'userguide.xml')
 }
 
-def imageFiles = fileTree(userguideSrcDir) { include 'img/*.png' }
+def imageFiles = fileTree(userguideSrcDir) {
+    include 'img/*.png'
+    include 'img/*.gif'
+}
 def resourceFiles = imageFiles + cssFiles
 
 task userguideHtml(type: Docbook2Xhtml) {

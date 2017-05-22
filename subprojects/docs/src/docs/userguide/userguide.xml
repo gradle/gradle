@@ -36,6 +36,8 @@
         <title>Working with existing builds</title>
         <xi:include href='installation.xml'/>
         <xi:include href='commandLineTutorial.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/console.xml'/>
         <xi:include href='gradleWrapper.xml'/>
         <xi:include href='gradleDaemon.xml'/>
         <xi:include href='artifactDependenciesTutorial.xml'/>
