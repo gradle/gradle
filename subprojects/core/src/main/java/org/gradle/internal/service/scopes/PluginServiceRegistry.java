@@ -68,7 +68,7 @@ public interface PluginServiceRegistry {
     /**
      * Called once per build, to register any {@link org.gradle.api.initialization.Settings} scoped services. These services are closed at the end of the build.
      *
-     * <p>Global, shared, build session and build scoped services are visible to the settings scope services, but not vice versa.</p>
+     * <p>Global, shared, build session, build tree and build scoped services are visible to the settings scope services, but not vice versa.</p>
      */
     void registerSettingsServices(ServiceRegistration registration);
 
