@@ -157,9 +157,6 @@ public class GlobalScopeServices {
         final List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
         for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
             registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
-            if (pluginServiceRegistry instanceof GradleUserHomeScopePluginServices) {
-                registration.add(GradleUserHomeScopePluginServices.class, (GradleUserHomeScopePluginServices) pluginServiceRegistry);
-            }
             pluginServiceRegistry.registerGlobalServices(registration);
         }
     }
