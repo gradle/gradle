@@ -21,6 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
@@ -38,8 +39,10 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     private final ExecutorFactory executorFactory;
     private final WorkerLeaseService workerLeaseService;
 
-    public DefaultTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+
+    public DefaultTaskPlanExecutor(ParallelismConfiguration parallelismConfiguration, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.executorFactory = executorFactory;
+        int numberOfParallelExecutors = parallelismConfiguration.getMaxWorkerCount();
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }

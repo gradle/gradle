@@ -71,6 +71,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ParallelExecutionManager;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
@@ -192,9 +193,8 @@ public class TaskExecutionServices {
         return new TaskCacheKeyCalculator();
     }
 
-    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
-        int parallelThreads = startParameter.getMaxWorkerCount();
-        return new TaskPlanExecutorFactory(parallelThreads, executorFactory, workerLeaseService).create();
+    TaskPlanExecutor createTaskExecutorFactory(ParallelExecutionManager parallelExecutionManager, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+        return new TaskPlanExecutorFactory(parallelExecutionManager, executorFactory, workerLeaseService).create();
     }
 
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem) {

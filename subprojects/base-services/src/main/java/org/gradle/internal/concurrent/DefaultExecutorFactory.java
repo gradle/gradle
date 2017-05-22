@@ -17,11 +17,12 @@
 package org.gradle.internal.concurrent;
 
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
@@ -41,35 +42,38 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         return executor;
     }
 
-    protected ExecutorService createExecutor(String displayName) {
-        return Executors.newCachedThreadPool(new ThreadFactoryImpl(displayName));
+    protected ResizableExecutor createExecutor(String displayName) {
+        return new ResizableExecutorImpl((ThreadPoolExecutor) Executors.newCachedThreadPool(new ThreadFactoryImpl(displayName)));
     }
 
-    public StoppableExecutor create(String displayName, int fixedSize) {
-        StoppableExecutor executor = new TrackedStoppableExecutor(createExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
+    public StoppableResizableExecutor create(String displayName, int fixedSize) {
+        TrackedStoppableExecutor executor = new TrackedStoppableExecutor(createExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
     }
 
-    protected ExecutorService createExecutor(String displayName, int fixedSize) {
-        return Executors.newFixedThreadPool(fixedSize, new ThreadFactoryImpl(displayName));
+    protected ResizableExecutor createExecutor(String displayName, int fixedSize) {
+        return new ResizableExecutorImpl((ThreadPoolExecutor) Executors.newFixedThreadPool(fixedSize, new ThreadFactoryImpl(displayName)));
     }
 
     @Override
-    public StoppableScheduledExecutor createScheduled(String displayName, int fixedSize) {
-        ScheduledExecutorService delegate = createScheduledExecutor(displayName, fixedSize);
-        StoppableScheduledExecutor executor = new TrackedScheduledStoppableExecutor(delegate, new ExecutorPolicy.CatchAndRecordFailures());
+    public StoppableResizableScheduledExecutor createScheduled(String displayName, int fixedSize) {
+        ResizableScheduledExecutor delegate = new ResizableScheduledExecutorImpl(createScheduledExecutor(displayName, fixedSize));
+        StoppableResizableScheduledExecutor executor = new TrackedScheduledStoppableExecutor(delegate, new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
     }
 
-    private ScheduledExecutorService createScheduledExecutor(String displayName, int fixedSize) {
+    private ScheduledThreadPoolExecutor createScheduledExecutor(String displayName, int fixedSize) {
         return new ScheduledThreadPoolExecutor(fixedSize, new ThreadFactoryImpl(displayName));
     }
 
-    private class TrackedStoppableExecutor extends StoppableExecutorImpl {
-        public TrackedStoppableExecutor(ExecutorService executor, ExecutorPolicy executorPolicy) {
+    private class TrackedStoppableExecutor extends StoppableExecutorImpl implements StoppableResizableExecutor {
+        private final ResizableExecutor executorService;
+
+        public TrackedStoppableExecutor(ResizableExecutor executor, ExecutorPolicy executorPolicy) {
             super(executor, executorPolicy);
+            this.executorService = executor;
         }
 
         public void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException {
@@ -78,13 +82,20 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
             } finally {
                 executors.remove(this);
             }
+        }
+
+        @Override
+        public void setFixedPoolSize(int numThreads) {
+            executorService.setFixedPoolSize(numThreads);
         }
     }
 
-    private class TrackedScheduledStoppableExecutor extends StoppableScheduledExecutorImpl {
+    private class TrackedScheduledStoppableExecutor extends StoppableScheduledExecutorImpl implements StoppableResizableScheduledExecutor {
+        private final ResizableScheduledExecutor executor;
 
-        public TrackedScheduledStoppableExecutor(ScheduledExecutorService executor, ExecutorPolicy executorPolicy) {
+        public TrackedScheduledStoppableExecutor(ResizableScheduledExecutor executor, ExecutorPolicy executorPolicy) {
             super(executor, executorPolicy);
+            this.executor = executor;
         }
 
         public void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException {
@@ -93,6 +104,55 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
             } finally {
                 executors.remove(this);
             }
+        }
+
+        @Override
+        public void setFixedPoolSize(int numThreads) {
+            executor.setFixedPoolSize(numThreads);
+        }
+    }
+
+    private static class ResizableExecutorImpl extends AbstractDelegatingExecutorService implements ResizableExecutor {
+        private final ThreadPoolExecutor executor;
+
+        public ResizableExecutorImpl(ThreadPoolExecutor executor) {
+            super(executor);
+            this.executor = executor;
+        }
+
+        @Override
+        public void setFixedPoolSize(int numThreads) {
+            executor.setCorePoolSize(numThreads);
+            executor.setMaximumPoolSize(numThreads);
+        }
+    }
+
+    private static class ResizableScheduledExecutorImpl extends ResizableExecutorImpl implements ResizableScheduledExecutor {
+        private final ScheduledThreadPoolExecutor executor;
+
+        public ResizableScheduledExecutorImpl(ScheduledThreadPoolExecutor executor) {
+            super(executor);
+            this.executor = executor;
+        }
+
+        @Override
+        public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
+            return executor.schedule(command, delay, unit);
+        }
+
+        @Override
+        public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
+            return executor.schedule(callable, delay, unit);
+        }
+
+        @Override
+        public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
+            return executor.scheduleAtFixedRate(command, initialDelay, period, unit);
+        }
+
+        @Override
+        public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+            return executor.scheduleWithFixedDelay(command, initialDelay, delay, unit);
         }
     }
 }

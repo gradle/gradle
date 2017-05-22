@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.invocation.Gradle
+import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.internal.work.WorkerLeaseService
@@ -30,7 +31,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
     def taskPlan = Mock(TaskExecutionPlan)
     def worker = Mock(Action)
     def executorFactory = Mock(ExecutorFactory)
-    def executor = new DefaultTaskPlanExecutor(1, executorFactory, Stub(WorkerLeaseService))
+    def executor = new DefaultTaskPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, Stub(WorkerLeaseService))
 
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)

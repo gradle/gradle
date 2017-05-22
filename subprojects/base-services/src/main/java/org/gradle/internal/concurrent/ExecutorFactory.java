@@ -36,7 +36,7 @@ public interface ExecutorFactory {
      * @param fixedSize The maximum number of threads allowed
      * @return The executor.
      */
-    StoppableExecutor create(String displayName, int fixedSize);
+    StoppableResizableExecutor create(String displayName, int fixedSize);
 
     /**
      * Creates a scheduled executor which can run tasks periodically. It is the caller's responsibility to stop the executor.
@@ -50,5 +50,5 @@ public interface ExecutorFactory {
      * @return The executor
      * @see java.util.concurrent.ScheduledExecutorService
      */
-    StoppableScheduledExecutor createScheduled(String displayName, int fixedSize);
+    StoppableResizableScheduledExecutor createScheduled(String displayName, int fixedSize);
 }

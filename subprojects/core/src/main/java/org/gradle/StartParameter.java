@@ -29,7 +29,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
 import org.gradle.initialization.DefaultParallelismConfiguration;
 import org.gradle.initialization.DistributionInitScriptFinder;
-import org.gradle.initialization.ParallelismConfiguration;
+import org.gradle.internal.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;

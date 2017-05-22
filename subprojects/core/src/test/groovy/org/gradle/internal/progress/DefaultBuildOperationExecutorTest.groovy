@@ -16,8 +16,10 @@
 
 package org.gradle.internal.progress
 
+import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.GradleThread
+import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationQueueFactory
 import org.gradle.internal.operations.CallableBuildOperation
@@ -31,7 +33,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def listener = Mock(BuildOperationListener)
     def timeProvider = Mock(TimeProvider)
     def progressLoggerFactory = Spy(NoOpProgressLoggerFactory)
-    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), 1)
+    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), parallelExecutionManager())
 
     def "fires events when operation starts and finishes successfully"() {
         setup:
@@ -644,5 +646,11 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         String toString() { getClass().simpleName }
 
         void run(BuildOperationContext buildOperationContext) {}
+    }
+
+    ParallelExecutionManager parallelExecutionManager() {
+        return Stub(ParallelExecutionManager) {
+            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
+        }
     }
 }

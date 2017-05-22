@@ -19,15 +19,23 @@ package org.gradle.initialization;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.internal.concurrent.ParallelismConfiguration;
 
 import java.io.Serializable;
 
 public class DefaultParallelismConfiguration implements Serializable, ParallelismConfiguration {
+    public static final ParallelismConfiguration DEFAULT = new DefaultParallelismConfiguration();
+
     private boolean parallelProjectExecution;
     private int maxWorkerCount;
 
     public DefaultParallelismConfiguration() {
         maxWorkerCount = Runtime.getRuntime().availableProcessors();
+    }
+
+    public DefaultParallelismConfiguration(boolean parallelProjectExecution, int maxWorkerCount) {
+        this.parallelProjectExecution = parallelProjectExecution;
+        this.maxWorkerCount = maxWorkerCount;
     }
 
     /**

@@ -18,18 +18,17 @@ package org.gradle.internal.concurrent;
 
 import org.gradle.internal.UncheckedException;
 
-import java.util.List;
-import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-class StoppableExecutorImpl extends AbstractExecutorService implements StoppableExecutor {
+class StoppableExecutorImpl extends AbstractDelegatingExecutorService implements StoppableExecutor {
     private final ExecutorService executor;
     private final ThreadLocal<Object> executing = new ThreadLocal<Object>();
     private final ExecutorPolicy executorPolicy;
 
     StoppableExecutorImpl(ExecutorService executor, ExecutorPolicy executorPolicy) {
+        super(executor);
         this.executor = executor;
         this.executorPolicy = executorPolicy;
     }
@@ -86,25 +85,5 @@ class StoppableExecutorImpl extends AbstractExecutorService implements Stoppable
             throw new UncheckedException(e);
         }
         executorPolicy.onStop();
-    }
-
-    public void shutdown() {
-        executor.shutdown();
-    }
-
-    public List<Runnable> shutdownNow() {
-        return executor.shutdownNow();
-    }
-
-    public boolean isShutdown() {
-        return executor.isShutdown();
-    }
-
-    public boolean isTerminated() {
-        return executor.isTerminated();
-    }
-
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        return executor.awaitTermination(timeout, unit);
     }
 }

@@ -31,8 +31,10 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.TaskFailureHandler
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.Factories
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -49,9 +51,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def executer = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeases = new DefaultWorkerLeaseService(coordinationService, true, 1)
+    def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
+    def workerLeases = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
     def executorFactory = Mock(ExecutorFactory)
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(1, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService)
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService)
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []
 
@@ -600,5 +603,11 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         }
         _ * mock.path >> ":${name}"
         return mock
+    }
+
+    ParallelExecutionManager parallelExecutionManager() {
+        return Stub(ParallelExecutionManager) {
+            getParallelismConfiguration() >> parallelismConfiguration
+        }
     }
 }

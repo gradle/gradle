@@ -17,7 +17,8 @@
 package org.gradle.test.fixtures.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.StoppableScheduledExecutor
+import org.gradle.internal.concurrent.StoppableResizableExecutor
+import org.gradle.internal.concurrent.StoppableResizableScheduledExecutor
 import org.gradle.internal.concurrent.StoppableExecutor
 
 class TestExecutorFactory implements ExecutorFactory {
@@ -31,12 +32,12 @@ class TestExecutorFactory implements ExecutorFactory {
         return new TestStoppableExecutor(executor)
     }
 
-    StoppableExecutor create(String displayName, int fixedSize) {
+    StoppableResizableExecutor create(String displayName, int fixedSize) {
         // Ignores size of thread pool
         return new TestStoppableExecutor(executor)
     }
 
-    StoppableScheduledExecutor createScheduled(String displayName, int fixedSize) {
+    StoppableResizableScheduledExecutor createScheduled(String displayName, int fixedSize) {
         throw new UnsupportedOperationException()
     }
 }

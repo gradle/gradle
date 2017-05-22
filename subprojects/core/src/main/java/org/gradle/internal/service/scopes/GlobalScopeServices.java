@@ -69,10 +69,12 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
 import org.gradle.initialization.DefaultLegacyTypesSupport;
+import org.gradle.initialization.DefaultParallelExecutionManager;
 import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.internal.concurrent.ParallelExecutionManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -394,5 +396,9 @@ public class GlobalScopeServices {
 
     TaskInputsListener createTaskInputsListener() {
         return new DefaultTaskInputsListener();
+    }
+
+    ParallelExecutionManager createMaxWorkersManager(ListenerManager listenerManager) {
+        return new DefaultParallelExecutionManager(listenerManager);
     }
 }

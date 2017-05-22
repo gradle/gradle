@@ -29,6 +29,7 @@ import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
@@ -64,6 +65,7 @@ class BuildSessionScopeServicesTest extends Specification {
         parent.get(ModuleRegistry) >> new DefaultModuleRegistry(CurrentGradleInstallation.get())
         parent.get(FileResolver) >> Stub(FileResolver)
         parent.get(OutputEventListener) >> Stub(OutputEventListener)
+        parent.get(ParallelExecutionManager) >> Stub(ParallelExecutionManager)
         parent.hasService(_) >> true
     }
 

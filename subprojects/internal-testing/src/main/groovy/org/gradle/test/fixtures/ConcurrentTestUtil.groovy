@@ -17,7 +17,8 @@ package org.gradle.test.fixtures
 
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
-import org.gradle.internal.concurrent.StoppableScheduledExecutor
+import org.gradle.internal.concurrent.StoppableResizableExecutor
+import org.gradle.internal.concurrent.StoppableResizableScheduledExecutor
 import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -104,12 +105,12 @@ class ConcurrentTestUtil extends ExternalResource {
                 return new StoppableExecutorStub(ConcurrentTestUtil.this)
             }
 
-            StoppableExecutor create(String displayName, int fixedSize) {
+            StoppableResizableExecutor create(String displayName, int fixedSize) {
                 // Ignores size of thread pool
                 return new StoppableExecutorStub(ConcurrentTestUtil.this)
             }
 
-            StoppableScheduledExecutor createScheduled(String displayName, int fixedSize) {
+            StoppableResizableScheduledExecutor createScheduled(String displayName, int fixedSize) {
                 throw new UnsupportedOperationException()
             }
         }
@@ -449,7 +450,7 @@ class CompositeTestParticipant extends AbstractTestParticipant {
     }
 }
 
-class StoppableExecutorStub extends AbstractExecutorService implements StoppableExecutor {
+class StoppableExecutorStub extends AbstractExecutorService implements StoppableResizableExecutor {
     final ConcurrentTestUtil owner
     final Set<TestThread> threads = new CopyOnWriteArraySet<TestThread>()
 
@@ -491,6 +492,11 @@ class StoppableExecutorStub extends AbstractExecutorService implements Stoppable
     }
 
     boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void setFixedPoolSize(int numThreads) {
         throw new UnsupportedOperationException()
     }
 }
