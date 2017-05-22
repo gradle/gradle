@@ -171,20 +171,20 @@ public class CountRecorder extends ArtifactTransform {
         then:
         outputContains("variants: [{artifactType=firstCount}, {artifactType=firstCount}]")
         file("build/libs1").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs1/test-1.3.jar.txt").text == "0\n1\n2\n3\n4\n"
-        file("build/libs1/test2-2.3.jar.txt").text == "0\n1\n2\n3\n4\n"
+        file("build/libs1/test-1.3.jar.txt").readLines() == ["0", "1", "2", "3", "4"]
+        file("build/libs1/test2-2.3.jar.txt").readLines() == ["0", "1", "2", "3", "4"]
 
         and:
         outputContains("variants: [{artifactType=secondCount}, {artifactType=secondCount}]")
         file("build/libs2").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs2/test-1.3.jar.txt").text == "1\n2\n3\n4\n5\n"
-        file("build/libs2/test2-2.3.jar.txt").text == "1\n2\n3\n4\n5\n"
+        file("build/libs2/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+        file("build/libs2/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
 
         and:
         outputContains("variants: [{artifactType=thirdCount}, {artifactType=thirdCount}]")
         file("build/libs3").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs3/test-1.3.jar.txt").text == "2\n3\n4\n5\n6\n"
-        file("build/libs3/test2-2.3.jar.txt").text == "2\n3\n4\n5\n6\n"
+        file("build/libs3/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+        file("build/libs3/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
 
         and:
         output.count("Transforming") == 6
