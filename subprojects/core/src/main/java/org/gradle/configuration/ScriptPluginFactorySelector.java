@@ -17,7 +17,6 @@
 package org.gradle.configuration;
 
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
@@ -80,18 +79,15 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     private final ScriptPluginFactory defaultScriptPluginFactory;
     private final ScriptingLanguages scriptingLanguages;
     private final ProviderInstantiator providerInstantiator;
-    private final DependencyInjectingServiceLoader serviceLoader; // TODO:pm Remove old scripting provider SPI support
     private final BuildOperationExecutor buildOperationExecutor;
 
     public ScriptPluginFactorySelector(ScriptPluginFactory defaultScriptPluginFactory,
                                        ScriptingLanguages scriptingLanguages,
                                        ProviderInstantiator providerInstantiator,
-                                       DependencyInjectingServiceLoader serviceLoader, // TODO:pm Remove old scripting provider SPI support
                                        BuildOperationExecutor buildOperationExecutor) {
         this.defaultScriptPluginFactory = defaultScriptPluginFactory;
         this.scriptingLanguages = scriptingLanguages;
         this.providerInstantiator = providerInstantiator;
-        this.serviceLoader = serviceLoader;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -118,22 +114,10 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
                 }
             }
         }
-        // TODO:pm Remove old scripting provider SPI support
-        for (ScriptPluginFactoryProvider scriptPluginFactoryProvider : scriptPluginFactoryProviders()) {
-            ScriptPluginFactory scriptPluginFactory = scriptPluginFactoryProvider.getFor(fileName);
-            if (scriptPluginFactory != null) {
-                return scriptPluginFactory;
-            }
-        }
         return defaultScriptPluginFactory;
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(ScriptingLanguage scriptingLanguage) {
         return providerInstantiator.instantiate(scriptingLanguage.getProvider());
-    }
-
-    // TODO:pm Remove old scripting provider SPI support
-    private Iterable<ScriptPluginFactoryProvider> scriptPluginFactoryProviders() {
-        return serviceLoader.load(ScriptPluginFactoryProvider.class, getClass().getClassLoader());
     }
 }
