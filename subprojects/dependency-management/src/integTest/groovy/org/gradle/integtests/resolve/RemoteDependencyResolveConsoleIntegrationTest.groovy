@@ -67,6 +67,8 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         then:
         ConcurrentTestUtil.poll {
             assert build.standardOutput.contains(workInProgressLine("> :resolve > Resolve dependencies :compile"))
+            assert build.standardOutput.contains(workInProgressLine("> one-1.2.pom"))
+            assert build.standardOutput.contains(workInProgressLine("> two-1.2.pom"))
         }
 
         when:
@@ -76,6 +78,8 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         then:
         ConcurrentTestUtil.poll {
             assert build.standardOutput.contains(workInProgressLine("> :resolve > Resolve files of :compile"))
+            assert build.standardOutput.contains(workInProgressLine("> one-1.2.jar"))
+            assert build.standardOutput.contains(workInProgressLine("> two-1.2.jar"))
         }
 
         jars.releaseAll()

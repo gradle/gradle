@@ -188,6 +188,7 @@ public class DownloadBuildOperationFiringExternalResourceDecorator implements Ex
         ExternalResourceDownloadBuildOperationType.Details operationDetails = new ExternalResourceDownloadBuildOperationType.DetailsImpl(resourceName.getUri(), -1, "null");
         return BuildOperationDescriptor
             .displayName("Download " + resourceName.getDisplayName())
+            .progressDisplayName(resourceName.getShortDisplayName())
             .details(operationDetails);
     }
 }
