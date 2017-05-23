@@ -41,11 +41,12 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
     @Override
     public void useModule(Object notation) {
         targetPluginRequest = new DefaultPluginRequest(
+            targetPluginRequest.getRequestingScriptDisplayName(),
+            targetPluginRequest.getRequestingScriptLineNumber(),
             targetPluginRequest.getId(),
             targetPluginRequest.getVersion(),
+            targetPluginRequest.getScript(),
             targetPluginRequest.isApply(),
-            targetPluginRequest.getLineNumber(),
-            targetPluginRequest.getScriptDisplayName(),
             NOTATION_PARSER.parseNotation(notation)
         );
     }
@@ -53,11 +54,12 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
     @Override
     public void useVersion(String version) {
         targetPluginRequest = new DefaultPluginRequest(
+            targetPluginRequest.getRequestingScriptDisplayName(),
+            targetPluginRequest.getRequestingScriptLineNumber(),
             targetPluginRequest.getId(),
             version,
+            targetPluginRequest.getScript(),
             targetPluginRequest.isApply(),
-            targetPluginRequest.getLineNumber(),
-            targetPluginRequest.getScriptDisplayName(),
             targetPluginRequest.getModule()
         );
     }

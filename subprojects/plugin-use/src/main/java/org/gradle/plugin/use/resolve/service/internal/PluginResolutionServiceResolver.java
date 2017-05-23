@@ -35,11 +35,11 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
-import org.gradle.plugin.management.internal.PluginRequestInternal;
-import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
+import org.gradle.plugin.use.resolve.internal.ContextAwarePluginRequest;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
@@ -61,9 +61,9 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     private final PluginInspector pluginInspector;
 
     public PluginResolutionServiceResolver(
-            PluginResolutionServiceClient portalClient,
-            VersionSelectorScheme versionSelectorScheme, StartParameter startParameter,
-            ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, PluginInspector pluginInspector
+        PluginResolutionServiceClient portalClient,
+        VersionSelectorScheme versionSelectorScheme, StartParameter startParameter,
+        ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, PluginInspector pluginInspector
     ) {
         this.portalClient = portalClient;
         this.versionSelectorScheme = versionSelectorScheme;
@@ -77,7 +77,11 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         return System.getProperty(OVERRIDE_URL_PROPERTY, DEFAULT_API_URL);
     }
 
-    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public void resolve(ContextAwarePluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+        if (pluginRequest.getId() == null) {
+            result.notFound(getDescription(), "plugin dependency must include a plugin id for this source");
+            return;
+        }
         if (pluginRequest.getModule() != null) {
             result.notFound(getDescription(), "explicit artifact coordinates are not supported by this source");
             return;

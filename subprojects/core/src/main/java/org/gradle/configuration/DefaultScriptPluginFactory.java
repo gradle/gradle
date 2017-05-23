@@ -179,7 +179,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             PluginRequests pluginRequests = initialRunner.getData();
             PluginManagerInternal pluginManager = initialPassScriptTarget.getPluginManager();
-            pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
+            pluginRequestApplicator.applyPlugins(scriptSource, pluginRequests, scriptHandler, pluginManager, targetScope);
 
             // Pass 2, compile everything except buildscript {}, pluginRepositories{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);

@@ -36,6 +36,9 @@
             <tr>
                 <td>id</td>
             </tr>
+            <tr>
+                <td>script</td>
+            </tr>
         </table>
     </section>
 </section>

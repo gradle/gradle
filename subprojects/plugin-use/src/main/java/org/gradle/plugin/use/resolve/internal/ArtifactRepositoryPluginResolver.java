@@ -42,7 +42,11 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     @Override
-    public void resolve(final PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public void resolve(final ContextAwarePluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+        if (pluginRequest.getId() == null) {
+            result.notFound(name, "plugin dependency must include a plugin id for this source");
+            return;
+        }
         String markerVersion = getMarkerDependency(pluginRequest).getVersion();
         if (markerVersion == null) {
             result.notFound(name, "plugin dependency must include a version number for this source");

@@ -25,45 +25,70 @@ import javax.annotation.Nullable;
 
 public class DefaultPluginRequest implements PluginRequestInternal {
 
+    private final String requestingScriptDisplayName;
+    private final int requestingScriptLineNumber;
+
     private final PluginId id;
     private final String version;
+    private final String script;
     private final boolean apply;
-    private final int lineNumber;
-    private final String scriptDisplayName;
     private final ModuleVersionSelector artifact;
 
-    public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
+    public DefaultPluginRequest(ScriptSource requestingScriptSource, int requestingScriptLineNumber,
+                                PluginId id, String version, String script, boolean apply) {
+        this(
+            requestingScriptSource.getDisplayName(), requestingScriptLineNumber,
+            id, version, script, apply, null);
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
+    // Used for testing only
+    public DefaultPluginRequest(String requestingScriptDisplayName, int requestingScriptLineNumber,
+                                String id, String version, String script, boolean apply) {
+        this(
+            requestingScriptDisplayName, requestingScriptLineNumber,
+            id == null ? null : DefaultPluginId.of(id), version, script, apply, null);
     }
 
-    public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null);
-    }
+    // Used for serialization/copy/mutation and testing
+    public DefaultPluginRequest(String requestingScriptDisplayName, int requestingScriptLineNumber,
+                                PluginId id, String version, String script, boolean apply, ModuleVersionSelector artifact) {
 
-    public DefaultPluginRequest(PluginRequestInternal from) {
-        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getModule());
-    }
+        this.requestingScriptDisplayName = requestingScriptDisplayName;
+        this.requestingScriptLineNumber = requestingScriptLineNumber;
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
         this.id = id;
         this.version = version;
+        this.script = script;
         this.apply = apply;
-        this.lineNumber = lineNumber;
-        this.scriptDisplayName = scriptDisplayName;
         this.artifact = artifact;
     }
 
+    @Override
+    public int getRequestingScriptLineNumber() {
+        return requestingScriptLineNumber;
+    }
+
+    @Override
+    public String getRequestingScriptDisplayName() {
+        return requestingScriptDisplayName;
+    }
+
+    @Nullable
+    @Override
     public PluginId getId() {
         return id;
     }
 
+    @Nullable
     @Override
     public String getVersion() {
         return version;
+    }
+
+    @Nullable
+    @Override
+    public String getScript() {
+        return script;
     }
 
     @Nullable
@@ -78,34 +103,30 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     }
 
     @Override
-    public int getLineNumber() {
-        return lineNumber;
-    }
-
-    @Override
-    public String getScriptDisplayName() {
-        return scriptDisplayName;
-    }
-
-    @Override
     public String toString() {
-        StringBuilder b = new StringBuilder();
-        b.append("[id: '").append(id).append("'");
-        if (version != null) {
-            b.append(", version: '").append(version).append("'");
-        }
-        if (artifact != null) {
-            b.append(", artifact: '").append(artifact).append("'");
-        }
-        if (!apply) {
-            b.append(", apply: false");
-        }
-
-        b.append("]");
-        return b.toString();
+        return getDisplayName();
     }
 
     public String getDisplayName() {
-        return toString();
+        return buildDisplayName(id, script, version, artifact, apply);
+    }
+
+    public static String buildDisplayName(PluginId id, String script, String version, ModuleVersionSelector artifact, boolean apply) {
+        StringBuilder b = new StringBuilder();
+        if (id != null) {
+            b.append("id '").append(id).append("'");
+        } else {
+            b.append("script '").append(script).append("'");
+        }
+        if (version != null) {
+            b.append(" version '").append(version).append("'");
+        }
+        if (artifact != null) {
+            b.append(" artifact '").append(artifact).append("'");
+        }
+        if (!apply) {
+            b.append(" apply false");
+        }
+        return b.toString();
     }
 }

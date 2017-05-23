@@ -242,7 +242,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertThatDescription(startsWith("Could not apply requested plugin [id: 'org.myplugin', version: '1.0'] as it does not provide a plugin with id 'org.myplugin'"))
+        failure.assertThatDescription(startsWith("Could not apply requested plugin [id 'org.myplugin' version '1.0'] as it does not provide a plugin with id 'org.myplugin'"))
         failure.assertHasLineNumber(2)
     }
 
@@ -263,7 +263,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasDescription("An exception occurred applying plugin request [id 'org.myplugin' version '1.0']")
         failure.assertHasCause("Could not create plugin of type 'OtherPlugin'.")
         failure.assertHasLineNumber(2)
     }
@@ -285,7 +285,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasDescription("An exception occurred applying plugin request [id 'org.myplugin' version '1.0']")
         failure.assertHasCause("Could not create plugin of type 'OtherPlugin'.")
         failure.assertHasCause("broken plugin")
         failure.assertHasLineNumber(2)
@@ -308,15 +308,13 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasDescription("An exception occurred applying plugin request [id 'org.myplugin' version '1.0']")
         failure.assertHasCause("throwing plugin")
         failure.assertHasLineNumber(2)
     }
 
     def expectPluginQuery() {
-        service.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION) {
-            legacy = true
-        }
+        service.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
     }
 
     MavenHttpModule publishPlugin(String impl) {

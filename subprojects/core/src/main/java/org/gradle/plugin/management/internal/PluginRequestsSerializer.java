@@ -31,13 +31,19 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
         int requestCount = decoder.readSmallInt();
         List<PluginRequestInternal> requests = Lists.newArrayListWithCapacity(requestCount);
         for (int i = 0; i < requestCount; i++) {
-            PluginId pluginId = DefaultPluginId.unvalidated(decoder.readString());
-            String version = decoder.readNullableString();
-            boolean apply = decoder.readBoolean();
-            int lineNumber = decoder.readSmallInt();
-            String scriptDisplayName = decoder.readString();
 
-            requests.add(i, new DefaultPluginRequest(pluginId, version, apply, lineNumber, scriptDisplayName, null));
+            String requestingScriptDisplayName = decoder.readString();
+            int requestingScriptLineNumber = decoder.readSmallInt();
+
+            String pluginIdString = decoder.readNullableString();
+            PluginId pluginId = pluginIdString == null ? null : DefaultPluginId.unvalidated(pluginIdString);
+            String version = decoder.readNullableString();
+            String from = decoder.readNullableString();
+            boolean apply = decoder.readBoolean();
+
+            requests.add(i, new DefaultPluginRequest(
+                requestingScriptDisplayName, requestingScriptLineNumber,
+                pluginId, version, from, apply, null));
         }
         return new DefaultPluginRequests(requests);
     }
@@ -46,11 +52,14 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
     public void write(Encoder encoder, PluginRequests requests) throws Exception {
         encoder.writeSmallInt(requests.size());
         for (PluginRequestInternal request : requests) {
-            encoder.writeString(request.getId().getId());
+
+            encoder.writeString(request.getRequestingScriptDisplayName());
+            encoder.writeSmallInt(request.getRequestingScriptLineNumber());
+
+            encoder.writeNullableString(request.getId() == null ? null : request.getId().getId());
             encoder.writeNullableString(request.getVersion());
+            encoder.writeNullableString(request.getScript());
             encoder.writeBoolean(request.isApply());
-            encoder.writeSmallInt(request.getLineNumber());
-            encoder.writeString(request.getScriptDisplayName());
         }
     }
 }

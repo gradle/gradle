@@ -19,13 +19,12 @@ package org.gradle.plugin.use.resolve.internal
 import org.gradle.api.Plugin
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.plugins.PluginImplementation
+import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.InvalidPluginRequestException
-import org.gradle.plugin.management.internal.PluginRequestInternal
+import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
 
 class CorePluginResolverTest extends Specification {
@@ -42,8 +41,10 @@ class CorePluginResolverTest extends Specification {
 
     def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
 
-    PluginRequestInternal request(String id, String version = null) {
-        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
+    ContextAwarePluginRequest request(String id, String version = null, String script = null, ModuleVersionSelector artifact = null) {
+        new ContextAwarePluginRequest(
+            new DefaultPluginRequest(new StringScriptSource("test", "test").displayName, 1, DefaultPluginId.of(id), version, script, true, artifact),
+            Mock(PluginRequestResolutionContext))
     }
 
     def "non core plugins are ignored"() {
@@ -85,7 +86,7 @@ class CorePluginResolverTest extends Specification {
 
     def "cannot have custom artifact"() {
         when:
-        resolver.resolve(new DefaultPluginRequest(DefaultPluginId.of("foo"), null, true, 1, "test", Mock(ModuleVersionSelector)), result)
+        resolver.resolve(request("foo", null, null, Mock(ModuleVersionSelector)), result)
 
         then:
         1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }

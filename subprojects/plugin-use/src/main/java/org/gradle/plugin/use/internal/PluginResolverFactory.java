@@ -18,8 +18,12 @@ package org.gradle.plugin.use.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.PluginRepositoryInternal;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
@@ -27,6 +31,7 @@ import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.internal.ScriptPluginPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
@@ -40,19 +45,25 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
+    private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final TextResourceLoader textResourceLoader;
 
     public PluginResolverFactory(
         PluginRegistry pluginRegistry,
         DocumentationRegistry documentationRegistry,
         PluginResolutionServiceResolver pluginResolutionServiceResolver,
         PluginRepositoryRegistry pluginRepositoryRegistry,
-        InjectedClasspathPluginResolver injectedClasspathPluginResolver
-    ) {
+        InjectedClasspathPluginResolver injectedClasspathPluginResolver,
+        ProjectRegistry<ProjectInternal> projectRegistry,
+        TextResourceLoader textResourceLoader) {
+
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
+        this.projectRegistry = projectRegistry;
+        this.textResourceLoader = textResourceLoader;
     }
 
     @Override
@@ -67,25 +78,18 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     }
 
     /**
-     * Returns the default PluginResolvers used by Gradle.
-     * <p>
-     * The plugins will be searched in a chain from the first to the last until a plugin is found.
-     * So, order matters.
-     * <p>
-     * <ol>
-     *     <li>{@link NoopPluginResolver} - Only used in tests.</li>
-     *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
-     *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
-     *     <li>Resolvers based on the entries of the `pluginRepositories` block</li>
-     *     <li>{@link PluginResolutionServiceResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
-     * </ol>
-     * <p>
-     * This order is optimized for both performance and to allow resolvers earlier in the order
-     * to mask plugins which would have been found later in the order.
+     * Returns the default PluginResolvers used by Gradle. <p> The plugins will be searched in a chain from the first to the last until a plugin is found. So, order matters. <p> <ol> <li>{@link
+     * NoopPluginResolver} - Only used in tests.</li> <li>{@link CorePluginResolver} - distributed with Gradle</li> <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
+     * <li>Resolvers based on the entries of the `pluginRepositories` block</li> <li>{@link PluginResolutionServiceResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
+     * </ol> <p> This order is optimized for both performance and to allow resolvers earlier in the order to mask plugins which would have been found later in the order.
      */
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
+
+        // Use buildSrc scope
+        ClassLoaderScope scriptPluginsScope = scriptPluginScopeFor(projectRegistry);
+        resolvers.add(new ScriptPluginPluginResolver(textResourceLoader, scriptPluginsScope));
 
         if (!injectedClasspathPluginResolver.isClasspathEmpty()) {
             resolvers.add(injectedClasspathPluginResolver);
@@ -97,6 +101,11 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         } else {
             addPluginRepositoryResolvers(resolvers, pluginRepositories);
         }
+    }
+
+    // TODO:rbo Dedupe code below
+    private static ClassLoaderScope scriptPluginScopeFor(ProjectRegistry<ProjectInternal> projectRegistry) {
+        return projectRegistry.getRootProject().getClassLoaderScope().getParent();
     }
 
     private ImmutableList<? extends PluginRepository> getPluginRepositories() {

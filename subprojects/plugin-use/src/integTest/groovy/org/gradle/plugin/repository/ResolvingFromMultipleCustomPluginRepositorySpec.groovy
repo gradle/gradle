@@ -167,9 +167,10 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         fails("pluginTask")
 
         then:
-        failure.assertHasDescription("""Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
+        failure.assertHasDescription("""Plugin [id 'org.example.foo' version '1.1'] was not found in any of the following sources:
 
 - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+- Script Plugins (only script plugin requests are supported by this source)
 - ${repoType}(${repoA.uri}) (Could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')
 - ${repoType}(${repoB.uri}) (Could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')"""
         )

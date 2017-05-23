@@ -35,6 +35,7 @@ public interface PluginRequest {
     /**
      * The ID of the plugin requested. Never null.
      */
+    @Nullable
     PluginId getId();
 
     /**
@@ -42,6 +43,14 @@ public interface PluginRequest {
      */
     @Nullable
     String getVersion();
+
+    /**
+     * The path or URL to a script plugin.
+     *
+     * @since 4.2
+     */
+    @Nullable
+    String getScript();
 
     /**
      * The implementation module of the plugin if one was explicitly specified, otherwise null.

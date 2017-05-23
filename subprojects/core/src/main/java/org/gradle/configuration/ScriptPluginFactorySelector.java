@@ -94,9 +94,14 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     @Override
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope,
                                ClassLoaderScope baseScope, boolean topLevelScript) {
-        ScriptPlugin scriptPlugin = scriptPluginFactoryFor(scriptSource.getFileName())
-            .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
+        ScriptPlugin scriptPlugin = createRaw(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
         return new BuildOperationScriptPlugin(scriptPlugin, buildOperationExecutor);
+    }
+
+    public ScriptPlugin createRaw(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope,
+                                  ClassLoaderScope baseScope, boolean topLevelScript) {
+        return scriptPluginFactoryFor(scriptSource.getFileName())
+                .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(String fileName) {

@@ -53,9 +53,10 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
 
         then:
         execFailure(result).assertHasDescription("""
-            |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
+            |Plugin [id 'com.company.helloworld'] was not found in any of the following sources:
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+            |- Script Plugins (only script plugin requests are supported by this source)
             |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
         """.stripMargin().trim())
     }
@@ -75,9 +76,10 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
 
         then:
         execFailure(result).assertHasDescription("""
-            |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
+            |Plugin [id 'com.company.helloworld'] was not found in any of the following sources:
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+            |- Script Plugins (only script plugin requests are supported by this source)
             |- Gradle TestKit (classpath: ${explicitClasspath*.absolutePath.join(File.pathSeparator)})
             |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
         """.stripMargin().trim())

@@ -36,9 +36,9 @@ public class CorePluginResolver implements PluginResolver {
         this.pluginRegistry = pluginRegistry;
     }
 
-    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
+    public void resolve(ContextAwarePluginRequest pluginRequest, PluginResolutionResult result) {
         PluginId id = pluginRequest.getId();
-        if (!isCorePluginRequest(id)) {
+        if (id == null || !isCorePluginRequest(id)) {
             result.notFound(getDescription(), format("plugin is not in '%s' namespace", CORE_PLUGIN_NAMESPACE));
             return;
         }

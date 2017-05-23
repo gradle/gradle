@@ -19,9 +19,8 @@ package org.gradle.plugin.use.resolve.internal;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
-import org.gradle.plugin.management.internal.PluginRequestInternal;
+import org.gradle.plugin.use.PluginId;
 
 public class NotNonCorePluginOnClasspathCheckPluginResolver implements PluginResolver {
 
@@ -35,13 +34,17 @@ public class NotNonCorePluginOnClasspathCheckPluginResolver implements PluginRes
         this.pluginDescriptorLocator = pluginDescriptorLocator;
     }
 
-    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
+    public void resolve(ContextAwarePluginRequest pluginRequest, PluginResolutionResult result) {
         PluginId pluginId = pluginRequest.getId();
-        PluginDescriptor pluginDescriptor = pluginDescriptorLocator.findPluginDescriptor(pluginId.toString());
-        if (pluginDescriptor == null || isCorePlugin(pluginId)) {
+        if (pluginId == null) {
             delegate.resolve(pluginRequest, result);
         } else {
-            throw new InvalidPluginRequestException(pluginRequest, pluginOnClasspathErrorMessage(pluginId.toString()));
+            PluginDescriptor pluginDescriptor = pluginDescriptorLocator.findPluginDescriptor(pluginId.toString());
+            if (pluginDescriptor == null || isCorePlugin(pluginId)) {
+                delegate.resolve(pluginRequest, result);
+            } else {
+                throw new InvalidPluginRequestException(pluginRequest, pluginOnClasspathErrorMessage(pluginId.toString()));
+            }
         }
     }
 

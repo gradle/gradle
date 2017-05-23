@@ -51,7 +51,7 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
+        failure.assertHasDescription("Error resolving plugin [id 'org.my.myplugin' version '1.0']")
         failure.assertHasCause("Plugin cannot be resolved from $portal.apiAddress because Gradle is running in offline mode")
     }
 
@@ -98,7 +98,7 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void pluginNotFound(String version = "1.0") {
-        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '$version'] was not found in any of the following sources:"))
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id 'org.my.myplugin' version '$version'] was not found in any of the following sources:"))
     }
 
     void resolutionServiceDetail(String detail) {

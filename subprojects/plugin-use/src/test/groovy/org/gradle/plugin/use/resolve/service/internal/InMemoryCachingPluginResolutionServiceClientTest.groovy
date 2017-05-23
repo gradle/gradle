@@ -26,7 +26,7 @@ class InMemoryCachingPluginResolutionServiceClientTest extends Specification {
     public static final String PORTAL_URL_1 = "http://foo"
     public static final PluginRequestInternal REQUEST_1 = request("foo")
     public static final String PLUGIN_URL_1 = "$PORTAL_URL_1/foo/1"
-    public static final PluginUseMetaData PLUGIN_METADATA_1 = new PluginUseMetaData("foo", "1", [foo: "bar"], "implType", false)
+    public static final PluginUseMetaData PLUGIN_METADATA_1 = new PluginUseMetaData("foo", "1", [foo: "bar"], "implType", true)
     public static final ClientStatus CLIENT_STATUS_1 = new ClientStatus("One")
     public static final ClientStatus CLIENT_STATUS_2 = new ClientStatus("Two")
     public static final ErrorResponse ERROR_1 = new ErrorResponse("ERROR", "error")
@@ -128,8 +128,8 @@ class InMemoryCachingPluginResolutionServiceClientTest extends Specification {
         1 * delegate.queryClientStatus(PORTAL_URL_1, false, null) >> response
     }
 
-    static PluginRequestInternal request(String id, String version = "1") {
-        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
+    static PluginRequestInternal request(String id, String version = "1", String script = null) {
+        new DefaultPluginRequest(new StringScriptSource("test", "test").displayName, 1, id, version, script, true)
     }
 
 }

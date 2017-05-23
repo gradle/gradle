@@ -30,7 +30,9 @@ import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
 import org.gradle.plugin.internal.InvalidPluginIdException;
 import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.plugin.use.BinaryPluginDependencySpec;
 import org.gradle.plugin.use.PluginDependencySpec;
+import org.gradle.plugin.use.ScriptPluginDependencySpec;
 
 import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantArgOfType;
 import static org.gradle.groovy.scripts.internal.AstUtils.isOfType;
@@ -39,8 +41,10 @@ public class PluginUseScriptBlockMetadataExtractor {
 
     public static final String NEED_SINGLE_BOOLEAN = "argument list must be exactly 1 literal boolean";
     public static final String NEED_SINGLE_STRING = "argument list must be exactly 1 literal non empty string";
-    public static final String BASE_MESSAGE = "only id(String) method calls allowed in plugins {} script block";
+    public static final String BASE_MESSAGE = "only id(String) and script(String) method calls allowed in plugins {} script block";
     public static final String EXTENDED_MESSAGE = "only version(String) and apply(boolean) method calls allowed in plugins {} script block";
+    private static final String SCRIPT_PLUGINS_APPLY_FALSE_UNSUPPORTED = "apply false is not supported for script plugins applied using the plugins {} script block";
+    private static final String SCRIPT_PLUGINS_VERSION_UNSUPPORTED = "version is not supported for script plugins applied using the plugins {} script block";
     private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal (i.e. not a variable)";
     private static final String NOT_LITERAL_ID_METHOD_NAME = BASE_MESSAGE + " - " + NOT_LITERAL_METHOD_NAME;
 
@@ -80,7 +84,7 @@ public class PluginUseScriptBlockMetadataExtractor {
                     ConstantExpression methodName = (ConstantExpression) call.getMethod();
                     if (isOfType(methodName, String.class)) {
                         String methodNameText = methodName.getText();
-                        if (methodNameText.equals("id") || methodNameText.equals("version")) {
+                        if (methodNameText.equals("id") || methodNameText.equals("script") || methodNameText.equals("version")) {
                             ConstantExpression argumentExpression = hasSingleConstantArgOfType(call, String.class);
                             if (argumentExpression == null) {
                                 restrict(call, formatErrorMessage(NEED_SINGLE_STRING));
@@ -97,7 +101,7 @@ public class PluginUseScriptBlockMetadataExtractor {
                                 if (call.isImplicitThis()) {
                                     try {
                                         DefaultPluginId.validate(argStringValue);
-                                        call.setNodeMetaData(PluginDependencySpec.class, pluginRequestCollector.createSpec(call.getLineNumber()).id(argStringValue));
+                                        call.setNodeMetaData(BinaryPluginDependencySpec.class, pluginRequestCollector.createSpec(call.getLineNumber()).id(argStringValue));
                                     } catch (InvalidPluginIdException e) {
                                         restrict(argumentExpression, formatErrorMessage(e.getReason()));
                                     }
@@ -106,21 +110,37 @@ public class PluginUseScriptBlockMetadataExtractor {
                                 }
                             }
 
+                            if (methodNameText.equals("script")) {
+                                if (call.isImplicitThis()) {
+                                    call.setNodeMetaData(ScriptPluginDependencySpec.class, pluginRequestCollector.createSpec(call.getLineNumber()).script(argStringValue));
+                                } else {
+                                    restrict(call, formatErrorMessage(BASE_MESSAGE));
+                                }
+                            }
+
                             if (methodName.getText().equals("version")) {
-                                PluginDependencySpec spec = getSpecFor(call);
+                                if (getSpecFor(call, ScriptPluginDependencySpec.class) != null) {
+                                    restrict(methodName, formatErrorMessage(SCRIPT_PLUGINS_VERSION_UNSUPPORTED));
+                                    return;
+                                }
+                                BinaryPluginDependencySpec spec = getSpecFor(call, BinaryPluginDependencySpec.class);
                                 if (spec == null) {
                                     return;
                                 }
                                 spec.version(argStringValue);
-                                call.setNodeMetaData(PluginDependencySpec.class, spec);
+                                call.setNodeMetaData(BinaryPluginDependencySpec.class, spec);
                             }
                         } else if (methodNameText.equals("apply")) {
+                            if (getSpecFor(call, ScriptPluginDependencySpec.class) != null) {
+                                restrict(methodName, formatErrorMessage(SCRIPT_PLUGINS_APPLY_FALSE_UNSUPPORTED));
+                                return;
+                            }
                             ConstantExpression arguments = hasSingleConstantArgOfType(call, boolean.class);
                             if (arguments == null) {
                                 restrict(call, formatErrorMessage(NEED_SINGLE_BOOLEAN));
                                 return;
                             }
-                            PluginDependencySpec spec = getSpecFor(call);
+                            BinaryPluginDependencySpec spec = getSpecFor(call, BinaryPluginDependencySpec.class);
                             if (spec == null) {
                                 return;
                             }
@@ -140,10 +160,10 @@ public class PluginUseScriptBlockMetadataExtractor {
                 }
             }
 
-            private PluginDependencySpec getSpecFor(MethodCallExpression call) {
+            private <T extends PluginDependencySpec> T getSpecFor(MethodCallExpression call, Class<T> specType) {
                 Expression objectExpression = call.getObjectExpression();
                 if (objectExpression instanceof MethodCallExpression) {
-                    return objectExpression.getNodeMetaData(PluginDependencySpec.class);
+                    return objectExpression.getNodeMetaData(specType);
                 } else {
                     restrict(call, formatErrorMessage(BASE_MESSAGE));
                     return null;

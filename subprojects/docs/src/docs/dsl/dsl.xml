@@ -226,6 +226,12 @@
                 <td>org.gradle.plugin.use.PluginDependencySpec</td>
             </tr>
             <tr>
+                <td>org.gradle.plugin.use.BinaryPluginDependencySpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugin.use.ScriptPluginDependencySpec</td>
+            </tr>
+            <tr>
                 <td>org.gradle.plugin.management.PluginManagementSpec</td>
             </tr>
             <tr>

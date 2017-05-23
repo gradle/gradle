@@ -18,18 +18,19 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.Pair;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.plugin.use.BinaryPluginDependencySpec;
 import org.gradle.plugin.use.PluginDependenciesSpec;
-import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.util.CollectionUtils;
+import org.gradle.plugin.use.ScriptPluginDependencySpec;
 
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -49,25 +50,28 @@ public class PluginRequestCollector {
         this.scriptSource = scriptSource;
     }
 
-    private static class DependencySpecImpl implements PluginDependencySpec {
+    private static class DependencySpecImpl implements BinaryPluginDependencySpec, ScriptPluginDependencySpec {
         private final PluginId id;
         private String version;
+        private String script;
         private boolean apply;
         private final int lineNumber;
 
-        private DependencySpecImpl(String id, int lineNumber) {
-            this.id = DefaultPluginId.of(id);
+        private DependencySpecImpl(String id, int lineNumber, String script) {
+            this.id = id == null ? null : DefaultPluginId.of(id);
             this.apply = true;
             this.lineNumber = lineNumber;
+            this.script = script;
         }
 
-        public PluginDependencySpec version(String version) {
+        @Override
+        public BinaryPluginDependencySpec version(String version) {
             this.version = version;
             return this;
         }
 
         @Override
-        public PluginDependencySpec apply(boolean apply) {
+        public BinaryPluginDependencySpec apply(boolean apply) {
             this.apply = apply;
             return this;
         }
@@ -77,12 +81,20 @@ public class PluginRequestCollector {
 
     public PluginDependenciesSpec createSpec(final int lineNumber) {
         return new PluginDependenciesSpec() {
-            public PluginDependencySpec id(String id) {
-                DependencySpecImpl spec = new DependencySpecImpl(id, lineNumber);
-                specs.add(spec);
-                return spec;
+            public BinaryPluginDependencySpec id(String id) {
+                return add(new DependencySpecImpl(id, lineNumber, null));
+            }
+
+            @Override
+            public ScriptPluginDependencySpec script(String script) {
+                return add(new DependencySpecImpl(null, lineNumber, script));
             }
         };
+    }
+
+    private DependencySpecImpl add(DependencySpecImpl spec) {
+        specs.add(spec);
+        return spec;
     }
 
     public PluginRequests getPluginRequests() {
@@ -90,30 +102,42 @@ public class PluginRequestCollector {
     }
 
     public List<PluginRequestInternal> listPluginRequests() {
-        List<PluginRequestInternal> pluginRequests = collect(specs, new Transformer<PluginRequestInternal, DependencySpecImpl>() {
-            public PluginRequestInternal transform(DependencySpecImpl original) {
-                return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
-            }
-        });
-
-        Map<PluginId, Collection<PluginRequestInternal>> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequestInternal>() {
-            public PluginId transform(PluginRequestInternal pluginRequest) {
-                return pluginRequest.getId();
-            }
-        });
-
-        // Check for duplicates
-        for (PluginId key : groupedById.keySet()) {
-            Collection<PluginRequestInternal> pluginRequestsForId = groupedById.get(key);
-            if (pluginRequestsForId.size() > 1) {
-                PluginRequestInternal first = pluginRequests.get(0);
-                PluginRequestInternal second = pluginRequests.get(1);
-
-                InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
-                throw new LocationAwareException(exception, second.getScriptDisplayName(), second.getLineNumber());
-            }
-        }
+        List<PluginRequestInternal> pluginRequests = collectPluginRequests();
+        checkForDuplicates(pluginRequests);
         return pluginRequests;
+    }
+
+    private List<PluginRequestInternal> collectPluginRequests() {
+        return collect(specs, new Transformer<PluginRequestInternal, DependencySpecImpl>() {
+            public PluginRequestInternal transform(DependencySpecImpl original) {
+                return new DefaultPluginRequest(scriptSource, original.lineNumber, original.id, original.version, original.script, original.apply);
+            }
+        });
+    }
+
+    private void checkForDuplicates(List<PluginRequestInternal> pluginRequests) {
+        Map<Pair<String, Object>, PluginRequestInternal> requestMap = new HashMap<Pair<String, Object>, PluginRequestInternal>(pluginRequests.size());
+        for (PluginRequestInternal request : pluginRequests) {
+            Pair<String, Object> key = keyFor(request);
+            PluginRequestInternal existing = requestMap.get(key);
+            if (existing != null) {
+                InvalidPluginRequestException exception = new InvalidPluginRequestException(request, key.left + " '" + key.right + "' was already requested at line " + existing.getRequestingScriptLineNumber());
+                throw new LocationAwareException(exception, request.getRequestingScriptDisplayName(), request.getRequestingScriptLineNumber());
+            }
+            requestMap.put(key, request);
+        }
+    }
+
+    private Pair<String, Object> keyFor(PluginRequestInternal pluginRequest) {
+        PluginId id = pluginRequest.getId();
+        if (id != null) {
+            return Pair.of("Plugin with id", (Object) id);
+        }
+        String script = pluginRequest.getScript();
+        if (script != null) {
+            return Pair.of("Script Plugin", (Object) script);
+        }
+        throw new IllegalStateException(pluginRequest + " is neither a binary or script plugin request.");
     }
 
 }

@@ -35,9 +35,9 @@ public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> 
     @Override
     public String getDisplayName() {
         if (pluginId == null) {
-            return "class '" + asClass().getName() + "'";
+            return "plugin class '" + asClass().getName() + "'";
         }
-        return "id '" + pluginId + "'";
+        return "plugin '" + pluginId + "'";
     }
 
     public PluginId getPluginId() {
