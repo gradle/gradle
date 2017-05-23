@@ -329,6 +329,8 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     protected FileCollection getCandidateClassFiles() {
+        // We need to resolve the classes into a set of files so @SkipWhenEmpty will work
+        // Otherwise, a collection of empty directories is not seen as "empty" 
         return getClasses().getAsFileTree();
     }
 
