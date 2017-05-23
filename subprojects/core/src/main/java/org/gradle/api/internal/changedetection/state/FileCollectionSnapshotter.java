@@ -16,8 +16,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy;
 import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public interface FileCollectionSnapshotter {
     /**

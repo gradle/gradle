@@ -14,34 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console
+package org.gradle.normalization;
 
-import org.gradle.internal.logging.text.Span
+import org.gradle.api.Incubating;
 
-class TestStyledLabel implements StyledLabel {
-    String display = ""
-
-    String getDisplay() {
-        display
-    }
-
-    @Override
-    void setText(String text) {
-        display = text;
-    }
-
-    @Override
-    void setText(List<Span> spans) {
-        String text = ""
-        for (Span span : spans) {
-            text += span.text
-        }
-
-        setText(text)
-    }
-
-    @Override
-    void setText(Span... spans) {
-        setText(Arrays.asList(spans))
-    }
-}
+/**
+ * Input normalization configuration.
+ *
+ * Input normalization is used when Gradle tries to determine if two task inputs are different.
+ * Gradle normalizes both inputs and the inputs are considered different if and only if the normalizations are different.
+ *
+ * @since 4.0
+ */
+@Incubating
+public interface InputNormalization {}

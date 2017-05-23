@@ -20,11 +20,11 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultClasspathHasher implements ClasspathHasher {
 

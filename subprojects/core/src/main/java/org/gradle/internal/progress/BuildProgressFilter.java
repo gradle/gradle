@@ -27,9 +27,10 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.initialization.RootBuildLifecycleListener;
 
 //Filters out nested projects
-public class BuildProgressFilter implements BuildListener, TaskExecutionGraphListener, TaskExecutionListener, ProjectEvaluationListener {
+public class BuildProgressFilter implements RootBuildLifecycleListener, BuildListener, TaskExecutionGraphListener, TaskExecutionListener, ProjectEvaluationListener {
 
     private Gradle gradle;
     private BuildProgressLogger logger;
@@ -45,6 +46,9 @@ public class BuildProgressFilter implements BuildListener, TaskExecutionGraphLis
             logger.buildStarted();
         }
     }
+
+    @Override
+    public void afterStart() {}
 
     @Override
     public void settingsEvaluated(Settings settings) {
@@ -99,10 +103,14 @@ public class BuildProgressFilter implements BuildListener, TaskExecutionGraphLis
     }
 
     @Override
+    public void beforeComplete() {
+        logger.beforeComplete();
+    }
+
+    @Override
     public void buildFinished(BuildResult result) {
         if (result.getGradle() == gradle) {
             gradle = null;
-            logger.buildFinished();
         }
     }
 }

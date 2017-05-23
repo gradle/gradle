@@ -29,13 +29,13 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import java.io.File;
 import java.util.List;

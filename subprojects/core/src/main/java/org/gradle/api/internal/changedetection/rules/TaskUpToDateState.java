@@ -23,9 +23,9 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.resources.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import java.io.File;
 import java.util.Set;

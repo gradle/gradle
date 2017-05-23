@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, InputNormalizationStrategy normalizationStrategy) {

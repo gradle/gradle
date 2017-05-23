@@ -37,7 +37,11 @@ public class GroupedOutputFixture {
 
     private final static String BUILD_STATUS_FOOTER = "\\n[^\\n]*?BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "\\n[^\\n]*?FAILURE:";
-    private final static String PROGRESS_BAR = ".?\\[0K.*?";
+
+    /**
+     * Start of a new line, the control character, and must have <--------> or <=========>
+     */
+    private final static String PROGRESS_BAR = "^\u001B\\[[^\\n]*?\\[1m(<[-=]+>.*?)\\[m.*?$";
     private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + PROGRESS_BAR;
 
 
@@ -50,8 +54,6 @@ public class GroupedOutputFixture {
         // Capture all output, lazily up until two new lines and an END_OF_TASK designation
         precompiledPattern += "(.*?(?=\\n\\n(?:[^\\n]*?" + END_OF_TASK_OUTPUT + ")))";
         TASK_OUTPUT_PATTERN = Pattern.compile(precompiledPattern);
-        //TODO: Remove once stable
-        System.err.println(precompiledPattern);
     }
 
     /**
@@ -67,11 +69,11 @@ public class GroupedOutputFixture {
 
     private void parse(String output) {
         tasks = new HashedMap();
-        Matcher matcher = TASK_OUTPUT_PATTERN.matcher(output);
+        Matcher matcher = TASK_OUTPUT_PATTERN.matcher(output.replace(ERASE_TO_END_OF_LINE, ""));
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutput = matcher.group(2);
-            taskOutput = taskOutput.replace(ERASE_TO_END_OF_LINE, "");
+            taskOutput = taskOutput.trim();
             if (tasks.containsKey(taskName)) {
                 tasks.get(taskName).addOutput(taskOutput);
             } else {

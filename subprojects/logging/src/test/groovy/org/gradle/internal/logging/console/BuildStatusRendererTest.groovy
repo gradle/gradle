@@ -28,14 +28,13 @@ import java.util.concurrent.ScheduledFuture
 
 class BuildStatusRendererTest extends OutputSpecification {
     def listener = Mock(BatchOutputEventListener)
-    def label = new TestStyledLabel()
-    def console = Mock(Console)
+    def console = new ConsoleStub()
     def consoleMetaData = Mock(ConsoleMetaData)
     def timeProvider = Mock(TimeProvider)
     def future = Mock(ScheduledFuture)
     def executor = Mock(ScheduledExecutorService)
     long currentTimeMs
-    def renderer = new BuildStatusRenderer(listener, label, console, consoleMetaData, timeProvider, executor)
+    def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, timeProvider, executor)
 
     def setup() {
         executor.scheduleAtFixedRate(_, _, _, _) >> future
@@ -43,7 +42,7 @@ class BuildStatusRendererTest extends OutputSpecification {
     }
 
     def "schedules render at fixed rate once an root progress event is started"() {
-        def event = startRoot("message")
+        def event = startPhase(1, "message")
 
         when:
         renderer.onOutput([event] as ArrayList<OutputEvent>)
@@ -62,26 +61,26 @@ class BuildStatusRendererTest extends OutputSpecification {
         1 * listener.onOutput([event] as ArrayList)
     }
 
-    def "correctly format and set the text's label from the event"() {
-        def event1 = startRoot('message')
+    def "formats given message with an incrementing timer"() {
+        def event1 = startPhase(1, '<--> 0% INITIALIZING')
         def event2 = event('2')
 
         when:
         renderer.onOutput([event1] as ArrayList<OutputEvent>)
 
         then:
-        label.display == "message [0s]"
+        statusBar.display == "<--> 0% INITIALIZING [0s]"
 
         when:
         currentTimeMs += 1000
         renderer.onOutput([event2] as ArrayList<OutputEvent>)
 
         then:
-        label.display == "message [1s]"
+        statusBar.display == "<--> 0% INITIALIZING [1s]"
     }
 
     def "correctly cancel the future once the end event is received"() {
-        def startEvent = startRoot('message')
+        def startEvent = startPhase(1, 'message')
         def end = new EndOutputEvent()
 
         given:
@@ -94,7 +93,28 @@ class BuildStatusRendererTest extends OutputSpecification {
         1 * future.cancel(false)
     }
 
-    def startRoot(String description) {
-        start(parentId: null, category: BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, shortDescription: description)
+    def "hides timer between build phases"() {
+        given:
+        def event1 = startPhase(1, '<--> 0% INITIALIZING')
+
+        when:
+        renderer.onOutput([event1] as ArrayList<OutputEvent>)
+
+        then:
+        statusBar.display == '<--> 0% INITIALIZING [0s]'
+
+        when:
+        renderer.onOutput([complete(1, '<--> 0% WAITING')] as ArrayList<OutputEvent>)
+
+        then:
+        statusBar.display == '<--> 0% WAITING'
+    }
+
+    def startPhase(Long id, String description) {
+        start(id: id, parentId: null, category: BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, shortDescription: description)
+    }
+
+    private ConsoleStub.TestableRedrawableLabel getStatusBar() {
+        console.statusBar as ConsoleStub.TestableRedrawableLabel
     }
 }

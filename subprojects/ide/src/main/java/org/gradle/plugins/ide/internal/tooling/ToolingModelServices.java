@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
-import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 
 public class ToolingModelServices extends AbstractPluginServiceRegistry {
     @Override
@@ -39,19 +39,26 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
             return new DefaultUniqueProjectNameProvider(projectRegistry);
         }
 
-        protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(ProjectTaskLister taskLister, ProjectPublicationRegistry projectPublicationRegistry, ServiceRegistry services) {
-            DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry();
-            GradleProjectBuilder gradleProjectBuilder  = new GradleProjectBuilder();
-            IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder, services);
-            registry.register(new EclipseModelBuilder(gradleProjectBuilder, services));
-            registry.register(ideaModelBuilder);
-            registry.register(gradleProjectBuilder);
-            registry.register(new GradleBuildBuilder());
-            registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
-            registry.register(new BuildInvocationsBuilder(taskLister));
-            registry.register(new PublicationsBuilder(projectPublicationRegistry));
-            registry.register(new BuildEnvironmentBuilder());
-            return registry;
+        protected BuildScopeToolingModelBuilderRegistryAction createIdeBuildScopeToolingModelBuilderRegistryAction(
+            final ProjectTaskLister taskLister,
+            final ProjectPublicationRegistry projectPublicationRegistry,
+            final ServiceRegistry services) {
+
+            return new BuildScopeToolingModelBuilderRegistryAction() {
+                @Override
+                public void execute(ToolingModelBuilderRegistry registry) {
+                    GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
+                    IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder, services);
+                    registry.register(new EclipseModelBuilder(gradleProjectBuilder, services));
+                    registry.register(ideaModelBuilder);
+                    registry.register(gradleProjectBuilder);
+                    registry.register(new GradleBuildBuilder());
+                    registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
+                    registry.register(new BuildInvocationsBuilder(taskLister));
+                    registry.register(new PublicationsBuilder(projectPublicationRegistry));
+                    registry.register(new BuildEnvironmentBuilder());
+                }
+            };
         }
     }
 }

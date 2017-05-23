@@ -22,7 +22,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskExecution
-import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy
+import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
 import spock.lang.Subject
 

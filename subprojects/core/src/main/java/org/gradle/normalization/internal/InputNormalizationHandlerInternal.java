@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization.internal;
+package org.gradle.normalization.internal;
 
-import org.gradle.api.resources.normalization.InputNormalizationHandler;
+import org.gradle.normalization.InputNormalizationHandler;
 
 public interface InputNormalizationHandlerInternal extends InputNormalizationHandler {
     InputNormalizationStrategy buildFinalStrategy();
