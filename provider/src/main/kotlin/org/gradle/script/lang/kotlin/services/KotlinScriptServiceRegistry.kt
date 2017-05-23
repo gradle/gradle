@@ -17,24 +17,18 @@
 package org.gradle.script.lang.kotlin.services
 
 import org.gradle.internal.service.ServiceRegistration
-import org.gradle.internal.service.scopes.PluginServiceRegistry
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
 internal
-class KotlinScriptServiceRegistry : PluginServiceRegistry {
+class KotlinScriptServiceRegistry : AbstractPluginServiceRegistry() {
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(org.gradle.script.lang.kotlin.cache.BuildServices)
         registration.addProvider(org.gradle.script.lang.kotlin.provider.BuildServices)
     }
 
-    override fun registerProjectServices(registration: ServiceRegistration) = Unit
-
     override fun registerGlobalServices(registration: ServiceRegistration) {
         registration.addProvider(org.gradle.script.lang.kotlin.support.GlobalServices)
     }
-
-    override fun registerBuildSessionServices(registration: ServiceRegistration) = Unit
-
-    override fun registerGradleServices(registration: ServiceRegistration) = Unit
 }
 
