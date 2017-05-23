@@ -206,7 +206,7 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
     }
 
     static String testLogEventRegex(String event) {
-        ".*MyTest > testExpectation.*$event.*"
+        "MyTest > testExpectation.*$event.*"
     }
 
     private enum TestLogEvent {
