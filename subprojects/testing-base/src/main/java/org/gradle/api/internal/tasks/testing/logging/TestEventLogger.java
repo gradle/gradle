@@ -17,10 +17,7 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.api.tasks.testing.TestOutputListener;
+import org.gradle.api.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
@@ -65,17 +62,17 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     @Override
     public void onOutput(TestDescriptor descriptor, TestOutputEvent outputEvent) {
         if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut
-            && isLoggedEventType(TestLogEvent.STANDARD_OUT)) {
-            log(descriptor, TestLogEvent.STANDARD_OUT, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
+                && isLoggedEventType(TestLogEvent.STANDARD_OUT)) {
+            logEvent(descriptor, TestLogEvent.STANDARD_OUT, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr
-            && isLoggedEventType(TestLogEvent.STANDARD_ERROR)) {
-            log(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
+                && isLoggedEventType(TestLogEvent.STANDARD_ERROR)) {
+            logEvent(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         }
     }
 
     private void before(TestDescriptor descriptor) {
         if (shouldLogEvent(descriptor, TestLogEvent.STARTED)) {
-            log(descriptor, TestLogEvent.STARTED, null);
+            logEvent(descriptor, TestLogEvent.STARTED);
         }
     }
 
@@ -84,7 +81,7 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
 
         if (shouldLogEvent(descriptor, event)) {
             String details = shouldLogExceptions(result) ? exceptionFormatter.format(descriptor, result.getExceptions()) : null;
-            log(descriptor, event, details);
+            logEvent(descriptor, event, details);
         }
     }
 
@@ -95,10 +92,6 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
             case SKIPPED: return TestLogEvent.SKIPPED;
             default: throw new AssertionError();
         }
-    }
-
-    private void log(TestDescriptor descriptor, TestLogEvent event, String details) {
-        logEvent(descriptor, event, details);
     }
 
     private boolean shouldLogEvent(TestDescriptor descriptor, TestLogEvent event) {

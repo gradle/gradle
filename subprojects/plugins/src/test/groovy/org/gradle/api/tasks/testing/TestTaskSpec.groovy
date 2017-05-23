@@ -17,11 +17,7 @@
 package org.gradle.api.tasks.testing
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
-import org.gradle.api.internal.tasks.testing.TestFramework
-import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.internal.tasks.testing.TestStartEvent
+import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
 import org.gradle.internal.work.WorkerLeaseRegistry
