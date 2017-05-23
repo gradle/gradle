@@ -67,10 +67,6 @@ public class UrlExternalResource extends AbstractExternalResource {
         }
     }
 
-    public boolean isLocal() {
-        return uri.getScheme().equalsIgnoreCase("file");
-    }
-
     public long getContentLength() {
         return getMetaData().getContentLength();
     }

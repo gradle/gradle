@@ -59,11 +59,6 @@ public class LazyExternalResource implements ExternalResource {
         return name.getDisplayName();
     }
 
-    @Override
-    public boolean isLocal() {
-        return false;
-    }
-
     @Nullable
     @Override
     public ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException {

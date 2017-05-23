@@ -48,11 +48,6 @@ public class DownloadBuildOperationFiringExternalResourceDecorator implements Ex
     }
 
     @Override
-    public boolean isLocal() {
-        return delegate.isLocal();
-    }
-
-    @Override
     public ExternalResourceMetaData getMetaData() {
         return delegate.getMetaData();
     }

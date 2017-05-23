@@ -37,13 +37,6 @@ public interface ExternalResource extends Resource {
     URI getURI();
 
     /**
-     * Is this resource local to this host, i.e. is it on the file system?
-     *
-     * @return <code>boolean</code> value indicating if the resource is local.
-     */
-    boolean isLocal();
-
-    /**
      * Copies the contents of this resource to the given file.
      *
      * @throws ResourceException on failure to copy the content.

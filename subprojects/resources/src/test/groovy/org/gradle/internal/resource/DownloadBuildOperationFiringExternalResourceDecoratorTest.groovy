@@ -45,7 +45,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
         1 * delegate."$methodName"()
 
         where:
-        methodName << ['getURI', 'getDisplayName', 'getMetaData', 'isLocal']
+        methodName << ['getURI', 'getDisplayName', 'getMetaData']
     }
 
     static class TestExternalResource implements ExternalResource {
@@ -67,11 +67,6 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
 
         @Override
         String getDisplayName() {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        boolean isLocal() {
             throw new UnsupportedOperationException()
         }
 
