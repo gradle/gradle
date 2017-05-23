@@ -48,6 +48,11 @@ public class ResourceExceptions {
                 failure instanceof FileNotFoundException ? null : failure);
     }
 
+    public static MissingResourceException getMissing(URI location) {
+        return new MissingResourceException(location,
+                String.format("Could not read '%s' as it does not exist.", location));
+    }
+
     public static ResourceException getFailed(URI location, Throwable failure) {
         return failure(location, String.format("Could not get resource '%s'.", location), failure);
     }

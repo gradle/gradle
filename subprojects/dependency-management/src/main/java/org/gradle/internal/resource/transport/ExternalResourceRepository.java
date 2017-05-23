@@ -33,23 +33,19 @@ public interface ExternalResourceRepository {
     ExternalResourceRepository withProgressLogging();
 
     /**
-     * Returns the resource with the given name. Note that this method does not touch the resource. To do that, use the methods on the returned resource.
+     * Returns the resource with the given name. Note that this method does not access the resource in any way. To do that, use the methods on the returned resource.
      *
      * @param resource The location of the resource
-     * @param revalidate Ensure the external resource is not stale when accessing its content
+     * @param revalidate Ensure the external resource is not stale when reading its content
      */
     ExternalResource resource(ExternalResourceName resource, boolean revalidate);
 
     /**
-     * Attempts to fetch the given resource.
+     * Returns the resource with the given name. Note that this method does not access the resource in any way. To do that, use the methods on the returned resource.
      *
-     * @param source The location of the resource to obtain
-     * @param revalidate Ensure the external resource is not stale
-     * @return null if the resource is not found.
-     * @throws ResourceException On failure to fetch resource.
+     * @param resource The location of the resource
      */
-    @Nullable
-    ExternalResource getResource(ExternalResourceName source, boolean revalidate) throws ResourceException;
+    ExternalResource resource(ExternalResourceName resource);
 
     /**
      * Transfer a resource to the repository

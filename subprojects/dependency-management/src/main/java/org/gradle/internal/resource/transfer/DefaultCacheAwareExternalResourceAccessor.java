@@ -84,7 +84,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
                 // If we have no caching options, just get the thing directly
                 if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {
-                    return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, false));
+                    return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location));
                 }
 
                 // We might be able to use a cached/locally available version

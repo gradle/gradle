@@ -70,11 +70,7 @@ class MavenMetadataLoader {
         if (resource == null) {
             throw new MissingResourceException(metadataLocation.getUri(), String.format("Maven meta-data not available at %s", metadataLocation));
         }
-        try {
-            parseMavenMetadataInto(resource, metadata);
-        } finally {
-            resource.close();
-        }
+        parseMavenMetadataInto(resource, metadata);
     }
 
     private void parseMavenMetadataInto(ExternalResource metadataResource, final MavenMetadata mavenMetadata) {

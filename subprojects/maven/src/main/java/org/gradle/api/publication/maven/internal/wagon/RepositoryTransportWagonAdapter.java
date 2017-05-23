@@ -37,16 +37,8 @@ public class RepositoryTransportWagonAdapter {
 
     public boolean getRemoteFile(File destination, String resourceName) throws ResourceException {
         ExternalResourceName location = getLocationForResource(resourceName);
-        ExternalResource resource = transport.getRepository().getResource(location, false);
-        if (resource == null) {
-            return false;
-        }
-        try {
-            resource.writeTo(destination);
-        } finally {
-            resource.close();
-        }
-        return true;
+        ExternalResource resource = transport.getRepository().resource(location);
+        return resource.writeToIfPresent(destination) != null;
     }
 
     public void putRemoteFile(LocalResource localResource, String resourceName) throws IOException {

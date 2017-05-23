@@ -53,11 +53,6 @@ public class DownloadBuildOperationFiringExternalResourceDecorator implements Ex
     }
 
     @Override
-    public void close() {
-        delegate.close();
-    }
-
-    @Override
     public ExternalResourceMetaData getMetaData() {
         return delegate.getMetaData();
     }
@@ -65,6 +60,21 @@ public class DownloadBuildOperationFiringExternalResourceDecorator implements Ex
     @Override
     public String getDisplayName() {
         return delegate.getDisplayName();
+    }
+
+    @Override
+    public ExternalResourceReadResult<Void> writeToIfPresent(final File destination) throws ResourceException {
+        return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceReadResult<Void>>() {
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return createBuildOperationDetails();
+            }
+
+            @Override
+            public ExternalResourceReadResult<Void> call(BuildOperationContext buildOperationContext) {
+                return result(buildOperationContext, delegate.writeToIfPresent(destination));
+            }
+        });
     }
 
     @Override

@@ -21,13 +21,16 @@ import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 
 /**
  * This will be merged with {@link Resource}.
  */
-public interface ExternalResource extends Resource, Closeable {
+public interface ExternalResource extends Resource {
     /**
      * Get the URI of the resource.
      */
@@ -46,6 +49,15 @@ public interface ExternalResource extends Resource, Closeable {
      * @throws ResourceException on failure to copy the content.
      */
     ExternalResourceReadResult<Void> writeTo(File destination) throws ResourceException;
+
+    /**
+     * Copies the contents of this resource to the given file, if the resource exists.
+     *
+     * @throws ResourceException on failure to copy the content.
+     * @return true if the resource was written to the file, false if not.
+     */
+    @Nullable
+    ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException;
 
     /**
      * Copies the binary contents of this resource to the given stream. Does not close the provided stream.
@@ -99,8 +111,6 @@ public interface ExternalResource extends Resource, Closeable {
      */
     @Nullable
     <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException;
-
-    void close() throws ResourceException;
 
     /**
      * Returns the meta-data for this resource.

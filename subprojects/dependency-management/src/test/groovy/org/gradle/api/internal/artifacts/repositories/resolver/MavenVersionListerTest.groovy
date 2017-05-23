@@ -70,7 +70,6 @@ class MavenVersionListerTest extends Specification {
     </versioning>
 </metadata>""".bytes))
         }
-        1 * resource.close()
         0 * resourceAccessor._
         0 * resource._
     }
@@ -143,7 +142,6 @@ class MavenVersionListerTest extends Specification {
     </versioning>
 </metadata>""".bytes))
         }
-        1 * resource.close()
         0 * resourceAccessor._
         0 * resource._
     }
@@ -182,7 +180,6 @@ class MavenVersionListerTest extends Specification {
         result.attempted == [metaDataResource.toString()]
 
         and:
-        1 * resource.close()
         1 * resourceAccessor.getResource(metaDataResource, _, null) >> resource;
         1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("yo".bytes)) }
         0 * resourceAccessor._

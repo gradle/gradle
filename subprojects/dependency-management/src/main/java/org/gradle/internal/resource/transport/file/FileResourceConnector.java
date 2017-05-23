@@ -16,6 +16,7 @@
 package org.gradle.internal.resource.transport.file;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Nullable;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
@@ -73,17 +74,18 @@ public class FileResourceConnector implements ExternalResourceRepository {
     }
 
     @Override
-    public ExternalResource resource(ExternalResourceName resource, boolean revalidate) {
+    public LocallyAvailableExternalResource resource(ExternalResourceName resource, boolean revalidate) {
         return resource(resource);
     }
 
+    @Override
     public LocallyAvailableExternalResource resource(ExternalResourceName location) {
         File localFile = getFile(location);
         return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile));
     }
 
-    @Override
-    public LocallyAvailableExternalResource getResource(ExternalResourceName location, boolean revalidate) {
+    @Nullable
+    public LocallyAvailableExternalResource getResourceIfPresent(ExternalResourceName location) {
         File localFile = getFile(location);
         if (!localFile.exists()) {
             return null;
@@ -93,7 +95,7 @@ public class FileResourceConnector implements ExternalResourceRepository {
 
     @Override
     public ExternalResourceMetaData getResourceMetaData(ExternalResourceName location, boolean revalidate) {
-        ExternalResource resource = getResource(location, revalidate);
+        ExternalResource resource = getResourceIfPresent(location);
         return resource == null ? null : resource.getMetaData();
     }
 

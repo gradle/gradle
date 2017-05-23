@@ -74,7 +74,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * index.lookup("thing") >> null
         1 * localCandidates.isNone() >> true
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.resource(location, false) >> resource
+        1 * progressLoggingRepo.resource(location) >> resource
         1 * resource.withContentIfPresent(_) >> null
         0 * _._
     }
@@ -116,7 +116,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * index.lookup("thing") >> null
         1 * localCandidates.isNone() >> true
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.resource(location, false) >> remoteResource
+        1 * progressLoggingRepo.resource(location) >> remoteResource
         _ * remoteResource.name >> "remoteResource"
         1 * remoteResource.withContentIfPresent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), metaData)

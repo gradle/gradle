@@ -23,16 +23,13 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.DefaultExternalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
-import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
@@ -75,10 +72,8 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     }
 
     @Override
-    public ExternalResource getResource(ExternalResourceName source, boolean revalidate) {
-        URI uri = source.getUri();
-        ExternalResourceReadResponse response = accessor.openResource(uri, revalidate);
-        return response == null ? null : new DownloadBuildOperationFiringExternalResourceDecorator(source, buildOperationExecutor, new DefaultExternalResource(uri, response));
+    public ExternalResource resource(ExternalResourceName resource) {
+        return resource(resource, false);
     }
 
     @Override

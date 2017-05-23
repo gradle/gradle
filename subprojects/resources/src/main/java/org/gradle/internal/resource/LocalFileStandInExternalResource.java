@@ -66,6 +66,9 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
     }
 
     public InputStream openStream() throws IOException {
+        if (!localFile.exists()) {
+            return null;
+        }
         return new FileInputStream(localFile);
     }
 

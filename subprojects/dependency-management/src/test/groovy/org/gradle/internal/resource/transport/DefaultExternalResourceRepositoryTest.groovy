@@ -26,9 +26,13 @@ import org.gradle.internal.resource.transfer.ExternalResourceAccessor
 import org.gradle.internal.resource.transfer.ExternalResourceLister
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse
 import org.gradle.internal.resource.transfer.ExternalResourceUploader
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultExternalResourceRepositoryTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def resourceAccessor = Mock(ExternalResourceAccessor)
     def resourceUploader = Mock(ExternalResourceUploader)
     def resourceLister = Mock(ExternalResourceLister)
@@ -41,6 +45,38 @@ class DefaultExternalResourceRepositoryTest extends Specification {
         repository.resource(name, true)
 
         then:
+        0 * _
+    }
+
+    def "can copy content to a file"() {
+        def name = new ExternalResourceName("resource")
+        def response = Mock(ExternalResourceReadResponse)
+        def file = tmpDir.file("out")
+
+        def resource = repository.resource(name, true)
+
+        when:
+        def result = resource.writeToIfPresent(file)
+
+        then:
+        result.readContentLength == 5
+        file.text == "12345"
+
+        1 * resourceAccessor.openResource(name.uri, true) >> response
+        1 * response.openStream() >> new ByteArrayInputStream("12345".getBytes())
+        1 * response.close()
+        0 * _
+
+        when:
+        result = resource.writeToIfPresent(file)
+
+        then:
+        result.readContentLength == 2
+        file.text == "hi"
+
+        1 * resourceAccessor.openResource(name.uri, true) >> response
+        1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
+        1 * response.close()
         0 * _
     }
 
@@ -152,6 +188,23 @@ class DefaultExternalResourceRepositoryTest extends Specification {
         _ * response.metaData >> metaData
         1 * action.execute(_, metaData) >> { throw failure }
         1 * response.close()
+        0 * _
+    }
+
+    def "returns null and does not write to file when resource does not exist"() {
+        def name = new ExternalResourceName("resource")
+        def file = tmpDir.file("out")
+
+        def resource = repository.resource(name, true)
+
+        when:
+        def result = resource.writeToIfPresent(file)
+
+        then:
+        result == null
+        !file.exists()
+
+        1 * resourceAccessor.openResource(name.uri, true) >> null
         0 * _
     }
 

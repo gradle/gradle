@@ -45,7 +45,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
         1 * delegate."$methodName"()
 
         where:
-        methodName << ['getURI', 'getDisplayName', 'getMetaData', 'close', 'isLocal']
+        methodName << ['getURI', 'getDisplayName', 'getMetaData', 'isLocal']
     }
 
     static class TestExternalResource implements ExternalResource {
@@ -72,6 +72,11 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
 
         @Override
         boolean isLocal() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException {
             throw new UnsupportedOperationException()
         }
 
@@ -113,11 +118,6 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
         @Override
         def <T> ExternalResourceReadResult<T> withContentIfPresent(ExternalResource.ContentAction<? extends T> readAction) throws ResourceException {
             throw new UnsupportedOperationException()
-        }
-
-        @Override
-        void close() {
-
         }
 
         @Override
