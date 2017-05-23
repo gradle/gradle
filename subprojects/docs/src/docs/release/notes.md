@@ -17,7 +17,7 @@ Speaking of parallel work-in-progress, **artifacts and metadata from remote repo
 
 This release includes **new Worker APIs** that allow plugins to provide **stable parallel task execution**. You can now leverage these APIs to improve build performance. Future versions of Gradle will leverage these APIs to enable core tasks to be parallelized.
  
-<!-- [Gradle Script Kotlin v0.9.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.9.0) (included in this release) brings very welcome improvements: auto-detection of Kotlin build scripts, improved samples and docs with an [API reference](https://gradle.github.io/gradle-script-kotlin-docs/api/), and source code navigation! -->
+[Gradle Script Kotlin v0.9.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.9.0) (included in this release) brings very welcome improvements: auto-detection of Kotlin build scripts, default imports for the whole Gradle API, improved samples and docs with an [API reference](https://gradle.github.io/gradle-script-kotlin-docs/api/), better IntelliJ experience and more!
 
 Finally, this release introduces a public type that represents lazily-evaluated properties (aka `ConventionMapping`). This is one of the most-requested features by plugin authors. You can learn more about `PropertyState`s [here](#public-type-for-representing-lazily-evaluated-properties). A good example of their usage can be found in the [gradle-site-plugin](https://github.com/gradle-guides/gradle-site-plugin).
 
