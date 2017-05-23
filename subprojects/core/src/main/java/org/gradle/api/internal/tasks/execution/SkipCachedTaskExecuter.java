@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -129,9 +130,13 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         @Override
         public void readFrom(final InputStream input) {
-            taskOutputsGenerationListener.beforeTaskOutputsGenerated();
-            originMetadata = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
-            LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
+            try {
+                taskOutputsGenerationListener.beforeTaskOutputsGenerated();
+                originMetadata = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
+                LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
+            } catch (Throwable e) {
+                throw new GradleException(String.format("Could not unpack cache results for %s", task), e);
+            }
         }
     }
 
@@ -148,8 +153,12 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         @Override
         public void writeTo(OutputStream output) {
-            LOGGER.info("Packing {}", task.getPath());
-            packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
+            try {
+                LOGGER.info("Packing {}", task.getPath());
+                packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
+            } catch (Throwable e) {
+                throw new GradleException(String.format("Could not pack cache results for %s", task), e);
+            }
         }
     }
 }
