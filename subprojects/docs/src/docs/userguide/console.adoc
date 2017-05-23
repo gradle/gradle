@@ -92,7 +92,9 @@ The following examples shows the progress bar during the initialization, configu
 [[sec:console_work_in_progress_display]]
 ==== Work in-progress display
 
-Gradle provides a fined-grained view of the actual work being performed directly underneath the <<sec:console_build_progress_bar,The build progress bar>>. Each line represents a thread or process that can perform work in parallel--resolving dependencies, executing a task and running tests. If an available worker is not being used then it is marked with `IDLE`. The number of available workers defaults to the number of processors on the machine executing the build. You can adjust the number of workers through the <<gradle_command_line,command line>> option `--max-workers`.
+Gradle provides a fined-grained view of the actual work being performed directly underneath the <<sec:console_build_progress_bar,The build progress bar>>. Each line represents a thread or process that can perform work in parallel--resolving dependencies, executing a task and running tests. If an available worker is not being used then it is marked with `IDLE`. The number of available workers defaults to the number of processors on the machine executing the build.
+
+CAUTION: Some work executed in parallel in not displayed yet e.g. parallel test execution. Future versions of Gradle will improve the granularity of the work in progress.
 
 The following portion of the console output shows the work in-progress display with 8 concurrent workers:
 
