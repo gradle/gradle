@@ -133,7 +133,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 Object value = prepareValue(entry.getValue());
                 actualProperties.put(propertyName, value);
             } catch (Exception ex) {
-                throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, task), ex);
+                throw new InvalidUserDataException(String.format("Error while evaluating property '%s': %s", propertyName, ex.getMessage()), ex);
             }
         }
         return actualProperties;
