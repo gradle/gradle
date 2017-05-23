@@ -40,7 +40,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: fails "foo"
-        then: failure.assertHasDescription("Unable to store input properties for task ':foo'. Property 'b' with value 'xxx' cannot be serialized.")
+        then: failure.assertHasCause("Unable to store input properties for task ':foo'. Property 'b' with value 'xxx' cannot be serialized.")
     }
 
     def "deals gracefully with not serializable contents of GStrings"() {

@@ -15,25 +15,17 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
-import org.junit.Assert
-import org.junit.Rule
-import org.junit.Test
 
-class CopyErrorIntegrationTest extends AbstractIntegrationTest {
-    @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
-
-    @Test
-    public void givesReasonableErrorMessageWhenPathCannotBeConverted() {
+class CopyErrorIntegrationTest extends AbstractIntegrationSpec {
+    def givesReasonableErrorMessageWhenPathCannotBeConverted() {
         file('src/thing.txt').createFile()
 
-        testFile('build.gradle') << '''
+        buildFile << '''
             task copy(type: Copy) {
                 from('src') {
                     into project.repositories
@@ -42,8 +34,9 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
             }
 '''
 
-        ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-        failure.assertHasCause("""Cannot convert the provided notation to a String: repository container.
+        expect:
+        fails "copy"
+        failure.assertHasCause("""Error while evaluating property 'rootSpec\$1\$1.destPath': Cannot convert the provided notation to a String: repository container.
 The following types/formats are supported:
   - String or CharSequence instances, for example 'some/path'.
   - Boolean values, for example true, Boolean.TRUE.
@@ -53,54 +46,44 @@ The following types/formats are supported:
   - A Callable that returns any supported value.""")
     }
 
-    @Test
     @Requires(TestPrecondition.SYMLINKS)
-    public void reportsSymLinkWhichPointsToNothing() {
-        TestFile link = testFile('src/file')
-        link.createLink(testFile('missing'))
+    def reportsSymLinkWhichPointsToNothing() {
+        TestFile link = file('src/file')
+        link.createLink(file('missing'))
 
-        Assert.assertFalse(link.isDirectory())
-        Assert.assertFalse(link.isFile())
-        Assert.assertFalse(link.exists())
-
-        testFile('build.gradle') << '''
+        buildFile << '''
             task copy(type: Copy) {
                 from 'src'
                 into 'dest'
             }
 '''
 
-        ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-        failure.assertHasDescription("Could not list contents of '${link}'.")
+        expect:
+        fails "copy"
+        failure.assertHasCause("Could not list contents of '${link}'.")
     }
 
-    @Test
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    public void reportsUnreadableSourceDir() {
-        TestFile dir = testFile('src').createDir()
+    def reportsUnreadableSourceDir() {
+        TestFile dir = file('src').createDir()
+        buildFile << '''
+            task copy(type: Copy) {
+                from 'src'
+                into 'dest'
+            }
+'''
+
         def oldPermissions = dir.permissions
         dir.permissions = '-w-r--r--'
 
-        try {
-            Assert.assertTrue(dir.isDirectory())
-            Assert.assertTrue(dir.exists())
-            Assert.assertFalse(dir.canRead())
-            Assert.assertTrue(dir.canWrite())
+        expect:
+        fails "copy"
+        failure.assertThatCause(Matchers.anyOf(
+            Matchers.startsWith("Could not list contents of directory '${dir}' as it is not readable."),
+            Matchers.startsWith("Could not read path '${dir}'.")
+        ))
 
-            testFile('build.gradle') << '''
-                task copy(type: Copy) {
-                    from 'src'
-                    into 'dest'
-                }
-    '''
-
-            ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-            failure.assertThatDescription(Matchers.anyOf(
-                Matchers.startsWith("Could not list contents of directory '${dir}' as it is not readable."),
-                Matchers.startsWith("Could not read path '${dir}'.")
-            ))
-        } finally {
-            dir.permissions = oldPermissions
-        }
+        cleanup:
+        dir.permissions = oldPermissions
     }
 }
