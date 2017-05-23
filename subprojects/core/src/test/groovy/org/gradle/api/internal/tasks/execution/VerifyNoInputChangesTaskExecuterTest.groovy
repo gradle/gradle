@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.execution
 
+import org.gradle.api.GradleException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
@@ -80,9 +80,8 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         1 * after.calculateCacheKey() >> cacheKey(hashKeyAfter)
         0 * _
 
-        TaskExecutionException e = thrown(TaskExecutionException)
-        e.task == task
-        e.cause.message == "The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs."
+        def e = thrown GradleException
+        e.message == "The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs."
     }
 
     def 'exception if cache key became invalid'() {
@@ -99,9 +98,8 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         1 * after.calculateCacheKey() >> invalidCacheKey()
         0 * _
 
-        TaskExecutionException e = thrown(TaskExecutionException)
-        e.task == task
-        e.cause.message == "The build cache key became invalid after the task has been executed!"
+        def e = thrown GradleException
+        e.message == "The build cache key became invalid after the task has been executed!"
     }
 
     private static TaskOutputCachingBuildCacheKey cacheKey(String hash) {
