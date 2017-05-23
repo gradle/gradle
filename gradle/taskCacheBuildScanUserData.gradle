@@ -95,7 +95,15 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             }
         }
 
-        gradle.services.get(org.gradle.internal.progress.BuildOperationListenerManager).addListener(listener)
+        def buildOperationListenerManager = gradle.services.get(org.gradle.internal.progress.BuildOperationListenerManager)
+        buildOperationListenerManager.addListener(listener)
+
+        gradle.addListener(new org.gradle.BuildAdapter() {
+            @Override
+            void buildFinished(BuildResult result) {
+                buildOperationListenerManager.removeListener(listener)
+            }
+        })
 
         project.buildScan.buildFinished(new Action() {
             public void execute(result) {
