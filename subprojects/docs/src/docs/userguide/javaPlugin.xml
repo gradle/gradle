@@ -18,7 +18,9 @@
     <title>The Java Plugin</title>
 
     <para>The Java plugin adds Java compilation along with testing and bundling capabilities to a project. It serves as the basis
-        for many of the other Gradle plugins.
+        for many of the other Gradle plugins. Most Java developers should migrate to <xref linkend="java_library_plugin"/> which
+        adds the ability to model your api separately from your implementation for better compilation performance and architectural
+        modularization.
     </para>
 
     <section id="sec:java_usage">
@@ -361,8 +363,8 @@
 
     <section id="sec:java_plugin_and_dependency_management">
         <title>Dependency management</title>
-        <para>The Java plugin adds a number of dependency configurations to your project, as shown below. It assigns
-            those configurations to tasks such as <literal>compileJava</literal> and <literal>test</literal>.
+        <para>The Java plugin adds a number of dependency configurations to your project, as shown below. It uses
+            those configurations in tasks such as <literal>compileJava</literal> and <literal>test</literal>.
         </para>
         <table id='tab:configurations'>
             <title>Java plugin - dependency configurations</title>
@@ -375,10 +377,20 @@
                 </tr>
             </thead>
             <tr>
+                <td>implementation</td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    Dependencies which are purely internal implementation details and not meant to be exposed to consumers.
+                </td>
+            </tr>
+            <tr>
                 <td>compile</td>
                 <td>-</td>
                 <td>-</td>
-                <td>Compile time dependencies</td>
+                <td>
+                    Compile time dependencies. This configuration is weakly deprecated in favor of the <code>implementation</code> configuration.
+                </td>
             </tr>
             <tr>
                 <td>compileOnly</td>
@@ -393,10 +405,29 @@
                 <td>Compile classpath, used when compiling source</td>
             </tr>
             <tr>
+                <td>runtimeOnly</td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    Dependencies which are only required at runtime, and not at compile time.
+                </td>
+            </tr>
+            <tr>
                 <td>runtime</td>
                 <td>compile</td>
                 <td>-</td>
-                <td>Runtime dependencies</td>
+                <td>Runtime dependencies. This configuration is weakly deprecated in favor of the <code>runtimeOnly</code>, <code>runtimeElements</code>
+                    or <code>runtimeClasspath</code> configuration described in <xref linkend="sec:java_library_configurations_graph"/> depending on whether you are
+                    declaring dependencies, consuming the dependencies from another project, or resolving dependencies within the current project respectively.
+                </td>
+            </tr>
+            <tr>
+                <td>testImplementation</td>
+                <td>implementation</td>
+                <td>-</td>
+                <td>
+                    Dependencies which are used to compile tests.
+                </td>
             </tr>
             <tr>
                 <td>testCompile</td>
@@ -420,7 +451,9 @@
                 <td>testRuntime</td>
                 <td>runtime, testCompile</td>
                 <td>test</td>
-                <td>Additional dependencies for running tests only</td>
+                <td>Additional dependencies for running tests only. This configuration is weakly deprecated in favor of the <code>testRuntimeOnly</code> or <code>testRuntimeClasspath</code>
+                    configuration described in <xref linkend="sec:java_library_configurations_graph"/> depending on whether you are declaring dependencies or
+                    resolving dependencies within the current project respectively.</td>
             </tr>
             <tr>
                 <td>archives</td>
@@ -440,7 +473,7 @@
         <figure>
             <title>Java plugin - dependency configurations</title>
             <imageobject>
-                <imagedata fileref="img/javaPluginConfigurations.png"/>
+                <imagedata fileref="img/java-configurations.png"/>
             </imageobject>
         </figure>
         <para>For each source set you add to the project, the Java plugins adds the following dependency configurations:</para>
