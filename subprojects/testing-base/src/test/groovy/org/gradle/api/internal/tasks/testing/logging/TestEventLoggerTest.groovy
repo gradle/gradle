@@ -28,7 +28,7 @@ class TestEventLoggerTest extends Specification {
 
     def testLogging = new DefaultTestLogging()
     def exceptionFormatter = Mock(TestExceptionFormatter)
-    def eventLogger = new TestEventLogger(textOutputFactory, LogLevel.INFO, testLogging, exceptionFormatter)
+    def eventLogger = new TestEventLogger(textOutputFactory, LogLevel.INFO, testLogging, exceptionFormatter, null)
 
     def rootDescriptor = new SimpleTestDescriptor(name: "", composite: true)
     def workerDescriptor = new SimpleTestDescriptor(name: "worker", composite: true, parent: rootDescriptor)
