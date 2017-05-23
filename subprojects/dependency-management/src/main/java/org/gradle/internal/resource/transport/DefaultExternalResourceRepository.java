@@ -70,10 +70,15 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     }
 
     @Override
+    public ExternalResource resource(ExternalResourceName resource, boolean revalidate) {
+        return new DownloadBuildOperationFiringExternalResourceDecorator(resource, buildOperationExecutor, new LazyExternalResource(resource, accessor, revalidate));
+    }
+
+    @Override
     public ExternalResource getResource(ExternalResourceName source, boolean revalidate) {
         URI uri = source.getUri();
         ExternalResourceReadResponse response = accessor.openResource(uri, revalidate);
-        return response == null ? null : new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecutor, new DefaultExternalResource(uri, response));
+        return response == null ? null : new DownloadBuildOperationFiringExternalResourceDecorator(source, buildOperationExecutor, new DefaultExternalResource(uri, response));
     }
 
     @Override

@@ -18,7 +18,9 @@ package org.gradle.internal.resource;
 import com.google.common.io.CountingInputStream;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.api.resources.ResourceException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -133,6 +135,18 @@ public abstract class AbstractExternalResource implements ExternalResource {
         } finally {
             close(input);
         }
+    }
+
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+        throw new UnsupportedOperationException();
     }
 
     public void close() {

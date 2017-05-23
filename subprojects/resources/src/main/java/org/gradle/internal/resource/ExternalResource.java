@@ -16,6 +16,7 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -70,6 +71,15 @@ public interface ExternalResource extends Resource, Closeable {
     <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
 
     /**
+     * Executes the given action against the binary contents of this resource.
+     *
+     * @throws ResourceException on failure to read the content.
+     * @return null if the resource does not exist.
+     */
+    @Nullable
+    <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
+
+    /**
      * Executes the given action against the binary contents and meta-data of this resource.
      * Generally, this method will be less efficient than one of the other {@code withContent} methods that do
      * not provide the meta-data, as additional requests may need to be made to obtain the meta-data.
@@ -78,6 +88,17 @@ public interface ExternalResource extends Resource, Closeable {
      * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException;
+
+    /**
+     * Executes the given action against the binary contents and meta-data of this resource.
+     * Generally, this method will be less efficient than one of the other {@code withContent} methods that do
+     * not provide the meta-data, as additional requests may need to be made to obtain the meta-data.
+     *
+     * @throws ResourceException on failure to read the content.
+     * @return null if the resource does not exist.
+     */
+    @Nullable
+    <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException;
 
     void close() throws ResourceException;
 

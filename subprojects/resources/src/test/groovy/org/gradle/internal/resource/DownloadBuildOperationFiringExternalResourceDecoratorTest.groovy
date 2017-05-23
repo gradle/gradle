@@ -36,7 +36,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
         def delegate = Mock(ExternalResource)
         def buildOperationExecutor = Mock(BuildOperationExecutor)
 
-        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecutor, delegate)
+        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(new ExternalResourceName("resource"), buildOperationExecutor, delegate)
 
         when:
         resource."$methodName"()
@@ -106,6 +106,16 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
         }
 
         @Override
+        def <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        def <T> ExternalResourceReadResult<T> withContentIfPresent(ExternalResource.ContentAction<? extends T> readAction) throws ResourceException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
         void close() {
 
         }
@@ -122,7 +132,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
         def delegateMock = Mock(ExternalResource)
         def delegate = new TestExternalResource(delegateMock)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
-        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecuter, delegate)
+        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(new ExternalResourceName(new URI("http://some/uri")), buildOperationExecuter, delegate)
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
             def operationContextMock = Mock(BuildOperationContext) {
                 1 * setResult(_) >> { ExternalResourceDownloadBuildOperationType.ResultImpl result ->
@@ -139,8 +149,8 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
             def details = descriptor.details
             assert details instanceof ExternalResourceDownloadBuildOperationType.Details
             assert details.location == TestExternalResource.METADATA.location.toASCIIString()
-            assert details.contentLength == TestExternalResource.METADATA.contentLength
-            assert details.contentType == TestExternalResource.METADATA.contentType
+            assert details.contentLength == -1
+            assert details.contentType == "null"
         }
 
         when:
@@ -163,7 +173,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
         given:
         def delegate = Mock(ExternalResource)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
-        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecuter, delegate)
+        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(new ExternalResourceName("resource"), buildOperationExecuter, delegate)
         def buildOperationContext = Mock(BuildOperationContext)
 
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->

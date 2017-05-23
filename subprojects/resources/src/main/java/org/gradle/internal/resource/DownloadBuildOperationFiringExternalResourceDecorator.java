@@ -17,6 +17,7 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -31,11 +32,12 @@ import java.io.OutputStream;
 import java.net.URI;
 
 public class DownloadBuildOperationFiringExternalResourceDecorator implements ExternalResource {
-
+    private final ExternalResourceName resourceName;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ExternalResource delegate;
 
-    public DownloadBuildOperationFiringExternalResourceDecorator(BuildOperationExecutor buildOperationExecutor, ExternalResource delegate) {
+    public DownloadBuildOperationFiringExternalResourceDecorator(ExternalResourceName resourceName, BuildOperationExecutor buildOperationExecutor, ExternalResource delegate) {
+        this.resourceName = resourceName;
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
     }
@@ -140,16 +142,47 @@ public class DownloadBuildOperationFiringExternalResourceDecorator implements Ex
         });
     }
 
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(final Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+        return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceReadResult<T>>() {
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return createBuildOperationDetails();
+            }
+
+            @Override
+            public ExternalResourceReadResult<T> call(BuildOperationContext buildOperationContext) {
+                return result(buildOperationContext, delegate.withContentIfPresent(readAction));
+            }
+        });
+    }
+
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(final ContentAction<? extends T> readAction) throws ResourceException {
+        return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceReadResult<T>>() {
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return createBuildOperationDetails();
+            }
+
+            @Override
+            public ExternalResourceReadResult<T> call(BuildOperationContext buildOperationContext) {
+                return result(buildOperationContext, delegate.withContentIfPresent(readAction));
+            }
+        });
+    }
+
     private static <T> ExternalResourceReadResult<T> result(BuildOperationContext buildOperationContext, ExternalResourceReadResult<T> result) {
-        buildOperationContext.setResult(new ExternalResourceDownloadBuildOperationType.ResultImpl(result.getReadContentLength()));
+        buildOperationContext.setResult(new ExternalResourceDownloadBuildOperationType.ResultImpl(result == null ? 0 : result.getReadContentLength()));
         return result;
     }
 
     private BuildOperationDescriptor.Builder createBuildOperationDetails() {
-        ExternalResourceMetaData metaData = getMetaData();
-        ExternalResourceDownloadBuildOperationType.Details operationDetails = new ExternalResourceDownloadBuildOperationType.DetailsImpl(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
+        ExternalResourceDownloadBuildOperationType.Details operationDetails = new ExternalResourceDownloadBuildOperationType.DetailsImpl(resourceName.getUri(), -1, "null");
         return BuildOperationDescriptor
-            .displayName("Download " + metaData.getLocation().toString())
+            .displayName("Download " + resourceName.getDisplayName())
             .details(operationDetails);
     }
 }

@@ -73,6 +73,16 @@ public class FileResourceConnector implements ExternalResourceRepository {
     }
 
     @Override
+    public ExternalResource resource(ExternalResourceName resource, boolean revalidate) {
+        return resource(resource);
+    }
+
+    public LocallyAvailableExternalResource resource(ExternalResourceName location) {
+        File localFile = getFile(location);
+        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile));
+    }
+
+    @Override
     public LocallyAvailableExternalResource getResource(ExternalResourceName location, boolean revalidate) {
         File localFile = getFile(location);
         if (!localFile.exists()) {

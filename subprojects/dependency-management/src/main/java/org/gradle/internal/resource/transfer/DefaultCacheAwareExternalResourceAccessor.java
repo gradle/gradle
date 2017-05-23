@@ -31,6 +31,7 @@ import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
@@ -51,7 +52,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
 
@@ -84,7 +84,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
                 // If we have no caching options, just get the thing directly
                 if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {
-                    return copyToCache(location.getUri(), fileStore, delegate.withProgressLogging().getResource(location, false));
+                    return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, false));
                 }
 
                 // We might be able to use a cached/locally available version
@@ -136,7 +136,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                             // TODO - should iterate over each candidate until we successfully copy into the cache
                             LocallyAvailableExternalResource resource;
                             try {
-                                resource = copyCandidateToCache(location.getUri(), fileStore, remoteMetaData, remoteChecksum, local);
+                                resource = copyCandidateToCache(location, fileStore, remoteMetaData, remoteChecksum, local);
                             } catch (IOException e) {
                                 throw new UncheckedIOException(e);
                             }
@@ -148,7 +148,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 }
 
                 // All local/cached options failed, get directly
-                return copyToCache(location.getUri(), fileStore, delegate.withProgressLogging().getResource(location, revalidate));
+                return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, revalidate));
             }
         });
     }
@@ -156,31 +156,25 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private HashValue getResourceSha1(ExternalResourceName location, boolean revalidate) {
         try {
             ExternalResourceName sha1Location = location.append(".sha1");
-            ExternalResource resource = delegate.getResource(sha1Location, revalidate);
-            if (resource == null) {
-                return null;
-            }
-            try {
-                return resource.withContent(new Transformer<HashValue, InputStream>() {
-                    @Override
-                    public HashValue transform(InputStream inputStream) {
-                        try {
-                            String sha = IOUtils.toString(inputStream, "us-ascii");
-                            return HashValue.parse(sha);
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
+            ExternalResource resource = delegate.resource(sha1Location, revalidate);
+            ExternalResourceReadResult<HashValue> result = resource.withContentIfPresent(new Transformer<HashValue, InputStream>() {
+                @Override
+                public HashValue transform(InputStream inputStream) {
+                    try {
+                        String sha = IOUtils.toString(inputStream, "us-ascii");
+                        return HashValue.parse(sha);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
                     }
-                }).getResult();
-            } finally {
-                resource.close();
-            }
+                }
+            });
+            return result == null ? null : result.getResult();
         } catch (Exception e) {
             throw new ResourceException(location.getUri(), String.format("Failed to download SHA1 for resource '%s'.", location), e);
         }
     }
 
-    private LocallyAvailableExternalResource copyCandidateToCache(URI source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) throws IOException {
+    private LocallyAvailableExternalResource copyCandidateToCache(ExternalResourceName source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) throws IOException {
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             Files.copy(local.getFile(), destination);
@@ -194,39 +188,33 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyToCache(final URI source, final ResourceFileStore fileStore, final ExternalResource resource) {
-        if (resource == null) {
+    private LocallyAvailableExternalResource copyToCache(final ExternalResourceName source, final ResourceFileStore fileStore, final ExternalResource resource) {
+        // Download to temporary location
+        DownloadAction downloadAction = new DownloadAction(source);
+        try {
+            resource.withContentIfPresent(downloadAction);
+        } catch (Exception e) {
+            throw ResourceExceptions.getFailed(source.getUri(), e);
+        }
+        if (downloadAction.metaData == null) {
             return null;
         }
-        final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
+
+        // Move into cache
         try {
-            final DownloadToFileAction downloadAction = new DownloadToFileAction(destination);
-            try {
-                try {
-                    LOGGER.debug("Downloading {} to {}", source, destination);
-                    if (destination.getParentFile() != null) {
-                        GFileUtils.mkdirs(destination.getParentFile());
-                    }
-                    resource.withContent(downloadAction);
-                } finally {
-                    resource.close();
-                }
-            } catch (Exception e) {
-                throw ResourceExceptions.getFailed(source, e);
-            }
-            return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
+            return moveIntoCache(source, downloadAction.destination, fileStore, downloadAction.metaData);
         } finally {
-            destination.delete();
+            downloadAction.destination.delete();
         }
     }
 
-    private LocallyAvailableExternalResource moveIntoCache(final URI source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {
+    private LocallyAvailableExternalResource moveIntoCache(final ExternalResourceName source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {
         return cacheLockingManager.useCache(new Factory<LocallyAvailableExternalResource>() {
             public LocallyAvailableExternalResource create() {
                 LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
                 File fileInFileStore = cachedResource.getFile();
                 cachedExternalResourceIndex.store(source.toString(), fileInFileStore, metaData);
-                return new DefaultLocallyAvailableExternalResource(source, cachedResource, metaData);
+                return new DefaultLocallyAvailableExternalResource(source.getUri(), cachedResource, metaData);
             }
         });
     }
@@ -235,17 +223,23 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         return timeProvider.getCurrentTime() - cached.getCachedAt();
     }
 
-    private static class DownloadToFileAction implements ExternalResource.ContentAction<Object> {
-        private final File destination;
-        private ExternalResourceMetaData metaData;
+    private class DownloadAction implements ExternalResource.ContentAction<Object> {
+        private final ExternalResourceName source;
+        File destination;
+        ExternalResourceMetaData metaData;
 
-        public DownloadToFileAction(File destination) {
-            this.destination = destination;
+        DownloadAction(ExternalResourceName source) {
+            this.source = source;
         }
 
         @Override
         public Object execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
+            destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
             this.metaData = metaData;
+            LOGGER.debug("Downloading {} to {}", source, destination);
+            if (destination.getParentFile() != null) {
+                GFileUtils.mkdirs(destination.getParentFile());
+            }
             FileOutputStream outputStream = new FileOutputStream(destination);
             try {
                 IOUtils.copyLarge(inputStream, outputStream);

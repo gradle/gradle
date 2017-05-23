@@ -61,6 +61,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
     def "returns null when the request resource is not cached and does not exist in the remote repository"() {
         def location = new ExternalResourceName("thing")
         def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
+        def resource = Mock(ExternalResource)
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
 
         when:
@@ -73,7 +74,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * index.lookup("thing") >> null
         1 * localCandidates.isNone() >> true
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(location, false) >> null
+        1 * progressLoggingRepo.resource(location, false) >> resource
+        1 * resource.withContentIfPresent(_) >> null
         0 * _._
     }
 
@@ -114,12 +116,11 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * index.lookup("thing") >> null
         1 * localCandidates.isNone() >> true
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(location, false) >> remoteResource
+        1 * progressLoggingRepo.resource(location, false) >> remoteResource
         _ * remoteResource.name >> "remoteResource"
-        1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
+        1 * remoteResource.withContentIfPresent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), metaData)
         }
-        1 * remoteResource.close()
 
         and:
         1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
@@ -228,11 +229,10 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         remoteMetaData.lastModified >> null
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
-        1 * repository.getResource(new ExternalResourceName("thing.sha1"), true) >> remoteSha1
-        1 * remoteSha1.withContent(_) >> { Transformer t ->
+        1 * repository.resource(new ExternalResourceName("thing.sha1"), true) >> remoteSha1
+        1 * remoteSha1.withContentIfPresent(_) >> { Transformer t ->
             ExternalResourceReadResult.of(1, t.transform(new ByteArrayInputStream(sha1.asZeroPaddedHexString(40).bytes)))
         }
-        1 * remoteSha1.close()
         1 * localCandidates.findByHashValue(sha1) >> localCandidate
         localCandidate.file >> candidate
         0 * _._
@@ -253,6 +253,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def cachedMetaData = Mock(ExternalResourceMetaData)
         def remoteMetaData = Mock(ExternalResourceMetaData)
         def remoteResource = Mock(ExternalResource)
+        def remoteSha1 = Mock(ExternalResource)
         def uri = new ExternalResourceName("thing")
         def localResource = new DefaultLocallyAvailableResource(cachedFile)
 
@@ -272,13 +273,13 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         remoteMetaData.lastModified >> null
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
-        1 * repository.getResource(new ExternalResourceName("thing.sha1"), true) >> null
+        1 * repository.resource(new ExternalResourceName("thing.sha1"), true) >> remoteSha1
+        1 * remoteSha1.withContentIfPresent(_) >> null
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri, true) >> remoteResource
-        1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
+        1 * progressLoggingRepo.resource(uri, true) >> remoteResource
+        1 * remoteResource.withContentIfPresent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }
-        1 * remoteResource.close()
         0 * _._
 
         and:
@@ -328,11 +329,10 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         localCandidate.file >> candidate
         cached.cachedFile >> cachedFile
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri, true) >> remoteResource
-        1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
+        1 * progressLoggingRepo.resource(uri, true) >> remoteResource
+        1 * remoteResource.withContentIfPresent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }
-        1 * remoteResource.close()
         0 * _._
 
         and:
