@@ -173,4 +173,26 @@ Output from 3
         groupedOutput.task(':2:log').output == "Output from 2"
         groupedOutput.task(':3:log').output == "Output from 3"
     }
+
+    def "throws exception if task group could not be parsed"() {
+        given:
+        def consoleOutput = """
+\u001B[1m> Task :hello\u001B[m
+Hello world!
+
+\u001B[1m> Task :bye\u001B[m
+Bye world!
+
+
+\u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 1s
+"""
+        GroupedOutputFixture fixture = new GroupedOutputFixture(consoleOutput)
+
+        when:
+        fixture.task(':doesNotExist')
+
+        then:
+        def t = thrown(IllegalStateException)
+        t.message == "The grouped output for task ':doesNotExist' could not be found"
+    }
 }

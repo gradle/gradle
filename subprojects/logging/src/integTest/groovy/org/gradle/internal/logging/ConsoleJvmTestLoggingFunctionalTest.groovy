@@ -198,9 +198,7 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
     }
 
     static String getTaskOutput(ExecutionResult result) {
-        def taskOutput = result.groupedOutput.task(TEST_TASK_PATH).output
-        assert taskOutput != null
-        taskOutput
+        result.groupedOutput.task(TEST_TASK_PATH).output
     }
 
     static boolean matchesTaskOutput(String taskOutput, String regexToFind) {
