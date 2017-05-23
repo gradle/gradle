@@ -30,10 +30,9 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
 import org.gradle.cache.internal.DefaultProducerGuard;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
-
-import java.net.URI;
 
 class DependencyManagementGlobalScopeServices {
 
@@ -72,7 +71,7 @@ class DependencyManagementGlobalScopeServices {
         return new FileConnectorFactory();
     }
 
-    ProducerGuard<URI> createProducerAccess() {
-        return new DefaultProducerGuard<URI>();
+    ProducerGuard<ExternalResourceName> createProducerAccess() {
+        return new DefaultProducerGuard<ExternalResourceName>();
     }
 }

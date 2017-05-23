@@ -20,6 +20,7 @@ package org.gradle.internal.resource.transport;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.DownloadBuildOperationFiringExternalResourceDecorator;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.DefaultExternalResource;
@@ -68,22 +69,27 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, lister, loggingAccessor, loggingUploader, buildOperationExecutor);
     }
 
-    public ExternalResource getResource(URI source, boolean revalidate) {
-        ExternalResourceReadResponse response = accessor.openResource(source, revalidate);
-        return response == null ? null : new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecutor, new DefaultExternalResource(source, response));
+    @Override
+    public ExternalResource getResource(ExternalResourceName source, boolean revalidate) {
+        URI uri = source.getUri();
+        ExternalResourceReadResponse response = accessor.openResource(uri, revalidate);
+        return response == null ? null : new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecutor, new DefaultExternalResource(uri, response));
     }
 
-    public ExternalResourceMetaData getResourceMetaData(URI source, boolean revalidate) {
-        return accessor.getMetaData(source, revalidate);
+    @Override
+    public ExternalResourceMetaData getResourceMetaData(ExternalResourceName source, boolean revalidate) {
+        return accessor.getMetaData(source.getUri(), revalidate);
     }
 
-    public void put(LocalResource source, URI destination) throws IOException {
+    @Override
+    public void put(LocalResource source, ExternalResourceName destination) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
-        uploader.upload(source, destination);
+        uploader.upload(source, destination.getUri());
     }
 
-    public List<String> list(URI parent) {
-        return lister.list(parent);
+    @Override
+    public List<String> list(ExternalResourceName parent) {
+        return lister.list(parent.getUri());
     }
 
     public String toString() {

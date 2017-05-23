@@ -16,11 +16,12 @@
 package org.gradle.internal.resource.transport.file;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.util.GFileUtils;
@@ -29,7 +30,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,7 +39,8 @@ public class FileResourceConnector implements ExternalResourceRepository {
         return this;
     }
 
-    public List<String> list(URI parent) {
+    @Override
+    public List<String> list(ExternalResourceName parent) {
         File dir = getFile(parent);
         if (dir.exists() && dir.isDirectory()) {
             String[] names = dir.list();
@@ -51,14 +52,14 @@ public class FileResourceConnector implements ExternalResourceRepository {
     }
 
     @Override
-    public void put(LocalResource source, URI destination) throws IOException {
+    public void put(LocalResource location, ExternalResourceName destination) throws IOException {
         File target = getFile(destination);
         if (!target.canWrite()) {
             target.delete();
         } // if target is writable, the copy will overwrite it without requiring a delete
         GFileUtils.mkdirs(target.getParentFile());
 
-        InputStream input = source.open();
+        InputStream input = location.open();
         try {
             FileOutputStream output = new FileOutputStream(target);
             try {
@@ -71,20 +72,22 @@ public class FileResourceConnector implements ExternalResourceRepository {
         }
     }
 
-    public LocallyAvailableExternalResource getResource(URI uri, boolean revalidate) {
-        File localFile = getFile(uri);
+    @Override
+    public LocallyAvailableExternalResource getResource(ExternalResourceName location, boolean revalidate) {
+        File localFile = getFile(location);
         if (!localFile.exists()) {
             return null;
         }
-        return new DefaultLocallyAvailableExternalResource(uri, new DefaultLocallyAvailableResource(localFile));
+        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile));
     }
 
-    public ExternalResourceMetaData getResourceMetaData(URI location, boolean revalidate) {
+    @Override
+    public ExternalResourceMetaData getResourceMetaData(ExternalResourceName location, boolean revalidate) {
         ExternalResource resource = getResource(location, revalidate);
         return resource == null ? null : resource.getMetaData();
     }
 
-    private static File getFile(URI uri) {
-        return new File(uri);
+    private static File getFile(ExternalResourceName location) {
+        return new File(location.getUri());
     }
 }

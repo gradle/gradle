@@ -24,6 +24,7 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
@@ -35,7 +36,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 
 class MavenMetadataLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenMetadataLoader.class);
@@ -47,19 +47,19 @@ class MavenMetadataLoader {
         this.resourcesFileStore = resourcesFileStore;
     }
 
-    public MavenMetadata load(URI metadataLocation) throws ResourceException {
+    public MavenMetadata load(ExternalResourceName metadataLocation) throws ResourceException {
         MavenMetadata metadata = new MavenMetadata();
         try {
             parseMavenMetadataInfo(metadataLocation, metadata);
         } catch (MissingResourceException e) {
             throw e;
         } catch (Exception e) {
-            throw new ResourceException(metadataLocation, String.format("Unable to load Maven meta-data from %s.", metadataLocation), e);
+            throw new ResourceException(metadataLocation.getUri(), String.format("Unable to load Maven meta-data from %s.", metadataLocation), e);
         }
         return metadata;
     }
 
-    private void parseMavenMetadataInfo(final URI metadataLocation, final MavenMetadata metadata) throws IOException {
+    private void parseMavenMetadataInfo(final ExternalResourceName metadataLocation, final MavenMetadata metadata) throws IOException {
         ExternalResource resource = cacheAwareExternalResourceAccessor.getResource(metadataLocation, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
             @Override
             public LocallyAvailableResource moveIntoCache(File downloadedResource) {
@@ -68,7 +68,7 @@ class MavenMetadataLoader {
             }
         }, null);
         if (resource == null) {
-            throw new MissingResourceException(metadataLocation, String.format("Maven meta-data not available: %s", metadataLocation));
+            throw new MissingResourceException(metadataLocation.getUri(), String.format("Maven meta-data not available at %s", metadataLocation));
         }
         try {
             parseMavenMetadataInto(resource, metadata);

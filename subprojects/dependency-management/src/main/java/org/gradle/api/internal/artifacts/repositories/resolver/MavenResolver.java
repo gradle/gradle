@@ -17,9 +17,9 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -175,7 +175,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module, ResourceAwareResolveResult result) {
         ExternalResourceName metadataLocation = getWholePattern().toModuleVersionPath(module).resolve("maven-metadata.xml");
         result.attempted(metadataLocation);
-        MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation.getUri());
+        MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version
@@ -194,7 +194,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         return new MavenUniqueSnapshotModuleSource(matcher.group(1));
     }
 
-    private MavenMetadata parseMavenMetadata(URI metadataLocation) {
+    private MavenMetadata parseMavenMetadata(ExternalResourceName metadataLocation) {
         try {
             return mavenMetaDataLoader.load(metadataLocation);
         } catch (MissingResourceException e) {

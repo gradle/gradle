@@ -19,12 +19,12 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.resources.MissingResourceException
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.UncheckedException
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult
+import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
@@ -34,7 +34,6 @@ import spock.lang.Specification
 
 class MavenVersionListerTest extends Specification {
     def repo = Mock(ExternalResourceRepository)
-    def moduleRevisionId = IvyUtil.createModuleRevisionId("org.acme", "testproject", "1.0")
     def module = new DefaultModuleIdentifier("org.acme", "testproject")
     def result = new DefaultResourceAwareResolveResult()
     def moduleVersion = new DefaultModuleVersionIdentifier(module, "1.0")
@@ -43,7 +42,7 @@ class MavenVersionListerTest extends Specification {
     def resourceAccessor = Mock(CacheAwareExternalResourceAccessor)
     def fileStore = Mock(FileStore)
     def pattern = pattern("testRepo/" + MavenPattern.M2_PATTERN)
-    def metaDataResource = new URI('testRepo/org/acme/testproject/maven-metadata.xml')
+    def metaDataResource = new ExternalResourceName('testRepo/org/acme/testproject/maven-metadata.xml')
 
     final MavenVersionLister lister = new MavenVersionLister(resourceAccessor, fileStore)
 
@@ -81,8 +80,8 @@ class MavenVersionListerTest extends Specification {
         LocallyAvailableExternalResource resource2 = Mock()
         def pattern1 = pattern("prefix1/" + MavenPattern.M2_PATTERN)
         def pattern2 = pattern("prefix2/" + MavenPattern.M2_PATTERN)
-        def location1 = new URI('prefix1/org/acme/testproject/maven-metadata.xml')
-        def location2 = new URI('prefix2/org/acme/testproject/maven-metadata.xml')
+        def location1 = new ExternalResourceName('prefix1/org/acme/testproject/maven-metadata.xml')
+        def location2 = new ExternalResourceName('prefix2/org/acme/testproject/maven-metadata.xml')
 
         when:
         def versions = []
@@ -156,7 +155,7 @@ class MavenVersionListerTest extends Specification {
 
         then:
         MissingResourceException e = thrown()
-        e.message == "Maven meta-data not available: $metaDataResource"
+        e.message == "Maven meta-data not available at $metaDataResource"
 
         and:
         result.attempted == [metaDataResource.toString()]
