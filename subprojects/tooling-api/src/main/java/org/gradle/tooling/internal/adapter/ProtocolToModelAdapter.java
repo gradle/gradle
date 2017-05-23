@@ -275,6 +275,12 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         @Override
         public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
             ViewKey other = (ViewKey) obj;
             return other.source == source && other.type.equals(type) && other.viewDecoration.equals(viewDecoration);
         }
@@ -765,7 +771,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         @Override
         public boolean equals(Object obj) {
-            return obj instanceof NoOpDecoration;
+            return this == obj || obj != null && obj.getClass() == getClass();
         }
 
         @Override
