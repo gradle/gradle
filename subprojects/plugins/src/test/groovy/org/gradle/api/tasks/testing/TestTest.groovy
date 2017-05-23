@@ -35,7 +35,6 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.tasks.AbstractConventionTaskTest
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.util.GFileUtils
@@ -233,7 +232,6 @@ class TestTest extends AbstractConventionTaskTest {
     private void configureTask() {
         test.useTestFramework(testFrameworkMock)
         test.setTestExecuter(testExecuterMock)
-        test.buildOperationExecutor = new TestBuildOperationExecutor()
 
         test.setTestClassesDir(classesDir)
         test.getReports().getJunitXml().setDestination(resultsDir)

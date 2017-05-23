@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
@@ -129,7 +128,6 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
     }
 
-    @NotYetImplemented
     def "can group output from custom test listener with task"() {
         buildFile << """
             test {

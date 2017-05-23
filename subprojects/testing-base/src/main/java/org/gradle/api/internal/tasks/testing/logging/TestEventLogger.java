@@ -25,7 +25,6 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.util.TextUtil;
 
 /**
@@ -36,13 +35,11 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
 
     private final TestExceptionFormatter exceptionFormatter;
     private final TestLogging testLogging;
-    private final Object parentBuildOperationId;
 
-    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter, Object parentBuildOperationId) {
+    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter) {
         super(textOutputFactory, logLevel, testLogging.getDisplayGranularity());
         this.exceptionFormatter = exceptionFormatter;
         this.testLogging = testLogging;
-        this.parentBuildOperationId = parentBuildOperationId;
     }
 
     @Override
@@ -101,13 +98,7 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     }
 
     private void log(TestDescriptor descriptor, TestLogEvent event, String details) {
-        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(parentBuildOperationId);
-
-        try {
-            logEvent(descriptor, event, details);
-        } finally {
-            BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
-        }
+        logEvent(descriptor, event, details);
     }
 
     private boolean shouldLogEvent(TestDescriptor descriptor, TestLogEvent event) {

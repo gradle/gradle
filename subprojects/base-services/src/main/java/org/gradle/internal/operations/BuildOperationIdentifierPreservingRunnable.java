@@ -24,7 +24,7 @@ public class BuildOperationIdentifierPreservingRunnable implements Runnable {
         this(delegate, BuildOperationIdentifierRegistry.getCurrentOperationIdentifier());
     }
 
-    BuildOperationIdentifierPreservingRunnable(Runnable delegate, Object buildOperationId) {
+    public BuildOperationIdentifierPreservingRunnable(Runnable delegate, Object buildOperationId) {
         this.delegate = delegate;
         this.buildOperationId = buildOperationId;
     }

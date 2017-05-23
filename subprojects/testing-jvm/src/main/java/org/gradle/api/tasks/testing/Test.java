@@ -177,7 +177,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private int maxParallelForks = 1;
     private TestReporter testReporter;
     private final TestTaskReports reports;
-    private BuildOperationExecutor buildOperationExecutor;
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -620,12 +619,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = testLogging.get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-
-        if (buildOperationExecutor == null) {
-            buildOperationExecutor = getBuildOperationExecutor();
-        }
-
-        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter, buildOperationExecutor.getCurrentOperation().getParentId());
+        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
         if (getFilter().isFailOnNoMatchingTests() && !getFilter().getIncludePatterns().isEmpty()) {
@@ -680,7 +674,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         try {
             if (testReporter == null) {
-                testReporter = new DefaultTestReport(buildOperationExecutor);
+                testReporter = new DefaultTestReport(getBuildOperationExecutor());
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();
@@ -688,7 +682,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
                         ? TestOutputAssociation.WITH_TESTCASE
                         : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, buildOperationExecutor, getInetAddressFactory().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 
@@ -1368,9 +1362,5 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         } else {
             throw new GradleException(message);
         }
-    }
-
-    void setBuildOperationExecutor(BuildOperationExecutor buildOperationExecutor) {
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 }

@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
@@ -43,7 +42,6 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         task.testReporter = Mock(TestReporter)
         task.binResultsDir = task.project.file('build/test-results')
         task.reports.junitXml.destination = task.project.file('build/test-results')
-        task.buildOperationExecutor = new TestBuildOperationExecutor()
         completion = task.project.services.get(WorkerLeaseRegistry).getWorkerLease().start()
     }
 
