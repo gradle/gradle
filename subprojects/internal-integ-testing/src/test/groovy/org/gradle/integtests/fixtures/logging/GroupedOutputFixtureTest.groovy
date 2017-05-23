@@ -144,4 +144,33 @@ Output from 1
         then:
         groupedOutput.task(':1:log').output == "Output from 1"
     }
+
+    def "handles multiple lines of progress bar"() {
+        given:
+        def consoleOutput = """
+\u001B[4A\u001B[1m<-------------> 0% EXECUTING [3s] [m [0K [33D [1B [1m> :1:log [m [8D [1B [1m> :2:log [m [8D [1B [1m> :3:log [m [8D [1B
+\u001B[4A\u001B[0K
+\u001B[1m> Task :1:log\u001B[m\u001B[0K
+Output from 1\u001B[0K
+\u001B[0K
+\u001B[1m> Task :2:log\u001B[m
+Output from 2
+
+\u001B[1m> Task :3:log\u001B[m
+Output from 3
+
+
+\u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 3s
+3 actionable tasks: 3 executed
+\u001B[2K
+"""
+        when:
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+
+        then:
+        groupedOutput.taskCount == 3
+        groupedOutput.task(':1:log').output == "Output from 1"
+        groupedOutput.task(':2:log').output == "Output from 2"
+        groupedOutput.task(':3:log').output == "Output from 3"
+    }
 }
