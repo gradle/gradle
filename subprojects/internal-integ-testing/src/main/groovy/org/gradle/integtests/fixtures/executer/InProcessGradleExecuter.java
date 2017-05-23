@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
@@ -26,6 +27,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
@@ -44,6 +46,8 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.io.LineBufferingOutputStream;
+import org.gradle.internal.io.TextStream;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -241,7 +245,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         SetSystemProperties.resetTempDirLocation();
     }
 
-    private BuildResult executeBuild(GradleInvocation invocation, StandardOutputListener outputListener, StandardOutputListener errorListener, BuildListenerImpl listener) {
+    private BuildResult executeBuild(GradleInvocation invocation, final StandardOutputListener outputListener, final StandardOutputListener errorListener, BuildListenerImpl listener) {
         // Augment the environment for the execution
         System.setIn(connectStdIn());
         processEnvironment.maybeSetProcessDir(getWorkingDir());
@@ -257,6 +261,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         startParameter.setCurrentDir(getWorkingDir());
         startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
 
+        // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
         ParametersConverter parametersConverter = new ParametersConverter();
         parametersConverter.configure(parser);
@@ -274,8 +279,25 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             BuildActionParameters buildActionParameters = createBuildActionParameters(startParameter);
             BuildRequestContext buildRequestContext = createBuildRequestContext();
             LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
-            loggingManager.addStandardOutputListener(outputListener);
-            loggingManager.addStandardErrorListener(errorListener);
+
+            if (startParameter.getConsoleOutput() == ConsoleOutput.Rich) {
+                // Explicitly enabling rich console forces everything into the stdout listener
+                loggingManager.attachAnsiConsole(new LineBufferingOutputStream(new TextStream() {
+                    @Override
+                    public void text(String text) {
+                        outputListener.onOutput(text);
+                    }
+
+                    @Override
+                    public void endOfStream(@Nullable Throwable failure) {
+
+                    }
+                }));
+            } else {
+                loggingManager.addStandardOutputListener(outputListener);
+                loggingManager.addStandardErrorListener(errorListener);
+            }
+
             loggingManager.start();
             try {
                 startMeasurement();

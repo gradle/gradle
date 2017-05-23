@@ -17,27 +17,62 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.junit.Rule
 
 class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
-    def "shows progress bar and percent phase completion"() {
-        given:
-        buildFile << "task hello { doFirst { println 'hello world' } }"
+    @Rule
+    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
-        when:
-        succeeds('hello')
+    GradleHandle gradle
 
-        then:
-        result.output =~ "<=*-*> \\d% (INITIALIZ|CONFIGUR|EXECUT)ING"
+    def setup() {
+        settingsFile << """
+            // wait for the initialization phase
+            new URL('${server.uri}').text
+        """
+        buildFile << """
+            // wait for the configuration phase 
+            new URL('${server.uri}').text
+            task hello { 
+                doFirst {
+                    println 'hello world' 
+                } 
+            }
+            gradle.buildFinished {
+                // wait for the end of the build
+                println "Waiting for last sync"
+                new URL('${server.uri}').text
+            }
+        """
     }
 
-    def "shows build timer after build phase"() {
-        given:
-        buildFile << "task hello { doFirst { println 'hello world' } }"
+    def "shows progress bar and percent phase completion"() {
+        gradle = executer.withTasks("hello").start()
+        expect:
+        server.waitFor()
+        assertHasMessage("INITIALIZING")
+        server.release()
 
-        when:
-        succeeds('hello')
+        server.waitFor()
+        assertHasMessage("CONFIGURING")
+        server.release()
 
-        then:
-        result.output =~ "\\d% (INITIALIZ|CONFIGUR|EXECUT)ING \\[\\d+s\\]"
+        server.waitFor()
+        assertHasMessage("EXECUTING")
+        server.release()
+        gradle.waitForFinish()
+    }
+
+    private void assertHasMessage(String message) {
+        ConcurrentTestUtil.poll {
+            assert gradle.standardOutput =~ regexFor(message)
+        }
+    }
+    
+    private String regexFor(String message) {
+        /<[-=]{13}> \d% $message \[\d+s]/
     }
 }
