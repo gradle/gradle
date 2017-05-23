@@ -29,7 +29,7 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import java.io.File;
 import java.util.Collection;

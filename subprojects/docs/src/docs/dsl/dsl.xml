@@ -321,13 +321,13 @@
         <table>
             <title>Input Normalization types</title>
             <tr>
-                <td>org.gradle.api.resources.normalization.InputNormalizationHandler</td>
+                <td>org.gradle.normalization.InputNormalizationHandler</td>
             </tr>
             <tr>
-                <td>org.gradle.api.resources.normalization.InputNormalization</td>
+                <td>org.gradle.normalization.InputNormalization</td>
             </tr>
             <tr>
-                <td>org.gradle.api.resources.normalization.RuntimeClasspathNormalization</td>
+                <td>org.gradle.normalization.RuntimeClasspathNormalization</td>
             </tr>
         </table>
     </section>

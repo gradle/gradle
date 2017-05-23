@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization.internal;
+package org.gradle.normalization.internal;
 
-import org.gradle.api.resources.normalization.RuntimeClasspathNormalization;
+import org.gradle.normalization.RuntimeClasspathNormalization;
 
 public interface RuntimeClasspathNormalizationInternal extends RuntimeClasspathNormalization {
     RuntimeClasspathNormalizationStrategy buildFinalStrategy();

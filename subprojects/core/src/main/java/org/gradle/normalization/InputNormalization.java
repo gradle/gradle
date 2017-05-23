@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization;
+package org.gradle.normalization;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Configuration of runtime classpath normalization.
+ * Input normalization configuration.
+ *
+ * Input normalization is used when Gradle tries to determine if two task inputs are different.
+ * Gradle normalizes both inputs and the inputs are considered different if and only if the normalizations are different.
  *
  * @since 4.0
  */
 @Incubating
-@HasInternalProtocol
-public interface RuntimeClasspathNormalization extends InputNormalization {
-    /**
-     * Ignore resources in classpath entries matching {@code pattern}.
-     */
-    void ignore(String pattern);
-}
+public interface InputNormalization {}

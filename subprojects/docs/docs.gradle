@@ -438,6 +438,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/language/**'
     include 'org/gradle/maven/**'
     include 'org/gradle/nativeplatform/**'
+    include 'org/gradle/normalization/**'
     include 'org/gradle/platform/**'
     include 'org/gradle/play/**'
     include 'org/gradle/plugin/devel/**'

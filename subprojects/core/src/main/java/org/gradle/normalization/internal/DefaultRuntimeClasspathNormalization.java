@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization.internal;
+package org.gradle.normalization.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;

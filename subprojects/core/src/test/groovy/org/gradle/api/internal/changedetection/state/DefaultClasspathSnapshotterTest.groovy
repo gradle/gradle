@@ -21,8 +21,8 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.DefaultFileHasher
-import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy
 import org.gradle.internal.serialize.HashCodeSerializer
+import org.gradle.normalization.internal.InputNormalizationStrategy
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

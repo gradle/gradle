@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
+package org.gradle.normalization;
+
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
+
 /**
- * Interfaces and API for input normalization.
+ * Configuration of runtime classpath normalization.
  *
  * @since 4.0
  */
-@org.gradle.api.Incubating
-package org.gradle.api.resources.normalization;
+@Incubating
+@HasInternalProtocol
+public interface RuntimeClasspathNormalization extends InputNormalization {
+    /**
+     * Ignore resources in classpath entries matching {@code pattern}.
+     */
+    void ignore(String pattern);
+}

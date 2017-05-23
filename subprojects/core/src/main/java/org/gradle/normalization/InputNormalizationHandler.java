@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization;
+package org.gradle.normalization;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;

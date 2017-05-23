@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization.internal;
+package org.gradle.normalization.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.resources.normalization.RuntimeClasspathNormalization;
+import org.gradle.normalization.RuntimeClasspathNormalization;
 
 public class DefaultInputNormalizationHandler implements InputNormalizationHandlerInternal {
     private final RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy;

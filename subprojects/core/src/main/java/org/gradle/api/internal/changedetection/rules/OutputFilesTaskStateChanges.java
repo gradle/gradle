@@ -25,7 +25,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.resources.normalization.internal.InputNormalizationStrategy;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import java.util.Map;
 
