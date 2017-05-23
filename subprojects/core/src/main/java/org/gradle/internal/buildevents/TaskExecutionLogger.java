@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * A listener which logs the execution of tasks.
  */
-@UsedByScanPlugin
+@UsedByScanPlugin("Used to filter out ProgressStartEvent with this category")
 public class TaskExecutionLogger implements TaskExecutionListener {
 
     private final Map<Task, ProgressLogger> currentTasks = new HashMap<Task, ProgressLogger>();

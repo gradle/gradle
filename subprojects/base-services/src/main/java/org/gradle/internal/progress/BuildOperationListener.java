@@ -15,14 +15,11 @@
  */
 package org.gradle.internal.progress;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 /**
  * A listener that is notified as build operations are executed via a {@link org.gradle.internal.operations.BuildOperationExecutor}.
  *
  * @since 3.5
  */
-@UsedByScanPlugin
 public interface BuildOperationListener {
 
     void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);

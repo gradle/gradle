@@ -16,12 +16,14 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.StartParameter;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.File;
 
 /**
  * Configuration which affects the (static) layout of a build.
  */
+@UsedByScanPlugin
 public class BuildLayoutConfiguration {
     private File currentDir;
     private boolean searchUpwards;

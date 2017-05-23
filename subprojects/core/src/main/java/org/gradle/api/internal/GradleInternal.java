@@ -35,6 +35,7 @@ import java.util.Collection;
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
  * consumption.
  */
+@UsedByScanPlugin
 public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}

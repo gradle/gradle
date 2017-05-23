@@ -15,11 +15,13 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.Clock;
 
 /**
  * A bunch of information about the request which launched a build.
  */
+@UsedByScanPlugin
 public interface BuildRequestMetaData {
     /**
      * Returns the meta-data about the client used to launch this build.

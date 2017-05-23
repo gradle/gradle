@@ -18,7 +18,7 @@ package org.gradle.internal.progress;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-@UsedByScanPlugin
+@UsedByScanPlugin("Used via InternalTaskExecutionListener")
 public final class OperationStartEvent {
     private final long startTime;
 
