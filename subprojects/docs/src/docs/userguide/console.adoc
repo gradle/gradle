@@ -131,6 +131,8 @@ The following output demonstrates the use of a plain console:
 
 ----
 :compileJava
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
 :processResources
 :classes
 :jar
