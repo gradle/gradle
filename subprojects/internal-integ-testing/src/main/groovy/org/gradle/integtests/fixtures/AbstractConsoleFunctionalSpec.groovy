@@ -53,7 +53,7 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     }
 
     def setup() {
-        executer.requireGradleDistribution().withRichConsole()
+        executer.withRichConsole()
     }
 
     /**
