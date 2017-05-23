@@ -29,7 +29,7 @@ Nearly every Gradle user will experience the command-line interface at some poin
 </figure>
 +++++
 
-=== Visual elements
+=== Command-line feedback
 
 Gradle displays information while the build is running so you can concentrate on the most important items of interest. Each of the sections of Gradle's console output help answer specific questions.
 
