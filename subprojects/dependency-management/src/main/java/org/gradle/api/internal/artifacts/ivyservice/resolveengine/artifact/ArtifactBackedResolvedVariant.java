@@ -58,7 +58,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         for (ResolvedArtifact artifact : artifacts) {
             artifactSets.add(new SingleArtifactSet(attributes, artifact));
         }
-        return new ArtifactBackedResolvedVariant(displayName, attributes, CompositeArtifactSet.of(artifactSets));
+        return new ArtifactBackedResolvedVariant(displayName, attributes, CompositeResolvedArtifactSet.of(artifactSets));
     }
 
     @Override

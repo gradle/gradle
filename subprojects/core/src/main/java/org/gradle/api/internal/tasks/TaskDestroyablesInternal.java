@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.tasks.TaskDestroyables;
+
+import java.io.File;
+import java.util.Collection;
 
 /**
- * Configuration of the resource normalization for the runtime classpath.
- *
- * @since 4.0
+ * Note: this is currently not visible on {@link org.gradle.api.internal.TaskInternal} to avoid it leaking onto {@link org.gradle.api.internal.AbstractTask} and so on to the public API.
  */
-@Incubating
-@HasInternalProtocol
-public interface RuntimeClasspathNormalization extends ResourceNormalization {
+public interface TaskDestroyablesInternal extends TaskDestroyables {
     /**
-     * Ignore resources in classpath entries matching the pattern.
+     * Returns the files that this task will destroy.
      */
-    void ignore(String pattern);
+    Collection<File> getFilesReadOnly();
 }

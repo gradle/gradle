@@ -88,10 +88,10 @@ class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecificatio
                     run()
         }
         then:
-        def cleaningUp = listener.operation("Cleaning up Build cache (" + cacheDir + ")")
-        cleaningUp.child("Scanning " + cacheDir)
-        cleaningUp.child("Choosing files to delete from Build cache (" + cacheDir + ")")
-        cleaningUp.child("Deleting files for Build cache (" + cacheDir + ")")
+        def cleaningUp = listener.operation("Clean up Build cache (" + cacheDir + ")")
+        cleaningUp.child("Scan " + cacheDir)
+        cleaningUp.child("Choose files to delete from Build cache (" + cacheDir + ")")
+        cleaningUp.child("Delete files for Build cache (" + cacheDir + ")")
 
         cacheDir.directorySize() <= 2*1024*1024
     }

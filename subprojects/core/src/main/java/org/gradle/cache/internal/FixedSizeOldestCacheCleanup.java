@@ -63,7 +63,7 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Cleaning up " + persistentCache);
+                return BuildOperationDescriptor.displayName("Clean up " + persistentCache);
             }
         });
 
@@ -78,7 +78,7 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Scanning " + persistentCache.getBaseDir());
+                return BuildOperationDescriptor.displayName("Scan " + persistentCache.getBaseDir());
             }
         });
 
@@ -91,7 +91,7 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Choosing files to delete from " + persistentCache);
+                    return BuildOperationDescriptor.displayName("Choose files to delete from " + persistentCache);
                 }
             });
 
@@ -104,7 +104,7 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Deleting files for " + persistentCache);
+                        return BuildOperationDescriptor.displayName("Delete files for " + persistentCache);
                     }
                 });
             }

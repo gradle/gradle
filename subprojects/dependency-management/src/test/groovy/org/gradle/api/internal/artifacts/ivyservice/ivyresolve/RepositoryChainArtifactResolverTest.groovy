@@ -16,20 +16,22 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentArtifacts
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
-import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
 import spock.lang.Specification
 
-class ResolverProviderArtifactResolverTest extends Specification {
+class RepositoryChainArtifactResolverTest extends Specification {
     final artifact = Mock(ComponentArtifactMetadata)
     final component = Mock(ComponentResolveMetadata)
     final originalSource = Mock(ModuleSource)
     final result = new DefaultBuildableArtifactResolveResult()
-    final artifactSetResult = new DefaultBuildableComponentArtifactsResolveResult()
 
     def repo1 = Stub(ModuleComponentRepository) {
         getId() >> "repo1"
@@ -52,42 +54,54 @@ class ResolverProviderArtifactResolverTest extends Specification {
 
     def "uses module artifacts from local access to repository defined by module source"() {
         def artifacts = Mock(ComponentArtifacts)
+        def configuration = Stub(ConfigurationMetadata)
+        def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
+        def exclusion = Stub(ModuleExclusion)
+        def artifactSet = Stub(ArtifactSet)
 
         when:
-        resolver.resolveArtifacts(component, artifactSetResult)
+        def result = resolver.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusion)
 
         then:
-        _ * component.getSource() >> repo2Source
-        1 * component.withSource(originalSource) >> component
-        1 * repo2.getLocalAccess() >> localAccess2
-        1 * localAccess2.resolveArtifacts(component, artifactSetResult) >> {
-            it[1].resolved(artifacts)
-        }
-        0 * _._
+        result == artifactSet
 
         and:
-        artifactSetResult.result == artifacts
+        _ * component.getSource() >> repo2Source
+        1 * component.withSource(originalSource) >> component
+        1 * repo2.artifactCache >> [:]
+        1 * repo2.getLocalAccess() >> localAccess2
+        1 * localAccess2.resolveArtifacts(component, _) >> {
+            it[1].resolved(artifacts)
+        }
+        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion) >> artifactSet
+        0 * _._
     }
 
     def "uses module artifacts from remote access to repository defined by module source"() {
         def artifacts = Mock(ComponentArtifacts)
+        def configuration = Stub(ConfigurationMetadata)
+        def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
+        def exclusion = Stub(ModuleExclusion)
+        def artifactSet = Stub(ArtifactSet)
 
         when:
-        resolver.resolveArtifacts(component, artifactSetResult)
+        def result = resolver.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusion)
 
         then:
-        _ * component.getSource() >> repo2Source
-        1 * component.withSource(originalSource) >> component
-        1 * repo2.getLocalAccess() >> localAccess2
-        1 * localAccess2.resolveArtifacts(component, artifactSetResult)
-        1 * repo2.getRemoteAccess() >> remoteAccess2
-        1 * remoteAccess2.resolveArtifacts(component, artifactSetResult) >> {
-            it[1].resolved(artifacts)
-        }
-        0 * _._
+        result == artifactSet
 
         and:
-        artifactSetResult.result == artifacts
+        _ * component.getSource() >> repo2Source
+        1 * component.withSource(originalSource) >> component
+        1 * repo2.artifactCache >> [:]
+        1 * repo2.getLocalAccess() >> localAccess2
+        1 * localAccess2.resolveArtifacts(component, _)
+        1 * repo2.getRemoteAccess() >> remoteAccess2
+        1 * remoteAccess2.resolveArtifacts(component, _) >> {
+            it[1].resolved(artifacts)
+        }
+        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion) >> artifactSet
+        0 * _._
     }
 
     def "locates artifact with local access in repository defined by module source"() {

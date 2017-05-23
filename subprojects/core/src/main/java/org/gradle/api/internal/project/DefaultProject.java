@@ -71,7 +71,6 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -104,6 +103,7 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -1314,12 +1314,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Inject
     @Override
-    public ResourceNormalizationHandler getNormalization() {
+    public InputNormalizationHandler getNormalization() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void normalization(Action<? super ResourceNormalizationHandler> configuration) {
+    public void normalization(Action<? super InputNormalizationHandler> configuration) {
         configuration.execute(getNormalization());
     }
 

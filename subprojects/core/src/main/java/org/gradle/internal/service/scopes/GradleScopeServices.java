@@ -37,6 +37,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
@@ -177,7 +178,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
-        PluginTarget target = new ImperativeOnlyPluginTarget<Gradle>(gradleInternal);
+        PluginTarget target = new ImperativeOnlyPluginTarget<GradleInternal>(gradleInternal);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor);
     }
 
@@ -195,6 +196,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     protected BuildOutputCleanupCache createBuildOutputCleanupCache(CacheRepository cacheRepository, GradleInternal gradle, BuildOutputDeleter buildOutputDeleter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         return new DefaultBuildOutputCleanupCache(cacheRepository, gradle, buildOutputDeleter, buildOutputCleanupRegistry);
+    }
+
+    protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
+        return ConfigurationTargetIdentifier.of(gradle);
     }
 
     // Note: This would be better housed in a scope that encapsulated the tree of Gradle objects.

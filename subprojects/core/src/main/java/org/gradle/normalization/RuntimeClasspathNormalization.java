@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization;
+package org.gradle.normalization;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Resource normalization configuration.
- *
- * Resource normalization is used when Gradle tries to determine if two resources are different.
- * Gradle then normalizes both resources and the resources are different if and only if the normalizations are different.
+ * Configuration of runtime classpath normalization.
  *
  * @since 4.0
  */
 @Incubating
-public interface ResourceNormalization {}
+@HasInternalProtocol
+public interface RuntimeClasspathNormalization extends InputNormalization {
+    /**
+     * Ignore resources in classpath entries matching {@code pattern}.
+     */
+    void ignore(String pattern);
+}

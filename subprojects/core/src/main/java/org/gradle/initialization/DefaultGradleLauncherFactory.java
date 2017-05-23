@@ -69,7 +69,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
         listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
         listenerManager.useLogger(new ProjectEvaluationLogger(progressLoggerFactory));
-        listenerManager.useLogger(new DependencyResolutionLogger(progressLoggerFactory));
     }
 
     private GradleLauncher createChildInstance(StartParameter startParameter, GradleLauncher parent, BuildSessionScopeServices buildSessionScopeServices, List<?> servicesToStop) {

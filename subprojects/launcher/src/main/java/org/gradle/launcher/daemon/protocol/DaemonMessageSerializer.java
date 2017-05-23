@@ -32,7 +32,6 @@ import org.gradle.internal.logging.serializer.ProgressStartEventSerializer;
 import org.gradle.internal.logging.serializer.SpanSerializer;
 import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.progress.BuildOperationCategory;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
@@ -46,7 +45,6 @@ public class DaemonMessageSerializer {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
-        Serializer<BuildOperationCategory> buildOperationCategorySerializer = factory.getSerializerFor(BuildOperationCategory.class);
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
 
         registry.register(BuildEvent.class, new BuildEventSerializer());
@@ -59,7 +57,7 @@ public class DaemonMessageSerializer {
         // Output events
         registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
         registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
-        registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer(buildOperationCategorySerializer));
+        registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
         registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
         registry.register(ProgressEvent.class, new ProgressEventSerializer());
         registry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));

@@ -30,6 +30,7 @@ import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -233,6 +234,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     private class AddPluginBuildOperation implements RunnableBuildOperation {
+
         private final Runnable adder;
         private final PluginImplementation<?> plugin;
         private final String pluginId;
@@ -255,18 +257,56 @@ public class DefaultPluginManager implements PluginManagerInternal {
             return computeApplyPluginBuildOperationDetails(plugin);
         }
 
-        private BuildOperationDescriptor.Builder computeApplyPluginBuildOperationDetails(PluginImplementation<?> pluginImplementation) {
-            String identifier;
+        private BuildOperationDescriptor.Builder computeApplyPluginBuildOperationDetails(final PluginImplementation<?> pluginImplementation) {
+            String pluginIdentifier;
             if (pluginImplementation.getPluginId() != null) {
-                identifier = pluginImplementation.getPluginId().toString();
+                pluginIdentifier = pluginImplementation.getPluginId().toString();
             } else {
-                identifier = pluginImplementation.asClass().getName();
+                pluginIdentifier = pluginImplementation.asClass().getName();
             }
-            String name = "Apply plugin " + identifier;
+            String name = "Apply plugin " + pluginIdentifier;
             return BuildOperationDescriptor.displayName(name + " to " + target.toString())
                 .name(name)
-                .details(new ApplyPluginBuildOperationType.DetailsImpl(pluginImplementation.getPluginId(), pluginImplementation.asClass().getName()));
+                .details(new OperationDetails(pluginImplementation, target.getConfigurationTargetIdentifier()));
         }
     }
+
+    private static class OperationDetails implements ApplyPluginBuildOperationType.Details {
+
+        private final PluginImplementation<?> pluginImplementation;
+        private final ConfigurationTargetIdentifier targetIdentifier;
+
+        private OperationDetails(PluginImplementation<?> pluginImplementation, ConfigurationTargetIdentifier targetIdentifier) {
+            this.pluginImplementation = pluginImplementation;
+            this.targetIdentifier = targetIdentifier;
+        }
+
+        @Nullable
+        public String getPluginId() {
+            PluginId pluginId = pluginImplementation.getPluginId();
+            return pluginId == null ? null : pluginId.getId();
+        }
+
+        public String getClassName() {
+            return pluginImplementation.asClass().getName();
+        }
+
+        @Override
+        public String getTargetType() {
+            return targetIdentifier.getTargetType().label;
+        }
+
+        @Nullable
+        @Override
+        public String getTargetPath() {
+            return targetIdentifier.getTargetPath();
+        }
+
+        @Override
+        public String getBuildPath() {
+            return targetIdentifier.getBuildPath();
+        }
+    }
+
 }
 

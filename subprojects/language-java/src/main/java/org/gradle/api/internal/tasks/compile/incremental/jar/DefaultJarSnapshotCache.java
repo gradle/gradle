@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import com.google.common.collect.Maps;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.MinimalPersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultJarSnapshotCache implements JarSnapshotCache {
@@ -34,7 +34,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
 
     @Override
     public Map<File, JarSnapshot> getJarSnapshots(final Map<File, HashCode> jarHashes) {
-        Map<File, JarSnapshot> out = new HashMap<File, JarSnapshot>();
+        Map<File, JarSnapshot> out = Maps.newLinkedHashMap();
         for (Map.Entry<File, HashCode> entry : jarHashes.entrySet()) {
             JarSnapshotData snapshotData = cache.get(entry.getValue());
             if (snapshotData == null) {

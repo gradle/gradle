@@ -45,10 +45,10 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -1703,18 +1703,18 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     SoftwareComponentContainer getComponents();
 
     /**
-     * Provides access to configuring resource normalization.
+     * Provides access to configuring input normalization.
      *
      * @since 4.0
      */
     @Incubating
-    ResourceNormalizationHandler getNormalization();
+    InputNormalizationHandler getNormalization();
 
     /**
-     * Configures resource normalization.
+     * Configures input normalization.
      *
      * @since 4.0
      */
     @Incubating
-    void normalization(Action<? super ResourceNormalizationHandler> configuration);
+    void normalization(Action<? super InputNormalizationHandler> configuration);
 }

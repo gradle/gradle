@@ -21,13 +21,13 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskExecution
-import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategy
+import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
 import spock.lang.Subject
 
 @Subject(InputFilesTaskStateChanges)
 class InputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
-    def normalizationStrategy = ResourceNormalizationStrategy.NOT_CONFIGURED
+    def normalizationStrategy = InputNormalizationStrategy.NOT_CONFIGURED
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when input snapshot throws UncheckedIOException" () {

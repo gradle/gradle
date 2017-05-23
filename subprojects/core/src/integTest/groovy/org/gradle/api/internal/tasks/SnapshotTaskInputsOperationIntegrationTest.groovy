@@ -38,7 +38,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         succeeds('customTask')
 
         then:
-        def result = operations.operation(SnapshotTaskInputsBuildOperationType).result
+        def result = operations.first(SnapshotTaskInputsBuildOperationType).result
 
         then:
         result.buildCacheKey != null
@@ -65,7 +65,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         succeeds('noOutputs', "--build-cache")
 
         then:
-        def result = operations.operation(SnapshotTaskInputsBuildOperationType).result
+        def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.containsKey("buildCacheKey") && result.buildCacheKey == null
         result.containsKey("classLoaderHash") && result.classLoaderHash == null
         result.containsKey("actionClassLoaderHashes") && result.actionClassLoaderHashes == null
@@ -85,7 +85,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         succeeds('noInputs', "--build-cache")
 
         then:
-        def result = operations.operation(SnapshotTaskInputsBuildOperationType).result
+        def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.buildCacheKey != null
         result.classLoaderHash != null
         result.actionClassLoaderHashes != null
@@ -121,7 +121,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         succeeds('customTask', '--build-cache')
 
         then:
-        def result = operations.operation(SnapshotTaskInputsBuildOperationType).result
+        def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.containsKey("buildCacheKey") && result.buildCacheKey == null
         result.containsKey("classLoaderHash") && result.classLoaderHash == null
         result.actionClassLoaderHashes.last() == null
@@ -147,7 +147,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         succeeds('customTask', '--build-cache')
 
         then:
-        def result = operations.operation(SnapshotTaskInputsBuildOperationType).result
+        def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.containsKey("buildCacheKey") && result.buildCacheKey == null
         result.containsKey("classLoaderHash") && result.classLoaderHash != null
         result.actionClassLoaderHashes.last() == null

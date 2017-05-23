@@ -296,7 +296,14 @@ public class DependencyGraphBuilder {
             visitor.visitSelector(selector);
         }
 
-        // Visit the components in consumer-first order
+        // Visit the nodes prior to visiting the edges
+        for (NodeState nodeState : resolveState.getNodes()) {
+            if (nodeState.isSelected()) {
+                visitor.visitNode(nodeState);
+            }
+        }
+
+        // Collect the components to sort in consumer-first order
         List<ComponentState> queue = new ArrayList<ComponentState>();
         for (ModuleResolveState module : resolveState.getModules()) {
             if (module.getSelected() != null) {
@@ -304,6 +311,7 @@ public class DependencyGraphBuilder {
             }
         }
 
+        // Visit the edges after sorting the components in consumer-first order
         while (!queue.isEmpty()) {
             ComponentState component = queue.get(0);
             if (component.getVisitState() == VisitState.NotSeen) {
@@ -327,7 +335,7 @@ public class DependencyGraphBuilder {
                     queue.remove(0);
                     for (NodeState node : component.getNodes()) {
                         if (node.isSelected()) {
-                            visitor.visitNode(node);
+                            visitor.visitEdges(node);
                         }
                     }
                 }
@@ -337,19 +345,12 @@ public class DependencyGraphBuilder {
                 queue.remove(0);
                 for (NodeState node : component.getNodes()) {
                     if (node.isSelected()) {
-                        visitor.visitNode(node);
+                        visitor.visitEdges(node);
                     }
                 }
             } else {
                 // else, already visited previously, skip
                 queue.remove(0);
-            }
-        }
-
-        // Visit the edges
-        for (NodeState node : resolveState.getNode()) {
-            if (node.isSelected()) {
-                visitor.visitEdges(node);
             }
         }
 
@@ -562,7 +563,7 @@ public class DependencyGraphBuilder {
             return getModule(id.getModule()).getVersion(id);
         }
 
-        public Collection<NodeState> getNode() {
+        public Collection<NodeState> getNodes() {
             return nodes.values();
         }
 
@@ -1247,7 +1248,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Resolving " + state);
+            return BuildOperationDescriptor.displayName("Resolve " + state);
         }
     }
 }

@@ -89,7 +89,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         assert succeeds("check${name}")
     }
 
-    private List<GString> toFileNames(List<?> modules) {
+    private List<String> toFileNames(List<?> modules) {
         modules.collect { it instanceof MavenModule ? "'${it.artifactFile.name}'" : "'${it}'" }
     }
 
@@ -126,7 +126,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modB, modC, modD])
+        checkLegacyOrder([modA, modD, modB, modC])
     }
 
     def "artifact collection has resolved artifact files and metadata 4"() {
@@ -138,7 +138,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modC, modD, modB])
+        checkLegacyOrder([modA, modD, modC, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata 5"() {
@@ -162,7 +162,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modC, modD, modB])
+        checkLegacyOrder([modA, modD, modC, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata cycle"() {
@@ -219,6 +219,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered(['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modD])
-        checkLegacyOrder(['root-lib.jar', modA, 'a.jar', modC, modD, 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar'])
+        checkLegacyOrder(['root-lib.jar', modA, modC, modD, 'a.jar', 'a-lib.jar', 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modB])
     }
 }

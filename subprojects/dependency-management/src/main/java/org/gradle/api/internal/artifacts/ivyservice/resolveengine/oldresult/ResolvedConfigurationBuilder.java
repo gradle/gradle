@@ -26,7 +26,9 @@ public interface ResolvedConfigurationBuilder {
 
     void addUnresolvedDependency(UnresolvedDependency unresolvedDependency);
 
-    void addChild(DependencyGraphNode parent, DependencyGraphNode child, long artifactsId);
+    void addChild(DependencyGraphNode parent, DependencyGraphNode child, int artifactsId);
+
+    void addNodeArtifacts(DependencyGraphNode node, int artifactsId);
 
     void newResolvedDependency(DependencyGraphNode node);
 

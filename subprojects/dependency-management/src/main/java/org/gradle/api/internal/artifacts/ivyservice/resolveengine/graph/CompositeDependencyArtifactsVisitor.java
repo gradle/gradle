@@ -45,16 +45,16 @@ public class CompositeDependencyArtifactsVisitor implements DependencyArtifactsV
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, ArtifactSet artifactSet) {
+    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
         for (DependencyArtifactsVisitor visitor : visitors) {
-            visitor.visitArtifacts(from, fileDependency, artifactSet);
+            visitor.visitArtifacts(from, fileDependency, artifactSetId, artifactSet);
         }
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
+    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
         for (DependencyArtifactsVisitor visitor : visitors) {
-            visitor.visitArtifacts(from, to, artifacts);
+            visitor.visitArtifacts(from, to, artifactSetId, artifacts);
         }
     }
 

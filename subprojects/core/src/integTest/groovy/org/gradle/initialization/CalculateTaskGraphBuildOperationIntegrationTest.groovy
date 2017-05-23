@@ -84,7 +84,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     private BuildOperationRecord operation() {
-        buildOperations.operation(CalculateTaskGraphBuildOperationType)
+        buildOperations.first(CalculateTaskGraphBuildOperationType)
     }
 
 }

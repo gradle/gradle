@@ -18,10 +18,13 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
+import org.gradle.configuration.ConfigurationTargetIdentifier;
 
 public interface PluginTarget {
 
     // Implementations should not wrap exceptions, this is done in DefaultObjectConfigurationAction
+
+    ConfigurationTargetIdentifier getConfigurationTargetIdentifier();
 
     void applyImperative(@Nullable String pluginId, Plugin<?> plugin);
 

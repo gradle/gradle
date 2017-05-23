@@ -26,6 +26,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 
 public class UserResolverChain implements ComponentResolvers {
     private final RepositoryChainDependencyToComponentIdResolver componentIdResolver;
@@ -51,6 +52,11 @@ public class UserResolverChain implements ComponentResolvers {
     }
 
     public ArtifactResolver getArtifactResolver() {
+        return artifactResolver;
+    }
+
+    @Override
+    public OriginArtifactSelector getArtifactSelector() {
         return artifactResolver;
     }
 

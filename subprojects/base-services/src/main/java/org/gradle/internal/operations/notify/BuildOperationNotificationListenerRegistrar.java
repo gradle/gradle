@@ -20,6 +20,10 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Mechanism by which the scan plugin registers for notifications.
+ * <p>
+ * One instance of this exists per build tree.
+ * Only one listener may register.
+ * Subsequent attempts yield exceptions.
  *
  * @since 4.0
  */

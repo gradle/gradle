@@ -24,7 +24,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
-import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -164,6 +163,9 @@ import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
+import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.util.List;
 
@@ -293,8 +295,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected ScriptPluginFactory createScriptPluginFactory(ScriptingLanguages scriptingLanguages, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
         DefaultScriptPluginFactory defaultScriptPluginFactory = defaultScriptPluginFactory();
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(this));
-        DependencyInjectingServiceLoader serviceLoader = new DependencyInjectingServiceLoader(this);
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, instantiator, serviceLoader, buildOperationExecutor);
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, instantiator, buildOperationExecutor);
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
     }
@@ -465,5 +466,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
         return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
+    }
+
+    protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions) {
+        ToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry();
+        for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
+            registryAction.execute(registry);
+        }
+        return registry;
     }
 }

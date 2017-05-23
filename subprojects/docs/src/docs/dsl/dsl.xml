@@ -316,18 +316,18 @@
     </section>
 
     <section>
-        <title>Resource Normalization types</title>
-        <para>Types used to customize resource normalization</para>
+        <title>Input Normalization types</title>
+        <para>Types used to configure input normalization</para>
         <table>
-            <title>Resource Normalization types</title>
+            <title>Input Normalization types</title>
             <tr>
-                <td>org.gradle.api.resources.normalization.ResourceNormalizationHandler</td>
+                <td>org.gradle.normalization.InputNormalizationHandler</td>
             </tr>
             <tr>
-                <td>org.gradle.api.resources.normalization.ResourceNormalization</td>
+                <td>org.gradle.normalization.InputNormalization</td>
             </tr>
             <tr>
-                <td>org.gradle.api.resources.normalization.RuntimeClasspathNormalization</td>
+                <td>org.gradle.normalization.RuntimeClasspathNormalization</td>
             </tr>
         </table>
     </section>

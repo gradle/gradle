@@ -83,7 +83,7 @@ public class Binary2JUnitXmlReportGenerator {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("generating junit xml test report for ".concat(result.getClassName()));
+            return BuildOperationDescriptor.displayName("Generate junit XML test report for ".concat(result.getClassName()));
         }
 
         @Override

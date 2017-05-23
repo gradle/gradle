@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.classpath;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.classpath.ClassPath;
 
 /**
@@ -34,6 +35,15 @@ public interface ModuleRegistry {
      * @return the module. Does not return null.
      */
     Module getModule(String name) throws UnknownModuleException;
+
+    /**
+     * Tries to locate a module by name.
+     *
+     * @return the optional module, or {@literal null} if it cannot be found
+     * @throws UnknownModuleException if the requested module is found but one of its dependencies is not
+     */
+    @Nullable
+    Module findModule(String name) throws UnknownModuleException;
 
     /**
      * Returns the classpath used to search for modules, in addition to default locations in the Gradle distribution (if available). May be empty.

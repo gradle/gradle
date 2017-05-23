@@ -32,12 +32,12 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.execution.MultipleBuildFailures;
@@ -675,7 +675,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return true;
     }
 
-    private Set<String> canonicalizedPaths(final Map<File, String> cache, FileCollection files) {
+    private Set<String> canonicalizedPaths(final Map<File, String> cache, Iterable<File> files) {
         Function<File, String> canonicalize = new Function<File, String>() {
             @Override
             public String apply(File file) {
@@ -771,7 +771,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private Set<String> getDestroyablePaths(TaskInfo task) {
-        return canonicalizedPaths(canonicalizedFileCache, task.getTask().getDestroyables().getFiles());
+        return canonicalizedPaths(canonicalizedFileCache, ((TaskDestroyablesInternal)task.getTask().getDestroyables()).getFilesReadOnly());
     }
 
     private boolean pathsOverlap(String firstPath, String secondPath) {

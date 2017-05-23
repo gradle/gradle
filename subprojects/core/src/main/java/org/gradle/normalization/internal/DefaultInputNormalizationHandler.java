@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization.internal;
+package org.gradle.normalization.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.resources.normalization.RuntimeClasspathNormalization;
+import org.gradle.normalization.RuntimeClasspathNormalization;
 
-public class DefaultResourceNormalizationHandler implements ResourceNormalizationHandlerInternal {
+public class DefaultInputNormalizationHandler implements InputNormalizationHandlerInternal {
     private final RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy;
-    private ResourceNormalizationStrategy finalStrategy;
+    private InputNormalizationStrategy finalStrategy;
 
-    public DefaultResourceNormalizationHandler(RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
+    public DefaultInputNormalizationHandler(RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
         this.runtimeClasspathNormalizationStrategy = runtimeClasspathNormalizationStrategy;
     }
 
@@ -36,15 +36,15 @@ public class DefaultResourceNormalizationHandler implements ResourceNormalizatio
     @Override
     public void runtimeClasspath(Action<? super RuntimeClasspathNormalization> configuration) {
         if (finalStrategy != null) {
-            throw new GradleException("Cannot configure resource normalization after execution started.");
+            throw new GradleException("Cannot configure input normalization after execution started.");
         }
         configuration.execute(getRuntimeClasspath());
     }
 
     @Override
-    public ResourceNormalizationStrategy buildFinalStrategy() {
+    public InputNormalizationStrategy buildFinalStrategy() {
         if (finalStrategy == null) {
-            finalStrategy = new ResourceNormalizationStrategy(runtimeClasspathNormalizationStrategy.buildFinalStrategy());
+            finalStrategy = new InputNormalizationStrategy(runtimeClasspathNormalizationStrategy.buildFinalStrategy());
         }
         return finalStrategy;
     }

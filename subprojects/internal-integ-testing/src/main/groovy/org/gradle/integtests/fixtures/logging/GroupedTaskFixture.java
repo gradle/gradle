@@ -14,10 +14,32 @@
  * limitations under the License.
  */
 
-/**
- * Interfaces and API for resource normalization.
- *
- * @since 4.0
- */
-@org.gradle.api.Incubating
-package org.gradle.api.resources.normalization;
+package org.gradle.integtests.fixtures.logging;
+
+import org.gradle.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class GroupedTaskFixture {
+
+    private final String taskName;
+
+    private final List<String> outputs = new ArrayList<String>(1);
+
+    public GroupedTaskFixture(String taskName) {
+        this.taskName = taskName;
+    }
+
+    protected void addOutput(String output) {
+        outputs.add(output);
+    }
+
+    public String getName() {
+        return taskName;
+    }
+
+    public String getOutput() {
+        return CollectionUtils.join("\n", outputs);
+    }
+}

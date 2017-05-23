@@ -94,10 +94,10 @@ class BuildProgressLoggerTest extends Specification {
         0 * _
 
         when:
-        buildProgressLogger.buildFinished()
+        buildProgressLogger.beforeComplete()
 
         then:
-        1 * buildProgress.completed()
+        1 * buildProgress.completed(_)
         0 * _
     }
 
@@ -133,10 +133,21 @@ class BuildProgressLoggerTest extends Specification {
         1 * provider.start(BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, _) >> buildProgress
 
         when:
-        buildProgressLogger.buildFinished()
+        buildProgressLogger.beforeComplete()
 
         then:
-        1 * buildProgress.completed()
+        1 * buildProgress.completed(_)
+        0 * _
+    }
+
+    def "logs waiting message after build is complete but session is not"() {
+        when:
+        buildProgressLogger.buildStarted()
+        buildProgressLogger.beforeComplete()
+
+        then:
+        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _) >> buildProgress
+        1 * buildProgress.completed({it.contains(BuildProgressLogger.WAITING_PHASE_DESCRIPTION)})
         0 * _
     }
 }

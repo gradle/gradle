@@ -19,19 +19,19 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.internal.operations.BuildOperationQueue
 import spock.lang.Specification
 
-class CompositeArtifactSetTest extends Specification {
+class CompositeResolvedArtifactSetTest extends Specification {
     def "factory method returns empty when no non-empty sets provided"() {
         expect:
-        CompositeArtifactSet.of([]) == ResolvedArtifactSet.EMPTY
-        CompositeArtifactSet.of([ResolvedArtifactSet.EMPTY, ResolvedArtifactSet.EMPTY]) == ResolvedArtifactSet.EMPTY
+        CompositeResolvedArtifactSet.of([]) == ResolvedArtifactSet.EMPTY
+        CompositeResolvedArtifactSet.of([ResolvedArtifactSet.EMPTY, ResolvedArtifactSet.EMPTY]) == ResolvedArtifactSet.EMPTY
     }
 
     def "factory method returns single set when single non-empty sets provided"() {
         def set = Mock(ResolvedArtifactSet)
 
         expect:
-        CompositeArtifactSet.of([set]) == set
-        CompositeArtifactSet.of([ResolvedArtifactSet.EMPTY, set, ResolvedArtifactSet.EMPTY]) == set
+        CompositeResolvedArtifactSet.of([set]) == set
+        CompositeResolvedArtifactSet.of([ResolvedArtifactSet.EMPTY, set, ResolvedArtifactSet.EMPTY]) == set
     }
 
     def "visits each set in turn"() {
@@ -45,7 +45,7 @@ class CompositeArtifactSetTest extends Specification {
         def result2 = Mock(ResolvedArtifactSet.Completion)
 
         when:
-        def result = CompositeArtifactSet.of([set1, set2]).startVisit(queue, asyncListener)
+        def result = CompositeResolvedArtifactSet.of([set1, set2]).startVisit(queue, asyncListener)
 
         then:
         1 * set1.startVisit(queue, asyncListener) >> result1

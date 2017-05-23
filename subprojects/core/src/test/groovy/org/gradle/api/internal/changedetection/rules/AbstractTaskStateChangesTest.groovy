@@ -30,7 +30,7 @@ import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNor
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
-import org.gradle.api.resources.normalization.internal.ResourceNormalizationHandlerInternal
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import spock.lang.Specification
 
 abstract class AbstractTaskStateChangesTest extends Specification {
@@ -38,7 +38,7 @@ abstract class AbstractTaskStateChangesTest extends Specification {
     protected mockOutputs = Mock(TaskOutputsInternal)
     protected TaskInternal stubTask
     protected stubProject = Stub(Project) {
-        getNormalization() >> Stub(ResourceNormalizationHandlerInternal)
+        getNormalization() >> Stub(InputNormalizationHandlerInternal)
     }
 
     def setup() {

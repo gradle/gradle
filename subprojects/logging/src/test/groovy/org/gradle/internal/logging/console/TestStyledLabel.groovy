@@ -21,6 +21,10 @@ import org.gradle.internal.logging.text.Span
 class TestStyledLabel implements StyledLabel {
     String display = ""
 
+    String getDisplay() {
+        display
+    }
+
     @Override
     void setText(String text) {
         display = text;

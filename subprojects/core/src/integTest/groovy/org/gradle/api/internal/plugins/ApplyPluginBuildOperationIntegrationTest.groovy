@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.configuration.ApplyScriptPluginBuildOperationType
-import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 
@@ -25,38 +23,32 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def 'emits events for applications'() {
+    def "captures plugin application events"() {
         given:
-        file("a/build.gradle") << "apply plugin: 'java'"
-        file("b/build.gradle") << "apply plugin: 'groovy'"
-        settingsFile << """
-            include 'a'
-            include 'b'
-        """
+        file("build.gradle") << "apply plugin: 'java'"
 
         when:
         succeeds "build"
 
         then:
-        def a = operations.operation(ConfigureProjectBuildOperationType) {
-            it.details.projectPath == ":a"
-        }
-        def aPlugins = operations.search(a) {
-            ApplyPluginBuildOperationType.Details.isAssignableFrom(it.detailsType)
+        def plugins = operations.all(ApplyPluginBuildOperationType) {
+            it.details.targetType == "project" &&
+                it.details.targetPath == ":" &&
+                it.details.buildPath == ":"
         }
 
-        aPlugins.details*.className == [
+        plugins.details*.className == [
             "org.gradle.api.plugins.HelpTasksPlugin",
             "org.gradle.api.plugins.JavaPlugin",
             "org.gradle.api.plugins.JavaBasePlugin",
             "org.gradle.api.plugins.BasePlugin",
+            "org.gradle.language.base.plugins.LifecycleBasePlugin",
             "org.gradle.api.plugins.ReportingBasePlugin",
             "org.gradle.language.base.plugins.LanguageBasePlugin",
+            "org.gradle.platform.base.plugins.ComponentBasePlugin",
             "org.gradle.platform.base.plugins.BinaryBasePlugin",
-            "org.gradle.language.base.plugins.LifecycleBasePlugin",
-            "org.gradle.platform.base.plugins.ComponentBasePlugin"
         ]
-        aPlugins.details*.pluginId == [
+        plugins.details*.pluginId == [
             "org.gradle.help-tasks",
             "org.gradle.java",
             null,
@@ -67,63 +59,139 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             null,
             null,
         ]
-
-        and:
-        def b = operations.operation(ConfigureProjectBuildOperationType) {
-            it.details.projectPath == ":b"
-        }
-        def bPlugins = operations.search(b) {
-            ApplyPluginBuildOperationType.Details.isAssignableFrom(it.detailsType)
-        }
-        bPlugins.details*.className == [
-            "org.gradle.api.plugins.HelpTasksPlugin",
-            "org.gradle.api.plugins.GroovyPlugin",
-            "org.gradle.api.plugins.GroovyBasePlugin",
-            "org.gradle.api.plugins.JavaPlugin",
-            "org.gradle.api.plugins.JavaBasePlugin",
-            "org.gradle.api.plugins.BasePlugin",
-            "org.gradle.api.plugins.ReportingBasePlugin",
-            "org.gradle.language.base.plugins.LanguageBasePlugin",
-            "org.gradle.platform.base.plugins.BinaryBasePlugin",
-            "org.gradle.language.base.plugins.LifecycleBasePlugin",
-            "org.gradle.platform.base.plugins.ComponentBasePlugin"
-        ]
-        bPlugins.details*.pluginId == [
-            "org.gradle.help-tasks",
-            "org.gradle.groovy",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-        ]
     }
 
-    def "location of application can be ascertained from parent operation"() {
-        given:
-        buildScript """
-            apply from: "foo.gradle"
-        """
-        file("foo.gradle") << """
-            apply plugin: "groovy"
+    def "captures gradle plugin"() {
+        when:
+        def initScript = file("init.gradle") << """
+            class MyPlugin implements Plugin {
+                void apply(t) {}
+            }
+            
+            apply plugin: MyPlugin
         """
 
-        when:
-        succeeds("build")
+        succeeds("help", "-I", initScript.absolutePath)
 
         then:
-        def applyFoo = operations.operation(ApplyScriptPluginBuildOperationType) {
-            it.details.file == file("foo.gradle").absolutePath
+        def ops = operations.all(ApplyPluginBuildOperationType) {
+            it.details.targetType == "gradle"
         }
 
-        def fooPlugins = operations.search(applyFoo) {
-            it.detailsType && ApplyPluginBuildOperationType.Details.isAssignableFrom(it.detailsType)
-        }
-
-        "org.gradle.groovy" in fooPlugins.details.pluginId
+        ops.size() == 1
+        def op = ops.first()
+        op.details.className == "MyPlugin"
+        op.details.buildPath == ":"
+        op.details.targetPath == null
     }
+
+    def "captures setting plugin"() {
+        when:
+        settingsFile << """
+            class MyPlugin implements Plugin {
+                void apply(t) {}
+            }
+            
+            apply plugin: MyPlugin
+        """
+
+        succeeds("help")
+
+        then:
+        def ops = operations.all(ApplyPluginBuildOperationType) {
+            it.details.targetType == "settings"
+        }
+
+        ops.size() == 1
+        def op = ops.first()
+        op.details.className == "MyPlugin"
+        op.details.buildPath == ":"
+        op.details.targetPath == null
+    }
+
+    def "uses target instead of parent"() {
+        when:
+        settingsFile << """
+            include "a"
+            include "b"
+        """
+        buildFile << """
+            class Plugin1 implements Plugin {
+                void apply(project) {
+                    project.rootProject.project(":b").apply(plugin: Plugin2)
+                }
+            }
+            class Plugin2 implements Plugin {
+                void apply(project) {
+                    
+                }
+            }
+
+            project(":a").apply plugin: Plugin1
+        """
+        succeeds("help")
+
+        then:
+        def p1 = operations.first(ApplyPluginBuildOperationType) {
+            it.details.className == "Plugin1"
+        }
+        p1.details.targetPath == ":a"
+
+        def children = operations.search(p1) {
+            ApplyPluginBuildOperationType.Details.isAssignableFrom(it.detailsType)
+        }
+
+        children.size() == 1
+        def p2 = children.first()
+
+        p2.details.targetPath == ":b"
+        p2.details.className == "Plugin2"
+    }
+
+    def "associates target to correct build"() {
+        when:
+        settingsFile << """
+            includeBuild "a"
+            includeBuild "b"
+        """
+        file("a/settings.gradle") << ""
+        file("b/settings.gradle") << ""
+        file("a/build.gradle") << """
+            class PluginA implements Plugin {
+                void apply(project) {
+                    
+                }
+            }
+            apply plugin: PluginA
+        """
+        file("b/build.gradle") << """
+            class PluginB implements Plugin {
+                void apply(project) {
+                    
+                }
+            }
+            apply plugin: PluginB
+        """
+        buildFile << """
+            class PluginRoot implements Plugin {
+                void apply(project) {
+                    
+                }
+            }
+
+            apply plugin: PluginRoot
+        """
+        succeeds("help")
+
+        then:
+        def ops = operations.all(ApplyPluginBuildOperationType) {
+            it.details.className.startsWith("Plugin")
+        }
+
+        ops.size() == 3
+        ops.find { it.details.buildPath == ":" }.details.className == "PluginRoot"
+        ops.find { it.details.buildPath == ":a" }.details.className == "PluginA"
+        ops.find { it.details.buildPath == ":b" }.details.className == "PluginB"
+    }
+
 }

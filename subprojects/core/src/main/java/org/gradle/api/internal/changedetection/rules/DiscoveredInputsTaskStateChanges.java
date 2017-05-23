@@ -29,7 +29,7 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategy;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import java.io.File;
 import java.util.Collection;
@@ -44,10 +44,10 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
     private final TaskExecution previous;
     private final TaskExecution current;
     private Collection<File> discoveredFiles = Collections.emptySet();
-    private final ResourceNormalizationStrategy normalizationStrategy;
+    private final InputNormalizationStrategy normalizationStrategy;
 
     public DiscoveredInputsTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory,
-                                            TaskInternal task, ResourceNormalizationStrategy normalizationStrategy) {
+                                            TaskInternal task, InputNormalizationStrategy normalizationStrategy) {
         this.taskName = task.getName();
         this.snapshotter = snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter.class);
         this.fileCollectionFactory = fileCollectionFactory;

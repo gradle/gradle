@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks
+package org.gradle.normalization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -109,7 +109,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         fails 'configureNormalization'
 
         then:
-        failureHasCause 'Cannot configure resource normalization after execution started.'
+        failureHasCause 'Cannot configure input normalization after execution started.'
     }
 
     class ProjectWithRuntimeClasspathNormalization {

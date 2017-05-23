@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
@@ -324,7 +323,7 @@ class DependencyManagementBuildScopeServices {
 
         @Override
         public ComponentResolvers create(ResolveContext context) {
-            return DelegatingComponentResolvers.of(resolver);
+            return resolver;
         }
     }
 }

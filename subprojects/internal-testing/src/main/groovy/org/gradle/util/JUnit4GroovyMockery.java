@@ -18,6 +18,7 @@ package org.gradle.util;
 
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -107,7 +108,7 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
         }
     }
 
-    public void checking(Closure c) {
+    public void checking(@DelegatesTo(type = "org.gradle.util.JUnit4GroovyMockery.ClosureExpectations") Closure c) {
         ClosureExpectations expectations = new ClosureExpectations();
         expectations.closureInit(c, expectations);
         super.checking(expectations);

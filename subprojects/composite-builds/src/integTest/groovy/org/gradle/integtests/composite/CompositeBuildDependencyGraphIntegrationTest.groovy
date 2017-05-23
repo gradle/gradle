@@ -660,6 +660,64 @@ afterEvaluate {
         failure.assertHasCause("Project : declares a dependency from configuration 'compile' to configuration 'default' which is not declared in the descriptor for project :buildC:.")
     }
 
+    def "includes build identifier in error message on failure to resolve dependencies of included build"() {
+        given:
+        def buildC = singleProjectBuild("buildC")
+        includedBuilds << buildC
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:buildC:1.0"
+            }
+        """
+        buildC.buildFile << """
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+
+            configurations { 
+                buildInputs 
+                create('default')
+            }
+            
+            dependencies {
+                buildInputs "org.test:test:1.2"
+            }
+            
+            task buildOutputs {
+                inputs.files configurations.buildInputs
+                doLast {
+                    configurations.buildInputs.each { }
+                }
+            }
+            
+            artifacts {
+                "default" file: file("out.jar"), builtBy: buildOutputs
+            }
+        """
+
+        when:
+        checkDependenciesFails()
+
+        then:
+        failure.assertHasDescription("Failed to build artifacts for build 'buildC'")
+        failure.assertHasCause("Could not determine the dependencies of task ':buildC:buildOutputs'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':buildC:buildInputs'.")
+        failure.assertHasCause("Could not find org.test:test:1.2.")
+
+        when:
+        def m = mavenRepo.module("org.test", "test", "1.2").publish()
+        m.artifact.file.delete()
+
+        checkDependenciesFails()
+
+        then:
+        failure.assertHasDescription("Failed to build artifacts for build 'buildC'")
+        failure.assertHasCause("Execution failed for task ':buildC:buildOutputs'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':buildC:buildInputs'.")
+        failure.assertHasCause("Could not find test.jar (org.test:test:1.2).")
+    }
+
     private void withArgs(List<String> args) {
         buildArgs = args as List
     }

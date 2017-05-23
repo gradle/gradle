@@ -16,33 +16,35 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
+import org.gradle.api.internal.artifacts.transform.VariantSelector
+import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 class NoBuildDependenciesArtifactSetTest extends Specification {
-    def "returns original set when it is empty"() {
+    def "returns original selected artifacts when they are empty"() {
+        def target = Stub(ArtifactSet)
+        def spec = Stub(Spec)
+        def selector = Stub(VariantSelector)
+
+        given:
+        target.select(_, _) >> ResolvedArtifactSet.EMPTY
+
         expect:
-        NoBuildDependenciesArtifactSet.of(ResolvedArtifactSet.EMPTY) == ResolvedArtifactSet.EMPTY
+        new NoBuildDependenciesArtifactSet(target).select(spec, selector) == ResolvedArtifactSet.EMPTY
     }
 
-    def "returns original set when it is a wrapper"() {
-        def set = Stub(ResolvedArtifactSet)
-
-        expect:
-        def wrapper = NoBuildDependenciesArtifactSet.of(set)
-        NoBuildDependenciesArtifactSet.of(wrapper) == wrapper
-    }
-
-    def "creates wrapper for non-empty set"() {
-        def set = Stub(ResolvedArtifactSet)
+    def "creates wrapper for non-empty set of selected artifacts"() {
+        def target = Stub(ArtifactSet)
+        def spec = Stub(Spec)
+        def selector = Stub(VariantSelector)
+        def selected = Stub(ResolvedArtifactSet)
         def visitor = Mock(BuildDependenciesVisitor)
 
-        when:
-        def wrapper = NoBuildDependenciesArtifactSet.of(set)
-
-        then:
-        wrapper instanceof NoBuildDependenciesArtifactSet
+        given:
+        target.select(_, _) >> selected
 
         when:
+        def wrapper = new NoBuildDependenciesArtifactSet(target).select(spec,selector)
         wrapper.collectBuildDependencies(visitor)
 
         then:

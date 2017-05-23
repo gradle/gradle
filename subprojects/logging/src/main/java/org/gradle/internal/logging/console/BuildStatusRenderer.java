@@ -29,7 +29,7 @@ import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.time.TimeProvider;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -38,22 +38,23 @@ import java.util.concurrent.TimeUnit;
 public class BuildStatusRenderer extends BatchOutputEventListener {
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
     private static final long RENDER_NOW_PERIOD_MILLISECONDS = 250;
+    private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
     private final BatchOutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
     private final TimeProvider timeProvider;
     private final ScheduledExecutorService executor;
-    private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
     private final Object lock = new Object();
 
     // What actually shows up on the console
     private String currentBuildStatus;
-    private OperationIdentifier currentPhaseOperationId;
+    private long currentPhaseProgressOperationId;
 
     // Used to maintain timer
     private long buildStartTimestamp;
     private ScheduledFuture future;
+    private boolean timerEnabled;
 
     public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider) {
         this(listener, buildStatusLabel, console, consoleMetaData, timeProvider, Executors.newSingleThreadScheduledExecutor());
@@ -66,44 +67,29 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
         this.consoleMetaData = consoleMetaData;
         this.timeProvider = timeProvider;
         this.executor = executor;
-        this.buildStartTimestamp = timeProvider.getCurrentTime();
-    }
-
-    private void buildStarted(ProgressStartEvent progressStartEvent) {
-        currentBuildStatus = progressStartEvent.getShortDescription();
-    }
-
-    private void buildProgressed(ProgressEvent progressEvent) {
-        currentBuildStatus = progressEvent.getStatus();
-    }
-
-    private void buildFinished() {
-        currentBuildStatus = "";
     }
 
     @Override
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
-            if (currentPhaseOperationId == null && BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
-                currentPhaseOperationId = startEvent.getProgressOperationId();
+            if (startEvent.getBuildOperationId() != null && startEvent.getParentBuildOperationId() == null) {
                 buildStarted(startEvent);
+            } else if (BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
+                phaseStarted(startEvent);
             }
         } else if (event instanceof ProgressCompleteEvent) {
-            if (((ProgressCompleteEvent) event).getProgressOperationId().equals(currentPhaseOperationId)) {
-                currentPhaseOperationId = null;
+            ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
+            if (isPhaseProgressEvent(completeEvent.getProgressOperationId())) {
+                phaseEnded(completeEvent);
             }
         } else if (event instanceof ProgressEvent) {
             ProgressEvent progressEvent = (ProgressEvent) event;
-            if (progressEvent.getProgressOperationId().equals(currentPhaseOperationId)) {
-                buildProgressed(progressEvent);
+            if (isPhaseProgressEvent(progressEvent.getProgressOperationId())) {
+                phaseProgressed(progressEvent);
             }
         } else if (event instanceof EndOutputEvent) {
-            if (future != null && !future.isCancelled()) {
-                future.cancel(false);
-            }
-            executor.shutdown();
-            buildFinished();
+            buildSessionFinished();
         }
     }
 
@@ -136,14 +122,46 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
                     }
                 }, RENDER_NOW_PERIOD_MILLISECONDS, RENDER_NOW_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
             }
-            String elapsedTime = elapsedTimeFormatter.format(now - buildStartTimestamp);
-            buildStatusLabel.setText(Arrays.asList(
-                new Span(Style.of(Style.Emphasis.BOLD), trimToConsole(format(currentBuildStatus, elapsedTime)))));
+            final String buildStatusToRender = trimToConsole(format(currentBuildStatus, timerEnabled, now - buildStartTimestamp));
+            buildStatusLabel.setText(Collections.singletonList(new Span(Style.of(Style.Emphasis.BOLD), buildStatusToRender)));
         }
         console.flush();
     }
 
-    private static String format(String status, String elapsedTime) {
-        return status + " [" + elapsedTime + "]";
+    private String format(String prefix, boolean timerEnabled, long elapsedTime) {
+        if (timerEnabled) {
+            return prefix + " [" + elapsedTimeFormatter.format(elapsedTime) + "]";
+        }
+        return prefix;
+    }
+
+    private boolean isPhaseProgressEvent(OperationIdentifier progressOpId) {
+        return progressOpId.getId() == currentPhaseProgressOperationId;
+    }
+
+    private void buildStarted(ProgressStartEvent startEvent) {
+        buildStartTimestamp = timeProvider.getCurrentTime();
+    }
+
+    private void phaseStarted(ProgressStartEvent progressStartEvent) {
+        timerEnabled = true;
+        currentPhaseProgressOperationId = progressStartEvent.getProgressOperationId().getId();
+        currentBuildStatus = progressStartEvent.getShortDescription();
+    }
+
+    private void phaseProgressed(ProgressEvent progressEvent) {
+        currentBuildStatus = progressEvent.getStatus();
+    }
+
+    private void phaseEnded(ProgressCompleteEvent progressCompleteEvent) {
+        currentBuildStatus = progressCompleteEvent.getStatus();
+        timerEnabled = false;
+    }
+
+    private void buildSessionFinished() {
+        if (future != null && !future.isCancelled()) {
+            future.cancel(false);
+        }
+        executor.shutdown();
     }
 }

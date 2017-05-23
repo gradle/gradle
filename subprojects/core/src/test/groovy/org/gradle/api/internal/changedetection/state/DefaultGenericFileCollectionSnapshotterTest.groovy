@@ -23,7 +23,7 @@ import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.DefaultFileHasher
-import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategy
+import org.gradle.normalization.internal.InputNormalizationStrategy
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ChangeListener
@@ -38,7 +38,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     def fileSystemMirror = new DefaultFileSystemMirror([])
     def snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
     def listener = Mock(ChangeListener)
-    def normalizationStrategy = ResourceNormalizationStrategy.NOT_CONFIGURED
+    def normalizationStrategy = InputNormalizationStrategy.NOT_CONFIGURED
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 

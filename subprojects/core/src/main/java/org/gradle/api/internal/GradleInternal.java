@@ -20,6 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
@@ -33,7 +34,7 @@ import java.util.Collection;
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
  * consumption.
  */
-public interface GradleInternal extends Gradle {
+public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}
      */
