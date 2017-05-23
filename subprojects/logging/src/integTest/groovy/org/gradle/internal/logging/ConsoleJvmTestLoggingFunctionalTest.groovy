@@ -18,6 +18,7 @@ package org.gradle.internal.logging
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec {
 
@@ -41,8 +42,7 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         fails(TEST_TASK_NAME)
 
         then:
-        def taskOutput = taskOutput(TEST_TASK_PATH)
-        taskOutput.size() == 1
+        def taskOutput = getTaskOutput(result)
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
     }
 
@@ -65,8 +65,7 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         succeeds(TEST_TASK_NAME)
 
         then:
-        def taskOutput = taskOutput(TEST_TASK_PATH)
-        taskOutput.size() == 1
+        def taskOutput = getTaskOutput(result)
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.SKIPPED.consoleMarker))
     }
 
@@ -79,8 +78,7 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         succeeds(TEST_TASK_NAME)
 
         then:
-        def taskOutput = taskOutput(TEST_TASK_PATH)
-        taskOutput.size() == 1
+        def taskOutput = getTaskOutput(result)
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.STARTED.consoleMarker))
     }
 
@@ -99,11 +97,10 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         succeeds(TEST_TASK_NAME)
 
         then:
-        def taskOutput = taskOutput(TEST_TASK_PATH)
-        taskOutput.size() == 1
-        taskOutput[0].contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
+        def taskOutput = getTaskOutput(result)
+        taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
     standard output""")
-        taskOutput[0].contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
+        taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
     standard error""")
     }
 
@@ -125,9 +122,8 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         fails(TEST_TASK_NAME)
 
         then:
-        def taskOutput = taskOutput(TEST_TASK_PATH)
-        taskOutput.size() == 1
-        taskOutput[0].contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
+        def taskOutput = getTaskOutput(result)
+        taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
     standard output""")
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.STARTED.consoleMarker))
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
@@ -151,10 +147,9 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         succeeds(TEST_TASK_NAME)
 
         then:
-        def taskOutput = taskOutput(TEST_TASK_PATH)
-        taskOutput.size() == 1
-        taskOutput[0].contains('Starting test: MyTest > testExpectation')
-        taskOutput[0].contains('Finishing test: MyTest > testExpectation')
+        def taskOutput = getTaskOutput(result)
+        taskOutput.contains('Starting test: MyTest > testExpectation')
+        taskOutput.contains('Finishing test: MyTest > testExpectation')
     }
 
     static String javaProject() {
@@ -204,8 +199,14 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
         """
     }
 
-    static boolean matchesTaskOutput(List<String> taskOutput, String regexToFind) {
-        taskOutput.any { (taskOutput =~ /(?ms)($regexToFind)/).matches() }
+    static String getTaskOutput(ExecutionResult result) {
+        def taskOutput = result.groupedOutput.task(TEST_TASK_PATH).output
+        assert taskOutput != null
+        taskOutput
+    }
+
+    static boolean matchesTaskOutput(String taskOutput, String regexToFind) {
+        (taskOutput =~ /(?ms)($regexToFind)/).matches()
     }
 
     static String testLogEventRegex(String event) {
