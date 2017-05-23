@@ -33,10 +33,10 @@ Nearly every Gradle user will experience the command-line interface at some poin
 
 Gradle displays information while the build is running so you can concentrate on the most important items of interest. Each of the sections of Gradle's console output help answer specific questions.
 
-- <<sec:console_build_output,The build output>>: Is there anything I should know about my build right now e.g. tests have failed and emitted warnings?
-- <<sec:console_build_progress_bar,The build progress bar>>: When will my build finish?
-- <<sec:console_work_in_progress_display,The work in-progress display>>: What is Gradle doing right now?
-- <<sec:console_build_result,The build result>>: Are there other interesting outcomes e.g. tasks that have been skipped or were up-to-date?
+- <<sec:console_build_output,Is there anything I should know about my build right now e.g. tests have failed and emitted warnings?>>
+- <<sec:console_build_progress_bar,When will my build finish?>>
+- <<sec:console_work_in_progress_display,What is Gradle doing right now?>>
+- <<sec:console_build_result,Are there other interesting outcomes e.g. tasks that have been skipped or were up-to-date?>>
 
 [[sec:console_build_output]]
 ==== Build output
