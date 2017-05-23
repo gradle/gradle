@@ -141,10 +141,6 @@ tasks.withType(AsciidoctorTask) {
             content += " />"
             return content
         }
-        inlinemacro (name: "xref") {
-            parent, target, attributes ->
-                "<xref linkend=\"sec:$target\"/>"
-        }
     }
 
     doLast {
