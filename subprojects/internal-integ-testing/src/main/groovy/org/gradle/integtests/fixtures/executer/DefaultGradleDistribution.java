@@ -87,8 +87,8 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
         }
 
-        // 3.x works on Java 7 - 9
-        return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_9) <= 0;
+        // 3.x works on Java 7 - 8
+        return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
     }
 
     public boolean worksWith(OperatingSystem os) {
