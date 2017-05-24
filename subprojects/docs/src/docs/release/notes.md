@@ -33,7 +33,7 @@ Add-->
 
 Gradle will now download dependencies from remote repositories in parallel (both metadata and artifacts). It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency will not be downloaded twice.
 
-### Build Cache Improvements
+### Build cache improvements
 
 #### Remote build cache honors `--offline` 
 
@@ -197,7 +197,7 @@ running into evaluation ordering issues:
         }
     }
     
-### Configurable Input Normalization: Ignore runtime classpath resources for up-to-date checks and the build cache
+### Configurable input normalization: Ignore runtime classpath resources for up-to-date checks and the build cache
 
 Gradle 4.0 supports ignoring particular resources on a runtime classpath. This affects up-to-date checks and the calculation of build cache keys.
 
@@ -231,12 +231,15 @@ You can now add Google's Maven repository to your build to resolve Android Suppo
 ### User experience improvements
 
 #### Logs grouped by project and task
+
 Parallel execution causes logs from simultaneous tasks to be interleaved, rendering them less useful. Gradle 4.0 buffers output by project and task and flushes upon completion or every few seconds for long-running tasks. 
 
 #### Default logging reduced
+
 Gradle sometimes outputs very verbose logs in mid-to-large sized projects, which makes it far too easy to miss the logs you actually want to act on. Output is nearly identical to previous releases when not attached to a terminal or using `--console=plain` to allow users or CI systems to parse logs as they always have. We recommend the use of [build scans](https://scans.gradle.com), `--info`, or a plain console for granular task outcomes information.
 
-#### Parallel Console
+#### Parallel console
+
 The terminal display of work in-progress now shows parallel work by default, and will adjust to parallel tasks added, growing as needed up to one-half the height of the attached console. This is not displayed in non-interactive environments.
 
 ### Better modeling of tasks that delete files
