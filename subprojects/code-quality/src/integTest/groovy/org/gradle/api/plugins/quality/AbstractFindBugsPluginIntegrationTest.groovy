@@ -510,6 +510,27 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         result.assertTaskNotSkipped(":findbugsMain")
     }
 
+    def "does not fail if resources are generated into classes"() {
+        given:
+        goodCode()
+        buildFile << """
+            compileJava {
+                doLast {
+                    def manifest = new File(destinationDir, "META-INF/MANIFEST.MF")
+                    manifest.parentFile.mkdirs()
+                    manifest.text = "manifest"
+                    def properties = new File(destinationDir, "com/example/service.properties")
+                    properties.parentFile.mkdirs()
+                    properties.text = "someProp=value"
+                }
+            } 
+        """
+        when:
+        succeeds("check")
+        then:
+        !result.error.contains("Wrong magic bytes")
+    }
+
     private static boolean containsXmlMessages(File xmlReportFile) {
         new XmlSlurper().parseText(xmlReportFile.text).BugInstance.children().collect { it.name() }.containsAll(['ShortMessage', 'LongMessage'])
     }
