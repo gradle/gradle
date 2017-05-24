@@ -87,7 +87,7 @@ public class BuildProcessTest extends Specification {
         System.getProperty('baz') != null
     }
 
-    def "when required opts contain an immutable default setting ignore it"() {
+    def "defaults in required vm args are ignored"() {
         //if the user does not configure any jvm args Gradle uses some defaults
         //however, we don't want those defaults to influence the decision whether to use existing process or not
         given:
@@ -99,6 +99,17 @@ public class BuildProcessTest extends Specification {
 
         then:
         buildProcess.configureForBuild(parametersWithDefaults)
+    }
+
+    def "user-defined vm args that correspond to defaults are not ignored"() {
+        given:
+        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+
+        when:
+        def parametersWithDefaults = buildParameters(DaemonParameters.DEFAULT_JVM_ARGS)
+
+        then:
+        !buildProcess.configureForBuild(parametersWithDefaults)
     }
 
     def "current and requested build vm match if vm arguments match"() {
