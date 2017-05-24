@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.internal.taskgraph;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;

@@ -16,7 +16,7 @@
 
 package org.gradle.initialization
 
-import org.gradle.execution.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
