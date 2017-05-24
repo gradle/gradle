@@ -106,7 +106,6 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
             }
         """
         when:
-        executer.withStackTraceChecksDisabled()
         fails('log')
 
         then:
