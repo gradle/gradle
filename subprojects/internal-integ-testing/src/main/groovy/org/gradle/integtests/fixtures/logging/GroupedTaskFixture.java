@@ -42,4 +42,8 @@ public class GroupedTaskFixture {
     public String getOutput() {
         return CollectionUtils.join("\n", outputs);
     }
+
+    public List<String> getOutputs() {
+        return outputs;
+    }
 }

@@ -17,6 +17,9 @@
 package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpec {
@@ -44,12 +47,12 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
     def "logs at execution time are grouped"() {
         given:
         buildFile << """
-            task log { 
+            task log {
                 logger.quiet 'Logged during configuration'
-                doFirst { 
-                    logger.quiet 'First line of text' 
-                    logger.quiet 'Second line of text' 
-                } 
+                doFirst {
+                    logger.quiet 'First line of text'
+                    logger.quiet 'Second line of text'
+                }
             }
         """
 
@@ -63,12 +66,12 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
     def "system out and err gets grouped"() {
         given:
         buildFile << """
-            task log { 
+            task log {
                 logger.quiet 'Logged during configuration'
-                doFirst { 
+                doFirst {
                     System.out.println("Standard out")
                     System.err.println("Standard err")
-                } 
+                }
             }
         """
 
@@ -94,15 +97,15 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
     def "grouped output is displayed for failed tasks"() {
         given:
         buildFile << """
-            task log { 
+            task log {
                 logger.quiet 'Logged during configuration'
-                doFirst { 
-                    logger.quiet 'First line of text' 
-                    logger.quiet '' 
-                    logger.quiet '' 
-                    logger.quiet 'Last line of text' 
+                doFirst {
+                    logger.quiet 'First line of text'
+                    logger.quiet ''
+                    logger.quiet ''
+                    logger.quiet 'Last line of text'
                     throw new GradleException('Forced failure')
-                } 
+                }
             }
         """
         when:
@@ -110,5 +113,79 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
 
         then:
         result.groupedOutput.task(':log').output == "First line of text\n\n\nLast line of text"
+    }
+
+    @IgnoreIf({ !GradleContextualExecuter.parallel })
+    def "long running task output correctly interleave with other tasks in parallel"() {
+        given:
+        def sleepTime = GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT / 2 * 3
+        buildFile << """import java.util.concurrent.Semaphore
+            project(":a") {
+                ext.lock = new Semaphore(0)
+                task log {
+                    doLast {
+                        logger.quiet 'Before'
+                        sleep($sleepTime)
+                        lock.release()
+                        project(':b').lock.acquire()
+                        logger.quiet 'After'
+                    }
+                }
+            }
+
+            project(":b") {
+                ext.lock = new Semaphore(0)
+
+                task finalizer {
+                    doLast {
+                        lock.release()
+                    }
+                }
+
+                task log {
+                    finalizedBy finalizer
+                    doLast {
+                        project(':a').lock.acquire()
+                        logger.quiet 'Interrupting output'
+                    }
+                }
+            }
+
+
+            task run {
+                dependsOn project(':a').log, project(':b').log
+            }
+        """
+
+        settingsFile << """
+        include 'a', 'b'
+        """
+
+        when:
+        succeeds('run')
+
+        then:
+        result.groupedOutput.task(':a:log').outputs == ['Before', 'After']
+        result.groupedOutput.task(':b:log').output == 'Interrupting output'
+    }
+
+    def "long running task output are flushed after 5s delay"() {
+        given:
+        def sleepTime = GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT / 2 * 3
+        buildFile << """
+            task log {
+                doLast {
+                    logger.quiet 'Before'
+                    sleep($sleepTime)
+                    logger.quiet 'After'
+                }
+            }
+        """
+
+        when:
+        succeeds('log')
+
+        then:
+        result.groupedOutput.task(':log').outputs == ['Before\nAfter']
     }
 }

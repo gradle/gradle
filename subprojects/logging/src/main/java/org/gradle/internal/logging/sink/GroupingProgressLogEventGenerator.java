@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.sink;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.internal.SystemProperties;
@@ -32,12 +33,17 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.progress.BuildOperationCategory;
+import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An {@code org.gradle.logging.internal.OutputEventListener} implementation which generates output events to log the
@@ -45,8 +51,11 @@ import java.util.Map;
  */
 public class GroupingProgressLogEventGenerator extends BatchOutputEventListener {
     static final String EOL = SystemProperties.getInstance().getLineSeparator();
+    static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
 
     private final OutputEventListener listener;
+    private final TimeProvider timeProvider;
+    private final ScheduledExecutorService executor;
 
     // Maintain a hierarchy of all build operation ids — heads up: this is a *forest*, not just 1 tree
     private final Map<Object, Object> buildOpIdHierarchy = new HashMap<Object, Object>();
@@ -54,10 +63,16 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
     private final Map<OperationIdentifier, Object> progressToBuildOpIdMap = new HashMap<OperationIdentifier, Object>();
 
     private Object lastRenderedBuildOpId;
-    private boolean needsHeader;
+    private ScheduledFuture future;
 
-    public GroupingProgressLogEventGenerator(OutputEventListener listener) {
+    public GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider) {
+        this(listener, timeProvider, Executors.newSingleThreadScheduledExecutor());
+    }
+
+    GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider, ScheduledExecutorService executor) {
         this.listener = listener;
+        this.timeProvider = timeProvider;
+        this.executor = executor;
     }
 
     public void onOutput(OutputEvent event) {
@@ -68,6 +83,10 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         } else if (event instanceof ProgressCompleteEvent) {
             onComplete((ProgressCompleteEvent) event);
         } else if (event instanceof EndOutputEvent) {
+            if (future != null && !future.isCancelled()) {
+                future.cancel(false);
+            }
+            executor.shutdown();
             onEnd((EndOutputEvent) event);
         } else if (!(event instanceof ProgressEvent)) {
             listener.onOutput(event);
@@ -84,6 +103,17 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             if (isGroupedOperation(startEvent.getBuildOperationCategory())) {
                 String header = startEvent.getLoggingHeader() != null ? startEvent.getLoggingHeader() : startEvent.getDescription();
                 operationsInProgress.put(buildOpId, new OperationGroup(startEvent.getCategory(), header, startEvent.getTimestamp(), startEvent.getBuildOperationId()));
+
+                if (future == null || future.isCancelled()) {
+                    future = executor.scheduleAtFixedRate(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (OperationGroup group : operationsInProgress.values()) {
+                                group.maybeFlushOutput(timeProvider.getCurrentTime());
+                            }
+                        }
+                    }, LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT, 500, TimeUnit.MILLISECONDS);
+                }
             }
         }
     }
@@ -121,7 +151,10 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
     }
 
     private void onUngroupedOutput(RenderableOutputEvent event) {
-        needsHeader = true;
+        if (lastRenderedBuildOpId != null) {
+            listener.onOutput(spacerLine(event.getTimestamp(), event.getCategory()));
+            lastRenderedBuildOpId = null;
+        }
         listener.onOutput(event);
     }
 
@@ -137,52 +170,63 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         return null;
     }
 
+    private static LogEvent spacerLine(long timestamp, String category) {
+        return new LogEvent(timestamp, category, null, "", null);
+    }
+
     private class OperationGroup {
         private final Object buildOpIdentifier;
         private final String category;
         private final String loggingHeader;
-        private final long startTime;
+        private long lastUpdateTime;
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
         private OperationGroup(String category, @Nullable String loggingHeader, long startTime, Object buildOpIdentifier) {
             this.category = category;
             this.loggingHeader = loggingHeader;
-            this.startTime = startTime;
+            this.lastUpdateTime = startTime;
             this.buildOpIdentifier = buildOpIdentifier;
         }
 
         private LogEvent spacerLine() {
-            return new LogEvent(startTime, category, null, "", null);
+            return GroupingProgressLogEventGenerator.spacerLine(lastUpdateTime, category);
         }
 
-        StyledTextOutputEvent header(final String message) {
+        private StyledTextOutputEvent header(final String message) {
             List<StyledTextOutputEvent.Span> spans = Lists.newArrayList(new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, "> " + message), new StyledTextOutputEvent.Span(EOL));
-            return new StyledTextOutputEvent(startTime, category, null, buildOpIdentifier, spans);
+            return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, spans);
         }
 
-        void bufferOutput(RenderableOutputEvent output) {
-            bufferedLogs.add(output);
+        synchronized void bufferOutput(RenderableOutputEvent output) {
+            // Forward output immediately when the focus is on this operation group
+            if (Objects.equal(buildOpIdentifier, lastRenderedBuildOpId)) {
+                listener.onOutput(output);
+                lastUpdateTime = timeProvider.getCurrentTime();
+            } else {
+                bufferedLogs.add(output);
+            }
         }
 
-        void flushOutput() {
+        synchronized void flushOutput() {
             if (!bufferedLogs.isEmpty()) {
                 // Visually indicate group by adding surrounding lines
-                if (needsHeader) {
-                    listener.onOutput(spacerLine());
-                    needsHeader = false;
-                }
+                listener.onOutput(spacerLine());
                 listener.onOutput(header(loggingHeader));
 
                 for (RenderableOutputEvent renderableEvent : bufferedLogs) {
                     listener.onOutput(renderableEvent);
                 }
 
-                // Visually indicate a new group by adding a line if not appending to last rendered group
-                if (!buildOpIdentifier.equals(lastRenderedBuildOpId)) {
-                    listener.onOutput(spacerLine());
-                }
+                bufferedLogs.clear();
+                lastUpdateTime = timeProvider.getCurrentTime();
                 lastRenderedBuildOpId = buildOpIdentifier;
+            }
+        }
+
+        synchronized void maybeFlushOutput(long now) {
+            if ((lastUpdateTime + LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT) < now) {
+                flushOutput();
             }
         }
     }

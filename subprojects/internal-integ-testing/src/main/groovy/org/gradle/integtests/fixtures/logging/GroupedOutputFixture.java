@@ -33,18 +33,32 @@ public class GroupedOutputFixture {
     /**
      * All tasks will start with > Task, captures everything starting with : and going until a control char
      */
-    private final static String TASK_HEADER = "> Task (:[\\w:]*)[^\\n]*\\n";
+    private final static String TASK_HEADER = "\u001b\\[1m> Task (:[\\w:]*)\u001b\\[m\\n?";
 
-    private final static String BUILD_STATUS_FOOTER = "\\n[^\\n]*?BUILD SUCCESSFUL";
-    private final static String BUILD_FAILED_FOOTER = "\\n[^\\n]*?FAILURE:";
+    private final static String BUILD_STATUS_FOOTER = "[^\\n]*?BUILD SUCCESSFUL";
+    private final static String BUILD_FAILED_FOOTER = "[^\\n]*?FAILURE:";
 
     /**
-     * Start of a new line, the control character, and must have <--------> or <=========>
+     * Various patterns to detect the end of the task output
      */
-    private final static String PROGRESS_BAR = "^\u001B\\[[^\\n]*?\\[1m(<[-=]+>.*?)\\[m.*?$";
-    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + PROGRESS_BAR;
+    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER;
 
+    /**
+     * Patterns to remove from the output: cursor movement, progress bar, work-in-progress items and scrolling the console
+     */
+    private final static String CURSOR_BACK_PATTERN = "\u001b\\[\\d+D";
+    private final static String CURSOR_UP_PATTERN = "\u001b\\[\\d+A";
+    private final static String CURSOR_DOWN_PATTERN = "\u001b\\[\\d+B";
+    private final static String CURSOR_MOVEMENT_PATTERN = CURSOR_BACK_PATTERN + "|" + CURSOR_DOWN_PATTERN + "|" + CURSOR_UP_PATTERN;
 
+    private final static String PROGRESS_BAR_PATTERN = "\u001b\\[1m<[-=]*> \\d+% (INITIALIZING|CONFIGURING|EXECUTING) \\[\\d+s\\]\u001b\\[m";
+    private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+m> (IDLE|[:a-z][\\w\\s\\d:]+)\u001b\\[\\d*m";
+
+    private final static String SCROLLING_WORK_IN_PROGRESS_PATTERN = "(\u001b\\[0K\\n)+\u001b\\[\\d+A";
+
+    /**
+     * Pattern to extract task output.
+     */
     private static final Pattern TASK_OUTPUT_PATTERN;
     private static String precompiledPattern;
 
@@ -52,7 +66,7 @@ public class GroupedOutputFixture {
         precompiledPattern = "(?ms)";
         precompiledPattern += TASK_HEADER;
         // Capture all output, lazily up until two new lines and an END_OF_TASK designation
-        precompiledPattern += "(.*?(?=\\n\\n(?:[^\\n]*?" + END_OF_TASK_OUTPUT + ")))";
+        precompiledPattern += "((.|\\n)*?(?=[^\\n]*?" + END_OF_TASK_OUTPUT + "))";
         TASK_OUTPUT_PATTERN = Pattern.compile(precompiledPattern);
     }
 
@@ -69,7 +83,8 @@ public class GroupedOutputFixture {
 
     private void parse(String output) {
         tasks = new HashedMap();
-        Matcher matcher = TASK_OUTPUT_PATTERN.matcher(output.replace(ERASE_TO_END_OF_LINE, ""));
+        String g = output.replaceAll(SCROLLING_WORK_IN_PROGRESS_PATTERN, "").replace(ERASE_TO_END_OF_LINE, "").replaceAll(CURSOR_MOVEMENT_PATTERN, "").replaceAll(PROGRESS_BAR_PATTERN, "").replaceAll(WORK_IN_PROGRESS_PATTERN, "");
+        Matcher matcher = TASK_OUTPUT_PATTERN.matcher(g);
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutput = matcher.group(2);
