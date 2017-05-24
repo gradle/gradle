@@ -950,24 +950,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
             @Override
             public void execute(ExecutionResult executionResult) {
-                String normalizedOutput = executionResult.getNormalizedOutput();
-                // Rich console output contains standard output and error
-                normalizedOutput = useRichConsole ? removeStackTraceAfterExpectedException(executionResult, normalizedOutput) : normalizedOutput;
-                validate(normalizedOutput, "Standard output");
+                validate(executionResult.getNormalizedOutput(), "Standard output");
                 String error = executionResult.getError();
-                error = removeStackTraceAfterExpectedException(executionResult, error);
-                validate(error, "Standard error");
-            }
-
-            private String removeStackTraceAfterExpectedException(ExecutionResult executionResult, String text) {
                 if (executionResult instanceof ExecutionFailure) {
                     // Axe everything after the expected exception
-                    int pos = text.indexOf("* Exception is:\n");
+                    int pos = error.indexOf("* Exception is:\n");
                     if (pos >= 0) {
-                        text = text.substring(0, pos);
+                        error = error.substring(0, pos);
                     }
                 }
-                return text;
+                validate(error, "Standard error");
             }
 
             private void validate(String output, String displayName) {
