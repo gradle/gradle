@@ -15,7 +15,7 @@
 [[build_cache]]
 == Build Cache
 
-NOTE: This feature is a work in progress.
+NOTE: This feature still has some limitations. Make sure you check <<sec:task_output_caching_known_issues>> and <<sec:build_cache_known_issues>>.
 
 NOTE: The build cache feature described here is different from the http://tools.android.com/tech-docs/build-cache[Android plugin build cache].
 
