@@ -192,7 +192,7 @@ Bye world!
         fixture.task(':doesNotExist')
 
         then:
-        def t = thrown(IllegalStateException)
+        def t = thrown(AssertionError)
         t.message == "The grouped output for task ':doesNotExist' could not be found"
     }
 }

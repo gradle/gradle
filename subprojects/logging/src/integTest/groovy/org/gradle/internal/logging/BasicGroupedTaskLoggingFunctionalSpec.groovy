@@ -88,7 +88,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         succeeds('log')
 
         then:
-        result.groupedOutput.task(':log').output.isEmpty()
+        !result.groupedOutput.hasTask(':log')
     }
 
     def "grouped output is displayed for failed tasks"() {
