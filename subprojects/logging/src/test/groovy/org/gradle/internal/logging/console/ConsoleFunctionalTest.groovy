@@ -25,6 +25,7 @@ import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.sink.OutputEventRenderer
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.progress.BuildOperationCategory
+import org.gradle.internal.progress.BuildProgressLogger
 import org.gradle.internal.time.TimeProvider
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.RedirectStdOutAndErr
@@ -51,7 +52,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "renders initial state"() {
         when:
-        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, 'INITIALIZATION PHASE', '<---> 0% INITIALIZING'))
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, '<---> 0% INITIALIZING'))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -62,7 +63,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "renders configuration progress"() {
         when:
-        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, 'CONFIGURATION PHASE', '<---> 0% CONFIGURING'))
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, '<---> 0% CONFIGURING'))
         renderer.onOutput(startEvent(2, 1, 'category', 'Configuring root project', 'root project', null, 'root project'))
 
         then:
@@ -142,7 +143,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "progress display is removed upon build completion"() {
         when:
-        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, 'EXECUTION PHASE', '<---> 0% EXECUTING'))
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, '<---> 0% EXECUTING'))
         renderer.onOutput(startEvent(2, ':foo'))
 
         then:
