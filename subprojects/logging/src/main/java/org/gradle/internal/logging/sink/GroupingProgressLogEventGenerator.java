@@ -32,7 +32,6 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.progress.BuildOperationCategory;
-import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,22 +76,15 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
 
     private void onStart(ProgressStartEvent startEvent) {
         Object buildOpId = startEvent.getBuildOperationId();
-        boolean isGrouped = isGroupedOperation(startEvent.getBuildOperationCategory());
         if (buildOpId != null) {
             buildOpIdHierarchy.put(buildOpId, startEvent.getParentBuildOperationId());
             progressToBuildOpIdMap.put(startEvent.getProgressOperationId(), buildOpId);
 
             // Create a new group for tasks or configure project
-            if (isGrouped) {
+            if (isGroupedOperation(startEvent.getBuildOperationCategory())) {
                 String header = startEvent.getLoggingHeader() != null ? startEvent.getLoggingHeader() : startEvent.getDescription();
                 operationsInProgress.put(buildOpId, new OperationGroup(startEvent.getCategory(), header, startEvent.getTimestamp(), startEvent.getBuildOperationId()));
             }
-        }
-
-        // Preserve logging of headers for progress operations started outside of the build operation executor as was done in Gradle 3.x
-        // Basically, if we see an operation with a logging header and it's not grouped, just log it
-        if (GUtil.isTrue(startEvent.getLoggingHeader()) && (buildOpId == null || !isGrouped)) {
-            onUngroupedOutput(new LogEvent(startEvent.getTimestamp(), startEvent.getCategory(), startEvent.getLogLevel(), startEvent.getLoggingHeader(), null, startEvent.getBuildOperationId()));
         }
     }
 

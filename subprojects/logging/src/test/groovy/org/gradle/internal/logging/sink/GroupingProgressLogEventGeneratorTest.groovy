@@ -42,17 +42,6 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         and: 0 * _
     }
 
-    def "renders ungrouped logging headers"() {
-        given:
-        def header = "Download http://repo.somewhere.com/foo.jar"
-        def downloadEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Download description", null, header, null, null, null, BuildOperationCategory.UNCATEGORIZED)
-
-        when: listener.onOutput(downloadEvent)
-
-        then: 1 * downstreamListener.onOutput({ it.getMessage() == header })
-        and: 0 * _
-    }
-
     def "forwards a group of logs for a task"() {
         given:
         def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
