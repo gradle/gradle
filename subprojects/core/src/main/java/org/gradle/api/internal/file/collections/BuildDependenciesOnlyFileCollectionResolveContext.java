@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.internal.file.PathToFileResolver;
 
+import java.nio.file.Path;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
@@ -73,7 +74,7 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
             if (callableResult != null) {
                 add(callableResult);
             }
-        } else if (element instanceof Iterable) {
+        } else if (element instanceof Iterable && !(element instanceof Path)) {
             Iterable<?> iterable = (Iterable) element;
             for (Object value : iterable) {
                 add(value);
