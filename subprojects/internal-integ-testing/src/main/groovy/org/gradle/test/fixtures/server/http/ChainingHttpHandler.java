@@ -33,8 +33,9 @@ class ChainingHttpHandler implements HttpHandler {
     private final AtomicInteger counter;
     private final List<TrackingHttpHandler> handlers = new CopyOnWriteArrayList<TrackingHttpHandler>();
     private final List<Throwable> failures = new CopyOnWriteArrayList<Throwable>();
-    private boolean completed;
     private final Lock lock;
+    private WaitPrecondition last = new AlwaysTrue();
+    private boolean completed;
     private final Condition condition;
     private int requestCount;
 
@@ -44,8 +45,16 @@ class ChainingHttpHandler implements HttpHandler {
         this.counter = counter;
     }
 
-    public void addHandler(TrackingHttpHandler handler) {
-        handlers.add(handler);
+    public <T extends TrackingHttpHandler> T addHandler(HandlerFactory<T> factory) {
+        lock.lock();
+        try {
+            T handler = factory.create(last);
+            handlers.add(handler);
+            last = handler.getWaitPrecondition();
+            return handler;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void assertComplete() {
@@ -71,25 +80,31 @@ class ChainingHttpHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
-        int id = counter.incrementAndGet();
-        System.out.println(String.format("[%d] handling %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
+        try {
+            int id = counter.incrementAndGet();
+            System.out.println(String.format("[%d] handling %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
 
-        ResourceHandler resourceHandler = selectHandler(id, httpExchange);
-        if (resourceHandler != null) {
-            System.out.println(String.format("[%d] sending response", id));
-            resourceHandler.writeTo(httpExchange);
-        } else {
-            System.out.println(String.format("[%d] sending error response", id));
-            if (httpExchange.getRequestMethod().equals("HEAD")) {
-                httpExchange.sendResponseHeaders(500, -1);
+            ResourceHandler resourceHandler = selectHandler(id, httpExchange);
+            if (resourceHandler != null) {
+                System.out.println(String.format("[%d] sending response", id));
+                try {
+                    resourceHandler.writeTo(id, httpExchange);
+                } catch (Throwable e) {
+                    failures.add(e);
+                }
             } else {
-                byte[] message = String.format("Failed %s request to %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()).getBytes();
-                httpExchange.sendResponseHeaders(500, message.length);
-                httpExchange.getResponseBody().write(message);
+                System.out.println(String.format("[%d] sending error response", id));
+                if (httpExchange.getRequestMethod().equals("HEAD")) {
+                    httpExchange.sendResponseHeaders(500, -1);
+                } else {
+                    byte[] message = String.format("Failed %s request to %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()).getBytes();
+                    httpExchange.sendResponseHeaders(500, message.length);
+                    httpExchange.getResponseBody().write(message);
+                }
             }
+        } finally {
+            httpExchange.close();
         }
-
-        httpExchange.close();
     }
 
     /**
@@ -136,6 +151,16 @@ class ChainingHttpHandler implements HttpHandler {
             }
         } finally {
             lock.unlock();
+        }
+    }
+
+    interface HandlerFactory<T extends TrackingHttpHandler> {
+        T create(WaitPrecondition previous);
+    }
+
+    private static class AlwaysTrue implements WaitPrecondition {
+        @Override
+        public void assertCanWait() throws AssertionError {
         }
     }
 }

@@ -28,33 +28,57 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
-class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements BlockingHttpServer.BlockingHandler {
+class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPrecondition, BlockingHttpServer.BlockingHandler {
     private final Lock lock;
     private final Condition condition;
     private final List<String> received = new ArrayList<String>();
     private final List<String> released = new ArrayList<String>();
-    private final Map<String, ResourceHandler> expected = new TreeMap<String, ResourceHandler>();
+    private final Map<String, ResourceHandlerWrapper> all = new TreeMap<String, ResourceHandlerWrapper>();
+    private final Map<String, ResourceHandlerWrapper> expected = new TreeMap<String, ResourceHandlerWrapper>();
     private final int testId;
     private final int timeoutMs;
     private final TrueTimeProvider timeProvider = new TrueTimeProvider();
     private int waitingFor;
+    private final WaitPrecondition previous;
     private long mostRecentEvent;
     private AssertionError failure;
 
-    CyclicBarrierAnyOfRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, Collection<? extends ResourceHandler> expectedCalls) {
+    CyclicBarrierAnyOfRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
         this.lock = lock;
         this.condition = lock.newCondition();
         this.testId = testId;
         this.timeoutMs = timeoutMs;
         this.waitingFor = maxConcurrent;
-        for (ResourceHandler call : expectedCalls) {
-            expected.put(call.getPath(), call);
+        this.previous = previous;
+        for (ResourceExpectation expectation : expectedRequests) {
+            ResourceHandlerWrapper handler = new ResourceHandlerWrapper(lock, expectation);
+            expected.put(handler.getPath(), handler);
+            all.put(handler.getPath(), handler);
+        }
+    }
+
+    @Override
+    public WaitPrecondition getWaitPrecondition() {
+        return this;
+    }
+
+    @Override
+    public void assertCanWait() throws IllegalStateException {
+        lock.lock();
+        try {
+            if (!released.isEmpty()) {
+                // Have released something, so downstream can wait. This isn't quite right
+                return;
+            }
+            throw new IllegalStateException("Cannot wait as no requests have been released.");
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public ResourceHandler handle(int id, HttpExchange httpExchange) throws Exception {
-        ResourceHandler handler;
+        ResourceHandlerWrapper handler;
         lock.lock();
         try {
             if (expected.isEmpty()) {
@@ -128,7 +152,7 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
 
     @Override
     public void release(String path) {
-        path = new SimpleResourceHandler(path).getPath();
+        path = new SendFixedContent(path).getPath();
         lock.lock();
         try {
             if (!received.contains(path)) {
@@ -139,6 +163,7 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
             }
             System.out.println(String.format("[%d] releasing %s", testId, path));
             released.add(path);
+            all.get(path).released();
             doRelease(1);
         } finally {
             lock.unlock();
@@ -157,6 +182,7 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
                 if (!released.contains(path)) {
                     System.out.println(String.format("[%d] releasing %s", testId, path));
                     released.add(path);
+                    all.get(path).released();
                     count++;
                 }
             }
@@ -172,10 +198,11 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
         try {
             int releaseCount = 0;
             for (int i = 0; releaseCount < count && i < received.size(); i++) {
-                String call = received.get(i);
-                if (!released.contains(call)) {
-                    System.out.println(String.format("[%d] releasing %s", testId, call));
-                    released.add(call);
+                String path = received.get(i);
+                if (!released.contains(path)) {
+                    System.out.println(String.format("[%d] releasing %s", testId, path));
+                    released.add(path);
+                    all.get(path).released();
                     releaseCount++;
                 }
             }
@@ -198,6 +225,8 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
     public void waitForAllPendingCalls() {
         lock.lock();
         try {
+            previous.assertCanWait();
+
             long now = timeProvider.getCurrentTimeForDuration();
             if (mostRecentEvent < now) {
                 mostRecentEvent = now;

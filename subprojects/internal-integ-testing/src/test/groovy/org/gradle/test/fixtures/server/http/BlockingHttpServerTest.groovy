@@ -63,6 +63,33 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
+    def "can send partial response and block"() {
+        given:
+        def request1 = server.sendSomeAndBlock("a", new byte[2048])
+        def request2 = server.sendSomeAndBlock("b", new byte[2048])
+        server.expectSerialExecution(request1)
+        server.expectSerialExecution(request2)
+        server.start()
+
+        when:
+        async {
+            start {
+                server.uri("a").toURL().text
+                instant.aDone
+                server.uri("b").toURL().text
+            }
+            request1.waitUntilBlocked()
+            instant.aBlocked
+            request1.release()
+            request2.waitUntilBlocked()
+            request2.release()
+        }
+        server.stop()
+
+        then:
+        instant.aDone > instant.aBlocked
+    }
+
     def "succeeds when expected concurrent requests are made"() {
         given:
         server.expectConcurrentExecution("a", "b", "c")
@@ -78,6 +105,37 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    def "can send partial response and block for concurrent requests"() {
+        given:
+        def request1 = server.sendSomeAndBlock("a", new byte[2048])
+        def request2 = server.sendSomeAndBlock("b", new byte[2048])
+        server.expectConcurrentExecutionTo([request1, request2])
+        server.start()
+
+        when:
+        async {
+            start {
+                server.uri("a").toURL().text
+                instant.aDone
+            }
+            start {
+                server.uri("b").toURL().text
+                instant.bDone
+            }
+            request1.waitUntilBlocked()
+            instant.aBlocked
+            request1.release()
+            request2.waitUntilBlocked()
+            instant.bBlocked
+            request2.release()
+        }
+        server.stop()
+
+        then:
+        instant.aDone > instant.aBlocked
+        instant.bDone > instant.bBlocked
     }
 
     def "can wait for and release n concurrent requests"() {
@@ -128,7 +186,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
-    def "can wait for and release all concurrent request"() {
+    def "can wait for and release all concurrent requests"() {
         given:
         def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
         server.start()
@@ -147,6 +205,73 @@ class BlockingHttpServerTest extends ConcurrentSpec {
             handle.waitForAllPendingCalls()
             handle.releaseAll()
             handle.waitForAllPendingCalls()
+        }
+        server.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can send partial response and block again after blocking for concurrent requests"() {
+        given:
+        def request1 = server.sendSomeAndBlock("a", new byte[2048])
+        def request2 = server.sendSomeAndBlock("b", new byte[2048])
+        def handle = server.blockOnConcurrentExecutionAnyOfToResources(2, [request1, request2])
+        server.start()
+
+        when:
+        async {
+            start {
+                server.uri("a").toURL().text
+                instant.aDone
+            }
+            start {
+                server.uri("b").toURL().text
+                instant.bDone
+            }
+            handle.waitForAllPendingCalls()
+            handle.releaseAll()
+            request1.waitUntilBlocked()
+            instant.aBlocked
+            request1.release()
+            request2.waitUntilBlocked()
+            instant.bBlocked
+            request2.release()
+        }
+        server.stop()
+
+        then:
+        instant.aDone > instant.aBlocked
+        instant.bDone > instant.bBlocked
+    }
+
+    def "can chain expectations"() {
+        given:
+        server.expectConcurrentExecution("a", "b")
+        server.expectSerialExecution("c")
+        def handle = server.blockOnConcurrentExecutionAnyOf(2, "d", "e")
+        server.expectSerialExecution("f")
+        server.start()
+
+        when:
+        async {
+            start {
+                server.uri("a").toURL().text
+            }
+            start {
+                server.uri("b").toURL().text
+            }
+            server.waitForRequests(2)
+            server.uri("c").toURL().text
+            start {
+                server.uri("d").toURL().text
+            }
+            start {
+                server.uri("e").toURL().text
+            }
+            handle.waitForAllPendingCalls()
+            handle.releaseAll()
+            server.uri("f").toURL().text
         }
         server.stop()
 
@@ -574,6 +699,31 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         ]
     }
 
+    def "fails when attempting to wait before previous requests released"() {
+        given:
+        server.blockOnConcurrentExecutionAnyOf(2, "a", "b")
+        def handle2 = server.blockOnConcurrentExecutionAnyOf(2, "c", "d")
+        server.start()
+
+        when:
+        handle2.waitForAllPendingCalls()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot wait as no requests have been released."
+
+        when:
+        server.stop()
+
+        then:
+        def e2 = thrown(RuntimeException)
+        e2.message == 'Failed to handle all HTTP requests.'
+        e2.causes.message.sort() == [
+            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [a, b].',
+            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [c, d].',
+        ]
+    }
+
     def "fails when request is not released"() {
         def failure1 = null
         def failure2 = null
@@ -600,6 +750,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
                 }
             }
             handle.waitForAllPendingCalls()
+            // Should release the requests here
         }
 
         then:
@@ -616,6 +767,87 @@ class BlockingHttpServerTest extends ConcurrentSpec {
             'Failed to handle GET /a',
             'Failed to handle GET /b',
             'Timeout waiting to be released. Waiting for 0 further requests, received [a, b], released [], not yet received [c].'
+        ]
+    }
+
+    def "fails when request is not released after sending partial response"() {
+        given:
+        def request = server.sendSomeAndBlock("a", new byte[2048])
+        def handle = server.blockOnConcurrentExecutionAnyOfToResources(1, [request])
+        server.start()
+
+        when:
+        async {
+            start {
+                server.uri("a").toURL().text
+            }
+            start {
+                handle.waitForAllPendingCalls()
+                handle.releaseAll()
+                // Should release the request here
+            }
+        }
+
+        then:
+        // TODO - reading from the URL should fail
+        noExceptionThrown()
+
+        when:
+        server.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == 'Failed to handle all HTTP requests.'
+        e.causes.message.sort() == [
+            'Timeout waiting to be released after sending some content.'
+        ]
+    }
+
+    def "fails when attempting to wait for a request that has not been released to send partial response"() {
+        def failure1 = null
+        def failure2 = null
+
+        given:
+        server.expectSerialExecution("a")
+        def request1 = server.sendSomeAndBlock("b", new byte[2048])
+        def request2 = server.sendSomeAndBlock("c", new byte[2048])
+        server.blockOnConcurrentExecutionAnyOfToResources(1, [request1])
+        server.expectSerialExecution(request2)
+        server.start()
+
+        when:
+        async {
+            start {
+                server.uri("a").toURL().text
+            }
+            try {
+                request1.waitUntilBlocked()
+            } catch (Throwable t) {
+                failure1 = t
+            }
+            try {
+                request2.waitUntilBlocked()
+            } catch (Throwable t) {
+                failure2 = t
+            }
+        }
+
+        then:
+        // TODO - reading from the URL should fail
+        failure1 instanceof IllegalStateException
+        failure1.message == 'Cannot wait as this request has not been released yet.'
+        failure2 instanceof IllegalStateException
+        failure2.message == 'Cannot wait as no requests have been released.'
+
+        when:
+        server.stop()
+
+        then:
+        def e2 = thrown(RuntimeException)
+        e2.message == 'Failed to handle all HTTP requests.'
+        e2.causes.message.sort() == [
+            'Did not handle all expected requests. Waiting for 1 further requests, received [], released [], not yet received [b].',
+            'Did not receive expected requests. Waiting for [c], received []'
         ]
     }
 
