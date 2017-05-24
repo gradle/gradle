@@ -474,7 +474,7 @@ Now that you have seen some of the input and output annotations in practice, let
 
 | `@api:org.gradle.api.tasks.Classpath[]`
 | `Iterable&lt;File&gt;`*
-| An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). See also <<sec:task_input_differences_input_files_classpath>>.
+| An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). See also <<sec:task_input_using_classpath_annotations>>.
 
 [NOTE]
 ====
@@ -483,7 +483,7 @@ The `@Classpath` annotation was introduced in Gradle 3.2. To stay compatible wit
 
 | `@api:org.gradle.api.tasks.CompileClasspath[]`
 | `Iterable&lt;File&gt;`*
-| An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. See also <<sec:task_input_differences_input_files_classpath>>.
+| An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. See also <<sec:task_input_using_classpath_annotations>>.
 
 The following kinds of changes to the classpath will be ignored:
 
@@ -561,27 +561,25 @@ Annotations on a property declared in a type override similar annotations declar
 
 The api:org.gradle.api.tasks.Console[] and api:org.gradle.api.tasks.Internal[] annotations in the table are special cases as they don’t declare either task inputs or task outputs. So why use them? It's so that you can take advantage of the <<javaGradle_plugin,Java Gradle Plugin Development plugin>> to help you develop and publish your own plugins. This plugin checks whether any properties of your custom task classes lack an incremental build annotation. This protects you from forgetting to add an appropriate annotation during development.
 
-[[sec:task_input_differences_input_files_classpath]]
-====== Differences between `@InputFiles`, `@Classpath` and `@CompileClasspath`
+[[sec:task_input_using_classpath_annotations]]
+====== Using the classpath annotations
 
-For JVM-related tasks there are two additional ways for Gradle to detect changes to file inputs:
-Gradle can interpret the files as a runtime or compile classpath.
+Besides `@InputFiles`, for JVM-related tasks Gradle understands the concept of classpath inputs. Both runtime and compile classpaths are treated differently when Gradle is looking for changes.
 
-If an input property is annotated with `@api:org.gradle.api.tasks.Classpath[]` it is considered as a runtime classpath.
-This means that names of classpath entries, e.g. names of directories and jar files, are ignored.
-Files within classpath entries like class files and resources are treated with <<inputs_path_sensitivity,PathSensitive.RELATIVE>>.
-Moreover, if a jar file is encountered as a classpath entry then the actual files within the jar file are examined as opposed to the jar file itself.
-This prevents changes in timestamps and order of the zip entries within a jar file to make the task out of date.
-As opposed to input properties annotated with `@api:org.gradle.api.tasks.InputFiles[]`, the order of the elements in the file collection matter.
+As opposed to input properties annotated with `@api:org.gradle.api.tasks.InputFiles[]`, for classpath properties the order of the entries in the file collection matter.
+On the other hand, the names and paths of the directories and jar files on the classpath itself are ignored.
+Timestamps and the order of class files and resources inside jar files on a classpath are ignored, too, thus recreating a jar file with different file dates will not make the task out of date.
 
-Input properties annotated with `@api:org.gradle.api.tasks.CompileClasspath[]` are considered compile classpaths and expose the same behavior as runtime classpaths.
-Additionally, Gradle ignores changes to everything but class files and does an ABI analysis of classes as described in <<sec:java_compile_avoidance>>.
+Runtime classpaths are marked with `@api:org.gradle.api.tasks.Classpath[]`, and they offer further customization via <<sec:configure_input_normalization,classpath normalization>>.
+
+Input properties annotated with `@api:org.gradle.api.tasks.CompileClasspath[]` are considered Java compile classpaths.
+Additionally to the aforementioned general classpath rules, compile classpaths ignore changes to everything but class files. Gradle uses the same class analysis described in <<sec:java_compile_avoidance>> to further filter changes that don't affect the class' ABIs.
 This means that changes which only touch the implementation of classes do not make the task out of date.
-
-Custom task classes are an easy way to bring your own build logic into the arena of incremental build, but you don’t always have that option. That's why Gradle also provides an alternative API that can be used with any tasks, which we look at next.
 
 [[sec:task_input_output_runtime_api]]
 ===== Runtime API
+
+Custom task classes are an easy way to bring your own build logic into the arena of incremental build, but you don’t always have that option. That's why Gradle also provides an alternative API that can be used with any tasks, which we look at next.
 
 When you don’t have access to the source for a custom task class, there is no way to add any of the annotations we covered in the previous section. Fortunately, Gradle provides a runtime API for scenarios just like that. It can also be used for ad-hoc tasks, as you'll see next.
 
