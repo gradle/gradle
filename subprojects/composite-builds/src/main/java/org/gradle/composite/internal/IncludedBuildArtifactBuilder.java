@@ -16,13 +16,9 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.initialization.IncludedBuildTaskGraph;
-import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.LocationAwareException;
 
 class IncludedBuildArtifactBuilder {
     private final IncludedBuildTaskGraph includedBuildTaskGraph;
@@ -38,37 +34,11 @@ class IncludedBuildArtifactBuilder {
             for (String taskName : compositeBuildArtifact.getTasks()) {
                 includedBuildTaskGraph.addTask(requestingBuild, targetBuild, taskName);
             }
-            execute(targetBuild);
-        }
-    }
-
-    private void execute(BuildIdentifier targetBuild) {
-        try {
             includedBuildTaskGraph.awaitCompletion(targetBuild);
-        } catch (ReportedException e) {
-            throw contextualizeFailure(targetBuild, e);
         }
     }
 
     private BuildIdentifier getBuildIdentifier(CompositeProjectComponentArtifactMetadata artifact) {
         return artifact.getComponentId().getBuild();
     }
-
-    private RuntimeException contextualizeFailure(BuildIdentifier buildId, ReportedException e) {
-        if (e.getCause() instanceof LocationAwareException) {
-            LocationAwareException lae = (LocationAwareException) e.getCause();
-            IncludedBuildArtifactException wrappedCause = new IncludedBuildArtifactException("Failed to build artifacts for " + buildId, lae.getCause());
-            LocationAwareException newLae = new LocationAwareException(wrappedCause, lae.getSourceDisplayName(), lae.getLineNumber());
-            return new ReportedException(newLae);
-        }
-        return e;
-    }
-
-    @Contextual
-    private static class IncludedBuildArtifactException extends GradleException {
-        public IncludedBuildArtifactException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
-
 }

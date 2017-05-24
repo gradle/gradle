@@ -65,8 +65,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
         }
 
         public IncludedBuildExecuter createIncludedBuildExecuter(IncludedBuilds includedBuilds) {
-            IncludedBuildExecuter includedBuildExecuter = new DefaultIncludedBuildExecuter(includedBuilds);
-            return new ErrorHandlingIncludedBuildExecuter(includedBuildExecuter);
+            return new DefaultIncludedBuildExecuter(includedBuilds);
         }
 
         public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildExecuter includedBuildExecuter) {

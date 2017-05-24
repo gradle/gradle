@@ -86,9 +86,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Failed to execute tasks for build 'buildB'")
-            .assertHasCause("Failed to execute tasks for build 'buildC'")
-            .assertHasCause("Could not determine the dependencies of task ':buildC:compileJava'.")
+            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
@@ -133,8 +131,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Failed to execute tasks for build 'buildB'")
-            .assertHasCause("Failed to execute tasks for build 'buildC'")
+            .assertHasDescription("Could not determine the dependencies of task")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
 
         // TODO:DAZ This message is technically correct, but not ideal.
@@ -179,9 +176,7 @@ project(':b1') {
 
         then:
         failure
-            .assertHasDescription("Failed to execute tasks for build 'buildB'")
-            .assertHasCause("Failed to execute tasks for build 'buildC'")
-            .assertHasCause("Could not determine the dependencies of task ':buildC:compileJava'.")
+            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
@@ -215,9 +210,7 @@ project(':b1') {
 
         then:
         failure
-            .assertHasDescription("Failed to execute tasks for build 'buildB'")
-            .assertHasCause("Failed to execute tasks for build 'buildC'")
-            .assertHasCause("Could not determine the dependencies of task ':buildC:compileJava'.")
+            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
@@ -264,8 +257,7 @@ project(':b1') {
 
         then:
         failure
-            .assertHasDescription("Failed to execute tasks for build 'buildB'")
-            .assertHasCause("Circular dependency between the following tasks:")
+            .assertHasDescription("Circular dependency between the following tasks:")
     }
 
     protected void resolveSucceeds(String task) {

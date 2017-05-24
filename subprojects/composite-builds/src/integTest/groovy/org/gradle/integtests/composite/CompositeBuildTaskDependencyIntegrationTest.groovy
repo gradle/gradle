@@ -224,8 +224,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, ":delegate")
 
         then:
-        failure.assertHasDescription("Failed to execute tasks for build 'buildB'")
-        failure.assertHasCause("Task 'does-not-exist' not found in project ':buildB'.")
+        failure.assertHasDescription("Task 'does-not-exist' not found in project ':buildB'.")
     }
 
     def "reports failure when task path is not qualified for included build"() {
