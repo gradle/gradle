@@ -78,11 +78,7 @@ public class GradleUserHomeScopeServices {
     public void configure(ServiceRegistration registration, GradleUserHomeDirProvider userHomeDirProvider) {
         registration.addProvider(new CacheRepositoryServices(userHomeDirProvider.getGradleUserHomeDirectory(), null));
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
-            try {
-                plugin.registerGradleUserHomeServices(registration);
-            } catch (AbstractMethodError e) {
-                // TODO(slg): Remove once GSK is updated
-            }
+            plugin.registerGradleUserHomeServices(registration);
         }
     }
 

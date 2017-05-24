@@ -30,11 +30,7 @@ public class BuildTreeScopeServices extends DefaultServiceRegistry {
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    try {
-                        pluginServiceRegistry.registerBuildTreeServices(registration);
-                    } catch (AbstractMethodError error) {
-                        // TODO(slg): ignore until we update GSK.
-                    }
+                    pluginServiceRegistry.registerBuildTreeServices(registration);
                 }
             }
         });

@@ -46,11 +46,7 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    try {
-                        pluginServiceRegistry.registerSettingsServices(registration);
-                    } catch (AbstractMethodError e) {
-                        // TODO(slg): Remove once GSK is updated
-                    }
+                    pluginServiceRegistry.registerSettingsServices(registration);
                 }
             }
         });
