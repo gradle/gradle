@@ -18,7 +18,9 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+@UsedByScanPlugin
 public interface TaskOutputCachingState {
     /**
      * Check if caching is enabled for the task outputs.

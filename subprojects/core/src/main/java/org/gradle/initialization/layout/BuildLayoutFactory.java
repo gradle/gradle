@@ -18,9 +18,11 @@ package org.gradle.initialization.layout;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.File;
 
+@UsedByScanPlugin
 public class BuildLayoutFactory {
     /**
      * Determines the layout of the build, given a current directory and some other configuration.

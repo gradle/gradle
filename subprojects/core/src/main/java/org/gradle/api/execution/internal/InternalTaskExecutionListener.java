@@ -19,10 +19,12 @@ package org.gradle.api.execution.internal;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Used by build scans to collect some task details, and will be retired. Use {@link BuildOperationListener} instead.
  */
+@UsedByScanPlugin
 public interface InternalTaskExecutionListener {
     void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent);
     void afterExecute(TaskOperationInternal taskOperation, OperationFinishEvent result);

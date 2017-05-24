@@ -19,6 +19,7 @@ package org.gradle.internal.logging;
 import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.OutputStream;
 
@@ -62,10 +63,12 @@ public interface LoggingOutputInternal extends LoggingOutput {
     /**
      * Adds the given listener as a logging destination.
      */
+    @UsedByScanPlugin
     void addOutputEventListener(OutputEventListener listener);
 
     /**
      * Adds the given listener.
      */
+    @UsedByScanPlugin
     void removeOutputEventListener(OutputEventListener listener);
 }

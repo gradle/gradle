@@ -23,6 +23,7 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.LoggerProvider;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +31,7 @@ import java.util.Map;
 /**
  * A listener which logs the execution of tasks.
  */
+@UsedByScanPlugin("Used to filter out ProgressStartEvent with this category")
 public class TaskExecutionLogger implements TaskExecutionListener {
 
     private final Map<Task, ProgressLogger> currentTasks = new HashMap<Task, ProgressLogger>();

@@ -16,6 +16,7 @@
 package org.gradle.internal.os;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -85,6 +86,7 @@ public abstract class OperatingSystem {
         return osVersion;
     }
 
+    @UsedByScanPlugin
     public boolean isWindows() {
         return false;
     }
@@ -111,6 +113,7 @@ public abstract class OperatingSystem {
 
     public abstract String getStaticLibraryName(String libraryName);
 
+    @UsedByScanPlugin
     public abstract String getFamilyName();
 
     /**

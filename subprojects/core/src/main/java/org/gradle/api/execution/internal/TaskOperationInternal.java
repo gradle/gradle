@@ -17,7 +17,9 @@
 package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+@UsedByScanPlugin
 public final class TaskOperationInternal {
     private final TaskInternal task;
     private final Object id;

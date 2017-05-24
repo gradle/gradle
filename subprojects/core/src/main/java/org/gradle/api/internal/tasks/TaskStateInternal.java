@@ -79,6 +79,7 @@ public class TaskStateInternal implements TaskState {
         this.taskOutputCaching = taskOutputCaching;
     }
 
+    @UsedByScanPlugin
     public TaskOutputCachingState getTaskOutputCaching() {
         return taskOutputCaching;
     }
