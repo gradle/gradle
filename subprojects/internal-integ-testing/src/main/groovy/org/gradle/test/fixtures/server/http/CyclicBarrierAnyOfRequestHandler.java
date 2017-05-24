@@ -73,7 +73,8 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
                 // Have received all requests, or have released something, so downstream can wait. This isn't quite right
                 return;
             }
-            throw new IllegalStateException("Cannot wait as no requests have been released.");
+            previous.assertCanWait();
+            throw new IllegalStateException(String.format("Cannot wait as no requests have been released. Waiting for %s, received %s.", expected.keySet(), received));
         } finally {
             lock.unlock();
         }

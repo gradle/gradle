@@ -699,6 +699,47 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         ]
     }
 
+    def "fails when attempting to wait before server is started"() {
+        given:
+        def handle1 = server.expectConcurrentAndBlock("a", "b")
+        def handle2 = server.expectConcurrentAndBlock(2, "c", "d")
+        def request1 = server.sendSomeAndBlock("e", new byte[2048])
+        server.expect(request1)
+
+        when:
+        handle1.waitForAllPendingCalls()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot wait as the server is not running."
+
+        when:
+        handle2.waitForAllPendingCalls()
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "Cannot wait as the server is not running."
+
+        when:
+        request1.waitUntilBlocked()
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == "Cannot wait as the server is not running."
+
+        when:
+        server.stop()
+
+        then:
+        def e4 = thrown(RuntimeException)
+        e4.message == 'Failed to handle all HTTP requests.'
+        e4.causes.message.sort() == [
+            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [a, b].',
+            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [c, d].',
+            'Did not receive expected requests. Waiting for [e], received []'
+        ]
+    }
+
     def "fails when attempting to wait before previous requests released"() {
         given:
         server.expectConcurrentAndBlock(2, "a", "b")
@@ -710,7 +751,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Cannot wait as no requests have been released."
+        e.message == "Cannot wait as no requests have been released. Waiting for [a, b], received []."
 
         when:
         server.stop()
@@ -804,9 +845,6 @@ class BlockingHttpServerTest extends ConcurrentSpec {
     }
 
     def "fails when attempting to wait for a request that has not been released to send partial response"() {
-        def failure1 = null
-        def failure2 = null
-
         given:
         server.expect("a")
         def request1 = server.sendSomeAndBlock("b", new byte[2048])
@@ -816,37 +854,28 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        async {
-            start {
-                server.uri("a").toURL().text
-            }
-            try {
-                request1.waitUntilBlocked()
-            } catch (Throwable t) {
-                failure1 = t
-            }
-            try {
-                request2.waitUntilBlocked()
-            } catch (Throwable t) {
-                failure2 = t
-            }
-        }
+        request1.waitUntilBlocked()
 
         then:
-        // TODO - reading from the URL should fail
-        failure1 instanceof IllegalStateException
-        failure1.message == 'Cannot wait as this request has not been released yet.'
-        failure2 instanceof IllegalStateException
-        failure2.message == 'Cannot wait as no requests have been released.'
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot wait as the request to 'b' has not been released yet."
+
+        when:
+        request2.waitUntilBlocked()
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "Cannot wait as no requests have been released. Waiting for [b], received []."
 
         when:
         server.stop()
 
         then:
-        def e2 = thrown(RuntimeException)
-        e2.message == 'Failed to handle all HTTP requests.'
-        e2.causes.message.sort() == [
+        def e3 = thrown(RuntimeException)
+        e3.message == 'Failed to handle all HTTP requests.'
+        e3.causes.message.sort() == [
             'Did not handle all expected requests. Waiting for 1 further requests, received [], released [], not yet received [b].',
+            'Did not receive expected requests. Waiting for [a], received []',
             'Did not receive expected requests. Waiting for [c], received []'
         ]
     }

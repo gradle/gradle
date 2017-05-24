@@ -50,7 +50,7 @@ class ResourceHandlerWrapper implements ResourceHandler, WaitPrecondition {
         lock.lock();
         try {
             if (!started) {
-                throw new IllegalStateException("Cannot wait as this request has not been released yet.");
+                throw new IllegalStateException(String.format("Cannot wait as the request to '%s' has not been released yet.", getPath()));
             }
         } finally {
             lock.unlock();

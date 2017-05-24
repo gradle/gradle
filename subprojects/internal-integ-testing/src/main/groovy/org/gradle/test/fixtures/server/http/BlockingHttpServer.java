@@ -56,7 +56,7 @@ public class BlockingHttpServer extends ExternalResource {
         server = HttpServer.create(new InetSocketAddress(0), 10);
         server.setExecutor(EXECUTOR_SERVICE);
         serverId = COUNTER.incrementAndGet();
-        handler = new ChainingHttpHandler(lock, COUNTER);
+        handler = new ChainingHttpHandler(lock, COUNTER, new MustBeRunning());
         server.createContext("/", handler);
         this.timeoutMs = timeoutMs;
     }
@@ -329,4 +329,17 @@ public class BlockingHttpServer extends ExternalResource {
         void waitForAllPendingCalls();
     }
 
+    private class MustBeRunning implements WaitPrecondition {
+        @Override
+        public void assertCanWait() throws IllegalStateException {
+            lock.lock();
+            try {
+                if (!running) {
+                    throw new IllegalStateException("Cannot wait as the server is not running.");
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
 }

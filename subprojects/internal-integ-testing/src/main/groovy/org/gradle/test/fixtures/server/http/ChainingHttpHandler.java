@@ -34,15 +34,16 @@ class ChainingHttpHandler implements HttpHandler {
     private final List<TrackingHttpHandler> handlers = new CopyOnWriteArrayList<TrackingHttpHandler>();
     private final List<Throwable> failures = new CopyOnWriteArrayList<Throwable>();
     private final Lock lock;
-    private WaitPrecondition last = new AlwaysTrue();
+    private WaitPrecondition last;
     private boolean completed;
     private final Condition condition;
     private int requestCount;
 
-    ChainingHttpHandler(Lock lock, AtomicInteger counter) {
+    ChainingHttpHandler(Lock lock, AtomicInteger counter, WaitPrecondition first) {
         this.lock = lock;
         this.condition = lock.newCondition();
         this.counter = counter;
+        this.last = first;
     }
 
     public <T extends TrackingHttpHandler> T addHandler(HandlerFactory<T> factory) {
@@ -156,11 +157,5 @@ class ChainingHttpHandler implements HttpHandler {
 
     interface HandlerFactory<T extends TrackingHttpHandler> {
         T create(WaitPrecondition previous);
-    }
-
-    private static class AlwaysTrue implements WaitPrecondition {
-        @Override
-        public void assertCanWait() throws AssertionError {
-        }
     }
 }
