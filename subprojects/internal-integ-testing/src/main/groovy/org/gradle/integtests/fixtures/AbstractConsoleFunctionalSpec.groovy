@@ -25,15 +25,13 @@ import org.fusesource.jansi.Ansi
  */
 abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     private static final String ESC = "\u001b"
-    private static final String NEWLINE = "\r?\n"
+    private static final String CONTROL_SEQUENCE_START = "\u001B["
+    private static final String CONTROL_SEQUENCE_SEPARATOR = ";"
+    private static final String CONTROL_SEQUENCE_END = "m"
+    private static final String DEFAULT_TEXT = "0;39"
 
-    public final static String CONTROL_SEQUENCE_START = "\u001B["
-    public final static String CONTROL_SEQUENCE_SEPARATOR = ";"
-    public final static String CONTROL_SEQUENCE_END = "m"
-    public final static String DEFAULT_TEXT = "0;39"
-
-    static String workInProgressLine(String plainText) {
-        return boldOn() + plainText + reset()
+    def setup() {
+        executer.withRichConsole()
     }
 
     /**
@@ -52,32 +50,8 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
         return styledString
     }
 
-    def setup() {
-        executer.withRichConsole()
-    }
-
-    /**
-     * Returns all the output group for the specified task in the order they appear.
-     *
-     * @param taskPath a task path with ':' prefix
-     * @return a collection of the output group for the specified task
-     */
-    Collection<String> taskOutput(String taskPath) {
-        def matcher = result.output =~ /(?ms)(> Task $taskPath${quote(reset())}(${quote(eraseEndOfLine())})?$NEWLINE)(.*)$NEWLINE$NEWLINE$NEWLINE((.*${quote(boldOn())})|(BUILD ))?/
-        List<String> result = new ArrayList<String>()
-        while (matcher.find()) {
-            String text = matcher[0][3]
-            if (text.endsWith(eraseEndOfLine())) {
-                text = text.substring(0, text.length() - eraseEndOfLine().length())
-            }
-            result.add(text)
-        }
-
-        return result
-    }
-
-    private static String quote(String ansi) {
-        return ansi.replace("[", "\\[")
+    static String workInProgressLine(String plainText) {
+        return boldOn() + plainText + reset()
     }
 
     private static String boldOn() {
@@ -86,14 +60,6 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
 
     private static String reset() {
         ansi("m")
-    }
-
-    private static String eraseEndOfLine() {
-        eraseLine(0)
-    }
-
-    private static String eraseLine(int n) {
-        ansi("${n}K")
     }
 
     private static String ansi(String command) {
