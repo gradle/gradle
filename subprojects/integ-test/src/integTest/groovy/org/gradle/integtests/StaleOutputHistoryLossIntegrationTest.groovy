@@ -41,6 +41,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         mostRecentFinalReleaseExecuter.cleanup()
     }
 
+    def setup() {
+        executer.beforeExecute {
+            executer.withArgument('--info')
+        }
+    }
+
     @Issue("GRADLE-1501")
     @Unroll
     def "production sources files are removed in a single project build for #description"() {
