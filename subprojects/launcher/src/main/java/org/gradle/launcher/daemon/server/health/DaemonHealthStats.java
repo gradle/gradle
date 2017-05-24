@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.server.health;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.StoppableScheduledExecutor;
+import org.gradle.internal.concurrent.ManagedScheduledExecutor;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionInfo;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor;
@@ -32,7 +32,7 @@ import static java.lang.String.format;
 public class DaemonHealthStats implements Stoppable {
 
     private final DaemonRunningStats runningStats;
-    private final StoppableScheduledExecutor scheduler;
+    private final ManagedScheduledExecutor scheduler;
     private final GarbageCollectionInfo gcInfo;
     private final GarbageCollectionMonitor gcMonitor;
 

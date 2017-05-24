@@ -20,14 +20,15 @@ import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-class StoppableExecutorImpl extends AbstractDelegatingExecutorService implements StoppableExecutor {
+class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements ManagedExecutor {
     private final ExecutorService executor;
     private final ThreadLocal<Object> executing = new ThreadLocal<Object>();
     private final ExecutorPolicy executorPolicy;
 
-    StoppableExecutorImpl(ExecutorService executor, ExecutorPolicy executorPolicy) {
+    ManagedExecutorImpl(ExecutorService executor, ExecutorPolicy executorPolicy) {
         super(executor);
         this.executor = executor;
         this.executorPolicy = executorPolicy;
@@ -85,5 +86,16 @@ class StoppableExecutorImpl extends AbstractDelegatingExecutorService implements
             throw new UncheckedException(e);
         }
         executorPolicy.onStop();
+    }
+
+    @Override
+    public void setFixedPoolSize(int numThreads) {
+        if (executor instanceof ThreadPoolExecutor) {
+            ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) executor;
+            threadPoolExecutor.setCorePoolSize(numThreads);
+            threadPoolExecutor.setMaximumPoolSize(numThreads);
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 }

@@ -22,7 +22,6 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ResizableExecutor;
 import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.rules.ExternalResource;
@@ -93,7 +92,7 @@ public class MultithreadedTestRule extends ExternalResource {
     protected ExecutorFactory getExecutorFactory() {
         return new DefaultExecutorFactory() {
             @Override
-            protected ResizableExecutor createExecutor(String displayName) {
+            protected ExecutorService createExecutor(String displayName) {
                 return new ExecutorImpl();
             }
         };
@@ -439,7 +438,7 @@ public class MultithreadedTestRule extends ExternalResource {
         syncPoint.expectUnblocks(action);
     }
 
-    private class ExecutorImpl extends AbstractExecutorService implements ResizableExecutor {
+    private class ExecutorImpl extends AbstractExecutorService {
         private final Set<ThreadHandle> threads = new CopyOnWriteArraySet<ThreadHandle>();
 
         public void execute(Runnable command) {
@@ -468,11 +467,6 @@ public class MultithreadedTestRule extends ExternalResource {
         }
 
         public boolean isTerminated() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setFixedPoolSize(int numThreads) {
             throw new UnsupportedOperationException();
         }
     }

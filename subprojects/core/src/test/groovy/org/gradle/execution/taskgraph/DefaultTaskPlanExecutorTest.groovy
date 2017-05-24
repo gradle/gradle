@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
@@ -47,7 +47,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         executor.process(taskPlan, worker)
 
         then:
-        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
+        1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * taskPlan.executeWithTask(_,_) >> { args ->
             args[1].execute(taskInfo)
             return true
@@ -70,6 +70,6 @@ class DefaultTaskPlanExecutorTest extends Specification {
         then:
         def e = thrown(RuntimeException)
         e == failure
-        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
+        1 * executorFactory.create(_) >> Mock(ManagedExecutor)
     }
 }

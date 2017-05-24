@@ -16,9 +16,7 @@
 
 package org.gradle.test.fixtures.concurrent
 
-import org.gradle.internal.concurrent.ResizableExecutor
-import org.gradle.internal.concurrent.StoppableExecutor
-import org.gradle.internal.concurrent.StoppableResizableExecutor
+import org.gradle.internal.concurrent.ManagedExecutor
 
 import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.TimeUnit
@@ -26,13 +24,13 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-class TestStoppableExecutor extends AbstractExecutorService implements StoppableResizableExecutor {
+class TestManagedExecutor extends AbstractExecutorService implements ManagedExecutor {
     private final Lock lock = new ReentrantLock()
     private final Condition condition = lock.newCondition()
     private int count
     private final TestExecutor executor;
 
-    TestStoppableExecutor(TestExecutor executor) {
+    TestManagedExecutor(TestExecutor executor) {
         this.executor = executor
     }
 

@@ -25,7 +25,7 @@ public interface ExecutorFactory {
      * @param displayName The display name for the this executor. Used for thread names, logging and error message.
      * @return The executor.
      */
-    StoppableExecutor create(String displayName);
+    ManagedExecutor create(String displayName);
 
     /**
      * Creates an executor which can run multiple tasks concurrently. It is the caller's responsibility to stop the executor.
@@ -36,7 +36,7 @@ public interface ExecutorFactory {
      * @param fixedSize The maximum number of threads allowed
      * @return The executor.
      */
-    StoppableResizableExecutor create(String displayName, int fixedSize);
+    ManagedExecutor create(String displayName, int fixedSize);
 
     /**
      * Creates a scheduled executor which can run tasks periodically. It is the caller's responsibility to stop the executor.
@@ -50,5 +50,5 @@ public interface ExecutorFactory {
      * @return The executor
      * @see java.util.concurrent.ScheduledExecutorService
      */
-    StoppableResizableScheduledExecutor createScheduled(String displayName, int fixedSize);
+    ManagedScheduledExecutor createScheduled(String displayName, int fixedSize);
 }

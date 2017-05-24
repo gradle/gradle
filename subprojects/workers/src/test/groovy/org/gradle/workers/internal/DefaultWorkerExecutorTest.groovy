@@ -20,7 +20,7 @@ import com.google.common.util.concurrent.ListenableFutureTask
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
@@ -46,7 +46,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def factory = Mock(Factory)
     def runnable = Mock(Runnable)
-    def executor = Mock(StoppableExecutor)
+    def executor = Mock(ManagedExecutor)
     def worker = Mock(Worker)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor

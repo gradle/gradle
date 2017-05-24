@@ -21,7 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.remote.internal.Connection;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -43,7 +43,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultIncomingConnectionHandler implements IncomingConnectionHandler, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultIncomingConnectionHandler.class);
-    private final StoppableExecutor workers;
+    private final ManagedExecutor workers;
     private final byte[] token;
     private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
