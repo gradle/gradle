@@ -24,9 +24,6 @@ import org.fusesource.jansi.Ansi
  * <b>Note:</b> The console output contains formatting characters.
  */
 abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
-    private static final String ESC = "\u001b"
-    private static final String NEWLINE = "\r?\n"
-
     public final static String CONTROL_SEQUENCE_START = "\u001B["
     public final static String CONTROL_SEQUENCE_SEPARATOR = ";"
     public final static String CONTROL_SEQUENCE_END = "m"
@@ -34,6 +31,10 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
 
     static String workInProgressLine(String plainText) {
         return boldOn() + plainText + reset()
+    }
+
+    def setup() {
+        executer.withRichConsole()
     }
 
     /**
@@ -52,51 +53,11 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
         return styledString
     }
 
-    def setup() {
-        executer.withRichConsole()
-    }
-
-    /**
-     * Returns all the output group for the specified task in the order they appear.
-     *
-     * @param taskPath a task path with ':' prefix
-     * @return a collection of the output group for the specified task
-     */
-    Collection<String> taskOutput(String taskPath) {
-        def matcher = result.output =~ /(?ms)(> Task $taskPath${quote(reset())}(${quote(eraseEndOfLine())})?$NEWLINE)(.*)$NEWLINE$NEWLINE$NEWLINE((.*${quote(boldOn())})|(BUILD ))?/
-        List<String> result = new ArrayList<String>()
-        while (matcher.find()) {
-            String text = matcher[0][3]
-            if (text.endsWith(eraseEndOfLine())) {
-                text = text.substring(0, text.length() - eraseEndOfLine().length())
-            }
-            result.add(text)
-        }
-
-        return result
-    }
-
-    private static String quote(String ansi) {
-        return ansi.replace("[", "\\[")
-    }
-
     private static String boldOn() {
-        ansi("1m")
+        "${CONTROL_SEQUENCE_START}1m"
     }
 
     private static String reset() {
-        ansi("m")
-    }
-
-    private static String eraseEndOfLine() {
-        eraseLine(0)
-    }
-
-    private static String eraseLine(int n) {
-        ansi("${n}K")
-    }
-
-    private static String ansi(String command) {
-        "$ESC[${command}"
+        "${CONTROL_SEQUENCE_START}m"
     }
 }

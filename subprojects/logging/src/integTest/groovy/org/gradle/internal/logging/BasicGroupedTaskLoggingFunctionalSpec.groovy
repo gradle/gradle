@@ -171,7 +171,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         result.groupedOutput.task(':b:log').output == 'Interrupting output'
     }
 
-    def "long running task output are flushed after 5s delay"() {
+    def "long running task output are flushed after delay"() {
         given:
         def sleepTime = GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT / 2 * 3
         buildFile << """
