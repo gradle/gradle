@@ -19,7 +19,6 @@ package org.gradle.internal.cleanup;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -29,14 +28,11 @@ import java.io.File;
 import java.util.Collection;
 
 public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
-    public static final String STALE_OUTPUT_MESSAGE = "Gradle is removing stale outputs from a previous version of Gradle, for more information about stale outputs see";
+    public static final String STALE_OUTPUT_MESSAGE = "Gradle is removing stale outputs from a previous version of Gradle.";
     private final Logger logger = Logging.getLogger(DefaultBuildOutputDeleter.class);
-
-    private final DocumentationRegistry documentationRegistry;
     private final Deleter deleter;
 
-    public DefaultBuildOutputDeleter(DocumentationRegistry documentationRegistry, Deleter deleter) {
-        this.documentationRegistry = documentationRegistry;
+    public DefaultBuildOutputDeleter(Deleter deleter) {
         this.deleter = deleter;
     }
 
@@ -50,7 +46,7 @@ public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
         });
 
         if (!roots.isEmpty()) {
-            logger.warn(STALE_OUTPUT_MESSAGE + " {}.", documentationRegistry.getDocumentationFor("more_about_tasks", "sec:stale_task_outputs"));
+            logger.info(STALE_OUTPUT_MESSAGE);
             for (File output : roots) {
                 deleteOutput(output);
             }

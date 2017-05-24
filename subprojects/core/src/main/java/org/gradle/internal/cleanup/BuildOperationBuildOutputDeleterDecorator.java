@@ -18,9 +18,10 @@ package org.gradle.internal.cleanup;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -45,7 +46,8 @@ public class BuildOperationBuildOutputDeleterDecorator implements BuildOutputDel
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Clean stale outputs for " + gradle.getIdentityPath().getName());
+                String rootProjectIdentifier = GUtil.elvis(gradle.getIdentityPath().getName(), "root build");
+                return BuildOperationDescriptor.displayName("Clean stale outputs for " + rootProjectIdentifier).progressDisplayName("cleanup stale outputs for " + rootProjectIdentifier);
             }
         });
     }
