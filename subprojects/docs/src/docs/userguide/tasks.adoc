@@ -552,7 +552,7 @@ Similar to the above, `File` can be any type accepted by api:org.gradle.api.Proj
 | Used with any of the property type annotations listed in the api:org.gradle.api.tasks.Optional[] API documentation. This annotation disables validation checks on the corresponding property. See <<sec:task_input_output_validation,the section on validation>> for more details.
 
 | `@api:org.gradle.api.tasks.PathSensitive[]`
-| Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
+| [[inputs_path_sensitivity]]Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
 |===
 
 Annotations are inherited from all parent types including implemented interfaces. Property type annotations override any other property type annotation declared in a parent type. This way an `@InputFile` property can be turned into an `@InputDirectory` property in a child task type.
@@ -564,64 +564,19 @@ The api:org.gradle.api.tasks.Console[] and api:org.gradle.api.tasks.Internal[] a
 [[sec:task_input_differences_input_files_classpath]]
 ====== Differences between `@InputFiles`, `@Classpath` and `@CompileClasspath`
 
-For a `File` input, there are basically three different ways how Gradle detects changes to the inputs.
-Additionally to looking at the plain file contents and file names, Gradle can also interpret the files as a runtime or compile classpath and only detect changes relevant to these use cases.
+For JVM-related tasks there are two additional ways for Gradle to detect changes to file inputs:
+Gradle can interpret the files as a runtime or compile classpath.
 
-Let us look at different kinds of changes to a set of input files and how it would affect a task being up to date with regards to the different input types.
-Let us assume that we have an input property that contains the following files:
+If an input property is annotated with `@api:org.gradle.api.tasks.Classpath[]` it is considered as a runtime classpath.
+This means that names of classpath entries, e.g. names of directories and jar files, are ignored.
+Files within classpath entries like class files and resources are treated with <<inputs_path_sensitivity,PathSensitive.RELATIVE>>.
+Moreover, if a jar file is encountered as a classpath entry then the actual files within the jar file are examined as opposed to the jar file itself.
+This prevents changes in timestamps and order of the zip entries within a jar file to make the task out of date.
+As opposed to input properties annotated with `@api:org.gradle.api.tasks.InputFiles[]`, the order of the elements in the file collection matter.
 
- * a directory `classes` containing
- ** a class `Foo.class` compiled from `public class Foo {}`
- ** a resource `test.properties` with contents `foo=bar`
- * a jar file `other-project.jar` containing some classes and resources
-
-The following table shows what kind of change to the files in this file collection will make the task out of date, depending on the input property annotation.
-
-.Effects of changes on input types
-[cols="a,a,a,a", options="header"]
-|===
-| Change
-| `@InputFiles`
-| `@Classpath`
-| `@CompileClasspath`
-
-| Foo.class compiled from `public class Foo { private someMethod() {} }`
-| change detected
-| change detected
-| no change
-
-| Foo.class compiled from `public class Foo { public someMethod() {} }`
-| change detected
-| change detected
-| change detected
-
-| `other-project.jar` recreated with same contents
-| change detected
-| no change
-| no change
-
-| resource `test.properties` contents changed to `foo=baz`
-| change detected
-| change detected
-| no change
-
-| `classes` directory renamed to `my-classes`
-| change detected
-| no change
-| no change
-
-| order of `classes` and `other-project.jar` changes within the input property
-| no change
-| change detected
-| change detected
-|===
-
-We see that `@CompileClasspath` and `@Classpath` are treating a `FileCollection` as a classpath.
-This means that the order of the entries is important while the file name of the entries is not.
-Moreover, both ignore timestamps and order of the zip entries in jar files.
-`PathSensitivity` is automatically done in the right way, i.e. the names of classpath entries like `classes` or `other-project.jar` are ignored, while the relative path to the parent entry is taken into account for resources on the classpath.
-
-`@CompileClasspath` instructs Gradle to even do a deeper analysis of the classpath and extracts the ABI as described in <<sec:java_compile_avoidance>>.
+Input properties annotated with `@api:org.gradle.api.tasks.CompileClasspath[]` are considered compile classpaths and expose the same behavior as runtime classpaths.
+Additionally, Gradle ignores changes to everything but class files and does an ABI analysis of classes as described in <<sec:java_compile_avoidance>>.
+This means that changes which only touch the implementation of classes do not make the task out of date.
 
 Custom task classes are an easy way to bring your own build logic into the arena of incremental build, but you don’t always have that option. That's why Gradle also provides an alternative API that can be used with any tasks, which we look at next.
 
