@@ -17,14 +17,15 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
-    @Rule CyclicBarrierHttpServer server1 = new CyclicBarrierHttpServer()
-    @Rule CyclicBarrierHttpServer server2 = new CyclicBarrierHttpServer()
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
+        server.start()
+
         buildFile << """
 enum Color { Red, Green, Blue }
 def type = Attribute.of("artifactType", String)
@@ -95,7 +96,7 @@ task blueThings {
         buildFile << """
 task block1 {
     doLast {
-        new URL("$server1.uri").text
+        ${server.callFromBuild("block1")}
     }
 }
 block1.mustRunAfter redThings
@@ -103,7 +104,7 @@ blueThings.mustRunAfter block1
 
 task block2 {
     doLast {
-        new URL("$server2.uri").text
+        ${server.callFromBuild("block2")}
     }
 }
 block2.mustRunAfter blueThings
@@ -112,26 +113,26 @@ block2.mustRunAfter blueThings
         // Ensure build scripts compiled
         run("help")
 
+        def block1 = server.expectAndBlock("block1")
+        def block2 = server.expectAndBlock("block2")
+
         when:
         // Block until first build has produced red things
         def build1 = executer.withTasks("redThings", "block1", "blueThings").start()
-        def server1WaitForResult = server1.waitFor(false, 120)
+        block1.waitForAllPendingCalls()
 
         // Block until second build has produced blue things
         def build2 = executer.withTasks("redThings", "blueThings", "block2").start()
-        def server2WaitForResult = server2.waitFor(false, 120)
+        block2.waitForAllPendingCalls()
 
         // Finish up first build while second build is still running
-        server1.release()
+        block1.releaseAll()
         def result1 = build1.waitForFinish()
 
-        server2.release()
+        block2.releaseAll()
         def result2 = build2.waitForFinish()
 
         then:
-        server1WaitForResult && server2WaitForResult
-
-        and:
         result1.output.count("Transforming") == 1
         result1.output.count("Transforming thing.jar to Red") == 1
         result2.output.count("Transforming") == 1
@@ -144,14 +145,14 @@ block2.mustRunAfter blueThings
         buildFile << """
 task block1 {
     doLast {
-        new URL("$server1.uri").text
+        ${server.callFromBuild("block1")}
     }
 }
 redThings.mustRunAfter block1
 
 task block2 {
     doLast {
-        new URL("$server2.uri").text
+        ${server.callFromBuild("block2")}
     }
 }
 redThings.mustRunAfter block2
@@ -159,25 +160,21 @@ redThings.mustRunAfter block2
         // Ensure build scripts compiled
         run("help")
 
+        def block = server.expectConcurrentAndBlock("block1", "block2")
+
         when:
         // Block until both builds are ready to start resolving
         def build1 = executer.withTasks("block1", "redThings", "blueThings").start()
-        def server1WaitForResult = server1.waitFor(false, 120)
-
         def build2 = executer.withTasks("block2", "redThings", "blueThings").start()
-        def server2WaitForResult = server2.waitFor(false, 120)
 
         // Resolve concurrently
-        server1.release()
-        server2.release()
+        block.waitForAllPendingCalls()
+        block.releaseAll()
 
         def result1 = build1.waitForFinish()
         def result2 = build2.waitForFinish()
 
         then:
-        server1WaitForResult && server2WaitForResult
-
-        and:
         result1.output.count("Transforming") + result2.output.count("Transforming") == 2
         result1.output.count("Transforming thing.jar to Red") + result2.output.count("Transforming thing.jar to Red") == 1
         result1.output.count("Transforming thing.jar to Blue") + result2.output.count("Transforming thing.jar to Blue") == 1
