@@ -88,10 +88,17 @@ public class GroupedOutputFixture {
         return tasks.size();
     }
 
+    public boolean hasTask(String taskName) {
+        return tasks.containsKey(taskName);
+    }
+
     public GroupedTaskFixture task(String taskName) {
-        if (tasks.containsKey(taskName)) {
-            return tasks.get(taskName);
+        boolean foundTask = hasTask(taskName);
+
+        if (!foundTask) {
+            throw new AssertionError(String.format("The grouped output for task '%s' could not be found", taskName));
         }
-        return new GroupedTaskFixture(taskName);
+
+        return tasks.get(taskName);
     }
 }
