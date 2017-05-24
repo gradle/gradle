@@ -16,48 +16,37 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.initialization.IncludedBuildExecuter;
-import org.gradle.initialization.IncludedBuilds;
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.initialization.IncludedBuildTaskGraph;
 
-import java.util.Collection;
-import java.util.Set;
+import javax.inject.Inject;
 
+// TODO:DAZ Make a separate delegating task per target task in the included build
+// so that we can wait for the specific task required.
+// Or get rid of the delegating task altogether
 public class CompositeBuildTaskDelegate extends DefaultTask {
-    private String build;
-    private Set<String> tasks = Sets.newLinkedHashSet();
+    private final IncludedBuildTaskGraph taskGraph;
+    private BuildIdentifier build;
+
+    @Inject
+    public CompositeBuildTaskDelegate(IncludedBuildTaskGraph taskGraph) {
+        this.taskGraph = taskGraph;
+    }
 
     @Input
-    public String getBuild() {
+    public BuildIdentifier getBuild() {
         return build;
     }
 
-    public void setBuild(String build) {
+    public void setBuild(BuildIdentifier build) {
         this.build = build;
-    }
-
-    @Input
-    public Collection<String> getTasks() {
-        return tasks;
-    }
-
-    public void addTask(String task) {
-        this.tasks.add(task);
     }
 
     @TaskAction
     public void executeTasksInOtherBuild() {
-        IncludedBuilds includedBuilds = getServices().get(IncludedBuilds.class);
-        IncludedBuildExecuter builder = getServices().get(IncludedBuildExecuter.class);
-        IncludedBuild includedBuild = includedBuilds.getBuild(build);
-        BuildIdentifier buildId = new DefaultBuildIdentifier(includedBuild.getName());
-        // sourceBuild is currently always root build in a composite
-        builder.execute(new DefaultBuildIdentifier(":", true), buildId, tasks);
+        taskGraph.awaitCompletion(build);
     }
 }

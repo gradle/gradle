@@ -38,7 +38,6 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -131,13 +130,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
         if (isProjectModule(component.getComponentId())) {
-            ArtifactSet artifacts = DefaultArtifactSet.multipleVariants(component.getComponentId(), component.getId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), self, allProjectArtifacts, artifactTypeRegistry);
-            for (VariantMetadata variant : configuration.getVariants()) {
-                for (ComponentArtifactMetadata artifact : variant.getArtifacts()) {
-                    artifactBuilder.willBuild(artifact);
-                }
-            }
-            return artifacts;
+            return DefaultArtifactSet.multipleVariants(component.getComponentId(), component.getId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), self, allProjectArtifacts, artifactTypeRegistry);
         } else {
             return null;
         }

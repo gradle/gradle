@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildFactory;
+import org.gradle.initialization.IncludedBuildTaskGraph;
 import org.gradle.initialization.IncludedBuilds;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
@@ -33,7 +34,6 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new CompositeBuildGlobalScopeServices());
     }
 
     public void registerBuildTreeServices(ServiceRegistration registration) {
@@ -45,9 +45,6 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildGlobalScopeServices {
-        public TaskReferenceResolver createResolver() {
-            return new IncludedBuildTaskReferenceResolver();
-        }
     }
 
     private static class CompositeBuildTreeScopeServices {
@@ -71,14 +68,22 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultIncludedBuildExecuter(includedBuilds);
         }
 
-        public IncludedBuildArtifactBuilder createIncludedBuildArtifactBuilder(IncludedBuildExecuter includedBuildExecuter) {
-            return new IncludedBuildArtifactBuilder(includedBuildExecuter);
+        public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildExecuter includedBuildExecuter) {
+            return new DefaultIncludedBuildTaskGraph(includedBuildExecuter);
+        }
+
+        public IncludedBuildArtifactBuilder createIncludedBuildArtifactBuilder(IncludedBuildTaskGraph includedBuildTaskGraph) {
+            return new IncludedBuildArtifactBuilder(includedBuildTaskGraph);
         }
     }
 
     private static class CompositeBuildBuildScopeServices {
         public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             return new DefaultIncludedBuildFactory(instantiator, startParameter, nestedBuildFactory, moduleIdentifierFactory);
+        }
+
+        public TaskReferenceResolver createResolver(IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
+            return new IncludedBuildTaskReferenceResolver(includedBuilds, buildIdentity);
         }
 
         public ProjectArtifactBuilder createProjectArtifactBuilder(IncludedBuildArtifactBuilder builder, BuildIdentity buildIdentity) {

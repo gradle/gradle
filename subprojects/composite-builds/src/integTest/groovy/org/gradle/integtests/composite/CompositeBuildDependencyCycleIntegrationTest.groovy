@@ -86,10 +86,8 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildC'")
-            .assertHasCause("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Could not download buildC.jar (project :buildC)")
-            .assertHasCause("Included build dependency cycle: build 'buildC' -> build 'buildB' -> build 'buildC'")
+            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
+            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
     def "indirect dependency cycle between included builds"() {
@@ -133,11 +131,14 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildC'")
-            .assertHasCause("Failed to build artifacts for build 'buildD'")
-            .assertHasCause("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Could not download buildC.jar (project :buildC)")
-            .assertHasCause("Included build dependency cycle: build 'buildC' -> build 'buildD' -> build 'buildB' -> build 'buildC'")
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+
+        // TODO:DAZ This message is technically correct, but not ideal.
+        // Since 'buildB' is an API dependency of 'buildD', 'buildC' actually does require 'buildB',
+        // but this message is probably not what a user would expect.
+        // A more helpful cycle report would be something like:
+        //    "Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildD' -> build 'buildB'"
     }
 
     // Not actually a cycle, just documenting behaviour
@@ -175,9 +176,7 @@ project(':b1') {
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Failed to build artifacts for build 'buildC'")
-            .assertHasCause("Could not download b2.jar (project :buildB:b2)")
+            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
@@ -211,9 +210,7 @@ project(':b1') {
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Failed to build artifacts for build 'buildC'")
-            .assertHasCause("Could not download buildB.jar (project :buildB)")
+            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
@@ -260,8 +257,7 @@ project(':b1') {
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Circular dependency between the following tasks:")
+            .assertHasDescription("Circular dependency between the following tasks:")
     }
 
     protected void resolveSucceeds(String task) {

@@ -702,8 +702,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasDescription("Failed to build artifacts for build 'buildC'")
-        failure.assertHasCause("Could not determine the dependencies of task ':buildC:buildOutputs'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':buildC:buildOutputs'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
@@ -719,8 +718,7 @@ Required by:
         checkDependenciesFails()
 
         then:
-        failure.assertHasDescription("Failed to build artifacts for build 'buildC'")
-        failure.assertHasCause("Execution failed for task ':buildC:buildOutputs'.")
+        failure.assertHasDescription("Execution failed for task ':buildC:buildOutputs'.")
         failure.assertHasCause("Could not resolve all files for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("Could not find test.jar (org.test:test:1.2).")
     }

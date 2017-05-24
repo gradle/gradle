@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
+package org.gradle.initialization;
 
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 
-public interface ProjectArtifactBuilder {
+public interface IncludedBuildTaskGraph {
+    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskName);
 
-    /**
-     * @param artifact Actually build an artifact that is included in dependency resolution.
-     */
-    void build(ComponentArtifactMetadata artifact);
+    void awaitCompletion(BuildIdentifier targetBuild);
 }
