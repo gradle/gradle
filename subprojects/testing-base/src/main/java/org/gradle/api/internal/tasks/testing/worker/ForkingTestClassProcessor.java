@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -34,6 +35,7 @@ import java.net.URL;
 import java.util.List;
 
 public class ForkingTestClassProcessor implements TestClassProcessor {
+    private final WorkerLeaseRegistry.WorkerLease currentWorkerLease;
     private final WorkerProcessFactory workerFactory;
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
@@ -43,8 +45,10 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
+    private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
 
-    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry) {
+    public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry) {
+        this.currentWorkerLease = parentWorkerLease;
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
@@ -61,6 +65,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
         if (remoteProcessor == null) {
+            completion = currentWorkerLease.startChild();
             remoteProcessor = forkProcess();
         }
 
@@ -111,8 +116,12 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     @Override
     public void stop() {
         if (remoteProcessor != null) {
-            remoteProcessor.stop();
-            workerProcess.waitForStop();
+            try {
+                remoteProcessor.stop();
+                workerProcess.waitForStop();
+            } finally {
+                completion.leaseFinish();
+            }
         }
     }
 }
