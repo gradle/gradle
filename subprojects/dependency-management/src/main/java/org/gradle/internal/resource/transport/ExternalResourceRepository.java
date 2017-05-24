@@ -19,11 +19,11 @@ package org.gradle.internal.resource.transport;
 import org.gradle.api.Nullable;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 
 public interface ExternalResourceRepository {
@@ -33,15 +33,19 @@ public interface ExternalResourceRepository {
     ExternalResourceRepository withProgressLogging();
 
     /**
-     * Attempts to fetch the given resource.
+     * Returns the resource with the given name. Note that this method does not access the resource in any way. To do that, use the methods on the returned resource.
      *
-     * @param source The location of the resource to obtain
-     * @param revalidate Ensure the external resource is not stale
-     * @return null if the resource is not found.
-     * @throws ResourceException On failure to fetch resource.
+     * @param resource The location of the resource
+     * @param revalidate Ensure the external resource is not stale when reading its content
      */
-    @Nullable
-    ExternalResource getResource(URI source, boolean revalidate) throws ResourceException;
+    ExternalResource resource(ExternalResourceName resource, boolean revalidate);
+
+    /**
+     * Returns the resource with the given name. Note that this method does not access the resource in any way. To do that, use the methods on the returned resource.
+     *
+     * @param resource The location of the resource
+     */
+    ExternalResource resource(ExternalResourceName resource);
 
     /**
      * Transfer a resource to the repository
@@ -50,7 +54,7 @@ public interface ExternalResourceRepository {
      * @param destination Where to transfer the resource.
      * @throws IOException On publication failure.
      */
-    void put(LocalResource source, URI destination) throws IOException;
+    void put(LocalResource source, ExternalResourceName destination) throws IOException;
 
     /**
      * Fetches only the metadata for the result.
@@ -61,7 +65,7 @@ public interface ExternalResourceRepository {
      * @throws ResourceException On failure to fetch resource metadata.
      */
     @Nullable
-    ExternalResourceMetaData getResourceMetaData(URI source, boolean revalidate) throws ResourceException;
+    ExternalResourceMetaData getResourceMetaData(ExternalResourceName source, boolean revalidate) throws ResourceException;
 
     /**
      * Return a listing of child resources names.
@@ -71,5 +75,5 @@ public interface ExternalResourceRepository {
      * @throws ResourceException On listing failure.
      */
     @Nullable
-    List<String> list(URI parent) throws ResourceException;
+    List<String> list(ExternalResourceName parent) throws ResourceException;
 }

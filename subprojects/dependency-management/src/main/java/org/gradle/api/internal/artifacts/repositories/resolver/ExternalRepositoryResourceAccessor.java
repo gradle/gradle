@@ -21,6 +21,7 @@ import com.google.common.hash.Hashing;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -42,25 +43,13 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
         this.fileStore = searchableFileStore;
     }
 
-    private static String makePath(String path) {
-        if (path.endsWith("/")) {
-            return path;
-        }
-        return path + "/";
-    }
-
     @Override
     public void withResource(String relativePath, Action<? super InputStream> action) {
         try {
-            String scheme = rootUri.getScheme();
-            String host = rootUri.getHost();
-            String path = makePath(rootUri.getPath());
-            int port = rootUri.getPort();
-            String userInfo = rootUri.getUserInfo();
-            URI uri = new URI(scheme, userInfo, host, port, path + relativePath, null, null);
-            Hasher hasher = Hashing.sha1().newHasher().putString(uri.toASCIIString(), Charsets.UTF_8);
+            ExternalResourceName location = new ExternalResourceName(rootUri, relativePath);
+            Hasher hasher = Hashing.sha1().newHasher().putString(location.getUri().toASCIIString(), Charsets.UTF_8);
             final String key = hasher.hash().toString();
-            LocallyAvailableExternalResource resource = resourceAccessor.getResource(uri, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
+            LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                 @Override
                 public LocallyAvailableResource moveIntoCache(File downloadedResource) {
                     return fileStore.move(key, downloadedResource);

@@ -17,6 +17,7 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -30,12 +31,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 
-public class DownloadBuildOperationFiringExternalResourceDecorator implements ExternalResource {
-
+public class BuildOperationFiringExternalResourceDecorator implements ExternalResource {
+    private final ExternalResourceName resourceName;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ExternalResource delegate;
 
-    public DownloadBuildOperationFiringExternalResourceDecorator(BuildOperationExecutor buildOperationExecutor, ExternalResource delegate) {
+    public BuildOperationFiringExternalResourceDecorator(ExternalResourceName resourceName, BuildOperationExecutor buildOperationExecutor, ExternalResource delegate) {
+        this.resourceName = resourceName;
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
     }
@@ -46,16 +48,6 @@ public class DownloadBuildOperationFiringExternalResourceDecorator implements Ex
     }
 
     @Override
-    public boolean isLocal() {
-        return delegate.isLocal();
-    }
-
-    @Override
-    public void close() {
-        delegate.close();
-    }
-
-    @Override
     public ExternalResourceMetaData getMetaData() {
         return delegate.getMetaData();
     }
@@ -63,6 +55,21 @@ public class DownloadBuildOperationFiringExternalResourceDecorator implements Ex
     @Override
     public String getDisplayName() {
         return delegate.getDisplayName();
+    }
+
+    @Override
+    public ExternalResourceReadResult<Void> writeToIfPresent(final File destination) throws ResourceException {
+        return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceReadResult<Void>>() {
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return createBuildOperationDetails();
+            }
+
+            @Override
+            public ExternalResourceReadResult<Void> call(BuildOperationContext buildOperationContext) {
+                return result(buildOperationContext, delegate.writeToIfPresent(destination));
+            }
+        });
     }
 
     @Override
@@ -140,16 +147,91 @@ public class DownloadBuildOperationFiringExternalResourceDecorator implements Ex
         });
     }
 
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(final Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+        return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceReadResult<T>>() {
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return createBuildOperationDetails();
+            }
+
+            @Override
+            public ExternalResourceReadResult<T> call(BuildOperationContext buildOperationContext) {
+                return result(buildOperationContext, delegate.withContentIfPresent(readAction));
+            }
+        });
+    }
+
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(final ContentAction<? extends T> readAction) throws ResourceException {
+        return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceReadResult<T>>() {
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return createBuildOperationDetails();
+            }
+
+            @Override
+            public ExternalResourceReadResult<T> call(BuildOperationContext buildOperationContext) {
+                return result(buildOperationContext, delegate.withContentIfPresent(readAction));
+            }
+        });
+    }
+
     private static <T> ExternalResourceReadResult<T> result(BuildOperationContext buildOperationContext, ExternalResourceReadResult<T> result) {
-        buildOperationContext.setResult(new ExternalResourceDownloadBuildOperationType.ResultImpl(result.getReadContentLength()));
+        buildOperationContext.setResult(new OperationResult(result == null ? 0 : result.getReadContentLength()));
         return result;
     }
 
     private BuildOperationDescriptor.Builder createBuildOperationDetails() {
-        ExternalResourceMetaData metaData = getMetaData();
-        ExternalResourceDownloadBuildOperationType.Details operationDetails = new ExternalResourceDownloadBuildOperationType.DetailsImpl(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
+        NetworkRequestBuildOperationType.Details operationDetails = new OperationDetails(resourceName.getUri());
         return BuildOperationDescriptor
-            .displayName("Download " + metaData.getLocation().toString())
+            .displayName("Download " + resourceName.getDisplayName())
+            .progressDisplayName(resourceName.getShortDisplayName())
             .details(operationDetails);
+    }
+
+    private static class OperationDetails implements NetworkRequestBuildOperationType.Details {
+
+        private final URI location;
+
+        private OperationDetails(URI location) {
+            this.location = location;
+        }
+
+        public String getLocation() {
+            return location.toASCIIString();
+        }
+
+        @Override
+        public String toString() {
+            return "NetworkRequestBuildOperationType.Details{"
+                + "location=" + location + ", "
+                + '}';
+        }
+
+    }
+
+    private static class OperationResult implements NetworkRequestBuildOperationType.Result {
+
+        private final long contentLength;
+
+        private OperationResult(long contentLength) {
+            this.contentLength = contentLength;
+        }
+
+        @Override
+        public long getContentLength() {
+            return contentLength;
+        }
+
+        @Override
+        public String toString() {
+            return "NetworkRequestBuildOperationType.Result{"
+                + "contentLength=" + contentLength
+                + '}';
+        }
+
     }
 }

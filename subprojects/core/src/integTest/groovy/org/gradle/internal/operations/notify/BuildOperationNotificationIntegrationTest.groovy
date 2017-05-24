@@ -18,7 +18,7 @@ package org.gradle.internal.operations.notify
 
 import groovy.json.JsonOutput
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
-import org.gradle.execution.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {

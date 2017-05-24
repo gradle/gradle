@@ -64,7 +64,7 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
 
         expect:
         execute(buildA, "resolve")
-        result.assertOutputContains("buildB-1.0.jar (project :buildB:)")
-        result.assertOutputContains("buildC-1.0.jar (project :buildC:)")
+        result.assertOutputContains("buildB-1.0.jar (project :buildB)")
+        result.assertOutputContains("buildC-1.0.jar (project :buildC)")
     }
 }

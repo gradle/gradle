@@ -26,16 +26,15 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
-import org.gradle.api.internal.tasks.testing.processors.WorkerLeaseHolderTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.TrueTimeProvider;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
@@ -72,7 +71,7 @@ public class DefaultTestExecuter implements TestExecuter {
         final Set<File> classpath = ImmutableSet.copyOf(testTask.getClasspath());
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
-                return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, testTask,
+                return new ForkingTestClassProcessor(currentWorkerLease, workerFactory, testInstanceFactory, testTask,
                     classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry);
             }
         };
@@ -81,14 +80,7 @@ public class DefaultTestExecuter implements TestExecuter {
                 return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testTask.getForkEvery());
             }
         };
-        final Factory<TestClassProcessor> workerLeaseHolderProcessorFactory = new Factory<TestClassProcessor>() {
-            @Override
-            public TestClassProcessor create() {
-                return new WorkerLeaseHolderTestClassProcessor(currentWorkerLease, reforkingProcessorFactory);
-            }
-        };
-
-        TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(testTask), workerLeaseHolderProcessorFactory, actorFactory);
+        TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(testTask), reforkingProcessorFactory, actorFactory);
 
         final FileTree testClassFiles = testTask.getCandidateClassFiles();
 

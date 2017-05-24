@@ -156,11 +156,6 @@ class AbstractExternalResourceTest extends Specification {
         }
 
         @Override
-        boolean isLocal() {
-            return false
-        }
-
-        @Override
         ExternalResourceMetaData getMetaData() {
             return null
         }

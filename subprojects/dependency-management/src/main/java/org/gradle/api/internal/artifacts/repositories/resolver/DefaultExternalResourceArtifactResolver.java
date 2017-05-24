@@ -77,7 +77,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             result.attempted(location);
             LOGGER.debug("Loading {}", location);
             try {
-                if (repository.getResourceMetaData(location.getUri(), true) != null) {
+                if (repository.getResourceMetaData(location, true) != null) {
                     return true;
                 }
             } catch (Exception e) {
@@ -94,7 +94,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             LOGGER.debug("Loading {}", location);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
             try {
-                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location.getUri(), new CacheAwareExternalResourceAccessor.ResourceFileStore() {
+                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                     public LocallyAvailableResource moveIntoCache(File downloadedResource) {
                         return fileStore.move(artifact.getId(), downloadedResource);
                     }

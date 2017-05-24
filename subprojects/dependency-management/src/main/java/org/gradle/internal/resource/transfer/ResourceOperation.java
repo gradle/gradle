@@ -61,7 +61,7 @@ public class ResourceOperation {
         long processedKB = totalProcessedBytes / 1024;
         if (processedKB > loggedKBytes) {
             loggedKBytes = processedKB;
-            final String progressMessage = String.format("%s/%s %sed: %s", getLengthText(totalProcessedBytes), contentLengthString, operationType, resourceName);
+            String progressMessage = String.format("%s/%s %sed", getLengthText(totalProcessedBytes), contentLengthString, operationType);
             progressLogger.progress(progressMessage);
         }
     }

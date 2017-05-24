@@ -70,11 +70,11 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
                     compositeSubstitute()
-                    edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+                    edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
                         compositeSubstitute()
                     }
                 }
@@ -88,7 +88,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         failure
             .assertHasDescription("Failed to build artifacts for build 'buildC'")
             .assertHasCause("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Could not download buildC.jar (project :buildC:)")
+            .assertHasCause("Could not download buildC.jar (project :buildC)")
             .assertHasCause("Included build dependency cycle: build 'buildC' -> build 'buildB' -> build 'buildC'")
     }
 
@@ -114,13 +114,13 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
                     compositeSubstitute()
-                    edge("org.test:buildD:1.0", "project :buildD:", "org.test:buildD:1.0") {
+                    edge("org.test:buildD:1.0", "project :buildD", "org.test:buildD:1.0") {
                         compositeSubstitute()
-                        edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+                        edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
                             compositeSubstitute()
                         }
                     }
@@ -136,7 +136,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
             .assertHasDescription("Failed to build artifacts for build 'buildC'")
             .assertHasCause("Failed to build artifacts for build 'buildD'")
             .assertHasCause("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Could not download buildC.jar (project :buildC:)")
+            .assertHasCause("Could not download buildC.jar (project :buildC)")
             .assertHasCause("Included build dependency cycle: build 'buildC' -> build 'buildD' -> build 'buildB' -> build 'buildC'")
     }
 
@@ -161,7 +161,7 @@ project(':b1') {
         checkGraph {
             edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:1.0") {
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
                     compositeSubstitute()
                     edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:1.0") {
                         compositeSubstitute()
@@ -198,9 +198,9 @@ project(':b1') {
 
         then: // No cycle when building dependency graph
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
                     compositeSubstitute()
                 }
             }
@@ -213,7 +213,7 @@ project(':b1') {
         failure
             .assertHasDescription("Failed to build artifacts for build 'buildB'")
             .assertHasCause("Failed to build artifacts for build 'buildC'")
-            .assertHasCause("Could not download buildB.jar (project :buildB:)")
+            .assertHasCause("Could not download buildB.jar (project :buildB)")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
@@ -243,7 +243,7 @@ project(':b1') {
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
                 compositeSubstitute()
                 edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:1.0") {
                     compositeSubstitute()

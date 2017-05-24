@@ -18,20 +18,18 @@ package org.gradle.internal.resource.transport;
 
 
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resource.DownloadBuildOperationFiringExternalResourceDecorator;
+import org.gradle.internal.resource.BuildOperationFiringExternalResourceDecorator;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.DefaultExternalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
-import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
@@ -68,22 +66,30 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, lister, loggingAccessor, loggingUploader, buildOperationExecutor);
     }
 
-    public ExternalResource getResource(URI source, boolean revalidate) {
-        ExternalResourceReadResponse response = accessor.openResource(source, revalidate);
-        return response == null ? null : new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecutor, new DefaultExternalResource(source, response));
+    @Override
+    public ExternalResource resource(ExternalResourceName resource, boolean revalidate) {
+        return new BuildOperationFiringExternalResourceDecorator(resource, buildOperationExecutor, new LazyExternalResource(resource, accessor, revalidate));
     }
 
-    public ExternalResourceMetaData getResourceMetaData(URI source, boolean revalidate) {
-        return accessor.getMetaData(source, revalidate);
+    @Override
+    public ExternalResource resource(ExternalResourceName resource) {
+        return resource(resource, false);
     }
 
-    public void put(LocalResource source, URI destination) throws IOException {
+    @Override
+    public ExternalResourceMetaData getResourceMetaData(ExternalResourceName source, boolean revalidate) {
+        return accessor.getMetaData(source.getUri(), revalidate);
+    }
+
+    @Override
+    public void put(LocalResource source, ExternalResourceName destination) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
-        uploader.upload(source, destination);
+        uploader.upload(source, destination.getUri());
     }
 
-    public List<String> list(URI parent) {
-        return lister.list(parent);
+    @Override
+    public List<String> list(ExternalResourceName parent) {
+        return lister.list(parent.getUri());
     }
 
     public String toString() {

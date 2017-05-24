@@ -29,6 +29,7 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
@@ -37,7 +38,6 @@ import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTranspo
 import org.gradle.internal.resource.transport.file.FileTransport;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +53,7 @@ public class RepositoryTransportFactory {
     private final CacheLockingManager cacheLockingManager;
     private final BuildOperationExecutor buildOperationExecutor;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
-    private final ProducerGuard<URI> producerGuard;
+    private final ProducerGuard<ExternalResourceName> producerGuard;
 
     public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
                                       ProgressLoggerFactory progressLoggerFactory,
@@ -63,7 +63,7 @@ public class RepositoryTransportFactory {
                                       CacheLockingManager cacheLockingManager,
                                       BuildOperationExecutor buildOperationExecutor,
                                       StartParameterResolutionOverride startParameterResolutionOverride,
-                                      ProducerGuard<URI> producerGuard) {
+                                      ProducerGuard<ExternalResourceName> producerGuard) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;

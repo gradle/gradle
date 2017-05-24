@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.internal.resource;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.List;
-
 /**
- * Computing the task graph based on the inputs and build configuration.
+ * The transfer of an external resource to the local system.
  *
  * @since 4.0
  */
-public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
+public final class NetworkRequestBuildOperationType implements BuildOperationType<NetworkRequestBuildOperationType.Details, NetworkRequestBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
+
+        /**
+         * Value is a valid URI.
+         */
+        String getLocation();
 
     }
 
@@ -37,22 +40,13 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
     public interface Result {
 
         /**
-         * Lexicographically sorted.
-         * Never null.
-         * Never contains duplicates.
+         * The length of the received content.
          */
-        List<String> getRequestedTaskPaths();
-
-        /**
-         * Lexicographically sorted.
-         * Never null.
-         * Never contains duplicates.
-         */
-        List<String> getExcludedTaskPaths();
+        long getContentLength();
 
     }
 
-    private CalculateTaskGraphBuildOperationType() {
+    private NetworkRequestBuildOperationType() {
     }
 
 }

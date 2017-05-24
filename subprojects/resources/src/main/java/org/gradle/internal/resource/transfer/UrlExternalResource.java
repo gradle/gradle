@@ -17,10 +17,13 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -28,10 +31,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class UrlExternalResource implements ExternalResourceReadResponse {
+public class UrlExternalResource extends AbstractExternalResource {
     private final URI uri;
-    private final URLConnection connection;
-    private final DefaultExternalResourceMetaData metaData;
+    private final URL url;
 
     public static ExternalResource open(URL url) throws IOException {
         URI uri;
@@ -40,13 +42,12 @@ public class UrlExternalResource implements ExternalResourceReadResponse {
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        return new DefaultExternalResource(uri, new UrlExternalResource(uri, url));
+        return new UrlExternalResource(uri, url);
     }
 
     private UrlExternalResource(URI uri, URL url) throws IOException {
-        connection = url.openConnection();
         this.uri = uri;
-        metaData = new DefaultExternalResourceMetaData(uri, connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
+        this.url = url;
     }
 
     public URI getURI() {
@@ -54,26 +55,31 @@ public class UrlExternalResource implements ExternalResourceReadResponse {
     }
 
     public ExternalResourceMetaData getMetaData() {
-        return metaData;
-    }
-
-    public boolean isLocal() {
-        return uri.getScheme().equalsIgnoreCase("file");
+        try {
+            URLConnection connection = url.openConnection();
+            try {
+                return new DefaultExternalResourceMetaData(uri, connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
+            } finally {
+                connection.getInputStream().close();
+            }
+        } catch (Exception e) {
+            throw ResourceExceptions.getFailed(uri, e);
+        }
     }
 
     public long getContentLength() {
-        return connection.getContentLength();
+        return getMetaData().getContentLength();
     }
 
     public long getLastModified() {
-        return connection.getLastModified();
+        return getMetaData().getLastModified().getTime();
     }
 
     public InputStream openStream() throws IOException {
-        return connection.getInputStream();
-    }
-
-    @Override
-    public void close() {
+        try {
+            return url.openConnection().getInputStream();
+        } catch (FileNotFoundException e) {
+            return null;
+        }
     }
 }

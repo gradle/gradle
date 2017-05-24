@@ -781,8 +781,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } catch (MissingResourceException e) {
                 // Ignore
                 return null;
-            } finally {
-                resource.close();
             }
         }
 

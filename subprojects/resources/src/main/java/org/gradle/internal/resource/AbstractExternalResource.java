@@ -18,11 +18,12 @@ package org.gradle.internal.resource;
 import com.google.common.io.CountingInputStream;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.api.resources.ResourceException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,14 +32,30 @@ import java.io.OutputStream;
 public abstract class AbstractExternalResource implements ExternalResource {
     /**
      * Opens an unbuffered input stream to read the contents of this resource.
+     * @return null if the resource does not exist.
      */
+    @Nullable
     protected abstract InputStream openStream() throws IOException;
+
+    private CountingInputStream openUnbufferedIfPresent() {
+        try {
+            InputStream input = openStream();
+            if (input == null) {
+                return null;
+            }
+            return new CountingInputStream(input);
+        } catch (IOException e) {
+            throw ResourceExceptions.getFailed(getURI(), e);
+        }
+    }
 
     private CountingInputStream openUnbuffered() {
         try {
-            return new CountingInputStream(openStream());
-        } catch (FileNotFoundException e) {
-            throw ResourceExceptions.getMissing(getURI(), e);
+            InputStream input = openStream();
+            if (input == null) {
+                throw ResourceExceptions.getMissing(getURI());
+            }
+            return new CountingInputStream(input);
         } catch (IOException e) {
             throw ResourceExceptions.getFailed(getURI(), e);
         }
@@ -46,9 +63,11 @@ public abstract class AbstractExternalResource implements ExternalResource {
 
     private CountingInputStream openBuffered() {
         try {
-            return new CountingInputStream(new BufferedInputStream(openStream()));
-        } catch (FileNotFoundException e) {
-            throw ResourceExceptions.getMissing(getURI(), e);
+            InputStream input = openStream();
+            if (input == null) {
+                throw ResourceExceptions.getMissing(getURI());
+            }
+            return new CountingInputStream(new BufferedInputStream(input));
         } catch (IOException e) {
             throw ResourceExceptions.getFailed(getURI(), e);
         }
@@ -72,17 +91,35 @@ public abstract class AbstractExternalResource implements ExternalResource {
         return getDisplayName();
     }
 
-    public ExternalResourceReadResult<Void> writeTo(File destination) {
+    @Override
+    public ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException {
         try {
-            FileOutputStream output = new FileOutputStream(destination);
-            try {
-                return writeTo(output);
-            } finally {
-                output.close();
+            CountingInputStream input = openUnbufferedIfPresent();
+            if (input == null) {
+                return null;
             }
+            try {
+                FileOutputStream output = new FileOutputStream(destination);
+                try {
+                    IOUtils.copyLarge(input, output);
+                } finally {
+                    output.close();
+                }
+            } finally {
+                input.close();
+            }
+            return ExternalResourceReadResult.of(input.getCount());
         } catch (Exception e) {
             throw ResourceExceptions.getFailed(getURI(), e);
         }
+    }
+
+    public ExternalResourceReadResult<Void> writeTo(File destination) {
+        ExternalResourceReadResult<Void> result = writeToIfPresent(destination);
+        if (result == null) {
+            throw ResourceExceptions.getMissing(getURI());
+        }
+        return result;
     }
 
     public ExternalResourceReadResult<Void> writeTo(OutputStream output) {
@@ -135,6 +172,15 @@ public abstract class AbstractExternalResource implements ExternalResource {
         }
     }
 
-    public void close() {
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+        throw new UnsupportedOperationException();
     }
 }

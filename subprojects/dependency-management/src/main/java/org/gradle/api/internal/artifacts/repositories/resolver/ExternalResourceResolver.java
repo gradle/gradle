@@ -77,7 +77,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -336,20 +335,20 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         } else {
             throw new IllegalStateException("impossible to publish " + artifact + " using " + this + ": no artifact pattern defined");
         }
-        URI destination = destinationPattern.getLocation(artifact).getUri();
+        ExternalResourceName destination = destinationPattern.getLocation(artifact);
 
         put(src, destination);
         LOGGER.info("Published {} to {}", artifact, destination);
     }
 
-    private void put(File src, URI destination) throws IOException {
+    private void put(File src, ExternalResourceName destination) throws IOException {
         repository.withProgressLogging().put(new FileLocalResource(src), destination);
         putChecksum(src, destination);
     }
 
-    private void putChecksum(File source, URI destination) throws IOException {
+    private void putChecksum(File source, ExternalResourceName destination) throws IOException {
         byte[] checksumFile = createChecksumFile(source, "SHA1", 40);
-        URI checksumDestination = URI.create(destination + ".sha1");
+        ExternalResourceName checksumDestination = destination.append(".sha1");
         repository.put(new ByteArrayLocalResource(checksumFile), checksumDestination);
     }
 

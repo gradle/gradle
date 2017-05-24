@@ -16,28 +16,25 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 
 /**
  * This will be merged with {@link Resource}.
  */
-public interface ExternalResource extends Resource, Closeable {
+public interface ExternalResource extends Resource {
     /**
      * Get the URI of the resource.
      */
     URI getURI();
-
-    /**
-     * Is this resource local to this host, i.e. is it on the file system?
-     *
-     * @return <code>boolean</code> value indicating if the resource is local.
-     */
-    boolean isLocal();
 
     /**
      * Copies the contents of this resource to the given file.
@@ -45,6 +42,15 @@ public interface ExternalResource extends Resource, Closeable {
      * @throws ResourceException on failure to copy the content.
      */
     ExternalResourceReadResult<Void> writeTo(File destination) throws ResourceException;
+
+    /**
+     * Copies the contents of this resource to the given file, if the resource exists.
+     *
+     * @throws ResourceException on failure to copy the content.
+     * @return true if the resource was written to the file, false if not.
+     */
+    @Nullable
+    ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException;
 
     /**
      * Copies the binary contents of this resource to the given stream. Does not close the provided stream.
@@ -70,6 +76,15 @@ public interface ExternalResource extends Resource, Closeable {
     <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
 
     /**
+     * Executes the given action against the binary contents of this resource.
+     *
+     * @throws ResourceException on failure to read the content.
+     * @return null if the resource does not exist.
+     */
+    @Nullable
+    <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
+
+    /**
      * Executes the given action against the binary contents and meta-data of this resource.
      * Generally, this method will be less efficient than one of the other {@code withContent} methods that do
      * not provide the meta-data, as additional requests may need to be made to obtain the meta-data.
@@ -79,7 +94,16 @@ public interface ExternalResource extends Resource, Closeable {
      */
     <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException;
 
-    void close() throws ResourceException;
+    /**
+     * Executes the given action against the binary contents and meta-data of this resource.
+     * Generally, this method will be less efficient than one of the other {@code withContent} methods that do
+     * not provide the meta-data, as additional requests may need to be made to obtain the meta-data.
+     *
+     * @throws ResourceException on failure to read the content.
+     * @return null if the resource does not exist.
+     */
+    @Nullable
+    <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException;
 
     /**
      * Returns the meta-data for this resource.

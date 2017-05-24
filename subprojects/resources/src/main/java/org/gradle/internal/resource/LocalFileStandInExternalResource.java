@@ -53,10 +53,6 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
         return localFile.length();
     }
 
-    public boolean isLocal() {
-        return true;
-    }
-
     @Override
     public String getDisplayName() {
         if (source.equals(localFile.toURI())) {
@@ -66,6 +62,9 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
     }
 
     public InputStream openStream() throws IOException {
+        if (!localFile.exists()) {
+            return null;
+        }
         return new FileInputStream(localFile);
     }
 

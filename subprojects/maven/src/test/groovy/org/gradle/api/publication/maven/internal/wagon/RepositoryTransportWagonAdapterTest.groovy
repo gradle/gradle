@@ -18,6 +18,7 @@ package org.gradle.api.publication.maven.internal.wagon
 
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.resource.ExternalResource
+import org.gradle.internal.resource.ExternalResourceReadResult
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -31,6 +32,8 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         given:
         RepositoryTransport repositoryTransport = Mock()
         ExternalResourceRepository externalResourceRepo = Mock()
+        ExternalResource resource = Mock()
+
         repositoryTransport.getRepository() >> externalResourceRepo
 
         RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter(repositoryTransport, repoUrl)
@@ -39,7 +42,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         delegate.getRemoteFile(null, resourceName)
 
         then:
-        1 * repositoryTransport.getRepository().getResource({ it.toString() == expected }, false)
+        1 * repositoryTransport.getRepository().resource({ it.toString() == expected }) >> resource
         where:
         repoUrl                          | resourceName    | expected
         S3_URI                           | 'a/b/some.jar'  | 's3://somewhere/maven/a/b/some.jar'
@@ -51,8 +54,11 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         given:
         RepositoryTransport repositoryTransport = Mock()
         ExternalResourceRepository externalResourceRepo = Mock()
+        ExternalResource resource = Mock()
+
         repositoryTransport.getRepository() >> externalResourceRepo
-        externalResourceRepo.getResource(_, false) >> Mock(ExternalResource)
+        externalResourceRepo.resource(_) >> resource
+        resource.writeToIfPresent(_) >> Stub(ExternalResourceReadResult)
 
         RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter(repositoryTransport, S3_URI)
 
@@ -64,8 +70,11 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         given:
         RepositoryTransport repositoryTransport = Mock()
         ExternalResourceRepository externalResourceRepo = Mock()
+        ExternalResource resource = Mock()
+
         repositoryTransport.getRepository() >> externalResourceRepo
-        externalResourceRepo.getResource(_, false) >> null
+        externalResourceRepo.resource(_) >> resource
+        resource.writeToIfPresent(_) >> null
 
         RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter(repositoryTransport, S3_URI)
 

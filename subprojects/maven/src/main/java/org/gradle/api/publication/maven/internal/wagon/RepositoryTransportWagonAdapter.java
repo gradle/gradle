@@ -36,25 +36,16 @@ public class RepositoryTransportWagonAdapter {
     }
 
     public boolean getRemoteFile(File destination, String resourceName) throws ResourceException {
-        URI uriForResource = getUriForResource(resourceName);
-        ExternalResource resource = transport.getRepository().getResource(uriForResource, false);
-        if (resource == null) {
-            return false;
-        }
-        try {
-            resource.writeTo(destination);
-        } finally {
-            resource.close();
-        }
-        return true;
+        ExternalResourceName location = getLocationForResource(resourceName);
+        ExternalResource resource = transport.getRepository().resource(location);
+        return resource.writeToIfPresent(destination) != null;
     }
 
     public void putRemoteFile(LocalResource localResource, String resourceName) throws IOException {
-        transport.getRepository().withProgressLogging().put(localResource, getUriForResource(resourceName));
+        transport.getRepository().withProgressLogging().put(localResource, getLocationForResource(resourceName));
     }
 
-    private URI getUriForResource(String resource) {
-        ExternalResourceName resourceName = new ExternalResourceName(rootUri, resource);
-        return resourceName.getUri();
+    private ExternalResourceName getLocationForResource(String resource) {
+        return new ExternalResourceName(rootUri, resource);
     }
 }

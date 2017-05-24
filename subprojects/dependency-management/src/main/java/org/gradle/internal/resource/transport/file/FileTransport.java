@@ -16,6 +16,7 @@
 package org.gradle.internal.resource.transport.file;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
@@ -23,7 +24,6 @@ import org.gradle.internal.resource.transport.AbstractRepositoryTransport;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 
 import java.io.IOException;
-import java.net.URI;
 
 public class FileTransport extends AbstractRepositoryTransport {
     private final FileResourceConnector repository;
@@ -54,8 +54,8 @@ public class FileTransport extends AbstractRepositoryTransport {
             this.connector = connector;
         }
 
-        public LocallyAvailableExternalResource getResource(URI source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
-            return connector.getResource(source, false);
+        public LocallyAvailableExternalResource getResource(ExternalResourceName source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
+            return connector.getResourceIfPresent(source);
         }
     }
 }

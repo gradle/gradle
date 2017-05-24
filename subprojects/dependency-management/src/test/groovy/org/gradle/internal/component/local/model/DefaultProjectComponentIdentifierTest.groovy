@@ -34,7 +34,7 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         defaultBuildComponentIdentifier.toString() == 'project :myPath'
     }
 
-    def "non-current build includes build name in path"() {
+    def "includes build name in path"() {
         when:
         ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId(buildId("TEST"), ":myPath")
 
@@ -42,16 +42,14 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         defaultBuildComponentIdentifier.projectPath == ':myPath'
         defaultBuildComponentIdentifier.displayName == 'project :TEST:myPath'
         defaultBuildComponentIdentifier.toString() == 'project :TEST:myPath'
-    }
 
-    def "current build includes build name in display name"() {
         when:
-        ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId(buildId("TEST", true), ":myPath")
+        defaultBuildComponentIdentifier = newProjectId(buildId("TEST"), ":")
 
         then:
-        defaultBuildComponentIdentifier.projectPath == ':myPath'
-        defaultBuildComponentIdentifier.displayName == 'project [TEST]:myPath'
-        defaultBuildComponentIdentifier.toString() == 'project [TEST]:myPath'
+        defaultBuildComponentIdentifier.projectPath == ':'
+        defaultBuildComponentIdentifier.displayName == 'project :TEST'
+        defaultBuildComponentIdentifier.toString() == 'project :TEST'
     }
 
     def "is instantiated with null constructor parameter value"() {

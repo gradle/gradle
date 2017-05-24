@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.remote.ObjectConnection
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.worker.WorkerProcess
@@ -32,13 +33,14 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class ForkingTestClassProcessorTest extends Specification {
+    WorkerLeaseRegistry.WorkerLease workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
     WorkerProcessFactory workerProcessFactory = Mock(WorkerProcessFactory)
     WorkerProcessBuilder workerProcessBuilder = Mock(WorkerProcessBuilder)
     WorkerProcess workerProcess = Mock(WorkerProcess)
     ModuleRegistry moduleRegistry = Mock(ModuleRegistry)
 
     @Subject
-        processor = Spy(ForkingTestClassProcessor, constructorArgs: [workerProcessFactory, Mock(WorkerTestClassProcessorFactory), Mock(JavaForkOptions), [new File("classpath.jar")], Mock(Action), moduleRegistry])
+        processor = Spy(ForkingTestClassProcessor, constructorArgs: [workerLease, workerProcessFactory, Mock(WorkerTestClassProcessorFactory), Mock(JavaForkOptions), [new File("classpath.jar")], Mock(Action), moduleRegistry])
 
     def "acquires worker lease and starts worker process on first test"() {
         def test1 = Mock(TestClassRunInfo)
@@ -51,6 +53,7 @@ class ForkingTestClassProcessorTest extends Specification {
         processor.processTestClass(test2)
 
         then:
+        1 * workerLease.startChild()
         1 * processor.forkProcess() >> remoteProcessor
         1 * remoteProcessor.processTestClass(test1)
         1 * remoteProcessor.processTestClass(test2)

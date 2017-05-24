@@ -19,13 +19,9 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.resource.ExternalResourceDownloadBuildOperationType
+import org.gradle.internal.resource.NetworkRequestBuildOperationType
 import spock.lang.Unroll
 
-/**
- * This is effectively testing DownloadBuildOperationFiringExternalResourceDecorator mechanics.
- * Dependency resolution is the most important usage of this, so is our integration testing vector.
- */
 class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
@@ -37,7 +33,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
             .allowAll()
             .publish()
 
-        args "--refresh-dependencies", "-S"
+        args "--refresh-dependencies"
 
         buildFile << """
             apply plugin: "base"
@@ -60,11 +56,9 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         then:
         def actualFileLength = m.pom.file.bytes.length
-        def buildOp = buildOperations.first(ExternalResourceDownloadBuildOperationType)
-        buildOp.details.contentType == 'null'
-        buildOp.details.contentLength == chunked ? -1 : actualFileLength
+        def buildOp = buildOperations.first(NetworkRequestBuildOperationType)
         URI.create(buildOp.details.location).path == m.pomPath
-        buildOp.result.readContentLength == actualFileLength
+        buildOp.result.contentLength == actualFileLength
 
         where:
         chunked << [true, false]

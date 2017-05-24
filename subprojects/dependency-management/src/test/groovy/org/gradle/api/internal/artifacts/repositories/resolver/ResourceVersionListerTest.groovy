@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.resources.ResourceException
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult
-import org.gradle.api.resources.ResourceException
+import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -29,7 +29,6 @@ import spock.lang.Unroll
 class ResourceVersionListerTest extends Specification {
 
     def repo = Mock(ExternalResourceRepository)
-    def moduleRevisionId = IvyUtil.createModuleRevisionId("org.acme", "proj1", "1.0")
     def module = new DefaultModuleIdentifier("org.acme", "proj1")
     def moduleVersion = new DefaultModuleVersionIdentifier(module, "1.0")
     def artifact = new DefaultIvyArtifactName("proj1", "jar", "jar")
@@ -97,7 +96,7 @@ class ResourceVersionListerTest extends Specification {
         versions == ["1", "2.1", "a-version"]
 
         and:
-        1 * repo.list(URI.create(repoListingPath)) >> repoResult
+        1 * repo.list(new ExternalResourceName(repoListingPath)) >> repoResult
         0 * repo._
 
         where:
@@ -134,8 +133,8 @@ class ResourceVersionListerTest extends Specification {
         versions == ["1.2", "1.3", "1.3", "1.4"]
 
         and:
-        1 * repo.list(URI.create("/")) >> ["1.2", "1.3"]
-        1 * repo.list(URI.create("/org.acme/")) >> ["1.3", "1.4"]
+        1 * repo.list(new ExternalResourceName("/")) >> ["1.2", "1.3"]
+        1 * repo.list(new ExternalResourceName("/org.acme/")) >> ["1.3", "1.4"]
         0 * repo._
     }
 
@@ -151,7 +150,7 @@ class ResourceVersionListerTest extends Specification {
         versions == ["1.2", "1.3"]
 
         and:
-        1 * repo.list(URI.create("/a/")) >> ["1.2", "1.3"]
+        1 * repo.list(new ExternalResourceName("/a/")) >> ["1.2", "1.3"]
         0 * repo._
     }
 
@@ -162,7 +161,7 @@ class ResourceVersionListerTest extends Specification {
         versionList.visit(pattern(inputPattern), artifact)
 
         then:
-        1 * repo.list(URI.create(repoPath)) >> ['1.2']
+        1 * repo.list(new ExternalResourceName(repoPath)) >> ['1.2']
 
         where:
         inputPattern                                  | repoPath
