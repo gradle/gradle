@@ -156,7 +156,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
     def "starts a new worker daemon when there are no idle compatible worker daemons available"() {
         blockingServer.start()
-        blockingServer.expectConcurrentExecution("runInDaemon", "startNewDaemon")
+        blockingServer.expectConcurrent("runInDaemon", "startNewDaemon")
 
         withRunnableClassInBuildSrc()
         withBlockingRunnableClassInBuildSrc("http://localhost:${blockingServer.port}")

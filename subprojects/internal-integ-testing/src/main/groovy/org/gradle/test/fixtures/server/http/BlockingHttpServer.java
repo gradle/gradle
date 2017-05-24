@@ -92,7 +92,7 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
-     * Returns a Java statements to get the given resource, using the given expression to calculate the resource to get.
+     * Returns Java statements to get the given resource, using the given expression to calculate the resource to get.
      */
     public String callFromBuildUsingExpression(String expression) {
         String uriExpression = "\"" + getUri() + "/\" + " + expression;
@@ -102,10 +102,9 @@ public class BlockingHttpServer extends ExternalResource {
     /**
      * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
-    public void expectConcurrentExecution(String expectedCall, String... additionalExpectedCalls) {
+    public void expectConcurrent(String... expectedRequests) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
-        expectations.add(new SendFixedContent(expectedCall));
-        for (String call : additionalExpectedCalls) {
+        for (String call : expectedRequests) {
             expectations.add(new SendFixedContent(call));
         }
         addNonBlockingHandler(expectations);
@@ -114,9 +113,9 @@ public class BlockingHttpServer extends ExternalResource {
     /**
      * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
-    public void expectConcurrentExecution(Collection<String> expectedCalls) {
+    public void expectConcurrent(Collection<String> expectedRequests) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
-        for (String call : expectedCalls) {
+        for (String call : expectedRequests) {
             expectations.add(new SendFixedContent(call));
         }
         addNonBlockingHandler(expectations);
@@ -125,7 +124,7 @@ public class BlockingHttpServer extends ExternalResource {
     /**
      * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
-    public void expectConcurrentExecutionTo(Collection<? extends ExpectedRequest> expectedCalls) {
+    public void expectConcurrent(ExpectedRequest... expectedCalls) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
         for (ExpectedRequest call : expectedCalls) {
             expectations.add((ResourceExpectation) call);
@@ -174,10 +173,17 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
+     * Expects the given requests to be made concurrently. Blocks each request until they have all been received and released using one of the methods on {@link BlockingHandler}.
+     */
+    public BlockingHandler expectConcurrentAndBlock(String... expectedCalls) {
+        return expectConcurrentAndBlock(expectedCalls.length, expectedCalls);
+    }
+
+    /**
      * Expects exactly the given number of calls to be made concurrently from any combination of the expected calls. Blocks each call until they are explicitly released.
      * Is not considered "complete" until all expected calls have been received.
      */
-    public BlockingHandler blockOnConcurrentExecutionAnyOf(int concurrent, String... expectedCalls) {
+    public BlockingHandler expectConcurrentAndBlock(int concurrent, String... expectedCalls) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
         for (String call : expectedCalls) {
             expectations.add(new SendFixedContent(call));
@@ -186,10 +192,17 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
+     * Expects the given requests to be made concurrently. Blocks each request until they have all been received and released using one of the methods on {@link BlockingHandler}.
+     */
+    public BlockingHandler expectConcurrentAndBlock(ExpectedRequest... expectedRequests) {
+        return expectConcurrentAndBlock(expectedRequests.length, expectedRequests);
+    }
+
+    /**
      * Expects exactly the given number of calls to be made concurrently from any combination of the expected calls. Blocks each call until they are explicitly released.
      * Is not considered "complete" until all expected calls have been received.
      */
-    public BlockingHandler blockOnConcurrentExecutionAnyOfToResources(int concurrent, Collection<? extends ExpectedRequest> expectedRequests) {
+    public BlockingHandler expectConcurrentAndBlock(int concurrent, ExpectedRequest... expectedRequests) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
         for (ExpectedRequest request : expectedRequests) {
             expectations.add((ResourceExpectation) request);
@@ -197,7 +210,7 @@ public class BlockingHttpServer extends ExternalResource {
         return addBlockingHandler(concurrent, expectations);
     }
 
-    private BlockingHandler addBlockingHandler(final int concurrent, final List<? extends ResourceExpectation> expectations) {
+    private BlockingHandler addBlockingHandler(final int concurrent, final Collection<? extends ResourceExpectation> expectations) {
         return handler.addHandler(new ChainingHttpHandler.HandlerFactory<CyclicBarrierAnyOfRequestHandler>() {
             @Override
             public CyclicBarrierAnyOfRequestHandler create(WaitPrecondition previous) {
@@ -207,17 +220,31 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
-     * Expects the given request to be made.
+     * Expects the given request to be made. Releases the request as soon as it is received.
      */
-    public void expectSerialExecution(String expectedCall) {
+    public void expect(String expectedCall) {
         addNonBlockingHandler(Collections.singleton(new SendFixedContent(expectedCall)));
     }
 
     /**
-     * Expects the given request to be made.
+     * Expects the given request to be made. Blocks until the request is explicitly released using one of the methods on {@link BlockingHandler}.
      */
-    public void expectSerialExecution(ExpectedRequest expectedRequest) {
+    public BlockingHandler expectAndBlock(String expectedCall) {
+        return addBlockingHandler(1, Collections.singleton(new SendFixedContent(expectedCall)));
+    }
+
+    /**
+     * Expects the given request to be made. Releases the request as soon as it is received.
+     */
+    public void expect(ExpectedRequest expectedRequest) {
         addNonBlockingHandler(Collections.singleton((ResourceExpectation) expectedRequest));
+    }
+
+    /**
+     * Expects the given request to be made. Blocks until the request is explicitly released using one of the methods on {@link BlockingHandler}.
+     */
+    public BlockingHandler expectAndBlock(ExpectedRequest expectedRequest) {
+        return addBlockingHandler(1, Collections.singleton((ResourceExpectation) expectedRequest));
     }
 
     public void start() {

@@ -28,9 +28,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "succeeds when expected serial requests are made"() {
         given:
-        server.expectSerialExecution("a")
-        server.expectSerialExecution("b")
-        server.expectSerialExecution("c")
+        server.expect("a")
+        server.expect("b")
+        server.expect("c")
         server.start()
 
         when:
@@ -48,9 +48,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         file.text = "123"
 
         given:
-        server.expectSerialExecution(server.resource("a"))
-        server.expectSerialExecution(server.file("b", file))
-        server.expectSerialExecution(server.resource("c", "this is the content"))
+        server.expect(server.resource("a"))
+        server.expect(server.file("b", file))
+        server.expect(server.resource("c", "this is the content"))
         server.start()
 
         when:
@@ -67,8 +67,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         given:
         def request1 = server.sendSomeAndBlock("a", new byte[2048])
         def request2 = server.sendSomeAndBlock("b", new byte[2048])
-        server.expectSerialExecution(request1)
-        server.expectSerialExecution(request2)
+        server.expect(request1)
+        server.expect(request2)
         server.start()
 
         when:
@@ -92,7 +92,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "succeeds when expected concurrent requests are made"() {
         given:
-        server.expectConcurrentExecution("a", "b", "c")
+        server.expectConcurrent("a", "b", "c")
         server.start()
 
         when:
@@ -111,7 +111,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         given:
         def request1 = server.sendSomeAndBlock("a", new byte[2048])
         def request2 = server.sendSomeAndBlock("b", new byte[2048])
-        server.expectConcurrentExecutionTo([request1, request2])
+        server.expectConcurrent(request1, request2)
         server.start()
 
         when:
@@ -140,7 +140,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "can wait for and release n concurrent requests"() {
         given:
-        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        def handle = server.expectConcurrentAndBlock(2, "a", "b", "c")
         server.start()
 
         when:
@@ -163,7 +163,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "can wait for and release a specific concurrent request"() {
         given:
-        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        def handle = server.expectConcurrentAndBlock(2, "a", "b", "c")
         server.start()
 
         when:
@@ -188,7 +188,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "can wait for and release all concurrent requests"() {
         given:
-        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        def handle = server.expectConcurrentAndBlock(2, "a", "b", "c")
         server.start()
 
         when:
@@ -216,7 +216,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         given:
         def request1 = server.sendSomeAndBlock("a", new byte[2048])
         def request2 = server.sendSomeAndBlock("b", new byte[2048])
-        def handle = server.blockOnConcurrentExecutionAnyOfToResources(2, [request1, request2])
+        def handle = server.expectConcurrentAndBlock(2, request1, request2)
         server.start()
 
         when:
@@ -247,10 +247,10 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "can chain expectations"() {
         given:
-        server.expectConcurrentExecution("a", "b")
-        server.expectSerialExecution("c")
-        def handle = server.blockOnConcurrentExecutionAnyOf(2, "d", "e")
-        server.expectSerialExecution("f")
+        server.expectConcurrent("a", "b")
+        server.expect("c")
+        def handle = server.expectConcurrentAndBlock(2, "d", "e")
+        server.expect("f")
         server.start()
 
         when:
@@ -281,8 +281,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "fails on stop when expected serial request is not made"() {
         given:
-        server.expectSerialExecution("a")
-        server.expectSerialExecution("b")
+        server.expect("a")
+        server.expect("b")
         server.start()
 
         when:
@@ -297,7 +297,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "fails when request is received after serial expectations met"() {
         given:
-        server.expectSerialExecution("a")
+        server.expect("a")
         server.start()
 
         when:
@@ -318,7 +318,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "fails when request path does not match expected serial request"() {
         given:
-        server.expectSerialExecution("a")
+        server.expect("a")
         server.start()
 
         when:
@@ -341,7 +341,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "fails when request method does not match expected serial request"() {
         given:
-        server.expectSerialExecution("a")
+        server.expect("a")
         server.start()
 
         when:
@@ -366,7 +366,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "fails when some but not all expected parallel requests received"() {
         given:
-        server.expectConcurrentExecution("a", "b")
+        server.expectConcurrent("a", "b")
         server.start()
 
         when:
@@ -389,7 +389,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "fails when expected parallel request received after other request has failed"() {
         given:
-        server.expectConcurrentExecution("a", "b")
+        server.expectConcurrent("a", "b")
         server.start()
 
         when:
@@ -419,7 +419,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "fails when request path does not match expected parallel request"() {
         given:
-        server.expectConcurrentExecution("a", "b")
+        server.expectConcurrent("a", "b")
         server.start()
 
         when:
@@ -445,7 +445,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def failure2 = null
 
         given:
-        server.expectConcurrentExecution("a", "b")
+        server.expectConcurrent("a", "b")
         server.start()
 
         when:
@@ -487,7 +487,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "fails when additional requests are made after parallel expectations are met"() {
         given:
-        server.expectConcurrentExecution("a", "b")
+        server.expectConcurrent("a", "b")
         server.start()
 
         when:
@@ -514,7 +514,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def requestFailure = null
 
         given:
-        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        def handle = server.expectConcurrentAndBlock(2, "a", "b", "c")
         server.start()
 
         when:
@@ -551,7 +551,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def requestFailure = null
 
         given:
-        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        def handle = server.expectConcurrentAndBlock(2, "a", "b", "c")
         server.start()
 
         when:
@@ -596,7 +596,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def failure2 = null
 
         given:
-        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        def handle = server.expectConcurrentAndBlock(2, "a", "b", "c")
         server.start()
 
         when:
@@ -645,7 +645,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def failure3 = null
 
         given:
-        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        def handle = server.expectConcurrentAndBlock(2, "a", "b", "c")
         server.start()
 
         when:
@@ -701,8 +701,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "fails when attempting to wait before previous requests released"() {
         given:
-        server.blockOnConcurrentExecutionAnyOf(2, "a", "b")
-        def handle2 = server.blockOnConcurrentExecutionAnyOf(2, "c", "d")
+        server.expectConcurrentAndBlock(2, "a", "b")
+        def handle2 = server.expectConcurrentAndBlock(2, "c", "d")
         server.start()
 
         when:
@@ -729,7 +729,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def failure2 = null
 
         given:
-        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        def handle = server.expectConcurrentAndBlock(2, "a", "b", "c")
         server.start()
 
         when:
@@ -773,7 +773,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
     def "fails when request is not released after sending partial response"() {
         given:
         def request = server.sendSomeAndBlock("a", new byte[2048])
-        def handle = server.blockOnConcurrentExecutionAnyOfToResources(1, [request])
+        def handle = server.expectConcurrentAndBlock(1, request)
         server.start()
 
         when:
@@ -808,11 +808,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def failure2 = null
 
         given:
-        server.expectSerialExecution("a")
+        server.expect("a")
         def request1 = server.sendSomeAndBlock("b", new byte[2048])
         def request2 = server.sendSomeAndBlock("c", new byte[2048])
-        server.blockOnConcurrentExecutionAnyOfToResources(1, [request1])
-        server.expectSerialExecution(request2)
+        server.expectConcurrentAndBlock(1, request1)
+        server.expect(request2)
         server.start()
 
         when:

@@ -110,8 +110,8 @@ task block2 {
         TestFile inputFile = file('src.txt')
         inputFile.text = 'content'
 
-        def block1 = server.blockOnConcurrentExecutionAnyOf(1, "block1")
-        def block2 = server.blockOnConcurrentExecutionAnyOf(1, "block2")
+        def block1 = server.expectAndBlock("block1")
+        def block2 = server.expectAndBlock("block2")
 
         given:
         succeeds "a"
@@ -178,8 +178,8 @@ block2.mustRunAfter b
 
         succeeds('help') // Ensure build scripts are compiled
 
-        def block1 = server.blockOnConcurrentExecutionAnyOf(1, "block1")
-        def block2 = server.blockOnConcurrentExecutionAnyOf(1, "block2")
+        def block1 = server.expectAndBlock("block1")
+        def block2 = server.expectAndBlock("block2")
 
         when:
         // Start build 1 then wait until it has run task 'a'.

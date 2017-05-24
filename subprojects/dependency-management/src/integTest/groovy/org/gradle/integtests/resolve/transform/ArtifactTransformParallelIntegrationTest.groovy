@@ -89,7 +89,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             }
         """
 
-        server.expectConcurrentExecution("test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
+        server.expectConcurrent("test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
 
         when:
         succeeds ":resolve"
@@ -124,7 +124,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             }
         """
 
-        server.expectConcurrentExecution("a.jar", "b.jar", "c.jar")
+        server.expectConcurrent("a.jar", "b.jar", "c.jar")
 
         when:
         succeeds ":resolve"
@@ -172,7 +172,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             }
         """
 
-        server.expectConcurrentExecution("a.jar", "b.jar", "c.jar", "test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
+        server.expectConcurrent("a.jar", "b.jar", "c.jar", "test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
 
         when:
         executer.withArguments("--max-workers=6")
@@ -217,19 +217,17 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             }
         """
 
-        server.expectConcurrentExecutionTo([
+        server.expectConcurrent(
             server.file(m1.pom.path, m1.pom.file),
-            server.file(m2.pom.path, m2.pom.file)
-        ])
+            server.file(m2.pom.path, m2.pom.file))
 
-        def handle = server.blockOnConcurrentExecutionAnyOfToResources(4, [
+        def handle = server.expectConcurrentAndBlock(
             server.resource("a.jar"),
             server.resource("b.jar"),
             server.file(m1.artifact.path, m1.artifact.file),
-            server.file(m2.artifact.path, m2.artifact.file),
-        ])
-        def transform1 = server.blockOnConcurrentExecutionAnyOfToResources(1, [server.resource("test-1.3.jar")])
-        server.expectSerialExecution(server.resource("test2-2.3.jar"))
+            server.file(m2.artifact.path, m2.artifact.file))
+        def transform1 = server.expectAndBlock(server.resource("test-1.3.jar"))
+        server.expect(server.resource("test2-2.3.jar"))
 
         when:
         def build = executer.withArguments("--max-workers=4").withTasks(':resolve').start()
@@ -279,7 +277,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             }
         """
 
-        server.expectConcurrentExecution("a.jar", "bad-b.jar", "bad-c.jar")
+        server.expectConcurrent("a.jar", "bad-b.jar", "bad-c.jar")
 
         when:
         fails ":resolve"

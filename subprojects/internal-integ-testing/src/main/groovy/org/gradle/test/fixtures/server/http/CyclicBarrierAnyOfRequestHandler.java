@@ -44,6 +44,9 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
     private AssertionError failure;
 
     CyclicBarrierAnyOfRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
+        if (expectedRequests.size() < maxConcurrent) {
+            throw new IllegalArgumentException("Too few requests specified.");
+        }
         this.lock = lock;
         this.condition = lock.newCondition();
         this.testId = testId;

@@ -54,10 +54,10 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         given:
         def getM1Pom = server.sendSomeAndBlock(m1.pom.path, longXml(m1.pom.file))
         def getM2Pom = server.sendSomeAndBlock(m2.pom.path, longXml(m2.pom.file))
-        def metaData = server.blockOnConcurrentExecutionAnyOfToResources(2, [getM1Pom, getM2Pom])
+        def metaData = server.expectConcurrentAndBlock(getM1Pom, getM2Pom)
         def getM1Jar = server.sendSomeAndBlock(m1.artifact.path, longJar(m1.artifact.file))
         def getM2Jar = server.sendSomeAndBlock(m2.artifact.path, longJar(m2.artifact.file))
-        def jars = server.blockOnConcurrentExecutionAnyOfToResources(2, [getM1Jar, getM2Jar])
+        def jars = server.expectConcurrentAndBlock(getM1Jar, getM2Jar)
 
         when:
         def build = executer.withTasks("resolve").withArguments("--max-workers=2", "--console=rich").start()
