@@ -3,8 +3,6 @@ multi-project-with-buildSrc
 
 A [multi-project build][1] with common logic defined in [`buildSrc`](./buildSrc) including a [custom task](./buildSrc/src/main/kotlin/HelloTask.kt#L5).
 
-Gradle Script Kotlin support is enabled recursively for all projects in [settings.gradle](./settings.gradle#L3).
-
 List the available tasks with:
 
     ./gradlew tasks --task
