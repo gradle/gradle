@@ -34,6 +34,7 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
     def "shows work-in-progress during graph and file resolution"() {
         def m1 = mavenRepo.module("test", "one", "1.2").publish()
         def m2 = mavenRepo.module("test", "two", "1.2").publish()
+
         buildFile << """
             repositories { 
                 maven { url '${server.uri}' }
@@ -51,14 +52,12 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 """
 
         given:
-        def metaData = server.blockOnConcurrentExecutionAnyOfToResources(2, [
-                server.file(m1.pom.path, m1.pom.file),
-                server.file(m2.pom.path, m2.pom.file)
-        ])
-        def jars = server.blockOnConcurrentExecutionAnyOfToResources(2, [
-                server.file(m1.artifact.path, m1.artifact.file),
-                server.file(m2.artifact.path, m2.artifact.file)
-        ])
+        def getM1Pom = server.sendSomeAndBlock(m1.pom.path, longXml(m1.pom.file))
+        def getM2Pom = server.sendSomeAndBlock(m2.pom.path, longXml(m2.pom.file))
+        def metaData = server.blockOnConcurrentExecutionAnyOfToResources(2, [getM1Pom, getM2Pom])
+        def getM1Jar = server.sendSomeAndBlock(m1.artifact.path, longJar(m1.artifact.file))
+        def getM2Jar = server.sendSomeAndBlock(m2.artifact.path, longJar(m2.artifact.file))
+        def jars = server.blockOnConcurrentExecutionAnyOfToResources(2, [getM1Jar, getM2Jar])
 
         when:
         def build = executer.withTasks("resolve").withArguments("--max-workers=2", "--console=rich").start()
@@ -73,6 +72,19 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 
         when:
         metaData.releaseAll()
+        getM1Pom.waitUntilBlocked()
+        getM2Pom.waitUntilBlocked()
+
+        then:
+        ConcurrentTestUtil.poll {
+            assert build.standardOutput.contains(workInProgressLine("> :resolve > Resolve dependencies :compile"))
+            assert build.standardOutput.contains(workInProgressLine("> one-1.2.pom > 1 KB/2 KB downloaded"))
+            assert build.standardOutput.contains(workInProgressLine("> two-1.2.pom > 1 KB/2 KB downloaded"))
+        }
+
+        when:
+        getM1Pom.release()
+        getM2Pom.release()
         jars.waitForAllPendingCalls()
 
         then:
@@ -82,7 +94,33 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
             assert build.standardOutput.contains(workInProgressLine("> two-1.2.jar"))
         }
 
+        when:
         jars.releaseAll()
+        getM1Jar.waitUntilBlocked()
+        getM2Jar.waitUntilBlocked()
+
+        then:
+        ConcurrentTestUtil.poll {
+            assert build.standardOutput.contains(workInProgressLine("> :resolve > Resolve files of :compile"))
+            assert build.standardOutput.contains(workInProgressLine("> one-1.2.jar > 1 KB/2 KB downloaded"))
+            assert build.standardOutput.contains(workInProgressLine("> two-1.2.jar > 1 KB/2 KB downloaded"))
+        }
+
+        getM1Jar.release()
+        getM2Jar.release()
         build.waitForFinish()
+    }
+
+    byte[] longXml(File file) {
+        def instr = new ByteArrayOutputStream()
+        instr << file.bytes
+        while (instr.size() < 2048) {
+            instr << "          ".bytes
+        }
+        return instr.toByteArray()
+    }
+
+    byte[] longJar(File file) {
+        return longXml(file)
     }
 }
