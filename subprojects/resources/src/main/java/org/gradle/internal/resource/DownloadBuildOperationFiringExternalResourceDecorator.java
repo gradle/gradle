@@ -31,12 +31,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 
-public class BuildOperationFiringExternalResourceDecorator implements ExternalResource {
+public class DownloadBuildOperationFiringExternalResourceDecorator implements ExternalResource {
     private final ExternalResourceName resourceName;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ExternalResource delegate;
 
-    public BuildOperationFiringExternalResourceDecorator(ExternalResourceName resourceName, BuildOperationExecutor buildOperationExecutor, ExternalResource delegate) {
+    public DownloadBuildOperationFiringExternalResourceDecorator(ExternalResourceName resourceName, BuildOperationExecutor buildOperationExecutor, ExternalResource delegate) {
         this.resourceName = resourceName;
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
@@ -180,58 +180,15 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     private static <T> ExternalResourceReadResult<T> result(BuildOperationContext buildOperationContext, ExternalResourceReadResult<T> result) {
-        buildOperationContext.setResult(new OperationResult(result == null ? 0 : result.getReadContentLength()));
+        buildOperationContext.setResult(new ExternalResourceDownloadBuildOperationType.ResultImpl(result == null ? 0 : result.getReadContentLength()));
         return result;
     }
 
     private BuildOperationDescriptor.Builder createBuildOperationDetails() {
-        NetworkRequestBuildOperationType.Details operationDetails = new OperationDetails(resourceName.getUri());
+        ExternalResourceDownloadBuildOperationType.Details operationDetails = new ExternalResourceDownloadBuildOperationType.DetailsImpl(resourceName.getUri(), -1, "null");
         return BuildOperationDescriptor
             .displayName("Download " + resourceName.getDisplayName())
             .progressDisplayName(resourceName.getShortDisplayName())
             .details(operationDetails);
-    }
-
-    private static class OperationDetails implements NetworkRequestBuildOperationType.Details {
-
-        private final URI location;
-
-        private OperationDetails(URI location) {
-            this.location = location;
-        }
-
-        public String getLocation() {
-            return location.toASCIIString();
-        }
-
-        @Override
-        public String toString() {
-            return "NetworkRequestBuildOperationType.Details{"
-                + "location=" + location + ", "
-                + '}';
-        }
-
-    }
-
-    private static class OperationResult implements NetworkRequestBuildOperationType.Result {
-
-        private final long contentLength;
-
-        private OperationResult(long contentLength) {
-            this.contentLength = contentLength;
-        }
-
-        @Override
-        public long getContentLength() {
-            return contentLength;
-        }
-
-        @Override
-        public String toString() {
-            return "NetworkRequestBuildOperationType.Result{"
-                + "contentLength=" + contentLength
-                + '}';
-        }
-
     }
 }

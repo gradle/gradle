@@ -69,7 +69,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         this(listener, timeProvider, Executors.newSingleThreadScheduledExecutor(), headerFormatter, alwaysRenderTasks);
     }
 
-    GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider, ScheduledExecutorService executor, LogHeaderFormatter headerFormatter, boolean alwaysRenderTasks) {
+    public GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider, ScheduledExecutorService executor, LogHeaderFormatter headerFormatter, boolean alwaysRenderTasks) {
         this.listener = listener;
         this.timeProvider = timeProvider;
         this.executor = executor;

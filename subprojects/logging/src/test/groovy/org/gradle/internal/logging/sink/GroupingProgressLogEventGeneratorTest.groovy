@@ -257,6 +257,5 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput([end] as ArrayList<OutputEvent>)
 
         then: 1 * future.cancel(false)
-        then: 1 * executor.shutdown()
     }
 }

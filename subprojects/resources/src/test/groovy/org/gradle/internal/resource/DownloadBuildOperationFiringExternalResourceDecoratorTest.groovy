@@ -28,7 +28,7 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
+class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specification {
 
     @Unroll
     def "delegates method call #methodName"() {
@@ -36,7 +36,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         def delegate = Mock(ExternalResource)
         def buildOperationExecutor = Mock(BuildOperationExecutor)
 
-        def resource = new BuildOperationFiringExternalResourceDecorator(new ExternalResourceName("resource"), buildOperationExecutor, delegate)
+        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(new ExternalResourceName("resource"), buildOperationExecutor, delegate)
 
         when:
         resource."$methodName"()
@@ -127,11 +127,11 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         def delegateMock = Mock(ExternalResource)
         def delegate = new TestExternalResource(delegateMock)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
-        def resource = new BuildOperationFiringExternalResourceDecorator(new ExternalResourceName(new URI("http://some/uri")), buildOperationExecuter, delegate)
+        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(new ExternalResourceName(new URI("http://some/uri")), buildOperationExecuter, delegate)
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
             def operationContextMock = Mock(BuildOperationContext) {
-                1 * setResult(_) >> { NetworkRequestBuildOperationType.Result result ->
-                    assert result.contentLength == TestExternalResource.READ_CONTENT_LENGTH
+                1 * setResult(_) >> { ExternalResourceDownloadBuildOperationType.ResultImpl result ->
+                    assert result.readContentLength == TestExternalResource.READ_CONTENT_LENGTH
                 }
             }
 
@@ -142,8 +142,10 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
             assert descriptor.displayName == "Download http://some/uri"
 
             def details = descriptor.details
-            assert details instanceof NetworkRequestBuildOperationType.Details
+            assert details instanceof ExternalResourceDownloadBuildOperationType.Details
             assert details.location == TestExternalResource.METADATA.location.toASCIIString()
+            assert details.contentLength == -1
+            assert details.contentType == "null"
         }
 
         when:
@@ -166,7 +168,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         given:
         def delegate = Mock(ExternalResource)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
-        def resource = new BuildOperationFiringExternalResourceDecorator(new ExternalResourceName("resource"), buildOperationExecuter, delegate)
+        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(new ExternalResourceName("resource"), buildOperationExecuter, delegate)
         def buildOperationContext = Mock(BuildOperationContext)
 
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->

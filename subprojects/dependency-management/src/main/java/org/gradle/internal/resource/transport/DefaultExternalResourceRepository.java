@@ -18,7 +18,7 @@ package org.gradle.internal.resource.transport;
 
 
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resource.BuildOperationFiringExternalResourceDecorator;
+import org.gradle.internal.resource.DownloadBuildOperationFiringExternalResourceDecorator;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocalResource;
@@ -68,7 +68,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     @Override
     public ExternalResource resource(ExternalResourceName resource, boolean revalidate) {
-        return new BuildOperationFiringExternalResourceDecorator(resource, buildOperationExecutor, new LazyExternalResource(resource, accessor, revalidate));
+        return new DownloadBuildOperationFiringExternalResourceDecorator(resource, buildOperationExecutor, new LazyExternalResource(resource, accessor, revalidate));
     }
 
     @Override
