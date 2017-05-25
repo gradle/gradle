@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal
 import org.gradle.api.Action
 import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -34,8 +35,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import java.util.concurrent.Executor
 
 abstract class NativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
@@ -53,23 +52,12 @@ abstract class NativeCompilerTest extends Specification {
 
     protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
 
-    WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
+    WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
 
     private BuildOperationListener buildOperationListener = Mock(BuildOperationListener)
     private TimeProvider timeProvider = Mock(TimeProvider)
     protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, new NoOpProgressLoggerFactory(),
         new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), 1)
-
-    def setup() {
-        _ * workerLeaseService.withLocks(_) >> { args ->
-            new Executor() {
-                @Override
-                void execute(Runnable runnable) {
-                    runnable.run()
-                }
-            }
-        }
-    }
 
     def "arguments include source file"() {
         given:
