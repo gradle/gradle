@@ -43,6 +43,11 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public String getPath() {
+        return backingModule.getPath();
+    }
+
+    @Override
     public void assertPublishedAsJavaModule() {
         backingModule.assertPublishedAsJavaModule();
     }
