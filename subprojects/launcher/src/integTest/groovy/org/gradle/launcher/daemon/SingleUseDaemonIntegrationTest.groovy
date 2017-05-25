@@ -101,7 +101,8 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         wasNotForked()
     }
 
-    def "forks build to run when immutable jvm args set regardless of the environment"() {
+    @IgnoreIf({ GradleContextualExecuter.isEmbedded() })
+    def "does not fork build to run when immutable jvm args match the environment"() {
         when:
         requireJvmArg('-Xmx64m')
         runWithJvmArg('-Xmx64m')
@@ -115,8 +116,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         succeeds()
 
         and:
-        wasForked()
-        daemons.daemon.stops()
+        wasNotForked()
     }
 
     def "does not fork build when only mutable system properties requested in gradle properties"() {
