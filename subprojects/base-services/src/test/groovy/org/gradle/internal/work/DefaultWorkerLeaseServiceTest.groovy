@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.resources.TestTrackedResourceLock
 import spock.lang.Specification
 
@@ -155,6 +156,36 @@ class DefaultWorkerLeaseServiceTest extends Specification {
         !lock2.lockedState
     }
 
+    def "registers/deregisters a listener for parallelism configuration changes"() {
+        ParallelExecutionManager parallelExecutionManager = parallelExecutionManager()
+
+        when:
+        workerLeaseService = new DefaultWorkerLeaseService(Mock(ResourceLockCoordinationService), parallelExecutionManager)
+
+        then:
+        1 * parallelExecutionManager.addListener(_)
+
+        when:
+        workerLeaseService.stop()
+
+        then:
+        1 * parallelExecutionManager.removeListener(_)
+    }
+
+    def "adjusts max worker count on parallelism configuration change"() {
+        when:
+        workerLeaseService.onConfigurationChange(new DefaultParallelismConfiguration(true, 2))
+
+        then:
+        workerLeaseService.getMaxWorkerCount() == 2
+
+        when:
+        workerLeaseService.onConfigurationChange(new DefaultParallelismConfiguration(false, 4))
+
+        then:
+        workerLeaseService.getMaxWorkerCount() == 4
+    }
+
     TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock=false) {
         return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked, hasLock)
     }
@@ -182,8 +213,8 @@ class DefaultWorkerLeaseServiceTest extends Specification {
     }
 
     ParallelExecutionManager parallelExecutionManager() {
-        return Stub(ParallelExecutionManager) {
-            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
+        return Mock(ParallelExecutionManager) {
+            _ * getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
         }
     }
 }

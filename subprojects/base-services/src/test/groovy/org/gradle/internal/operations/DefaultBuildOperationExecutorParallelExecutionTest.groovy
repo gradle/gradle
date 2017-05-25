@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.logging.events.OperationIdentifier
@@ -42,25 +43,27 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     WorkerLeaseRegistry.WorkerLeaseCompletion outerOperationCompletion
     WorkerLeaseRegistry.WorkerLease outerOperation
     BuildOperationListener operationListener = Mock(BuildOperationListener)
+    ExecutorFactory executorFactory = new DefaultExecutorFactory()
 
     def setupBuildOperationExecutor(int maxThreads) {
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), parallelism(maxThreads))
+        ParallelExecutionManager parallelExecutionManager = parallelism(maxThreads)
+        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), parallelExecutionManager)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), parallelism(maxThreads))
+            new DefaultBuildOperationQueueFactory(workerRegistry), executorFactory, parallelExecutionManager)
         outerOperationCompletion = workerRegistry.getWorkerLease().start()
         outerOperation = workerRegistry.getCurrentWorkerLease()
-    }
-
-    ParallelExecutionManager parallelism(int maxWorkers) {
-        return Stub(ParallelExecutionManager) {
-            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, maxWorkers)
-        }
     }
 
     static class SimpleWorker implements BuildOperationWorker<DefaultBuildOperationQueueTest.TestBuildOperation> {
         void execute(DefaultBuildOperationQueueTest.TestBuildOperation run, BuildOperationContext context) { run.run(context) }
         String getDisplayName() { return getClass().simpleName }
+    }
+
+    def parallelism(int maxThreads) {
+        return Mock(ParallelExecutionManager) {
+            _ * getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, maxThreads)
+        }
     }
 
     def "cleanup"() {
@@ -394,5 +397,45 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         then:
         operationState != null
         !operationState.running
+    }
+
+    def "registers/deregisters a listener for parallelism changes"() {
+        def parallelExecutionManager = parallelism(1)
+
+        when:
+        buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+            Stub(BuildOperationQueueFactory), Stub(ExecutorFactory), parallelExecutionManager)
+
+        then:
+        1 * parallelExecutionManager.addListener(_)
+
+        when:
+        buildOperationExecutor.stop()
+
+        then:
+        1 * parallelExecutionManager.removeListener(_)
+    }
+
+    def "adjusts thread pool size when parallelism configuration changes"() {
+        executorFactory = Mock(ExecutorFactory)
+        def managedExecutor = Mock(ManagedExecutor)
+
+        when:
+        setupBuildOperationExecutor(2)
+
+        then:
+        1 * executorFactory.create(_, 2) >> managedExecutor
+
+        when:
+        buildOperationExecutor.onConfigurationChange(new DefaultParallelismConfiguration(true, 3))
+
+        then:
+        1 * managedExecutor.setFixedPoolSize(3)
+
+        when:
+        buildOperationExecutor.onConfigurationChange(new DefaultParallelismConfiguration(false, 4))
+
+        then:
+        1 * managedExecutor.setFixedPoolSize(4)
     }
 }
