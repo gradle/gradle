@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
 class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
     @Rule
@@ -50,7 +49,6 @@ class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
         """
     }
 
-    @Ignore("flaky")
     def "shows progress bar and percent phase completion"() {
         gradle = executer.withTasks("hello").start()
         expect:
@@ -65,6 +63,7 @@ class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
         server.waitFor()
         assertHasMessage("EXECUTING")
         server.release()
+
         gradle.waitForFinish()
     }
 
@@ -75,6 +74,6 @@ class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
     }
 
     private String regexFor(String message) {
-        /<[-=]{13}> \d% $message \[\d+s]/
+        /<[-=]{13}> \d{1,3}% $message \[\d+s]/
     }
 }
