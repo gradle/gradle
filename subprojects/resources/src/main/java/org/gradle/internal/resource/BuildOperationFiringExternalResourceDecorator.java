@@ -180,23 +180,23 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     private static <T> ExternalResourceReadResult<T> result(BuildOperationContext buildOperationContext, ExternalResourceReadResult<T> result) {
-        buildOperationContext.setResult(new OperationResult(result == null ? 0 : result.getReadContentLength()));
+        buildOperationContext.setResult(new ReadOperationResult(result == null ? 0 : result.getBytesRead()));
         return result;
     }
 
     private BuildOperationDescriptor.Builder createBuildOperationDetails() {
-        NetworkRequestBuildOperationType.Details operationDetails = new OperationDetails(resourceName.getUri());
+        ExternalResourceReadBuildOperationType.Details operationDetails = new ReadOperationDetails(resourceName.getUri());
         return BuildOperationDescriptor
             .displayName("Download " + resourceName.getDisplayName())
             .progressDisplayName(resourceName.getShortDisplayName())
             .details(operationDetails);
     }
 
-    private static class OperationDetails implements NetworkRequestBuildOperationType.Details {
+    private static class ReadOperationDetails implements ExternalResourceReadBuildOperationType.Details {
 
         private final URI location;
 
-        private OperationDetails(URI location) {
+        private ReadOperationDetails(URI location) {
             this.location = location;
         }
 
@@ -206,31 +206,27 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
 
         @Override
         public String toString() {
-            return "NetworkRequestBuildOperationType.Details{"
-                + "location=" + location + ", "
-                + '}';
+            return "ExternalResourceReadBuildOperationType.Details{location=" + location + ", " + '}';
         }
 
     }
 
-    private static class OperationResult implements NetworkRequestBuildOperationType.Result {
+    private static class ReadOperationResult implements ExternalResourceReadBuildOperationType.Result {
 
-        private final long contentLength;
+        private final long bytesRead;
 
-        private OperationResult(long contentLength) {
-            this.contentLength = contentLength;
+        private ReadOperationResult(long bytesRead) {
+            this.bytesRead = bytesRead;
         }
 
         @Override
-        public long getContentLength() {
-            return contentLength;
+        public long getBytesRead() {
+            return bytesRead;
         }
 
         @Override
         public String toString() {
-            return "NetworkRequestBuildOperationType.Result{"
-                + "contentLength=" + contentLength
-                + '}';
+            return "ExternalResourceReadBuildOperationType.Result{bytesRead=" + bytesRead + '}';
         }
 
     }
