@@ -42,7 +42,7 @@ class AbstractExternalResourceTest extends Specification {
 
         then:
         file.text == "abc"
-        result.readContentLength == 3
+        result.bytesRead == 3
     }
 
     def "writes contents to output stream"() {
@@ -53,7 +53,7 @@ class AbstractExternalResourceTest extends Specification {
 
         then:
         new String(outstr.toByteArray()) == "abc"
-        result.readContentLength == 3
+        result.bytesRead == 3
     }
 
     def "writes contents to output stream action"() {
@@ -66,7 +66,7 @@ class AbstractExternalResourceTest extends Specification {
         1 * action.execute(_) >> { InputStream instr ->
             assert instr.text == "abc"
         }
-        result.readContentLength == 3
+        result.bytesRead == 3
     }
 
     def "propagates stream action failure"() {
@@ -89,7 +89,7 @@ class AbstractExternalResourceTest extends Specification {
         def result = resource.withContent(action)
 
         then:
-        result.readContentLength == 3
+        result.bytesRead == 3
         result.result == "result"
         1 * action.transform(_) >> { InputStream instr ->
             assert instr.text == "abc"
@@ -117,7 +117,7 @@ class AbstractExternalResourceTest extends Specification {
         def result = resource.withContent(action)
 
         then:
-        result.readContentLength == 3
+        result.bytesRead == 3
         result.result == "result"
         1 * action.execute(_, _) >> { InputStream instr, ExternalResourceMetaData metaData ->
             assert instr.text == "abc"

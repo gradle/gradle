@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.resource.NetworkRequestBuildOperationType
+import org.gradle.internal.resource.ExternalResourceReadBuildOperationType
 import spock.lang.Unroll
 
 class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -56,9 +56,9 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         then:
         def actualFileLength = m.pom.file.bytes.length
-        def buildOp = buildOperations.first(NetworkRequestBuildOperationType)
+        def buildOp = buildOperations.first(ExternalResourceReadBuildOperationType)
         URI.create(buildOp.details.location).path == m.pomPath
-        buildOp.result.contentLength == actualFileLength
+        buildOp.result.bytesRead == actualFileLength
 
         where:
         chunked << [true, false]

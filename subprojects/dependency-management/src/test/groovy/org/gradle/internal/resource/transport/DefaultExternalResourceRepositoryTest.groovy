@@ -59,7 +59,7 @@ class DefaultExternalResourceRepositoryTest extends Specification {
         def result = resource.writeToIfPresent(file)
 
         then:
-        result.readContentLength == 5
+        result.bytesRead == 5
         file.text == "12345"
 
         1 * resourceAccessor.openResource(name.uri, true) >> response
@@ -71,7 +71,7 @@ class DefaultExternalResourceRepositoryTest extends Specification {
         result = resource.writeToIfPresent(file)
 
         then:
-        result.readContentLength == 2
+        result.bytesRead == 2
         file.text == "hi"
 
         1 * resourceAccessor.openResource(name.uri, true) >> response

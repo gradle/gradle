@@ -130,8 +130,8 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         def resource = new BuildOperationFiringExternalResourceDecorator(new ExternalResourceName(new URI("http://some/uri")), buildOperationExecuter, delegate)
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
             def operationContextMock = Mock(BuildOperationContext) {
-                1 * setResult(_) >> { NetworkRequestBuildOperationType.Result result ->
-                    assert result.contentLength == TestExternalResource.READ_CONTENT_LENGTH
+                1 * setResult(_) >> { ExternalResourceReadBuildOperationType.Result result ->
+                    assert result.bytesRead == TestExternalResource.READ_CONTENT_LENGTH
                 }
             }
 
@@ -142,7 +142,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
             assert descriptor.displayName == "Download http://some/uri"
 
             def details = descriptor.details
-            assert details instanceof NetworkRequestBuildOperationType.Details
+            assert details instanceof ExternalResourceReadBuildOperationType.Details
             assert details.location == TestExternalResource.METADATA.location.toASCIIString()
         }
 

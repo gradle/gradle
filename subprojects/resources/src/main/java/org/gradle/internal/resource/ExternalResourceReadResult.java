@@ -23,20 +23,20 @@ import org.gradle.api.Nullable;
  */
 public class ExternalResourceReadResult<T> {
 
-    private final long readContentLength;
+    private final long bytesRead;
     private final T result;
 
-    private ExternalResourceReadResult(long readContentLength, T result) {
-        this.readContentLength = readContentLength;
+    private ExternalResourceReadResult(long bytesRead, T result) {
+        this.bytesRead = bytesRead;
         this.result = result;
     }
 
-    public static ExternalResourceReadResult<Void> of(long readContentLength) {
-        return new ExternalResourceReadResult<Void>(readContentLength, null);
+    public static ExternalResourceReadResult<Void> of(long bytesRead) {
+        return new ExternalResourceReadResult<Void>(bytesRead, null);
     }
 
-    public static <T> ExternalResourceReadResult<T> of(long readContentLength, T t) {
-        return new ExternalResourceReadResult<T>(readContentLength, t);
+    public static <T> ExternalResourceReadResult<T> of(long bytesRead, T t) {
+        return new ExternalResourceReadResult<T>(bytesRead, t);
     }
 
     /**
@@ -51,8 +51,8 @@ public class ExternalResourceReadResult<T> {
      * Moreover, it represents the content bytes <b>read</b>, not transferred.
      * If the read operation only reads a subset of what was transmitted, this number will be the read byte count.
      */
-    public long getReadContentLength() {
-        return readContentLength;
+    public long getBytesRead() {
+        return bytesRead;
     }
 
     /**
