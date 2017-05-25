@@ -69,7 +69,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
     public WorkerLease getCurrentWorkerLease() {
         Collection<? extends ResourceLock> operations = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
         if (operations.isEmpty()) {
-            throw new IllegalStateException("No worker lease associated with the current thread");
+            throw new NoAvailableWorkerLeaseException("No worker lease associated with the current thread");
         }
         return (DefaultWorkerLease) operations.toArray()[operations.size() - 1];
     }

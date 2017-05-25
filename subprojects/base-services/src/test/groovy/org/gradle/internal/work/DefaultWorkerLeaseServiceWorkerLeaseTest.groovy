@@ -211,7 +211,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry.currentWorkerLease
 
         then:
-        IllegalStateException e = thrown()
+        NoAvailableWorkerLeaseException e = thrown()
         e.message == 'No worker lease associated with the current thread'
 
         when:
