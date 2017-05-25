@@ -21,7 +21,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ResourceExceptions;
-import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.LocalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
 import java.io.IOException;

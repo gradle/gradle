@@ -24,7 +24,7 @@ import org.apache.maven.wagon.proxy.ProxyInfo
 import org.apache.maven.wagon.proxy.ProxyInfoProvider
 import org.apache.maven.wagon.repository.Repository
 import org.gradle.api.GradleException
-import org.gradle.internal.resource.local.LocalResource
+import org.gradle.internal.resource.LocalResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.File;

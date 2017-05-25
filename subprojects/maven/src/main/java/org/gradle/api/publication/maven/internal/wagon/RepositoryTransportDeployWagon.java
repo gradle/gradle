@@ -30,7 +30,7 @@ import org.apache.maven.wagon.repository.Repository;
 import org.apache.maven.wagon.resource.Resource;
 import org.gradle.api.GradleException;
 import org.gradle.internal.resource.local.FileLocalResource;
-import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.LocalResource;
 
 import java.io.File;
 import java.io.IOException;

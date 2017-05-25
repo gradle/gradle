@@ -19,7 +19,7 @@ package org.gradle.internal.resource.transport.aws.s3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.LocalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;

@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.LocalResource;
 
 import java.io.File;
 import java.net.URI;

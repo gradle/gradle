@@ -23,7 +23,6 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
