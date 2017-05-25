@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 
 class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
@@ -25,6 +26,7 @@ class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec 
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
     private static final String BYE_WORLD_MESSAGE = 'Bye world'
 
+    @NotYetImplemented
     def "can group task output in composite build"() {
         given:
         file("$PROJECT_A_NAME/build.gradle") << javaProject()
@@ -67,8 +69,8 @@ class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec 
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withTasks('compileJava').run()
 
         then:
-        result.groupedOutput.task(":$PROJECT_A_NAME:helloWorld").output.contains(HELLO_WORLD_MESSAGE)
-        result.groupedOutput.task(':byeWorld').output.contains(BYE_WORLD_MESSAGE)
+        result.groupedOutput.task(":$PROJECT_A_NAME:helloWorld").output == HELLO_WORLD_MESSAGE
+        result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
     static String javaProject() {

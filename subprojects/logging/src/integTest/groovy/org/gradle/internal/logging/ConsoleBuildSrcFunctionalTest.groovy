@@ -45,7 +45,7 @@ class ConsoleBuildSrcFunctionalTest extends AbstractConsoleFunctionalSpec {
         succeeds('byeWorld')
 
         then:
-        result.groupedOutput.task(':buildSrc:helloWorld').output.contains(HELLO_WORLD_MESSAGE)
-        result.groupedOutput.task(':byeWorld').output.contains(BYE_WORLD_MESSAGE)
+        result.groupedOutput.task(':buildSrc:helloWorld').output == HELLO_WORLD_MESSAGE
+        result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 }

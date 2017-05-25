@@ -36,9 +36,9 @@ class ConsoleGradleBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
         succeeds(AGGREGATE_TASK_NAME)
 
         then:
-        result.groupedOutput.task(':helloWorld').output.contains(HELLO_WORLD_MESSAGE)
-        result.groupedOutput.task(":${testDirectory.name}:important").output.contains(IMPORTANT_MESSAGE)
-        result.groupedOutput.task(':byeWorld').output.contains(BYE_WORLD_MESSAGE)
+        result.groupedOutput.task(':helloWorld').output == HELLO_WORLD_MESSAGE
+        result.groupedOutput.task(":${testDirectory.name}:important").output == IMPORTANT_MESSAGE
+        result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
     @NotYetImplemented
@@ -52,11 +52,12 @@ class ConsoleGradleBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
         succeeds(AGGREGATE_TASK_NAME)
 
         then:
-        result.groupedOutput.task(':helloWorld').output.contains(HELLO_WORLD_MESSAGE)
-        result.groupedOutput.task(":otherBuild").output.contains(IMPORTANT_MESSAGE)
-        result.groupedOutput.task(':byeWorld').output.contains(BYE_WORLD_MESSAGE)
+        result.groupedOutput.task(':helloWorld').output == HELLO_WORLD_MESSAGE
+        result.groupedOutput.task(":otherBuild").output == IMPORTANT_MESSAGE
+        result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
+    @NotYetImplemented
     def "can group task output from external build invoked executed by GradleBuild in different directory explicitly setting project name"() {
         given:
         def externalDirPath = 'external'
@@ -71,9 +72,9 @@ class ConsoleGradleBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
         succeeds(AGGREGATE_TASK_NAME)
 
         then:
-        result.groupedOutput.task(':helloWorld').output.contains(HELLO_WORLD_MESSAGE)
-        result.groupedOutput.task(":otherBuild").output.contains(IMPORTANT_MESSAGE)
-        result.groupedOutput.task(':byeWorld').output.contains(BYE_WORLD_MESSAGE)
+        result.groupedOutput.task(':helloWorld').output == HELLO_WORLD_MESSAGE
+        result.groupedOutput.task(":otherBuild").output == IMPORTANT_MESSAGE
+        result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
     static String mainBuildScript(String externalBuildScript) {
