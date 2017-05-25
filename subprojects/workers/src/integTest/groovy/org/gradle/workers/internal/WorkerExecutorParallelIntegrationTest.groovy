@@ -415,6 +415,31 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
+    def "can start another task when the current task has multiple actions and is waiting on async work"() {
+        given:
+        buildFile << """
+            task firstTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("task1-1") }
+                doLast { submitWorkItem("task1-2") }
+            }
+            
+            task secondTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("task2") }
+            }
+            
+            task allTasks {
+                dependsOn firstTask, secondTask
+            }
+        """
+
+        blockingHttpServer.expectConcurrent("task1-1", "task2")
+        blockingHttpServer.expectConcurrent("task1-2")
+
+        expect:
+        args("--max-workers=2")
+        succeeds("allTasks")
+    }
+
     def "does not start a task in another project when a task action is executing without --parallel"() {
         given:
         settingsFile << """
