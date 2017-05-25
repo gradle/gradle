@@ -100,13 +100,14 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
             }
 
             String path = httpExchange.getRequestURI().getPath().substring(1);
-            if (!expected.containsKey(path) || waitingFor == 0) {
-                failure = new AssertionError(String.format("Unexpected request to '%s' received. Waiting for %s further requests, already received %s, released %s, still expecting %s.", path, waitingFor, received, released, expected.keySet()));
+            handler = expected.get(path);
+            if (handler == null || !handler.getMethod().equals(httpExchange.getRequestMethod()) || waitingFor == 0) {
+                failure = new AssertionError(String.format("Unexpected request %s %s received. Waiting for %s further requests, already received %s, released %s, still expecting %s.", httpExchange.getRequestMethod(), path, waitingFor, received, released, expected.keySet()));
                 condition.signalAll();
                 throw failure;
             }
 
-            handler = expected.remove(path);
+            expected.remove(path);
             received.add(path);
             waitingFor--;
             if (waitingFor == 0) {

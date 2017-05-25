@@ -20,19 +20,30 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 
-interface ResourceHandler {
-    /**
-     * Returns the method for this handler.
-     */
-    String getMethod();
+class ExpectPut implements BlockingHttpServer.ExpectedRequest, ResourceExpectation, ResourceHandler {
+    private final String path;
 
-    /**
-     * Returns the path for this handler.
-     */
-    String getPath();
+    ExpectPut(String path) {
+        this.path = SendFixedContent.removeLeadingSlash(path);
+    }
 
-    /**
-     * Called to handle a request. Is *not* called under lock.
-     */
-    void writeTo(int requestId, HttpExchange exchange) throws IOException;
+    @Override
+    public String getMethod() {
+        return "PUT";
+    }
+
+    @Override
+    public String getPath() {
+        return path;
+    }
+
+    @Override
+    public ResourceHandler create(WaitPrecondition precondition) {
+        return this;
+    }
+
+    @Override
+    public void writeTo(int requestId, HttpExchange exchange) throws IOException {
+        exchange.sendResponseHeaders(200, 0);
+    }
 }

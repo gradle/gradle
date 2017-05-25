@@ -43,6 +43,11 @@ class SendFixedContent implements ResourceHandler, BlockingHttpServer.ExpectedRe
     }
 
     @Override
+    public String getMethod() {
+        return "GET";
+    }
+
+    @Override
     public String getPath() {
         return path;
     }
