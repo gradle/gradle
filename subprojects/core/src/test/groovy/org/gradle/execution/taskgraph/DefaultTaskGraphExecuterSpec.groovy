@@ -19,8 +19,6 @@ package org.gradle.execution.taskgraph
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
-import org.gradle.api.execution.internal.InternalTaskExecutionListener
-import org.gradle.api.execution.internal.TaskOperationInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
@@ -62,13 +60,11 @@ class DefaultTaskGraphExecuterSpec extends Specification {
 
     def "notifies task listeners as tasks are executed"() {
         def listener = Mock(TaskExecutionListener)
-        def legacyListener = Mock(InternalTaskExecutionListener)
         def a = task("a")
         def b = task("b")
 
         given:
         taskExecuter.addTaskExecutionListener(listener)
-        listenerManager.addListener(legacyListener)
         taskExecuter.addTasks([a, b])
 
         when:
@@ -76,22 +72,13 @@ class DefaultTaskGraphExecuterSpec extends Specification {
 
         then:
         1 * executorFactory.create(_) >> Mock(StoppableExecutor)
-        1 * legacyListener.beforeExecute(_, _) >> { TaskOperationInternal t, e ->
-            assert t.task == a
-        }
         1 * listener.beforeExecute(a)
         1 * listener.afterExecute(a, a.state)
-        1 * legacyListener.afterExecute(_, _)
 
         then:
-        1 * legacyListener.beforeExecute(_, _) >> { TaskOperationInternal t, e ->
-            assert t.task == b
-        }
         1 * listener.beforeExecute(b)
         1 * listener.afterExecute(b, b.state)
-        1 * legacyListener.afterExecute(_, _)
         0 * listener._
-        0 * legacyListener._
 
         and:
         buildOperationExecutor.operations[0].name == ":a"

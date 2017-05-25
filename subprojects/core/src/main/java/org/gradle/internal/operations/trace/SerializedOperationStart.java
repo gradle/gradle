@@ -18,11 +18,12 @@ package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.OperationStartEvent;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 class SerializedOperationStart {
@@ -47,8 +48,15 @@ class SerializedOperationStart {
 
     private Object transform(Object details) {
         if (details instanceof ExecuteTaskBuildOperationDetails) {
-            ExecuteTaskBuildOperationDetails cast = (ExecuteTaskBuildOperationDetails) details;
-            return Collections.singletonMap("task", cast.getTask().getPath());
+            // This type exposes a non serializable property: “task”.
+            // We can do this more methodically if necessary by using the interface as a view
+            // to the object instead of blindly reflecting
+            ExecuteTaskBuildOperationType.Details cast = (ExecuteTaskBuildOperationDetails) details;
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("buildPath", cast.getBuildPath());
+            map.put("taskPath", cast.getTaskPath());
+            map.put("taskClassName", cast.getTaskClassName());
+            return map;
         }
 
         return details;

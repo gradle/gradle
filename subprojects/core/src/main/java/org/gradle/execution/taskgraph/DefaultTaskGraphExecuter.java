@@ -25,10 +25,10 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
-import org.gradle.api.execution.internal.TaskOperationInternal;
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperationResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
@@ -43,11 +43,9 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationCategory;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationState;
-import org.gradle.internal.progress.BuildOperationCategory;
-import org.gradle.internal.progress.OperationFinishEvent;
-import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
@@ -72,7 +70,6 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final Factory<? extends TaskExecuter> taskExecuter;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
-    private final InternalTaskExecutionListener internalTaskListener;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
@@ -86,7 +83,6 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         this.buildOperationExecutor = buildOperationExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
-        internalTaskListener = listenerManager.getBroadcaster(InternalTaskExecutionListener.class);
         taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, coordinationService, workerLeaseService);
     }
 
@@ -239,16 +235,13 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    final Object taskExecutionOperationId = buildOperationExecutor.getCurrentOperation().getId();
-                    // These events are used by build scans
-                    TaskOperationInternal legacyOperation = new TaskOperationInternal(task, taskExecutionOperationId);
-                    internalTaskListener.beforeExecute(legacyOperation, new OperationStartEvent(0));
                     TaskStateInternal state = task.getState();
                     taskListeners.getSource().beforeExecute(task);
-                    taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
+                    TaskExecutionContext ctx = new DefaultTaskExecutionContext();
+                    taskExecuter.execute(task, state, ctx);
+                    context.setResult(new ExecuteTaskBuildOperationResult(state, ctx));
                     taskListeners.getSource().afterExecute(task, state);
                     context.failed(state.getFailure());
-                    internalTaskListener.afterExecute(legacyOperation, new OperationFinishEvent(0, 0, state.getFailure(), null));
                 }
 
                 @Override

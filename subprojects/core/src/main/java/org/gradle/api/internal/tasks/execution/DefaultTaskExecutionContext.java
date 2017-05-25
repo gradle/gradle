@@ -15,13 +15,20 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
+
+import java.util.List;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
+
     private TaskArtifactState taskArtifactState;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
+    private UniqueId originBuildId;
+    private List<String> upToDateMessages;
 
     @Override
     public TaskArtifactState getTaskArtifactState() {
@@ -42,4 +49,26 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     public void setBuildCacheKey(TaskOutputCachingBuildCacheKey buildCacheKey) {
         this.buildCacheKey = buildCacheKey;
     }
+
+    @Override
+    public UniqueId getOriginBuildId() {
+        return originBuildId;
+    }
+
+    @Override
+    public void setOriginBuildId(@Nullable UniqueId originBuildId) {
+        this.originBuildId = originBuildId;
+    }
+
+    @Override
+    @Nullable
+    public List<String> getUpToDateMessages() {
+        return upToDateMessages;
+    }
+
+    @Override
+    public void setUpToDateMessages(List<String> upToDateMessages) {
+        this.upToDateMessages = upToDateMessages;
+    }
+
 }

@@ -16,19 +16,38 @@
 
 package org.gradle.api.execution.internal;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.GeneratedSubclasses;
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
 
-public class ExecuteTaskBuildOperationDetails {
+public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperationType.Details {
 
-    // TODO: do not reference mutable state
     private final TaskInternal task;
 
     public ExecuteTaskBuildOperationDetails(TaskInternal task) {
         this.task = task;
     }
 
+    // TODO: do not reference mutable state
+    // Note: internal, not used by scans plugin
     public TaskInternal getTask() {
         return task;
+    }
+
+    @Override
+    public String getBuildPath() {
+        return ((GradleInternal) task.getProject().getGradle()).getIdentityPath().toString();
+    }
+
+    @Override
+    public String getTaskPath() {
+        return task.getPath();
+    }
+
+    @Override
+    public String getTaskClassName() {
+        return GeneratedSubclasses.unpack(task.getClass()).getName();
     }
 
 }

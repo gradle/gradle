@@ -50,7 +50,7 @@ class SkipUpToDateTaskExecuterTest extends Specification {
         1 * taskArtifactState.getOriginBuildInvocationId() >> originBuildInvocationId
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskState.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
-        1 * taskState.setOriginBuildInvocationId(originBuildInvocationId)
+        1 * taskContext.setOriginBuildInvocationId(originBuildInvocationId)
         1 * taskArtifactState.finished()
         0 * _
     }
@@ -62,6 +62,7 @@ class SkipUpToDateTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.isUpToDate(_) >> false
+        1 * taskContext.setUpToDateMessages(_)
 
         then:
         1 * taskArtifactState.beforeTask()
@@ -83,6 +84,7 @@ class SkipUpToDateTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.isUpToDate(_) >> false
+        1 * taskContext.setUpToDateMessages(_)
 
         then:
         1 * taskArtifactState.beforeTask()
