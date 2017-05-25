@@ -55,7 +55,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     }
 
     @Override
-    public void waitForCompletion(BuildOperationState operation) {
+    public void waitForCompletion(BuildOperationState operation, boolean releaseLocks) {
         final List<AsyncWorkCompletion> workItems;
         lock.lock();
         try {
@@ -75,7 +75,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
                     }
                 });
                 // only release the project lock if we have to wait for items to finish
-                if (workInProgress) {
+                if (releaseLocks && workInProgress) {
                     projectLeaseRegistry.withoutProjectLock(new Runnable() {
                         @Override
                         public void run() {

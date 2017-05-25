@@ -127,7 +127,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
 
                 try {
-                    asyncWorkTracker.waitForCompletion(currentOperation);
+                    asyncWorkTracker.waitForCompletion(currentOperation, true);
                 } catch (Throwable t) {
                     List<Throwable> failures = Lists.newArrayList();
 
