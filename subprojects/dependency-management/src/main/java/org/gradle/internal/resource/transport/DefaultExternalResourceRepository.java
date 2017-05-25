@@ -21,15 +21,11 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.BuildOperationFiringExternalResourceDecorator;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.List;
 
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceRepository.class);
@@ -67,23 +63,12 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     @Override
     public ExternalResource resource(ExternalResourceName resource, boolean revalidate) {
-        return new BuildOperationFiringExternalResourceDecorator(resource, buildOperationExecutor, new LazyExternalResource(resource, accessor, revalidate));
+        return new BuildOperationFiringExternalResourceDecorator(resource, buildOperationExecutor, new LazyExternalResource(resource, accessor, uploader, lister, revalidate));
     }
 
     @Override
     public ExternalResource resource(ExternalResourceName resource) {
         return resource(resource, false);
-    }
-
-    @Override
-    public void put(LocalResource source, ExternalResourceName destination) throws IOException {
-        LOGGER.debug("Attempting to put resource {}.", destination);
-        uploader.upload(source, destination.getUri());
-    }
-
-    @Override
-    public List<String> list(ExternalResourceName parent) {
-        return lister.list(parent.getUri());
     }
 
     public String toString() {

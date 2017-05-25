@@ -26,9 +26,12 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ResourceExceptions;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.ExternalResourceLister;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -36,16 +39,21 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.List;
 
 public class LazyExternalResource implements ExternalResource {
     private final ExternalResourceName name;
     private final ExternalResourceAccessor accessor;
+    private final ExternalResourceUploader uploader;
+    private final ExternalResourceLister lister;
     // Should really be a parameter to the 'withContent' methods or baked into the accessor
     private final boolean revalidate;
 
-    LazyExternalResource(ExternalResourceName name, ExternalResourceAccessor accessor, boolean revalidate) {
+    LazyExternalResource(ExternalResourceName name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader, ExternalResourceLister lister, boolean revalidate) {
         this.name = name;
         this.accessor = accessor;
+        this.uploader = uploader;
+        this.lister = lister;
         this.revalidate = revalidate;
     }
 
@@ -159,6 +167,25 @@ public class LazyExternalResource implements ExternalResource {
     @Override
     public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void put(LocalResource source) throws ResourceException {
+        try {
+            uploader.upload(source, getURI());
+        } catch (Exception e) {
+            throw ResourceExceptions.putFailed(getURI(), e);
+        }
+    }
+
+    @Nullable
+    @Override
+    public List<String> list() throws ResourceException {
+        try {
+            return lister.list(getURI());
+        } catch (Exception e) {
+            throw ResourceExceptions.getFailed(getURI(), e);
+        }
     }
 
     @Override

@@ -24,12 +24,14 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.List;
 
 public class BuildOperationFiringExternalResourceDecorator implements ExternalResource {
     private final ExternalResourceName resourceName;
@@ -48,13 +50,24 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     @Override
+    public String getDisplayName() {
+        return delegate.getDisplayName();
+    }
+
+    @Override
     public ExternalResourceMetaData getMetaData() {
         return delegate.getMetaData();
     }
 
+    @Nullable
     @Override
-    public String getDisplayName() {
-        return delegate.getDisplayName();
+    public List<String> list() throws ResourceException {
+        return delegate.list();
+    }
+
+    @Override
+    public void put(LocalResource source) throws ResourceException {
+        delegate.put(source);
     }
 
     @Override

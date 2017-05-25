@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.local.LocalResource;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -28,6 +29,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 public abstract class AbstractExternalResource implements ExternalResource {
     /**
@@ -181,6 +183,17 @@ public abstract class AbstractExternalResource implements ExternalResource {
     @Nullable
     @Override
     public <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void put(LocalResource source) throws ResourceException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable
+    @Override
+    public List<String> list() throws ResourceException {
         throw new UnsupportedOperationException();
     }
 }

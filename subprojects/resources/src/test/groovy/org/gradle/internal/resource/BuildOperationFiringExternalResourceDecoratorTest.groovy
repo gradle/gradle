@@ -23,6 +23,7 @@ import org.gradle.api.resources.ResourceException
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.resource.local.LocalResource
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
@@ -112,6 +113,16 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
 
         @Override
         def <T> ExternalResourceReadResult<T> withContentIfPresent(ExternalResource.ContentAction<? extends T> readAction) throws ResourceException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void put(LocalResource source) throws ResourceException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        List<String> list() throws ResourceException {
             throw new UnsupportedOperationException()
         }
 

@@ -23,7 +23,6 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocalResource;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 
 public class RepositoryTransportWagonAdapter {
@@ -41,8 +40,8 @@ public class RepositoryTransportWagonAdapter {
         return resource.writeToIfPresent(destination) != null;
     }
 
-    public void putRemoteFile(LocalResource localResource, String resourceName) throws IOException {
-        transport.getRepository().withProgressLogging().put(localResource, getLocationForResource(resourceName));
+    public void putRemoteFile(LocalResource localResource, String resourceName) throws ResourceException {
+        transport.getRepository().withProgressLogging().resource(getLocationForResource(resourceName)).put(localResource);
     }
 
     private ExternalResourceName getLocationForResource(String resource) {

@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
@@ -26,9 +27,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.List;
 
 /**
- * This will be merged with {@link Resource}.
+ * Represents a (potentially) mutable binary resource. The resource may or may not exist, and may change over time.
  */
 public interface ExternalResource extends Resource {
     /**
@@ -106,6 +108,23 @@ public interface ExternalResource extends Resource {
      */
     @Nullable
     <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException;
+
+    /**
+     * Copies the given content to this resource.
+     *
+     * @param source The local resource to be transferred.
+     * @throws ResourceException On failure to write the content.
+     */
+    void put(LocalResource source) throws ResourceException;
+
+    /**
+     * Return a listing of child resources names.
+     *
+     * @return A listing of the direct children of the given parent. Returns null when the parent resource does not exist.
+     * @throws ResourceException On listing failure.
+     */
+    @Nullable
+    List<String> list() throws ResourceException;
 
     /**
      * Returns the meta-data for this resource, if the resource exists.

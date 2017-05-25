@@ -16,18 +16,25 @@
 
 package org.gradle.internal.resource;
 
+import com.google.common.io.Files;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Used when we find a file locally that matches the checksum of some external resource.
@@ -49,10 +56,6 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     public URI getURI() {
         return source;
-    }
-
-    public long getLastModifiedTime() {
-        return localFile.lastModified();
     }
 
     public long getContentLength() {
@@ -84,5 +87,39 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
             return new DefaultExternalResourceMetaData(source, stat.getLastModified(), stat.getLength());
         }
         return metaData;
+    }
+
+    @Override
+    public void put(LocalResource location) {
+        try {
+            if (!localFile.canWrite()) {
+                localFile.delete();
+            }
+            Files.createParentDirs(localFile);
+
+            InputStream input = location.open();
+            try {
+                FileOutputStream output = new FileOutputStream(localFile);
+                try {
+                    IOUtils.copyLarge(input, output);
+                } finally {
+                    output.close();
+                }
+            } finally {
+                input.close();
+            }
+        } catch (Exception e) {
+            throw ResourceExceptions.putFailed(getURI(), e);
+        }
+    }
+
+    @Nullable
+    @Override
+    public List<String> list() throws ResourceException {
+        if (localFile.isDirectory()) {
+            String[] names = localFile.list();
+            return Arrays.asList(names);
+        }
+        return null;
     }
 }
