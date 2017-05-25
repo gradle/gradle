@@ -45,7 +45,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         1 * delegate."$methodName"()
 
         where:
-        methodName << ['getURI', 'getDisplayName', 'getMetaData']
+        methodName << ['getURI', 'getDisplayName']
     }
 
     static class TestExternalResource implements ExternalResource {
@@ -169,6 +169,34 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         'withContent' | Mock(Action)                         | "withContent(Action<InputStream>)"
         'withContent' | Mock(ExternalResource.ContentAction) | "withContent(ContentAction<InputStream>)"
         'withContent' | Mock(Transformer)                    | "withContent(Transformer<T, ? extends InputStream)"
+    }
+
+    def "wraps metaData get in a build operation"() {
+        given:
+        def metaData = Mock(ExternalResourceMetaData)
+        def delegate = Mock(ExternalResource)
+        def buildOperationExecuter = Mock(BuildOperationExecutor)
+        def operationContextMock = Mock(BuildOperationContext)
+        def location = new ExternalResourceName(new URI("http://some/uri"))
+        def resource = new BuildOperationFiringExternalResourceDecorator(location, buildOperationExecuter, delegate)
+
+        when:
+        def result = resource.getMetaData()
+
+        then:
+        result == metaData
+        1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
+            def descriptor = op.description().build()
+            assert descriptor.name == "Metadata of http://some/uri"
+            assert descriptor.displayName == "Metadata of http://some/uri"
+
+            def details = descriptor.details
+            assert details instanceof ExternalResourceReadMetadataBuildOperationType.Details
+            assert details.location == location.getUri().toASCIIString()
+
+            return op.call(operationContextMock)
+        }
+        1 * delegate.getMetaData() >> metaData
     }
 
     @Unroll

@@ -20,6 +20,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType
+import org.gradle.internal.resource.ExternalResourceReadMetadataBuildOperationType
 import spock.lang.Unroll
 
 class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -32,8 +33,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         def m = mavenHttpRepo.module("org.utils", "impl", '1.3')
             .allowAll()
             .publish()
-
-        args "--refresh-dependencies"
 
         buildFile << """
             apply plugin: "base"
@@ -55,10 +54,24 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         run "help"
 
         then:
-        def actualFileLength = m.pom.file.bytes.length
-        def buildOp = buildOperations.first(ExternalResourceReadBuildOperationType)
-        URI.create(buildOp.details.location).path == m.pomPath
-        buildOp.result.bytesRead == actualFileLength
+        buildOperations.all(ExternalResourceReadMetadataBuildOperationType).size() == 0
+
+        def downloadOps = buildOperations.all(ExternalResourceReadBuildOperationType)
+        downloadOps.size() == 2
+        downloadOps[0].details.location == m.pom.uri.toString()
+        downloadOps[0].result.bytesRead == m.pom.file.length()
+        downloadOps[1].details.location == m.artifact.uri.toString()
+        downloadOps[1].result.bytesRead == m.artifact.file.length()
+
+        when:
+        executer.withArguments("--refresh-dependencies")
+        run "help"
+
+        then:
+        def metaDataOps = buildOperations.all(ExternalResourceReadMetadataBuildOperationType)
+        metaDataOps.size() == 2
+        metaDataOps[0].details.location == m.pom.uri.toString()
+        metaDataOps[1].details.location == m.artifact.uri.toString()
 
         where:
         chunked << [true, false]

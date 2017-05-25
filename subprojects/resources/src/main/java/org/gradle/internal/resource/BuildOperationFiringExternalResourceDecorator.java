@@ -55,7 +55,19 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
 
     @Override
     public ExternalResourceMetaData getMetaData() {
-        return delegate.getMetaData();
+        return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceMetaData>() {
+            @Override
+            public ExternalResourceMetaData call(BuildOperationContext context) {
+                return delegate.getMetaData();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("Metadata of " + resourceName.getDisplayName())
+                    .details(new MetadataOperationDetails(resourceName.getUri()));
+            }
+        });
     }
 
     @Nullable
@@ -204,23 +216,38 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
             .details(operationDetails);
     }
 
-    private static class ReadOperationDetails implements ExternalResourceReadBuildOperationType.Details {
-
+    private static class LocationDetails {
         private final URI location;
 
-        private ReadOperationDetails(URI location) {
+        private LocationDetails(URI location) {
             this.location = location;
         }
 
         public String getLocation() {
             return location.toASCIIString();
         }
+    }
+
+    private static class ReadOperationDetails extends LocationDetails implements ExternalResourceReadBuildOperationType.Details {
+        private ReadOperationDetails(URI location) {
+            super(location);
+        }
 
         @Override
         public String toString() {
-            return "ExternalResourceReadBuildOperationType.Details{location=" + location + ", " + '}';
+            return "ExternalResourceReadBuildOperationType.Details{location=" + getLocation() + ", " + '}';
+        }
+    }
+
+    private static class MetadataOperationDetails extends LocationDetails implements ExternalResourceReadMetadataBuildOperationType.Details {
+        private MetadataOperationDetails(URI location) {
+            super(location);
         }
 
+        @Override
+        public String toString() {
+            return "ExternalResourceReadMetadataBuildOperationType.Details{location=" + getLocation() + ", " + '}';
+        }
     }
 
     private static class ReadOperationResult implements ExternalResourceReadBuildOperationType.Result {
