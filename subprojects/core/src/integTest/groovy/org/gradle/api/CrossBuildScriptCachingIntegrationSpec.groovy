@@ -43,6 +43,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         def versionCaches = new File(cachesDir, GradleVersion.current().version)
         scriptCachesDir = new File(versionCaches, 'scripts')
         remappedCachesDir = new File(versionCaches, 'scripts-remapped')
+        executer.noExtraInitScripts()
     }
 
     def "identical build files are compiled once"() {

@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -145,6 +146,10 @@ class ToolingApi implements TestRule {
 
     private <T> T withConnectionRaw(GradleConnector connector, Closure<T> cl) {
         ProjectConnection connection = connector.connect()
+        def gradleProperties = testWorkDirProvider.testDirectory.file("gradle.properties")
+        if (!gradleProperties.exists()) {
+            gradleProperties << "org.gradle.jvmargs=-XX:+HeapDumpOnOutOfMemoryError -Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM\n"
+        }
         try {
             return connection.with(cl)
         } catch (Throwable t) {

@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -146,7 +147,7 @@ abstract class ToolingApiSpecification extends Specification {
 
     public ConfigurableOperation withModel(Class modelType, Closure cl = {}) {
         withConnection {
-            def model = it.model(modelType)
+            def model = it.model(modelType).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
             cl(model)
             new ConfigurableOperation(model).buildModel()
         }
@@ -154,7 +155,7 @@ abstract class ToolingApiSpecification extends Specification {
 
     public ConfigurableOperation withBuild(Closure cl = {}) {
         withConnection {
-            def build = it.newBuild()
+            def build = it.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
             cl(build)
             def out = new ConfigurableOperation(build)
             build.run()

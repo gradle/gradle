@@ -24,6 +24,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
     BuildTestFile buildB
 
     def setup() {
+        executer.noExtraInitScripts()
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {

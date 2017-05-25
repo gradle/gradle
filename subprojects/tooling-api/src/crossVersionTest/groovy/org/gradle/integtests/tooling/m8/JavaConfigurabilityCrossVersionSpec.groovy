@@ -47,6 +47,7 @@ class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 
     def "uses sensible java defaults if nulls configured"() {
         when:
+        file("gradle.properties") << ""
         BuildEnvironment env = withConnection {
             def model = it.model(BuildEnvironment.class)
             model
