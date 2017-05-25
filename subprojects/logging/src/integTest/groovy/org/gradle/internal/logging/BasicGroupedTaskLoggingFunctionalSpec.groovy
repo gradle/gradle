@@ -95,8 +95,6 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
     }
 
     def "grouped output is displayed for failed tasks"() {
-        executer.withStackTraceChecksDisabled()
-
         given:
         buildFile << """
             task log {
