@@ -102,7 +102,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         wasNotForked()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isEmbedded() && TestPrecondition.JDK_IBM.fulfilled })
+    @IgnoreIf({ GradleContextualExecuter.isEmbedded() || TestPrecondition.JDK_IBM.fulfilled })
     def "does not fork build to run when immutable jvm args match the environment"() {
         when:
         requireJvmArg('-Xmx64m')
