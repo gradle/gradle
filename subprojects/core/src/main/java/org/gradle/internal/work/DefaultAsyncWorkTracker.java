@@ -76,7 +76,8 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
                 });
                 // only release the project lock if we have to wait for items to finish
                 if (releaseLocks && workInProgress) {
-                    projectLeaseRegistry.withoutProjectLock(new Runnable() {
+                    projectLeaseRegistry.withoutProjectLock(
+                        new Runnable() {
                         @Override
                         public void run() {
                             waitForItemsAndGatherFailures(workItems);

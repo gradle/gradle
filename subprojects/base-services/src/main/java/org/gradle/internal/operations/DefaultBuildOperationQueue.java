@@ -21,6 +21,7 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
@@ -155,7 +156,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         private void runBatch(final T firstOperation) {
-            workerLeases.withLocks(parentWorkerLease.createChild()).execute(new Runnable() {
+            workerLeases.withLocks(Collections.singleton(parentWorkerLease.createChild()), new Runnable() {
                 @Override
                 public void run() {
                     T operation = firstOperation;

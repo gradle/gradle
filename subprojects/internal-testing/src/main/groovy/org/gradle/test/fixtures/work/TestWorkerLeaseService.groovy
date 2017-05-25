@@ -20,7 +20,7 @@ import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 
-import java.util.concurrent.Executor
+import java.util.concurrent.Callable
 
 
 class TestWorkerLeaseService implements WorkerLeaseService {
@@ -49,13 +49,8 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    Executor withLocks(ResourceLock... locks) {
-        return new Executor() {
-            @Override
-            void execute(Runnable command) {
-                command.run()
-            }
-        }
+    def <T> T withoutProjectLock(Callable<T> action) {
+        return action.call()
     }
 
     @Override
@@ -64,13 +59,23 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    Executor withoutLocks(ResourceLock... locks) {
-        return new Executor() {
-            @Override
-            void execute(Runnable command) {
-                command.run()
-            }
-        }
+    def <T> T withLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
+        return action.call()
+    }
+
+    @Override
+    void withLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
+        action.run()
+    }
+
+    @Override
+    def <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
+        return action.call()
+    }
+
+    @Override
+    void withoutLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
+        action.run()
     }
 
     private WorkerLeaseRegistry.WorkerLease workerLease() {
