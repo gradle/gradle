@@ -55,7 +55,7 @@ class SerializedOperationStart {
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("buildPath", cast.getBuildPath());
             map.put("taskPath", cast.getTaskPath());
-            map.put("taskClassName", cast.getTaskClassName());
+            map.put("taskClass", cast.getTaskClass().getName());
             return map;
         }
 

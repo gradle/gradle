@@ -51,8 +51,8 @@ public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperati
     }
 
     @Override
-    public String getTaskClassName() {
-        return GeneratedSubclasses.unpack(task.getClass()).getName();
+    public Class<?> getTaskClass() {
+        return GeneratedSubclasses.unpack(task.getClass());
     }
 
 }

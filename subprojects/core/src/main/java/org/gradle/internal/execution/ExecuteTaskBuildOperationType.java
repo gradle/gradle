@@ -49,7 +49,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
          */
         long getTaskId();
 
-        String getTaskClassName();
+        Class<?> getTaskClass();
 
     }
 
