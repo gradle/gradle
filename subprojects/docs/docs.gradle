@@ -369,6 +369,7 @@ configure([userguideDocbook, pdfUserguideDocbook]) {
 def imageFiles = fileTree(userguideSrcDir) {
     include 'img/*.png'
     include 'img/*.gif'
+    include 'img/*.jpg'
 }
 def resourceFiles = imageFiles + cssFiles
 
