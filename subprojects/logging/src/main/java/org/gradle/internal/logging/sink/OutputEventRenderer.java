@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.ThreadFactoryImpl;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.AnsiConsole;
@@ -42,6 +43,8 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
+import org.gradle.internal.logging.format.StatusPostfixLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -51,6 +54,8 @@ import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -64,6 +69,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final AtomicInteger maxWorkerCount = new AtomicInteger();
     private final TimeProvider timeProvider;
+    private ScheduledExecutorService executorService;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -79,19 +85,28 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         this(new TrueTimeProvider());
     }
 
-    OutputEventRenderer(TimeProvider timeProvider) {
+    OutputEventRenderer(final TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
+        initExecutor();
+
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onNonError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)));
+                return onNonError(
+                    new BuildLogLevelFilterRenderer(
+                        new GroupingProgressLogEventGenerator(
+                            new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())),
+                            timeProvider, executorService, new StatusPostfixLogHeaderFormatter(), true)));
             }
         });
         formatters.add(stdOutChain);
         OutputEventListener stdErrChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false)));
+                return onError(new BuildLogLevelFilterRenderer(
+                    new GroupingProgressLogEventGenerator(
+                        new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())),
+                        timeProvider, executorService, new StatusPostfixLogHeaderFormatter(), true)));
             }
         });
         formatters.add(stdErrChain);
@@ -123,11 +138,19 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     formatters.remove(console);
                     console.onOutput(new EndOutputEvent());
                     console = null;
+                    initExecutor();
                 } else {
                     throw new UnsupportedOperationException("Cannot restore previous console. This is not implemented yet.");
                 }
             }
         }
+    }
+
+    private void initExecutor() {
+        if (executorService != null) {
+            executorService.shutdownNow();
+        }
+        executorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("output renderer"));
     }
 
     public ColorMap getColourMap() {
@@ -223,11 +246,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new BuildStatusRenderer(
                 new WorkInProgressRenderer(
-                        new BuildLogLevelFilterRenderer(
-                            new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), timeProvider)),
+                    new BuildLogLevelFilterRenderer(
+                        new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), timeProvider, executorService, new PrettyPrefixedLogHeaderFormatter(), false)),
                     console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                console.getStatusBar(), console, consoleMetaData, timeProvider),
-            timeProvider);
+                console.getStatusBar(), console, consoleMetaData, timeProvider, executorService),
+            timeProvider, executorService);
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;

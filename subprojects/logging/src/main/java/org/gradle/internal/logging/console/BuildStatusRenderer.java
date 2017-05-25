@@ -30,7 +30,6 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.Collections;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -56,11 +55,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     private ScheduledFuture future;
     private boolean timerEnabled;
 
-    public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider) {
-        this(listener, buildStatusLabel, console, consoleMetaData, timeProvider, Executors.newSingleThreadScheduledExecutor());
-    }
-
-    BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider, ScheduledExecutorService executor) {
+    public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider, ScheduledExecutorService executor) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
@@ -162,6 +157,5 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
         if (future != null && !future.isCancelled()) {
             future.cancel(false);
         }
-        executor.shutdown();
     }
 }

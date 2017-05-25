@@ -24,8 +24,8 @@ import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -41,12 +41,13 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
 
     private long lastUpdate;
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
+    private ScheduledFuture<?> future;
 
-    public ThrottlingOutputEventListener(BatchOutputEventListener listener, TimeProvider timeProvider) {
-        this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), timeProvider);
+    public ThrottlingOutputEventListener(BatchOutputEventListener listener, TimeProvider timeProvider, ScheduledExecutorService executor) {
+        this(listener, Integer.getInteger("org.gradle.console.throttle", 85), timeProvider, executor);
     }
 
-    ThrottlingOutputEventListener(BatchOutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
+    ThrottlingOutputEventListener(BatchOutputEventListener listener, int throttleMs, TimeProvider timeProvider, ScheduledExecutorService executor) {
         this.throttleMs = throttleMs;
         this.listener = listener;
         this.executor = executor;
@@ -60,7 +61,9 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
             if (newEvent instanceof EndOutputEvent) {
                 // Flush and clean up
                 renderNow(timeProvider.getCurrentTime());
-                executor.shutdown();
+                if (future != null) {
+                    future.cancel(false);
+                }
                 return;
             }
 
@@ -77,7 +80,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
             }
 
             // This is the first queued event - schedule a thread to flush later
-            executor.schedule(new Runnable() {
+            future = executor.schedule(new Runnable() {
                 @Override
                 public void run() {
                     synchronized (lock) {

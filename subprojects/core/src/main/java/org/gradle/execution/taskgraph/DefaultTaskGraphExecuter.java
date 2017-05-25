@@ -247,6 +247,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                     taskListeners.getSource().beforeExecute(task);
                     taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
                     taskListeners.getSource().afterExecute(task, state);
+                    context.setStatus(state.getFailure() != null ? "FAILED" : state.getSkipMessage());
                     context.failed(state.getFailure());
                     internalTaskListener.afterExecute(legacyOperation, new OperationFinishEvent(0, 0, state.getFailure(), null));
                 }
@@ -255,6 +256,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                 public BuildOperationDescriptor.Builder description() {
                     ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(task);
                     return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
+                        .progressDisplayName(task.getIdentityPath().toString())
                         .name(task.getIdentityPath().toString())
                         .parent(parentOperation)
                         .operationType(BuildOperationCategory.TASK)
