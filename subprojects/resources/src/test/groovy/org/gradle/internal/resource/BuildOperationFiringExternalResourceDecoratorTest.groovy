@@ -23,6 +23,7 @@ import org.gradle.api.resources.ResourceException
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
@@ -224,6 +225,33 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
             return op.call(operationContextMock)
         }
         1 * delegate.list() >> ["a"]
+    }
+
+    def "wraps put in a build operation"() {
+        given:
+        def delegate = Mock(ExternalResource)
+        def source = Mock(LocalResource)
+        def buildOperationExecuter = Mock(BuildOperationExecutor)
+        def operationContextMock = Mock(BuildOperationContext)
+        def location = new ExternalResourceName(new URI("http://some/uri"))
+        def resource = new BuildOperationFiringExternalResourceDecorator(location, buildOperationExecuter, delegate)
+
+        when:
+        resource.put(source)
+
+        then:
+        1 * buildOperationExecuter.run(_) >> { RunnableBuildOperation op ->
+            def descriptor = op.description().build()
+            assert descriptor.name == "Upload http://some/uri"
+            assert descriptor.displayName == "Upload http://some/uri"
+
+            def details = descriptor.details
+            assert details instanceof ExternalResourceWriteBuildOperationType.Details
+            assert details.location == location.getUri().toASCIIString()
+
+            op.run(operationContextMock)
+        }
+        1 * delegate.put(source)
     }
 
     @Unroll

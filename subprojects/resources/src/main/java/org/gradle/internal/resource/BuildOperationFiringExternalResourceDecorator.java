@@ -23,6 +23,7 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -89,8 +90,21 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     @Override
-    public void put(LocalResource source) throws ResourceException {
-        delegate.put(source);
+    public void put(final LocalResource source) throws ResourceException {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                delegate.put(source);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("Upload " + resourceName.getDisplayName())
+                    .progressDisplayName(resourceName.getShortDisplayName())
+                    .details(new PutOperationDetails(resourceName.getUri()));
+            }
+        });
     }
 
     @Override
@@ -270,6 +284,17 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
         @Override
         public String toString() {
             return "ExternalResourceListBuildOperationType.Details{location=" + getLocation() + ", " + '}';
+        }
+    }
+
+    private static class PutOperationDetails extends LocationDetails implements ExternalResourceWriteBuildOperationType.Details {
+        private PutOperationDetails(URI location) {
+            super(location);
+        }
+
+        @Override
+        public String toString() {
+            return "ExternalResourceWriteBuildOperationType.Details{location=" + getLocation() + ", " + '}';
         }
     }
 
