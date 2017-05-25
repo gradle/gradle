@@ -34,6 +34,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     private String gradleVersion = GradleVersion.current().getVersion();
     private List<String> tasks = new LinkedList<String>();
     private List<String> arguments = new LinkedList<String>();
+    private List<String> jvmArguments = new LinkedList<String>();
 
     @Inject
     public DefaultGradleBuildInvocationSpec(PathToFileResolver fileResolver, Object projectDir) {
@@ -78,6 +79,14 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
 
     public void setArguments(Iterable<String> arguments) {
         this.arguments = arguments == null ? new LinkedList<String>() : Lists.newLinkedList(arguments);
+    }
+
+    public List<String> getJvmArguments() {
+        return jvmArguments;
+    }
+
+    public void setJvmArguments(Iterable<String> jvmArguments) {
+        this.jvmArguments = jvmArguments == null ? new LinkedList<String>() : Lists.newLinkedList(jvmArguments);
     }
 
     @Override

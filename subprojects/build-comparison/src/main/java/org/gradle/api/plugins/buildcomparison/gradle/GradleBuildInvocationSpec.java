@@ -102,9 +102,15 @@ public interface GradleBuildInvocationSpec {
     List<String> getArguments();
 
     /**
-     * Sets the command line arguments (excluding tasks) to invoke the build with.
-     * @param arguments The command line arguments (excluding tasks) to invoke the build with.
+     * Sets the JVM opts for the build VM
+     * @since 4.1
      */
-    void setArguments(Iterable<String> arguments);
+    void setJvmArguments(Iterable<String> arguments);
 
+    /**
+     * Get the JVM opts for the build VM
+     * @since 4.1
+     */
+    @Input
+    List<String> getJvmArguments();
 }
