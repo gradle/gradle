@@ -30,13 +30,17 @@ class FileUtilsTest extends Specification {
         expect:
         toSafeFileName(input) == output
         where:
-        input         | output
-        'Test_$1-2.3' | 'Test_$1-2.3'
-        'with space'  | 'with#20space'
-        'with #'      | 'with#20#23'
-        'with /'      | 'with#20#2f'
-        'with \\'     | 'with#20#5c'
-        'with / \\ #' | 'with#20#2f#20#5c#20#23'
+        input               | output
+        'Test_$1-2.3'       | 'Test_$1-2.3'
+        'with space'        | 'with space'
+        'with #'            | 'with #23'
+        'with /'            | 'with #2f'
+        'with \\'           | 'with #5c'
+        'with / \\ #'       | 'with #2f #5c #23'
+        'with : * ? \"'     | 'with #3a #2a #3f #22'
+        'with < > | \0'     | 'with #3c #3e #7c #0'
+        'with \u65e5\u672c' | 'with \u65e5\u672c'
+        'with yen sign ¥'   | 'with yen sign #a5'
     }
 
     def "assertInWindowsPathLengthLimitation throws exception when path limit exceeded"() {
