@@ -21,7 +21,6 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocalResource;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.IOException;
 import java.util.List;
@@ -55,17 +54,6 @@ public interface ExternalResourceRepository {
      * @throws IOException On publication failure.
      */
     void put(LocalResource source, ExternalResourceName destination) throws IOException;
-
-    /**
-     * Fetches only the metadata for the result.
-     *
-     * @param source The location of the resource to obtain the metadata for
-     * @param revalidate Ensure the external resource is not stale
-     * @return The resource metadata, or null if the resource does not exist
-     * @throws ResourceException On failure to fetch resource metadata.
-     */
-    @Nullable
-    ExternalResourceMetaData getResourceMetaData(ExternalResourceName source, boolean revalidate) throws ResourceException;
 
     /**
      * Return a listing of child resources names.

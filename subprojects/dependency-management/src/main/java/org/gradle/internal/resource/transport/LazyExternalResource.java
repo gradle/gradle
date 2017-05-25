@@ -163,6 +163,6 @@ public class LazyExternalResource implements ExternalResource {
 
     @Override
     public ExternalResourceMetaData getMetaData() {
-        throw new UnsupportedOperationException();
+        return accessor.getMetaData(getURI(), revalidate);
     }
 }

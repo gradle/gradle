@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transfer;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.ExternalResource;
@@ -54,6 +55,7 @@ public class UrlExternalResource extends AbstractExternalResource {
         return uri;
     }
 
+    @Nullable
     public ExternalResourceMetaData getMetaData() {
         try {
             URLConnection connection = url.openConnection();
@@ -62,6 +64,8 @@ public class UrlExternalResource extends AbstractExternalResource {
             } finally {
                 connection.getInputStream().close();
             }
+        } catch (FileNotFoundException e) {
+            return null;
         } catch (Exception e) {
             throw ResourceExceptions.getFailed(uri, e);
         }

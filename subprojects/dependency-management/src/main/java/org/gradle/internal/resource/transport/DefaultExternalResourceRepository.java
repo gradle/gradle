@@ -22,7 +22,6 @@ import org.gradle.internal.resource.BuildOperationFiringExternalResourceDecorato
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocalResource;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
@@ -74,11 +73,6 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     @Override
     public ExternalResource resource(ExternalResourceName resource) {
         return resource(resource, false);
-    }
-
-    @Override
-    public ExternalResourceMetaData getResourceMetaData(ExternalResourceName source, boolean revalidate) {
-        return accessor.getMetaData(source.getUri(), revalidate);
     }
 
     @Override

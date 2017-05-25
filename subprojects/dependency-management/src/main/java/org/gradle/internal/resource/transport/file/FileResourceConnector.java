@@ -17,13 +17,12 @@ package org.gradle.internal.resource.transport.file;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
-import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.util.GFileUtils;
 
@@ -35,6 +34,12 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FileResourceConnector implements ExternalResourceRepository {
+    private final FileSystem fileSystem;
+
+    public FileResourceConnector(FileSystem fileSystem) {
+        this.fileSystem = fileSystem;
+    }
+
     @Override
     public ExternalResourceRepository withProgressLogging() {
         return this;
@@ -81,7 +86,7 @@ public class FileResourceConnector implements ExternalResourceRepository {
     @Override
     public LocallyAvailableExternalResource resource(ExternalResourceName location) {
         File localFile = getFile(location);
-        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile));
+        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile), fileSystem);
     }
 
     @Nullable
@@ -90,13 +95,7 @@ public class FileResourceConnector implements ExternalResourceRepository {
         if (!localFile.exists()) {
             return null;
         }
-        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile));
-    }
-
-    @Override
-    public ExternalResourceMetaData getResourceMetaData(ExternalResourceName location, boolean revalidate) {
-        ExternalResource resource = getResourceIfPresent(location);
-        return resource == null ? null : resource.getMetaData();
+        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile), fileSystem);
     }
 
     private static File getFile(ExternalResourceName location) {

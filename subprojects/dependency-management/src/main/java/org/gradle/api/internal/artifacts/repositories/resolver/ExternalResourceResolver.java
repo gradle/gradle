@@ -53,6 +53,7 @@ import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -98,6 +99,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final FileSystem fileSystem;
 
     private final VersionLister versionLister;
 
@@ -111,7 +113,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        VersionLister versionLister,
                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                       FileSystem fileSystem) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
@@ -120,6 +123,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.fileSystem = fileSystem;
     }
 
     public String getId() {
@@ -212,7 +216,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             return null;
         }
 
-        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers);
+        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileSystem);
         return parseMetaDataFromResource(moduleComponentIdentifier, metaDataResource, context);
     }
 

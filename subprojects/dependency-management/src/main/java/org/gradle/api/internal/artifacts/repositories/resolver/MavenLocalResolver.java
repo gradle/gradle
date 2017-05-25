@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.FileStore;
@@ -41,8 +42,9 @@ public class MavenLocalResolver extends MavenResolver {
                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                               MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                              CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, cacheAwareExternalResourceAccessor, null);
+                              CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
+                              FileSystem fileSystem) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, cacheAwareExternalResourceAccessor, null, fileSystem);
     }
 
     @Override

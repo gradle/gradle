@@ -40,6 +40,7 @@ public interface ExternalResource extends Resource {
      * Copies the contents of this resource to the given file.
      *
      * @throws ResourceException on failure to copy the content.
+     * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     ExternalResourceReadResult<Void> writeTo(File destination) throws ResourceException;
 
@@ -47,7 +48,7 @@ public interface ExternalResource extends Resource {
      * Copies the contents of this resource to the given file, if the resource exists.
      *
      * @throws ResourceException on failure to copy the content.
-     * @return true if the resource was written to the file, false if not.
+     * @return null if this resource does not exist.
      */
     @Nullable
     ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException;
@@ -56,6 +57,7 @@ public interface ExternalResource extends Resource {
      * Copies the binary contents of this resource to the given stream. Does not close the provided stream.
      *
      * @throws ResourceException on failure to copy the content.
+     * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     ExternalResourceReadResult<Void> writeTo(OutputStream destination) throws ResourceException;
 
@@ -76,7 +78,7 @@ public interface ExternalResource extends Resource {
     <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
 
     /**
-     * Executes the given action against the binary contents of this resource.
+     * Executes the given action against the binary contents of this resource, if the resource exists.
      *
      * @throws ResourceException on failure to read the content.
      * @return null if the resource does not exist.
@@ -106,8 +108,10 @@ public interface ExternalResource extends Resource {
     <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException;
 
     /**
-     * Returns the meta-data for this resource.
+     * Returns the meta-data for this resource, if the resource exists.
+     * @return null when the resource does not exist.
      */
+    @Nullable
     ExternalResourceMetaData getMetaData();
 
     interface ContentAction<T> {

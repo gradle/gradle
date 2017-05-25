@@ -16,6 +16,10 @@
 
 package org.gradle.internal.resource;
 
+import org.gradle.api.Nullable;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -33,12 +37,14 @@ import java.net.URI;
 public class LocalFileStandInExternalResource extends AbstractExternalResource {
     private final File localFile;
     private final URI source;
+    private final FileSystem fileSystem;
     private ExternalResourceMetaData metaData;
 
-    public LocalFileStandInExternalResource(URI source, File localFile, ExternalResourceMetaData metaData) {
+    public LocalFileStandInExternalResource(URI source, File localFile, @Nullable ExternalResourceMetaData metaData, FileSystem fileSystem) {
         this.source = source;
         this.localFile = localFile;
         this.metaData = metaData;
+        this.fileSystem = fileSystem;
     }
 
     public URI getURI() {
@@ -68,9 +74,14 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
         return new FileInputStream(localFile);
     }
 
+    @Nullable
     public ExternalResourceMetaData getMetaData() {
         if (metaData == null) {
-            metaData = new DefaultExternalResourceMetaData(source, getLastModifiedTime(), getContentLength());
+            FileMetadataSnapshot stat = fileSystem.stat(localFile);
+            if (stat.getType() == FileType.Missing) {
+                return null;
+            }
+            return new DefaultExternalResourceMetaData(source, stat.getLastModified(), stat.getLength());
         }
         return metaData;
     }
