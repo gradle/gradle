@@ -47,9 +47,9 @@ public class GroupedOutputFixture {
 
     private final static String PROGRESS_BAR_PATTERN = "<[-=]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT)ING \\[((\\d+h )? \\d+m )?\\d+s\\]";
     private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+m> (IDLE|[:a-z][\\w\\s\\d:]+)\u001b\\[\\d*m";
-    private final static String SCROLLING_WORK_IN_PROGRESS_PATTERN = "(\u001b\\[0K\\n)+\u001b\\[\\d+A";
+    private final static String DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN = "\u001b\\[\\d+B\\n";
 
-    private final static String WORK_IN_PROGRESS_AREA_PATTERN = PROGRESS_BAR_PATTERN + "|" + WORK_IN_PROGRESS_PATTERN + "|" + SCROLLING_WORK_IN_PROGRESS_PATTERN;
+    private final static String WORK_IN_PROGRESS_AREA_PATTERN = PROGRESS_BAR_PATTERN + "|" + WORK_IN_PROGRESS_PATTERN + "|" + DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN;
 
     /**
      * Pattern to extract task output.
@@ -93,7 +93,15 @@ public class GroupedOutputFixture {
     }
 
     private String stripWorkInProgressArea(String output) {
-        return output.replaceAll(WORK_IN_PROGRESS_AREA_PATTERN, "");
+        String result = output;
+        for (int i = 1; i <= 10; ++i) {
+            result = result.replaceAll(workInProgressAreaScrollingPattern(i), "");
+        }
+        return result.replaceAll(WORK_IN_PROGRESS_AREA_PATTERN, "");
+    }
+
+    private String workInProgressAreaScrollingPattern(int scroll) {
+        return "(\u001b\\[0K\\n){" + scroll + "}\u001b\\[" + scroll + "A";
     }
 
     private String stripAnsiCodes(String output) {

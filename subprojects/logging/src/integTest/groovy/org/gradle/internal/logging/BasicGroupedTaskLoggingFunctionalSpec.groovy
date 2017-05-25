@@ -188,8 +188,6 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         succeeds('log')
 
         then:
-        def outputs = result.groupedOutput.task(':log').outputs
-        outputs.size() == 1
-        outputs[0] =~ /Before\n+After/
+        result.groupedOutput.task(':log').outputs == ["Before\nAfter"]
     }
 }
