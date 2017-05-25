@@ -21,5 +21,5 @@ import org.gradle.api.logging.LogLevel;
 import java.io.File;
 
 public interface RhinoWorkerHandleFactory {
-    <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, File workingDir);
+    <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, File workingDir, String maxHeapSize);
 }

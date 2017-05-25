@@ -84,7 +84,7 @@ public class EnvJsPlugin implements Plugin<Project> {
                                 return envJsExtension.getJs().getSingleFile();
                             }
                         };
-                        return new EnvJsBrowserEvaluator(handleFactory, rhinoExtension.getClasspath(), envJsFactory, project.getGradle().getStartParameter().getLogLevel(), workDir);
+                        return new EnvJsBrowserEvaluator(handleFactory, rhinoExtension.getClasspath(), envJsFactory, project.getGradle().getStartParameter().getLogLevel(), workDir, rhinoExtension.getMaxHeapSize());
                     }
                 });
             }

@@ -32,7 +32,7 @@ public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory
     }
 
     @Override
-    public <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, File workingDir) {
+    public <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, File workingDir, String maxHeapSize) {
         SingleRequestWorkerProcessBuilder<T> builder = workerProcessBuilderFactory.singleRequestWorker(protocolType, workerImplementationType);
         builder.setBaseName("Gradle Rhino Worker");
         builder.setLogLevel(logLevel);
@@ -41,6 +41,7 @@ public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory
 
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
+        javaCommand.setMaxHeapSize(maxHeapSize);
 
         return builder.build();
     }

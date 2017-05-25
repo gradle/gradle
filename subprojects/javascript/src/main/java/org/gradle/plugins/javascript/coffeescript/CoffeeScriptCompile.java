@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
@@ -41,6 +42,7 @@ public class CoffeeScriptCompile extends SourceTask {
     private Object destinationDir;
     private Object rhinoClasspath;
     private CoffeeScriptCompileOptions options = new CoffeeScriptCompileOptions();
+    private String maxHeapSize;
 
     @Inject
     protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
@@ -114,6 +116,21 @@ public class CoffeeScriptCompile extends SourceTask {
         getProject().configure(getOptions(), closure);
     }
 
+    /**
+     * @since 4.1
+     */
+    @Input
+    public String getMaxHeapSize() {
+        return maxHeapSize;
+    }
+
+    /**
+     * @since 4.1
+     */
+    public void setMaxHeapSize(String maxHeapSize) {
+        this.maxHeapSize = maxHeapSize;
+    }
+
     @TaskAction
     public void doCompile() {
         RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(getWorkerProcessBuilderFactory());
@@ -125,7 +142,7 @@ public class CoffeeScriptCompile extends SourceTask {
         spec.setOptions(getOptions());
 
         LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();
-        CoffeeScriptCompiler compiler = new RhinoCoffeeScriptCompiler(handleFactory, getRhinoClasspath(), logLevel, getProject().getProjectDir());
+        CoffeeScriptCompiler compiler = new RhinoCoffeeScriptCompiler(handleFactory, getRhinoClasspath(), logLevel, getProject().getProjectDir(), maxHeapSize);
 
         setDidWork(compiler.compile(spec).getDidWork());
     }

@@ -32,6 +32,7 @@ public class RhinoExtension {
     public static final String CLASSPATH_CONFIGURATION_NAME = "rhinoPluginRhinoClasspath";
 
     private FileCollection classpath;
+    private String maxHeapSize;
     private String version;
 
     public FileCollection getClasspath() {
@@ -40,6 +41,20 @@ public class RhinoExtension {
 
     public void setClasspath(FileCollection rhinoClasspath) {
         this.classpath = rhinoClasspath;
+    }
+
+    /**
+     * @since 4.1
+     */
+    public String getMaxHeapSize() {
+        return maxHeapSize;
+    }
+
+    /**
+     * @since 4.1
+     */
+    public void setMaxHeapSize(String maxHeapSize) {
+        this.maxHeapSize = maxHeapSize;
     }
 
     public String getVersion() {

@@ -51,6 +51,7 @@ public class JsHint extends SourceTask {
     private Object jsHint;
     private String encoding = "UTF-8";
     private Object jsonReport;
+    private String maxHeapSize;
 
     @Inject
     protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
@@ -120,12 +121,27 @@ public class JsHint extends SourceTask {
         this.jsonReport = jsonReport;
     }
 
+    /**
+     * @since 4.1
+     */
+    @Input
+    public String getMaxHeapSize() {
+        return maxHeapSize;
+    }
+
+    /**
+     * @since 4.1
+     */
+    public void setMaxHeapSize(String maxHeapSize) {
+        this.maxHeapSize = maxHeapSize;
+    }
+
     @TaskAction
     public void doJsHint() {
         RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(getWorkerProcessBuilderFactory());
 
         LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();
-        JsHintProtocol worker = handleFactory.create(getRhinoClasspath(), JsHintProtocol.class, JsHintWorker.class, logLevel, getProject().getProjectDir());
+        JsHintProtocol worker = handleFactory.create(getRhinoClasspath(), JsHintProtocol.class, JsHintWorker.class, logLevel, getProject().getProjectDir(), maxHeapSize);
 
         JsHintSpec spec = new JsHintSpec();
         spec.setSource(getSource().getFiles()); // flatten because we need to serialize

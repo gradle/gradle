@@ -35,17 +35,19 @@ public class EnvJsBrowserEvaluator implements BrowserEvaluator {
     private final LogLevel logLevel;
     private final File workingDir;
     private final Factory<File> envJsFactory;
+    private String maxHeapSize;
 
-    public EnvJsBrowserEvaluator(RhinoWorkerHandleFactory rhinoWorkerHandleFactory, Iterable<File> rhinoClasspath, Factory<File> envJsFactory, LogLevel logLevel, File workingDir) {
+    public EnvJsBrowserEvaluator(RhinoWorkerHandleFactory rhinoWorkerHandleFactory, Iterable<File> rhinoClasspath, Factory<File> envJsFactory, LogLevel logLevel, File workingDir, String maxHeapSize) {
         this.rhinoWorkerHandleFactory = rhinoWorkerHandleFactory;
         this.rhinoClasspath = rhinoClasspath;
         this.envJsFactory = envJsFactory;
         this.logLevel = logLevel;
         this.workingDir = workingDir;
+        this.maxHeapSize = maxHeapSize;
     }
 
     public void evaluate(String url, Writer writer) {
-        EnvJvEvaluateProtocol evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJvEvaluateProtocol.class, EnvJsEvaluateWorker.class, logLevel, workingDir);
+        EnvJvEvaluateProtocol evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJvEvaluateProtocol.class, EnvJsEvaluateWorker.class, logLevel, workingDir, maxHeapSize);
 
         final String result = evaluator.process(new EnvJsEvaluateSpec(envJsFactory.create(), url));
 

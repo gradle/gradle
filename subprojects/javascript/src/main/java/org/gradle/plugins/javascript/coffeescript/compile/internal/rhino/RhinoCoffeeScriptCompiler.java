@@ -31,16 +31,18 @@ public class RhinoCoffeeScriptCompiler implements CoffeeScriptCompiler {
     private final Iterable<File> rhinoClasspath;
     private final LogLevel logLevel;
     private final File workingDir;
+    private final String maxHeapSize;
 
-    public RhinoCoffeeScriptCompiler(RhinoWorkerHandleFactory rhinoWorkerHandleFactory, Iterable<File> rhinoClasspath, LogLevel logLevel, File workingDir) {
+    public RhinoCoffeeScriptCompiler(RhinoWorkerHandleFactory rhinoWorkerHandleFactory, Iterable<File> rhinoClasspath, LogLevel logLevel, File workingDir, String maxHeapSize) {
         this.rhinoWorkerHandleFactory = rhinoWorkerHandleFactory;
         this.rhinoClasspath = rhinoClasspath;
         this.logLevel = logLevel;
         this.workingDir = workingDir;
+        this.maxHeapSize = maxHeapSize;
     }
 
     public WorkResult compile(CoffeeScriptCompileSpec spec) {
-        CoffeeScriptCompilerProtocol compiler = rhinoWorkerHandleFactory.create(rhinoClasspath, CoffeeScriptCompilerProtocol.class, CoffeeScriptCompilerWorker.class, logLevel, workingDir);
+        CoffeeScriptCompilerProtocol compiler = rhinoWorkerHandleFactory.create(rhinoClasspath, CoffeeScriptCompilerProtocol.class, CoffeeScriptCompilerWorker.class, logLevel, workingDir, maxHeapSize);
 
         compiler.process(new SerializableCoffeeScriptCompileSpec(spec));
 
