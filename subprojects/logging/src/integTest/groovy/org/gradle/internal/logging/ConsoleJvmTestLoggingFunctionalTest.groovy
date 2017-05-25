@@ -30,8 +30,6 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
     }
 
     def "can group failed test log event with task by default"() {
-        executer.withStackTraceChecksDisabled()
-
         given:
         file(JAVA_TEST_FILE_PATH) << javaTestClass {
             'throw new RuntimeException("expected");'
@@ -104,8 +102,6 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
     }
 
     def "can group multiple test log events with task"() {
-        executer.withStackTraceChecksDisabled()
-
         given:
         buildFile << testLoggingEvents(TestLogEvent.STARTED.testLoggingIdentifier, TestLogEvent.FAILED.testLoggingIdentifier)
         buildFile << testLoggingStandardStream()
