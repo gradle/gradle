@@ -145,7 +145,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     public void await() throws WorkerExecutionException {
         BuildOperationState currentOperation = buildOperationExecutor.getCurrentOperation();
         try {
-            asyncWorkTracker.waitForCompletion(currentOperation);
+            asyncWorkTracker.waitForCompletion(currentOperation, false);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());
         }

@@ -38,6 +38,7 @@ public interface AsyncWorkTracker {
      * thrown.
      *
      * @param operation - The build operation whose asynchronous work should be completed
+     * @param releaseLocks - Whether or not project locks should be released while waiting on work
      */
-    void waitForCompletion(BuildOperationState operation);
+    void waitForCompletion(BuildOperationState operation, boolean releaseLocks);
 }

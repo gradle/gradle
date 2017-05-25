@@ -81,7 +81,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         workerExecutor.await()
 
         then:
-        1 * asyncWorkerTracker.waitForCompletion(_)
+        1 * asyncWorkerTracker.waitForCompletion(_, false)
     }
 
     def "all errors are thrown when waiting on multiple results"() {
@@ -89,7 +89,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         workerExecutor.await()
 
         then:
-        1 * asyncWorkerTracker.waitForCompletion(_) >> {
+        1 * asyncWorkerTracker.waitForCompletion(_, false) >> {
             throw new DefaultMultiCauseException(null, new RuntimeException(), new RuntimeException())
         }
 

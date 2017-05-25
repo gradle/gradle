@@ -112,7 +112,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
-        1 * asyncWorkTracker.waitForCompletion(_)
+        1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -126,7 +126,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action2.contextualise(null)
         then:
-        1 * asyncWorkTracker.waitForCompletion(_)
+        1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -168,7 +168,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
-        1 * asyncWorkTracker.waitForCompletion(_)
+        1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -200,7 +200,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
-        1 * asyncWorkTracker.waitForCompletion(_)
+        1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -242,7 +242,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
-        1 * asyncWorkTracker.waitForCompletion(_)
+        1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -278,7 +278,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
-        1 * asyncWorkTracker.waitForCompletion(_)
+        1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -292,7 +292,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action2.contextualise(null)
         then:
-        1 * asyncWorkTracker.waitForCompletion(_)
+        1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -327,7 +327,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
-        1 * asyncWorkTracker.waitForCompletion(_) >> {
+        1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
         then:
@@ -372,7 +372,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
-        1 * asyncWorkTracker.waitForCompletion(_) >> {
+        1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
         then:
@@ -416,7 +416,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
-        1 * asyncWorkTracker.waitForCompletion(_) >> {
+        1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", failure)
         }
         then:
