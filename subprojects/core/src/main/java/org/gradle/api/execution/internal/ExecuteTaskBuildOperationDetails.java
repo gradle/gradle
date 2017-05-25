@@ -46,6 +46,11 @@ public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperati
     }
 
     @Override
+    public long getTaskId() {
+        return System.identityHashCode(task);
+    }
+
+    @Override
     public String getTaskClassName() {
         return GeneratedSubclasses.unpack(task.getClass()).getName();
     }
