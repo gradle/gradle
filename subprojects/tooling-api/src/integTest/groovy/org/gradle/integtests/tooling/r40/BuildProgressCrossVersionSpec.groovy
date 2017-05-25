@@ -124,13 +124,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def applyRootBuildScript = configureRoot.child("Apply script build.gradle to root project 'multi'")
         def resolveArtifactsInRoot = applyRootBuildScript.child("Resolve files of :compile")
         def resolveCompile = applyRootBuildScript.child("Resolve dependencies of :compile")
-        resolveArtifactsInRoot.child("Resolve artifact a.jar (project :a)")
-        resolveArtifactsInRoot.child("Resolve artifact b.jar (project :b)")
+        resolveArtifactsInRoot.child("Resolve a.jar (project :a)")
+        resolveArtifactsInRoot.child("Resolve b.jar (project :b)")
 
         def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply script build.gradle to project ':a'")
         def resolveArtifactsInProjectA = applyProjectABuildScript.child("Resolve files of :a:compile")
         def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies of :a:compile")
-        resolveArtifactsInProjectA.child("Resolve artifact b.jar (project :b)")
+        resolveArtifactsInProjectA.child("Resolve b.jar (project :b)")
 
         resolveCompileA.child("Configure project :b")
     }
@@ -198,15 +198,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         def resolveArtifacts = applyBuildScript.child("Resolve files of :compile")
-        resolveArtifacts.child("Resolve artifact a.jar (project :a)").children.isEmpty()
+        resolveArtifacts.child("Resolve a.jar (project :a)").children.isEmpty()
 
-        resolveArtifacts.child("Resolve artifact projectB.jar (group:projectB:1.0)")
+        resolveArtifacts.child("Resolve projectB.jar (group:projectB:1.0)")
             .child "Download http://localhost:${server.port}${projectB.artifactPath}"
 
-        resolveArtifacts.child("Resolve artifact projectC.jar (group:projectC:1.5)")
+        resolveArtifacts.child("Resolve projectC.jar (group:projectC:1.5)")
             .child "Download http://localhost:${server.port}${projectC.artifactPath}"
 
-        resolveArtifacts.child("Resolve artifact projectD.jar (group:projectD:2.0-SNAPSHOT)")
+        resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)")
             .child "Download http://localhost:${server.port}${projectD.artifactPath}"
 
         cleanup:

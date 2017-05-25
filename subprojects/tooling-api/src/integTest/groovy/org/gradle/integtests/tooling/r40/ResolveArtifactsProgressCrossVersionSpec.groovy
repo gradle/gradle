@@ -44,7 +44,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
-        resolveArtifacts.child("Resolve artifact a.jar (project :provider)")
+        resolveArtifacts.child("Resolve a.jar (project :provider)")
     }
 
     def "generates event for resolving intrinsic artifacts via file collection"() {
@@ -65,7 +65,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
-        resolveArtifacts.child("Resolve artifact a.jar (project :provider)")
+        resolveArtifacts.child("Resolve a.jar (project :provider)")
     }
 
     def "generates event for resolving intrinsic artifacts via incoming file collection"() {
@@ -86,7 +86,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
-        resolveArtifacts.child("Resolve artifact a.jar (project :provider)")
+        resolveArtifacts.child("Resolve a.jar (project :provider)")
     }
 
     def "generates event for resolving intrinsic artifacts via incoming artifact collection"() {
@@ -107,7 +107,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
-        resolveArtifacts.child("Resolve artifact a.jar (project :provider)")
+        resolveArtifacts.child("Resolve a.jar (project :provider)")
     }
 
     def "generates event for resolving artifact view via artifact collection"() {
@@ -129,7 +129,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
-        resolveArtifacts.child("Resolve artifact b.jar (project :provider)")
+        resolveArtifacts.child("Resolve b.jar (project :provider)")
     }
 
     def "generates event for resolving artifact view via file collection"() {
@@ -151,7 +151,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
-        resolveArtifacts.child("Resolve artifact b.jar (project :provider)")
+        resolveArtifacts.child("Resolve b.jar (project :provider)")
     }
 
     def "generates event for resolving artifacts even if dependencies have no artifacts"() {
@@ -193,7 +193,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
-        resolveArtifacts.child("Resolve artifact b.jar (project :provider)")
+        resolveArtifacts.child("Resolve b.jar (project :provider)")
     }
 
     def "does not generate event if configuration has no dependencies"() {
