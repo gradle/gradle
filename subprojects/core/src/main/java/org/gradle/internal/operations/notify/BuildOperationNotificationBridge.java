@@ -17,7 +17,6 @@
 package org.gradle.internal.operations.notify;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
@@ -92,7 +91,7 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
                 }
             }
 
-            if (!isNotificationWorthy(buildOperation)) {
+            if (buildOperation.getDetails() == null) {
                 return;
             }
 
@@ -129,13 +128,6 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
                 maybeThrow(e);
             }
         }
-    }
-
-    private static boolean isNotificationWorthy(BuildOperationDescriptor buildOperation) {
-        // replace this with opt-in to exposing on producer side
-        // it just so happens right now that this is a reasonable heuristic
-        Object details = buildOperation.getDetails();
-        return details != null && !(details instanceof ExecuteTaskBuildOperationDetails);
     }
 
     private static class Started implements BuildOperationStartedNotification {
