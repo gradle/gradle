@@ -18,7 +18,7 @@ package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 
-abstract class TrackingHttpHandler {
+interface TrackingHttpHandler {
     /**
      * Selects a resource handler to handle the given request. Returns null when this handler does not want to handle the request.
      *
@@ -26,7 +26,16 @@ abstract class TrackingHttpHandler {
      *
      * The method may block until the request is ready to be handled.
      */
-    public abstract ResourceHandler handle(int id, HttpExchange exchange) throws Exception;
+    ResourceHandler handle(int id, HttpExchange exchange) throws Exception;
 
-    public abstract void assertComplete();
+    /**
+     * Returns a precondition that asserts that this handler is not expecting any further requests to be released by the test in order to complete.
+     */
+    WaitPrecondition getWaitPrecondition();
+
+    /**
+     * Asserts that this handler has been completed successfully.
+     */
+    void assertComplete() throws AssertionError;
+
 }

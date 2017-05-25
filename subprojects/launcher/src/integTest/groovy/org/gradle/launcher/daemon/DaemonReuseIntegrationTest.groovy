@@ -210,7 +210,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     }
 
     void expectEvent(String event) {
-        server.expectConcurrentExecution(event, "${event}_release")
+        server.expectConcurrent(event, "${event}_release")
     }
 
     void waitFor(String event) {

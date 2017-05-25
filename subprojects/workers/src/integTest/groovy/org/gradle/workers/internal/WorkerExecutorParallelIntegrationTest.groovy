@@ -53,7 +53,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 }
             }
         """
-        blockingHttpServer.expectConcurrentExecution("workItem0", "workItem1", "workItem2")
+        blockingHttpServer.expectConcurrent("workItem0", "workItem1", "workItem2")
 
         expect:
         args("--max-workers=3")
@@ -85,7 +85,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 }
             }
         """
-        blockingHttpServer.expectConcurrentExecution("workItem0", "workItem1", "workItem2")
+        blockingHttpServer.expectConcurrent("workItem0", "workItem1", "workItem2")
 
         expect:
         args("--max-workers=3")
@@ -108,7 +108,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 }
             }
         """
-        blockingHttpServer.expectConcurrentExecution("alternate_workItem0", "workItem1", "alternate_workItem2")
+        blockingHttpServer.expectConcurrent("alternate_workItem0", "workItem1", "alternate_workItem2")
 
         expect:
         args("--max-workers=3")
@@ -130,12 +130,12 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 doLast { submitWorkItem("taskAction6", runnableClass) { isolationMode = IsolationMode.CLASSLOADER } }
             }
         """
-        blockingHttpServer.expectConcurrentExecution("taskAction1")
-        blockingHttpServer.expectConcurrentExecution("taskAction2")
-        blockingHttpServer.expectConcurrentExecution("taskAction3")
-        blockingHttpServer.expectConcurrentExecution("taskAction4")
-        blockingHttpServer.expectConcurrentExecution("taskAction5")
-        blockingHttpServer.expectConcurrentExecution("taskAction6")
+        blockingHttpServer.expectConcurrent("taskAction1")
+        blockingHttpServer.expectConcurrent("taskAction2")
+        blockingHttpServer.expectConcurrent("taskAction3")
+        blockingHttpServer.expectConcurrent("taskAction4")
+        blockingHttpServer.expectConcurrent("taskAction5")
+        blockingHttpServer.expectConcurrent("taskAction6")
 
         expect:
         args("--max-workers=3")
@@ -154,7 +154,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 doLast { submitWorkItem("taskAction3") }
             }
         """
-        blockingHttpServer.expectConcurrentExecution("taskAction1")
+        blockingHttpServer.expectConcurrent("taskAction1")
 
         expect:
         args("--max-workers=3")
@@ -185,7 +185,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 }
             }
         """
-        blockingHttpServer.expectConcurrentExecution("workItem1", "workItem3")
+        blockingHttpServer.expectConcurrent("workItem1", "workItem3")
 
         expect:
         args("--max-workers=3")
@@ -217,8 +217,8 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 dependsOn anotherParallelWorkTask
             }
         """
-        blockingHttpServer.expectConcurrentExecution("taskAction1", "taskAction2")
-        blockingHttpServer.expectConcurrentExecution("taskAction3")
+        blockingHttpServer.expectConcurrent("taskAction1", "taskAction2")
+        blockingHttpServer.expectConcurrent("taskAction3")
 
         expect:
         args("--max-workers=3")
@@ -332,7 +332,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 }
             }
         """
-        blockingHttpServer.expectConcurrentExecution("workItem1")
+        blockingHttpServer.expectConcurrent("workItem1")
 
         expect:
         args("--max-workers=3")
@@ -369,7 +369,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("help")
 
         def calls = ["workItem0", "workItem1", "workItem2", "workItem3", "workItem4", "workItem5"] as String[]
-        def handler = blockingHttpServer.blockOnConcurrentExecutionAnyOf(maxWorkers, calls)
+        def handler = blockingHttpServer.expectConcurrentAndBlock(maxWorkers, calls)
 
         when:
         args("--max-workers=${maxWorkers}")
@@ -414,7 +414,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             }
         """
 
-        blockingHttpServer.expectConcurrentExecution("task1", "task2")
+        blockingHttpServer.expectConcurrent("task1", "task2")
 
         expect:
         args("--max-workers=2")
@@ -442,8 +442,8 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             }
         """
 
-        blockingHttpServer.expectConcurrentExecution("task1")
-        blockingHttpServer.expectConcurrentExecution("task2")
+        blockingHttpServer.expectConcurrent("task1")
+        blockingHttpServer.expectConcurrent("task2")
 
         expect:
         args("--max-workers=2")
@@ -471,7 +471,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             }
         """
 
-        blockingHttpServer.expectConcurrentExecution("task1", "task2")
+        blockingHttpServer.expectConcurrent("task1", "task2")
 
         expect:
         args("--max-workers=2")
@@ -498,8 +498,8 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             }
         """
 
-        blockingHttpServer.expectConcurrentExecution("task1-1", "task2")
-        blockingHttpServer.expectConcurrentExecution("task1-2")
+        blockingHttpServer.expectConcurrent("task1-1", "task2")
+        blockingHttpServer.expectConcurrent("task1-2")
 
         expect:
         args("--max-workers=3")
@@ -531,8 +531,8 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             }
         """
 
-        blockingHttpServer.expectConcurrentExecution("task1-1", "task2")
-        blockingHttpServer.expectConcurrentExecution("task1-2")
+        blockingHttpServer.expectConcurrent("task1-1", "task2")
+        blockingHttpServer.expectConcurrent("task1-2")
 
         expect:
         args("--max-workers=3")
@@ -593,7 +593,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             }
         """
 
-        blockingHttpServer.expectConcurrentExecution("task1", "task2")
+        blockingHttpServer.expectConcurrent("task1", "task2")
 
         expect:
         args("--max-workers=2")

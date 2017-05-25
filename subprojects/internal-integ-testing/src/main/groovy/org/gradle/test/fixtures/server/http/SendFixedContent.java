@@ -21,16 +21,16 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 
-class SimpleResourceHandler implements ResourceHandler, BlockingHttpServer.Resource {
+class SendFixedContent implements ResourceHandler, BlockingHttpServer.ExpectedRequest, ResourceExpectation {
     private final String path;
     private final String content;
 
-    public SimpleResourceHandler(String path) {
+    SendFixedContent(String path) {
         this.path = removeLeadingSlash(path);
         this.content = "";
     }
 
-    public SimpleResourceHandler(String path, String content) {
+    SendFixedContent(String path, String content) {
         this.path = removeLeadingSlash(path);
         this.content = content;
     }
@@ -48,7 +48,12 @@ class SimpleResourceHandler implements ResourceHandler, BlockingHttpServer.Resou
     }
 
     @Override
-    public void writeTo(HttpExchange exchange) throws IOException {
+    public ResourceHandler create(WaitPrecondition precondition) {
+        return this;
+    }
+
+    @Override
+    public void writeTo(int requestId, HttpExchange exchange) throws IOException {
         byte[] bytes = content.getBytes(Charsets.UTF_8);
         exchange.sendResponseHeaders(200, bytes.length);
         exchange.getResponseBody().write(bytes);

@@ -132,8 +132,8 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
             task log { }
         """
 
-        barrier.expectConcurrentExecution("child-build-started", "1-started", "2-started")
-        barrier.expectConcurrentExecution("child-build-finished", "1-finished", "2-finished")
+        barrier.expectConcurrent("child-build-started", "1-started", "2-started")
+        barrier.expectConcurrent("child-build-finished", "1-finished", "2-finished")
 
         when:
         executer.withArgument("--parallel")

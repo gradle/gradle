@@ -203,7 +203,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     /**
      * Adds a repository which looks in Google's Maven repository for dependencies.
      * <p>
-     * The URL used to access this repository is {@literal "https://maven.google.com/"}.
+     * The URL used to access this repository is {@literal "https://dl.google.com/dl/android/maven2/"}.
      * <p>
      * Examples:
      * <pre autoTested="">

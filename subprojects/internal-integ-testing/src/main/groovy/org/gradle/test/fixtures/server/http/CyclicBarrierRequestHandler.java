@@ -29,23 +29,47 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
-class CyclicBarrierRequestHandler extends TrackingHttpHandler {
+class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPrecondition {
     private final TimeProvider timeProvider = new TrueTimeProvider();
     private final Lock lock;
     private final Condition condition;
     private final List<String> received = new ArrayList<String>();
     private final Map<String, ResourceHandler> pending;
     private final int timeoutMs;
+    private final WaitPrecondition previous;
     private long mostRecentEvent;
     private AssertionError failure;
 
-    CyclicBarrierRequestHandler(Lock lock, int timeoutMs, Collection<? extends ResourceHandler> expectedCalls) {
+    CyclicBarrierRequestHandler(Lock lock, int timeoutMs, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectations) {
         this.lock = lock;
         condition = lock.newCondition();
         this.timeoutMs = timeoutMs;
+        this.previous = previous;
         pending = new TreeMap<String, ResourceHandler>();
-        for (ResourceHandler call : expectedCalls) {
-            pending.put(call.getPath(), call);
+        for (ResourceExpectation expectation : expectations) {
+            // Can wait on request if previous handler allows waiting
+            ResourceHandler handler = expectation.create(previous);
+            pending.put(handler.getPath(), handler);
+        }
+    }
+
+    @Override
+    public WaitPrecondition getWaitPrecondition() {
+        return this;
+    }
+
+    @Override
+    public void assertCanWait() throws AssertionError {
+        lock.lock();
+        try {
+            // Can wait if this handler has completed or if the previous handler allows waiting
+            if (pending.isEmpty()) {
+                // Already completed
+                return;
+            }
+            previous.assertCanWait();
+        } finally {
+            lock.unlock();
         }
     }
 

@@ -552,7 +552,7 @@ Now Gradle will look for your dependencies in the JCenter repository. _jcenter()
 
 The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples please the [relevant documentation](https://developer.android.com/studio/build/dependencies.html#google-maven).
 
-To add the Google Maven repository (https://maven.google.com[]) simply add this to your build script:
+To add the Google Maven repository (https://dl.google.com/dl/android/maven2/[]) simply add this to your build script:
 
 ++++
 <sample id="mavenGoogleRepo" dir="userguide/artifacts/defineRepository" title="Adding Google Maven repository">

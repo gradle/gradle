@@ -22,12 +22,12 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.File;
 import java.io.IOException;
 
-class FileResourceHandler implements BlockingHttpServer.Resource, ResourceHandler {
+class SendFileContent implements BlockingHttpServer.ExpectedRequest, ResourceHandler, ResourceExpectation {
     private final String path;
     private final File file;
 
-    public FileResourceHandler(String path, File file) {
-        this.path = SimpleResourceHandler.removeLeadingSlash(path);
+    SendFileContent(String path, File file) {
+        this.path = SendFixedContent.removeLeadingSlash(path);
         this.file = file;
     }
 
@@ -37,7 +37,12 @@ class FileResourceHandler implements BlockingHttpServer.Resource, ResourceHandle
     }
 
     @Override
-    public void writeTo(HttpExchange exchange) throws IOException {
+    public ResourceHandler create(WaitPrecondition precondition) {
+        return this;
+    }
+
+    @Override
+    public void writeTo(int requestId, HttpExchange exchange) throws IOException {
         exchange.sendResponseHeaders(200, file.length());
         Files.copy(file, exchange.getResponseBody());
     }

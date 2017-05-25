@@ -24,11 +24,14 @@ import org.fusesource.jansi.Ansi
  * <b>Note:</b> The console output contains formatting characters.
  */
 abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
-    private static final String ESC = "\u001b"
-    private static final String CONTROL_SEQUENCE_START = "\u001B["
-    private static final String CONTROL_SEQUENCE_SEPARATOR = ";"
-    private static final String CONTROL_SEQUENCE_END = "m"
-    private static final String DEFAULT_TEXT = "0;39"
+    public final static String CONTROL_SEQUENCE_START = "\u001B["
+    public final static String CONTROL_SEQUENCE_SEPARATOR = ";"
+    public final static String CONTROL_SEQUENCE_END = "m"
+    public final static String DEFAULT_TEXT = "0;39"
+
+    static String workInProgressLine(String plainText) {
+        return boldOn() + plainText + reset()
+    }
 
     def setup() {
         executer.withRichConsole()
@@ -50,19 +53,11 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
         return styledString
     }
 
-    static String workInProgressLine(String plainText) {
-        return boldOn() + plainText + reset()
-    }
-
     private static String boldOn() {
-        ansi("1m")
+        "${CONTROL_SEQUENCE_START}1m"
     }
 
     private static String reset() {
-        ansi("m")
-    }
-
-    private static String ansi(String command) {
-        "$ESC[${command}"
+        "${CONTROL_SEQUENCE_START}m"
     }
 }

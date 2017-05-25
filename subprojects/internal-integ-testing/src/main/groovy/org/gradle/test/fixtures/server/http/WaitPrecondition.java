@@ -16,15 +16,12 @@
 
 package org.gradle.test.fixtures.server.http;
 
-import com.sun.net.httpserver.HttpExchange;
-
-import java.io.IOException;
-
-interface ResourceHandler {
-    String getPath();
-
+/**
+ * Some action that must be met before it is legal to wait for an incoming request.
+ */
+interface WaitPrecondition {
     /**
-     * Called to handle a request. Is *not* called under lock.
+     * Must be called under lock.
      */
-    void writeTo(int requestId, HttpExchange exchange) throws IOException;
+    void assertCanWait() throws IllegalStateException;
 }

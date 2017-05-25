@@ -16,15 +16,6 @@
 
 package org.gradle.test.fixtures.server.http;
 
-import com.sun.net.httpserver.HttpExchange;
-
-import java.io.IOException;
-
-interface ResourceHandler {
-    String getPath();
-
-    /**
-     * Called to handle a request. Is *not* called under lock.
-     */
-    void writeTo(int requestId, HttpExchange exchange) throws IOException;
+interface ResourceExpectation {
+    ResourceHandler create(WaitPrecondition precondition);
 }
