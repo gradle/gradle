@@ -73,7 +73,19 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     @Nullable
     @Override
     public List<String> list() throws ResourceException {
-        return delegate.list();
+        return buildOperationExecutor.call(new CallableBuildOperation<List<String>>() {
+            @Override
+            public List<String> call(BuildOperationContext context) {
+                return delegate.list();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("List " + resourceName.getDisplayName())
+                    .details(new ListOperationDetails(resourceName.getUri()));
+            }
+        });
     }
 
     @Override
@@ -247,6 +259,17 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
         @Override
         public String toString() {
             return "ExternalResourceReadMetadataBuildOperationType.Details{location=" + getLocation() + ", " + '}';
+        }
+    }
+
+    private static class ListOperationDetails extends LocationDetails implements ExternalResourceListBuildOperationType.Details {
+        private ListOperationDetails(URI location) {
+            super(location);
+        }
+
+        @Override
+        public String toString() {
+            return "ExternalResourceListBuildOperationType.Details{location=" + getLocation() + ", " + '}';
         }
     }
 

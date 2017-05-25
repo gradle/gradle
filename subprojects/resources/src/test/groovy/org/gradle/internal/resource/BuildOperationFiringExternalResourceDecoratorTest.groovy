@@ -199,6 +199,33 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         1 * delegate.getMetaData() >> metaData
     }
 
+    def "wraps list in a build operation"() {
+        given:
+        def delegate = Mock(ExternalResource)
+        def buildOperationExecuter = Mock(BuildOperationExecutor)
+        def operationContextMock = Mock(BuildOperationContext)
+        def location = new ExternalResourceName(new URI("http://some/uri"))
+        def resource = new BuildOperationFiringExternalResourceDecorator(location, buildOperationExecuter, delegate)
+
+        when:
+        def result = resource.list()
+
+        then:
+        result == ["a"]
+        1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
+            def descriptor = op.description().build()
+            assert descriptor.name == "List http://some/uri"
+            assert descriptor.displayName == "List http://some/uri"
+
+            def details = descriptor.details
+            assert details instanceof ExternalResourceListBuildOperationType.Details
+            assert details.location == location.getUri().toASCIIString()
+
+            return op.call(operationContextMock)
+        }
+        1 * delegate.list() >> ["a"]
+    }
+
     @Unroll
     def "fails build operation if ResourceException is thrown in #methodSignature "() {
         given:
