@@ -16,11 +16,13 @@
 
 package org.gradle.internal.work;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.AbstractTrackedResourceLock;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -32,10 +34,9 @@ import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*;
@@ -109,58 +110,88 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    public void withoutProjectLock(Runnable runnable) {
-        final Collection<? extends ResourceLock> projectLocks = projectLockRegistry.getResourceLocksByCurrentThread();
-        withoutLocks(projectLocks.toArray(new ResourceLock[projectLocks.size()])).execute(runnable);
+    public <T> T withoutProjectLock(Callable<T> action) {
+        final Iterable<? extends ResourceLock> projectLocks = projectLockRegistry.getResourceLocksByCurrentThread();
+        return withoutLocks(projectLocks, action);
     }
 
     @Override
-    public Executor withLocks(final ResourceLock... locks) {
-        return new Executor() {
-            @Override
-            public void execute(Runnable runnable) {
-                coordinationService.withStateLock(lock(locks));
-                try {
-                    runnable.run();
-                } finally {
-                    coordinationService.withStateLock(unlock(locks));
-                }
-            }
-        };
+    public void withoutProjectLock(Runnable action) {
+        final Iterable<? extends ResourceLock> projectLocks = projectLockRegistry.getResourceLocksByCurrentThread();
+        withoutLocks(projectLocks, action);
     }
 
     @Override
-    public Executor withoutLocks(final ResourceLock... locks) {
-        return new Executor() {
-            @Override
-            public void execute(Runnable runnable) {
-                if (!allLockedByCurrentThread(locks)) {
-                    throw new IllegalStateException("Not all of the locks specified are currently held by the current thread.  This could lead to orphaned locks.");
-                }
-
-                coordinationService.withStateLock(unlock(locks));
-                try {
-                    runnable.run();
-                } finally {
-                    if (!coordinationService.withStateLock(tryLock(locks))) {
-                        WorkerLease workerLease = getCurrentWorkerLease();
-                        List<ResourceLock> allLocks = Lists.newArrayList();
-                        allLocks.add(workerLease);
-                        allLocks.addAll(Arrays.asList(locks));
-                        coordinationService.withStateLock(unlock(workerLease));
-                        coordinationService.withStateLock(lock(allLocks));
-                    }
-                }
-            }
-        };
+    public <T> T withLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
+        coordinationService.withStateLock(lock(locks));
+        try {
+            return action.call();
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            coordinationService.withStateLock(unlock(locks));
+        }
     }
 
-    private boolean allLockedByCurrentThread(final ResourceLock... locks) {
+    @Override
+    public void withLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
+        coordinationService.withStateLock(lock(locks));
+        try {
+            action.run();
+        } finally {
+            coordinationService.withStateLock(unlock(locks));
+        }
+    }
+
+    @Override
+    public <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
+        if (!allLockedByCurrentThread(locks)) {
+            throw new IllegalStateException("Not all of the locks specified are currently held by the current thread.  This could lead to orphaned locks.");
+        }
+
+        coordinationService.withStateLock(unlock(locks));
+        try {
+            return action.call();
+        } catch (Exception e) {
+            throw new UncheckedException(e);
+        } finally {
+            if (!coordinationService.withStateLock(tryLock(locks))) {
+                releaseWorkerLeaseAndWaitFor(locks);
+            }
+        }
+    }
+
+    @Override
+    public void withoutLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
+        if (!allLockedByCurrentThread(locks)) {
+            throw new IllegalStateException("Not all of the locks specified are currently held by the current thread.  This could lead to orphaned locks.");
+        }
+
+        coordinationService.withStateLock(unlock(locks));
+        try {
+            action.run();
+        } finally {
+            if (!coordinationService.withStateLock(tryLock(locks))) {
+                releaseWorkerLeaseAndWaitFor(locks);
+            }
+        }
+    }
+
+    private void releaseWorkerLeaseAndWaitFor(Iterable<? extends ResourceLock> locks) {
+        WorkerLease workerLease = getCurrentWorkerLease();
+        List<ResourceLock> allLocks = Lists.newArrayList();
+        allLocks.add(workerLease);
+        Iterables.addAll(allLocks, locks);
+        coordinationService.withStateLock(unlock(workerLease));
+        coordinationService.withStateLock(lock(allLocks));
+    }
+
+    private boolean allLockedByCurrentThread(final Iterable<? extends ResourceLock> locks) {
         final AtomicBoolean allLocked = new AtomicBoolean();
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                allLocked.set(CollectionUtils.every(Arrays.asList(locks), new Spec<ResourceLock>() {
+                allLocked.set(CollectionUtils.every(locks, new Spec<ResourceLock>() {
                     @Override
                     public boolean isSatisfiedBy(ResourceLock lock) {
                         return lock.isLockedByCurrentThread();

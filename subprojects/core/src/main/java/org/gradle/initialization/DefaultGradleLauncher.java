@@ -37,6 +37,7 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -113,7 +114,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
         final AtomicReference<BuildResult> buildResult = new AtomicReference<BuildResult>();
         WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
-        workerLeaseService.withLocks(workerLeaseService.getWorkerLease()).execute(new Runnable() {
+        workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Runnable() {
             @Override
             public void run() {
                 Throwable failure = null;
