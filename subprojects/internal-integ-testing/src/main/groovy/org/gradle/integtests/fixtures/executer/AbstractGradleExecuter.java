@@ -970,13 +970,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     TestFile buildSrcBuildGradle = new TestFile(projectDir, "buildSrc/build.gradle");
                     buildSrcBuildGradle.leftShift(
                         "\nallprojects {"
-                            + "\n    tasks.withType(JavaCompile) {"
-                            + "\n        options.forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "'"
-                            + "\n    }"
-                            + "\n    tasks.withType(GroovyCompile) {"
-                            + "\n        groovyOptions.forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "'"
-                            + "\n    }"
-                            + "\n}\n"
+                        + "\n    tasks.withType(SourceTask) {"
+                        + "\n        if (it.hasProperty('options') && options.hasProperty('forkOptions')) { options.forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "' }"
+                        + "\n        if (it.hasProperty('groovyOptions')) { groovyOptions.forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "' }"
+                        + "\n    }"
+                        + "\n}\n"
                     );
                 }
             }

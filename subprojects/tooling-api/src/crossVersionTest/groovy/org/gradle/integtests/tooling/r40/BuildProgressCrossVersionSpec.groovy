@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r40
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
@@ -63,6 +64,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                 def workerExecutor = services.get(WorkerExecutor)
                 workerExecutor.submit(TestRunnable) { config ->
                     config.isolationMode = IsolationMode.PROCESS
+                    config.forkOptions { it.maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}' }
                     config.displayName = 'My forked worker action'
                 }
             }

@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
@@ -103,6 +104,10 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             .withProjectDir(testDirectory)
             .withArguments(allArgs)
             .withDebug(debug)
+        def propertiesFile = projectDir.file("gradle.properties")
+        if (!propertiesFile.isFile() || !propertiesFile.text.contains("org.gradle.jvmargs")) {
+            gradleRunner.withJvmArguments("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}")
+        }
 
         gradleProvider.applyTo(gradleRunner)
         gradleRunner

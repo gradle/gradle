@@ -17,13 +17,14 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(60)
+@Timeout(600)
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule
@@ -232,10 +233,12 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 doLast { 
                     submitWorkItem("workItem1", RunnableThatFails.class) { config ->
                         config.isolationMode = $isolationMode1
+                        ${isolationMode1 == 'IsolationMode.PROCESS' ? "config.forkOptions { it.maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}' }" : "" }
                         config.displayName = "work item 1"
                     }
                     submitWorkItem("workItem2", RunnableThatFails.class) { config ->
                         config.isolationMode = $isolationMode2
+                        ${isolationMode2 == 'IsolationMode.PROCESS' ? "config.forkOptions { it.maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}' }" : "" }
                         config.displayName = "work item 2"
                     }
                 }

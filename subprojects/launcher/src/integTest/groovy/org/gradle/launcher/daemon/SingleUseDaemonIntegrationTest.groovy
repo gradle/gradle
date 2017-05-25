@@ -172,6 +172,7 @@ assert System.getProperty('some-prop') == 'some-value'
     }
 
     private def runWithJvmArg(String jvmArg) {
+        executer.withBuildJvmOpts(jvmArg)
         executer.withEnvironmentVars(["JAVA_OPTS": "$jvmArg -ea"])
     }
 

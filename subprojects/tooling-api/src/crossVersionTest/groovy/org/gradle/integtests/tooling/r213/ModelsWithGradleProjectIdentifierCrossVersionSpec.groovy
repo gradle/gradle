@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -83,7 +84,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
         GradleConnector connector = connector()
         connector.forProjectDirectory(rootDir)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
-        return withConnection(connector) { it.getModel(modelType) }
+        return withConnection(connector) { it.model(modelType).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").get() }
     }
 
     private getModelsWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
@@ -92,7 +93,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
         connector.forProjectDirectory(rootDir)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
         withConnection(connector) { connection ->
-            connection.action(buildAction).run()
+            connection.action(buildAction).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").run()
         }
     }
 

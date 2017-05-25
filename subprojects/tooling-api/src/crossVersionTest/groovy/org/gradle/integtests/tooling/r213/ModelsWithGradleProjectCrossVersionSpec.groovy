@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -182,14 +183,14 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         GradleConnector connector = connector()
         connector.forProjectDirectory(rootDir.absoluteFile)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
-        def model = withConnection(connector) { it.getModel(modelType) }
+        def model = withConnection(connector) { it.model(modelType).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").get() }
         return toGradleProject(model)
     }
 
     private <T> T getModelWithProjectConnection(TestFile rootDir, Class<T> modelType) {
         GradleConnector connector = connector()
         connector.forProjectDirectory(rootDir.absoluteFile)
-        return withConnection(connector) { it.getModel(modelType) }
+        return withConnection(connector) { it.model(modelType).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").get() }
     }
 
     private static GradleProject toGradleProject(def model) {
@@ -206,7 +207,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         GradleConnector connector = connector()
         connector.forProjectDirectory(rootDir.absoluteFile)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
-        def buildModel = withConnection(connector) { it.getModel(modelType) }
+        def buildModel = withConnection(connector) { it.model(modelType).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").get() }
         return toGradleProjects(buildModel)
     }
 

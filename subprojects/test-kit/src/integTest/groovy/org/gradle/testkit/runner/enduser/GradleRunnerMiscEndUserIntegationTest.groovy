@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner.enduser
 
 import groovy.io.FileType
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.GFileUtils
@@ -159,6 +160,7 @@ class GradleRunnerMiscEndUserIntegationTest extends BaseTestKitEndUserIntegratio
 
                 def setup() {
                     buildFile = testProjectDir.newFile('build.gradle')
+                    testProjectDir.newFile('gradle.properties') << "org.gradle.jvmargs='-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}'"
                 }
 
                 def "execute helloWorld task"() {

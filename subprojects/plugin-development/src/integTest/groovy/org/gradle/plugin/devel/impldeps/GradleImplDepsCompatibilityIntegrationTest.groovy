@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.impldeps
 
 import groovy.transform.TupleConstructor
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
 import spock.lang.Unroll
@@ -124,9 +125,11 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
             class BuildLogicFunctionalTest extends Specification {
                 @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
                 File buildFile
+                File propertiesFile
 
                 def setup() {
                     buildFile = testProjectDir.newFile('build.gradle')
+                    propertiesFile = testProjectDir.newFile('gradle.properties')
                 }
 
                 def "hello world task prints hello world"() {
@@ -138,6 +141,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
                             }
                         }
                     '''
+                    propertiesFile << 'org.gradle.jvmargs=-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}'
 
                     when:
                     def result = GradleRunner.create()

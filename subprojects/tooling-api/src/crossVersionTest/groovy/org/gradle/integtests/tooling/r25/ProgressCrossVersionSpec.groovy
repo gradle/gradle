@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.r18.NullAction
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -132,6 +133,8 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true
+            compileTestJava.options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+            test.maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'    
         """
 
         file("src/test/java/example/MyTest.java") << """

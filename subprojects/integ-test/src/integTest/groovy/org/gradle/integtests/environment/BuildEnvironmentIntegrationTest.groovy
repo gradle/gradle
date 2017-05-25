@@ -18,6 +18,7 @@ package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -153,6 +154,7 @@ assert classesDir.directory
 
         file('gradle.properties') << """
 org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
+org.gradle.jvmargs=-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}
 """
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 

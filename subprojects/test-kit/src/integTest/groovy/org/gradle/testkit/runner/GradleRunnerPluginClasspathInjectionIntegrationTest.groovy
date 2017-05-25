@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
@@ -279,6 +280,11 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
     def "buildSrc classes are not visible to injected classes"() {
         plugin.build()
         def buildSrcSrcDir = file("buildSrc/src/main/groovy/org/gradle/test")
+        file('buildSrc/build.gradle') << """
+            tasks.withType(GroovyCompile) { 
+                groovyOptions.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+            }
+        """
 
         // these class names intentionally clash with what we are injecting
 

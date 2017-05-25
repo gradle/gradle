@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.m9
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
@@ -83,9 +84,10 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         def env = withConnection {
-            it.newBuild().setJavaHome(javaHome).run() //the assert
+            it.newBuild().setJavaHome(javaHome).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").run() //the assert
             it.model(BuildEnvironment.class)
                     .setJavaHome(javaHome)
+                    .setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
                     .get()
         }
 

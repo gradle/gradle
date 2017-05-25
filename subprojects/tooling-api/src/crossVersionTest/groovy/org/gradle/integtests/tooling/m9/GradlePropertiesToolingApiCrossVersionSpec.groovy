@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.m9
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.build.BuildEnvironment
@@ -54,7 +55,10 @@ assert System.getProperty('some-prop') == 'some-value'
 
         file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
 
-        file('gradle.properties') << "org.gradle.java.home=$javaHomePath"
+        file('gradle.properties') << """
+            org.gradle.java.home=$javaHomePath
+            org.gradle.jvmargs=-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}
+        """
 
         when:
         BuildEnvironment env = toolingApi.withConnection { connection ->

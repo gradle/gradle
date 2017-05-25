@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.id.LongIdGenerator
@@ -54,12 +55,12 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
 
     void execute(ChildProcess... processes) throws Throwable {
         for (ChildProcess process : processes) {
-            process.start();
+            process.start()
         }
         for (ChildProcess process : processes) {
-            process.waitForStop();
+            process.waitForStop()
         }
-        exceptionListener.rethrow();
+        exceptionListener.rethrow()
     }
 
     def workerProcessStdoutAndStderrIsForwardedToThisProcess() {
@@ -225,25 +226,25 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
     }
 
     private class ChildProcess {
-        private boolean stopFails;
-        private boolean startFails;
-        private WorkerProcess proc;
-        private Action<? super WorkerProcessContext> action;
-        private List<String> jvmArgs = Collections.emptyList();
-        private Action<ObjectConnectionBuilder> serverAction;
+        private boolean stopFails
+        private boolean startFails
+        private WorkerProcess proc
+        private Action<? super WorkerProcessContext> action
+        private List<String> jvmArgs = Collections.emptyList()
+        private Action<ObjectConnectionBuilder> serverAction
 
         public ChildProcess(Action<? super WorkerProcessContext> action) {
-            this.action = action;
+            this.action = action
         }
 
         ChildProcess expectStopFailure() {
-            stopFails = true;
-            return this;
+            stopFails = true
+            return this
         }
 
         ChildProcess expectStartFailure() {
-            startFails = true;
-            return this;
+            startFails = true
+            return this
         }
 
         public void start() {
@@ -253,9 +254,10 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             builder.javaCommand.systemProperty("test.system.property", "value")
             builder.javaCommand.environment("TEST_ENV_VAR", "value")
 
-            builder.javaCommand.jvmArgs(jvmArgs);
+            builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
+            builder.javaCommand.jvmArgs(jvmArgs)
 
-            proc = builder.build();
+            proc = builder.build()
             try {
                 proc.start()
                 assertFalse(startFails)
@@ -263,7 +265,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
                 if (!startFails) {
                     throw new AssertionError(e)
                 }
-                return;
+                return
             }
             proc.connection.addIncoming(TestListenerInterface.class, exceptionListener)
             if (serverAction != null) {
@@ -303,7 +305,7 @@ class StdOutSerializableLogAction extends SerializableLogAction {
     }
 
     void execute() {
-        System.out.println(message);
+        System.out.println(message)
     }
 }
 
@@ -313,7 +315,7 @@ class StdErrSerializableLogAction extends SerializableLogAction {
     }
 
     void execute() {
-        System.err.println(message);
+        System.err.println(message)
     }
 }
 
@@ -338,5 +340,5 @@ abstract class SerializableLogAction implements Serializable {
         this.message = message
     }
 
-    abstract void execute();
+    abstract void execute()
 }

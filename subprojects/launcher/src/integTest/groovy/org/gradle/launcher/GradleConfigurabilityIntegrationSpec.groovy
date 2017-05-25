@@ -17,6 +17,7 @@
 package org.gradle.launcher
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
@@ -64,7 +65,10 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         file("tmp").createDir().deleteDir()
 
         String linkPath = TextUtil.escapeString(javaLink.absolutePath)
-        file("gradle.properties") << "org.gradle.java.home=$linkPath"
+        file("gradle.properties") << """
+            org.gradle.java.home=$linkPath
+            org.gradle.jvmargs=-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}
+        """
 
         when:
         buildSucceeds "println 'java home =' + System.getProperty('java.home')"
@@ -79,7 +83,9 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
     def "honours jvm sys property that contain a space in gradle.properties"() {
         given:
-        file("gradle.properties") << 'org.gradle.jvmargs=-Dsome-prop="i have space"'
+        file("gradle.properties") << """
+            org.gradle.jvmargs=-Dsome-prop="i have space" -Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}
+        """
 
         expect:
         buildSucceeds """
@@ -89,7 +95,9 @@ assert System.getProperty('some-prop').toString() == 'i have space'
 
     def "honours jvm option that contain a space in gradle.properties"() {
         given:
-        file("gradle.properties") << 'org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space" -Dsome-prop="and some more stress..."'
+        file("gradle.properties") << """
+            org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space" -Dsome-prop="and some more stress..." -Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}
+        """
 
         expect:
         buildSucceeds """
@@ -100,7 +108,8 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
 
     def String useAlternativeJavaPath(JavaInfo jvm = AvailableJavaHomes.differentJdk) {
         File javaHome = jvm.javaHome
-        file("gradle.properties").writeProperties("org.gradle.java.home": javaHome.canonicalPath)
+        file("gradle.properties").writeProperties("org.gradle.java.home": javaHome.canonicalPath,
+            "org.gradle.jvmargs": "-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}".toString())
         return javaHome.canonicalPath
     }
 

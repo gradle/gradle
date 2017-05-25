@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonContextParser
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.registry.DaemonDir
@@ -77,7 +78,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             executer.withArguments(
                     "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",
                     "--debug", // Need debug logging so we can extract the `DefaultDaemonContext`
-                    "-Dorg.gradle.jvmargs=-ea")
+                    "-Dorg.gradle.jvmargs=-ea -Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
             if (javaHome) {
                 executer.withJavaHome(javaHome)
             }

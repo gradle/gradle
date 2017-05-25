@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r33
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -176,6 +177,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                 apply plugin: 'java'
                 repositories { mavenCentral() }
                 dependencies { testCompile 'junit:junit:4.12' }
+                tasks.withType(JavaCompile) {
+                    options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+                }
+                tasks.withType(Test) {
+                    maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+                }
             }
 """
         file("src/main/java/Thing.java") << """class Thing { }"""
@@ -220,6 +227,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             allprojects { apply plugin: 'java' }
             dependencies { compile 'thing:thing:1.0' }
+            compileJava.options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
 """
         file("src/main/java/Thing.java") << """class Thing { }"""
 
@@ -246,7 +254,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     def "does not include dependency resolution that is a child of a task when task events are not included"() {
         given:
         buildFile << """
-            allprojects { apply plugin: 'java' }
+            allprojects {
+                apply plugin: 'java'
+                compileJava.options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}' 
+            }
 """
         file("src/main/java/Thing.java") << """class Thing { }"""
         file("src/test/java/Thing.java") << """class ThingTest { }"""
@@ -397,6 +408,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                 apply plugin: 'java'
                 repositories { mavenCentral() }
                 dependencies { testCompile 'junit:junit:4.12' }
+                tasks.withType(JavaCompile) {
+                    options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+                }
+                tasks.withType(Test) {
+                    maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+                }
             }
 """
         file("src/main/java/Thing.java") << """class Thing { }"""
@@ -415,6 +432,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                 apply plugin: 'java'
                 repositories { mavenCentral() }
                 dependencies { testCompile 'junit:junit:4.12' }
+                tasks.withType(JavaCompile) {
+                    options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+                }
+                tasks.withType(Test) {
+                    maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+                }
             }
             dependencies {
                 compile project(':a')

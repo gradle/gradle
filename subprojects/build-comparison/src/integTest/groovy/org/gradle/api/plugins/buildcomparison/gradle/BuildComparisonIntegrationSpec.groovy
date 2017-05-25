@@ -19,6 +19,7 @@ package org.gradle.api.plugins.buildcomparison.gradle
 import org.gradle.api.plugins.buildcomparison.fixtures.BuildComparisonHtmlReportFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import org.junit.Rule
@@ -41,6 +42,13 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     def setup() {
         executer.requireGradleDistribution()
         applyPlugin()
+
+        buildFile << """
+            compareGradleBuilds {
+                sourceBuild.jvmArguments = ["-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}"]
+                targetBuild.jvmArguments = ["-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}"]
+            }
+        """
     }
 
     def compareSimpleArchives() {
@@ -241,6 +249,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
             apply plugin: "java"
             compareGradleBuilds {
                 sourceBuild.arguments = ["-PnoJar"]
+                sourceBuild.jvmArguments = ["-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}"]
             }
 
             if (project.hasProperty("noJar")) {

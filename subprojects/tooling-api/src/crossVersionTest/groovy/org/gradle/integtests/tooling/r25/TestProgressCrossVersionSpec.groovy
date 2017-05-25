@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.tooling.r25
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -144,6 +145,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+            compileTestJava.options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+            test.maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'    
         """
 
         file("src/test/java/example/MyTest.java") << """
@@ -214,6 +217,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
             test.ignoreFailures = true
+            compileTestJava.options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+            test.maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'    
         """
 
         file("src/test/java/MyTest.java") << """
@@ -296,6 +301,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+            compileTestJava.options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+            test.maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'    
         """
 
         file("src/test/java/MyTest.java") << """
@@ -331,6 +338,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
             test.maxParallelForks = 2
+            compileTestJava.options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+            test.maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'    
         """
 
         file("src/test/java/example/MyTest1.java") << """
@@ -412,6 +421,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             compileTestJava.options.fork = true
             test.maxParallelForks = 2
             test.ignoreFailures = true
+            compileTestJava.options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+            test.maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'    
         """
             it.file("src/test/java/sub/MyUnitTest1${index}.java") << """
             package sub;
@@ -512,6 +523,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+            compileTestJava.options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+            test.maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'    
         """
 
         file("src/test/java/example/MyTest.java") << """

@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling
 
 import org.apache.commons.io.output.TeeOutputStream
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.GradleBuildCancellation
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TestOutputStream
@@ -257,6 +258,12 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
+            tasks.withType(JavaCompile) {
+                options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+            }
+            tasks.withType(Test) {
+                maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+            }
         }
         """
     }

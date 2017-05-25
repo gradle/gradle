@@ -17,6 +17,7 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
@@ -235,7 +236,7 @@ allprojects {
                     try {
                         System.out.println("About to configure a new build");
                         // Configure the build
-                        BuildLauncher launcher = connection.newBuild();
+                        BuildLauncher launcher = connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM");
                         launcher.forTasks("thing");
                         launcher.withArguments("-u");
                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

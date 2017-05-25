@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 
 class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -43,7 +44,7 @@ class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTe
 
         then:
         (runner('check') as DefaultGradleRunner)
-            .withJvmArguments("-Duser.home=$userHome")
+            .withJvmArguments("-Duser.home=$userHome", "-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}".toString())
             .build()
 
         when:

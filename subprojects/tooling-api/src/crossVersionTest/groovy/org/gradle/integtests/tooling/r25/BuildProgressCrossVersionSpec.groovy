@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.tooling.r25
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -38,7 +39,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addProgressListener({ ProgressEvent event ->
+                connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").forTasks('assemble').addProgressListener({ ProgressEvent event ->
                     throw new RuntimeException()
                 }, EnumSet.of(OperationType.GENERIC)).run()
         }
@@ -57,7 +58,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
-                connection.model(BuildInvocations).forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).get()
+                connection.model(BuildInvocations).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).get()
         }
 
         then: "build progress events must be forwarded to the attached listeners"
@@ -74,7 +75,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
+                connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
         }
 
         then: "build progress events must be forwarded to the attached listeners"
@@ -94,7 +95,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def failure = new IllegalStateException("Throwing an exception on purpose")
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addProgressListener({ ProgressEvent event ->
+                connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").forTasks('assemble').addProgressListener({ ProgressEvent event ->
                     resultsOfFirstListener.add(event)
                 }, EnumSet.of(OperationType.GENERIC)).addProgressListener({ ProgressEvent event ->
                     throw failure
@@ -126,7 +127,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('classes').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
+                connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").forTasks('classes').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
         }
 
         then:
@@ -176,7 +177,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
+                connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").forTasks('test').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
         }
 
         then:
@@ -211,6 +212,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'java'
             compileJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+            compileJava.options.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
         """
 
         file("src/main/java/example/MyClass.java") << """

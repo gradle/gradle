@@ -18,7 +18,7 @@ package org.gradle.launcher
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -52,7 +52,7 @@ task check {
         given:
         def nonDefaultLocale = getNonDefaultLocale()
         executer.requireGradleDistribution()
-        executer.withArguments("-Duser.language=$nonDefaultLocale.language", "-Duser.country=$nonDefaultLocale.country")
+        executer.withArguments("-Duser.language=$nonDefaultLocale.language", "-Duser.country=$nonDefaultLocale.country", "-Dorg.gradle.jvmargs=-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}")
 
         and:
         buildFile.setText("""
@@ -71,7 +71,7 @@ task check {
         given:
         def nonDefaultLocale = getNonDefaultLocale()
         executer.requireGradleDistribution()
-        file("gradle.properties") << "org.gradle.jvmargs=-Duser.language=$nonDefaultLocale.language -Duser.country=$nonDefaultLocale.country"
+        file("gradle.properties") << "org.gradle.jvmargs=-Duser.language=$nonDefaultLocale.language -Duser.country=$nonDefaultLocale.country -Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}"
 
         and:
         buildFile.setText("""
@@ -83,6 +83,7 @@ task check {
 """, "UTF-8")
 
         expect:
+        executer.useOnlyRequestedJvmOpts()
         succeeds 'check'
     }
 
@@ -91,7 +92,7 @@ task check {
         def nonDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) }.find { it != Charset.defaultCharset() }
 
         executer.requireGradleDistribution()
-        file("gradle.properties") << "org.gradle.jvmargs=-Dfile.encoding=${nonDefaultEncoding.name()}"
+        file("gradle.properties") << "org.gradle.jvmargs=-Dfile.encoding=${nonDefaultEncoding.name()} -Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}"
 
         and:
         buildFile.setText("""
@@ -103,6 +104,7 @@ task check {
 """, "UTF-8")
 
         expect:
+        executer.useOnlyRequestedJvmOpts()
         succeeds 'check'
     }
 
@@ -112,7 +114,7 @@ task check {
         def nonDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) }.find { it != Charset.defaultCharset() }
 
         executer.requireGradleDistribution()
-        executer.withArgument("-Dfile.encoding=${nonDefaultEncoding.name()}")
+        executer.withArgument("-Dfile.encoding=${nonDefaultEncoding.name()}").withBuildJvmOpts("-Dorg.gradle.jvmargs=-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}")
 
         and:
         buildFile.setText("""
@@ -208,12 +210,6 @@ task check {
         "UTF-8"       | "UTF-8"
         "US-ASCII"    | "US-ASCII"
         null          | Charset.defaultCharset().name()
-    }
-
-    @Override
-    protected ExecutionResult succeeds(String... tasks) {
-        executer.useOnlyRequestedJvmOpts()
-        return super.succeeds(tasks)
     }
 
     @Issue("GRADLE-3470")

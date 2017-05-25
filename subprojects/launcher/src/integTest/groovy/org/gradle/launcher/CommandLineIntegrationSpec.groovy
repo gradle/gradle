@@ -18,6 +18,8 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.internal.logging.sink.OutputEventRenderer
 import org.gradle.launcher.debug.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
@@ -68,7 +70,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() })
     def "can debug with org.gradle.debug=true"() {
         when:
-        def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()
+        def gradle = executer.withArgument("-Dorg.gradle.debug=true").withArgument("-Dorg.gradle.jvmargs=-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}").withTasks("help").start()
 
         then:
         ConcurrentTestUtil.poll() {

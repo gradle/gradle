@@ -18,6 +18,7 @@ package org.gradle.process.internal
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.internal.worker.WorkerProcess
@@ -121,8 +122,9 @@ class PathLimitationIntegrationTest extends AbstractWorkerProcessIntegrationSpec
         }
 
         public void start() {
-            WorkerProcessBuilder builder = workerFactory.create(action);
-            builder.getJavaCommand().jvmArgs(jvmArgs);
+            WorkerProcessBuilder builder = workerFactory.create(action)
+            builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
+            builder.getJavaCommand().jvmArgs(jvmArgs)
             builder.getJavaCommand().setWorkingDir(workingDirectory)
 
             proc = builder.build();

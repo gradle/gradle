@@ -345,6 +345,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
                     startParameter.projectDir = file("${TextUtil.normaliseFileSeparators(projectDir.absolutePath)}")
                     startParameter.currentDir = file("${TextUtil.normaliseFileSeparators(projectDir.absolutePath)}")
                     startParameter.taskNames = [ "build" ]
+                    startParameter.initScripts = [ file('${TextUtil.normaliseFileSeparators(testDirectory.file(GradleExecuter.MEMORY_SETTINGS_INIT_SCRIPT).absolutePath)}') ]
                 }
             """
     }

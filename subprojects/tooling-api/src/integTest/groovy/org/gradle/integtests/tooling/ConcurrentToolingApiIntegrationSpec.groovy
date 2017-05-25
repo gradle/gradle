@@ -20,6 +20,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
@@ -101,10 +102,10 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
     def useToolingApi(ToolingApi target) {
         target.withConnection { ProjectConnection connection ->
             try {
-                def model = connection.getModel(IdeaProject)
+                def model = connection.model(IdeaProject).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").get()
                 assert model != null
                 //a bit more stress:
-                connection.newBuild().forTasks('tasks').run()
+                connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM").forTasks('tasks').run()
             } catch (Exception e) {
                 throw new RuntimeException("""We might have hit a concurrency problem.
 See the full stacktrace and the list of causes to investigate""", e);
@@ -125,7 +126,7 @@ project.description = text
         toolingApi.withConnection { connection ->
             threads.times { idx ->
                 concurrent.start {
-                    def model = connection.model(GradleProject.class)
+                    def model = connection.model(GradleProject.class).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
                     def operation = new ConfigurableOperation(model)
                         .setStandardInput("hasta la vista $idx")
 
@@ -154,7 +155,7 @@ project.description = text
         threads.times { idx ->
             concurrent.start {
                 withConnectionInDir("build$idx") { connection ->
-                    def model = connection.model(GradleProject.class)
+                    def model = connection.model(GradleProject.class).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
                     model.standardInput = new ByteArrayInputStream("project $idx".toString().bytes)
                     def project = model.get()
                     assert project.description == "project $idx"
@@ -175,7 +176,7 @@ project.description = text
         threads.times { idx ->
             concurrent.start {
                 withConnectionInDir("build$idx") { connection ->
-                    def build = connection.newBuild()
+                    def build = connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
                     def operation = new ConfigurableOperation(build)
                         .setStandardInput("hasta la vista $idx")
                     build.forTasks('show').run()
@@ -201,7 +202,7 @@ project.description = text
             connector.forProjectDirectory(file("build1"))
 
             toolingApi.withConnection(connector) { connection ->
-                def build = connection.newBuild()
+                def build = connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
                 def operation = new ConfigurableOperation(build)
                 build.forTasks('foo1').run()
                 assert operation.progressMessages.contains("download for 1")
@@ -218,7 +219,7 @@ project.description = text
             def connection = connector.connect()
 
             try {
-                def build = connection.newBuild()
+                def build = connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
                 def operation = new ConfigurableOperation(build)
                 build.forTasks('foo2').run()
                 assert operation.progressMessages.contains("download for 2")
@@ -252,7 +253,7 @@ project.description = text
                 def connection = connector.connect()
 
                 try {
-                    def model = connection.model(GradleProject)
+                    def model = connection.model(GradleProject).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
                     def operation = new ConfigurableOperation(model)
 
                     assert model.get()
@@ -308,7 +309,7 @@ logger.lifecycle 'this is lifecycle: $idx'
         threads.times { idx ->
             concurrent.start {
                 withConnectionInDir("build$idx") { connection ->
-                    def model = connection.model(GradleProject.class)
+                    def model = connection.model(GradleProject.class).setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
                     def operation = new ConfigurableOperation(model)
                     assert model.get()
 
@@ -343,7 +344,7 @@ logger.lifecycle 'this is lifecycle: $idx'
         threads.times { idx ->
             concurrent.start {
                 withConnectionInDir("build$idx") { connection ->
-                    def build = connection.newBuild()
+                    def build = connection.newBuild().setJvmArguments("-Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM")
                     def operation = new ConfigurableOperation(build)
                     build.run()
 

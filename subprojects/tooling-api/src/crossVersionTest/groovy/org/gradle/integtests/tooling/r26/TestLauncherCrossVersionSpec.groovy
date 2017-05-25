@@ -468,37 +468,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         """
     }
 
-    def changeTestSource() {
-        // adding two more test methods
-        file("src/test/java/example/MyTest.java").text = """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo2() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo3() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo4() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
-    }
-
-    def simpleJavaProject() {
-        """
-        allprojects{
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-        }
-        """
-    }
-
     def testClassRemoved() {
         file("src/test/java/example/MyTest.java").delete()
     }

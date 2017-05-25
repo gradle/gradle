@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.WithNoSourceTaskOutcome
 
@@ -78,6 +79,7 @@ class GradleRunnerResultIntegrationTest extends BaseGradleRunnerIntegrationTest 
             package pkg
             class Message { public static final String MSG = "::msg::" }
         """
+        file('buildSrc/build.gradle') << "tasks.withType(GroovyCompile) { groovyOptions.forkOptions.memoryMaximumSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}' }"
         buildScript """
             task echoMsg {
                 doLast {

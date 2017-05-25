@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner.enduser
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 
 class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
@@ -54,6 +55,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
                 def "execute helloWorld task"() {
                     given:
                     testProjectDir.newFile('build.gradle') << '''$plugin.useDeclaration'''
+                    testProjectDir.newFile('gradle.properties') << "org.gradle.jvmargs='-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}'"
 
                     when:
                     def result = GradleRunner.create()

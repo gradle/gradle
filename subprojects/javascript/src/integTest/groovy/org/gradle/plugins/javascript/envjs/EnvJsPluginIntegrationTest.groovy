@@ -17,6 +17,7 @@
 package org.gradle.plugins.javascript.envjs
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluate
@@ -78,6 +79,11 @@ class EnvJsPluginIntegrationTest extends WellBehavedPluginTest {
             }
             dependencies {
                 jquery "jquery:jquery.min:1.7.2@js"
+            }
+            javaScript { 
+                rhino {
+                    maxHeapSize = '${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}'
+                }
             }
 
             task gatherContent(type: Copy) {

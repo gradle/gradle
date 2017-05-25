@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner.enduser
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 
 class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
@@ -80,6 +81,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                             }
                         }
                     \"\"\"
+                    testProjectDir.newFile('gradle.properties') << "org.gradle.jvmargs='-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}'"
                 }
 
                 def "execute helloWorld task"() {
@@ -123,6 +125,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                     pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
                       .readLines()
                       .collect { new File(it) }
+                    testProjectDir.newFile('gradle.properties') << "org.gradle.jvmargs='-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM}'"
                 }
 
                 def "execute helloWorld task"() {

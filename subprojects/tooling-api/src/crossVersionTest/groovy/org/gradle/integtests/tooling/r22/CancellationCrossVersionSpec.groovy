@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r22
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.*
 import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.integtests.tooling.r21.HangingBuildAction
@@ -81,7 +82,10 @@ throw new RuntimeException("should not run")
 
     @TargetGradleVersion(">=2.2")
     def "can cancel build during configuration phase"() {
-        file("gradle.properties") << "org.gradle.configureondemand=${configureOnDemand}"
+        file("gradle.properties") << """
+            org.gradle.configureondemand=${configureOnDemand}
+            org.gradle.jvmargs=-XX:+HeapDumpOnOutOfMemoryError -Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM
+        """
         setupCancelInConfigurationBuild()
 
         def cancel = GradleConnector.newCancellationTokenSource()
@@ -111,7 +115,10 @@ throw new RuntimeException("should not run")
 
     @TargetGradleVersion(">=2.2")
     def "can cancel model creation during configuration phase"() {
-        file("gradle.properties") << "org.gradle.configureondemand=${configureOnDemand}"
+        file("gradle.properties") << """
+            org.gradle.configureondemand=${configureOnDemand}
+            org.gradle.jvmargs=-XX:+HeapDumpOnOutOfMemoryError -Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM
+        """
         setupCancelInConfigurationBuild()
 
         def cancel = GradleConnector.newCancellationTokenSource()
@@ -140,7 +147,10 @@ throw new RuntimeException("should not run")
 
     @TargetGradleVersion(">=2.2")
     def "can cancel build action execution during configuration phase"() {
-        file("gradle.properties") << "org.gradle.configureondemand=${configureOnDemand}"
+        file("gradle.properties") << """
+            org.gradle.configureondemand=${configureOnDemand}
+            org.gradle.jvmargs=-XX:+HeapDumpOnOutOfMemoryError -Xmx$GradleExecuter.DEFAULT_MAX_MEMORY_BUILD_VM
+        """
         setupCancelInConfigurationBuild()
 
         def cancel = GradleConnector.newCancellationTokenSource()
