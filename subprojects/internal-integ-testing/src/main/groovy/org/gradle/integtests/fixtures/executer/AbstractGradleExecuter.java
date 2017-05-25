@@ -48,6 +48,7 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.TextUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -101,6 +102,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private boolean allowExtraLogging = true;
+    private boolean allowExtraInitScripts = true;
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
@@ -316,6 +318,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.useOnlyRequestedJvmOpts();
         }
         executer.noExtraLogging();
+        if (!isAllowExtraInitScripts()) {
+            executer.noExtraInitScripts();
+        }
 
         if (expectedDeprecationWarnings > 0) {
             executer.expectDeprecationWarnings(expectedDeprecationWarnings);
@@ -450,9 +455,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 }
             }));
             gradleInvocation.implicitLauncherJvmArgs.add("-Dorg.gradle.jvmargs=" + quotedArgs);
+            maybeLimitMaxMemory(gradleInvocation.implicitLauncherJvmArgs, gradleInvocation.launcherJvmArgs, resolveCliDaemonArgument() == DAEMON ? DEFAULT_MAX_MEMORY_SLIM_LAUNCHER : DEFAULT_MAX_MEMORY_BUILD_VM);
         } else {
             // Have to pass build JVM args directly to launcher JVM
             gradleInvocation.launcherJvmArgs.addAll(gradleInvocation.buildJvmArgs);
+            maybeLimitMaxMemory(gradleInvocation.implicitLauncherJvmArgs, gradleInvocation.launcherJvmArgs, DEFAULT_MAX_MEMORY_BUILD_VM);
         }
 
         // Set the implicit system properties regardless of whether default JVM args are required or not, this should not interfere with tests' intentions
@@ -468,6 +475,20 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
     }
 
+    private void maybeLimitMaxMemory(List<String> args, List<String> additionalArgs, String defaultMaxMemory) {
+        for (String arg : args) {
+            if (arg.startsWith("-Xmx")) {
+                return;
+            }
+        }
+        for (String arg : additionalArgs) {
+            if (arg.startsWith("-Xmx")) {
+                return;
+            }
+        }
+        args.add("-Xmx" + defaultMaxMemory);
+    }
+
     /**
      * Returns additional JVM args that should be used to start the build JVM.
      */
@@ -481,6 +502,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (isProfile()) {
             buildJvmOpts.add(profiler);
         }
+        maybeLimitMaxMemory(buildJvmOpts, this.buildJvmOpts, DEFAULT_MAX_MEMORY_BUILD_VM);
         return buildJvmOpts;
     }
 
@@ -895,6 +917,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected GradleHandle startHandle() {
         fireBeforeExecute();
+        maybeAddMemorySettingsScripts();
         assertCanExecute();
         collectStateBeforeExecution();
         try {
@@ -909,12 +932,54 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public final ExecutionResult run() {
         fireBeforeExecute();
+        maybeAddMemorySettingsScripts();
         assertCanExecute();
         collectStateBeforeExecution();
         try {
             return doRun();
         } finally {
             finished();
+        }
+    }
+
+    private void maybeAddMemorySettingsScripts() {
+        if (allowExtraInitScripts) {
+            File projectDir = getWorkingDir();
+            TestFile memorySettingsFile = new TestFile(projectDir, MEMORY_SETTINGS_INIT_SCRIPT);
+            String initScriptArgument = "-I" + TextUtil.normaliseFileSeparators(memorySettingsFile.getAbsolutePath());
+            if (!args.contains(initScriptArgument)) {
+                memorySettingsFile.createFile().writelns(
+                    "allprojects {",
+                    "    tasks.withType(SourceTask) {",
+                    "        if (it.hasProperty('options') && options.hasProperty('forkOptions')) { options.forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "' }",
+                    "        if (it.hasProperty('groovyOptions')) { groovyOptions.forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "' }",
+                    "        if (it.hasProperty('scalaCompileOptions')) { scalaCompileOptions.forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "' }",
+                    "        if (it.hasProperty('forkOptions')) { forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "' }",
+                    "        if (it.hasProperty('maxHeapSize')) { maxHeapSize = '" + DEFAULT_MAX_MEMORY_WORKER + "' }",
+                    "    }",
+                    "    tasks.withType(DefaultTask) {",
+                    "        if (it.hasProperty('forkOptions')) { forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "' }", // PlayRun task
+                    "    }",
+                    "    tasks.withType(Test) {",
+                    "        maxHeapSize = '" + DEFAULT_MAX_MEMORY_WORKER + "'",
+                    "    }",
+                    "}"
+                );
+                args.add(initScriptArgument);
+                if (new File(projectDir, "buildSrc").exists()) {
+                    TestFile buildSrcBuildGradle = new TestFile(projectDir, "buildSrc/build.gradle");
+                    buildSrcBuildGradle.leftShift(
+                        "\nallprojects {"
+                            + "\n    tasks.withType(JavaCompile) {"
+                            + "\n        options.forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "'"
+                            + "\n    }"
+                            + "\n    tasks.withType(GroovyCompile) {"
+                            + "\n        groovyOptions.forkOptions.memoryMaximumSize = '" + DEFAULT_MAX_MEMORY_WORKER + "'"
+                            + "\n    }"
+                            + "\n}\n"
+                    );
+                }
+            }
         }
     }
 
@@ -929,6 +994,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public final ExecutionFailure runWithFailure() {
         fireBeforeExecute();
+        maybeAddMemorySettingsScripts();
         assertCanExecute();
         collectStateBeforeExecution();
         try {
@@ -1111,6 +1177,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public boolean isAllowExtraLogging() {
         return allowExtraLogging;
+    }
+
+    public GradleExecuter noExtraInitScripts() {
+        this.allowExtraInitScripts = false;
+        return this;
+    }
+
+    public boolean isAllowExtraInitScripts() {
+        return allowExtraInitScripts;
     }
 
     public boolean isRequiresGradleDistribution() {

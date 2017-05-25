@@ -55,7 +55,7 @@ class BuildOperationsFixture {
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.records.values().find {
-            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+            !it.displayName.contains(GradleExecuter.MEMORY_SETTINGS_INIT_SCRIPT) && it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
         }
     }
 
@@ -63,7 +63,7 @@ class BuildOperationsFixture {
     public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> all(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.records.values().findAll {
-            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+            !it.displayName.contains(GradleExecuter.MEMORY_SETTINGS_INIT_SCRIPT) && it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
         }
     }
 

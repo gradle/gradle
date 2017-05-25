@@ -30,6 +30,12 @@ import java.util.Locale;
 import java.util.Map;
 
 public interface GradleExecuter extends Stoppable {
+    String DEFAULT_MAX_MEMORY_BUILD_VM = "128m";
+    String DEFAULT_MAX_MEMORY_SLIM_LAUNCHER = "32m";
+    String DEFAULT_MAX_MEMORY_WORKER = "256m";
+
+    String MEMORY_SETTINGS_INIT_SCRIPT = "memory-settings-init.gradle";
+
     /**
      * Sets the working directory to use. Defaults to the test's temporary directory.
      */
@@ -311,6 +317,11 @@ public interface GradleExecuter extends Stoppable {
      * An executer may decide to implicitly bump the logging level, unless this is called.
      */
     GradleExecuter noExtraLogging();
+
+    /**
+     * Force executer to not add any additional init scripts (e.g. for setting memory limitations)
+     */
+    GradleExecuter noExtraInitScripts();
 
     /**
      * Requires that there is a real gradle distribution for the execution, which in-process execution does not.
