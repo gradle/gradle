@@ -266,4 +266,42 @@ org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':log'.
         then:
         groupedOutput.task(':log').output == 'Output from :log'
     }
+
+    def "handles output interleaved with end-of-line erasing"() {
+        given:
+        def consoleOutput = """\u001B[1A\u001B[1m> Connecting to Daemon\u001B[m\u001B[22D\u001B[1B
+\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B
+\u001B[1A\u001B[1m> root project > Compiling /home/tcagent2/agent/work/1c72cb73edd79150/subprojects/logging/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/long_running_task_o..._5s_delay/m5mh7/build.gradle into local compilation cache\u001B[m\u001B[228D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[2B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[0K\u001B[6D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[2B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[2B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [4s]\u001B[m\u001B[33D\u001B[2B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [5s]\u001B[m\u001B[33D\u001B[2B
+\u001B[2A\u001B[0K
+\u001B[1B\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [6s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B
+\u001B[2A\u001B[1m> Task :log\u001B[m\u001B[0K
+Before\u001B[0K
+\u001B[0K
+\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [6s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [7s]\u001B[m\u001B[33D\u001B[2B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [8s]\u001B[m\u001B[33D\u001B[2B
+\u001B[2AAfter\u001B[0K
+\u001B[1B\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [8s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B
+\u001B[2A\u001B[0K
+\u001B[0K
+\u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 9s
+1 actionable task: 1 executed
+\u001B[2K"""
+
+        when:
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+
+        then:
+        groupedOutput.task(':log').output == 'Before\nAfter'
+    }
 }
