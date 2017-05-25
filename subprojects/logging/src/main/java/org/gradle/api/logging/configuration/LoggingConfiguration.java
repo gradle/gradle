@@ -45,6 +45,17 @@ public interface LoggingConfiguration {
     void setConsoleOutput(ConsoleOutput consoleOutput);
 
     /**
+     * Returns whether dry-run mode is enabled or not.
+     * Defaults to false.
+     */
+    boolean isDryRun();
+
+    /**
+     * Enables or disables dry-run (log but do not perform task actions) mode.
+     */
+    void setDryRun(boolean dryRun);
+
+    /**
      * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.
      */
     ShowStacktrace getShowStacktrace();

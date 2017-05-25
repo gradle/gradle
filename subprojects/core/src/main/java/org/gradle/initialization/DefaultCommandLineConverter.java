@@ -39,7 +39,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String BUILD_FILE = "b";
     public static final String INIT_SCRIPT = "I";
     private static final String SETTINGS_FILE = "c";
-    private static final String DRY_RUN = "m";
     private static final String RERUN_TASKS = "rerun-tasks";
     private static final String EXCLUDE_TASK = "x";
     private static final String PROFILE = "profile";
@@ -81,7 +80,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         parser.allowMixedSubcommandsAndOptions();
         parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specify the project-specific cache directory. Defaults to .gradle in the root project directory.");
-        parser.option(DRY_RUN, "dry-run").hasDescription("Run the builds with all task actions disabled.");
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specify an initialization script.");
         parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specify the settings file.");
         parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specify the build file.");
@@ -149,10 +147,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (!options.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(options.getExtraArguments());
-        }
-
-        if (options.hasOption(DRY_RUN)) {
-            startParameter.setDryRun(true);
         }
 
         if (options.hasOption(RERUN_TASKS)) {

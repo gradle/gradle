@@ -28,14 +28,14 @@ class ProviderStartParameterConverterTest extends Specification {
     def params = Stub(ProviderOperationParameters)
 
     def "allows configuring the start parameter with build arguments"() {
-        params.getArguments() >> ['-PextraProperty=foo', '-m']
+        params.getArguments() >> ['-PextraProperty=foo', '-t']
 
         when:
         def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
 
         then:
         start.projectProperties['extraProperty'] == 'foo'
-        start.dryRun
+        start.continuous
     }
 
     def "can overwrite project dir via build arguments"() {

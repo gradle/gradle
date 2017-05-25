@@ -121,6 +121,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     @Override
+    public DefaultLoggingManager setDryRun(boolean enableDryRun) {
+        loggingRouter.setDryRun(enableDryRun);
+        return this;
+    }
+
+    @Override
     public DefaultLoggingManager captureSystemSources() {
         stdOutLoggingSystem.enableCapture();
         stdErrLoggingSystem.enableCapture();
@@ -206,6 +212,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         private final LoggingRouter loggingRouter;
         private LogLevel level;
         private Integer maxWorkerCount;
+        private boolean dryRun;
         private LoggingSystem.Snapshot originalState;
         private ConsoleOutput consoleOutput;
         private OutputStream consoleOutputStream;
@@ -221,6 +228,9 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             }
             if (maxWorkerCount != null) {
                 loggingRouter.configureMaxWorkerCount(maxWorkerCount.intValue());
+            }
+            if (dryRun) {
+                loggingRouter.configureDryRun(dryRun);
             }
             if (consoleOutput != null) {
                 loggingRouter.attachProcessConsole(consoleOutput);
@@ -282,6 +292,13 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
                 loggingRouter.configureMaxWorkerCount(maxWorkerCount);
             }
             this.maxWorkerCount = Integer.valueOf(maxWorkerCount);
+        }
+
+        public void setDryRun(boolean dryRun) {
+            if (this.dryRun != dryRun) {
+                loggingRouter.configureDryRun(dryRun);
+            }
+            this.dryRun = dryRun;
         }
 
         @Override
