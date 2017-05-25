@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -65,11 +64,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
     private Object lastRenderedBuildOpId;
     private ScheduledFuture future;
 
-    public GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider, LogHeaderFormatter headerFormatter, boolean alwaysRenderTasks) {
-        this(listener, timeProvider, Executors.newSingleThreadScheduledExecutor(), headerFormatter, alwaysRenderTasks);
-    }
-
-    GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider, ScheduledExecutorService executor, LogHeaderFormatter headerFormatter, boolean alwaysRenderTasks) {
+    public GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider, ScheduledExecutorService executor, LogHeaderFormatter headerFormatter, boolean alwaysRenderTasks) {
         this.listener = listener;
         this.timeProvider = timeProvider;
         this.executor = executor;
@@ -88,7 +83,6 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             if (future != null && !future.isCancelled()) {
                 future.cancel(false);
             }
-            executor.shutdown();
             onEnd((EndOutputEvent) event);
         } else if (!(event instanceof ProgressEvent)) {
             listener.onOutput(event);

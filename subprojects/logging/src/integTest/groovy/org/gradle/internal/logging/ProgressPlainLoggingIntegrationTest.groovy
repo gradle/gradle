@@ -17,8 +17,11 @@
 package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.SystemProperties
 
 class ProgressPlainLoggingIntegrationTest extends AbstractIntegrationSpec {
+    private static final String EOL = SystemProperties.getInstance().getLineSeparator()
+
     def setup() {
         executer.withArgument("--console=plain")
         buildFile << """
@@ -91,6 +94,6 @@ bar Second line of text""")
 
         then:
         // Log messages are either logged at the very beginning or after "Configuring project :" group with 2 lines separation
-        result.output.matches(/^log message from left field\nlog message from right field/) || result.output.contains("\n\nlog message from left field\nlog message from right field")
+        result.output.matches(/^log message from left field(\r)?\nlog message from right field/) || result.output.contains("${EOL}${EOL}log message from left field${EOL}log message from right field")
     }
 }

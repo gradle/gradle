@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.ThreadFactoryImpl;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.AnsiConsole;
@@ -53,6 +54,8 @@ import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -66,6 +69,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final AtomicInteger maxWorkerCount = new AtomicInteger();
     private final TimeProvider timeProvider;
+    private ScheduledExecutorService executorService;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -83,6 +87,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     OutputEventRenderer(final TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
+        initExecutor();
+
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
@@ -90,7 +96,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     new BuildLogLevelFilterRenderer(
                         new GroupingProgressLogEventGenerator(
                             new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())),
-                            timeProvider, new StatusPostfixLogHeaderFormatter(), true)));
+                            timeProvider, executorService, new StatusPostfixLogHeaderFormatter(), true)));
             }
         });
         formatters.add(stdOutChain);
@@ -100,7 +106,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 return onError(new BuildLogLevelFilterRenderer(
                     new GroupingProgressLogEventGenerator(
                         new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())),
-                        timeProvider, new StatusPostfixLogHeaderFormatter(), true)));
+                        timeProvider, executorService, new StatusPostfixLogHeaderFormatter(), true)));
             }
         });
         formatters.add(stdErrChain);
@@ -132,11 +138,19 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     formatters.remove(console);
                     console.onOutput(new EndOutputEvent());
                     console = null;
+                    initExecutor();
                 } else {
                     throw new UnsupportedOperationException("Cannot restore previous console. This is not implemented yet.");
                 }
             }
         }
+    }
+
+    private void initExecutor() {
+        if (executorService != null) {
+            executorService.shutdownNow();
+        }
+        executorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("output renderer"));
     }
 
     public ColorMap getColourMap() {
@@ -232,11 +246,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new BuildStatusRenderer(
                 new WorkInProgressRenderer(
-                        new BuildLogLevelFilterRenderer(
-                            new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), timeProvider, new PrettyPrefixedLogHeaderFormatter(), false)),
+                    new BuildLogLevelFilterRenderer(
+                        new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), timeProvider, executorService, new PrettyPrefixedLogHeaderFormatter(), false)),
                     console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                console.getStatusBar(), console, consoleMetaData, timeProvider),
-            timeProvider);
+                console.getStatusBar(), console, consoleMetaData, timeProvider, executorService),
+            timeProvider, executorService);
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;

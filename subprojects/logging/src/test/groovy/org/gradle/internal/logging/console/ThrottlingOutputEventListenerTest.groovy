@@ -28,7 +28,7 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
     def timeProvider = new MockTimeProvider()
     def executor = new MockExecutor()
 
-    @Subject renderer = new ThrottlingOutputEventListener(listener, 100, executor, timeProvider)
+    @Subject renderer = new ThrottlingOutputEventListener(listener, 100, timeProvider, executor)
 
     def "forwards events to listener"() {
         def event = event('message')
