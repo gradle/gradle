@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.ExternalResourceRepository
 import spock.lang.Specification
 
 class DefaultFlatDirArtifactRepositoryTest extends Specification {

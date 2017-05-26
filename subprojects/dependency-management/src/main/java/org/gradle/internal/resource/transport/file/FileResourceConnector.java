@@ -21,7 +21,7 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.ExternalResourceRepository;
 
 import java.io.File;
 

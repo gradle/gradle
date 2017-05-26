@@ -27,7 +27,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
-import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.ExternalResourceRepository
 import spock.lang.Specification
 
 class ExternalResourceResolverTest extends Specification {

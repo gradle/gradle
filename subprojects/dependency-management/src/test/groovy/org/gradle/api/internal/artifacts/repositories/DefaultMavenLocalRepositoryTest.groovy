@@ -27,7 +27,7 @@ import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.ExternalResourceRepository
 import spock.lang.Specification
 
 class DefaultMavenLocalRepositoryTest extends Specification {

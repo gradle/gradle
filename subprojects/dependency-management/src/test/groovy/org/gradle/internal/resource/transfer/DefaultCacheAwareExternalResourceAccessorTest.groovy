@@ -32,7 +32,7 @@ import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
-import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule

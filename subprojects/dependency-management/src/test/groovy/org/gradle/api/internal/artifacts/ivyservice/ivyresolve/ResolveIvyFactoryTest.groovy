@@ -37,7 +37,7 @@ import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
-import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 

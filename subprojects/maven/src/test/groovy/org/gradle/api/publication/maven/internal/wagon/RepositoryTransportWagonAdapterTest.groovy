@@ -19,7 +19,7 @@ package org.gradle.api.publication.maven.internal.wagon
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceReadResult
-import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.ExternalResourceRepository
 import spock.lang.Specification
 import spock.lang.Unroll
 

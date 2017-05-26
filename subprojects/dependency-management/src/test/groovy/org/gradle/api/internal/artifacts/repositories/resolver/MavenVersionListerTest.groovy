@@ -28,7 +28,7 @@ import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
-import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.ExternalResourceRepository
 import org.xml.sax.SAXParseException
 import spock.lang.Specification
 

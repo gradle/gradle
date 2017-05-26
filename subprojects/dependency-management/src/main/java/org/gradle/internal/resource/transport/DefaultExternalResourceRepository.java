@@ -21,6 +21,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.BuildOperationFiringExternalResourceDecorator;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
