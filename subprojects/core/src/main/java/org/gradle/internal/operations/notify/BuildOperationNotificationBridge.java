@@ -108,7 +108,7 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
 
         private void maybeThrow(Throwable e) {
             if (e instanceof Error && !(e instanceof LinkageError)) {
-                throw ((Error) e);
+                throw (Error) e;
             }
         }
 
