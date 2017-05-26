@@ -21,9 +21,12 @@ import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -37,25 +40,39 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Used when we find a file locally that matches the checksum of some external resource.
- *
- * It saves us downloading the file, but we don't get any metadata for it.
+ * A file backed {@link ExternalResource} implementation.
  */
-public class LocalFileStandInExternalResource extends AbstractExternalResource {
+public class LocalFileStandInExternalResource extends AbstractExternalResource implements LocallyAvailableExternalResource, LocallyAvailableResource {
     private final File localFile;
-    private final URI source;
     private final FileSystem fileSystem;
-    private ExternalResourceMetaData metaData;
 
-    public LocalFileStandInExternalResource(URI source, File localFile, @Nullable ExternalResourceMetaData metaData, FileSystem fileSystem) {
-        this.source = source;
+    public LocalFileStandInExternalResource(File localFile, FileSystem fileSystem) {
         this.localFile = localFile;
-        this.metaData = metaData;
         this.fileSystem = fileSystem;
     }
 
     public URI getURI() {
-        return source;
+        return localFile.toURI();
+    }
+
+    @Override
+    public File getFile() {
+        return localFile;
+    }
+
+    @Override
+    public long getLastModified() {
+        return localFile.lastModified();
+    }
+
+    @Override
+    public HashValue getSha1() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LocallyAvailableResource getLocalResource() {
+        return this;
     }
 
     public long getContentLength() {
@@ -64,13 +81,10 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     @Override
     public String getDisplayName() {
-        if (source.equals(localFile.toURI())) {
-            return localFile.getPath();
-        }
-        return source.toString();
+        return localFile.getPath();
     }
 
-    public InputStream openStream() throws IOException {
+    public InputStream openStreamIfPresent() throws IOException {
         if (!localFile.exists()) {
             return null;
         }
@@ -79,14 +93,11 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     @Nullable
     public ExternalResourceMetaData getMetaData() {
-        if (metaData == null) {
-            FileMetadataSnapshot stat = fileSystem.stat(localFile);
-            if (stat.getType() == FileType.Missing) {
-                return null;
-            }
-            return new DefaultExternalResourceMetaData(source, stat.getLastModified(), stat.getLength());
+        FileMetadataSnapshot stat = fileSystem.stat(localFile);
+        if (stat.getType() == FileType.Missing) {
+            return null;
         }
-        return metaData;
+        return new DefaultExternalResourceMetaData(localFile.toURI(), stat.getLastModified(), stat.getLength());
     }
 
     @Override

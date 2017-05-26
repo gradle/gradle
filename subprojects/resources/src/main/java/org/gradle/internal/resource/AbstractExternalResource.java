@@ -36,11 +36,12 @@ public abstract class AbstractExternalResource implements ExternalResource {
      * @return null if the resource does not exist.
      */
     @Nullable
-    protected abstract InputStream openStream() throws IOException;
+    protected abstract InputStream openStreamIfPresent() throws IOException;
 
+    @Nullable
     private CountingInputStream openUnbufferedIfPresent() {
         try {
-            InputStream input = openStream();
+            InputStream input = openStreamIfPresent();
             if (input == null) {
                 return null;
             }
@@ -52,7 +53,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
 
     private CountingInputStream openUnbuffered() {
         try {
-            InputStream input = openStream();
+            InputStream input = openStreamIfPresent();
             if (input == null) {
                 throw ResourceExceptions.getMissing(getURI());
             }
@@ -62,9 +63,21 @@ public abstract class AbstractExternalResource implements ExternalResource {
         }
     }
 
+    private CountingInputStream openBufferedIfPresent() {
+        try {
+            InputStream input = openStreamIfPresent();
+            if (input == null) {
+                return null;
+            }
+            return new CountingInputStream(new BufferedInputStream(input));
+        } catch (IOException e) {
+            throw ResourceExceptions.getFailed(getURI(), e);
+        }
+    }
+
     private CountingInputStream openBuffered() {
         try {
-            InputStream input = openStream();
+            InputStream input = openStreamIfPresent();
             if (input == null) {
                 throw ResourceExceptions.getMissing(getURI());
             }
@@ -160,7 +173,20 @@ public abstract class AbstractExternalResource implements ExternalResource {
 
     @Override
     public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) {
-        CountingInputStream input = openBuffered();
+        ExternalResourceReadResult<T> result = withContentIfPresent(readAction);
+        if (result == null) {
+            throw ResourceExceptions.getMissing(getURI());
+        }
+        return result;
+    }
+
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
+        CountingInputStream input = openBufferedIfPresent();
+        if (input == null) {
+            return null;
+        }
         try {
             try {
                 T resourceReadResult = readAction.execute(input, getMetaData());
@@ -171,12 +197,6 @@ public abstract class AbstractExternalResource implements ExternalResource {
         } finally {
             close(input);
         }
-    }
-
-    @Nullable
-    @Override
-    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
-        throw new UnsupportedOperationException();
     }
 
     @Nullable

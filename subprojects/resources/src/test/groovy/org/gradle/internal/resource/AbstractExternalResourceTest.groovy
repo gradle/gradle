@@ -146,7 +146,7 @@ class AbstractExternalResourceTest extends Specification {
         }
 
         @Override
-        protected InputStream openStream() throws IOException {
+        protected InputStream openStreamIfPresent() throws IOException {
             return new ByteArrayInputStream(content.getBytes())
         }
 
