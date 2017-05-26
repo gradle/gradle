@@ -53,7 +53,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             Method method = ClassLoader.class.getMethod("getDefinedPackages");
             systemPackages = (Package[]) method.invoke(EXT_CLASS_LOADER);
         } catch (NoSuchMethodException e) {
-            // Ignore
+            // We must not be on Java 9 where the getDefinedPackages() method exists. Fall back to getPackages()
             JavaMethod<ClassLoader, Package[]> method = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
             systemPackages = method.invoke(EXT_CLASS_LOADER);
         } catch (Exception e) {
