@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.sink
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.OperationIdentifier
@@ -35,7 +36,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 
 class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
-    private static final String EOL = "<Normal>\n</Normal>"
+    private static final String EOL = "<Normal>${SystemProperties.instance.lineSeparator}</Normal>"
     private final OutputEventListener downstreamListener = Mock(OutputEventListener)
     def logHeaderFormatter = Mock(LogHeaderFormatter)
     def timeProvider = new MockTimeProvider()
