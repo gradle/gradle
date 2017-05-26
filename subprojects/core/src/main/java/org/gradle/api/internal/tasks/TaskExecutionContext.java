@@ -34,9 +34,9 @@ public interface TaskExecutionContext {
     void setBuildCacheKey(TaskOutputCachingBuildCacheKey cacheKey);
 
     @Nullable
-    UniqueId getOriginBuildId();
+    UniqueId getOriginBuildInvocationId();
 
-    void setOriginBuildId(@Nullable UniqueId originBuildId);
+    void setOriginBuildInvocationId(@Nullable UniqueId originBuildInvocationId);
 
     @Nullable
     List<String> getUpToDateMessages();

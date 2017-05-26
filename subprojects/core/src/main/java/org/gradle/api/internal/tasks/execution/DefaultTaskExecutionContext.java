@@ -27,7 +27,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private TaskArtifactState taskArtifactState;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
-    private UniqueId originBuildId;
+    private UniqueId originBuildInvocationId;
     private List<String> upToDateMessages;
 
     @Override
@@ -51,13 +51,13 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public UniqueId getOriginBuildId() {
-        return originBuildId;
+    public UniqueId getOriginBuildInvocationId() {
+        return originBuildInvocationId;
     }
 
     @Override
-    public void setOriginBuildId(@Nullable UniqueId originBuildId) {
-        this.originBuildId = originBuildId;
+    public void setOriginBuildInvocationId(@Nullable UniqueId originBuildInvocationId) {
+        this.originBuildInvocationId = originBuildInvocationId;
     }
 
     @Override

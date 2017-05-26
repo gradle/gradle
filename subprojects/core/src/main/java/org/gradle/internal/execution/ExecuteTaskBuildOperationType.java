@@ -87,7 +87,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
          * Value will be null for any other outcome.
          */
         @Nullable
-        String getOriginBuildId();
+        String getOriginBuildInvocationId();
 
         /**
          * The human friendly description of why this task was not cacheable.
