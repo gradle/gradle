@@ -102,7 +102,8 @@
         <xi:include href='groovyTutorial.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/groovyPlugin.xml'/>
-        <xi:include href='scalaPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/scalaPlugin.xml'/>
         <xi:include href='antlrPlugin.xml'/>
         <xi:include href='checkstylePlugin.xml'/>
         <xi:include href='codeNarcPlugin.xml'/>
