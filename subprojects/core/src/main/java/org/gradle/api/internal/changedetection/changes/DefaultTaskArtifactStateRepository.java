@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
@@ -24,7 +25,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.changedetection.rules.TaskStateChanges;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
@@ -84,24 +84,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public boolean isUpToDate(Collection<String> messages) {
-            if (collectChangedMessages(messages, getStates().getAllTaskChanges())) {
-                upToDate = true;
-                return true;
+            upToDate = true;
+            for (TaskStateChange stateChange : getStates().getAllTaskChanges()) {
+                messages.add(stateChange.getMessage());
+                upToDate = false;
             }
-            return false;
-        }
-
-        private boolean collectChangedMessages(Collection<String> messages, TaskStateChanges stateChanges) {
-            boolean up2date = true;
-            for (TaskStateChange stateChange : stateChanges) {
-                if (messages != null) {
-                    messages.add(stateChange.getMessage());
-                    up2date = false;
-                } else {
-                    return false;
-                }
-            }
-            return up2date;
+            return upToDate;
         }
 
         public IncrementalTaskInputs getInputChanges() {
@@ -116,7 +104,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         private boolean canPerformIncrementalBuild() {
-            return collectChangedMessages(null, getStates().getRebuildChanges());
+            return Iterables.isEmpty(getStates().getRebuildChanges());
         }
 
         @Override

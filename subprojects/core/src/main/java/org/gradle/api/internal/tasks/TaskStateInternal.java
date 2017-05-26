@@ -17,11 +17,8 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.internal.id.UniqueId;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 public class TaskStateInternal implements TaskState {
     private boolean executing;
@@ -30,8 +27,6 @@ public class TaskStateInternal implements TaskState {
     private Throwable failure;
     private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
-
-    private UniqueId originBuildInvocationId;
 
     public boolean getDidWork() {
         return didWork;
@@ -129,22 +124,4 @@ public class TaskStateInternal implements TaskState {
         this.actionable = actionable;
     }
 
-    /**
-     * If task was UP_TO_DATE or FROM_CACHE, this will convey the ID of the build that produced the outputs being reused.
-     *
-     * Value will be {@code null} for any other outcome.
-     *
-     * @since 4.0
-     */
-    @UsedByScanPlugin
-    public UniqueId getOriginBuildInvocationId() {
-        return originBuildInvocationId;
-    }
-
-    /**
-     * @since 4.0
-     */
-    public void setOriginBuildInvocationId(@Nullable UniqueId originBuildInvocationId) {
-        this.originBuildInvocationId = originBuildInvocationId;
-    }
 }

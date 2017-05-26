@@ -89,7 +89,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
                     .displayName("Snapshot task inputs for " + task.getIdentityPath())
-                    .details(new OperationDetailsImpl(task));
+                    .details(OperationDetailsImpl.INSTANCE);
             }
         });
     }
@@ -106,21 +106,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     }
 
     private static class OperationDetailsImpl implements SnapshotTaskInputsBuildOperationType.Details {
-        private final TaskInternal task;
+        private static final OperationDetailsImpl INSTANCE = new OperationDetailsImpl();
 
-        private OperationDetailsImpl(TaskInternal task) {
-            this.task = task;
-        }
-
-        @Override
-        public String getTaskPath() {
-            return task.getIdentityPath().getPath();
-        }
-
-        @Override
-        public long getTaskId() {
-            return System.identityHashCode(task);
-        }
     }
 
     @VisibleForTesting
