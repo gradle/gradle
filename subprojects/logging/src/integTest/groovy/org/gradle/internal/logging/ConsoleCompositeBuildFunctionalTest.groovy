@@ -16,9 +16,10 @@
 
 package org.gradle.internal.logging
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import spock.lang.Ignore
 
+@Ignore("Build fails and passes depending on timing")
 class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
 
     private static final String PROJECT_A_NAME = 'projectA'
@@ -26,7 +27,6 @@ class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec 
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
     private static final String BYE_WORLD_MESSAGE = 'Bye world'
 
-    @NotYetImplemented
     def "can group task output in composite build"() {
         given:
         file("$PROJECT_A_NAME/build.gradle") << javaProject()
