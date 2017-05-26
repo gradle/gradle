@@ -44,7 +44,10 @@ class DryRunLoggingIntegrationTest extends AbstractIntegrationSpec {
         succeeds('baz')
 
         then:
-        output =~ /(?s).*> Task :foo.*> Task :bar.*> Task :baz.*/
+        output =~ /(?s).*> Task :foo.*SKIPPED.*> Task :bar.*SKIPPED.*> Task :baz.*SKIPPED.*/
+        result.groupedOutput.task(':foo').output.empty
+        result.groupedOutput.task(':bar').output.empty
+        result.groupedOutput.task(':baz').output.empty
     }
 
     def "all tasks are printed when dry run mode is enabled using plain console"() {
@@ -55,7 +58,7 @@ class DryRunLoggingIntegrationTest extends AbstractIntegrationSpec {
         succeeds('baz')
 
         then:
-        result.assertTaskOrder(":foo", ":bar", ":baz")
-        result.assertTasksSkipped(":foo", ":bar", ":baz")
+        result.assertTaskOrder(':foo', ':bar', ':baz')
+        result.assertTasksSkipped(':foo', ':bar', ':baz')
     }
 }
