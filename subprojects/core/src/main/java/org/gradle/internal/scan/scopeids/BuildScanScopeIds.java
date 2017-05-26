@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scopeids.id;
+package org.gradle.internal.scan.scopeids;
 
-import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * A persistent ID of a user.
- *
- * It is effectively the Gradle user home dir.
- * That is, two builds by the same operating system user, potentially of different “projects”,
- * share the same user ID.
- *
- * This ID is persisted in the Gradle user home dir.
- * If this directory is destroyed, or a build is run with a different gradle user home,
- * a new ID will be issued.
+ * Obtained from the Gradle object services.
+ * Exists to remove linkage against types such as {@link org.gradle.internal.scopeids.id.BuildScopeId} and friends.
  */
-public final class UserScopeId extends ScopeId {
+@UsedByScanPlugin
+public interface BuildScanScopeIds {
 
-    public UserScopeId(UniqueId id) {
-        super(id);
-    }
+    String getBuildId();
+
+    String getWorkspaceId();
+
+    String getUserId();
 
 }
