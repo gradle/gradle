@@ -258,7 +258,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         root {
             'build.gradle'(this.applyFromRemote(server))
         }
-        server.expectSerialExecution(server.resource("shared.gradle", "println 'Echo'"))
+        server.expect(server.resource("shared.gradle", "println 'Echo'"))
 
         when:
         run 'tasks'
@@ -283,7 +283,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         }
         def buildHash
         def sharedHash
-        server.expectSerialExecution(server.resource("shared.gradle", "println 'Echo 0'"))
+        server.expect(server.resource("shared.gradle", "println 'Echo 0'"))
 
         when:
         run 'tasks'
@@ -299,7 +299,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(buildHash, sharedHash)
 
         when:
-        server.expectSerialExecution(server.resource("shared.gradle", "println 'Echo 1'"))
+        server.expect(server.resource("shared.gradle", "println 'Echo 1'"))
 
         run 'tasks'
         buildHash = uniqueRemapped('build')
@@ -326,7 +326,7 @@ task someLongRunningTask {
     }
 }
 """
-        def handle = server.blockOnConcurrentExecutionAnyOf(1, "running")
+        def handle = server.expectAndBlock("running")
 
         when:
         def longRunning = executer.withTasks("someLongRunningTask").start()

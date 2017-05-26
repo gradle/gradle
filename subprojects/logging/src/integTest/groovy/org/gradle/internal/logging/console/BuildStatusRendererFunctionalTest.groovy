@@ -63,6 +63,7 @@ class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
         server.waitFor()
         assertHasMessage("EXECUTING")
         server.release()
+
         gradle.waitForFinish()
     }
 
@@ -71,8 +72,8 @@ class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
             assert gradle.standardOutput =~ regexFor(message)
         }
     }
-    
+
     private String regexFor(String message) {
-        /<[-=]{13}> \d% $message \[\d+s]/
+        /<[-=]{13}> \d{1,3}% $message \[\d+s]/
     }
 }

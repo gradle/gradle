@@ -45,7 +45,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         1 * delegate."$methodName"()
 
         where:
-        methodName << ['getURI', 'getDisplayName', 'getMetaData']
+        methodName << ['getURI', 'getDisplayName']
     }
 
     static class TestExternalResource implements ExternalResource {
@@ -116,6 +116,16 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         }
 
         @Override
+        ExternalResourceWriteResult put(LocalResource source) throws ResourceException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        List<String> list() throws ResourceException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
         ExternalResourceMetaData getMetaData() {
             METADATA
         }
@@ -130,8 +140,8 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         def resource = new BuildOperationFiringExternalResourceDecorator(new ExternalResourceName(new URI("http://some/uri")), buildOperationExecuter, delegate)
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
             def operationContextMock = Mock(BuildOperationContext) {
-                1 * setResult(_) >> { NetworkRequestBuildOperationType.Result result ->
-                    assert result.contentLength == TestExternalResource.READ_CONTENT_LENGTH
+                1 * setResult(_) >> { ExternalResourceReadBuildOperationType.Result result ->
+                    assert result.bytesRead == TestExternalResource.READ_CONTENT_LENGTH
                 }
             }
 
@@ -142,7 +152,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
             assert descriptor.displayName == "Download http://some/uri"
 
             def details = descriptor.details
-            assert details instanceof NetworkRequestBuildOperationType.Details
+            assert details instanceof ExternalResourceReadBuildOperationType.Details
             assert details.location == TestExternalResource.METADATA.location.toASCIIString()
         }
 
@@ -159,6 +169,93 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         'withContent' | Mock(Action)                         | "withContent(Action<InputStream>)"
         'withContent' | Mock(ExternalResource.ContentAction) | "withContent(ContentAction<InputStream>)"
         'withContent' | Mock(Transformer)                    | "withContent(Transformer<T, ? extends InputStream)"
+    }
+
+    def "wraps metaData get in a build operation"() {
+        given:
+        def metaData = Mock(ExternalResourceMetaData)
+        def delegate = Mock(ExternalResource)
+        def buildOperationExecuter = Mock(BuildOperationExecutor)
+        def operationContextMock = Mock(BuildOperationContext)
+        def location = new ExternalResourceName(new URI("http://some/uri"))
+        def resource = new BuildOperationFiringExternalResourceDecorator(location, buildOperationExecuter, delegate)
+
+        when:
+        def result = resource.getMetaData()
+
+        then:
+        result == metaData
+        1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
+            def descriptor = op.description().build()
+            assert descriptor.name == "Metadata of http://some/uri"
+            assert descriptor.displayName == "Metadata of http://some/uri"
+
+            def details = descriptor.details
+            assert details instanceof ExternalResourceReadMetadataBuildOperationType.Details
+            assert details.location == location.getUri().toASCIIString()
+
+            return op.call(operationContextMock)
+        }
+        1 * delegate.getMetaData() >> metaData
+    }
+
+    def "wraps list in a build operation"() {
+        given:
+        def delegate = Mock(ExternalResource)
+        def buildOperationExecuter = Mock(BuildOperationExecutor)
+        def operationContextMock = Mock(BuildOperationContext)
+        def location = new ExternalResourceName(new URI("http://some/uri"))
+        def resource = new BuildOperationFiringExternalResourceDecorator(location, buildOperationExecuter, delegate)
+
+        when:
+        def result = resource.list()
+
+        then:
+        result == ["a"]
+        1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
+            def descriptor = op.description().build()
+            assert descriptor.name == "List http://some/uri"
+            assert descriptor.displayName == "List http://some/uri"
+
+            def details = descriptor.details
+            assert details instanceof ExternalResourceListBuildOperationType.Details
+            assert details.location == location.getUri().toASCIIString()
+
+            return op.call(operationContextMock)
+        }
+        1 * delegate.list() >> ["a"]
+    }
+
+    def "wraps put in a build operation"() {
+        given:
+        def delegate = Mock(ExternalResource)
+        def source = Mock(LocalResource)
+        def buildOperationExecuter = Mock(BuildOperationExecutor)
+        def operationContextMock = Mock(BuildOperationContext)
+        def result = Stub(ExternalResourceWriteResult)
+        def location = new ExternalResourceName(new URI("http://some/uri"))
+        def resource = new BuildOperationFiringExternalResourceDecorator(location, buildOperationExecuter, delegate)
+
+        when:
+        resource.put(source)
+
+        then:
+        1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
+            def descriptor = op.description().build()
+            assert descriptor.name == "Upload http://some/uri"
+            assert descriptor.displayName == "Upload http://some/uri"
+
+            def details = descriptor.details
+            assert details instanceof ExternalResourceWriteBuildOperationType.Details
+            assert details.location == location.getUri().toASCIIString()
+
+            return op.call(operationContextMock)
+        }
+        1 * delegate.put(source) >> result
+        _ * result.bytesWritten >> 4
+        1 * operationContextMock.setResult(_) >> { ExternalResourceWriteBuildOperationType.Result r ->
+            assert r.bytesWritten == 4
+        }
     }
 
     @Unroll

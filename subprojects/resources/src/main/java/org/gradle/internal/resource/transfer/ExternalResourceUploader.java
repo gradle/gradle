@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.LocalResource;
 
 import java.io.IOException;
 import java.net.URI;

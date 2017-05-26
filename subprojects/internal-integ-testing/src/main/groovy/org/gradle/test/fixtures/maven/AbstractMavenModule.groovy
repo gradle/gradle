@@ -57,6 +57,15 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return artifactId
     }
 
+    @Override
+    String getPath() {
+        return "${groupId.replace('.', '/')}/${artifactId}/${version}"
+    }
+
+    String getModuleRootPath() {
+        return "${groupId.replace('.', '/')}/${artifactId}"
+    }
+
     MavenModule parent(String group, String artifactId, String version) {
         parentPom = [groupId: group, artifactId: artifactId, version: version]
         return this
@@ -207,7 +216,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     DefaultMavenMetaData getRootMetaData() {
-        new DefaultMavenMetaData(rootMetaDataFile)
+        new DefaultMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
     }
 
     @Override
@@ -248,12 +257,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         } else {
             fileName = "$artifactId-${publishArtifactVersion}${artifact.classifier ? "-${artifact.classifier}" : ""}.${artifact.type}"
         }
-        def path = "/$groupId/$artifactId/$version/$fileName"
+        def artifactPath = "$path/$fileName"
         def file = moduleDir.file(fileName)
         return new ModuleArtifact() {
             @Override
             String getPath() {
-                return path
+                return artifactPath
             }
 
             @Override

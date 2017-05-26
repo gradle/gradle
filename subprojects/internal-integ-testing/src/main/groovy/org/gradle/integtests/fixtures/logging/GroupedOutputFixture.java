@@ -16,8 +16,14 @@
 
 package org.gradle.integtests.fixtures.logging;
 
-import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.io.IOUtils;
+import org.fusesource.jansi.AnsiOutputStream;
+import org.gradle.api.UncheckedIOException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,50 +32,52 @@ import java.util.regex.Pattern;
  * Parses rich console output into its pieces for verification in functional tests
  */
 public class GroupedOutputFixture {
-
-    //TODO: Combine with AbstractConsoleTest
-    protected final static String ERASE_TO_END_OF_LINE = "\u001B[0K";
-
     /**
      * All tasks will start with > Task, captures everything starting with : and going until a control char
      */
-    private final static String TASK_HEADER = "> Task (:[\\w:]*)[^\\n]*\\n";
+    private final static String TASK_HEADER = "> Task (:[\\w:]*)\\n?";
 
-    private final static String BUILD_STATUS_FOOTER = "\\n[^\\n]*?BUILD SUCCESSFUL";
-    private final static String BUILD_FAILED_FOOTER = "\\n[^\\n]*?FAILURE:";
+    private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
+    private final static String BUILD_FAILED_FOOTER = "FAILURE:";
 
     /**
-     * Start of a new line, the control character, and must have <--------> or <=========>
+     * Various patterns to detect the end of the task output
      */
-    private final static String PROGRESS_BAR = "^\u001B\\[[^\\n]*?\\[1m(<[-=]+>.*?)\\[m.*?$";
-    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + PROGRESS_BAR;
+    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER;
 
+    private final static String PROGRESS_BAR_PATTERN = "<[-=]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT)ING \\[((\\d+h )? \\d+m )?\\d+s\\]";
+    private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+m> (IDLE|[:a-z][\\w\\s\\d:]+)\u001b\\[\\d*m";
+    private final static String DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN = "\u001b\\[\\d+B\\n";
 
+    private final static String WORK_IN_PROGRESS_AREA_PATTERN = PROGRESS_BAR_PATTERN + "|" + WORK_IN_PROGRESS_PATTERN + "|" + DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN;
+
+    /**
+     * Pattern to extract task output.
+     */
     private static final Pattern TASK_OUTPUT_PATTERN;
-    private static String precompiledPattern;
 
     static {
-        precompiledPattern = "(?ms)";
+        String precompiledPattern = "(?ms)";
         precompiledPattern += TASK_HEADER;
         // Capture all output, lazily up until two new lines and an END_OF_TASK designation
-        precompiledPattern += "(.*?(?=\\n\\n(?:[^\\n]*?" + END_OF_TASK_OUTPUT + ")))";
+        precompiledPattern += "((.|\\n)*?(?=[^\\n]*?" + END_OF_TASK_OUTPUT + "))";
         TASK_OUTPUT_PATTERN = Pattern.compile(precompiledPattern);
     }
 
-    /**
-     * Don't need this if we parse all of the output during construction
-     */
-    private final String output;
+
+    private final String originalOutput;
     private Map<String, GroupedTaskFixture> tasks;
 
     public GroupedOutputFixture(String output) {
-        this.output = output;
+        this.originalOutput = output;
         parse(output);
     }
 
     private void parse(String output) {
-        tasks = new HashedMap();
-        Matcher matcher = TASK_OUTPUT_PATTERN.matcher(output.replace(ERASE_TO_END_OF_LINE, ""));
+        tasks = new HashMap<String, GroupedTaskFixture>();
+
+        String stripedOutput = stripAnsiCodes(stripWorkInProgressArea(output));
+        Matcher matcher = TASK_OUTPUT_PATTERN.matcher(stripedOutput);
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutput = matcher.group(2);
@@ -84,14 +92,47 @@ public class GroupedOutputFixture {
         }
     }
 
+    private String stripWorkInProgressArea(String output) {
+        String result = output;
+        for (int i = 1; i <= 10; ++i) {
+            result = result.replaceAll(workInProgressAreaScrollingPattern(i), "");
+        }
+        return result.replaceAll(WORK_IN_PROGRESS_AREA_PATTERN, "");
+    }
+
+    private String workInProgressAreaScrollingPattern(int scroll) {
+        return "(\u001b\\[0K\\n){" + scroll + "}\u001b\\[" + scroll + "A";
+    }
+
+    private String stripAnsiCodes(String output) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            IOUtils.copy(new StringReader(output), new AnsiOutputStream(baos));
+            return baos.toString();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public int getTaskCount() {
         return tasks.size();
     }
 
+    public boolean hasTask(String taskName) {
+        return tasks.containsKey(taskName);
+    }
+
     public GroupedTaskFixture task(String taskName) {
-        if (tasks.containsKey(taskName)) {
-            return tasks.get(taskName);
+        boolean foundTask = hasTask(taskName);
+
+        if (!foundTask) {
+            throw new AssertionError(String.format("The grouped output for task '%s' could not be found", taskName));
         }
-        return new GroupedTaskFixture(taskName);
+
+        return tasks.get(taskName);
+    }
+
+    public String toString() {
+        return originalOutput;
     }
 }

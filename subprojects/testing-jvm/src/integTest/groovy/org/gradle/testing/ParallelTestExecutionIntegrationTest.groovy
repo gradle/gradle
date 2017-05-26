@@ -69,7 +69,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         def calls = testIndices(testCount).collect { "test_$it" } as String[]
-        def handler = blockingServer.blockOnConcurrentExecutionAnyOf(maxConcurrency, calls)
+        def handler = blockingServer.expectConcurrentAndBlock(maxConcurrency, calls)
 
         when:
         def gradle = executer.withArgument("-i").withTasks('test').start()

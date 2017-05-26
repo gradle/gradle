@@ -26,7 +26,7 @@ import org.gradle.internal.id.UniqueId;
  * The state for a single task execution.
  */
 public abstract class TaskExecution {
-    private UniqueId buildId;
+    private UniqueId buildInvocationId;
     private ImplementationSnapshot taskImplementation;
     private ImmutableList<ImplementationSnapshot> taskActionImplementations;
     private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
@@ -34,12 +34,12 @@ public abstract class TaskExecution {
     private ImmutableSet<String> declaredOutputFilePaths;
     private TaskExecutionHistory.OverlappingOutputs detectedOverlappingOutputs;
 
-    public UniqueId getBuildId() {
-        return buildId;
+    public UniqueId getBuildInvocationId() {
+        return buildInvocationId;
     }
 
-    public void setBuildId(UniqueId buildId) {
-        this.buildId = buildId;
+    public void setBuildInvocationId(UniqueId buildInvocationId) {
+        this.buildInvocationId = buildInvocationId;
     }
 
     /**

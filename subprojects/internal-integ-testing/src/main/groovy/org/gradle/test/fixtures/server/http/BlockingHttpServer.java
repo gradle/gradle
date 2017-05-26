@@ -56,7 +56,7 @@ public class BlockingHttpServer extends ExternalResource {
         server = HttpServer.create(new InetSocketAddress(0), 10);
         server.setExecutor(EXECUTOR_SERVICE);
         serverId = COUNTER.incrementAndGet();
-        handler = new ChainingHttpHandler(lock, COUNTER);
+        handler = new ChainingHttpHandler(lock, COUNTER, new MustBeRunning());
         server.createContext("/", handler);
         this.timeoutMs = timeoutMs;
     }
@@ -73,26 +73,26 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
-     * Returns the URI for the given call.
+     * Returns the URI for the given resource.
      */
-    public URI uri(String call) {
+    public URI uri(String resource) {
         try {
-            return new URI("http", null, "localhost", getPort(), "/" + call, null, null);
+            return new URI("http", null, "localhost", getPort(), "/" + resource, null, null);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
 
     /**
-     * Returns Java statements that invoke the given call.
+     * Returns Java statements to get the given resource.
      */
-    public String callFromBuild(String call) {
-        URI uri = uri(call);
+    public String callFromBuild(String resource) {
+        URI uri = uri(resource);
         return "System.out.println(\"calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"response received\");";
     }
 
     /**
-     * Returns a Java statements that invokes a call, using the given expression to calculate the call to make.
+     * Returns Java statements to get the given resource, using the given expression to calculate the resource to get.
      */
     public String callFromBuildUsingExpression(String expression) {
         String uriExpression = "\"" + getUri() + "/\" + " + expression;
@@ -102,98 +102,163 @@ public class BlockingHttpServer extends ExternalResource {
     /**
      * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
-    public void expectConcurrentExecution(String expectedCall, String... additionalExpectedCalls) {
-        List<ResourceHandler> resourceHandlers = new ArrayList<ResourceHandler>();
-        resourceHandlers.add(new SimpleResourceHandler(expectedCall));
-        for (String call : additionalExpectedCalls) {
-            resourceHandlers.add(new SimpleResourceHandler(call));
+    public void expectConcurrent(String... expectedRequests) {
+        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
+        for (String call : expectedRequests) {
+            expectations.add(new SendFixedContent(call));
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, resourceHandlers));
+        addNonBlockingHandler(expectations);
     }
 
     /**
      * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
-    public void expectConcurrentExecution(Collection<String> expectedCalls) {
-        List<ResourceHandler> resourceHandlers = new ArrayList<ResourceHandler>();
-        for (String call : expectedCalls) {
-            resourceHandlers.add(new SimpleResourceHandler(call));
+    public void expectConcurrent(Collection<String> expectedRequests) {
+        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
+        for (String call : expectedRequests) {
+            expectations.add(new SendFixedContent(call));
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, resourceHandlers));
+        addNonBlockingHandler(expectations);
     }
 
     /**
      * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
-    public void expectConcurrentExecutionTo(Collection<? extends Resource> expectedCalls) {
-        List<ResourceHandler> resourceHandlers = new ArrayList<ResourceHandler>();
-        for (Resource call : expectedCalls) {
-            resourceHandlers.add((ResourceHandler) call);
+    public void expectConcurrent(ExpectedRequest... expectedCalls) {
+        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
+        for (ExpectedRequest call : expectedCalls) {
+            expectations.add((ResourceExpectation) call);
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, resourceHandlers));
+        addNonBlockingHandler(expectations);
+    }
+
+    private void addNonBlockingHandler(final Collection<? extends ResourceExpectation> expectations) {
+        handler.addHandler(new ChainingHttpHandler.HandlerFactory() {
+            @Override
+            public TrackingHttpHandler create(WaitPrecondition previous) {
+                return new CyclicBarrierRequestHandler(lock, timeoutMs, previous, expectations);
+            }
+        });
     }
 
     /**
      * Expect a GET request to the given path, and return the contents of the given file.
      */
-    public Resource file(String path, File file) {
-        return new FileResourceHandler(path, file);
+    public ExpectedRequest file(String path, File file) {
+        return new SendFileContent(path, file);
     }
 
     /**
      * Expect a GET request to the given path, and return some arbitrary content.
      */
-    public Resource resource(String path) {
-        return new SimpleResourceHandler(path);
+    public ExpectedRequest resource(String path) {
+        return new SendFixedContent(path);
+    }
+
+    /**
+     * Expect a GET request to the given path, and return a 404 response.
+     */
+    public ExpectedRequest missing(String path) {
+        return new ExpectGetMissing(path);
     }
 
     /**
      * Expect a GET request to the given path, and return the given content (UTF-8 encoded)
      */
-    public Resource resource(String path, String content) {
-        return new SimpleResourceHandler(path, content);
+    public ExpectedRequest resource(String path, String content) {
+        return new SendFixedContent(path, content);
+    }
+
+    /**
+     * Expect a PUT request to the given path, discard the request body
+     */
+    public ExpectedRequest put(String path) {
+        return new ExpectPut(path);
+    }
+
+    /**
+     * Expect a GET request to the given path. Return 1K of the given content then block waiting for {@link BlockingRequest#release()} before returning the remainder
+     */
+    public BlockingRequest sendSomeAndBlock(String path, byte[] content) {
+        if (content.length < 1024) {
+            throw new IllegalArgumentException("Content is too short.");
+        }
+        return new SendPartialResponseThenBlock(lock, timeoutMs, path, content);
+    }
+
+    /**
+     * Expects the given requests to be made concurrently. Blocks each request until they have all been received and released using one of the methods on {@link BlockingHandler}.
+     */
+    public BlockingHandler expectConcurrentAndBlock(String... expectedCalls) {
+        return expectConcurrentAndBlock(expectedCalls.length, expectedCalls);
     }
 
     /**
      * Expects exactly the given number of calls to be made concurrently from any combination of the expected calls. Blocks each call until they are explicitly released.
      * Is not considered "complete" until all expected calls have been received.
      */
-    public BlockingHandler blockOnConcurrentExecutionAnyOf(int concurrent, String... expectedCalls) {
-        List<ResourceHandler> resourceHandlers = new ArrayList<ResourceHandler>();
+    public BlockingHandler expectConcurrentAndBlock(int concurrent, String... expectedCalls) {
+        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
         for (String call : expectedCalls) {
-            resourceHandlers.add(new SimpleResourceHandler(call));
+            expectations.add(new SendFixedContent(call));
         }
-        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(lock, serverId, timeoutMs, concurrent, resourceHandlers);
-        handler.addHandler(requestHandler);
-        return requestHandler;
+        return addBlockingHandler(concurrent, expectations);
+    }
+
+    /**
+     * Expects the given requests to be made concurrently. Blocks each request until they have all been received and released using one of the methods on {@link BlockingHandler}.
+     */
+    public BlockingHandler expectConcurrentAndBlock(ExpectedRequest... expectedRequests) {
+        return expectConcurrentAndBlock(expectedRequests.length, expectedRequests);
     }
 
     /**
      * Expects exactly the given number of calls to be made concurrently from any combination of the expected calls. Blocks each call until they are explicitly released.
      * Is not considered "complete" until all expected calls have been received.
      */
-    public BlockingHandler blockOnConcurrentExecutionAnyOfToResources(int concurrent, Collection<? extends Resource> expectedCalls) {
-        List<ResourceHandler> resourceHandlers = new ArrayList<ResourceHandler>();
-        for (Resource call : expectedCalls) {
-            resourceHandlers.add((ResourceHandler) call);
+    public BlockingHandler expectConcurrentAndBlock(int concurrent, ExpectedRequest... expectedRequests) {
+        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
+        for (ExpectedRequest request : expectedRequests) {
+            expectations.add((ResourceExpectation) request);
         }
-        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(lock, serverId, timeoutMs, concurrent, resourceHandlers);
-        handler.addHandler(requestHandler);
-        return requestHandler;
+        return addBlockingHandler(concurrent, expectations);
+    }
+
+    private BlockingHandler addBlockingHandler(final int concurrent, final Collection<? extends ResourceExpectation> expectations) {
+        return handler.addHandler(new ChainingHttpHandler.HandlerFactory<CyclicBarrierAnyOfRequestHandler>() {
+            @Override
+            public CyclicBarrierAnyOfRequestHandler create(WaitPrecondition previous) {
+                return new CyclicBarrierAnyOfRequestHandler(lock, serverId, timeoutMs, concurrent, previous, expectations);
+            }
+        });
     }
 
     /**
-     * Expects the given request to be made.
+     * Expects the given request to be made. Releases the request as soon as it is received.
      */
-    public void expectSerialExecution(String expectedCall) {
-        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, Collections.singleton(new SimpleResourceHandler(expectedCall))));
+    public void expect(String expectedCall) {
+        addNonBlockingHandler(Collections.singleton(new SendFixedContent(expectedCall)));
     }
 
     /**
-     * Expects the given request to be made.
+     * Expects the given request to be made. Blocks until the request is explicitly released using one of the methods on {@link BlockingHandler}.
      */
-    public void expectSerialExecution(Resource expectedCall) {
-        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, Collections.singleton((ResourceHandler) expectedCall)));
+    public BlockingHandler expectAndBlock(String expectedCall) {
+        return addBlockingHandler(1, Collections.singleton(new SendFixedContent(expectedCall)));
+    }
+
+    /**
+     * Expects the given request to be made. Releases the request as soon as it is received.
+     */
+    public void expect(ExpectedRequest expectedRequest) {
+        addNonBlockingHandler(Collections.singleton((ResourceExpectation) expectedRequest));
+    }
+
+    /**
+     * Expects the given request to be made. Blocks until the request is explicitly released using one of the methods on {@link BlockingHandler}.
+     */
+    public BlockingHandler expectAndBlock(ExpectedRequest expectedRequest) {
+        return addBlockingHandler(1, Collections.singleton((ResourceExpectation) expectedRequest));
     }
 
     public void start() {
@@ -233,9 +298,24 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
-     * Represents some HTTP resource.
+     * Represents some HTTP request expectation.
      */
-    public interface Resource {
+    public interface ExpectedRequest {
+    }
+
+    /**
+     * Allows the test to synchronise with and unblock a single request.
+     */
+    public interface BlockingRequest extends ExpectedRequest {
+        /**
+         * Waits for the request to be received and blocked.
+         */
+        void waitUntilBlocked();
+
+        /**
+         * Unblock the request.
+         */
+        void release();
     }
 
     /**
@@ -263,4 +343,17 @@ public class BlockingHttpServer extends ExternalResource {
         void waitForAllPendingCalls();
     }
 
+    private class MustBeRunning implements WaitPrecondition {
+        @Override
+        public void assertCanWait() throws IllegalStateException {
+            lock.lock();
+            try {
+                if (!running) {
+                    throw new IllegalStateException("Cannot wait as the server is not running.");
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
 }

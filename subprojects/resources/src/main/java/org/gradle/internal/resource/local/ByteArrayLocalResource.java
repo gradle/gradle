@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource.local;
 
+import org.gradle.internal.resource.LocalResource;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 

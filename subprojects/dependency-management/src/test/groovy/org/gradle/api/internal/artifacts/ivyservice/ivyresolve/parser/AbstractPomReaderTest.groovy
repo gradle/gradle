@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
@@ -37,7 +38,7 @@ abstract class AbstractPomReaderTest extends Specification {
         pomFile = tmpDir.file('pom.xml')
         pomFile.createFile()
         LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
-        locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource)
+        locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource, TestFiles.fileSystem())
     }
 
     protected void assertResolvedPomDependency(MavenDependencyKey key, String version) {
@@ -65,7 +66,7 @@ abstract class AbstractPomReaderTest extends Specification {
         pomFile.createFile()
         pomFile << pomDefinition
         LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
-        LocallyAvailableExternalResource locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource)
+        LocallyAvailableExternalResource locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource, TestFiles.fileSystem())
         return new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
     }
 }

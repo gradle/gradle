@@ -16,19 +16,20 @@
 
 package org.gradle.test.fixtures.server.http;
 
-import com.google.common.io.Files;
 import com.sun.net.httpserver.HttpExchange;
 
-import java.io.File;
 import java.io.IOException;
 
-class FileResourceHandler implements BlockingHttpServer.Resource, ResourceHandler {
+class ExpectPut implements BlockingHttpServer.ExpectedRequest, ResourceExpectation, ResourceHandler {
     private final String path;
-    private final File file;
 
-    public FileResourceHandler(String path, File file) {
-        this.path = SimpleResourceHandler.removeLeadingSlash(path);
-        this.file = file;
+    ExpectPut(String path) {
+        this.path = SendFixedContent.removeLeadingSlash(path);
+    }
+
+    @Override
+    public String getMethod() {
+        return "PUT";
     }
 
     @Override
@@ -37,8 +38,12 @@ class FileResourceHandler implements BlockingHttpServer.Resource, ResourceHandle
     }
 
     @Override
-    public void writeTo(HttpExchange exchange) throws IOException {
-        exchange.sendResponseHeaders(200, file.length());
-        Files.copy(file, exchange.getResponseBody());
+    public ResourceHandler create(WaitPrecondition precondition) {
+        return this;
+    }
+
+    @Override
+    public void writeTo(int requestId, HttpExchange exchange) throws IOException {
+        exchange.sendResponseHeaders(200, 0);
     }
 }

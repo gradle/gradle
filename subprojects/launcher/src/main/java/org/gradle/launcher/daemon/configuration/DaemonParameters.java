@@ -47,7 +47,7 @@ public class DaemonParameters {
     private final DaemonJvmOptions jvmOptions = new DaemonJvmOptions(new IdentityFileResolver());
     private Map<String, String> envVariables;
     private boolean enabled = true;
-    private boolean hasJvmArgs;
+    private boolean userConfiguredImmutableJvmArgs;
     private boolean foreground;
     private boolean stop;
     private boolean status;
@@ -63,6 +63,10 @@ public class DaemonParameters {
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
         envVariables = new HashMap<String, String>(System.getenv());
+    }
+
+    public boolean hasUserConfiguredImmutableJvmArgs() {
+        return userConfiguredImmutableJvmArgs;
     }
 
     public boolean isInteractive() {
@@ -120,7 +124,7 @@ public class DaemonParameters {
     }
 
     public void applyDefaultsFor(JavaVersion javaVersion) {
-        if (hasJvmArgs) {
+        if (userConfiguredImmutableJvmArgs) {
             return;
         }
         if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
@@ -145,8 +149,9 @@ public class DaemonParameters {
     }
 
     public void setJvmArgs(Iterable<String> jvmArgs) {
-        hasJvmArgs = true;
+        List<String> immutableBefore = jvmOptions.getAllImmutableJvmArgs();
         jvmOptions.setAllJvmArgs(jvmArgs);
+        userConfiguredImmutableJvmArgs = !immutableBefore.equals(jvmOptions.getAllImmutableJvmArgs());
     }
 
     public void setEnvironmentVariables(Map<String, String> envVariables) {

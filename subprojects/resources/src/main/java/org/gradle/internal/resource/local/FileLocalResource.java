@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.local;
 
+import org.gradle.internal.resource.LocalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 
 import java.io.File;

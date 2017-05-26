@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
@@ -47,13 +49,14 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         Timer clock = Timers.startTimer();
         TaskArtifactState taskArtifactState = context.getTaskArtifactState();
         try {
-            List<String> messages = LOGGER.isInfoEnabled() ? new ArrayList<String>() : null;
+            List<String> messages = new ArrayList<String>(TaskUpToDateState.MAX_OUT_OF_DATE_MESSAGES);
             if (taskArtifactState.isUpToDate(messages)) {
                 LOGGER.info("Skipping {} as it is up-to-date (took {}).", task, clock.getElapsed());
                 state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
-                state.setOriginBuildId(taskArtifactState.getOriginBuildId());
+                context.setOriginBuildInvocationId(taskArtifactState.getOriginBuildInvocationId());
                 return;
             }
+            context.setUpToDateMessages(ImmutableList.copyOf(messages));
             logOutOfDateMessages(messages, task, clock.getElapsed());
 
             taskArtifactState.beforeTask();

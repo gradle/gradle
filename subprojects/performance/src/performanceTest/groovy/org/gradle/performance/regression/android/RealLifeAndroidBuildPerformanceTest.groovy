@@ -26,11 +26,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.testProject = testProject
         runner.tasksToRun = tasks.split(' ')
         runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
-        runner.args = parallel ? ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true'] : []
+        runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.minimumVersion = "3.4"
-        runner.targetVersions = ["3.5-20170221000043+0000"]
+        runner.targetVersions = ["4.0-20170524215402+0000"]
 
         when:
         def result = runner.run()

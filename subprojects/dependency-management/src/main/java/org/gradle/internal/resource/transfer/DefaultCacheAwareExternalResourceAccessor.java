@@ -29,6 +29,7 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
@@ -64,8 +65,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final CacheLockingManager cacheLockingManager;
     private final ExternalResourceCachePolicy externalResourceCachePolicy;
     private final ProducerGuard<ExternalResourceName> producerGuard;
+    private final FileSystem fileSystem;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileSystem fileSystem) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -73,6 +75,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         this.cacheLockingManager = cacheLockingManager;
         this.externalResourceCachePolicy = externalResourceCachePolicy;
         this.producerGuard = producerGuard;
+        this.fileSystem = fileSystem;
     }
 
     public LocallyAvailableExternalResource getResource(final ExternalResourceName location, final ResourceFileStore fileStore, @Nullable final LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
@@ -89,14 +92,14 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
                 // We might be able to use a cached/locally available version
                 if (cached != null && !externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached))) {
-                    return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
+                    return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData(), fileSystem);
                 }
 
                 // We have a cached version, but it might be out of date, so we tell the upstreams to revalidate too
                 final boolean revalidate = true;
 
                 // Get the metadata first to see if it's there
-                final ExternalResourceMetaData remoteMetaData = delegate.getResourceMetaData(location, revalidate);
+                final ExternalResourceMetaData remoteMetaData = delegate.resource(location, revalidate).getMetaData();
                 if (remoteMetaData == null) {
                     return null;
                 }
@@ -115,7 +118,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     if (isUnchanged) {
                         LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());
                         // TODO - update the index with the new remote meta-data
-                        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
+                        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData(), fileSystem);
                     }
                 }
 
@@ -214,7 +217,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
                 File fileInFileStore = cachedResource.getFile();
                 cachedExternalResourceIndex.store(source.toString(), fileInFileStore, metaData);
-                return new DefaultLocallyAvailableExternalResource(source.getUri(), cachedResource, metaData);
+                return new DefaultLocallyAvailableExternalResource(source.getUri(), cachedResource, metaData, fileSystem);
             }
         });
     }

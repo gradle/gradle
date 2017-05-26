@@ -118,8 +118,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             bPing.outputs.file "dir/file"
         """
         expect:
-        blockingServer.expectSerialExecution(":aPing")
-        blockingServer.expectSerialExecution(":bPing")
+        blockingServer.expect(":aPing")
+        blockingServer.expect(":bPing")
 
         run":aPing", ":bPing"
     }
@@ -129,7 +129,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(3)
 
         expect:
-        blockingServer.expectConcurrentExecution(":a:aPing", ":a:bPing", ":b:aPing")
+        blockingServer.expectConcurrent(":a:aPing", ":a:bPing", ":b:aPing")
 
         run ":a:aPing", ":a:bPing", ":b:aPing"
     }
@@ -144,7 +144,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        blockingServer.expectConcurrentExecution(":aPing", ":bPing")
+        blockingServer.expectConcurrent(":aPing", ":bPing")
 
         run ":aPing", ":bPing"
     }
@@ -159,8 +159,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        blockingServer.expectConcurrentExecution(":bPing", ":cPing")
-        blockingServer.expectSerialExecution(":aPing")
+        blockingServer.expectConcurrent(":bPing", ":cPing")
+        blockingServer.expect(":aPing")
 
         run ":aPing"
     }
@@ -175,7 +175,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        blockingServer.expectConcurrentExecution(":bPing", ":cFailingPing")
+        blockingServer.expectConcurrent(":bPing", ":cFailingPing")
 
         when:
         fails ":aPing"
@@ -189,8 +189,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(2)
 
         expect:
-        blockingServer.expectConcurrentExecution(":aPing", ":bPing")
-        blockingServer.expectConcurrentExecution(":cPing", ":dPing")
+        blockingServer.expectConcurrent(":aPing", ":bPing")
+        blockingServer.expectConcurrent(":cPing", ":dPing")
 
         run ":aPing", ":bPing", ":cPing", ":dPing"
     }
@@ -201,7 +201,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(3)
 
         expect:
-        blockingServer.expectConcurrentExecution(":a:aSerialPing", ":b:aPing", ":b:bPing")
+        blockingServer.expectConcurrent(":a:aSerialPing", ":b:aPing", ":b:bPing")
 
         run ":a:aSerialPing", ":b:aPing", ":b:bPing"
     }
@@ -211,8 +211,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(3)
 
         expect:
-        blockingServer.expectConcurrentExecution(":a:aSerialPing")
-        blockingServer.expectConcurrentExecution(":b:aPing", ":b:bPing")
+        blockingServer.expectConcurrent(":a:aSerialPing")
+        blockingServer.expectConcurrent(":b:aPing", ":b:bPing")
 
         run ":a:aSerialPing", ":b:aPing", ":b:bPing"
     }
@@ -227,8 +227,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        blockingServer.expectConcurrentExecution(":aPing")
-        blockingServer.expectConcurrentExecution(":bPing")
+        blockingServer.expectConcurrent(":aPing")
+        blockingServer.expectConcurrent(":bPing")
 
         run ":aPing", ":bPing"
     }
@@ -243,8 +243,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        blockingServer.expectConcurrentExecution(":a:aPing")
-        blockingServer.expectConcurrentExecution(":b:bPing")
+        blockingServer.expectConcurrent(":a:aPing")
+        blockingServer.expectConcurrent(":b:bPing")
 
         run ":a:aPing", ":b:bPing"
     }
@@ -264,9 +264,9 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        blockingServer.expectConcurrentExecution(":aPing")
-        blockingServer.expectConcurrentExecution(":bPing")
-        blockingServer.expectConcurrentExecution(":cPing")
+        blockingServer.expectConcurrent(":aPing")
+        blockingServer.expectConcurrent(":bPing")
+        blockingServer.expectConcurrent(":cPing")
 
         run ":aPing", ":cPing"
     }
@@ -286,9 +286,9 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        blockingServer.expectConcurrentExecution(":bPing")
-        blockingServer.expectConcurrentExecution(":cPing")
-        blockingServer.expectConcurrentExecution(":aPing")
+        blockingServer.expectConcurrent(":bPing")
+        blockingServer.expectConcurrent(":cPing")
+        blockingServer.expectConcurrent(":aPing")
 
         run ":cPing", ":aPing"
     }
@@ -312,9 +312,9 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        blockingServer.expectConcurrentExecution(":a:aPing")
-        blockingServer.expectConcurrentExecution(":a:bPing")
-        blockingServer.expectConcurrentExecution(":b:cPing")
+        blockingServer.expectConcurrent(":a:aPing")
+        blockingServer.expectConcurrent(":a:bPing")
+        blockingServer.expectConcurrent(":b:cPing")
 
         run ":a:aPing", ":b:cPing"
     }
@@ -337,9 +337,9 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        blockingServer.expectConcurrentExecution(":bPing")
-        blockingServer.expectConcurrentExecution(":aPing")
-        blockingServer.expectConcurrentExecution(":cPing")
+        blockingServer.expectConcurrent(":bPing")
+        blockingServer.expectConcurrent(":aPing")
+        blockingServer.expectConcurrent(":cPing")
 
         run ":cPing", ":aPing"
     }
@@ -363,9 +363,9 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        blockingServer.expectConcurrentExecution(":bPing")
-        blockingServer.expectConcurrentExecution(":aPing")
-        blockingServer.expectConcurrentExecution(":cPing")
+        blockingServer.expectConcurrent(":bPing")
+        blockingServer.expectConcurrent(":aPing")
+        blockingServer.expectConcurrent(":cPing")
 
         run ":cPing", ":aPing"
     }

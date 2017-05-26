@@ -26,9 +26,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.List;
 
 /**
- * This will be merged with {@link Resource}.
+ * Represents a (potentially) mutable binary resource. The resource may or may not exist, and may change over time.
  */
 public interface ExternalResource extends Resource {
     /**
@@ -40,6 +41,7 @@ public interface ExternalResource extends Resource {
      * Copies the contents of this resource to the given file.
      *
      * @throws ResourceException on failure to copy the content.
+     * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     ExternalResourceReadResult<Void> writeTo(File destination) throws ResourceException;
 
@@ -47,7 +49,7 @@ public interface ExternalResource extends Resource {
      * Copies the contents of this resource to the given file, if the resource exists.
      *
      * @throws ResourceException on failure to copy the content.
-     * @return true if the resource was written to the file, false if not.
+     * @return null if this resource does not exist.
      */
     @Nullable
     ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException;
@@ -56,6 +58,7 @@ public interface ExternalResource extends Resource {
      * Copies the binary contents of this resource to the given stream. Does not close the provided stream.
      *
      * @throws ResourceException on failure to copy the content.
+     * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     ExternalResourceReadResult<Void> writeTo(OutputStream destination) throws ResourceException;
 
@@ -76,7 +79,7 @@ public interface ExternalResource extends Resource {
     <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
 
     /**
-     * Executes the given action against the binary contents of this resource.
+     * Executes the given action against the binary contents of this resource, if the resource exists.
      *
      * @throws ResourceException on failure to read the content.
      * @return null if the resource does not exist.
@@ -106,8 +109,27 @@ public interface ExternalResource extends Resource {
     <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException;
 
     /**
-     * Returns the meta-data for this resource.
+     * Copies the given content to this resource.
+     *
+     * @param source The local resource to be transferred.
+     * @throws ResourceException On failure to write the content.
      */
+    ExternalResourceWriteResult put(LocalResource source) throws ResourceException;
+
+    /**
+     * Return a listing of child resources names.
+     *
+     * @return A listing of the direct children of the given parent. Returns null when the parent resource does not exist.
+     * @throws ResourceException On listing failure.
+     */
+    @Nullable
+    List<String> list() throws ResourceException;
+
+    /**
+     * Returns the meta-data for this resource, if the resource exists.
+     * @return null when the resource does not exist.
+     */
+    @Nullable
     ExternalResourceMetaData getMetaData();
 
     interface ContentAction<T> {

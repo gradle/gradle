@@ -61,7 +61,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         executer.withFullDeprecationStackTraceDisabled()
         withBuildCache().succeeds "customTask"
         then:
-        output.contains "Could not pack cache results for task ':customTask'"
         output ==~ /(?s).*org\.gradle\.api\.GradleException: Could not pack property 'outputFile': ${errorPattern}.*/ ||
             output ==~ /(?s).*org\.gradle\.caching\.BuildCacheException: Unable to store entry at .*: ${errorPattern}.*/
     }

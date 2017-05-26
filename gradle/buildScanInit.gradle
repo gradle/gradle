@@ -6,9 +6,11 @@ initscript {
         classpath "com.gradle:build-scan-plugin:1.7.3"
     }
 }
-rootProject {
-    apply plugin: com.gradle.scan.plugin.BuildScanPlugin
-    buildScan {
-        server = "https://e.grdev.net"
+if (!gradle.startParameter.systemPropertiesArgs.containsKey("disableScanPlugin")) {
+    rootProject {
+        apply plugin: com.gradle.scan.plugin.BuildScanPlugin
+        buildScan {
+            server = "https://e.grdev.net"
+        }
     }
 }

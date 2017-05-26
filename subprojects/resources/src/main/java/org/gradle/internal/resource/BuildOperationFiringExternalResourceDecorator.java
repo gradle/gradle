@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.List;
 
 public class BuildOperationFiringExternalResourceDecorator implements ExternalResource {
     private final ExternalResourceName resourceName;
@@ -48,13 +49,68 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     @Override
-    public ExternalResourceMetaData getMetaData() {
-        return delegate.getMetaData();
+    public String getDisplayName() {
+        return delegate.getDisplayName();
     }
 
     @Override
-    public String getDisplayName() {
-        return delegate.getDisplayName();
+    public ExternalResourceMetaData getMetaData() {
+        return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceMetaData>() {
+            @Override
+            public ExternalResourceMetaData call(BuildOperationContext context) {
+                return delegate.getMetaData();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("Metadata of " + resourceName.getDisplayName())
+                    .details(new MetadataOperationDetails(resourceName.getUri()));
+            }
+        });
+    }
+
+    @Nullable
+    @Override
+    public List<String> list() throws ResourceException {
+        return buildOperationExecutor.call(new CallableBuildOperation<List<String>>() {
+            @Override
+            public List<String> call(BuildOperationContext context) {
+                return delegate.list();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("List " + resourceName.getDisplayName())
+                    .details(new ListOperationDetails(resourceName.getUri()));
+            }
+        });
+    }
+
+    @Override
+    public ExternalResourceWriteResult put(final LocalResource source) throws ResourceException {
+        return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceWriteResult>() {
+            @Override
+            public ExternalResourceWriteResult call(BuildOperationContext context) {
+                final ExternalResourceWriteResult result = delegate.put(source);
+                context.setResult(new ExternalResourceWriteBuildOperationType.Result(){
+                    @Override
+                    public long getBytesWritten() {
+                        return result.getBytesWritten();
+                    }
+                });
+                return result;
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("Upload " + resourceName.getDisplayName())
+                    .progressDisplayName(resourceName.getShortDisplayName())
+                    .details(new PutOperationDetails(resourceName.getUri()));
+            }
+        });
     }
 
     @Override
@@ -180,57 +236,90 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     private static <T> ExternalResourceReadResult<T> result(BuildOperationContext buildOperationContext, ExternalResourceReadResult<T> result) {
-        buildOperationContext.setResult(new OperationResult(result == null ? 0 : result.getReadContentLength()));
+        buildOperationContext.setResult(new ReadOperationResult(result == null ? 0 : result.getBytesRead()));
         return result;
     }
 
     private BuildOperationDescriptor.Builder createBuildOperationDetails() {
-        NetworkRequestBuildOperationType.Details operationDetails = new OperationDetails(resourceName.getUri());
+        ExternalResourceReadBuildOperationType.Details operationDetails = new ReadOperationDetails(resourceName.getUri());
         return BuildOperationDescriptor
             .displayName("Download " + resourceName.getDisplayName())
             .progressDisplayName(resourceName.getShortDisplayName())
             .details(operationDetails);
     }
 
-    private static class OperationDetails implements NetworkRequestBuildOperationType.Details {
-
+    private static class LocationDetails {
         private final URI location;
 
-        private OperationDetails(URI location) {
+        private LocationDetails(URI location) {
             this.location = location;
         }
 
         public String getLocation() {
             return location.toASCIIString();
         }
-
-        @Override
-        public String toString() {
-            return "NetworkRequestBuildOperationType.Details{"
-                + "location=" + location + ", "
-                + '}';
-        }
-
     }
 
-    private static class OperationResult implements NetworkRequestBuildOperationType.Result {
-
-        private final long contentLength;
-
-        private OperationResult(long contentLength) {
-            this.contentLength = contentLength;
-        }
-
-        @Override
-        public long getContentLength() {
-            return contentLength;
+    private static class ReadOperationDetails extends LocationDetails implements ExternalResourceReadBuildOperationType.Details {
+        private ReadOperationDetails(URI location) {
+            super(location);
         }
 
         @Override
         public String toString() {
-            return "NetworkRequestBuildOperationType.Result{"
-                + "contentLength=" + contentLength
-                + '}';
+            return "ExternalResourceReadBuildOperationType.Details{location=" + getLocation() + ", " + '}';
+        }
+    }
+
+    private static class MetadataOperationDetails extends LocationDetails implements ExternalResourceReadMetadataBuildOperationType.Details {
+        private MetadataOperationDetails(URI location) {
+            super(location);
+        }
+
+        @Override
+        public String toString() {
+            return "ExternalResourceReadMetadataBuildOperationType.Details{location=" + getLocation() + ", " + '}';
+        }
+    }
+
+    private static class ListOperationDetails extends LocationDetails implements ExternalResourceListBuildOperationType.Details {
+        private ListOperationDetails(URI location) {
+            super(location);
+        }
+
+        @Override
+        public String toString() {
+            return "ExternalResourceListBuildOperationType.Details{location=" + getLocation() + ", " + '}';
+        }
+    }
+
+    private static class PutOperationDetails extends LocationDetails implements ExternalResourceWriteBuildOperationType.Details {
+        private PutOperationDetails(URI location) {
+            super(location);
+        }
+
+        @Override
+        public String toString() {
+            return "ExternalResourceWriteBuildOperationType.Details{location=" + getLocation() + ", " + '}';
+        }
+    }
+
+    private static class ReadOperationResult implements ExternalResourceReadBuildOperationType.Result {
+
+        private final long bytesRead;
+
+        private ReadOperationResult(long bytesRead) {
+            this.bytesRead = bytesRead;
+        }
+
+        @Override
+        public long getBytesRead() {
+            return bytesRead;
+        }
+
+        @Override
+        public String toString() {
+            return "ExternalResourceReadBuildOperationType.Result{bytesRead=" + bytesRead + '}';
         }
 
     }

@@ -19,7 +19,7 @@ package org.gradle.api.tasks.outputorigin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.integtests.fixtures.TaskOutputOriginBuildIdFixture
+import org.gradle.integtests.fixtures.TaskOutputOriginBuildInvocationIdFixture
 import org.gradle.internal.id.UniqueId
 import org.junit.Rule
 
@@ -29,14 +29,14 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
     public final ScopeIdsFixture scopeIds = new ScopeIdsFixture(executer, temporaryFolder)
 
     @Rule
-    public final TaskOutputOriginBuildIdFixture originBuildId = new TaskOutputOriginBuildIdFixture(executer, temporaryFolder)
+    public final TaskOutputOriginBuildInvocationIdFixture originBuildInvocationId = new TaskOutputOriginBuildInvocationIdFixture(executer, temporaryFolder)
 
-    UniqueId getBuildId() {
-        scopeIds.buildId
+    UniqueId getBuildInvocationId() {
+        scopeIds.buildInvocationId
     }
 
-    UniqueId originBuildId(String taskPath) {
-        originBuildId.originId(taskPath)
+    UniqueId originBuildInvocationId(String taskPath) {
+        originBuildInvocationId.originId(taskPath)
     }
 
     def setup() {
@@ -60,17 +60,17 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         executedAndNotSkipped ":write"
-        def firstBuildId = buildId
-        originBuildId(":write") == null
+        def firstBuildId = buildInvocationId
+        originBuildInvocationId(":write") == null
 
         when:
         succeeds "clean", "write"
 
         then:
         executed ":write"
-        def secondBuildId = buildId
+        def secondBuildId = buildInvocationId
         firstBuildId != secondBuildId
-        originBuildId(":write") == firstBuildId
+        originBuildInvocationId(":write") == firstBuildId
 
         when:
         buildFile << """
@@ -80,17 +80,17 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         executedAndNotSkipped ":write"
-        def thirdBuildId = buildId
+        def thirdBuildId = buildInvocationId
         firstBuildId != thirdBuildId
         secondBuildId != thirdBuildId
-        originBuildId(":write") == null
+        originBuildInvocationId(":write") == null
 
         when:
         succeeds "clean", "write"
 
         then:
         executed ":write"
-        originBuildId(":write") == thirdBuildId
+        originBuildInvocationId(":write") == thirdBuildId
     }
 
 }

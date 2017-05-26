@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharSource;
@@ -950,16 +951,35 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
             @Override
             public void execute(ExecutionResult executionResult) {
-                validate(executionResult.getNormalizedOutput(), "Standard output");
+                String normalizedOutput = executionResult.getNormalizedOutput();
                 String error = executionResult.getError();
-                if (executionResult instanceof ExecutionFailure) {
-                    // Axe everything after the expected exception
-                    int pos = error.indexOf("* Exception is:\n");
-                    if (pos >= 0) {
-                        error = error.substring(0, pos);
-                    }
+                boolean executionFailure = isExecutionFailure(executionResult);
+
+                // for tests using rich console standard out and error are combined in output of execution result
+                if (executionFailure && Strings.isNullOrEmpty(error)) {
+                    normalizedOutput = removeExceptionStackTraceForFailedExecution(normalizedOutput);
                 }
+
+                validate(normalizedOutput, "Standard output");
+
+                if (executionFailure) {
+                    error = removeExceptionStackTraceForFailedExecution(error);
+                }
+
                 validate(error, "Standard error");
+            }
+
+            private boolean isExecutionFailure(ExecutionResult executionResult) {
+                return executionResult instanceof ExecutionFailure;
+            }
+
+            // Axe everything after the expected exception
+            private String removeExceptionStackTraceForFailedExecution(String text) {
+                int pos = text.indexOf("* Exception is:\n");
+                if (pos >= 0) {
+                    text = text.substring(0, pos);
+                }
+                return text;
             }
 
             private void validate(String output, String displayName) {

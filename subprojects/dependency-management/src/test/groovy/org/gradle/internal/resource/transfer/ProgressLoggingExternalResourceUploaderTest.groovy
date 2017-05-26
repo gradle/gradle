@@ -18,7 +18,7 @@
 
 package org.gradle.internal.resource.transfer
 
-import org.gradle.internal.resource.local.LocalResource
+import org.gradle.internal.resource.LocalResource
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import spock.lang.Specification

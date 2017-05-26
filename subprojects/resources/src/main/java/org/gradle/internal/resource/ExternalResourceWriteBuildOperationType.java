@@ -20,17 +20,18 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * The transfer of an external resource to the local system.
+ * A read of the metadata of an external resource.
  *
  * @since 4.0
  */
-public final class NetworkRequestBuildOperationType implements BuildOperationType<NetworkRequestBuildOperationType.Details, NetworkRequestBuildOperationType.Result> {
+public final class ExternalResourceWriteBuildOperationType implements BuildOperationType<ExternalResourceWriteBuildOperationType.Details, ExternalResourceWriteBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
 
         /**
-         * Value is a valid URI.
+         * The location of the resource.
+         * A valid URI.
          */
         String getLocation();
 
@@ -40,13 +41,13 @@ public final class NetworkRequestBuildOperationType implements BuildOperationTyp
     public interface Result {
 
         /**
-         * The length of the received content.
+         * The number of bytes that were written to the resource
          */
-        long getContentLength();
+        long getBytesWritten();
 
     }
 
-    private NetworkRequestBuildOperationType() {
+    private ExternalResourceWriteBuildOperationType() {
     }
 
 }

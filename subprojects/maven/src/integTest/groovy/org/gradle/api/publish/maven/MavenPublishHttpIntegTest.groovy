@@ -127,11 +127,10 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
-        failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
-        failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (http://localhost:${server.port}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
-        // Cause goes missing through the maven classes, but does end up logged to stderr
-        failure.error.contains("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
+        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
+        failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
+        failure.assertHasCause("Could not write to resource '${module.artifact.uri}")
+        failure.assertHasCause("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
         where:
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
@@ -149,11 +148,10 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
-        failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
-        failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (http://localhost:${server.port}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
-        // Cause goes missing through the maven classes, but does end up logged to stderr
-        failure.error.contains("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
+        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
+        failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
+        failure.assertHasCause("Could not write to resource '${module.artifact.uri}")
+        failure.assertHasCause("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
         where:
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]

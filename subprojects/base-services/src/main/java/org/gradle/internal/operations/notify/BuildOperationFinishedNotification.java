@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations.notify;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -37,6 +38,18 @@ public interface BuildOperationFinishedNotification {
      * of a previously emitted started notification.
      */
     Object getNotificationOperationId();
+
+    /**
+     * The ID of the parent of this notification.
+     *
+     * Note: this is the ID of the nearest parent operation that also resulted in a notification.
+     * As notifications are not sent for all operations, this may be a different value to the
+     * parent operation ID.
+     *
+     * Null if the operation has no parent.
+     */
+    @Nullable
+    Object getNotificationOperationParentId();
 
     /**
      * A structured object providing details about the operation that was performed.

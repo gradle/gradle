@@ -19,7 +19,7 @@ package org.gradle.api.tasks.outputorigin
 import org.gradle.api.Action
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.integtests.fixtures.TaskOutputOriginBuildIdFixture
+import org.gradle.integtests.fixtures.TaskOutputOriginBuildInvocationIdFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.id.UniqueId
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
@@ -44,14 +44,14 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
     public final ScopeIdsFixture scopeIds = new ScopeIdsFixture(delegatingExecuter, temporaryFolder)
 
     @Rule
-    public final TaskOutputOriginBuildIdFixture originBuildIdFixture = new TaskOutputOriginBuildIdFixture(delegatingExecuter, temporaryFolder)
+    public final TaskOutputOriginBuildInvocationIdFixture originBuildInvocationIdFixture = new TaskOutputOriginBuildInvocationIdFixture(delegatingExecuter, temporaryFolder)
 
-    UniqueId getBuildId() {
-        scopeIds.buildId
+    UniqueId getBuildInvocationId() {
+        scopeIds.buildInvocationId
     }
 
-    UniqueId originBuildId(String taskPath) {
-        originBuildIdFixture.originId(taskPath)
+    UniqueId originBuildInvocationId(String taskPath) {
+        originBuildInvocationIdFixture.originId(taskPath)
     }
 
     void afterBuild() {
@@ -96,7 +96,7 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         then:
         succeeds("t")
         afterBuild()
-        scopeIds.buildId != null
+        scopeIds.buildInvocationId != null
 
         when:
         update(i1, "2")
@@ -104,8 +104,8 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         then:
         succeeds()
         afterBuild()
-        originBuildId(":t1") == null
-        originBuildId(":t2") == scopeIds.buildIds[0]
+        originBuildInvocationId(":t1") == null
+        originBuildInvocationId(":t2") == scopeIds.buildInvocationIds[0]
 
         when:
         update(i2, "2")
@@ -113,8 +113,8 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         then:
         succeeds()
         afterBuild()
-        originBuildId(":t1") == scopeIds.buildIds[1]
-        originBuildId(":t2") == null
+        originBuildInvocationId(":t1") == scopeIds.buildInvocationIds[1]
+        originBuildInvocationId(":t2") == null
 
         and:
         with(scopeIds.workspaceIds) {

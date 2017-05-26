@@ -38,6 +38,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -74,13 +75,16 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                          CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
-                         FileStore<String> resourcesFileStore) {
+                         FileStore<String> resourcesFileStore,
+                         FileSystem fileSystem) {
         super(name, transport.isLocal(),
                 transport.getRepository(),
                 transport.getResourceAccessor(),
                 new ChainedVersionLister(new MavenVersionLister(cacheAwareExternalResourceAccessor, resourcesFileStore), new ResourceVersionLister(transport.getRepository())),
                 locallyAvailableResourceFinder,
-                artifactFileStore, moduleIdentifierFactory);
+                artifactFileStore,
+                moduleIdentifierFactory,
+                fileSystem);
         this.metaDataParser = pomParser;
         this.mavenMetaDataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
         this.root = rootUri;

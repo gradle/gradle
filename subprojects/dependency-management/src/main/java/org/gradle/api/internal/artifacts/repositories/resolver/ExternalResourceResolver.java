@@ -53,6 +53,7 @@ import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -75,7 +76,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,6 +98,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final FileSystem fileSystem;
 
     private final VersionLister versionLister;
 
@@ -111,7 +112,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        VersionLister versionLister,
                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                       FileSystem fileSystem) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
@@ -120,6 +122,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.fileSystem = fileSystem;
     }
 
     public String getId() {
@@ -212,7 +215,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             return null;
         }
 
-        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers);
+        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileSystem);
         return parseMetaDataFromResource(moduleComponentIdentifier, metaDataResource, context);
     }
 
@@ -320,13 +323,13 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return createArtifactResolver();
     }
 
-    public void publish(IvyModulePublishMetadata moduleVersion) throws IOException {
+    public void publish(IvyModulePublishMetadata moduleVersion) {
         for (IvyModuleArtifactPublishMetadata artifact : moduleVersion.getArtifacts()) {
             publish(new DefaultModuleComponentArtifactMetadata(artifact.getId()), artifact.getFile());
         }
     }
 
-    private void publish(ModuleComponentArtifactMetadata artifact, File src) throws IOException {
+    private void publish(ModuleComponentArtifactMetadata artifact, File src) {
         ResourcePattern destinationPattern;
         if ("ivy".equals(artifact.getName().getType()) && !ivyPatterns.isEmpty()) {
             destinationPattern = ivyPatterns.get(0);
@@ -341,15 +344,15 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         LOGGER.info("Published {} to {}", artifact, destination);
     }
 
-    private void put(File src, ExternalResourceName destination) throws IOException {
-        repository.withProgressLogging().put(new FileLocalResource(src), destination);
+    private void put(File src, ExternalResourceName destination) {
+        repository.withProgressLogging().resource(destination).put(new FileLocalResource(src));
         putChecksum(src, destination);
     }
 
-    private void putChecksum(File source, ExternalResourceName destination) throws IOException {
+    private void putChecksum(File source, ExternalResourceName destination) {
         byte[] checksumFile = createChecksumFile(source, "SHA1", 40);
         ExternalResourceName checksumDestination = destination.append(".sha1");
-        repository.put(new ByteArrayLocalResource(checksumFile), checksumDestination);
+        repository.resource(checksumDestination).put(new ByteArrayLocalResource(checksumFile));
     }
 
     private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {

@@ -81,6 +81,7 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -233,7 +234,8 @@ class DependencyManagementBuildScopeServices {
                                                                 CacheLockingManager cacheLockingManager,
                                                                 List<ResourceConnectorFactory> resourceConnectorFactories,
                                                                 BuildOperationExecutor buildOperationExecutor,
-                                                                ProducerGuard<ExternalResourceName> producerGuard) {
+                                                                ProducerGuard<ExternalResourceName> producerGuard,
+                                                                FileSystem fileSystem) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new RepositoryTransportFactory(
             resourceConnectorFactories,
@@ -244,7 +246,8 @@ class DependencyManagementBuildScopeServices {
             cacheLockingManager,
             buildOperationExecutor,
             startParameterResolutionOverride,
-            producerGuard);
+            producerGuard,
+            fileSystem);
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,

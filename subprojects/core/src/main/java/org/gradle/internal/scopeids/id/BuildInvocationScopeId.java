@@ -17,7 +17,6 @@
 package org.gradle.internal.scopeids.id;
 
 import org.gradle.internal.id.UniqueId;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * The ID of a single build invocation.
@@ -29,10 +28,9 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * This ID is, by definition, not persistent.
  */
-@UsedByScanPlugin("obtained via root project services")
-public final class BuildScopeId extends ScopeId {
+public final class BuildInvocationScopeId extends ScopeId {
 
-    public BuildScopeId(UniqueId id) {
+    public BuildInvocationScopeId(UniqueId id) {
         super(id);
     }
 

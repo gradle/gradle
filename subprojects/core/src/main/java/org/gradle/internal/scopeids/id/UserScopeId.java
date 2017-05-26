@@ -17,7 +17,6 @@
 package org.gradle.internal.scopeids.id;
 
 import org.gradle.internal.id.UniqueId;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A persistent ID of a user.
@@ -30,7 +29,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * If this directory is destroyed, or a build is run with a different gradle user home,
  * a new ID will be issued.
  */
-@UsedByScanPlugin("obtained via root project services")
 public final class UserScopeId extends ScopeId {
 
     public UserScopeId(UniqueId id) {

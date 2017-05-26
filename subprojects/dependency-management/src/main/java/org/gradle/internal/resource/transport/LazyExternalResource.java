@@ -25,10 +25,14 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
+import org.gradle.internal.resource.ExternalResourceWriteResult;
+import org.gradle.internal.resource.LocalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.ExternalResourceLister;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -36,16 +40,21 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.List;
 
 public class LazyExternalResource implements ExternalResource {
     private final ExternalResourceName name;
     private final ExternalResourceAccessor accessor;
+    private final ExternalResourceUploader uploader;
+    private final ExternalResourceLister lister;
     // Should really be a parameter to the 'withContent' methods or baked into the accessor
     private final boolean revalidate;
 
-    LazyExternalResource(ExternalResourceName name, ExternalResourceAccessor accessor, boolean revalidate) {
+    LazyExternalResource(ExternalResourceName name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader, ExternalResourceLister lister, boolean revalidate) {
         this.name = name;
         this.accessor = accessor;
+        this.uploader = uploader;
+        this.lister = lister;
         this.revalidate = revalidate;
     }
 
@@ -162,7 +171,56 @@ public class LazyExternalResource implements ExternalResource {
     }
 
     @Override
+    public ExternalResourceWriteResult put(final LocalResource source) throws ResourceException {
+        try {
+            CountingLocalResource countingResource = new CountingLocalResource(source);
+            uploader.upload(countingResource, getURI());
+            return new ExternalResourceWriteResult(countingResource.getCount());
+        } catch (Exception e) {
+            throw ResourceExceptions.putFailed(getURI(), e);
+        }
+    }
+
+    @Nullable
+    @Override
+    public List<String> list() throws ResourceException {
+        try {
+            return lister.list(getURI());
+        } catch (Exception e) {
+            throw ResourceExceptions.getFailed(getURI(), e);
+        }
+    }
+
+    @Override
     public ExternalResourceMetaData getMetaData() {
-        throw new UnsupportedOperationException();
+        return accessor.getMetaData(getURI(), revalidate);
+    }
+
+    private static class CountingLocalResource implements LocalResource {
+        private final LocalResource source;
+        private CountingInputStream instr;
+        private long count;
+
+        CountingLocalResource(LocalResource source) {
+            this.source = source;
+        }
+
+        @Override
+        public InputStream open() throws ResourceException {
+            if (instr != null) {
+                count += instr.getCount();
+            }
+            instr = new CountingInputStream(source.open());
+            return instr;
+        }
+
+        @Override
+        public long getContentLength() {
+            return source.getContentLength();
+        }
+
+        public long getCount() {
+            return instr != null ? count + instr.getCount() : count;
+        }
     }
 }

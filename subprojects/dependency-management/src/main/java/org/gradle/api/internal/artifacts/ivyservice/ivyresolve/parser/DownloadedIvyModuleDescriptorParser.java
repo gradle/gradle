@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 public class DownloadedIvyModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
-    public DownloadedIvyModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        super(moduleDescriptorConverter, moduleIdentifierFactory);
+    public DownloadedIvyModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileSystem fileSystem) {
+        super(moduleDescriptorConverter, moduleIdentifierFactory, fileSystem);
     }
 
     @Override

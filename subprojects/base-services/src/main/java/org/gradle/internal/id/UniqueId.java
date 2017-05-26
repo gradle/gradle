@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
  *
  * @since 4.0
  */
-// @UsedByScanPlugin - annotation is defined in core
 public final class UniqueId {
 
     private static final BaseEncoding ENCODING = BaseEncoding.base32().lowerCase().omitPadding();
