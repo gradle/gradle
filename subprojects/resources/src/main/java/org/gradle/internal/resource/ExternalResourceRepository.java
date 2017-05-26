@@ -17,7 +17,7 @@
 package org.gradle.internal.resource;
 
 /**
- * Provides access to {@link ExternalResource} instances.
+ * Provides access to {@link ExternalResource} implementations, given a URI or resource name.
  */
 public interface ExternalResourceRepository {
     /**
@@ -26,7 +26,7 @@ public interface ExternalResourceRepository {
     ExternalResourceRepository withProgressLogging();
 
     /**
-     * Returns the resource with the given name. Note that this method does not access the resource in any way. To do that, use the methods on the returned resource.
+     * Returns the resource with the given name. Note that this method does not access the resource in any way, it simply creates an object that can. To access the resource, use the methods on the returned object.
      *
      * @param resource The location of the resource
      * @param revalidate Ensure the external resource is not stale when reading its content
@@ -34,7 +34,7 @@ public interface ExternalResourceRepository {
     ExternalResource resource(ExternalResourceName resource, boolean revalidate);
 
     /**
-     * Returns the resource with the given name. Note that this method does not access the resource in any way. To do that, use the methods on the returned resource.
+     * Returns the resource with the given name. Note that this method does not access the resource in any way, it simply creates an object that can. To access the resource, use the methods on the returned object.
      *
      * @param resource The location of the resource
      */
