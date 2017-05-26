@@ -22,7 +22,6 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.lang.NoSuchMethodException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
