@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.logging.format;
 
-package org.gradle.internal.operations;
+import org.gradle.internal.SystemProperties;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
-import org.gradle.api.Nullable;
+import java.util.List;
 
-public interface BuildOperationContext {
-    /**
-     * Marks the build operation as failed, without throwing an exception out of the operation.
-     *
-     * @param failure Can be null, in which case this method does nothing.
-     */
-    void failed(@Nullable Throwable failure);
-
-    void setResult(Object result);
+public interface LogHeaderFormatter {
+    String EOL = SystemProperties.getInstance().getLineSeparator();
 
     /**
-     * Record a status or outcome for given build operation.
+     * Given a message, return possibly-styled output for displaying message meant to categorize
+     * other messages "below" it, if any.
      *
-     * @param status operation status
      * @since 4.0
      */
-    void setStatus(String status);
+    List<StyledTextOutputEvent.Span> format(String logHeader, String description, String shortDescription, String status);
 }
