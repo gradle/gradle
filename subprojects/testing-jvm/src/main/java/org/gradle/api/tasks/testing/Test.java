@@ -1236,9 +1236,13 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Allows to set options related to which test events are logged to the console, and on which detail level. For example, to show more information about exceptions use:
      *
-     * <pre autoTested=''> apply plugin: 'java'
+     * <pre autoTested=''>
+     * apply plugin: 'java'
      *
-     * test.testLogging { exceptionFormat "full" } </pre>
+     * test.testLogging {
+     *     exceptionFormat "full"
+     * }
+     * </pre>
      *
      * For further information see {@link TestLoggingContainer}.
      *
@@ -1270,7 +1274,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
-     * 
+     *
      * <pre autoTested=''>
      * apply plugin: 'java'
      *
