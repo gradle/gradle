@@ -24,11 +24,11 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
-class TaskOutputOriginBuildIdFixture extends UserInitScriptExecuterFixture {
+class TaskOutputOriginBuildInvocationIdFixture extends UserInitScriptExecuterFixture {
 
     Map<String, UniqueId> originIds = [:]
 
-    TaskOutputOriginBuildIdFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
+    TaskOutputOriginBuildInvocationIdFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
         super(executer, testDir)
     }
 
@@ -53,7 +53,7 @@ class TaskOutputOriginBuildIdFixture extends UserInitScriptExecuterFixture {
             }
             
             gradle.taskGraph.afterTask {
-                rootGradle.ext.originIds[it.identityPath] = it.state.originBuildId?.asString()
+                rootGradle.ext.originIds[it.identityPath] = it.state.originBuildInvocationId?.asString()
             }
         """
     }

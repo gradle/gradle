@@ -17,15 +17,16 @@
 package org.gradle.internal.scan.scopeids;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 
 /**
  * Obtained from the Gradle object services.
- * Exists to remove linkage against types such as {@link org.gradle.internal.scopeids.id.BuildScopeId} and friends.
+ * Exists to remove linkage against types such as {@link BuildInvocationScopeId} and friends.
  */
 @UsedByScanPlugin
 public interface BuildScanScopeIds {
 
-    String getBuildId();
+    String getBuildInvocationId();
 
     String getWorkspaceId();
 

@@ -31,7 +31,7 @@ public class TaskStateInternal implements TaskState {
     private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
 
-    private UniqueId originBuildId;
+    private UniqueId originBuildInvocationId;
 
     public boolean getDidWork() {
         return didWork;
@@ -137,14 +137,14 @@ public class TaskStateInternal implements TaskState {
      * @since 4.0
      */
     @UsedByScanPlugin
-    public UniqueId getOriginBuildId() {
-        return originBuildId;
+    public UniqueId getOriginBuildInvocationId() {
+        return originBuildInvocationId;
     }
 
     /**
      * @since 4.0
      */
-    public void setOriginBuildId(@Nullable UniqueId originBuildId) {
-        this.originBuildId = originBuildId;
+    public void setOriginBuildInvocationId(@Nullable UniqueId originBuildInvocationId) {
+        this.originBuildInvocationId = originBuildInvocationId;
     }
 }

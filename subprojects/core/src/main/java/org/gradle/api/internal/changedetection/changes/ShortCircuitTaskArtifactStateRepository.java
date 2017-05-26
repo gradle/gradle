@@ -97,7 +97,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
         @Nullable
         @Override
-        public UniqueId getOriginBuildId() {
+        public UniqueId getOriginBuildInvocationId() {
             return null;
         }
 

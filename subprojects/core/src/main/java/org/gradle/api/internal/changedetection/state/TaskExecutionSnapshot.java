@@ -26,7 +26,7 @@ import org.gradle.internal.id.UniqueId;
  * Immutable snapshot of the state of a task when it was executed.
  */
 public class TaskExecutionSnapshot {
-    private final UniqueId buildId;
+    private final UniqueId buildInvocationId;
     private final ImplementationSnapshot taskImplementation;
     private final ImmutableList<ImplementationSnapshot> taskActionsImplementations;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
@@ -36,8 +36,8 @@ public class TaskExecutionSnapshot {
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(UniqueId buildId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
-        this.buildId = buildId;
+    public TaskExecutionSnapshot(UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+        this.buildInvocationId = buildInvocationId;
         this.taskImplementation = taskImplementation;
         this.taskActionsImplementations = taskActionsImplementations;
         this.cacheableOutputProperties = cacheableOutputProperties;
@@ -48,8 +48,8 @@ public class TaskExecutionSnapshot {
         this.outputFilesSnapshotIds = outputFilesSnapshotIds;
     }
 
-    public UniqueId getBuildId() {
-        return buildId;
+    public UniqueId getBuildInvocationId() {
+        return buildInvocationId;
     }
 
     public ImplementationSnapshot getTaskImplementation() {

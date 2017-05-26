@@ -40,17 +40,17 @@ class SkipUpToDateTaskExecuterTest extends Specification {
 
     def skipsTaskWhenOutputsAreUpToDate() {
         given:
-        def originBuildId = UniqueId.generate()
+        def originBuildInvocationId = UniqueId.generate()
 
         when:
         executer.execute(task, taskState, taskContext)
 
         then:
         1 * taskArtifactState.isUpToDate(_) >> true
-        1 * taskArtifactState.getOriginBuildId() >> originBuildId
+        1 * taskArtifactState.getOriginBuildInvocationId() >> originBuildInvocationId
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskState.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
-        1 * taskState.setOriginBuildId(originBuildId)
+        1 * taskState.setOriginBuildInvocationId(originBuildInvocationId)
         1 * taskArtifactState.finished()
         0 * _
     }

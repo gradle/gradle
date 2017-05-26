@@ -21,7 +21,7 @@ import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UserInitScriptExecuterFixture
 import org.gradle.internal.id.UniqueId
-import org.gradle.internal.scopeids.id.BuildScopeId
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.scopeids.id.UserScopeId
 import org.gradle.internal.scopeids.id.WorkspaceScopeId
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -59,8 +59,8 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
         getIds()[buildNum]
     }
 
-    UniqueId getBuildId() {
-        idsOfBuildTrees.last().":".build
+    UniqueId getBuildInvocationId() {
+        idsOfBuildTrees.last().":".buildInvocation
     }
 
     UniqueId getWorkspaceId() {
@@ -71,8 +71,8 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
         idsOfBuildTrees.last().":".user
     }
 
-    List<UniqueId> getBuildIds() {
-        new ArrayList<UniqueId>(idsOfBuildTrees*.get(":").build)
+    List<UniqueId> getBuildInvocationIds() {
+        new ArrayList<UniqueId>(idsOfBuildTrees*.get(":").buildInvocation)
     }
 
     List<UniqueId> getWorkspaceIds() {
@@ -112,7 +112,7 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
                     rootGradle = rootGradle.parent
                 }           
                 rootGradle.ext.scopeIds[gradle.identityPath] = [
-                    build: gradle.services.get(${BuildScopeId.name}).id.asString(),
+                    buildInvocation: gradle.services.get(${BuildInvocationScopeId.name}).id.asString(),
                     workspace: gradle.services.get(${WorkspaceScopeId.name}).id.asString(),
                     user: gradle.services.get(${UserScopeId.name}).id.asString()
                 ]
@@ -126,50 +126,50 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
         Map<String, ScopeIds> ids = [:]
         idsMap.each {
             ids[it.key] = new ScopeIds(
-                UniqueId.from(it.value.build),
+                UniqueId.from(it.value.buildInvocation),
                 UniqueId.from(it.value.workspace),
                 UniqueId.from(it.value.user)
             )
         }
 
         // Assert that same IDs were used for all builds in build
-        def allBuildsScopeIds = ids.values()
-        def buildIds = allBuildsScopeIds.build
+        def allScopeIds = ids.values()
+        def buildInvocationIds = allScopeIds.buildInvocation
 
-        assert buildIds.unique(false).size() == 1
+        assert buildInvocationIds.unique(false).size() == 1
 
         if (!disableConsistentWorkspaceIdCheck) {
-            def workspaceIds = allBuildsScopeIds.workspace
+            def workspaceIds = allScopeIds.workspace
             assert workspaceIds.unique(false).size() == 1
         }
 
         if (!disableConsistentUserIdCheck) {
-            def userIds = allBuildsScopeIds.user
+            def userIds = allScopeIds.user
             assert userIds.unique(false).size() == 1
         }
 
         this.idsOfBuildTrees << ids
 
-        // Assert that unique build ID was used
-        this.idsOfBuildTrees.collect { it.values().first().build }.unique(false).size() == this.idsOfBuildTrees.size()
+        // Assert that unique build invocation ID was used
+        this.idsOfBuildTrees.collect { it.values().first().buildInvocation }.unique(false).size() == this.idsOfBuildTrees.size()
 
     }
 
     @EqualsAndHashCode
     static class ScopeIds {
-        final UniqueId build
+        final UniqueId buildInvocation
         final UniqueId workspace
         final UniqueId user
 
-        ScopeIds(UniqueId build, UniqueId workspace, UniqueId user) {
-            this.build = build
+        ScopeIds(UniqueId buildInvocation, UniqueId workspace, UniqueId user) {
+            this.buildInvocation = buildInvocation
             this.workspace = workspace
             this.user = user
         }
 
         @Override
         String toString() {
-            return "ScopeIds{" + "build=" + build + ", workspace=" + workspace + ", user=" + user + '}';
+            return "ScopeIds{" + "build=" + buildInvocation + ", workspace=" + workspace + ", user=" + user + '}';
         }
     }
 
