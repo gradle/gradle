@@ -235,12 +235,17 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    TaskStateInternal state = task.getState();
                     taskListeners.getSource().beforeExecute(task);
+
+                    TaskStateInternal state = task.getState();
                     TaskExecutionContext ctx = new DefaultTaskExecutionContext();
                     taskExecuter.execute(task, state, ctx);
                     context.setResult(new ExecuteTaskBuildOperationResult(state, ctx));
+
+                    // If this fails, it masks the task failure.
+                    // It should addSuppressed() the task failure if there was one.
                     taskListeners.getSource().afterExecute(task, state);
+
                     context.failed(state.getFailure());
                 }
 

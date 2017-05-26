@@ -56,6 +56,7 @@ class SerializedOperationStart {
             map.put("buildPath", cast.getBuildPath());
             map.put("taskPath", cast.getTaskPath());
             map.put("taskClass", cast.getTaskClass().getName());
+            map.put("taskId", cast.getTaskId());
             return map;
         }
 
