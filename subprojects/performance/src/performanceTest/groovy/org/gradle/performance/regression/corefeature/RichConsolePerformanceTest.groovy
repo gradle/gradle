@@ -31,13 +31,13 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @Unroll
-    def "execute #testProject with rich console"() {
+    def "#taskNames on #testProject with rich console"() {
         given:
         runner.testProject = testProject
         runner.tasksToRun = tasks
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.warmUpRuns = 10
-        runner.runs = 30
+        runner.warmUpRuns = 5
+        runner.runs = 8
 
         when:
         def result = runner.run()
