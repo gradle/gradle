@@ -36,6 +36,8 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = tasks
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.warmUpRuns = 10
+        runner.runs = 30
 
         when:
         def result = runner.run()
