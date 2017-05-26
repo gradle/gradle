@@ -15,17 +15,17 @@
   -->
 <tgroup>
     <tr>
-        <td>
+        <td><para>
             <filename>src/<replaceable>sourceSet</replaceable>/java</filename>
-        </td>
+        </para></td>
         <td></td>
-        <td>Java source for the given source set</td>
+        <td><para>Java source for the given source set</para></td>
     </tr>
     <tr>
-        <td>
+        <td><para>
             <filename>src/<replaceable>sourceSet</replaceable>/resources</filename>
-        </td>
+        </para></td>
         <td></td>
-        <td>Resources for the given source set</td>
+        <td><para>Resources for the given source set</para></td>
     </tr>
 </tgroup>

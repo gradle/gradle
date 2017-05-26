@@ -15,17 +15,17 @@
   -->
 <tgroup>
     <tr>
-        <td>
+        <td><para>
             <filename>src/test/java</filename>
-        </td>
+        </para></td>
         <td></td>
-        <td>Test Java source</td>
+        <td><para>Test Java source</para></td>
     </tr>
     <tr>
-        <td>
+        <td><para>
             <filename>src/test/resources</filename>
-        </td>
+        </para></td>
         <td></td>
-        <td>Test resources</td>
+        <td><para>Test resources</para></td>
     </tr>
 </tgroup>

@@ -15,31 +15,31 @@
   -->
 <tgroup>
     <tr>
-        <td>
+        <td><para>
             <literal>reportsDirName</literal>
-        </td>
-        <td>
+        </para></td>
+        <td><para>
             <classname>String</classname>
-        </td>
-        <td>
+        </para></td>
+        <td><para>
             <filename>reports</filename>
-        </td>
-        <td>
+        </para></td>
+        <td><para>
             The name of the directory to generate reports into, relative to the build directory.
-        </td>
+        </para></td>
     </tr>
     <tr>
-        <td>
+        <td><para>
             <literal>reportsDir</literal>
-        </td>
-        <td>
+        </para></td>
+        <td><para>
             <classname>File</classname> (read-only)
-        </td>
-        <td>
+        </para></td>
+        <td><para>
             <filename><replaceable>buildDir</replaceable>/<replaceable>reportsDirName</replaceable></filename>
-        </td>
-        <td>
+        </para></td>
+        <td><para>
             The directory to generate reports into.
-        </td>
+        </para></td>
     </tr>
 </tgroup>
