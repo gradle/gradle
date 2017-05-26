@@ -31,7 +31,7 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @Unroll
-    def "can execute on #testProject with rich console"() {
+    def "execute #testProject with rich console"() {
         given:
         runner.testProject = testProject
         runner.tasksToRun = tasks
