@@ -37,6 +37,7 @@ class FilteringClassLoaderTest extends Specification {
         canLoadClass(String)
     }
 
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     void passesThroughSystemPackages() {
         expect:
         canSeePackage('java.lang')
