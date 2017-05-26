@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.ReflectiveEnvironment;
+import org.gradle.internal.nativeintegration.jvm.Java9Detector;
 
 import java.io.File;
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.Map;
 
 public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     //for updates to private JDK caches of the environment state
-    private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
+    private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment(new Java9Detector());
 
     @Override
     public boolean maybeSetEnvironment(Map<String, String> source) {

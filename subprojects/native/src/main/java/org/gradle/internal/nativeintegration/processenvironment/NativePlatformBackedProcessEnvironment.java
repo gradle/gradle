@@ -16,27 +16,29 @@
 package org.gradle.internal.nativeintegration.processenvironment;
 
 import net.rubygrapefruit.platform.Process;
-import org.gradle.api.JavaVersion;
+import org.gradle.internal.nativeintegration.jvm.Java9Detector;
 
 import java.io.File;
 
 public class NativePlatformBackedProcessEnvironment extends AbstractProcessEnvironment {
     private final Process process;
+    private final Java9Detector java9Detector;
 
-    public NativePlatformBackedProcessEnvironment(Process process) {
+    public NativePlatformBackedProcessEnvironment(Process process, Java9Detector java9Detector) {
         this.process = process;
+        this.java9Detector = java9Detector;
     }
 
     @Override
     protected void removeNativeEnvironmentVariable(String name) {
-        if (!JavaVersion.current().isJava9Compatible()) {
+        if (!java9Detector.isJava9()) {
             process.setEnvironmentVariable(name, null);
         }
     }
 
     @Override
     protected void setNativeEnvironmentVariable(String name, String value) {
-        if (!JavaVersion.current().isJava9Compatible()) {
+        if (!java9Detector.isJava9()) {
             process.setEnvironmentVariable(name, value);
         }
     }

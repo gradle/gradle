@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration;
 
-import org.gradle.api.JavaVersion;
+import org.gradle.internal.nativeintegration.jvm.Java9Detector;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.lang.reflect.Field;
@@ -26,9 +26,14 @@ import java.util.Map;
  * Uses reflection to update private environment state
  */
 public class ReflectiveEnvironment {
+    private final Java9Detector java9Detector;
+
+    public ReflectiveEnvironment(Java9Detector java9Detector) {
+        this.java9Detector = java9Detector;
+    }
 
     public void unsetenv(String name) {
-        if (JavaVersion.current().isJava9Compatible()) {
+        if (java9Detector.isJava9()) {
             return;
         }
         Map<String, String> map = getEnv();
@@ -40,7 +45,7 @@ public class ReflectiveEnvironment {
     }
 
     public void setenv(String name, String value) {
-        if (JavaVersion.current().isJava9Compatible()) {
+        if (java9Detector.isJava9()) {
             return;
         }
         Map<String, String> map = getEnv();
