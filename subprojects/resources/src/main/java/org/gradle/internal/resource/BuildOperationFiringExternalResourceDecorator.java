@@ -23,7 +23,6 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -90,11 +89,18 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     @Override
-    public void put(final LocalResource source) throws ResourceException {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+    public ExternalResourceWriteResult put(final LocalResource source) throws ResourceException {
+        return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceWriteResult>() {
             @Override
-            public void run(BuildOperationContext context) {
-                delegate.put(source);
+            public ExternalResourceWriteResult call(BuildOperationContext context) {
+                final ExternalResourceWriteResult result = delegate.put(source);
+                context.setResult(new ExternalResourceWriteBuildOperationType.Result(){
+                    @Override
+                    public long getBytesWritten() {
+                        return result.getBytesWritten();
+                    }
+                });
+                return result;
             }
 
             @Override

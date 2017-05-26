@@ -23,7 +23,6 @@ import org.gradle.api.resources.ResourceException
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
-import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
@@ -117,7 +116,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         }
 
         @Override
-        void put(LocalResource source) throws ResourceException {
+        ExternalResourceWriteResult put(LocalResource source) throws ResourceException {
             throw new UnsupportedOperationException()
         }
 
@@ -233,6 +232,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         def source = Mock(LocalResource)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
         def operationContextMock = Mock(BuildOperationContext)
+        def result = Stub(ExternalResourceWriteResult)
         def location = new ExternalResourceName(new URI("http://some/uri"))
         def resource = new BuildOperationFiringExternalResourceDecorator(location, buildOperationExecuter, delegate)
 
@@ -240,7 +240,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         resource.put(source)
 
         then:
-        1 * buildOperationExecuter.run(_) >> { RunnableBuildOperation op ->
+        1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
             def descriptor = op.description().build()
             assert descriptor.name == "Upload http://some/uri"
             assert descriptor.displayName == "Upload http://some/uri"
@@ -249,9 +249,13 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
             assert details instanceof ExternalResourceWriteBuildOperationType.Details
             assert details.location == location.getUri().toASCIIString()
 
-            op.run(operationContextMock)
+            return op.call(operationContextMock)
         }
-        1 * delegate.put(source)
+        1 * delegate.put(source) >> result
+        _ * result.bytesWritten >> 4
+        1 * operationContextMock.setResult(_) >> { ExternalResourceWriteBuildOperationType.Result r ->
+            assert r.bytesWritten == 4
+        }
     }
 
     @Unroll

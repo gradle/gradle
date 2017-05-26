@@ -186,7 +186,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
     }
 
     @Override
-    public void put(LocalResource source) throws ResourceException {
+    public ExternalResourceWriteResult put(LocalResource source) throws ResourceException {
         throw new UnsupportedOperationException();
     }
 

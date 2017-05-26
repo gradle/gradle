@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource;
 
+import com.google.common.io.CountingOutputStream;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
@@ -89,7 +90,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
     }
 
     @Override
-    public void put(LocalResource location) {
+    public ExternalResourceWriteResult put(LocalResource location) {
         try {
             if (!localFile.canWrite()) {
                 localFile.delete();
@@ -98,12 +99,13 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
             InputStream input = location.open();
             try {
-                FileOutputStream output = new FileOutputStream(localFile);
+                CountingOutputStream output = new CountingOutputStream(new FileOutputStream(localFile));
                 try {
                     IOUtils.copyLarge(input, output);
                 } finally {
                     output.close();
                 }
+                return new ExternalResourceWriteResult(output.getCount());
             } finally {
                 input.close();
             }

@@ -25,8 +25,9 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
-import org.gradle.internal.resource.ResourceExceptions;
+import org.gradle.internal.resource.ExternalResourceWriteResult;
 import org.gradle.internal.resource.LocalResource;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
@@ -170,9 +171,11 @@ public class LazyExternalResource implements ExternalResource {
     }
 
     @Override
-    public void put(LocalResource source) throws ResourceException {
+    public ExternalResourceWriteResult put(final LocalResource source) throws ResourceException {
         try {
-            uploader.upload(source, getURI());
+            CountingLocalResource countingResource = new CountingLocalResource(source);
+            uploader.upload(countingResource, getURI());
+            return new ExternalResourceWriteResult(countingResource.getCount());
         } catch (Exception e) {
             throw ResourceExceptions.putFailed(getURI(), e);
         }
@@ -191,5 +194,33 @@ public class LazyExternalResource implements ExternalResource {
     @Override
     public ExternalResourceMetaData getMetaData() {
         return accessor.getMetaData(getURI(), revalidate);
+    }
+
+    private static class CountingLocalResource implements LocalResource {
+        private final LocalResource source;
+        private CountingInputStream instr;
+        private long count;
+
+        CountingLocalResource(LocalResource source) {
+            this.source = source;
+        }
+
+        @Override
+        public InputStream open() throws ResourceException {
+            if (instr != null) {
+                count += instr.getCount();
+            }
+            instr = new CountingInputStream(source.open());
+            return instr;
+        }
+
+        @Override
+        public long getContentLength() {
+            return source.getContentLength();
+        }
+
+        public long getCount() {
+            return instr != null ? count + instr.getCount() : count;
+        }
     }
 }
