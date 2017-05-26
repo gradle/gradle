@@ -31,11 +31,11 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @Unroll
-    def "#taskNames on #testProject with rich console"() {
+    def "#tasks on #testProject with rich console"() {
         given:
         runner.testProject = testProject
         runner.tasksToRun = tasks
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.gradleOpts = ["-Xms${daemonMemory}", "-Xmx${daemonMemory}"]
         runner.warmUpRuns = 5
         runner.runs = 8
 
@@ -46,10 +46,10 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | tasks
-        LARGE_JAVA_MULTI_PROJECT      | CLEAN_ASSEMBLE_TASKS
-        LARGE_MONOLITHIC_JAVA_PROJECT | CLEAN_ASSEMBLE_TASKS
-        'bigNative'                   | CLEAN_ASSEMBLE_TASKS
-        'withVerboseJUnit'            | ['cleanTest', 'test']
+        testProject                   | tasks                 | daemonMemory
+        LARGE_JAVA_MULTI_PROJECT      | CLEAN_ASSEMBLE_TASKS  | LARGE_JAVA_MULTI_PROJECT.daemonMemory
+        LARGE_MONOLITHIC_JAVA_PROJECT | CLEAN_ASSEMBLE_TASKS  | LARGE_MONOLITHIC_JAVA_PROJECT.daemonMemory
+        'bigNative'                   | CLEAN_ASSEMBLE_TASKS  | '1g'
+        'withVerboseJUnit'            | ['cleanTest', 'test'] | '256m'
     }
 }
