@@ -135,6 +135,7 @@ class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousInte
     // here to put more stress on parallel execution
     def "reasonable sized multi-project"() {
         given:
+        executer.withBuildJvmOpts('-Xmx256m')
         def extraProjectNames = (0..100).collect { "project$it" }
         extraProjectNames.each {
             settingsFile << "\n include '$it' \n"
