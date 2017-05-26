@@ -18,6 +18,7 @@ package org.gradle.internal.operations.notify
 
 import groovy.json.JsonOutput
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -27,11 +28,15 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         """
             def listener = new $BuildOperationNotificationListener.name() {
                 void started($BuildOperationStartedNotification.name notification) {
-                    println "STARTED: \${notification.details.class.interfaces.first().name} - \${${JsonOutput.name}.toJson(notification.details)} - \$notification.notificationOperationId - \$notification.notificationOperationParentId"   
+                    def details = notification.notificationOperationDetails
+                    if (details instanceof $ExecuteTaskBuildOperationType.Details.name) {
+                        details = [taskPath: details.taskPath, buildPath: details.buildPath, taskId: details.taskId, taskClass: details.taskClass.name]
+                    }
+                    println "STARTED: \${notification.details.class.interfaces.first().name} - \${${JsonOutput.name}.toJson(details)} - \$notification.notificationOperationId - \$notification.notificationOperationParentId"   
                 }
 
                 void finished($BuildOperationFinishedNotification.name notification) {
-                    println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${${JsonOutput.name}.toJson(notification.result)} - \$notification.notificationOperationId"
+                    println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${${JsonOutput.name}.toJson(notification.notificationOperationResult)} - \$notification.notificationOperationId"
                 }
             }
             def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)
@@ -46,7 +51,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
             task t  
         """
 
-        succeeds "t"
+        succeeds "t", "-S"
 
         then:
         started(CalculateTaskGraphBuildOperationType.Details, [:])
