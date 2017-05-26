@@ -50,8 +50,8 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public String getOriginBuildInvocationId() {
-        UniqueId originBuildId = ctx.getOriginBuildInvocationId();
-        return originBuildId == null ? null : originBuildId.asString();
+        UniqueId originBuildInvocationId = ctx.getOriginBuildInvocationId();
+        return originBuildInvocationId == null ? null : originBuildInvocationId.asString();
     }
 
     @Nullable

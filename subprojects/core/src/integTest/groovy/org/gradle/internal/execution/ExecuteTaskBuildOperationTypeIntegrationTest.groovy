@@ -43,7 +43,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         op.result.cachingDisabledReasonMessage == "Cacheability was not determined"
         op.result.skipMessage == "UP-TO-DATE"
         op.result.actionable == false
-        op.result.originBuildId == null
+        op.result.originBuildInvocationId == null
         op.result.upToDateMessages == null
     }
 
