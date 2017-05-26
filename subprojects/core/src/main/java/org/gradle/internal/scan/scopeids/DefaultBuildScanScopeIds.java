@@ -16,25 +16,25 @@
 
 package org.gradle.internal.scan.scopeids;
 
-import org.gradle.internal.scopeids.id.BuildScopeId;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 
 public class DefaultBuildScanScopeIds implements BuildScanScopeIds {
 
-    private final BuildScopeId buildId;
+    private final BuildInvocationScopeId buildInvocationId;
     private final WorkspaceScopeId workspaceId;
     private final UserScopeId userId;
 
-    public DefaultBuildScanScopeIds(BuildScopeId buildId, WorkspaceScopeId workspaceId, UserScopeId userId) {
-        this.buildId = buildId;
+    public DefaultBuildScanScopeIds(BuildInvocationScopeId buildInvocationId, WorkspaceScopeId workspaceId, UserScopeId userId) {
+        this.buildInvocationId = buildInvocationId;
         this.workspaceId = workspaceId;
         this.userId = userId;
     }
 
     @Override
-    public String getBuildId() {
-        return buildId.getId().asString();
+    public String getBuildInvocationId() {
+        return buildInvocationId.getId().asString();
     }
 
     @Override

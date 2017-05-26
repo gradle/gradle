@@ -30,7 +30,7 @@ import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.id.UniqueId;
-import org.gradle.internal.scopeids.id.BuildScopeId;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -53,19 +53,19 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private final FileSnapshotRepository snapshotRepository;
     private final PersistentIndexedCache<String, ImmutableList<TaskExecutionSnapshot>> taskHistoryCache;
     private final StringInterner stringInterner;
-    private final BuildScopeId buildScopeId;
+    private final BuildInvocationScopeId buildInvocationScopeId;
 
-    public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner, BuildScopeId buildScopeId) {
+    public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner, BuildInvocationScopeId buildInvocationScopeId) {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
-        this.buildScopeId = buildScopeId;
+        this.buildInvocationScopeId = buildInvocationScopeId;
         TaskExecutionListSerializer serializer = new TaskExecutionListSerializer(stringInterner);
         taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
     }
 
     public History getHistory(final TaskInternal task) {
         final TaskExecutionList previousExecutions = loadPreviousExecutions(task);
-        final LazyTaskExecution currentExecution = new LazyTaskExecution(buildScopeId.getId());
+        final LazyTaskExecution currentExecution = new LazyTaskExecution(buildInvocationScopeId.getId());
         currentExecution.snapshotRepository = snapshotRepository;
         currentExecution.setOutputPropertyNamesForCacheKey(getOutputPropertyNamesForCacheKey(task));
         currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
@@ -245,7 +245,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
          * Creates a mutable copy of the given snapshot.
          */
         LazyTaskExecution(TaskExecutionSnapshot taskExecutionSnapshot) {
-            setBuildId(taskExecutionSnapshot.getBuildId());
+            setBuildInvocationId(taskExecutionSnapshot.getBuildInvocationId());
             setTaskImplementation(taskExecutionSnapshot.getTaskImplementation());
             setTaskActionImplementations(taskExecutionSnapshot.getTaskActionsImplementations());
             setInputProperties(taskExecutionSnapshot.getInputProperties());
@@ -256,8 +256,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             discoveredFilesSnapshotId = taskExecutionSnapshot.getDiscoveredFilesSnapshotId();
         }
 
-        LazyTaskExecution(UniqueId buildId) {
-            setBuildId(buildId);
+        LazyTaskExecution(UniqueId buildInvocationId) {
+            setBuildInvocationId(buildInvocationId);
         }
 
         @Override
@@ -313,7 +313,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
         public TaskExecutionSnapshot snapshot() {
             return new TaskExecutionSnapshot(
-                getBuildId(),
+                getBuildInvocationId(),
                 getTaskImplementation(),
                 getTaskActionImplementations(),
                 getOutputPropertyNamesForCacheKey(),
@@ -382,7 +382,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             public void write(Encoder encoder, TaskExecutionSnapshot execution) throws Exception {
-                encoder.writeString(execution.getBuildId().asString());
+                encoder.writeString(execution.getBuildInvocationId().asString());
                 writeSnapshotIds(encoder, execution.getInputFilesSnapshotIds());
                 writeSnapshotIds(encoder, execution.getOutputFilesSnapshotIds());
                 encoder.writeLong(execution.getDiscoveredFilesSnapshotId());

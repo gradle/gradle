@@ -18,24 +18,24 @@ package org.gradle.api.tasks.outputorigin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.integtests.fixtures.TaskOutputOriginBuildIdFixture
+import org.gradle.integtests.fixtures.TaskOutputOriginBuildInvocationIdFixture
 import org.gradle.internal.id.UniqueId
 import org.junit.Rule
 
 class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    public final ScopeIdsFixture buildIdFixture = new ScopeIdsFixture(executer, temporaryFolder)
+    public final ScopeIdsFixture scopeIds = new ScopeIdsFixture(executer, temporaryFolder)
 
     @Rule
-    public final TaskOutputOriginBuildIdFixture originBuildIdFixture = new TaskOutputOriginBuildIdFixture(executer, temporaryFolder)
+    public final TaskOutputOriginBuildInvocationIdFixture originBuildInvocationId = new TaskOutputOriginBuildInvocationIdFixture(executer, temporaryFolder)
 
-    UniqueId getBuildId() {
-        buildIdFixture.buildId
+    UniqueId getBuildInvocationId() {
+        scopeIds.buildInvocationId
     }
 
-    UniqueId originBuildId(String taskPath) {
-        originBuildIdFixture.originId(taskPath)
+    UniqueId originBuildInvocationId(String taskPath) {
+        originBuildInvocationId.originId(taskPath)
     }
 
     def "exposes origin build id when reusing outputs"() {
@@ -52,17 +52,17 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
         then:
         executedAndNotSkipped ":write"
-        def firstBuildId = buildId
-        originBuildId(":write") == null
+        def firstBuildId = buildInvocationId
+        originBuildInvocationId(":write") == null
 
         when:
         succeeds "write"
 
         then:
         executed ":write"
-        def secondBuildId = buildId
+        def secondBuildId = buildInvocationId
         firstBuildId != secondBuildId
-        originBuildId(":write") == firstBuildId
+        originBuildInvocationId(":write") == firstBuildId
 
         when:
         buildFile << """
@@ -72,17 +72,17 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
         then:
         executedAndNotSkipped ":write"
-        def thirdBuildId = buildId
+        def thirdBuildId = buildInvocationId
         firstBuildId != thirdBuildId
         secondBuildId != thirdBuildId
-        originBuildId(":write") == null
+        originBuildInvocationId(":write") == null
 
         when:
         succeeds "write"
 
         then:
         executed ":write"
-        originBuildId(":write") == thirdBuildId
+        originBuildInvocationId(":write") == thirdBuildId
     }
 
     def "tracks different tasks"() {
@@ -102,36 +102,36 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
         when:
         succeeds "w"
-        def firstBuildId = buildId
+        def firstBuildId = buildInvocationId
 
         then:
-        originBuildId(":w1") == null
-        originBuildId(":w2") == null
+        originBuildInvocationId(":w1") == null
+        originBuildInvocationId(":w2") == null
 
         when:
         succeeds "w"
 
         then:
-        originBuildId(":w1") == firstBuildId
-        originBuildId(":w2") == firstBuildId
+        originBuildInvocationId(":w1") == firstBuildId
+        originBuildInvocationId(":w2") == firstBuildId
 
         when:
         buildFile << """
             w1.property("now", "changed")
         """
         succeeds "w"
-        def secondBuildId = buildId
+        def secondBuildId = buildInvocationId
 
         then:
-        originBuildId(":w1") == null
-        originBuildId(":w2") == firstBuildId
+        originBuildInvocationId(":w1") == null
+        originBuildInvocationId(":w2") == firstBuildId
 
         when:
         succeeds "w"
 
         then:
-        originBuildId(":w1") == secondBuildId
-        originBuildId(":w2") == firstBuildId
+        originBuildInvocationId(":w1") == secondBuildId
+        originBuildInvocationId(":w2") == firstBuildId
     }
 
     def "buildSrc tasks advertise build id"() {
@@ -146,16 +146,16 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
         when:
         succeeds("help")
-        def origin = getBuildId()
+        def origin = getBuildInvocationId()
 
         then:
-        originBuildId(":buildSrc:w") == null
+        originBuildInvocationId(":buildSrc:w") == null
 
         when:
         succeeds("help")
 
         then:
-        originBuildId(":buildSrc:w") == origin
+        originBuildInvocationId(":buildSrc:w") == origin
     }
 
     def "composite participant tasks advertise build id"() {
@@ -181,18 +181,18 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
         when:
         succeeds("w")
-        def origin = getBuildId()
+        def origin = getBuildInvocationId()
         succeeds("w")
 
         then:
-        originBuildId(":a:w") == origin
-        originBuildId(":b:w") == origin
+        originBuildInvocationId(":a:w") == origin
+        originBuildInvocationId(":b:w") == origin
 
         when:
         succeeds "w", "-p", "a"
 
         then:
         skipped(":w")
-        originBuildId(":w") == origin
+        originBuildInvocationId(":w") == origin
     }
 }

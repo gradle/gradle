@@ -75,5 +75,5 @@ public interface TaskArtifactState {
      * @since 4.0
      */
     @Nullable
-    UniqueId getOriginBuildId();
+    UniqueId getOriginBuildInvocationId();
 }

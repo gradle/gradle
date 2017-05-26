@@ -20,14 +20,14 @@ import org.gradle.internal.id.UniqueId;
 
 public class TaskOutputOriginMetadata {
 
-    private final UniqueId buildId;
+    private final UniqueId buildInvocationId;
 
-    public TaskOutputOriginMetadata(UniqueId buildId) {
-        this.buildId = buildId;
+    public TaskOutputOriginMetadata(UniqueId buildInvocationId) {
+        this.buildInvocationId = buildInvocationId;
     }
 
-    public UniqueId getBuildId() {
-        return buildId;
+    public UniqueId getBuildInvocationId() {
+        return buildInvocationId;
     }
 
 }

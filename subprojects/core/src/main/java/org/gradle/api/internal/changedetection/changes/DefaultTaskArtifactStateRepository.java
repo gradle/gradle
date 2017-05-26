@@ -157,12 +157,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Nullable
         @Override
-        public UniqueId getOriginBuildId() {
+        public UniqueId getOriginBuildInvocationId() {
             TaskExecution previousExecution = history.getPreviousExecution();
             if (previousExecution == null) {
                 return null;
             } else {
-                return previousExecution.getBuildId();
+                return previousExecution.getBuildInvocationId();
             }
         }
 

@@ -53,7 +53,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public UniqueId getOriginBuildId() {
+    public UniqueId getOriginBuildInvocationId() {
         return null;
     }
 

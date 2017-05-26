@@ -154,16 +154,16 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             def ids = project.gradle.services.get($BuildScanScopeIds.name)
-            println "ids: [build: \$ids.buildId, workspace: \$ids.workspaceId, user: \$ids.userId]"
+            println "ids: [buildInvocation: \$ids.buildInvocationId, workspace: \$ids.workspaceId, user: \$ids.userId]"
         """
         succeeds("help")
 
         then:
-        def buildId = scopeIds.buildId.asString()
+        def buildInvocationId = scopeIds.buildInvocationId.asString()
         def workspaceId = scopeIds.workspaceId.asString()
         def userId = scopeIds.userId.asString()
 
-        output.contains "ids: [build: $buildId, workspace: $workspaceId, user: $userId]"
+        output.contains "ids: [buildInvocation: $buildInvocationId, workspace: $workspaceId, user: $userId]"
     }
 
 }

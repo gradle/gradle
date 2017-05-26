@@ -28,9 +28,9 @@ import org.gradle.internal.id.UniqueId;
  *
  * This ID is, by definition, not persistent.
  */
-public final class BuildScopeId extends ScopeId {
+public final class BuildInvocationScopeId extends ScopeId {
 
-    public BuildScopeId(UniqueId id) {
+    public BuildInvocationScopeId(UniqueId id) {
         super(id);
     }
 

@@ -19,7 +19,7 @@ package org.gradle.caching.internal.tasks.origin
 import org.gradle.api.internal.TaskInternal
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
-import org.gradle.internal.scopeids.id.BuildScopeId
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.time.TimeProvider
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
@@ -29,8 +29,8 @@ class TaskOutputOriginFactoryTest extends Specification {
     def timeProvider = Mock(TimeProvider)
     def inetAddressFactory = Mock(InetAddressFactory)
     def rootDir = Mock(File)
-    private BuildScopeId buildScopeId = new BuildScopeId(UniqueId.generate())
-    def factory = new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"), buildScopeId)
+    private BuildInvocationScopeId buildInvocationId = new BuildInvocationScopeId(UniqueId.generate())
+    def factory = new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"), buildInvocationId)
 
     def "converts to origin metadata"() {
         timeProvider.currentTime >> 0
@@ -57,6 +57,6 @@ class TaskOutputOriginFactoryTest extends Specification {
         origin.operatingSystem == "os"
         origin.hostName == "host"
         origin.userName == "user"
-        origin.buildId == buildScopeId.id.asString()
+        origin.buildInvocationId == buildInvocationId.id.asString()
     }
 }

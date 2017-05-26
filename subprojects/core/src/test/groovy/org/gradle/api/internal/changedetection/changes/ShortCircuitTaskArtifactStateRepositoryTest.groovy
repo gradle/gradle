@@ -124,35 +124,35 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         def state = repository.getStateFor(task)
 
         then:
-        state.originBuildId == null
+        state.originBuildInvocationId == null
     }
 
     def "origin build ID is null if forcing rerun"() {
         given:
         1 * outputs.getHasOutput() >> true
         1 * delegate.getStateFor(_) >> taskArtifactState
-        taskArtifactState.getOriginBuildId() >> UniqueId.generate()
+        taskArtifactState.getOriginBuildInvocationId() >> UniqueId.generate()
         startParameter.rerunTasks = true
 
         when:
         def state = repository.getStateFor(task)
 
         then:
-        state.originBuildId == null
+        state.originBuildInvocationId == null
     }
 
     def "origin build ID is null up to date spec declares out of date"() {
         given:
         1 * outputs.getHasOutput() >> true
         1 * delegate.getStateFor(_) >> taskArtifactState
-        taskArtifactState.getOriginBuildId() >> UniqueId.generate()
+        taskArtifactState.getOriginBuildInvocationId() >> UniqueId.generate()
         1 * outputs.getUpToDateSpec() >> Specs.SATISFIES_NONE
 
         when:
         def state = repository.getStateFor(task)
 
         then:
-        state.originBuildId == null
+        state.originBuildInvocationId == null
     }
 
     def "propagates origin build ID if reusing state"() {
@@ -161,13 +161,13 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         1 * outputs.getHasOutput() >> true
         1 * delegate.getStateFor(_) >> taskArtifactState
         1 * outputs.getUpToDateSpec() >> Specs.SATISFIES_ALL
-        taskArtifactState.getOriginBuildId() >> id
+        taskArtifactState.getOriginBuildInvocationId() >> id
 
         when:
         def state = repository.getStateFor(task)
 
         then:
-        state.originBuildId == id
+        state.originBuildInvocationId == id
     }
 
 }

@@ -51,7 +51,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
             if (taskArtifactState.isUpToDate(messages)) {
                 LOGGER.info("Skipping {} as it is up-to-date (took {}).", task, clock.getElapsed());
                 state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
-                state.setOriginBuildId(taskArtifactState.getOriginBuildId());
+                state.setOriginBuildInvocationId(taskArtifactState.getOriginBuildInvocationId());
                 return;
             }
             logOutOfDateMessages(messages, task, clock.getElapsed());
