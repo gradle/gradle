@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport;
+package org.gradle.internal.resource.transfer;
 
 import com.google.common.io.CountingInputStream;
 import org.apache.commons.io.IOUtils;
@@ -29,10 +29,6 @@ import org.gradle.internal.resource.ExternalResourceWriteResult;
 import org.gradle.internal.resource.LocalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.resource.transfer.ExternalResourceLister;
-import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
-import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -42,7 +38,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
 
-public class LazyExternalResource implements ExternalResource {
+public class AccessorBackedExternalResource implements ExternalResource {
     private final ExternalResourceName name;
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceUploader uploader;
@@ -50,7 +46,7 @@ public class LazyExternalResource implements ExternalResource {
     // Should really be a parameter to the 'withContent' methods or baked into the accessor
     private final boolean revalidate;
 
-    LazyExternalResource(ExternalResourceName name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader, ExternalResourceLister lister, boolean revalidate) {
+    public AccessorBackedExternalResource(ExternalResourceName name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader, ExternalResourceLister lister, boolean revalidate) {
         this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
@@ -99,7 +95,11 @@ public class LazyExternalResource implements ExternalResource {
 
     @Override
     public ExternalResourceReadResult<Void> writeTo(File destination) throws ResourceException {
-        throw new UnsupportedOperationException();
+        ExternalResourceReadResult<Void> result = writeToIfPresent(destination);
+        if (result == null) {
+            throw ResourceExceptions.getMissing(getURI());
+        }
+        return result;
     }
 
     @Override
@@ -157,17 +157,39 @@ public class LazyExternalResource implements ExternalResource {
 
     @Override
     public ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) throws ResourceException {
-        throw new UnsupportedOperationException();
+        try {
+            ExternalResourceReadResponse response = accessor.openResource(name.getUri(), revalidate);
+            if (response == null) {
+                throw ResourceExceptions.getMissing(getURI());
+            }
+            try {
+                CountingInputStream inputStream = new CountingInputStream(response.openStream());
+                readAction.execute(inputStream);
+                return ExternalResourceReadResult.of(inputStream.getCount());
+            } finally {
+                response.close();
+            }
+        } catch (Exception e) {
+            throw ResourceExceptions.getFailed(name.getUri(), e);
+        }
     }
 
     @Override
     public <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
-        throw new UnsupportedOperationException();
+        ExternalResourceReadResult<T> result = withContentIfPresent(readAction);
+        if (result == null) {
+            throw ResourceExceptions.getMissing(getURI());
+        }
+        return result;
     }
 
     @Override
     public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException {
-        throw new UnsupportedOperationException();
+        ExternalResourceReadResult<T> result = withContentIfPresent(readAction);
+        if (result == null) {
+            throw ResourceExceptions.getMissing(getURI());
+        }
+        return result;
     }
 
     @Override

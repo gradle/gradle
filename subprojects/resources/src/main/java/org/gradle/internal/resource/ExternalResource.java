@@ -29,7 +29,7 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * Represents a (potentially) mutable binary resource. The resource may or may not exist, and may change over time.
+ * Represents a binary resource and provides access to the content and meta-data of the resource. The resource may or may not exist, and may change over time.
  */
 public interface ExternalResource extends Resource {
     /**
