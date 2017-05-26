@@ -37,6 +37,11 @@ class SendFileContent implements BlockingHttpServer.ExpectedRequest, ResourceHan
     }
 
     @Override
+    public String getMethod() {
+        return "GET";
+    }
+
+    @Override
     public ResourceHandler create(WaitPrecondition precondition) {
         return this;
     }

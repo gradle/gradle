@@ -85,7 +85,7 @@ public class ResourceVersionLister implements VersionLister {
                         return Collections.emptyList();
                     }
                     result.attempted(parent);
-                    List<String> all = repository.list(parent);
+                    List<String> all = repository.resource(parent).list();
                     if (all == null) {
                         return Collections.emptyList();
                     }
@@ -143,7 +143,7 @@ public class ResourceVersionLister implements VersionLister {
                 }
                 LOGGER.debug("using {} to list all in {}", repository, parent);
                 result.attempted(parent.toString());
-                List<String> paths = repository.list(parent);
+                List<String> paths = repository.resource(parent).list();
                 if (paths == null) {
                     return Collections.emptyList();
                 }

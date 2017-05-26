@@ -93,13 +93,14 @@ class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPreconditi
             }
 
             String path = httpExchange.getRequestURI().getPath().substring(1);
-            handler = pending.remove(path);
-            if (handler == null) {
-                failure = new AssertionError(String.format("Unexpected request to '%s' received. Waiting for %s, already received %s.", path, pending.keySet(), received));
+            handler = pending.get(path);
+            if (handler == null || !handler.getMethod().equals(httpExchange.getRequestMethod())) {
+                failure = new AssertionError(String.format("Unexpected request %s %s received. Waiting for %s, already received %s.", httpExchange.getRequestMethod(), path, pending.keySet(), received));
                 condition.signalAll();
                 throw failure;
             }
 
+            pending.remove(path);
             received.add(path);
             if (pending.isEmpty()) {
                 condition.signalAll();

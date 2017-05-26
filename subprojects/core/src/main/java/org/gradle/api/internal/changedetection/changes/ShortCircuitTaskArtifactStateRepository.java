@@ -71,9 +71,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         public boolean isUpToDate(Collection<String> messages) {
-            if (messages != null) {
-                messages.add(reason);
-            }
+            messages.add(reason);
             return false;
         }
 
@@ -97,7 +95,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
         @Nullable
         @Override
-        public UniqueId getOriginBuildId() {
+        public UniqueId getOriginBuildInvocationId() {
             return null;
         }
 

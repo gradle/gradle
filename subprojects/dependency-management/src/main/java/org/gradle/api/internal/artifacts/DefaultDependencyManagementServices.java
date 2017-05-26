@@ -80,6 +80,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
@@ -133,19 +134,21 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           IvyContextManager ivyContextManager,
                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                           ModuleExclusions moduleExclusions,
-                                                          InstantiatorFactory instantiatorFactory) {
+                                                          InstantiatorFactory instantiatorFactory,
+                                                          FileSystem fileSystem) {
             return new DefaultBaseRepositoryFactory(
-                    localMavenRepositoryLocator,
-                    fileResolver,
-                    repositoryTransportFactory,
-                    locallyAvailableResourceFinder,
-                    artifactIdentifierFileStore,
-                    externalResourceFileStore,
-                    new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, moduleExclusions),
-                    authenticationSchemeRegistry,
-                    ivyContextManager,
-                    moduleIdentifierFactory,
-                    instantiatorFactory
+                localMavenRepositoryLocator,
+                fileResolver,
+                repositoryTransportFactory,
+                locallyAvailableResourceFinder,
+                artifactIdentifierFileStore,
+                externalResourceFileStore,
+                new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, moduleExclusions, fileSystem),
+                authenticationSchemeRegistry,
+                ivyContextManager,
+                moduleIdentifierFactory,
+                instantiatorFactory,
+                fileSystem
             );
         }
 

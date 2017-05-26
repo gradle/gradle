@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.local;
 
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.LocalFileStandInExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -24,12 +25,12 @@ import java.net.URI;
 public class DefaultLocallyAvailableExternalResource extends LocalFileStandInExternalResource implements LocallyAvailableExternalResource {
     private final LocallyAvailableResource locallyAvailableResource;
 
-    public DefaultLocallyAvailableExternalResource(URI source, LocallyAvailableResource locallyAvailableResource) {
-        this(source, locallyAvailableResource, null);
+    public DefaultLocallyAvailableExternalResource(URI source, LocallyAvailableResource locallyAvailableResource, FileSystem fileSystem) {
+        this(source, locallyAvailableResource, null, fileSystem);
     }
 
-    public DefaultLocallyAvailableExternalResource(URI source, LocallyAvailableResource locallyAvailableResource, ExternalResourceMetaData metaData) {
-        super(source, locallyAvailableResource.getFile(), metaData);
+    public DefaultLocallyAvailableExternalResource(URI source, LocallyAvailableResource locallyAvailableResource, ExternalResourceMetaData metaData, FileSystem fileSystem) {
+        super(source, locallyAvailableResource.getFile(), metaData, fileSystem);
         this.locallyAvailableResource = locallyAvailableResource;
     }
 

@@ -46,6 +46,11 @@ class ResourceHandlerWrapper implements ResourceHandler, WaitPrecondition {
     }
 
     @Override
+    public String getMethod() {
+        return handler.getMethod();
+    }
+
+    @Override
     public void assertCanWait() throws IllegalStateException {
         lock.lock();
         try {

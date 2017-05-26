@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.internal.scan.scopeids;
 
-import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 
-import java.io.InputStream;
+/**
+ * Obtained from the Gradle object services.
+ * Exists to remove linkage against types such as {@link BuildInvocationScopeId} and friends.
+ */
+@UsedByScanPlugin
+public interface BuildScanScopeIds {
 
-public interface LocalResource {
-    /**
-     * Unbuffered input stream to read contents of resource.
-     */
-    InputStream open() throws ResourceException;
+    String getBuildInvocationId();
 
-    long getContentLength();
+    String getWorkspaceId();
+
+    String getUserId();
+
 }

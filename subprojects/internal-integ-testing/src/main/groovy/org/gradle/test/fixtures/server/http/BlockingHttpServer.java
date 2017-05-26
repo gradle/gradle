@@ -156,10 +156,24 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
+     * Expect a GET request to the given path, and return a 404 response.
+     */
+    public ExpectedRequest missing(String path) {
+        return new ExpectGetMissing(path);
+    }
+
+    /**
      * Expect a GET request to the given path, and return the given content (UTF-8 encoded)
      */
     public ExpectedRequest resource(String path, String content) {
         return new SendFixedContent(path, content);
+    }
+
+    /**
+     * Expect a PUT request to the given path, discard the request body
+     */
+    public ExpectedRequest put(String path) {
+        return new ExpectPut(path);
     }
 
     /**

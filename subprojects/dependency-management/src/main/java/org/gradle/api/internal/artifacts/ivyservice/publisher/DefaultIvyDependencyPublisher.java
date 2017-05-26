@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.publisher;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata;
@@ -26,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
@@ -34,18 +32,14 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
 
     public void publish(List<ModuleVersionPublisher> publishResolvers,
                         IvyModulePublishMetadata publishMetaData) {
-        try {
-            // Make a copy of the publication and filter missing artifacts
-            DefaultIvyModulePublishMetadata publication = new DefaultIvyModulePublishMetadata(publishMetaData.getId(), publishMetaData.getModuleDescriptor());
-            for (IvyModuleArtifactPublishMetadata artifact: publishMetaData.getArtifacts()) {
-                addPublishedArtifact(artifact, publication);
-            }
-            for (ModuleVersionPublisher publisher : publishResolvers) {
-                LOGGER.info("Publishing to {}", publisher);
-                publisher.publish(publication);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        // Make a copy of the publication and filter missing artifacts
+        DefaultIvyModulePublishMetadata publication = new DefaultIvyModulePublishMetadata(publishMetaData.getId(), publishMetaData.getModuleDescriptor());
+        for (IvyModuleArtifactPublishMetadata artifact : publishMetaData.getArtifacts()) {
+            addPublishedArtifact(artifact, publication);
+        }
+        for (ModuleVersionPublisher publisher : publishResolvers) {
+            LOGGER.info("Publishing to {}", publisher);
+            publisher.publish(publication);
         }
     }
 

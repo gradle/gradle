@@ -86,6 +86,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         given:
         RepositoryTransport repositoryTransport = Mock()
         ExternalResourceRepository externalResourceRepo = Mock()
+        ExternalResource externalResource = Mock()
         repositoryTransport.getRepository() >> externalResourceRepo
         externalResourceRepo.withProgressLogging() >> externalResourceRepo
 
@@ -95,6 +96,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         delegate.putRemoteFile(null, 'something.jar')
 
         then:
-        1 * externalResourceRepo.put(_, { it.toString() == 's3://somewhere/maven/something.jar'})
+        1 * externalResourceRepo.resource({ it.toString() == 's3://somewhere/maven/something.jar'}) >> externalResource
+        1 * externalResource.put(_)
     }
 }

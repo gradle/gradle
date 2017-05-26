@@ -17,7 +17,6 @@
 package org.gradle.internal.scopeids.id;
 
 import org.gradle.internal.id.UniqueId;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * The persistent ID of a potential build on disk.
@@ -31,7 +30,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * This ID is persisted in the root build's project cache dir.
  * If this cache directory is destroyed, a new ID will be issued.
  */
-@UsedByScanPlugin("obtained via root project services")
 public final class WorkspaceScopeId extends ScopeId {
 
     public WorkspaceScopeId(UniqueId id) {

@@ -16,6 +16,7 @@
 package org.gradle.internal.resource.transport.file;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
@@ -29,9 +30,9 @@ public class FileTransport extends AbstractRepositoryTransport {
     private final FileResourceConnector repository;
     private final NoOpCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public FileTransport(String name) {
+    public FileTransport(String name, FileSystem fileSystem) {
         super(name);
-        repository = new FileResourceConnector();
+        repository = new FileResourceConnector(fileSystem);
         resourceAccessor = new NoOpCacheAwareExternalResourceAccessor(repository);
     }
 

@@ -72,7 +72,11 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationServices;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scan.config.BuildScanConfigServices;
-import org.gradle.internal.scopeids.id.BuildScopeId;
+import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
+import org.gradle.internal.scan.scopeids.DefaultBuildScanScopeIds;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.scopeids.id.UserScopeId;
+import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -203,12 +207,16 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     // Note: This would be better housed in a scope that encapsulated the tree of Gradle objects.
     // as we don't have this right now we simulate it by reaching up the tree.
-    protected BuildScopeId createBuildScopeId(GradleInternal gradle) {
+    protected BuildInvocationScopeId createBuildScopeId(GradleInternal gradle) {
         if (gradle.getParent() == null) {
-            return new BuildScopeId(UniqueId.generate());
+            return new BuildInvocationScopeId(UniqueId.generate());
         } else {
-            return gradle.getRoot().getServices().get(BuildScopeId.class);
+            return gradle.getRoot().getServices().get(BuildInvocationScopeId.class);
         }
+    }
+
+    protected BuildScanScopeIds createBuildScanScopeIds(BuildInvocationScopeId buildInvocationScopeId, WorkspaceScopeId workspaceScopeId, UserScopeId userScopeId) {
+        return new DefaultBuildScanScopeIds(buildInvocationScopeId, workspaceScopeId, userScopeId);
     }
 
     @Override

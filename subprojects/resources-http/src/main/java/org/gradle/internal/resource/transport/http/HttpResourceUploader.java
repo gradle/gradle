@@ -20,7 +20,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
-import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.LocalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
 import java.io.IOException;

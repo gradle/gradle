@@ -77,7 +77,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             result.attempted(location);
             LOGGER.debug("Loading {}", location);
             try {
-                if (repository.getResourceMetaData(location, true) != null) {
+                if (repository.resource(location, true).getMetaData() != null) {
                     return true;
                 }
             } catch (Exception e) {

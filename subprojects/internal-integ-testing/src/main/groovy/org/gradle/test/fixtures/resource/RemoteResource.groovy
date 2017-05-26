@@ -16,7 +16,7 @@
 
 package org.gradle.test.fixtures.resource
 
-public interface RemoteResource {
+interface RemoteResource {
 
     URI getUri()
 

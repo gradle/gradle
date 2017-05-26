@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.IOException;

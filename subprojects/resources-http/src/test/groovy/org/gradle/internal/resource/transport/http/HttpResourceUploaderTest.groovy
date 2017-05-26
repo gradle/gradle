@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.gradle.internal.resource.local.LocalResource
+import org.gradle.internal.resource.LocalResource
 
 class HttpResourceUploaderTest extends AbstractHttpClientTest {
 

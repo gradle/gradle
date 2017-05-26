@@ -19,16 +19,22 @@ package org.gradle.integtests.fixtures
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UserInitScriptExecuterFixture
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.id.UniqueId
+import org.gradle.internal.progress.BuildOperationDescriptor
+import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.progress.BuildOperationListenerManager
+import org.gradle.internal.progress.OperationFinishEvent
+import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
-class TaskOutputOriginBuildIdFixture extends UserInitScriptExecuterFixture {
+class TaskOutputOriginBuildInvocationIdFixture extends UserInitScriptExecuterFixture {
 
     Map<String, UniqueId> originIds = [:]
 
-    TaskOutputOriginBuildIdFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
+    TaskOutputOriginBuildInvocationIdFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
         super(executer, testDir)
     }
 
@@ -42,18 +48,19 @@ class TaskOutputOriginBuildIdFixture extends UserInitScriptExecuterFixture {
             if (gradle.parent == null) {
                 def ids = Collections.synchronizedMap([:])
                 gradle.ext.originIds = ids
+                
+                gradle.services.get($BuildOperationListenerManager.name).addListener(new $BuildOperationListener.name() {
+                    void started($BuildOperationDescriptor.name buildOperation, $OperationStartEvent.name startEvent) {}
+                    void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
+                        if (finishEvent.result instanceof $ExecuteTaskBuildOperationType.Result.name) {
+                            gradle.ext.originIds[buildOperation.details.task.identityPath] = finishEvent.result.originBuildInvocationId        
+                        }
+                    }
+                })
+                
                 gradle.buildFinished {
                     gradle.rootProject.file("${TextUtil.normaliseFileSeparators(file.absolutePath)}").text = groovy.json.JsonOutput.toJson(ids)
                 }
-            }
-        
-            def rootGradle = gradle
-            while (rootGradle.parent != null) {
-                rootGradle = rootGradle.parent
-            }
-            
-            gradle.taskGraph.afterTask {
-                rootGradle.ext.originIds[it.identityPath] = it.state.originBuildId?.asString()
             }
         """
     }

@@ -21,7 +21,6 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -93,16 +92,12 @@ public class DefaultTaskGraphExecuterTest {
     @Before
     public void setUp() {
         root = TestUtil.create(temporaryFolder).rootProject();
-        final InternalTaskExecutionListener taskExecutionListener = context.mock(InternalTaskExecutionListener.class);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionGraphListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
             allowing(cancellationToken).isCancellationRequested();
-            one(listenerManager).getBroadcaster(InternalTaskExecutionListener.class);
-            will(returnValue(taskExecutionListener));
-            ignoring(taskExecutionListener);
             allowing(listenerManager);
             allowing(executorFactory);
         }});
@@ -222,7 +217,7 @@ public class DefaultTaskGraphExecuterTest {
             fail();
         } catch (IllegalStateException e) {
             assertThat(e.getMessage(), equalTo(
-                    "Task information is not available, as this task execution graph has not been populated."));
+                "Task information is not available, as this task execution graph has not been populated."));
         }
 
         try {
@@ -230,7 +225,7 @@ public class DefaultTaskGraphExecuterTest {
             fail();
         } catch (IllegalStateException e) {
             assertThat(e.getMessage(), equalTo(
-                    "Task information is not available, as this task execution graph has not been populated."));
+                "Task information is not available, as this task execution graph has not been populated."));
         }
 
         try {
@@ -238,7 +233,7 @@ public class DefaultTaskGraphExecuterTest {
             fail();
         } catch (IllegalStateException e) {
             assertThat(e.getMessage(), equalTo(
-                    "Task information is not available, as this task execution graph has not been populated."));
+                "Task information is not available, as this task execution graph has not been populated."));
         }
     }
 
@@ -372,7 +367,7 @@ public class DefaultTaskGraphExecuterTest {
         taskExecuter.useFailureHandler(handler);
         taskExecuter.addTasks(toList(a, b));
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(handler).onTaskFailure(a);
             will(throwException(wrappedFailure));
         }});

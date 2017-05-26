@@ -48,7 +48,7 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.id.RandomLongIdGenerator
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.scopeids.id.BuildScopeId
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.serialize.DefaultSerializerRegistry
 import org.gradle.internal.serialize.SerializerRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -71,7 +71,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     final inputFiles = [file: [inputFile], dir: [inputDir], missingFile: [missingInputFile]]
     final outputFiles = [file: [outputFile], dir: [outputDir], emptyDir: [emptyOutputDir], missingFile: [missingOutputFile]]
     final createFiles = [outputFile, outputDirFile, outputDirFile2] as Set
-    def buildScopeId = new BuildScopeId(UniqueId.generate())
+    def buildScopeId = new BuildInvocationScopeId(UniqueId.generate())
 
     TaskInternal task
     def mapping = Stub(CacheScopeMapping) {
@@ -588,7 +588,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
     def "has no origin build ID when not executed"() {
         expect:
-        repository.getStateFor(task).originBuildId == null
+        repository.getStateFor(task).originBuildInvocationId == null
     }
 
     def "has origin build ID after executed"() {
@@ -596,7 +596,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         execute(task)
 
         then:
-        repository.getStateFor(task).originBuildId == buildScopeId.id
+        repository.getStateFor(task).originBuildInvocationId == buildScopeId.id
     }
 
     def "has no origin build ID if outputs are not usable"() {
@@ -605,7 +605,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
         then:
         def state1 = repository.getStateFor(task)
-        state1.originBuildId == buildScopeId.id
+        state1.originBuildInvocationId == buildScopeId.id
         state1.isUpToDate([])
 
         when:
@@ -615,7 +615,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
         task.path == changedOutputsTask.path
         def state2 = repository.getStateFor(changedOutputsTask)
-        state2.originBuildId == null
+        state2.originBuildInvocationId == null
         !state2.isUpToDate([])
     }
 

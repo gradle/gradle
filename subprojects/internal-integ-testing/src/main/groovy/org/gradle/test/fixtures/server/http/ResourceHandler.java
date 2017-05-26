@@ -21,6 +21,14 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 
 interface ResourceHandler {
+    /**
+     * Returns the method for this handler.
+     */
+    String getMethod();
+
+    /**
+     * Returns the path for this handler.
+     */
     String getPath();
 
     /**

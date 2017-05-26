@@ -51,11 +51,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        with(buildOpDetails()) {
-            taskPath == ":foo"
-            taskId != 0
-        }
-
         with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultImpl) {
             key == cacheKey
         }
@@ -76,7 +71,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * task.getIdentityPath() >> Path.path(":foo")
         0 * _
     }
 
@@ -169,10 +163,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         then:
         adapter.buildCacheKey == "ff"
-    }
-
-    private SnapshotTaskInputsBuildOperationType.Details buildOpDetails() {
-        buildOperationExecutor.log.mostRecentDetails(SnapshotTaskInputsBuildOperationType)
     }
 
     private SnapshotTaskInputsBuildOperationType.Result buildOpResult() {

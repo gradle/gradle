@@ -28,6 +28,7 @@ import org.gradle.authentication.Authentication;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
@@ -54,6 +55,7 @@ public class RepositoryTransportFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final ProducerGuard<ExternalResourceName> producerGuard;
+    private final FileSystem fileSystem;
 
     public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
                                       ProgressLoggerFactory progressLoggerFactory,
@@ -63,7 +65,8 @@ public class RepositoryTransportFactory {
                                       CacheLockingManager cacheLockingManager,
                                       BuildOperationExecutor buildOperationExecutor,
                                       StartParameterResolutionOverride startParameterResolutionOverride,
-                                      ProducerGuard<ExternalResourceName> producerGuard) {
+                                      ProducerGuard<ExternalResourceName> producerGuard,
+                                      FileSystem fileSystem) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
@@ -72,6 +75,7 @@ public class RepositoryTransportFactory {
         this.buildOperationExecutor = buildOperationExecutor;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.producerGuard = producerGuard;
+        this.fileSystem = fileSystem;
 
         for (ResourceConnectorFactory connectorFactory : resourceConnectorFactory) {
             register(connectorFactory);
@@ -107,7 +111,7 @@ public class RepositoryTransportFactory {
         // 1) we don't cache their files
         // 2) we don't do progress logging for "downloading"
         if (Collections.singleton("file").containsAll(schemes)) {
-            return new FileTransport(name);
+            return new FileTransport(name, fileSystem);
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
 
@@ -117,7 +121,7 @@ public class RepositoryTransportFactory {
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
         cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
 
-        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard);
+        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileSystem);
     }
 
     private void validateSchemes(Set<String> schemes) {

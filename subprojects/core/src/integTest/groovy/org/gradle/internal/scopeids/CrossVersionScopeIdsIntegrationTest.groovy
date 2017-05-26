@@ -61,7 +61,7 @@ class CrossVersionScopeIdsIntegrationTest extends CrossVersionIntegrationSpec {
     }
 
     void assertIdsAreShared(ScopeIdsFixture.ScopeIds earlier, ScopeIdsFixture.ScopeIds current) {
-        assert current.build != earlier.build
+        assert current.buildInvocation != earlier.buildInvocation
         assert current.workspace == earlier.workspace
         assert current.user == earlier.user
     }

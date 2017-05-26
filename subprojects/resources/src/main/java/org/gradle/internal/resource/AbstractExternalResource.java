@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 public abstract class AbstractExternalResource implements ExternalResource {
     /**
@@ -181,6 +182,17 @@ public abstract class AbstractExternalResource implements ExternalResource {
     @Nullable
     @Override
     public <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ExternalResourceWriteResult put(LocalResource source) throws ResourceException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable
+    @Override
+    public List<String> list() throws ResourceException {
         throw new UnsupportedOperationException();
     }
 }
