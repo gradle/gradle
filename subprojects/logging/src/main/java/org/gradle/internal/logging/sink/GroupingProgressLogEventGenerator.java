@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.sink;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
