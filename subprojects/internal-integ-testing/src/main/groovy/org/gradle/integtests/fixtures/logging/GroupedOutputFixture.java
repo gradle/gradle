@@ -35,7 +35,7 @@ public class GroupedOutputFixture {
     /**
      * All tasks will start with > Task, captures everything starting with : and going until a control char
      */
-    private final static String TASK_HEADER = "> Task (:[\\w:]*)\\n?";
+    private final static String TASK_HEADER = "> Task (:[\\w:]*)( [A-Z\\-]+)?\\n?";
 
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "FAILURE:";
@@ -80,7 +80,7 @@ public class GroupedOutputFixture {
         Matcher matcher = TASK_OUTPUT_PATTERN.matcher(stripedOutput);
         while (matcher.find()) {
             String taskName = matcher.group(1);
-            String taskOutput = matcher.group(2);
+            String taskOutput = matcher.group(3);
             taskOutput = taskOutput.trim();
             if (tasks.containsKey(taskName)) {
                 tasks.get(taskName).addOutput(taskOutput);

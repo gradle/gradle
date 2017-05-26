@@ -200,6 +200,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.gradleHomeDir = gradleHomeDir;
         p.initScripts = new ArrayList<File>(initScripts);
         p.includedBuilds = new ArrayList<File>(includedBuilds);
+        p.setDryRun(isDryRun());
         p.projectCacheDir = projectCacheDir;
         return p;
     }
@@ -226,7 +227,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.recompileScripts = recompileScripts;
         p.refreshDependencies = refreshDependencies;
         p.setParallelProjectExecutionEnabled(isParallelProjectExecutionEnabled());
-        p.setDryRun(isDryRun());
         p.buildCacheEnabled = buildCacheEnabled;
         p.configureOnDemand = configureOnDemand;
         p.setMaxWorkerCount(getMaxWorkerCount());

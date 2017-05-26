@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.util.GUtil;
 
 import java.util.List;
 
@@ -27,8 +28,12 @@ public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status) {
         final String message = header != null ? header : description;
         if (message != null) {
-            // Visually indicate group by adding surrounding lines
-            return Lists.newArrayList(new StyledTextOutputEvent.Span(EOL), new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, "> " + message), new StyledTextOutputEvent.Span(EOL));
+            List<StyledTextOutputEvent.Span> result = Lists.newArrayList(new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, "> " + message));
+            if (GUtil.isTrue(status)) {
+                result.add(new StyledTextOutputEvent.Span(StyledTextOutput.Style.ProgressStatus, " " + status));
+            }
+            result.add(new StyledTextOutputEvent.Span(EOL));
+            return result;
         } else {
             return Lists.newArrayList();
         }

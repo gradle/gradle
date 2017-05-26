@@ -32,15 +32,13 @@ class DryRunLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     def "all tasks are printed when dry run mode is enabled using rich console"() {
         given:
-        executer.withArguments('--console=rich', '--dry-run')
+        executer.withRichConsole()
 
         when:
         succeeds('baz')
 
         then:
-        // FIXME(EW): why oh why is nothing printed?
-        result.normalizedOutput == ""
-//        output.matches(/.*> Task :foo\s+.*> Task :bar\s+.*> Task :baz.*/)
+        output =~ /(?s).*> Task :foo.*> Task :bar.*> Task :baz.*/
     }
 
     def "all tasks are printed when dry run mode is enabled using plain console"() {
