@@ -27,4 +27,12 @@ public interface BuildOperationContext {
     void failed(@Nullable Throwable failure);
 
     void setResult(Object result);
+
+    /**
+     * Record a status or outcome for given build operation.
+     *
+     * @param status operation status
+     * @since 4.0
+     */
+    void setStatus(String status);
 }
