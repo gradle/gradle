@@ -20,18 +20,19 @@ import org.gradle.api.JavaVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Detects whether or not Gradle is being run on Java 9, and logs a warning message the first time it's detected.
  */
 public class Java9Detector {
     private static final Logger LOGGER = LoggerFactory.getLogger(Java9Detector.class);
     private static final String SKIPPING_ENVIRONMENT = "Running with Java 9, the Gradle Daemon will not have the Gradle Client's environment variables.";
-    public int count;
+    private AtomicBoolean hasWarned = new AtomicBoolean(false);
 
     public boolean isJava9() {
         if (JavaVersion.current().isJava9Compatible()) {
-            count++;
-            if (count == 1) {
+            if (!hasWarned.getAndSet(true)) {
                 LOGGER.warn(SKIPPING_ENVIRONMENT);
             }
             return true;

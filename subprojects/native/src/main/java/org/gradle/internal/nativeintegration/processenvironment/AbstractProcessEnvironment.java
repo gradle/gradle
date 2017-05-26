@@ -28,7 +28,13 @@ import java.util.Map;
 
 public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     //for updates to private JDK caches of the environment state
-    private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment(new Java9Detector());
+    final Java9Detector java9Detector;
+    private final ReflectiveEnvironment reflectiveEnvironment;
+
+    public AbstractProcessEnvironment(Java9Detector java9Detector) {
+        this.java9Detector = java9Detector;
+        this.reflectiveEnvironment = new ReflectiveEnvironment(java9Detector);
+    }
 
     @Override
     public boolean maybeSetEnvironment(Map<String, String> source) {

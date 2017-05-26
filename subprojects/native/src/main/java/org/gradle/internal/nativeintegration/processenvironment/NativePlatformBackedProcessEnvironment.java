@@ -22,11 +22,10 @@ import java.io.File;
 
 public class NativePlatformBackedProcessEnvironment extends AbstractProcessEnvironment {
     private final Process process;
-    private final Java9Detector java9Detector;
 
     public NativePlatformBackedProcessEnvironment(Process process, Java9Detector java9Detector) {
+        super(java9Detector);
         this.process = process;
-        this.java9Detector = java9Detector;
     }
 
     @Override
