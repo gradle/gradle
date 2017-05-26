@@ -100,8 +100,15 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
             Started notification = new Started(id, parentId, buildOperation.getDetails());
             try {
                 notificationListener.started(notification);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 LOGGER.debug("Build operation notification listener threw an error on " + notification, e);
+                maybeThrow(e);
+            }
+        }
+
+        private void maybeThrow(Throwable e) {
+            if (e instanceof Error && !(e instanceof LinkageError)) {
+                throw ((Error) e);
             }
         }
 
@@ -116,8 +123,9 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
             Finished notification = new Finished(id, buildOperation.getDetails(), finishEvent.getResult(), finishEvent.getFailure());
             try {
                 notificationListener.finished(notification);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 LOGGER.debug("Build operation notification listener threw an error on " + notification, e);
+                maybeThrow(e);
             }
         }
     }
