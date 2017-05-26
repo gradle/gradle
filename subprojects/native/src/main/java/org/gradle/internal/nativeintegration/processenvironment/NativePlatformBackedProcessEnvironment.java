@@ -16,6 +16,7 @@
 package org.gradle.internal.nativeintegration.processenvironment;
 
 import net.rubygrapefruit.platform.Process;
+import org.gradle.api.JavaVersion;
 
 import java.io.File;
 
@@ -28,12 +29,16 @@ public class NativePlatformBackedProcessEnvironment extends AbstractProcessEnvir
 
     @Override
     protected void removeNativeEnvironmentVariable(String name) {
-        process.setEnvironmentVariable(name, null);
+        if (!JavaVersion.current().isJava9Compatible()) {
+            process.setEnvironmentVariable(name, null);
+        }
     }
 
     @Override
     protected void setNativeEnvironmentVariable(String name, String value) {
-        process.setEnvironmentVariable(name, value);
+        if (!JavaVersion.current().isJava9Compatible()) {
+            process.setEnvironmentVariable(name, value);
+        }
     }
 
     @Override
