@@ -88,7 +88,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             if (future != null && !future.isCancelled()) {
                 future.cancel(false);
             }
-            executor.shutdown();
+            executor.shutdownNow();
             onEnd((EndOutputEvent) event);
         } else if (!(event instanceof ProgressEvent)) {
             listener.onOutput(event);
