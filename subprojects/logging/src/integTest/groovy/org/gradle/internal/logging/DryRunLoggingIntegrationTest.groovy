@@ -19,8 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.SystemProperties
 
 class DryRunLoggingIntegrationTest extends AbstractIntegrationSpec {
-    private static final String EOL = SystemProperties.instance.lineSeparator
-
     def setup() {
         executer.withArgument('--dry-run')
         buildFile << """
