@@ -23,6 +23,18 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import java.util.List;
 
 /**
+ * The overall execution of a task, including:
+ *
+ * - User lifecycle callbacks (TaskExecutionListener.beforeExecute and TaskExecutionListener.afterExecute)
+ * - Gradle execution mechanics (e.g. up-to-date and build cache “checks”, property validation, build cache output store, etc.)
+ *
+ * That is, this operation does not represent just the execution of task actions.
+ *
+ * This operation can fail _and_ yield a result.
+ * If the operation gets as far as invoking the task executer
+ * (i.e. beforeTask callbacks did not fail), then a result is expected.
+ * If the task execution fails, or if afterTask callbacks fail, an operation failure is expected _in addition_.
+ *
  * Important note: the scan listener currently expects to receive the operation started notification on the
  * _same thread_ that is about to execute the task. If this changes (e.g. notifications are dispatched async),
  * additional changes need to be made to convey the thread/worker that is going to be used to execute the task.

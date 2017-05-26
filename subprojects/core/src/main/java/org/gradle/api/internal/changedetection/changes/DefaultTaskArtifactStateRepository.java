@@ -84,22 +84,14 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public boolean isUpToDate(Collection<String> messages) {
-            if (collectChangedMessages(messages, getStates().getAllTaskChanges())) {
-                upToDate = true;
-                return true;
-            }
-            return false;
+            return upToDate = collectChangedMessages(messages, getStates().getAllTaskChanges());
         }
 
         private boolean collectChangedMessages(Collection<String> messages, TaskStateChanges stateChanges) {
             boolean up2date = true;
             for (TaskStateChange stateChange : stateChanges) {
-                if (messages != null) {
-                    messages.add(stateChange.getMessage());
-                    up2date = false;
-                } else {
-                    return false;
-                }
+                messages.add(stateChange.getMessage());
+                up2date = false;
             }
             return up2date;
         }

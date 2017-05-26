@@ -28,9 +28,7 @@ import java.util.Collection;
 
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
     public boolean isUpToDate(Collection<String> messages) {
-        if (messages != null) {
-            messages.add("Task has not declared any outputs.");
-        }
+        messages.add("Task has not declared any outputs.");
         return false;
     }
 

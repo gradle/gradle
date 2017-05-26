@@ -71,9 +71,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         public boolean isUpToDate(Collection<String> messages) {
-            if (messages != null) {
-                messages.add(reason);
-            }
+            messages.add(reason);
             return false;
         }
 

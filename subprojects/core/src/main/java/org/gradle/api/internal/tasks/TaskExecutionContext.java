@@ -29,12 +29,11 @@ public interface TaskExecutionContext {
 
     void setTaskArtifactState(TaskArtifactState taskArtifactState);
 
-
     TaskOutputCachingBuildCacheKey getBuildCacheKey();
 
     void setBuildCacheKey(TaskOutputCachingBuildCacheKey cacheKey);
 
-
+    @Nullable
     UniqueId getOriginBuildId();
 
     void setOriginBuildId(@Nullable UniqueId originBuildId);
