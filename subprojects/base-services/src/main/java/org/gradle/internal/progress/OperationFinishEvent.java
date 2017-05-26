@@ -17,9 +17,7 @@
 package org.gradle.internal.progress;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
-@UsedByScanPlugin("Used via InternalTaskExecutionListener")
 public final class OperationFinishEvent {
     private final long startTime;
     private final long endTime;
