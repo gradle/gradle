@@ -27,6 +27,14 @@ class DryRunLoggingIntegrationTest extends AbstractIntegrationSpec {
             task foo {}
             task bar(dependsOn: foo) {}
             task baz(dependsOn: bar) {}
+
+            // Make sure the task aren't been skipped due to no action
+            def i = 0
+            tasks.all {
+                doLast {
+                    ++i
+                }
+            }
 """
     }
 
@@ -49,6 +57,7 @@ class DryRunLoggingIntegrationTest extends AbstractIntegrationSpec {
         succeeds('baz')
 
         then:
-        result.output.contains(":foo SKIPPED${EOL}:bar SKIPPED${EOL}:baz SKIPPED")
+        result.assertTaskOrder(":foo", ":bar", ":baz")
+        result.assertTasksSkipped(":foo", ":bar", ":baz")
     }
 }

@@ -216,11 +216,10 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         }
 
         private StyledTextOutputEvent header() {
-            List<StyledTextOutputEvent.Span> spans = Lists.newArrayList();
+            List<StyledTextOutputEvent.Span> spans = headerFormatter.format(loggingHeader, description, shortDescription, status);
             if (didHaveOutput) {
-                spans.add(EOL);
+                spans.add(0, EOL);
             }
-            spans.addAll(headerFormatter.format(loggingHeader, description, shortDescription, status));
             return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, spans);
         }
 
