@@ -20,8 +20,8 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.xml.sax.SAXException;
 
@@ -38,8 +38,8 @@ public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescri
     private final IvyModuleDescriptorConverter moduleDescriptorConverter;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public DisconnectedIvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileSystem fileSystem) {
-        super(moduleDescriptorConverter, moduleIdentifierFactory, fileSystem);
+    public DisconnectedIvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository) {
+        super(moduleDescriptorConverter, moduleIdentifierFactory, fileResourceRepository);
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }

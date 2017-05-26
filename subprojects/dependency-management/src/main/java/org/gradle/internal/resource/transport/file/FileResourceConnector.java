@@ -15,17 +15,19 @@
  */
 package org.gradle.internal.resource.transport.file;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
+import java.net.URI;
 
-public class FileResourceConnector implements ExternalResourceRepository {
+public class FileResourceConnector implements FileResourceRepository {
     private final FileSystem fileSystem;
 
     public FileResourceConnector(FileSystem fileSystem) {
@@ -48,13 +50,14 @@ public class FileResourceConnector implements ExternalResourceRepository {
         return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile), fileSystem);
     }
 
-    @Nullable
-    public LocallyAvailableExternalResource getResourceIfPresent(ExternalResourceName location) {
-        File localFile = getFile(location);
-        if (!localFile.exists()) {
-            return null;
-        }
-        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile), fileSystem);
+    @Override
+    public LocallyAvailableExternalResource resource(File file) {
+        return new DefaultLocallyAvailableExternalResource(file.toURI(), new DefaultLocallyAvailableResource(file), fileSystem);
+    }
+
+    @Override
+    public LocallyAvailableExternalResource resource(File file, URI originUri, ExternalResourceMetaData originMetadata) {
+        return new DefaultLocallyAvailableExternalResource(originUri, new DefaultLocallyAvailableResource(file), originMetadata, fileSystem);
     }
 
     private static File getFile(ExternalResourceName location) {

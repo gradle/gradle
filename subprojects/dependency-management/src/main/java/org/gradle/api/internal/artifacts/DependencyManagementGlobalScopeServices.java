@@ -30,11 +30,17 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
 import org.gradle.cache.internal.DefaultProducerGuard;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
+import org.gradle.internal.resource.transport.file.FileResourceConnector;
 
 class DependencyManagementGlobalScopeServices {
+    FileResourceRepository createFileResourceRepository(FileSystem fileSystem){
+        return new FileResourceConnector(fileSystem);
+    }
 
     ImmutableModuleIdentifierFactory createModuleIdentifierFactory() {
         return new DefaultImmutableModuleIdentifierFactory();

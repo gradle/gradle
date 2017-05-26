@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Descriptor
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -30,10 +29,8 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
 
@@ -44,17 +41,16 @@ import java.io.File;
  */
 public class ExternalResourceResolverDescriptorParseContext implements DescriptorParseContext {
     private final ComponentResolvers mainResolvers;
-    private final FileSystem fileSystem;
+    private final FileResourceRepository fileResourceRepository;
 
-    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers, FileSystem fileSystem) {
+    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers, FileResourceRepository fileResourceRepository) {
         this.mainResolvers = mainResolvers;
-        this.fileSystem = fileSystem;
+        this.fileResourceRepository = fileResourceRepository;
     }
 
     public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactType artifactType) {
         File resolvedArtifactFile = resolveMetaDataArtifactFile(moduleComponentIdentifier, mainResolvers.getComponentResolver(), mainResolvers.getArtifactResolver(), artifactType);
-        LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(resolvedArtifactFile);
-        return new DefaultLocallyAvailableExternalResource(resolvedArtifactFile.toURI(), localResource, fileSystem);
+        return fileResourceRepository.resource(resolvedArtifactFile);
     }
 
     private File resolveMetaDataArtifactFile(ModuleComponentIdentifier moduleComponentIdentifier, ComponentMetaDataResolver componentResolver,

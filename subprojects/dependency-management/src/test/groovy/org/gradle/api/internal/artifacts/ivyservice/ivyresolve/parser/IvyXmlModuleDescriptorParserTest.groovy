@@ -28,6 +28,7 @@ import org.gradle.internal.component.external.model.IvyDependencyMetadata
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
+import org.gradle.internal.resource.transport.file.FileResourceConnector
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
@@ -45,7 +46,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, TestFiles.fileSystem())
+    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, new FileResourceConnector(TestFiles.fileSystem()))
 
     DescriptorParseContext parseContext = Mock()
     ModuleDescriptorState md

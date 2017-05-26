@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.resource.transport.file.FileResourceConnector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,7 +27,7 @@ class DownloadedIvyModuleDescriptorParserTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
 
     final DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    final DownloadedIvyModuleDescriptorParser parser = new DownloadedIvyModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, TestFiles.fileSystem())
+    final DownloadedIvyModuleDescriptorParser parser = new DownloadedIvyModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, new FileResourceConnector(TestFiles.fileSystem()))
     final parserSettings = Mock(DescriptorParseContext)
 
     def "discards the default attribute"() {

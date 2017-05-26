@@ -21,13 +21,14 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableResource
+import org.gradle.internal.resource.transport.file.FileResourceConnector
 import spock.lang.Specification
 
 class DisconnectedIvyXmlModuleDescriptorParserTest extends Specification {
     LocallyAvailableExternalResource localExternalResource = Mock()
     LocallyAvailableResource localResource = Mock()
     ExternalResource externalResource = Mock()
-    IvyXmlModuleDescriptorParser parser = new DisconnectedIvyXmlModuleDescriptorParser(null, new DefaultImmutableModuleIdentifierFactory(), TestFiles.fileSystem())
+    IvyXmlModuleDescriptorParser parser = new DisconnectedIvyXmlModuleDescriptorParser(null, new DefaultImmutableModuleIdentifierFactory(), new FileResourceConnector(TestFiles.fileSystem()))
     DescriptorParseContext parseContext = Mock()
 
     def "creates overridden internal Ivy parser"() throws Exception {

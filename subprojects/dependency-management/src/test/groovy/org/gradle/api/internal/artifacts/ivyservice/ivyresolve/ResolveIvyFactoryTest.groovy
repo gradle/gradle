@@ -38,6 +38,7 @@ import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.internal.resource.ExternalResourceRepository
+import org.gradle.internal.resource.transport.file.FileResourceConnector
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 
@@ -131,7 +132,7 @@ class ResolveIvyFactoryTest extends Specification {
                 locallyAvailableResourceFinder,
                 artifactFileStore,
                 moduleIdentifierFactory,
-                TestFiles.fileSystem()
+                new FileResourceConnector(TestFiles.fileSystem())
             ]
         ) {
             getLocalAccess() >> Stub(ModuleComponentRepositoryAccess)

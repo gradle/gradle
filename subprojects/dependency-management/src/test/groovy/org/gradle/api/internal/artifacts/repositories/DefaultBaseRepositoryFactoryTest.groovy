@@ -24,12 +24,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.cached.ExternalResourceFileStore
+import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -50,7 +50,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
         localMavenRepoLocator, fileResolver, transportFactory, locallyAvailableResourceFinder,
         artifactIdentifierFileStore, externalResourceFileStore, pomParser, authenticationSchemeRegistry, ivyContextManager, moduleIdentifierFactory,
-        TestUtil.instantiatorFactory(), TestFiles.fileSystem()
+        TestUtil.instantiatorFactory(), Mock(FileResourceRepository)
     )
 
     def testCreateFlatDirResolver() {

@@ -25,12 +25,12 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.resource.cached.ExternalResourceFileStore
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.ExternalResourceRepository
+import org.gradle.internal.resource.cached.ExternalResourceFileStore
+import org.gradle.internal.resource.local.FileResourceRepository
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.TestUtil
 
@@ -48,8 +48,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ivyContextManager = Mock(IvyContextManager)
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
-    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), TestFiles.fileSystem()
-    )
+    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository))
 
     def "default values"() {
         expect:

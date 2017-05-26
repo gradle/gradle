@@ -38,13 +38,13 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -76,7 +76,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                          CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
                          FileStore<String> resourcesFileStore,
-                         FileSystem fileSystem) {
+                         FileResourceRepository fileResourceRepository) {
         super(name, transport.isLocal(),
                 transport.getRepository(),
                 transport.getResourceAccessor(),
@@ -84,7 +84,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                 locallyAvailableResourceFinder,
                 artifactFileStore,
                 moduleIdentifierFactory,
-                fileSystem);
+                fileResourceRepository);
         this.metaDataParser = pomParser;
         this.mavenMetaDataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
         this.root = rootUri;
