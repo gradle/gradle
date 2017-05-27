@@ -315,7 +315,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         @Override
         public void execute(CallableBuildOperation<T> buildOperation, BuildOperationContext context) {
             returnValue = buildOperation.call(context);
-            System.out.print("");
         }
 
         public T getReturnValue() {
