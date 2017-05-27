@@ -80,6 +80,8 @@ tasks.withType(JvmProjectGeneratorTask) {
 
 task prepareSamples {
     dependsOn tasks.withType(ProjectGeneratorTask)
+    dependsOn tasks.withType(RemoteProject)
+    dependsOn tasks.withType(JavaExec)
     group = "Project Setup"
     description = "Generates all sample projects for automated performance tests"
 }
