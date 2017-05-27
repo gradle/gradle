@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource
+package org.gradle.internal.resource.local
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.resources.MissingResourceException
+import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
