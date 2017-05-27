@@ -17,7 +17,9 @@
 package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import spock.lang.Ignore
 
+@Ignore("Build fails and passes depending on timing")
 class ConsoleBuildSrcFunctionalTest extends AbstractConsoleFunctionalSpec {
 
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
