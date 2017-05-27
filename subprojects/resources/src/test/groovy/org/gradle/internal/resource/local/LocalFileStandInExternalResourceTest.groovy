@@ -25,6 +25,7 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.resources.ResourceException
 
 class LocalFileStandInExternalResourceTest extends Specification {
     @Rule
@@ -306,6 +307,44 @@ class LocalFileStandInExternalResourceTest extends Specification {
         then:
         def e = thrown(MissingResourceException)
         e.location == file.toURI()
+    }
+
+    def "can read content of file as stream"() {
+        def file = tmpDir.createFile("file")
+        file.text = "1234"
+
+        expect:
+        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
+        def stream = resource.open()
+        stream.text == "1234"
+
+        cleanup:
+        stream?.close()
+    }
+
+    def "fails when reading content of missing file as stream"() {
+        def file = tmpDir.file("file")
+        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
+
+        when:
+        resource.open()
+
+        then:
+        def e = thrown(MissingResourceException)
+        e.location == resource.URI
+    }
+
+    def "fails when reading content of directory as stream"() {
+        def file = tmpDir.createDir("file")
+        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
+
+        when:
+        resource.open()
+
+        then:
+        def e = thrown(ResourceException)
+        e.location == resource.URI
+        e.message == "Cannot read '$file' because it is a folder."
     }
 
     def "can get metadata of file"() {

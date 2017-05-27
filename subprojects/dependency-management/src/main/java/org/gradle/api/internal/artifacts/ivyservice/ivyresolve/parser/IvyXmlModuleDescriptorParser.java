@@ -125,7 +125,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     }
 
     protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
-        return new Parser(parseContext, moduleDescriptorConverter, resource, resource.getLocalResource().getFile().toURI().toURL(), moduleIdentifierFactory, properties);
+        return new Parser(parseContext, moduleDescriptorConverter, resource, resource.getFile().toURI().toURL(), moduleIdentifierFactory, properties);
     }
 
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
@@ -790,7 +790,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             ModuleComponentIdentifier importedId = DefaultModuleComponentIdentifier.newId(parentOrganisation, parentModule, parentRevision);
             LocallyAvailableExternalResource externalResource = parseContext.getMetaDataArtifact(importedId, ArtifactType.IVY_DESCRIPTOR);
 
-            return parseModuleDescriptor(externalResource, externalResource.getLocalResource().getFile().toURI().toURL());
+            return parseModuleDescriptor(externalResource, externalResource.getFile().toURI().toURL());
         }
 
         private ModuleDescriptor parseModuleDescriptor(ExternalResource externalResource, URL descriptorURL) throws ParseException {

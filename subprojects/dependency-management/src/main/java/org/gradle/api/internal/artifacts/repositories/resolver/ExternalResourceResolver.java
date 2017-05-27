@@ -303,7 +303,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             return null;
         }
 
-        return artifactResource.getLocalResource().getFile();
+        return artifactResource.getFile();
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver() {

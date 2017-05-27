@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
-
-import org.gradle.internal.resource.ExternalResource;
+package org.gradle.internal.resource;
 
 import java.io.File;
+import java.net.URI;
 
 /**
- * Represents an external resource whose meta-data and content is available locally. The content and meta-data may be a copy of some original resource and the original may or may not be a local resource.
+ * Some binary resource available somewhere on the local file system.
  */
-public interface LocallyAvailableExternalResource extends ExternalResource {
+public interface LocalBinaryResource extends Resource, ReadableContent {
+    URI getURI();
+
+    String getBaseName();
+
     /**
-     * Returns a local file containing the content of this resource. This may nor may not be the original resource.
+     * Returns the file containing this resource. Note that the content of this resource may not be the same as the file (for example, the file may be compressed, or this resource may represent an entry in an archive file, or both)
      */
-    File getFile();
+    File getContainingFile();
 }

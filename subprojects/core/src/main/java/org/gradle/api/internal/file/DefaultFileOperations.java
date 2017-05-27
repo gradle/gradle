@@ -36,10 +36,12 @@ import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -114,7 +116,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
             resource = new UnknownBackingFileReadableResource((ReadableResource)tarPath);
         } else {
             tarFile = file(tarPath);
-            resource = new FileResource(tarFile);
+            resource = new LocalResourceAdapter(new LocalFileStandInExternalResource(tarFile, fileSystem));
         }
         TarFileTree tarTree = new TarFileTree(tarFile, new MaybeCompressedFileResource(resource), getExpandDir(), fileSystem, fileSystem, directoryFileTreeFactory);
         return new FileTreeAdapter(tarTree);

@@ -24,14 +24,14 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceWriteResult;
+import org.gradle.internal.resource.LocalBinaryResource;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
@@ -40,6 +40,7 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +52,7 @@ import java.util.List;
 /**
  * A file backed {@link ExternalResource} implementation.
  */
-public class LocalFileStandInExternalResource extends AbstractExternalResource implements LocallyAvailableExternalResource, LocallyAvailableResource {
+public class LocalFileStandInExternalResource extends AbstractExternalResource implements LocallyAvailableExternalResource, LocalBinaryResource {
     private final File localFile;
     private final FileSystem fileSystem;
 
@@ -71,18 +72,13 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
     }
 
     @Override
-    public long getLastModified() {
-        return localFile.lastModified();
+    public String getBaseName() {
+        return localFile.getName();
     }
 
     @Override
-    public HashValue getSha1() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public LocallyAvailableResource getLocalResource() {
-        return this;
+    public File getContainingFile() {
+        return localFile;
     }
 
     @Override
@@ -223,6 +219,18 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
             }
         } catch (IOException e) {
             throw ResourceExceptions.putFailed(getURI(), e);
+        }
+    }
+
+    @Override
+    public InputStream open() throws ResourceException {
+        if (localFile.isDirectory()) {
+            throw ResourceExceptions.readFolder(localFile);
+        }
+        try {
+            return new FileInputStream(localFile);
+        } catch (FileNotFoundException e) {
+            throw ResourceExceptions.readMissing(localFile, e);
         }
     }
 

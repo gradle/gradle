@@ -22,7 +22,13 @@ import org.apache.tools.bzip2.CBZip2OutputStream;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.resource.ResourceExceptions;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class Bzip2Archiver extends AbstractArchiver {
     public Bzip2Archiver(ReadableResourceInternal resource) {
@@ -53,14 +59,14 @@ public class Bzip2Archiver extends AbstractArchiver {
     }
 
     public InputStream read() {
-        InputStream is = resource.read();
+        InputStream input = new BufferedInputStream(resource.read());
         try {
             // CBZip2InputStream expects the opening "BZ" to be skipped
             byte[] skip = new byte[2];
-            is.read(skip);
-            return new CBZip2InputStream(is);
+            input.read(skip);
+            return new CBZip2InputStream(input);
         } catch (Exception e) {
-            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(input);
             throw ResourceExceptions.readFailed(resource.getDisplayName(), e);
         }
     }

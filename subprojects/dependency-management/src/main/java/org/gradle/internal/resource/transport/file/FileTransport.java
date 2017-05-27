@@ -51,7 +51,7 @@ public class FileTransport extends AbstractRepositoryTransport {
     private class NoOpCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
         public LocallyAvailableExternalResource getResource(ExternalResourceName source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
             LocallyAvailableExternalResource resource = repository.resource(source);
-            if (resource.getLocalResource().getFile().exists()) {
+            if (resource.getFile().exists()) {
                 return resource;
             }
             return null;

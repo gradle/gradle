@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceWriteResult;
 import org.gradle.internal.resource.ReadableContent;
@@ -63,8 +63,8 @@ public class DefaultLocallyAvailableExternalResource implements LocallyAvailable
     }
 
     @Override
-    public LocallyAvailableResource getLocalResource() {
-        return localFile.getLocalResource();
+    public File getFile() {
+        return localFile.getFile();
     }
 
     @Nullable

@@ -46,7 +46,7 @@ public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescri
 
     @Override
     protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
-        return new DisconnectedParser(parseContext, moduleDescriptorConverter, resource, resource.getLocalResource().getFile().toURI().toURL(), properties, moduleIdentifierFactory);
+        return new DisconnectedParser(parseContext, moduleDescriptorConverter, resource, resource.getFile().toURI().toURL(), properties, moduleIdentifierFactory);
     }
 
     private static class DisconnectedParser extends Parser {

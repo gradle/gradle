@@ -21,6 +21,8 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.resource.local.FileResourceConnector;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecHandleFactory;
@@ -39,6 +41,10 @@ public class TestFiles {
 
     public static FileSystem fileSystem() {
         return FILE_SYSTEM;
+    }
+
+    public static FileResourceRepository fileRepository() {
+        return new FileResourceConnector(FILE_SYSTEM);
     }
 
     /**
