@@ -22,7 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceWriteResult;
@@ -33,12 +33,13 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
 
-public class AccessorBackedExternalResource implements ExternalResource {
+public class AccessorBackedExternalResource extends AbstractExternalResource {
     private final ExternalResourceName name;
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceUploader uploader;
@@ -88,18 +89,9 @@ public class AccessorBackedExternalResource implements ExternalResource {
             } finally {
                 response.close();
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw ResourceExceptions.getFailed(getURI(), e);
         }
-    }
-
-    @Override
-    public ExternalResourceReadResult<Void> writeTo(File destination) throws ResourceException {
-        ExternalResourceReadResult<Void> result = writeToIfPresent(destination);
-        if (result == null) {
-            throw ResourceExceptions.getMissing(getURI());
-        }
-        return result;
     }
 
     @Override
@@ -126,7 +118,7 @@ public class AccessorBackedExternalResource implements ExternalResource {
             } finally {
                 response.close();
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw ResourceExceptions.getFailed(name.getUri(), e);
         }
     }
@@ -150,7 +142,7 @@ public class AccessorBackedExternalResource implements ExternalResource {
             } finally {
                 response.close();
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw ResourceExceptions.getFailed(name.getUri(), e);
         }
     }
@@ -169,18 +161,9 @@ public class AccessorBackedExternalResource implements ExternalResource {
             } finally {
                 response.close();
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw ResourceExceptions.getFailed(name.getUri(), e);
         }
-    }
-
-    @Override
-    public <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
-        ExternalResourceReadResult<T> result = withContentIfPresent(readAction);
-        if (result == null) {
-            throw ResourceExceptions.getMissing(getURI());
-        }
-        return result;
     }
 
     @Override
@@ -198,7 +181,7 @@ public class AccessorBackedExternalResource implements ExternalResource {
             CountingLocalResource countingResource = new CountingLocalResource(source);
             uploader.upload(countingResource, getURI());
             return new ExternalResourceWriteResult(countingResource.getCount());
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw ResourceExceptions.putFailed(getURI(), e);
         }
     }

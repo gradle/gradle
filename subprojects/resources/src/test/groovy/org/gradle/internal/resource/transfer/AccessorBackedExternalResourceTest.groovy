@@ -19,7 +19,6 @@ package org.gradle.internal.resource.transfer
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.resources.MissingResourceException
-import org.gradle.api.resources.ResourceException
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
@@ -177,9 +176,8 @@ class AccessorBackedExternalResourceTest extends Specification {
         resource.withContent(action)
 
         then:
-        def e = thrown(ResourceException)
-        e.message == "Could not get resource 'resource'."
-        e.cause == failure
+        def e = thrown(RuntimeException)
+        e == failure
 
         1 * resourceAccessor.openResource(name.uri, true) >> response
         1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
@@ -200,9 +198,21 @@ class AccessorBackedExternalResourceTest extends Specification {
         resource.withContentIfPresent(transformer)
 
         then:
-        def e = thrown(ResourceException)
-        e.message == "Could not get resource 'resource'."
-        e.cause == failure
+        def e = thrown(RuntimeException)
+        e == failure
+
+        1 * resourceAccessor.openResource(name.uri, true) >> response
+        1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
+        1 * transformer.transform(_) >> { throw failure }
+        1 * response.close()
+        0 * _
+
+        when:
+        resource.withContent(transformer)
+
+        then:
+        def e2 = thrown(RuntimeException)
+        e2 == failure
 
         1 * resourceAccessor.openResource(name.uri, true) >> response
         1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
@@ -224,9 +234,22 @@ class AccessorBackedExternalResourceTest extends Specification {
         resource.withContentIfPresent(action)
 
         then:
-        def e = thrown(ResourceException)
-        e.message == "Could not get resource 'resource'."
-        e.cause == failure
+        def e = thrown(RuntimeException)
+        e == failure
+
+        1 * resourceAccessor.openResource(name.uri, true) >> response
+        1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
+        _ * response.metaData >> metaData
+        1 * action.execute(_, metaData) >> { throw failure }
+        1 * response.close()
+        0 * _
+
+        when:
+        resource.withContent(action)
+
+        then:
+        def e2 = thrown(RuntimeException)
+        e2 == failure
 
         1 * resourceAccessor.openResource(name.uri, true) >> response
         1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())

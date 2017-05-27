@@ -16,10 +16,13 @@
 
 package org.gradle.internal.resource.local;
 
+import com.google.common.io.CountingInputStream;
 import com.google.common.io.CountingOutputStream;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
@@ -27,17 +30,20 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceWriteResult;
 import org.gradle.internal.resource.LocalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -54,6 +60,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
         this.fileSystem = fileSystem;
     }
 
+    @Override
     public URI getURI() {
         return localFile.toURI();
     }
@@ -78,6 +85,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
         return this;
     }
 
+    @Override
     public long getContentLength() {
         return localFile.length();
     }
@@ -87,13 +95,6 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
         return localFile.getPath();
     }
 
-    public InputStream openStreamIfPresent() throws IOException {
-        if (!localFile.exists()) {
-            return null;
-        }
-        return new FileInputStream(localFile);
-    }
-
     @Nullable
     public ExternalResourceMetaData getMetaData() {
         FileMetadataSnapshot stat = fileSystem.stat(localFile);
@@ -101,6 +102,103 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
             return null;
         }
         return new DefaultExternalResourceMetaData(localFile.toURI(), stat.getLastModified(), stat.getLength());
+    }
+
+    @Override
+    public ExternalResourceReadResult<Void> writeTo(OutputStream output) {
+        if (!localFile.exists()) {
+            throw ResourceExceptions.getMissing(getURI());
+        }
+        try {
+            CountingInputStream input = new CountingInputStream(new FileInputStream(localFile));
+            try {
+                IOUtils.copyLarge(input, output);
+            } finally {
+                input.close();
+            }
+            return ExternalResourceReadResult.of(input.getCount());
+        } catch (IOException e) {
+            throw ResourceExceptions.getFailed(getURI(), e);
+        }
+    }
+
+    @Override
+    @Nullable
+    public ExternalResourceReadResult<Void> writeToIfPresent(File destination) {
+        if (!localFile.exists()) {
+            return null;
+        }
+        try {
+            CountingInputStream input = new CountingInputStream(new FileInputStream(localFile));
+            try {
+                FileOutputStream output = new FileOutputStream(destination);
+                try {
+                    IOUtils.copyLarge(input, output);
+                } finally {
+                    output.close();
+                }
+            } finally {
+                input.close();
+            }
+            return ExternalResourceReadResult.of(input.getCount());
+        } catch (IOException e) {
+            throw ResourceExceptions.getFailed(getURI(), e);
+        }
+    }
+
+    public ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) {
+        if (!localFile.exists()) {
+            throw ResourceExceptions.getMissing(getURI());
+        }
+        try {
+            CountingInputStream input = new CountingInputStream(new BufferedInputStream(new FileInputStream(localFile)));
+            try {
+                readAction.execute(input);
+            } finally {
+                input.close();
+            }
+            return ExternalResourceReadResult.of(input.getCount());
+        } catch (IOException e) {
+            throw ResourceExceptions.getFailed(getURI(), e);
+        }
+    }
+
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
+        if (!localFile.exists()) {
+            return null;
+        }
+        try {
+            CountingInputStream input = new CountingInputStream(new BufferedInputStream(new FileInputStream(localFile)));
+            try {
+                T resourceReadResult = readAction.execute(input, getMetaData());
+                return ExternalResourceReadResult.of(input.getCount(), resourceReadResult);
+            } finally {
+                input.close();
+            }
+        } catch (IOException e) {
+            throw ResourceExceptions.getFailed(getURI(), e);
+        }
+    }
+
+    @Nullable
+    @Override
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+        if (!localFile.exists()) {
+            return null;
+        }
+        try {
+            CountingInputStream input = new CountingInputStream(new BufferedInputStream(new FileInputStream(localFile)));
+            try {
+                T resourceReadResult = readAction.transform(input);
+                return ExternalResourceReadResult.of(input.getCount(), resourceReadResult);
+            } finally {
+                input.close();
+            }
+        } catch (IOException e) {
+            throw ResourceExceptions.getFailed(getURI(), e);
+        }
     }
 
     @Override
@@ -123,7 +221,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
             } finally {
                 input.close();
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw ResourceExceptions.putFailed(getURI(), e);
         }
     }
