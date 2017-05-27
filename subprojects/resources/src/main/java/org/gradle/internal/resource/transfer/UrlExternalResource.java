@@ -21,7 +21,7 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -102,7 +102,7 @@ public class UrlExternalResource implements ExternalResourceConnector {
     }
 
     @Override
-    public void upload(LocalResource resource, URI destination) throws IOException {
+    public void upload(ReadableContent resource, URI destination) throws IOException {
         throw new UnsupportedOperationException();
     }
 }

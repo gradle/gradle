@@ -26,7 +26,7 @@ import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceWriteResult;
-import org.gradle.internal.resource.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -176,9 +176,9 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     }
 
     @Override
-    public ExternalResourceWriteResult put(final LocalResource source) throws ResourceException {
+    public ExternalResourceWriteResult put(final ReadableContent source) throws ResourceException {
         try {
-            CountingLocalResource countingResource = new CountingLocalResource(source);
+            CountingReadableContent countingResource = new CountingReadableContent(source);
             uploader.upload(countingResource, getURI());
             return new ExternalResourceWriteResult(countingResource.getCount());
         } catch (IOException e) {
@@ -201,12 +201,12 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
         return accessor.getMetaData(getURI(), revalidate);
     }
 
-    private static class CountingLocalResource implements LocalResource {
-        private final LocalResource source;
+    private static class CountingReadableContent implements ReadableContent {
+        private final ReadableContent source;
         private CountingInputStream instr;
         private long count;
 
-        CountingLocalResource(LocalResource source) {
+        CountingReadableContent(ReadableContent source) {
             this.source = source;
         }
 

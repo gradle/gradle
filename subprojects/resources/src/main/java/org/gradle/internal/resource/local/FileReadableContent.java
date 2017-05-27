@@ -16,25 +16,31 @@
 
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.resource.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.resource.ResourceExceptions;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-public class ByteArrayLocalResource implements LocalResource {
-    private final byte[] source;
+public class FileReadableContent implements ReadableContent {
+    private final File file;
 
-    public ByteArrayLocalResource(byte[] source) {
-        this.source = source;
+    public FileReadableContent(File file) {
+        this.file = file;
     }
 
     @Override
     public long getContentLength() {
-        return source.length;
+        return file.length();
     }
 
-    @Override
     public InputStream open() {
-        return new ByteArrayInputStream(source);
+        try {
+            return new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            throw ResourceExceptions.readMissing(file, e);
+        }
     }
 }

@@ -114,7 +114,7 @@ public interface ExternalResource extends Resource {
      * @param source The local resource to be transferred.
      * @throws ResourceException On failure to write the content.
      */
-    ExternalResourceWriteResult put(LocalResource source) throws ResourceException;
+    ExternalResourceWriteResult put(ReadableContent source) throws ResourceException;
 
     /**
      * Return a listing of child resources names.

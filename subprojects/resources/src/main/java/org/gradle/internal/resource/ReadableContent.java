@@ -20,7 +20,7 @@ import org.gradle.api.resources.ResourceException;
 
 import java.io.InputStream;
 
-public interface LocalResource {
+public interface ReadableContent {
     /**
      * Unbuffered input stream to read contents of resource.
      */

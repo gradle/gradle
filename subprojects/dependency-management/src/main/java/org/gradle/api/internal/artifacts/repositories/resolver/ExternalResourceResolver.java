@@ -64,8 +64,8 @@ import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
-import org.gradle.internal.resource.local.ByteArrayLocalResource;
-import org.gradle.internal.resource.local.FileLocalResource;
+import org.gradle.internal.resource.local.ByteArrayReadableContent;
+import org.gradle.internal.resource.local.FileReadableContent;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -345,14 +345,14 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void put(File src, ExternalResourceName destination) {
-        repository.withProgressLogging().resource(destination).put(new FileLocalResource(src));
+        repository.withProgressLogging().resource(destination).put(new FileReadableContent(src));
         putChecksum(src, destination);
     }
 
     private void putChecksum(File source, ExternalResourceName destination) {
         byte[] checksumFile = createChecksumFile(source, "SHA1", 40);
         ExternalResourceName checksumDestination = destination.append(".sha1");
-        repository.resource(checksumDestination).put(new ByteArrayLocalResource(checksumFile));
+        repository.resource(checksumDestination).put(new ByteArrayReadableContent(checksumFile));
     }
 
     private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {

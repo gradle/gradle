@@ -29,8 +29,8 @@ import org.apache.maven.wagon.proxy.ProxyInfoProvider;
 import org.apache.maven.wagon.repository.Repository;
 import org.apache.maven.wagon.resource.Resource;
 import org.gradle.api.GradleException;
-import org.gradle.internal.resource.local.FileLocalResource;
-import org.gradle.internal.resource.LocalResource;
+import org.gradle.internal.resource.local.FileReadableContent;
+import org.gradle.internal.resource.ReadableContent;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,8 +90,8 @@ public class RepositoryTransportDeployWagon implements Wagon {
         Resource resource = new Resource(resourceName);
         this.transferEventSupport.fireTransferInitiated(transferEvent(resource, TRANSFER_INITIATED, REQUEST_PUT));
         try {
-            LocalResource localResource = new MavenTransferLoggingFileResource(file, resource);
-            getDelegate().putRemoteFile(localResource, resourceName);
+            ReadableContent content = new MavenTransferLoggingFileResource(file, resource);
+            getDelegate().putRemoteFile(content, resourceName);
         } catch (Exception e) {
             this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_PUT));
             throw new TransferFailedException(String.format("Could not write to resource '%s'", resourceName), e);
@@ -257,7 +257,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
         return new TransferEvent(this, resource, e, requestType);
     }
 
-    private class MavenTransferLoggingFileResource extends FileLocalResource {
+    private class MavenTransferLoggingFileResource extends FileReadableContent {
         private final Resource resource;
 
         private MavenTransferLoggingFileResource(File file, Resource resource) {

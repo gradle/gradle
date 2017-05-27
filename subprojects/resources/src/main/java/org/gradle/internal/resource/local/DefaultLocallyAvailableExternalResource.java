@@ -23,7 +23,7 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceWriteResult;
-import org.gradle.internal.resource.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
@@ -74,7 +74,7 @@ public class DefaultLocallyAvailableExternalResource implements LocallyAvailable
     }
 
     @Override
-    public ExternalResourceWriteResult put(LocalResource source) throws ResourceException {
+    public ExternalResourceWriteResult put(ReadableContent source) throws ResourceException {
         throw new UnsupportedOperationException();
     }
 
