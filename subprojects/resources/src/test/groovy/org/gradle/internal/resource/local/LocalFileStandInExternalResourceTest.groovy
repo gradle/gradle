@@ -20,12 +20,12 @@ import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.resources.MissingResourceException
+import org.gradle.api.resources.ResourceException
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.resources.ResourceException
 
 import java.nio.file.Files
 import java.nio.file.LinkOption
@@ -59,7 +59,7 @@ class LocalFileStandInExternalResourceTest extends Specification {
             @Override
             String execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
                 assert metaData.location == file.toURI()
-                assert metaData.lastModified == new Date(file.lastModified())
+                assert metaData.lastModified.time == lastModified(file)
                 assert metaData.contentLength == 4
                 assert metaData.sha1 == null
                 assert inputStream.read() == '1'
