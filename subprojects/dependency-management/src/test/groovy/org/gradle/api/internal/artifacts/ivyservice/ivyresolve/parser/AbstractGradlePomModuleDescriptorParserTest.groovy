@@ -31,7 +31,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
-import org.gradle.internal.resource.transport.file.FileResourceConnector
+import org.gradle.internal.resource.local.FileResourceConnector
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

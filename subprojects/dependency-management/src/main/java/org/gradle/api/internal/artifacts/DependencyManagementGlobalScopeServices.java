@@ -35,7 +35,7 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
-import org.gradle.internal.resource.transport.file.FileResourceConnector;
+import org.gradle.internal.resource.local.FileResourceConnector;
 
 class DependencyManagementGlobalScopeServices {
     FileResourceRepository createFileResourceRepository(FileSystem fileSystem){

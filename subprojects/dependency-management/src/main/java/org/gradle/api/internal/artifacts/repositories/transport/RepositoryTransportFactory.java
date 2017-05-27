@@ -110,7 +110,7 @@ public class RepositoryTransportFactory {
         // file:// repos are treated differently
         // 1) we don't cache their files
         // 2) we don't do progress logging for "downloading"
-        if (Collections.singleton("file").containsAll(schemes)) {
+        if (schemes.equals(Collections.singleton("file"))) {
             return new FileTransport(name, fileRepository);
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);

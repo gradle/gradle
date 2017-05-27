@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableResource
-import org.gradle.internal.resource.transport.file.FileResourceConnector
+import org.gradle.internal.resource.local.FileResourceConnector
 import spock.lang.Specification
 
 class DisconnectedIvyXmlModuleDescriptorParserTest extends Specification {

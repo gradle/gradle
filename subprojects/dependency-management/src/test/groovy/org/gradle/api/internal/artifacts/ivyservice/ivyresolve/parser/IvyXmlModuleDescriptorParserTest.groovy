@@ -26,9 +26,7 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.IvyDependencyMetadata
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
-import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
-import org.gradle.internal.resource.transport.file.FileResourceConnector
+import org.gradle.internal.resource.local.FileResourceConnector
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
@@ -46,7 +44,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, new FileResourceConnector(TestFiles.fileSystem()))
+    FileResourceConnector fileRepository = new FileResourceConnector(TestFiles.fileSystem())
+    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileRepository)
 
     DescriptorParseContext parseContext = Mock()
     ModuleDescriptorState md
@@ -395,7 +394,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 </ivy-module>
 """
         and:
-        parseContext.getMetaDataArtifact(_, IVY_DESCRIPTOR) >> new DefaultLocallyAvailableExternalResource(parentFile.toURI(), new DefaultLocallyAvailableResource(parentFile), TestFiles.fileSystem())
+        parseContext.getMetaDataArtifact(_, IVY_DESCRIPTOR) >> fileRepository.resource(parentFile)
 
         when:
         parse(parseContext, file)
