@@ -15,8 +15,6 @@
  */
 
 package org.gradle.launcher.daemon.configuration
-
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.jvm.JavaInfo
@@ -62,8 +60,7 @@ public class BuildProcessTest extends Specification {
         and:
         !buildProcess.configureForBuild(buildParameters(["-Xms10m"]))
         !buildProcess.configureForBuild(buildParameters(["-XX:SomethingElse"]))
-        buildProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"]))
-        buildProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse"]))
+        !buildProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"]))
         def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
         !buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding"]))
         def notDefaultLanguage = ["es", "jp"].find { it != Locale.default.language }
@@ -87,80 +84,26 @@ public class BuildProcessTest extends Specification {
         System.getProperty('baz') != null
     }
 
-    def "defaults in required vm args are ignored"() {
+    def "when required opts contain an immutable default setting ignore it"() {
         //if the user does not configure any jvm args Gradle uses some defaults
         //however, we don't want those defaults to influence the decision whether to use existing process or not
-        given:
+        //e.g. those defaults should only be used for launching a new process
+        //TODO SF this is a bit messy, let's try to clean this up
+        when:
         BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
 
-        when:
-        def parametersWithDefaults = buildParameters()
-        parametersWithDefaults.applyDefaultsFor(JavaVersion.current())
-
         then:
-        buildProcess.configureForBuild(parametersWithDefaults)
+        buildProcess.configureForBuild(buildParameters(["-Xmx1024m"]))
     }
 
-    def "user-defined vm args that correspond to defaults are not ignored"() {
-        given:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        when:
-        def parametersWithDefaults = buildParameters(DaemonParameters.DEFAULT_JVM_ARGS)
-
-        then:
-        !buildProcess.configureForBuild(parametersWithDefaults)
-    }
-
-    def "current and requested build vm match if vm arguments match"() {
-        given:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        when:
-        currentJvmOptions.minHeapSize = "16m"
-        currentJvmOptions.maxHeapSize = "256m"
-        currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
-
-        then:
-        buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError"]))
-    }
-
-    def "current and requested build vm do not match if vm arguments differ"() {
-        given:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        when:
-        currentJvmOptions.minHeapSize = "16m"
-        currentJvmOptions.maxHeapSize = "1024m"
-        currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
-
-        then:
-        !buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError"]))
-    }
-
-    def "current and requested build vm match if no arguments were set for requested vm"() {
-        given:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        when:
-        currentJvmOptions.minHeapSize = "16m"
-        currentJvmOptions.maxHeapSize = "1024m"
-        currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
-
-        then:
-        buildProcess.configureForBuild(buildParameters())
-    }
-
-    private DaemonParameters buildParameters(Iterable<String> jvmArgs = []) {
+    private DaemonParameters buildParameters(Iterable<String> jvmArgs) {
         return buildParameters(currentJvm, jvmArgs)
     }
 
     private static DaemonParameters buildParameters(JavaInfo jvm, Iterable<String> jvmArgs = []) {
         def parameters = new DaemonParameters(new BuildLayoutParameters())
         parameters.setJvm(jvm)
-        if (jvmArgs.iterator().hasNext()) {
-            parameters.setJvmArgs(jvmArgs)
-        }
+        parameters.setJvmArgs(jvmArgs)
         return parameters
     }
 }
