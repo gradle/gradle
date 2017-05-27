@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.internal
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
 import org.gradle.api.reporting.SingleFileReport
@@ -268,5 +269,25 @@ class FindBugsSpecBuilderTest extends Specification {
 
         then:
         args.containsAll([ "abc", "def" ])
+    }
+
+    def "with classpath"() {
+        def classFile = tempFolder.createFile('a.class')
+        def jarFile = tempFolder.createFile('b.jar')
+        def otherFile = tempFolder.createFile('c.other')
+        def dir = tempFolder.createDir('dir')
+        def nonexistent = new File('nonexistent-file')
+        def fileCollection = new SimpleFileCollection(classFile, jarFile, otherFile, dir, nonexistent)
+
+        when:
+
+        def args = builder.withClasspath(fileCollection).build().arguments
+        def auxclasspathIndex = args.findIndexOf { it == '-auxclasspath' }
+        def auxclasspath = args[auxclasspathIndex + 1]
+
+        then:
+        auxclasspathIndex >= 0
+        [classFile, jarFile, dir].every { auxclasspath.contains("$it") }
+        [otherFile, nonexistent].every { !auxclasspath.contains("$it") }
     }
 }

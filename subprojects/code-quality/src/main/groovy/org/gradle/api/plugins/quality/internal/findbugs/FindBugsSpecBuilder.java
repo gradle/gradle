@@ -190,10 +190,16 @@ public class FindBugsSpecBuilder {
         if (has(classpath)) {
             args.add("-auxclasspath");
 
-            // Filter unexisting files as FindBugs can't handle them.
+            // Filter files FindBugs can't handle
+            // See edu.umd.cs.findbugs.classfile.impl.ClassFactory.createFilesystemCodeBase
             args.add(classpath.filter(new Spec<File>() {
                 public boolean isSatisfiedBy(File element) {
-                    return element.exists();
+                    if (element.isDirectory()) {
+                        return true;
+                    } else if (element.isFile()) {
+                        return element.getName().endsWith(".class") || element.getName().endsWith(".jar");
+                    }
+                    return false;
                 }
             }).getAsPath());
         }
