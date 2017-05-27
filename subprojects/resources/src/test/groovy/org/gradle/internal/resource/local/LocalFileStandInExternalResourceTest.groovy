@@ -27,6 +27,10 @@ import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.api.resources.ResourceException
 
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.attribute.BasicFileAttributeView
+
 class LocalFileStandInExternalResourceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -41,7 +45,7 @@ class LocalFileStandInExternalResourceTest extends Specification {
             @Override
             String execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
                 assert metaData.location == file.toURI()
-                assert metaData.lastModified == new Date(file.lastModified())
+                assert metaData.lastModified.time == lastModified(file)
                 assert metaData.contentLength == 4
                 assert metaData.sha1 == null
                 assert inputStream.text == "1234"
@@ -354,7 +358,7 @@ class LocalFileStandInExternalResourceTest extends Specification {
         expect:
         def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
         resource.metaData.location == file.toURI()
-        resource.metaData.lastModified == new Date(file.lastModified())
+        resource.metaData.lastModified.time == lastModified(file)
         resource.metaData.contentLength == 4
         resource.metaData.sha1 == null
     }
@@ -377,4 +381,9 @@ class LocalFileStandInExternalResourceTest extends Specification {
         def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
         resource.metaData == null
     }
+
+    def lastModified(File file) {
+        return Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
+    }
+
 }
