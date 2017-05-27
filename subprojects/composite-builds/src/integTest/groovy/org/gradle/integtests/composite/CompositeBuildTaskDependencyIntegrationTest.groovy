@@ -262,7 +262,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
     def "reports failure when delegating to included build when composing build defines a task with the same name as the included build"() {
         when:
         buildA.buildFile << """
-    task buildB // Just a regular old task instance
+    task _buildB_logProject // Just a regular old task instance
     task delegate {
         dependsOn gradle.includedBuild('buildB').task(':logProject')
     }
@@ -273,7 +273,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':delegate'.")
-        failure.assertHasCause("Cannot create delegating task 'buildB' as task with same name already exists.")
+        failure.assertHasCause("Cannot create delegating task '_buildB_logProject' as task with same name already exists.")
     }
 
     @Unroll

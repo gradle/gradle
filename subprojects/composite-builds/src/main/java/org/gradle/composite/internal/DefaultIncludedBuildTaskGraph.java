@@ -39,19 +39,25 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     }
 
     @Override
-    public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskName) {
+    public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
         boolean newBuildDependency = buildDependencies.put(requestingBuild, targetBuild);
         if (newBuildDependency) {
             List<BuildIdentifier> candidateCycle = Lists.newArrayList();
             checkNoCycles(requestingBuild, targetBuild, candidateCycle);
         }
 
-        tasksForBuild.put(targetBuild, taskName);
+        tasksForBuild.put(targetBuild, taskPath);
     }
 
     @Override
-    public void awaitCompletion(BuildIdentifier targetBuild) {
-        includedBuildExecuter.execute(targetBuild, getTasksForBuild(targetBuild));
+    public void awaitCompletion(BuildIdentifier targetBuild, String... taskPaths) {
+        Collection<String> tasksForBuild = getTasksForBuild(targetBuild);
+        for (String taskPath : taskPaths) {
+            if (!tasksForBuild.contains(taskPath)) {
+                throw new IllegalStateException("Waiting for task " + taskPath + " never added to " + targetBuild);
+            }
+        }
+        includedBuildExecuter.execute(targetBuild, tasksForBuild);
     }
 
     private synchronized Collection<String> getTasksForBuild(BuildIdentifier targetBuild) {
