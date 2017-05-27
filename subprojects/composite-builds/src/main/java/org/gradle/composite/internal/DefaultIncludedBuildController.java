@@ -165,7 +165,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
     }
 
-    private boolean isComplete(String taskPath) {
+    public boolean isComplete(String taskPath) {
         lock.lock();
         try {
             TaskState state = tasks.get(taskPath);

@@ -20,5 +20,7 @@ public interface IncludedBuildController {
 
     void awaitCompletion(String taskPath);
 
+    boolean isComplete(String taskPath);
+
     void startTaskExecution();
 }

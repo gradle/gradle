@@ -59,6 +59,11 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         controller.awaitCompletion(taskPath);
     }
 
+    public boolean isComplete(BuildIdentifier targetBuild, String taskPath) {
+        IncludedBuildController controller = getBuildController(targetBuild);
+        return controller.isComplete(taskPath);
+    }
+
     private IncludedBuildController getBuildController(BuildIdentifier buildId) {
         return includedBuilds.getBuildController(buildId);
     }
