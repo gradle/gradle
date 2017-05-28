@@ -20,23 +20,20 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildTaskGraph;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.Path;
 
-import java.util.Collection;
 import java.util.List;
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     private final Multimap<BuildIdentifier, BuildIdentifier> buildDependencies = LinkedHashMultimap.create();
-    private final Multimap<BuildIdentifier, String> tasksForBuild = LinkedHashMultimap.create();
-    private final IncludedBuildExecuter includedBuildExecuter;
+    private final IncludedBuildControllers includedBuilds;
 
-    public DefaultIncludedBuildTaskGraph(IncludedBuildExecuter includedBuildExecuter) {
-        this.includedBuildExecuter = includedBuildExecuter;
-    }
+    public DefaultIncludedBuildTaskGraph(IncludedBuildControllers includedBuilds) {
+            this.includedBuilds = includedBuilds;
+        }
 
     @Override
     public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
@@ -46,20 +43,17 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
             checkNoCycles(requestingBuild, targetBuild, candidateCycle);
         }
 
-        tasksForBuild.put(targetBuild, taskPath);
+        getBuildController(targetBuild).queueForExecution(taskPath);
     }
 
     @Override
     public void awaitCompletion(BuildIdentifier targetBuild, String taskPath) {
-        Collection<String> tasksForBuild = getTasksForBuild(targetBuild);
-        if (!tasksForBuild.contains(taskPath)) {
-            throw new IllegalStateException("Waiting for task " + taskPath + " never added to " + targetBuild);
-        }
-        includedBuildExecuter.execute(targetBuild, tasksForBuild);
+        IncludedBuildController controller = getBuildController(targetBuild);
+        controller.awaitCompletion(taskPath);
     }
 
-    private synchronized Collection<String> getTasksForBuild(BuildIdentifier targetBuild) {
-        return tasksForBuild.get(targetBuild);
+    private IncludedBuildController getBuildController(BuildIdentifier buildId) {
+        return includedBuilds.getBuildController(buildId);
     }
 
     private void checkNoCycles(BuildIdentifier sourceBuild, BuildIdentifier targetBuild, List<BuildIdentifier> candidateCycle) {

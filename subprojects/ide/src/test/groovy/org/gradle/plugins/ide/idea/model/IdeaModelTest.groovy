@@ -20,9 +20,9 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.ProjectPathRegistry
-import org.gradle.initialization.IncludedBuildExecuter
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.XmlFileContentMerger
@@ -67,7 +67,7 @@ class IdeaModelTest extends Specification {
             getServices() >> Stub(ServiceRegistry) {
                 get(ProjectPathRegistry) >> (ProjectPathRegistry) null
                 get(LocalComponentRegistry) >> (LocalComponentRegistry) null
-                get(IncludedBuildExecuter) >> (IncludedBuildExecuter) null
+                get(IncludedBuildControllers) >> (IncludedBuildControllers) null
                 get(BuildIdentity) >> (BuildIdentity) null
             }
         }

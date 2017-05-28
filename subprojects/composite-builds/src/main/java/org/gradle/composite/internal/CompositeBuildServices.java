@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifac
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.initialization.IncludedBuildTaskGraph;
 import org.gradle.initialization.IncludedBuilds;
@@ -64,12 +63,12 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultCompositeContextBuilder(includedBuilds, projectRegistry, context);
         }
 
-        public IncludedBuildExecuter createIncludedBuildExecuter(IncludedBuilds includedBuilds) {
-            return new DefaultIncludedBuildExecuter(includedBuilds);
+        public IncludedBuildControllers createIncludedBuildControllers(IncludedBuilds includedBuilds) {
+            return new DefaultIncludedBuildControllers(includedBuilds);
         }
 
-        public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildExecuter includedBuildExecuter) {
-            return new DefaultIncludedBuildTaskGraph(includedBuildExecuter);
+        public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildControllers controllers) {
+            return new DefaultIncludedBuildTaskGraph(controllers);
         }
 
         public IncludedBuildArtifactBuilder createIncludedBuildArtifactBuilder(IncludedBuildTaskGraph includedBuildTaskGraph) {
