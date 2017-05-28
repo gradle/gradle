@@ -59,6 +59,26 @@ public interface ArtifactView extends HasAttributes {
         ViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter);
 
         /**
+         * Determines whether the view should be resolved in a 'lenient' fashion.
+         *
+         * When set to <code>true</code>, this view will resolve as many artifacts and/or files as possible
+         * collecting any failures.
+         *
+         * When set to <code>false</code>, any failures will be propagated as exceptions when the view is resolved.
+         */
+        boolean isLenient();
+
+        /**
+         * Specify if the view should be resolved in a 'lenient' fashion.
+         *
+         * When set to <code>true</code>, this view will resolve as many artifacts and/or files as possible
+         * collecting any failures.
+         *
+         * When set to <code>false</code>, any failures will be propagated as exceptions when the view is resolved.
+         */
+        void setLenient(boolean lenient);
+
+        /**
          * Specify if the view should be resolved in a 'lenient' fashion.
          *
          * When set to <code>true</code>, this view will resolve as many artifacts and/or files as possible

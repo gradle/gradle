@@ -1107,6 +1107,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
+        public boolean isLenient() {
+            return lenient;
+        }
+
+        @Override
+        public void setLenient(boolean lenient) {
+            this.lenient = lenient;
+        }
+
+        @Override
         public ArtifactViewConfiguration lenient(boolean lenient) {
             this.lenient = lenient;
             return this;
