@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.eclipse.model.internal
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.composite.internal.CompositeBuildIdeProjectResolver
-import org.gradle.composite.internal.IncludedBuildControllers
+import org.gradle.initialization.includedbuild.IncludedBuildControllers
 import org.gradle.initialization.DefaultBuildIdentity
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName

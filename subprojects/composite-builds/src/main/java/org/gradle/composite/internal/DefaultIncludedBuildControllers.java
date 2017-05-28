@@ -19,7 +19,9 @@ package org.gradle.composite.internal;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.initialization.IncludedBuilds;
+import org.gradle.initialization.includedbuild.IncludedBuildController;
+import org.gradle.initialization.includedbuild.IncludedBuildControllers;
+import org.gradle.initialization.includedbuild.IncludedBuilds;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 

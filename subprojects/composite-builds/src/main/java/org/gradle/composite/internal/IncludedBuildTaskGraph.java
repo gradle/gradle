@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
-public interface IncludedBuildControllers {
-    IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
+public interface IncludedBuildTaskGraph {
+    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
+
+    void awaitCompletion(BuildIdentifier targetBuild, String taskPath);
 }

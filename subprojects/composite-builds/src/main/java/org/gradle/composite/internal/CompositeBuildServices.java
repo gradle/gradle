@@ -22,9 +22,9 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifac
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.IncludedBuildFactory;
-import org.gradle.initialization.IncludedBuildTaskGraph;
-import org.gradle.initialization.IncludedBuilds;
+import org.gradle.initialization.includedbuild.IncludedBuildControllers;
+import org.gradle.initialization.includedbuild.IncludedBuildFactory;
+import org.gradle.initialization.includedbuild.IncludedBuilds;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.reflect.Instantiator;

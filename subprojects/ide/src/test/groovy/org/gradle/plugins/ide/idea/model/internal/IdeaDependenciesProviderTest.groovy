@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.idea.model.internal
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.composite.internal.IncludedBuildControllers
+import org.gradle.initialization.includedbuild.IncludedBuildControllers
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildIdentity
 import org.gradle.internal.service.DefaultServiceRegistry

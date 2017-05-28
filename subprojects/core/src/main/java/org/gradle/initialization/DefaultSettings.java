@@ -35,6 +35,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.includedbuild.IncludedBuildFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.scripts.ScriptFileResolver;

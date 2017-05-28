@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.initialization.includedbuild;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 
-public interface IncludedBuildTaskGraph {
-    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
+import java.io.File;
 
-    void awaitCompletion(BuildIdentifier targetBuild, String taskPath);
+public interface IncludedBuildFactory {
+    ConfigurableIncludedBuild createBuild(File buildDirectory);
 }

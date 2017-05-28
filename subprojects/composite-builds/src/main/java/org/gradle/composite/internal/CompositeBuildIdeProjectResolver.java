@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.IncludedBuildTaskGraph;
+import org.gradle.initialization.includedbuild.IncludedBuildControllers;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 

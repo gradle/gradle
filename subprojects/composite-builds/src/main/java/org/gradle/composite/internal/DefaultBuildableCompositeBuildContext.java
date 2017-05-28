@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.initialization.IncludedBuilds;
+import org.gradle.initialization.includedbuild.IncludedBuilds;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;

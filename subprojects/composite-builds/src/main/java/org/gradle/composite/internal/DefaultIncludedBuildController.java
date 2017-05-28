@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.BuildResult;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.initialization.includedbuild.IncludedBuildController;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;

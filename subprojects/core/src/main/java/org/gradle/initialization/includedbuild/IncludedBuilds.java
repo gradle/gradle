@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.composite.internal;
 
-public interface IncludedBuildController {
-    void queueForExecution(String taskPath);
+package org.gradle.initialization.includedbuild;
 
-    void awaitCompletion(String taskPath);
+import org.gradle.api.initialization.IncludedBuild;
+
+public interface IncludedBuilds {
+    Iterable<IncludedBuild> getBuilds();
+    IncludedBuild getBuild(String name);
 }

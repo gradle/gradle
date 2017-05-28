@@ -24,7 +24,7 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.IncludedBuildFactory;
+import org.gradle.initialization.includedbuild.IncludedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
 
 import java.io.File;

@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
+import org.gradle.initialization.includedbuild.IncludedBuildFactory;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
 import org.gradle.internal.composite.CompositeContextBuilder;
 

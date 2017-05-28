@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.composite.internal.IncludedBuildControllers
+import org.gradle.initialization.includedbuild.IncludedBuildControllers
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.ProjectPathRegistry
 import org.gradle.internal.service.ServiceRegistry

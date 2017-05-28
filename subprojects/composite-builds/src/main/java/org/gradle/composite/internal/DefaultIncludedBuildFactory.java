@@ -25,7 +25,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.IncludedBuildFactory;
+import org.gradle.initialization.includedbuild.IncludedBuildFactory;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;

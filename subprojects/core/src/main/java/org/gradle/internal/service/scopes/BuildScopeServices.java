@@ -113,7 +113,7 @@ import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultSettingsFinder;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.IGradlePropertiesLoader;
-import org.gradle.initialization.IncludedBuildFactory;
+import org.gradle.initialization.includedbuild.IncludedBuildFactory;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser;
