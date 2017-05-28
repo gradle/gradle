@@ -47,8 +47,17 @@ abstract class CodeNarcInvoker {
             try {
                 ant.codenarc(ruleSetFiles: "file:${configFile}", maxPriority1Violations: maxPriority1Violations, maxPriority2Violations: maxPriority2Violations, maxPriority3Violations: maxPriority3Violations) {
                     reports.enabled.each { SingleFileReport r ->
-                        report(type: r.name) {
-                            option(name: 'outputFile', value: r.destination)
+                        // See http://codenarc.sourceforge.net/codenarc-TextReportWriter.html
+                        if (r.name == 'console') {
+                            setLifecycleLogLevel(ant,'INFO')
+                            report(type: 'text') {
+                                option(name: 'writeToStandardOut', value: true)
+                            }
+                        } else {
+                            setLifecycleLogLevel(ant,null)
+                            report(type: r.name) {
+                                option(name: 'outputFile', value: r.destination)
+                            }
                         }
                     }
 
@@ -58,7 +67,7 @@ abstract class CodeNarcInvoker {
                 if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
                     def message = "CodeNarc rule violations were found."
                     def report = reports.firstEnabled
-                    if (report) {
+                    if (report && report.name != 'console') {
                         def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
                         message += " See the report at: $reportUrl"
                     }
@@ -73,4 +82,12 @@ abstract class CodeNarcInvoker {
         }
     }
 
+    static void setLifecycleLogLevel(Object ant, String lifecycleLogLevel) {
+        ant?.builder?.project?.buildListeners?.each {
+            // We cannot use instanceof or getClass()==AntLoggingAdapter since they're in different class loaders
+            if (it.class.simpleName == 'AntLoggingAdapter') {
+                it.lifecycleLogLevel = lifecycleLogLevel
+            }
+        }
+    }
 }
