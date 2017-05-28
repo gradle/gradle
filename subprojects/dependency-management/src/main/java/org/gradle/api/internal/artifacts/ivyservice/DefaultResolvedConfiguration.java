@@ -55,11 +55,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
-        try {
-            configuration.select(dependencySpec).visitArtifacts(visitor);
-        } catch (Throwable t) {
-            visitor.visitFailure(t);
-        }
+        configuration.select(dependencySpec).visitArtifacts(visitor);
         Collection<Throwable> failures = visitor.getFailures();
         if (!failures.isEmpty()) {
             throw new DefaultLenientConfiguration.ArtifactResolveException("files", configuration.getConfiguration().getIdentityPath().toString(), configuration.getConfiguration().getDisplayName(), failures);

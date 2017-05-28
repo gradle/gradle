@@ -183,9 +183,7 @@ task showMissing { doLast { println configurations.compile.files } }
         moduleB.pom.expectGetMissing()
         moduleB.artifact.expectHeadMissing()
         moduleC.pom.expectGet()
-        moduleC.artifact.expectGet()
         moduleD.pom.expectGet()
-        moduleD.artifact.expectGet()
 
         then:
         fails("showMissing")
@@ -211,6 +209,8 @@ Required by:
         moduleA.artifact.expectGet()
         moduleB.pom.expectGet()
         moduleB.artifact.expectGet()
+        moduleC.artifact.expectGet()
+        moduleD.artifact.expectGet()
 
         then:
         succeeds('showMissing')

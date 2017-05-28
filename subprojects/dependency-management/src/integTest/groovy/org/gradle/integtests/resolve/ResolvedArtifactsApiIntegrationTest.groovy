@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.gradle.util.TextUtil
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -658,10 +657,10 @@ ${showFailuresTask(expression)}
         "incoming.artifacts"                                          | _
         "incoming.artifactView({}).artifacts"                         | _
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
-        "incoming.artifactView({lenient(true)}).artifacts"            | _
+        "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    def "reports multiple failures to select configurations when artifacts are queried"() {
+    def "reports failure to select configurations when artifacts are queried"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """
 def volume = Attribute.of('volume', Number)
@@ -700,7 +699,7 @@ ${showFailuresTask(expression)}
         "incoming.artifacts"                                          | _
         "incoming.artifactView({}).artifacts"                         | _
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
-        "incoming.artifactView({lenient(true)}).artifacts"            | _
+        "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
     def "reports failure to download artifact when artifacts are queried"() {
@@ -736,7 +735,7 @@ ${showFailuresTask(expression)}
         "incoming.artifacts"                                          | _
         "incoming.artifactView({}).artifacts"                         | _
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
-        "incoming.artifactView({lenient(true)}).artifacts"            | _
+        "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
     def "reports failure to query file dependency when artifacts are queried"() {
@@ -760,7 +759,7 @@ ${showFailuresTask(expression)}
         "incoming.artifacts"                                          | _
         "incoming.artifactView({}).artifacts"                         | _
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
-        "incoming.artifactView({lenient(true)}).artifacts"            | _
+        "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
@@ -807,21 +806,14 @@ ${showFailuresTask(expression)}
         failure.assertHasCause("More than one variant of project :a matches the consumer attributes")
 
         where:
-        expression                                                    | lenient
-        "incoming.artifacts"                                          | false
-        "incoming.artifactView({}).artifacts"                         | false
-        "incoming.artifactView({componentFilter { true }}).artifacts" | false
-        "incoming.artifactView({lenient(true)}).artifacts"            | true
+        expression                                                    | _
+        "incoming.artifacts"                                          | _
+        "incoming.artifactView({}).artifacts"                         | _
+        "incoming.artifactView({componentFilter { true }}).artifacts" | _
+        "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    def "lenient artifact view includes only artifacts that are successfully resolved"() {
-        def failureMessage1 = TextUtil.normaliseLineSeparators("""Could not find missing-artifact.jar (org:missing-artifact:1.0).
-Searched in the following locations:
-    ${mavenHttpRepo.uri}/org/missing-artifact/1.0/missing-artifact-1.0.jar""")
-        def failureMessage2 = TextUtil.normaliseLineSeparators("""More than one variant of project :a matches the consumer attributes:
-  - Configuration ':a:default' variant v1
-  - Configuration ':a:default' variant v2""")
-
+    def "lenient artifact view reports failure to resolve graph and artifacts"() {
         settingsFile << "include 'a', 'b'"
 
         buildFile << """
@@ -839,6 +831,8 @@ dependencies {
     compile project(':b')
 }
 
+configurations.compile.attributes.attribute(usage, "compile")
+
 project(':a') {
     configurations.default.outgoing.variants {
         v1 { }
@@ -847,25 +841,17 @@ project(':a') {
 }
 
 project(':b') {
-    artifacts {
-        compile file('b.jar')
-    }
+    configurations.compile.attributes.attribute(usage, "broken")
 }
 
 task resolveLenient {
     def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
     doLast {
-        def resolvedFiles = ['lib.jar', 'found-2.0.jar', 'b.jar']
+        def resolvedFiles = ['lib.jar', 'found-2.0.jar']
         assert lenientView.files.collect { it.name } == resolvedFiles
         assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
         assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
-        assert lenientView.artifacts.failures.collect { it.message.replaceAll('\\r\\n', '\\n') } == [
-            "Could not resolve all dependencies for configuration ':compile'.",
-            "broken",
-            '''$failureMessage1''',
-            'Could not download broken-artifact.jar (org:broken-artifact:1.0)',
-            '''$failureMessage2'''
-        ]
+        lenientView.artifacts.failures.eachWithIndex { f, i -> println "failure \${i+1}: \$f.message" }
     }
 }
 """
@@ -889,6 +875,17 @@ task resolveLenient {
 
         expect:
         succeeds 'resolveLenient'
+
+        outputContains("failure 1: Could not find org:missing-module:1.0.")
+        outputContains("failure 2: Could not resolve project :b.")
+        outputContains("failure 3: broken")
+        outputContains("""failure 4: Could not find missing-artifact.jar (org:missing-artifact:1.0).
+Searched in the following locations:
+    ${m1.artifact.uri}""")
+        outputContains("failure 5: Could not download broken-artifact.jar (org:broken-artifact:1.0)")
+        outputContains("""failure 6: More than one variant of project :a matches the consumer attributes:
+  - Configuration ':a:default' variant v1: Required usage 'compile' but no value provided.
+  - Configuration ':a:default' variant v2: Required usage 'compile' but no value provided.""")
     }
 
     def showFailuresTask(expression) {
@@ -897,8 +894,6 @@ task show {
     doLast {
         def artifacts = configurations.compile.${expression}
         artifacts.collect { true }
-        // If lenient, need to rethrow
-        throw new org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration.ArtifactResolveException('artifacts', 'artifacts', "configuration ':compile'", artifacts.failures as List)
     }
 }
 """

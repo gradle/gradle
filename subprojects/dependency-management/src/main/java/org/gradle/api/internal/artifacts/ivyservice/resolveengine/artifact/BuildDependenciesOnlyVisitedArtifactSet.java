@@ -16,27 +16,28 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactSet {
-    private final Configuration configuration;
+    private final ResolveContext configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
     private final VisitedArtifactsResults artifactsResults;
     private final ArtifactTransforms artifactTransforms;
 
-    public BuildDependenciesOnlyVisitedArtifactSet(Configuration configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactsResults, ArtifactTransforms artifactTransforms) {
+    public BuildDependenciesOnlyVisitedArtifactSet(ResolveContext configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactsResults, ArtifactTransforms artifactTransforms) {
         this.configuration = configuration;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactsResults = artifactsResults;
@@ -51,14 +52,18 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
     }
 
     private static class BuildDependenciesOnlySelectedArtifactSet implements SelectedArtifactSet {
-        private final Configuration configuration;
+        private final ResolveContext configuration;
         private final Set<UnresolvedDependency> unresolvedDependencies;
         private final ResolvedArtifactSet selectedArtifacts;
 
-        BuildDependenciesOnlySelectedArtifactSet(Configuration configuration, Set<UnresolvedDependency> unresolvedDependencies, ResolvedArtifactSet selectedArtifacts) {
+        BuildDependenciesOnlySelectedArtifactSet(ResolveContext configuration, Set<UnresolvedDependency> unresolvedDependencies, ResolvedArtifactSet selectedArtifacts) {
             this.configuration = configuration;
             this.unresolvedDependencies = unresolvedDependencies;
             this.selectedArtifacts = selectedArtifacts;
+        }
+
+        @Override
+        public void collectSelectionFailures(Collection<? super Throwable> failures) {
         }
 
         @Override
@@ -68,7 +73,7 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
                 for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
                     failures.add(unresolvedDependency.getProblem());
                 }
-                visitor.visitFailure(new ResolveException(configuration.toString(), failures));
+                visitor.visitFailure(new ResolveException(configuration.getDisplayName(), failures));
             }
             selectedArtifacts.collectBuildDependencies(visitor);
         }

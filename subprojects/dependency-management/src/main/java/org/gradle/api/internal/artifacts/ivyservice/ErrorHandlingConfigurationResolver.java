@@ -40,6 +40,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 public class ErrorHandlingConfigurationResolver implements ConfigurationResolver {
@@ -355,13 +356,17 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
+        public void collectSelectionFailures(Collection<? super Throwable> failures) {
+            failures.add(e);
+        }
+
+        @Override
         public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
             visitor.visitFailure(wrapException(e, configuration));
         }
 
         @Override
         public void visitArtifacts(ArtifactVisitor visitor) {
-            throw wrapException(e, configuration);
         }
 
     }
