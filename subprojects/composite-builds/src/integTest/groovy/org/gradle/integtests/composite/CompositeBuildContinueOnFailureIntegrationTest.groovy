@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
-
 /**
  * Tests for composite build delegating to tasks in an included build.
  */
@@ -50,22 +49,6 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
 """
         }
         includedBuilds << buildB << buildC
-    }
-
-    def "aborts build when delegated task fails"() {
-        when:
-        buildA.buildFile << """
-    task delegate {
-        dependsOn gradle.includedBuild('buildB').task(':fails')
-        dependsOn gradle.includedBuild('buildC').task(':succeeds')
-    }
-"""
-
-        fails(buildA, ":delegate")
-
-        then:
-        executed ":buildB:fails"
-        notExecuted ":buildC:succeeds"
     }
 
     def "aborts build when delegated task in same build fails"() {

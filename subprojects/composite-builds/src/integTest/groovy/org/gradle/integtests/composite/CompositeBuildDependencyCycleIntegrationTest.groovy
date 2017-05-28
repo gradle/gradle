@@ -19,6 +19,7 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.util.Matchers
 
 /**
  * Tests for resolving dependency cycles in a composite build.
@@ -86,8 +87,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
+            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
     }
 
     def "indirect dependency cycle between included builds"() {
@@ -132,9 +135,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         failure
             .assertHasDescription("Could not determine the dependencies of task")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+            .assertHasCause("Included build dependency cycle:")
 
         // TODO:DAZ This message is technically correct, but not ideal.
+//            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
         // Since 'buildB' is an API dependency of 'buildD', 'buildC' actually does require 'buildB',
         // but this message is probably not what a user would expect.
         // A more helpful cycle report would be something like:
@@ -176,8 +180,10 @@ project(':b1') {
 
         then:
         failure
-            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
+            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
     }
 
     def "compile-only dependency cycle between included builds"() {
@@ -210,8 +216,10 @@ project(':b1') {
 
         then:
         failure
-            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
+            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
     }
 
     def "dependency cycle between subprojects in an included multiproject build"() {
