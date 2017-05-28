@@ -565,8 +565,13 @@ Configuration 'bar':
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+        if (FluidDependenciesResolveRunner.isFluid()) {
+            failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':a:checkDebug'.")
+        }
         failure.assertHasCause("Could not resolve all dependencies for configuration ':a:_compileFreeDebug'.")
+        failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("""Unable to find a matching configuration of project :b:
   - Configuration 'bar':
       - Required buildType 'debug' and found incompatible value 'release'.
@@ -928,7 +933,7 @@ All of them match the consumer attributes:
                 dependencies {
                     compile project(':b')
                 }
-                task check(dependsOn: configurations.compile)
+                task check(dependsOn: configurations.compile) { doLast { configurations.compile.each { println it } } }
             }
             project(':b') {
                 configurations {
@@ -1070,7 +1075,7 @@ All of them match the consumer attributes:
                 dependencies {
                     compile project(':b')
                 }
-                task check(dependsOn: configurations.compile)
+                task check(dependsOn: configurations.compile) { doLast { configurations.compile.each { println it } } }
             }
             project(':b') {
                 configurations {
