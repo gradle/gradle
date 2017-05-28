@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive.compression;
+package org.gradle.api.internal.file.archive.compression
 
-
-import org.gradle.api.internal.file.FileResource
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.resources.internal.LocalResourceAdapter
 import spock.lang.Specification
 
-public class ArchiversTest extends Specification {
+class ArchiversTest extends Specification {
 
     def "archivers have unqique URIs"() {
         when:
         def file = new File("/some/file")
 
-        def resource = new FileResource(file)
+        def resource = new LocalResourceAdapter(TestFiles.fileRepository().localResource(file))
         def bzip2 = new Bzip2Archiver(resource)
         def gzip = new GzipArchiver(resource)
 

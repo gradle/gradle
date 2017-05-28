@@ -89,7 +89,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     @Override
-    public ExternalResourceWriteResult put(final LocalResource source) throws ResourceException {
+    public ExternalResourceWriteResult put(final ReadableContent source) throws ResourceException {
         return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceWriteResult>() {
             @Override
             public ExternalResourceWriteResult call(BuildOperationContext context) {

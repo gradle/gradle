@@ -42,7 +42,7 @@ public class ValidatingIvyPublisherTest extends Specification {
 
     def delegate = Mock(IvyPublisher)
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def publisher = new ValidatingIvyPublisher(delegate, moduleIdentifierFactory, TestFiles.fileSystem())
+    def publisher = new ValidatingIvyPublisher(delegate, moduleIdentifierFactory, TestFiles.fileRepository())
 
     def "delegates when publication is valid"() {
         when:

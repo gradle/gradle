@@ -788,9 +788,19 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Adds a closure to be notified when output from the test received. A {@link org.gradle.api.tasks.testing.TestDescriptor} and {@link org.gradle.api.tasks.testing.TestOutputEvent} instance are
-     * passed to the closure as a parameter. <pre autoTested=''> apply plugin: 'java'
+     * passed to the closure as a parameter.
      *
-     * test { onOutput { descriptor, event -> if (event.destination == TestOutputEvent.Destination.StdErr) { logger.error("Test: " + descriptor + ", error: " + event.message) } } } </pre>
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * test {
+     *    onOutput { descriptor, event ->
+     *        if (event.destination == TestOutputEvent.Destination.StdErr) {
+     *            logger.error("Test: " + descriptor + ", error: " + event.message)
+     *        }
+     *    }
+     * }
+     * </pre>
      *
      * @param closure The closure to call.
      */
@@ -1226,9 +1236,13 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Allows to set options related to which test events are logged to the console, and on which detail level. For example, to show more information about exceptions use:
      *
-     * <pre autoTested=''> apply plugin: 'java'
+     * <pre autoTested=''>
+     * apply plugin: 'java'
      *
-     * test.testLogging { exceptionFormat "full" } </pre>
+     * test.testLogging {
+     *     exceptionFormat "full"
+     * }
+     * </pre>
      *
      * For further information see {@link TestLoggingContainer}.
      *
@@ -1241,9 +1255,16 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc. <pre autoTested=''> apply plugin: 'java'
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
      *
-     * //makes the standard streams (err and out) visible at console when running tests test.testLogging { showStandardStreams = true } </pre>
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * // makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging {
+     *    showStandardStreams = true
+     * }
+     * </pre>
      *
      * @param closure configure closure
      */
@@ -1252,9 +1273,16 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc. <pre autoTested=''> apply plugin: 'java'
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
      *
-     * //makes the standard streams (err and out) visible at console when running tests test.testLogging { showStandardStreams = true } </pre>
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * // makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging {
+     *    showStandardStreams = true
+     * }
+     * </pre>
      *
      * @param action configure action
      * @since 3.5

@@ -24,7 +24,7 @@ import org.apache.maven.wagon.proxy.ProxyInfo
 import org.apache.maven.wagon.proxy.ProxyInfoProvider
 import org.apache.maven.wagon.repository.Repository
 import org.gradle.api.GradleException
-import org.gradle.internal.resource.LocalResource
+import org.gradle.internal.resource.ReadableContent
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -105,7 +105,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         setup:
         def transferListener = Mock(TransferListener)
         RepositoryTransportWagonAdapter delegate = Mock()
-        delegate.putRemoteFile(*_) >> { LocalResource resource, String resourceName ->
+        delegate.putRemoteFile(*_) >> { ReadableContent resource, String resourceName ->
             def is = resource.open()
             // 3 reads >> 3 events
             is.read()
@@ -145,7 +145,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         TransferListener transferListener = Mock()
         def failure = new IOException("failed")
         RepositoryTransportWagonAdapter delegate = Mock()
-        delegate.putRemoteFile(*_) >> { LocalResource resource, String resourceName ->
+        delegate.putRemoteFile(*_) >> { ReadableContent resource, String resourceName ->
             resource.open().close()
             throw failure
         }

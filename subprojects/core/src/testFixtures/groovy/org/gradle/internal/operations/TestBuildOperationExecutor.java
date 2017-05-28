@@ -83,6 +83,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     private static class TestBuildOperationContext implements BuildOperationContext {
 
         private Object result;
+        private String status;
 
         @Override
         public void failed(@Nullable Throwable failure) {
@@ -91,6 +92,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         @Override
         public void setResult(@Nullable Object result) {
             this.result = result;
+        }
+
+        @Override
+        public void setStatus(String status) {
+            this.status = status;
         }
     }
 
@@ -222,8 +228,5 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             record.result = context.result;
             return t;
         }
-
     }
-
-
 }

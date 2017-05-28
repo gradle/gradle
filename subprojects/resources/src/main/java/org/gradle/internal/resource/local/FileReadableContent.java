@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.internal.resource.local;
 
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.ResourceExceptions;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
-public class FileResource extends AbstractFileResource {
+public class FileReadableContent implements ReadableContent {
+    private final File file;
 
-    public FileResource(File file) {
-        super(file);
+    public FileReadableContent(File file) {
+        this.file = file;
     }
 
-    public InputStream read() {
-        if (file.isDirectory()) {
-            throw ResourceExceptions.readFolder(file);
-        }
+    @Override
+    public long getContentLength() {
+        return file.length();
+    }
+
+    public InputStream open() {
         try {
-            FileInputStream fis = new FileInputStream(file);
-            return new BufferedInputStream(fis);
+            return new FileInputStream(file);
         } catch (FileNotFoundException e) {
             throw ResourceExceptions.readMissing(file, e);
         }

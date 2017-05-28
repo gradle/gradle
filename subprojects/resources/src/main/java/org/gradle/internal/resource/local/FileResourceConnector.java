@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resource.transport.file;
+package org.gradle.internal.resource.local;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.resource.LocalBinaryResource;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
+import java.net.URI;
 
-public class FileResourceConnector implements ExternalResourceRepository {
+public class FileResourceConnector implements FileResourceRepository {
     private final FileSystem fileSystem;
 
     public FileResourceConnector(FileSystem fileSystem) {
@@ -38,6 +37,11 @@ public class FileResourceConnector implements ExternalResourceRepository {
     }
 
     @Override
+    public LocalBinaryResource localResource(File file) {
+        return new LocalFileStandInExternalResource(file, fileSystem);
+    }
+
+    @Override
     public LocallyAvailableExternalResource resource(ExternalResourceName resource, boolean revalidate) {
         return resource(resource);
     }
@@ -45,16 +49,17 @@ public class FileResourceConnector implements ExternalResourceRepository {
     @Override
     public LocallyAvailableExternalResource resource(ExternalResourceName location) {
         File localFile = getFile(location);
-        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile), fileSystem);
+        return new LocalFileStandInExternalResource(localFile, fileSystem);
     }
 
-    @Nullable
-    public LocallyAvailableExternalResource getResourceIfPresent(ExternalResourceName location) {
-        File localFile = getFile(location);
-        if (!localFile.exists()) {
-            return null;
-        }
-        return new DefaultLocallyAvailableExternalResource(location.getUri(), new DefaultLocallyAvailableResource(localFile), fileSystem);
+    @Override
+    public LocallyAvailableExternalResource resource(File file) {
+        return new LocalFileStandInExternalResource(file, fileSystem);
+    }
+
+    @Override
+    public LocallyAvailableExternalResource resource(File file, URI originUri, ExternalResourceMetaData originMetadata) {
+        return new DefaultLocallyAvailableExternalResource(originUri, file, originMetadata, fileSystem);
     }
 
     private static File getFile(ExternalResourceName location) {

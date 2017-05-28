@@ -20,7 +20,12 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.resource.ResourceExceptions;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -51,11 +56,11 @@ public class GzipArchiver extends AbstractArchiver {
     }
 
     public InputStream read() {
-        InputStream is = resource.read();
+        InputStream input = new BufferedInputStream(resource.read());
         try {
-            return new GZIPInputStream(is);
+            return new GZIPInputStream(input);
         } catch (Exception e) {
-            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(input);
             throw ResourceExceptions.readFailed(resource.getDisplayName(), e);
         }
     }

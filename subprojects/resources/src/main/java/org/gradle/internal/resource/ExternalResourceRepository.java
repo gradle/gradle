@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport;
-
-import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ExternalResourceName;
+package org.gradle.internal.resource;
 
 /**
- * Provides access to {@link ExternalResource} instances.
+ * Provides access to {@link ExternalResource} implementations, given a URI or resource name.
  */
 public interface ExternalResourceRepository {
     /**
@@ -29,7 +26,7 @@ public interface ExternalResourceRepository {
     ExternalResourceRepository withProgressLogging();
 
     /**
-     * Returns the resource with the given name. Note that this method does not access the resource in any way. To do that, use the methods on the returned resource.
+     * Returns the resource with the given name. Note that this method does not access the resource in any way, it simply creates an object that can. To access the resource, use the methods on the returned object.
      *
      * @param resource The location of the resource
      * @param revalidate Ensure the external resource is not stale when reading its content
@@ -37,7 +34,7 @@ public interface ExternalResourceRepository {
     ExternalResource resource(ExternalResourceName resource, boolean revalidate);
 
     /**
-     * Returns the resource with the given name. Note that this method does not access the resource in any way. To do that, use the methods on the returned resource.
+     * Returns the resource with the given name. Note that this method does not access the resource in any way, it simply creates an object that can. To access the resource, use the methods on the returned object.
      *
      * @param resource The location of the resource
      */

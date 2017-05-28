@@ -34,6 +34,7 @@ import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.util.GFileUtils;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,7 +69,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     public void visit(FileVisitor visitor) {
         InputStream inputStream;
         try {
-            inputStream = resource.read();
+            inputStream = new BufferedInputStream(resource.read());
         } catch (ResourceException e) {
             throw new InvalidUserDataException(String.format("Cannot expand %s.", getDisplayName()), e);
         }

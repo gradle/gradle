@@ -39,7 +39,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
-import org.gradle.internal.resource.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
@@ -189,7 +189,7 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public void upload(LocalResource resource, URI destination) throws IOException {
+        public void upload(ReadableContent resource, URI destination) throws IOException {
             throw new ResourceException(destination, String.format("Cannot upload to '%s' in offline mode.", destination));
         }
 

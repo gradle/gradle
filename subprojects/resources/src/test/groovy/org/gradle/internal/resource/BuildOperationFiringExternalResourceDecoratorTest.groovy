@@ -116,7 +116,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         }
 
         @Override
-        ExternalResourceWriteResult put(LocalResource source) throws ResourceException {
+        ExternalResourceWriteResult put(ReadableContent source) throws ResourceException {
             throw new UnsupportedOperationException()
         }
 
@@ -229,7 +229,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
     def "wraps put in a build operation"() {
         given:
         def delegate = Mock(ExternalResource)
-        def source = Mock(LocalResource)
+        def source = Mock(ReadableContent)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
         def operationContextMock = Mock(BuildOperationContext)
         def result = Stub(ExternalResourceWriteResult)

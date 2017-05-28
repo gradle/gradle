@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import java.nio.charset.Charset
@@ -102,8 +101,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         wasNotForked()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isEmbedded() || TestPrecondition.JDK_IBM.fulfilled })
-    def "does not fork build to run when immutable jvm args match the environment"() {
+    def "forks build to run when immutable jvm args set regardless of the environment"() {
         when:
         requireJvmArg('-Xmx64m')
         runWithJvmArg('-Xmx64m')
@@ -117,7 +115,8 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         succeeds()
 
         and:
-        wasNotForked()
+        wasForked()
+        daemons.daemon.stops()
     }
 
     def "does not fork build when only mutable system properties requested in gradle properties"() {

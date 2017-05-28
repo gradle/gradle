@@ -163,7 +163,7 @@ BUILD SUCCESSFUL in 2m 10s
 [[sec:console_non_interactive_environments]]
 === Look & feel in non-interactive environments
 
-By default, Gradle tries to enable rich console output by detecting the type of console the build is running from. This enables color and additional console output formatting. Non-interactive environments fall back to using plain console output. The plain output format supports grouping of output. Tasks and outcomes are always printed to be consistent with Gradle 3.x versions.
+By default, Gradle tries to enable rich console output by detecting the type of console the build is running from. This enables color and additional console output formatting. Non-interactive environments fall back to using plain console output. The plain output format _does not_ support grouping of output. Tasks and outcomes are always printed to be consistent with Gradle 3.x versions.
 
 NOTE: Gradle builds executed from an IDE (e.g. Buildship and IntelliJ) or Continuous Integration products (e.g. Jenkins and TeamCity) use plain console output by default.
 

@@ -43,19 +43,9 @@ public class BuildProcess extends CurrentProcess {
 
         final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
         jvmOptions.systemProperties(getJvmOptions().getImmutableSystemProperties());
-        if (requiredBuildParameters.hasUserConfiguredImmutableJvmArgs()) {
-            jvmOptions.setJvmArgs(getJvmOptions().getJvmArgs());
-            jvmOptions.setMinHeapSize(getJvmOptions().getMinHeapSize());
-            jvmOptions.setMaxHeapSize(getJvmOptions().getMaxHeapSize());
-        }
-
         List<String> currentImmutables = jvmOptions.getAllImmutableJvmArgs();
         List<String> requiredImmutables = requiredBuildParameters.getEffectiveSingleUseJvmArgs();
-
-        if (!requiredBuildParameters.hasUserConfiguredImmutableJvmArgs()) {
-            requiredImmutables.removeAll(DaemonParameters.DEFAULT_JVM_ARGS);
-            requiredImmutables.removeAll(DaemonParameters.DEFAULT_JVM_9_ARGS);
-        }
+        requiredImmutables.removeAll(DaemonParameters.DEFAULT_JVM_ARGS);
 
         boolean noImmutableJvmArgsRequired = requiredImmutables.equals(currentImmutables);
         if (javaHomeMatch && noImmutableJvmArgsRequired) {

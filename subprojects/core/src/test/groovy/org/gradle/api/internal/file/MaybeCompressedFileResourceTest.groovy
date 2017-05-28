@@ -14,32 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
-
+package org.gradle.api.internal.file
 
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver
 import org.gradle.api.internal.file.archive.compression.GzipArchiver
+import org.gradle.api.resources.internal.LocalResourceAdapter
 import spock.lang.Specification
 import spock.lang.Unroll
 
-public class MaybeCompressedFileResourceTest extends Specification {
+class MaybeCompressedFileResourceTest extends Specification {
 
     def "understands file extensions"() {
         expect:
-        new MaybeCompressedFileResource(fileResource("foo")).resource instanceof FileResource
-        new MaybeCompressedFileResource(fileResource("foo.tgz")).resource instanceof GzipArchiver
-        new MaybeCompressedFileResource(fileResource("foo.gz")).resource instanceof GzipArchiver
-        new MaybeCompressedFileResource(fileResource("foo.bz2")).resource instanceof Bzip2Archiver
-        new MaybeCompressedFileResource(fileResource("foo.tbz2")).resource instanceof Bzip2Archiver
+        def fileResource = this.fileResource("foo")
+        new MaybeCompressedFileResource(fileResource).resource == fileResource
+        new MaybeCompressedFileResource(this.fileResource("foo.tgz")).resource instanceof GzipArchiver
+        new MaybeCompressedFileResource(this.fileResource("foo.gz")).resource instanceof GzipArchiver
+        new MaybeCompressedFileResource(this.fileResource("foo.bz2")).resource instanceof Bzip2Archiver
+        new MaybeCompressedFileResource(this.fileResource("foo.tbz2")).resource instanceof Bzip2Archiver
     }
 
     @Unroll
     def "passes through GzipArchiver resources called #name"() {
         given:
-        def maybeCompressed = new MaybeCompressedFileResource(new GzipArchiver(fileResource(name)))
+        def resource = new GzipArchiver(fileResource(name))
+        def maybeCompressed = new MaybeCompressedFileResource(resource)
+
         expect:
-        maybeCompressed.resource instanceof GzipArchiver
-        ((GzipArchiver)maybeCompressed.resource).resource instanceof FileResource
+        maybeCompressed.resource == resource
+
         where:
         name << [ "foo", "foo.tgz", "foo.gz" ]
     }
@@ -47,15 +50,17 @@ public class MaybeCompressedFileResourceTest extends Specification {
     @Unroll
     def "passes through Bzip2Archiver resources called #name"() {
         given:
-        def maybeCompressed = new MaybeCompressedFileResource(new Bzip2Archiver(fileResource(name)))
+        def resource = new Bzip2Archiver(fileResource(name))
+        def maybeCompressed = new MaybeCompressedFileResource(resource)
+
         expect:
-        maybeCompressed.resource instanceof Bzip2Archiver
-        ((Bzip2Archiver)maybeCompressed.resource).resource instanceof FileResource
+        maybeCompressed.resource == resource
+
         where:
         name << [ "foo", "foo.bz2", "foo.tbz2" ]
     }
 
     def fileResource(String fileName) {
-        new FileResource(new File(fileName))
+        return new LocalResourceAdapter(TestFiles.fileRepository().localResource(new File(fileName)))
     }
 }

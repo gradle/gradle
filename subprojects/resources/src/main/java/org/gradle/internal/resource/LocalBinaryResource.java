@@ -16,15 +16,19 @@
 
 package org.gradle.internal.resource;
 
-import org.gradle.api.resources.ResourceException;
+import java.io.File;
+import java.net.URI;
 
-import java.io.InputStream;
+/**
+ * Some binary resource available somewhere on the local file system.
+ */
+public interface LocalBinaryResource extends Resource, ReadableContent {
+    URI getURI();
 
-public interface LocalResource {
+    String getBaseName();
+
     /**
-     * Unbuffered input stream to read contents of resource.
+     * Returns the file containing this resource. Note that the content of this resource may not be the same as the file (for example, the file may be compressed, or this resource may represent an entry in an archive file, or both)
      */
-    InputStream open() throws ResourceException;
-
-    long getContentLength();
+    File getContainingFile();
 }

@@ -162,6 +162,6 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
         if (future != null && !future.isCancelled()) {
             future.cancel(false);
         }
-        executor.shutdown();
+        executor.shutdownNow();
     }
 }

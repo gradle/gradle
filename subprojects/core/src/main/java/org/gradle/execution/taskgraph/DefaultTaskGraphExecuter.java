@@ -246,6 +246,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                     // It should addSuppressed() the task failure if there was one.
                     taskListeners.getSource().afterExecute(task, state);
 
+                    context.setStatus(state.getFailure() != null ? "FAILED" : state.getSkipMessage());
                     context.failed(state.getFailure());
                 }
 

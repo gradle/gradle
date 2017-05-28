@@ -29,7 +29,7 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * Represents a (potentially) mutable binary resource. The resource may or may not exist, and may change over time.
+ * Represents a binary resource and provides access to the content and meta-data of the resource. The resource may or may not exist, and may change over time.
  */
 public interface ExternalResource extends Resource {
     /**
@@ -114,7 +114,7 @@ public interface ExternalResource extends Resource {
      * @param source The local resource to be transferred.
      * @throws ResourceException On failure to write the content.
      */
-    ExternalResourceWriteResult put(LocalResource source) throws ResourceException;
+    ExternalResourceWriteResult put(ReadableContent source) throws ResourceException;
 
     /**
      * Return a listing of child resources names.

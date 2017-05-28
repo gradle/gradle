@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.internal.resource;
 
-import org.gradle.internal.resource.LocalResource;
+import org.gradle.api.resources.ResourceException;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-public class ByteArrayLocalResource implements LocalResource {
-    private final byte[] source;
+/**
+ * Some resource content with a known length.
+ */
+public interface ReadableContent {
+    /**
+     * Unbuffered input stream to read contents of resource.
+     */
+    InputStream open() throws ResourceException;
 
-    public ByteArrayLocalResource(byte[] source) {
-        this.source = source;
-    }
-
-    @Override
-    public long getContentLength() {
-        return source.length;
-    }
-
-    @Override
-    public InputStream open() {
-        return new ByteArrayInputStream(source);
-    }
+    long getContentLength();
 }

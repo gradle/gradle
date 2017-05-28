@@ -304,4 +304,27 @@ Before\u001B[0K
         then:
         groupedOutput.task(':log').output == 'Before\nAfter'
     }
+
+    def "handles complex work-in-progress items"() {
+        given:
+        def consoleOutput = """
+\u001B[1m> Task :buildSrc:helloWorld\u001B[m
+Hello world
+
+
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/ConsoleBuildSrcFunctionalTest/can_group_task_outp..._buildSrc/pco71/build.gradle into local compilation cache\u001B[m\u001B[185D\u001B[1B\u001B[2A\u001B[0K
+\u001B[1m> Task :byeWorld\u001B[m\u001B[0K
+Bye world
+
+
+\u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 0s
+1 actionable task: 1 executed
+\u001B[2K"""
+
+        when:
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+
+        then:
+        groupedOutput.task(':buildSrc:helloWorld').output == 'Hello world'
+    }
 }
