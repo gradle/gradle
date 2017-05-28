@@ -462,7 +462,7 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         executor?.stop()
     }
 
-    def "can resize fixed pool while actions are running"() {
+    def "can increase fixed pool size while actions are running"() {
         given:
         def action1 = {
             thread.block()
@@ -488,10 +488,10 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         executor.execute(action1)
         executor.execute(action2)
         executor.execute(action3)
+        executor.execute(action4)
         thread.blockUntil.started1
         thread.blockUntil.started2
         executor.setFixedPoolSize(4)
-        executor.execute(action4)
         thread.blockUntil.started3
         thread.blockUntil.started4
 
@@ -500,6 +500,54 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         instant.started3 > instant.started2
         instant.started4 > instant.started1
         instant.started4 > instant.started2
+
+        cleanup:
+        executor?.stop()
+    }
+
+    def "can reduce fixed pool size while actions are running"() {
+        given:
+        def action1 = {
+            thread.block()
+            instant.started1
+            thread.blockUntil.poolSizeChanged
+            thread.blockUntil.started4
+        }
+        def action2 = {
+            thread.block()
+            instant.started2
+            thread.blockUntil.poolSizeChanged
+            instant.finished2
+        }
+        def action3 = {
+            thread.block()
+            instant.started3
+            thread.blockUntil.poolSizeChanged
+            instant.finished3
+        }
+        def action4 = {
+            instant.started4
+        }
+
+        when:
+        async {
+            def executor = factory.create('test', 3)
+            executor.execute(action1)
+            executor.execute(action2)
+            executor.execute(action3)
+            executor.execute(action4)
+            thread.blockUntil.started1
+            thread.blockUntil.started2
+            thread.blockUntil.started3
+            executor.setFixedPoolSize(2)
+            instant.poolSizeChanged
+            thread.blockUntil.started4
+        }
+
+        then:
+        instant.started4 > instant.started1
+        instant.started4 > instant.finished2
+        instant.started4 > instant.finished3
 
         cleanup:
         executor?.stop()
