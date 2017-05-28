@@ -50,12 +50,10 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     }
 
     @Override
-    public void awaitCompletion(BuildIdentifier targetBuild, String... taskPaths) {
+    public void awaitCompletion(BuildIdentifier targetBuild, String taskPath) {
         Collection<String> tasksForBuild = getTasksForBuild(targetBuild);
-        for (String taskPath : taskPaths) {
-            if (!tasksForBuild.contains(taskPath)) {
-                throw new IllegalStateException("Waiting for task " + taskPath + " never added to " + targetBuild);
-            }
+        if (!tasksForBuild.contains(taskPath)) {
+            throw new IllegalStateException("Waiting for task " + taskPath + " never added to " + targetBuild);
         }
         includedBuildExecuter.execute(targetBuild, tasksForBuild);
     }

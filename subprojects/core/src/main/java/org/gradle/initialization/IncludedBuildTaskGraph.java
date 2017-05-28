@@ -21,5 +21,5 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 public interface IncludedBuildTaskGraph {
     void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
 
-    void awaitCompletion(BuildIdentifier targetBuild, String... taskPaths);
+    void awaitCompletion(BuildIdentifier targetBuild, String taskPath);
 }

@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.initialization.IncludedBuildTaskGraph;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
+import java.util.Set;
+
 class IncludedBuildArtifactBuilder {
     private final IncludedBuildTaskGraph includedBuildTaskGraph;
 
@@ -31,10 +33,13 @@ class IncludedBuildArtifactBuilder {
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
             BuildIdentifier targetBuild = getBuildIdentifier(compositeBuildArtifact);
-            for (String taskName : compositeBuildArtifact.getTasks()) {
+            Set<String> tasks = compositeBuildArtifact.getTasks();
+            for (String taskName : tasks) {
                 includedBuildTaskGraph.addTask(requestingBuild, targetBuild, taskName);
             }
-            includedBuildTaskGraph.awaitCompletion(targetBuild);
+            for (String taskName : tasks) {
+                includedBuildTaskGraph.awaitCompletion(targetBuild, taskName);
+            }
         }
     }
 
