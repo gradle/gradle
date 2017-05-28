@@ -74,7 +74,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
     }
 
-    private void startTaskExecution() {
+    public void startTaskExecution() {
         started.countDown();
     }
 

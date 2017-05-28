@@ -19,4 +19,6 @@ public interface IncludedBuildController {
     void queueForExecution(String taskPath);
 
     void awaitCompletion(String taskPath);
+
+    void startTaskExecution();
 }

@@ -18,5 +18,7 @@ package org.gradle.initialization.includedbuild;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
 public interface IncludedBuildControllers {
+    void startTaskExecution();
+
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
 }

@@ -28,13 +28,14 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.initialization.includedbuild.IncludedBuildControllers;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Collections;
@@ -167,6 +168,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
         stage = Stage.Build;
 
         buildOperationExecutor.run(new CalculateTaskGraph());
+
+        if (!gradle.getIncludedBuilds().isEmpty()) {
+            IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
+            buildControllers.startTaskExecution();
+        }
 
         buildOperationExecutor.run(new ExecuteTasks());
     }
