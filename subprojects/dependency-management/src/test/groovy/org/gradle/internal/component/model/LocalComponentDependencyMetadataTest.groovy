@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model
 
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -138,12 +139,11 @@ class LocalComponentDependencyMetadataTest extends Specification {
         scenario                                         | queryAttributes                 | allowMissing | expected
         'exact match'                                    | [key: 'something']              | false        | 'foo'
         'exact match'                                    | [key: 'something else']         | false        | 'bar'
-        'no match'                                       | [key: 'other']                  | false        | 'default'
         'partial match on key but attribute is optional' | [key: 'something', extra: 'no'] | true         | 'foo'
     }
 
     def "revalidates default configuration if it has attributes"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, Dependency.DEFAULT_CONFIGURATION, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(key: 'other')
@@ -155,18 +155,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeConsumed() >> true
             getAttributes() >> attributes(key: 'nothing')
         }
-        def toFooConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'foo'
-            getAttributes() >> attributes(key: 'something')
-            isCanBeConsumed() >> true
-        }
-        def toBarConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'bar'
-            getAttributes() >> attributes(key: 'something else')
-            isCanBeConsumed() >> true
-        }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
             getAttributesSchema() >> attributesSchema
             getComponentId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "<target>"
@@ -177,8 +166,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         given:
         toComponent.getConfiguration("default") >> defaultConfig
-        toComponent.getConfiguration("foo") >> toFooConfig
-        toComponent.getConfiguration("bar") >> toBarConfig
 
         when:
         dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set
@@ -492,7 +479,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
         where:
         scenario                     | queryAttributes                 | expected
-        'never compatible'           | [key: 'no match']               | 'default'
         'exact match'                | [key: 'something else']         | 'bar'
         'compatible value'           | [key: 'other']                  | 'bar'
     }

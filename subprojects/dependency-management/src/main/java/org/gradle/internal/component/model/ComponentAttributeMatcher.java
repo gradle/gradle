@@ -15,11 +15,13 @@
  */
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import org.gradle.api.Nullable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
@@ -52,7 +54,13 @@ public class ComponentAttributeMatcher {
     /**
      * Selects the candidates from the given set that are compatible with the requested criteria, according to the given schema.
      */
-    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<T> candidates, AttributeContainer requested) {
+    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<? extends T> candidates, AttributeContainer requested, @Nullable T fallback) {
+        if (candidates.size() == 0) {
+            if (fallback != null && isMatching(schema, fallback.getAttributes(), requested)) {
+                return ImmutableList.of(fallback);
+            }
+            return ImmutableList.of();
+        }
         if (candidates.size() == 1) {
             T candidate = candidates.iterator().next();
             if (isMatching(schema, candidate.getAttributes(), requested)) {
@@ -106,7 +114,7 @@ public class ComponentAttributeMatcher {
         private final AttributeContainer requested;
 
         public Matcher(AttributeSelectionSchema schema,
-                       Collection<T> candidates,
+                       Collection<? extends T> candidates,
                        AttributeContainer requested) {
             this.schema = schema;
             this.matchDetails = Lists.newArrayListWithCapacity(candidates.size());

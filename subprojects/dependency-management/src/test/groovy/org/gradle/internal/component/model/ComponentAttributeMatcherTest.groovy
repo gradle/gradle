@@ -47,8 +47,8 @@ class ComponentAttributeMatcherTest extends Specification {
         def matcher = new ComponentAttributeMatcher()
 
         expect:
-        matcher.match(schema, [candidate1, candidate2], requested) == [candidate1]
-        matcher.match(schema, [candidate2], requested) == []
+        matcher.match(schema, [candidate1, candidate2], requested, null) == [candidate1]
+        matcher.match(schema, [candidate2], requested, null) == []
 
         matcher.isMatching(schema, candidate1, requested)
         !matcher.isMatching(schema, candidate2, requested)
@@ -76,8 +76,8 @@ class ComponentAttributeMatcherTest extends Specification {
         def matcher = new ComponentAttributeMatcher()
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested) == [candidate1]
-        matcher.match(schema, [candidate2, candidate3, candidate4], requested) == [candidate4]
+        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null) == [candidate1]
+        matcher.match(schema, [candidate2, candidate3, candidate4], requested, null) == [candidate4]
 
         matcher.isMatching(schema, candidate1, requested)
         !matcher.isMatching(schema, candidate2, requested)
@@ -103,8 +103,8 @@ class ComponentAttributeMatcherTest extends Specification {
         def matcher = new ComponentAttributeMatcher()
 
         expect:
-        matcher.match(schema, [candidate1, candidate2], requested) == [candidate1]
-        matcher.match(schema, [candidate2], requested) == []
+        matcher.match(schema, [candidate1, candidate2], requested, null) == [candidate1]
+        matcher.match(schema, [candidate2], requested, null) == []
 
         matcher.isMatching(schema, candidate1, requested)
         !matcher.isMatching(schema, candidate2, requested)
@@ -133,7 +133,7 @@ class ComponentAttributeMatcherTest extends Specification {
         def matcher = new ComponentAttributeMatcher()
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5], requested) == [candidate1, candidate3, candidate4, candidate5]
+        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5], requested, null) == [candidate1, candidate3, candidate4, candidate5]
     }
 
     def "applies disambiguation rules"() {
@@ -169,10 +169,10 @@ class ComponentAttributeMatcherTest extends Specification {
         def matcher = new ComponentAttributeMatcher()
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5], requested) == [candidate5]
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested) == [candidate1, candidate3, candidate4]
-        matcher.match(schema, [candidate1, candidate2, candidate4], requested) == [candidate1]
-        matcher.match(schema, [candidate2, candidate4], requested) == [candidate4]
+        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5], requested, null) == [candidate5]
+        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null) == [candidate1, candidate3, candidate4]
+        matcher.match(schema, [candidate1, candidate2, candidate4], requested, null) == [candidate1]
+        matcher.match(schema, [candidate2, candidate4], requested, null) == [candidate4]
     }
 
     def "prefers match with superset of matching attributes"() {
@@ -201,10 +201,10 @@ class ComponentAttributeMatcherTest extends Specification {
         def matcher = new ComponentAttributeMatcher()
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested) == [candidate5]
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate6], requested) == [candidate1, candidate3, candidate4, candidate6]
-        matcher.match(schema, [candidate1, candidate2, candidate4, candidate6], requested) == [candidate1, candidate4, candidate6]
-        matcher.match(schema, [candidate2, candidate3, candidate4], requested) == [candidate3]
+        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, null) == [candidate5]
+        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate6], requested, null) == [candidate1, candidate3, candidate4, candidate6]
+        matcher.match(schema, [candidate1, candidate2, candidate4, candidate6], requested, null) == [candidate1, candidate4, candidate6]
+        matcher.match(schema, [candidate2, candidate3, candidate4], requested, null) == [candidate3]
     }
 
     def "disambiguates using ignored producer attributes" () {
@@ -227,7 +227,7 @@ class ComponentAttributeMatcherTest extends Specification {
         expect:
         def matcher = new ComponentAttributeMatcher()
 
-        def matches = matcher.match(schema, [candidate1, candidate2], requested)
+        def matches = matcher.match(schema, [candidate1, candidate2], requested, null)
         matches == [candidate2]
     }
 
@@ -243,13 +243,13 @@ class ComponentAttributeMatcherTest extends Specification {
         expect:
         def matcher = new ComponentAttributeMatcher()
 
-        matcher.match(schema, [candidate], requested) == [candidate]
+        matcher.match(schema, [candidate], requested, null) == [candidate]
         matcher.isMatching(schema, candidate, requested)
 
-        matcher.match(schema, [candidate], requested) == [candidate]
+        matcher.match(schema, [candidate], requested, null) == [candidate]
         matcher.isMatching(schema, candidate, requested)
 
-        matcher.match(schema, [candidate2], requested) == [candidate2]
+        matcher.match(schema, [candidate2], requested, null) == [candidate2]
         matcher.isMatching(schema, candidate2, requested)
     }
 
@@ -264,8 +264,50 @@ class ComponentAttributeMatcherTest extends Specification {
         expect:
         def matcher = new ComponentAttributeMatcher()
 
-        matcher.match(schema, [candidate], requested) == [candidate]
+        matcher.match(schema, [candidate], requested, null) == [candidate]
         matcher.isMatching(schema, candidate, requested)
+    }
+
+    def "selects fallback when it matches requested and there are no candidates"() {
+        def key1 = Attribute.of("a1", String)
+        def key2 = Attribute.of("a2", String)
+        def key3 = Attribute.of("a3", String)
+        schema.attribute(key1)
+        schema.attribute(key2)
+        schema.attribute(key3)
+
+        given:
+        def candidate1 = attributes().attribute(key1, "other")
+        def candidate2 = attributes().attribute(key2, "other")
+        def fallback1 = attributes()
+        def fallback2 = attributes().attribute(key1, "1")
+        def fallback3 = attributes().attribute(key3, "3")
+        def fallback4 = attributes().attribute(key1, "other")
+        def requested = attributes().attribute(key1, "1").attribute(key2, "2")
+
+        expect:
+        def matcher = new ComponentAttributeMatcher()
+
+        // No candidates, fallback matches
+        matcher.match(schema, [], requested, fallback1) == [fallback1]
+        matcher.match(schema, [], requested, fallback2) == [fallback2]
+        matcher.match(schema, [], requested, fallback3) == [fallback3]
+
+        // Fallback does not match
+        matcher.match(schema, [], requested, fallback4) == []
+
+        // Candidates, fallback matches
+        matcher.match(schema, [candidate1, candidate2], requested, fallback1) == []
+        matcher.match(schema, [candidate1, candidate2], requested, fallback2) == []
+        matcher.match(schema, [candidate1, candidate2], requested, fallback3) == []
+
+        // No fallback
+        matcher.match(schema, [candidate1, candidate2], requested, null) == []
+        matcher.match(schema, [], requested, null) == []
+
+        // Fallback also a candidate
+        matcher.match(schema, [candidate1, fallback4], requested, fallback4) == []
+        matcher.match(schema, [candidate1, candidate2, fallback1], requested, fallback1) == [fallback1]
     }
 
     private DefaultMutableAttributeContainer attributes() {

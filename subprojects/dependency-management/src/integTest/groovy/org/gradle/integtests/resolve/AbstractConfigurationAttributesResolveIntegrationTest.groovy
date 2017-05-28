@@ -518,7 +518,7 @@ Configuration 'bar':
         result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
     }
 
-    def "selects default configuration when no match is found"() {
+    def "does not select default configuration when no match is found"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -562,13 +562,21 @@ Configuration 'bar':
         """
 
         when:
-        run ':a:checkDebug'
+        fails ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':a:checkDebug')
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:_compileFreeDebug'.")
+        failure.assertHasCause("""Unable to find a matching configuration of project :b:
+  - Configuration 'bar':
+      - Required buildType 'debug' and found incompatible value 'release'.
+      - Required flavor 'free' but no value provided.
+  - Configuration 'foo':
+      - Required buildType 'debug' and found incompatible value 'release'.
+      - Required flavor 'free' and found compatible value 'free'.""")
     }
 
-    def "does not select default configuration when no match is found and default configuration is not consumable"() {
+    def "does not select default configuration when no configurations with attributes and default configuration is not consumable"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -595,16 +603,6 @@ Configuration 'bar':
                     'default' {
                         canBeConsumed = false
                     }
-                }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
                 }
             }
 

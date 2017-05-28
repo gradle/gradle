@@ -24,6 +24,7 @@ import org.gradle.internal.text.TreeFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
@@ -31,12 +32,12 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
     public NoMatchingConfigurationSelectionException(
         AttributeContainer fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
-        ComponentResolveMetadata targetComponent,
-        List<String> candidateConfigurations) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent, candidateConfigurations));
+        ComponentResolveMetadata targetComponent) {
+        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent, List<String> configurationNames) {
+    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent) {
+        TreeSet<String> configurationNames = new TreeSet<String>(targetComponent.getConfigurationNames());
         List<ConfigurationMetadata> configurations = new ArrayList<ConfigurationMetadata>(configurationNames.size());
         for (String name : configurationNames) {
             ConfigurationMetadata targetComponentConfiguration = targetComponent.getConfiguration(name);
