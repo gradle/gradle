@@ -36,7 +36,11 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
          * This classloader is thread-safe and TransformingClassLoader is parallel capable,
          * so register as such to reduce contention when running multithreaded builds
         */
-        ClassLoader.registerAsParallelCapable();
+        try {
+            ClassLoader.registerAsParallelCapable();
+        } catch (NoSuchMethodError ignore) {
+            // Not using Java 7+, just ignore it
+        }
     }
 
     public GroovyCompileTransformingClassLoader(ClassLoader parent, ClassPath classPath) {

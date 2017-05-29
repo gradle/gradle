@@ -36,7 +36,11 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
          * so register as such to reduce contention when running multithreaded builds.
          * Notice, concrete classes extending this one still need to register as parallel capable
         */
-        ClassLoader.registerAsParallelCapable();
+        try {
+            ClassLoader.registerAsParallelCapable();
+        } catch (NoSuchMethodError ignore) {
+            // Not using Java 7+, just ignore it
+        }
     }
 
     public TransformingClassLoader(ClassLoader parent, ClassPath classPath) {

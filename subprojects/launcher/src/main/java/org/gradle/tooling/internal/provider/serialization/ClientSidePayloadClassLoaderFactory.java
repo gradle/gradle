@@ -57,7 +57,11 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
              * This classloader is thread-safe and TransformingClassLoader is parallel capable,
              * so register as such to reduce contention when running multithreaded builds
             */
-            ClassLoader.registerAsParallelCapable();
+            try {
+                ClassLoader.registerAsParallelCapable();
+            } catch (NoSuchMethodError ignore) {
+                // Not using Java 7+, just ignore it
+            }
         }
 
         public MixInClassLoader(ClassLoader parent, List<URL> classPath) {
