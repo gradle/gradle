@@ -3,7 +3,7 @@ initscript {
         maven { url "https://plugins.gradle.org/m2" }
     }
     dependencies {
-        classpath "com.gradle:build-scan-plugin:1.7.3"
+        classpath "com.gradle:build-scan-plugin:1.7.4"
     }
 }
 if (!gradle.startParameter.systemPropertiesArgs.containsKey("disableScanPlugin")) {
