@@ -148,12 +148,8 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
     @Override
     public void awaitCompletion(String taskPath) {
-        // TODO:DAZ We should enforce that all tasks are queued first
+        // TODO:DAZ We should enforce that all tasks are queued first, rather than queuing them here
         queueForExecution(taskPath);
-
-        // Start task execution if necessary: this is required for building plugin artifacts,
-        // since these are build on-demand prior to regular task execution.
-        startTaskExecution();
 
         lock.lock();
         try {

@@ -30,6 +30,7 @@ import java.util.Map;
 class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = Maps.newHashMap();
     private final IncludedBuilds includedBuilds;
+    private boolean taskExecutionStarted;
 
     DefaultIncludedBuildControllers(IncludedBuilds includedBuilds) {
         this.includedBuilds = includedBuilds;
@@ -48,6 +49,11 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         // TODO:DAZ Do this properly
         new Thread(newBuildController).start();
 
+        // Required for build controllers created after initial start
+        if (taskExecutionStarted) {
+            newBuildController.startTaskExecution();
+        }
+
         return newBuildController;
     }
 
@@ -56,6 +62,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.startTaskExecution();
         }
+        taskExecutionStarted = true;
     }
 
     @Override
