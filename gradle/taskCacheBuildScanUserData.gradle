@@ -19,12 +19,14 @@ import org.gradle.api.internal.file.FileCollectionVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.OperationFinishEvent
 import org.gradle.internal.progress.OperationStartEvent
+import org.gradle.util.Path
 
 import java.util.regex.Pattern
 
@@ -61,13 +63,20 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         def listener = new BuildOperationListener() {
             private buildScan = project.buildScan
             private Pattern storeToCache = Pattern.compile(/Store entry (.*) in (.*) build cache/)
+            def operationIdsToTaskPath = [:]
 
-            void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {}
+            void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+                if (buildOperation.details instanceof ExecuteTaskBuildOperationType.Details) {
+                    operationIdsToTaskPath[buildOperation.id] = Path.path(buildOperation.details.buildPath).append(Path.path(buildOperation.details.taskPath)).path
+                }
+            }
 
             void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
                 def anyDetails = buildOperation.details
-                if (anyDetails instanceof SnapshotTaskInputsBuildOperationType.Details) {
-                    String taskPath = anyDetails.taskPath
+                if (anyDetails instanceof org.gradle.internal.execution.ExecuteTaskBuildOperationType.Details) {
+                    operationIdsToTaskPath.remove(buildOperation.id)
+                } else if (anyDetails instanceof SnapshotTaskInputsBuildOperationType.Details) {
+                    String taskPath = operationIdsToTaskPath[buildOperation.parentId]
                     SnapshotTaskInputsBuildOperationType.Result result = (SnapshotTaskInputsBuildOperationType.Result) finishEvent.result
                     if (result.buildCacheKey) {
                         buildScan.value "${taskPath}-build-cache-key", String.valueOf(result.buildCacheKey)
