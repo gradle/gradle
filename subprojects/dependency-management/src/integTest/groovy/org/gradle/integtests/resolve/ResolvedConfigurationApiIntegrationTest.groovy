@@ -80,4 +80,70 @@ task show {
         outputContains("names: [test::jar, test::, test::]")
         outputContains("classifiers: [null, null, classy]")
     }
+
+    def "reports multiple failures to resolve components"() {
+        buildFile << """
+            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            dependencies {
+                compile 'test:test1:1.2'
+                compile 'test:test2:1.2'
+                compile 'test:test3:1.2'
+            }
+            
+            task show {
+                doLast {
+                    configurations.compile.resolvedConfiguration.resolvedArtifacts
+                }
+            }
+"""
+
+        when:
+        def m1 = mavenHttpRepo.module("test", "test1", "1.2")
+        m1.pom.expectGetMissing()
+        m1.artifact.expectHeadMissing()
+        def m2 = mavenHttpRepo.module("test", "test2", "1.2")
+        m2.pom.expectGetBroken()
+        def m3 = mavenHttpRepo.module("test", "test3", "1.2").publish()
+        m3.pom.expectGet()
+
+        fails("show")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not find test:test1:1.2.")
+        failure.assertHasCause("Could not resolve test:test2:1.2.")
+    }
+
+    def "reports failure to resolve artifact"() {
+        buildFile << """
+            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            dependencies {
+                compile 'test:test1:1.2'
+                compile 'test:test2:1.2'
+                compile 'test:test3:1.2'
+            }
+            
+            task show {
+                doLast {
+                    configurations.compile.resolvedConfiguration.resolvedArtifacts.each { it.file }
+                }
+            }
+"""
+
+        when:
+        def m1 = mavenHttpRepo.module("test", "test1", "1.2").publish()
+        m1.pom.expectGet()
+        m1.artifact.expectGetMissing()
+        def m2 = mavenHttpRepo.module("test", "test2", "1.2").publish()
+        m2.pom.expectGet()
+        def m3 = mavenHttpRepo.module("test", "test3", "1.2").publish()
+        m3.pom.expectGet()
+
+        fails("show")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasCause("Could not find test1.jar (test:test1:1.2).")
+    }
 }

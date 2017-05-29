@@ -42,6 +42,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -96,6 +97,10 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         @Override
         public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant) {
             return this;
+        }
+
+        @Override
+        public void collectSelectionFailures(Collection<? super Throwable> failures) {
         }
 
         @Override

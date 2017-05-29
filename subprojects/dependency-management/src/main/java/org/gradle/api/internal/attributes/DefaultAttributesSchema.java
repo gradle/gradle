@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -31,7 +32,6 @@ import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,11 +139,13 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public <T extends HasAttributes> List<T> matches(Collection<T> candidates, AttributeContainerInternal requested) {
-            if (candidates.isEmpty()) {
-                return Collections.emptyList();
-            }
-            return componentAttributeMatcher.match(effectiveSchema, candidates, requested);
+        public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested) {
+            return matches(candidates, requested, null);
+        }
+
+        @Override
+        public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback) {
+            return componentAttributeMatcher.match(effectiveSchema, candidates, requested, fallback);
         }
     }
 

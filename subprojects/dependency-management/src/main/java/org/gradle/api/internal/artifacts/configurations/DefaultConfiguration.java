@@ -80,8 +80,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Cast;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
@@ -837,17 +837,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         public Set<File> getFiles() {
             ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
+            getSelectedArtifacts().collectSelectionFailures(visitor.getFailures());
+            if (!lenient && !visitor.getFailures().isEmpty()) {
+                throw new ResolveException(getDisplayName(), visitor.getFailures());
+            }
+
             getSelectedArtifacts().visitArtifacts(visitor);
 
             if (!lenient) {
                 rethrowFailure("files", visitor.getFailures());
             }
+
             return visitor.getFiles();
         }
 
         private SelectedArtifactSet getSelectedArtifacts() {
-            assertResolvingAllowed();
             if (selectedArtifacts == null) {
+                assertResolvingAllowed();
                 resolveToStateOrLater(ARTIFACTS_RESOLVED);
                 selectedArtifacts = cachedResolverResults.getVisitedArtifacts().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
             }
@@ -1107,6 +1113,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
+        public boolean isLenient() {
+            return lenient;
+        }
+
+        @Override
+        public void setLenient(boolean lenient) {
+            this.lenient = lenient;
+        }
+
+        @Override
         public ArtifactViewConfiguration lenient(boolean lenient) {
             this.lenient = lenient;
             return this;
@@ -1184,10 +1200,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor();
+            failures = visitor.getFailures();
+
+            fileCollection.getSelectedArtifacts().collectSelectionFailures(visitor.getFailures());
+            if (!lenient && !failures.isEmpty()) {
+                throw new ResolveException(getDisplayName(), failures);
+            }
+
             fileCollection.getSelectedArtifacts().visitArtifacts(visitor);
 
             artifactResults = visitor.getArtifacts();
-            failures = visitor.getFailures();
 
             if (!lenient) {
                 rethrowFailure("artifacts", failures);

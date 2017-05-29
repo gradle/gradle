@@ -89,7 +89,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
         hasher.putString(propertyName);
         hasher.putHash(hashCode);
         inputHashes.put(propertyName, hashCode);
-        LOGGER.debug("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
+        LOGGER.info("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
         return this;
     }
 
@@ -101,7 +101,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     }
 
     private static void log(String name, Object value) {
-        LOGGER.debug("Appending {} to build cache key: {}", name, value);
+        LOGGER.info("Appending {} to build cache key: {}", name, value);
     }
 
     public TaskOutputCachingBuildCacheKey build() {
