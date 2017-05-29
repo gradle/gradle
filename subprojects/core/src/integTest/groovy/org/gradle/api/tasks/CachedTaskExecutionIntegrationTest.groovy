@@ -423,6 +423,28 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         output.contains("Custom actions are attached to task ':compileJava'.")
     }
 
+    def "input hashes are reported at the info level"() {
+        when:
+        buildFile << """
+            compileJava.doFirst { }
+        """
+        withBuildCache().succeeds "compileJava", "--info"
+
+        then:
+        skippedTasks.empty
+        [
+            'taskClass',
+            'classLoaderHash',
+            'actionType',
+            'actionClassLoaderHash',
+            'inputPropertyHash for \'classpath\'',
+            'outputPropertyName',
+        ].each {
+            assert output.contains("Appending ${it} to build cache key:")
+        }
+        output.contains('Build cache key for task \':compileJava\' is ')
+    }
+
     def "compileJava is not cached if forked executable is used"() {
         buildFile << """
             compileJava.options.fork = true
