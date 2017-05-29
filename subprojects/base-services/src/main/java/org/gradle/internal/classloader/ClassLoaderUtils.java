@@ -18,6 +18,8 @@ package org.gradle.internal.classloader;
 import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -25,8 +27,29 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public abstract class ClassLoaderUtils {
+
+    private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD;
+    private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD;
+
+    static {
+        GET_PACKAGES_METHOD = getMethodWithFallback(Package[].class, new Class[0], "getDefinedPackages", "getPackages");
+        GET_PACKAGE_METHOD = getMethodWithFallback(Package.class, new Class[] {String.class}, "getDefinedPackage", "getPackage");
+    }
+
+    private static <T> JavaMethod<ClassLoader, T> getMethodWithFallback(Class<T> clazz, Class<?>[] params, String firstChoice, String fallback) {
+        JavaMethod<ClassLoader, T> method;
+        try {
+            method = JavaReflectionUtil.method(ClassLoader.class, clazz, firstChoice, params);
+        } catch (Exception e) {
+            // We must not be on Java 9 where the getDefinedPackages() method exists. Fall back to getPackages()
+            method = JavaReflectionUtil.method(ClassLoader.class, clazz, fallback, params);
+        }
+        return method;
+    }
+
     /**
-     * Returns the ClassLoader that contains the Java platform classes only. This is different to {@link ClassLoader#getSystemClassLoader()}, which includes the application classes in addition to the platform classes.
+     * Returns the ClassLoader that contains the Java platform classes only. This is different to {@link ClassLoader#getSystemClassLoader()}, which includes the application classes in addition to the
+     * platform classes.
      */
     public static ClassLoader getPlatformClassLoader() {
         return ClassLoader.getSystemClassLoader().getParent();
@@ -50,5 +73,13 @@ public abstract class ClassLoaderUtils {
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    public static JavaMethod<ClassLoader, Package[]> getPackagesMethod() {
+        return GET_PACKAGES_METHOD;
+    }
+
+    public static JavaMethod<ClassLoader, Package> getPackageMethod() {
+        return GET_PACKAGE_METHOD;
     }
 }
