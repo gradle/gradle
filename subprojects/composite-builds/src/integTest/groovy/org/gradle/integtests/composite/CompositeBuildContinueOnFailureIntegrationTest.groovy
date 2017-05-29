@@ -142,4 +142,14 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         executed ":buildB:jar", ":buildB:checkContinueFlag"
         outputContains("continueOnFailure = true")
     }
+
+    // With failing tasks and parallel output, we cannot assert that the task was executed only once.
+    // This is because our OutputScrapingExecutionResult doesn't handle the output for interleaved tasks
+    // TODO:DAZ Using build operations instead of output scraping would help.
+    protected void executed(String... tasks) {
+        for (String task : tasks) {
+            assert task in executedTasks
+        }
+    }
+
 }
