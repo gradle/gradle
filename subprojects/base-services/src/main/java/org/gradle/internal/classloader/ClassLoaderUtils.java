@@ -57,7 +57,7 @@ public abstract class ClassLoaderUtils {
         JavaMethod<ClassLoader, T> method;
         try {
             method = JavaReflectionUtil.method(ClassLoader.class, clazz, firstChoice, params);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // We must not be on Java 9 where the getDefinedPackages() method exists. Fall back to getPackages()
             method = JavaReflectionUtil.method(ClassLoader.class, clazz, fallback, params);
         }
