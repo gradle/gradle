@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -563,6 +564,40 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         failure
             .assertHasDescription("Execution failed for task ':buildC:jar'")
             .assertHasCause("jar task failed")
+    }
+
+    @NotYetImplemented
+    // We execute do not execute included build with --continue,
+    // and we attach the single failure to every delegated task
+    def "builds artifacts and reports failures for dependency on multiple subprojects where one fails"() {
+        given:
+        dependency 'org.test:b1:1.0'
+        buildA.buildFile << """
+            dependencies {
+                runtime 'org.test:b2:1.0'
+            }
+            task resolveRuntime(type: Copy) {
+                dependsOn "resolve"
+                from configurations.runtime
+                into 'libs-runtime'
+            }
+                
+"""
+
+        buildB.buildFile << """
+            project(':b2') {
+                jar.doLast {
+                    throw new GradleException("jar task failed")
+                }
+            }
+"""
+
+        when:
+        fails buildA, ":resolveRuntime"
+
+        then:
+        executed ":buildB:b1:jar", ":resolve", ":buildB:b2:jar", ":resolveRuntime"
+        assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
     }
 
     private void resolveArtifacts() {

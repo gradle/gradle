@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 /**
@@ -83,7 +84,7 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         notExecuted ":buildB:succeeds"
     }
 
-    def "continues build when delegated task fails when run with --continue"() {
+    def "attempts all dependencies when run with --continue when one delegated task dependency fails"() {
         when:
         buildA.buildFile << """
     task delegate {
@@ -97,6 +98,29 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
 
         then:
         executed ":buildB:fails", ":buildC:succeeds", ":buildB:succeeds"
+    }
+
+    @NotYetImplemented
+    def "continues build when delegated task fails when run with --continue"() {
+        when:
+        buildA.buildFile << """
+    task delegateWithFailure {
+        dependsOn gradle.includedBuild('buildB').task(':fails')
+    }
+    task delegateWithSuccess {
+        dependsOn gradle.includedBuild('buildB').task(':succeeds')
+    }
+    task delegate {
+        dependsOn delegateWithSuccess, delegateWithFailure
+    }
+"""
+        executer.withArguments("--continue")
+        fails(buildA, ":delegate")
+
+        then:
+        // We attach the single failure in 'buildB' to every delegated task, so ':buildB:succeeds' appears to have failed
+        // Thus ":delegateWithSuccess" is never executed.
+        executed ":buildB:fails", ":buildB:succeeds", ":delegateWithSuccess"
     }
 
     def "executes delegate task with --continue"() {
