@@ -148,9 +148,6 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
     @Override
     public void awaitCompletion(String taskPath) {
-        // TODO:DAZ We should enforce that all tasks are queued first, rather than queuing them here
-        queueForExecution(taskPath);
-
         lock.lock();
         try {
             while (!isComplete(taskPath)) {
@@ -167,15 +164,13 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         lock.lock();
         try {
             TaskState state = tasks.get(taskPath);
-            if (state != null) {
-                if (state.status == TaskStatus.SUCCESS) {
-                    return true;
-                }
-                if (state.status == TaskStatus.FAILED) {
-                    throw UncheckedException.throwAsUncheckedException(state.failure);
-                }
+            if (state == null) {
+                throw new IllegalStateException("Included build task '" + taskPath + "' was never scheduled for execution.");
             }
-            return false;
+            if (state.status == TaskStatus.FAILED) {
+                throw UncheckedException.throwAsUncheckedException(state.failure);
+            }
+            return state.status == TaskStatus.SUCCESS;
         } finally {
             lock.unlock();
         }
