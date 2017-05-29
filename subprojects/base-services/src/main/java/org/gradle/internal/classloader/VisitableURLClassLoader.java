@@ -30,7 +30,11 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
          * This classloader is thread-safe and URLClassLoader is parallel capable,
          * so register as such to reduce contention when running multithreaded builds
         */
-        ClassLoader.registerAsParallelCapable();
+        try {
+            ClassLoader.registerAsParallelCapable();
+        } catch (NoSuchMethodError ignore) {
+            // Not using Java 7+, just ignore it
+        }
     }
 
     public VisitableURLClassLoader(ClassLoader parent, Collection<URL> urls) {
