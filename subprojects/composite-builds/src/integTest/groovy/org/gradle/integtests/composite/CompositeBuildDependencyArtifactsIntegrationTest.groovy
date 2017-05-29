@@ -58,7 +58,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executed ":buildB:jar"
+        executedInOrder ":buildB:jar", ":resolve"
         assertResolved buildB.file('build/libs/buildB-1.0.jar')
     }
 
