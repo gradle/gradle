@@ -25,6 +25,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.BuildIdentity;
+import org.gradle.initialization.includedbuild.IncludedBuildTaskGraph;
 
 public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver {
 

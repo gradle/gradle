@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.initialization.includedbuild.IncludedBuildTaskGraph;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 import java.util.Set;

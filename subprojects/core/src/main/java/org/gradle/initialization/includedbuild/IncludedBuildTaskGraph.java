@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal;
+package org.gradle.initialization.includedbuild;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 

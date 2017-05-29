@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.includedbuild.IncludedBuildController;
 import org.gradle.initialization.includedbuild.IncludedBuildControllers;
+import org.gradle.initialization.includedbuild.IncludedBuildTaskGraph;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.Path;

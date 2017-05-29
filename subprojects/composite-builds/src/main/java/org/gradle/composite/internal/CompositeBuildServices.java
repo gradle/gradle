@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.includedbuild.IncludedBuildControllers;
 import org.gradle.initialization.includedbuild.IncludedBuildFactory;
+import org.gradle.initialization.includedbuild.IncludedBuildTaskGraph;
 import org.gradle.initialization.includedbuild.IncludedBuilds;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
