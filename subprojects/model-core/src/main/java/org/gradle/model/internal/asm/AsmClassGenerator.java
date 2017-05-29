@@ -16,14 +16,12 @@
 
 package org.gradle.model.internal.asm;
 
-import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 
 public class AsmClassGenerator {
-    private static final JavaMethod<ClassLoader, ?> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
+
     private final ClassWriter visitor;
     private final String generatedTypeName;
     private final Type generatedType;
@@ -57,7 +55,6 @@ public class AsmClassGenerator {
     }
 
     public <T> Class<T> define(ClassLoader targetClassLoader) {
-        byte[] generatedByteCode = visitor.toByteArray();
-        return Cast.uncheckedCast(DEFINE_CLASS_METHOD.invoke(targetClassLoader, generatedTypeName, generatedByteCode, 0, generatedByteCode.length));
+       return ClassLoaderUtils.define(targetClassLoader, generatedTypeName, visitor.toByteArray());
     }
 }

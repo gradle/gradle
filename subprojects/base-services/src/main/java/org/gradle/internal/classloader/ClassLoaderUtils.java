@@ -16,17 +16,34 @@
 package org.gradle.internal.classloader;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import sun.misc.Unsafe;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
 public abstract class ClassLoaderUtils {
+
+    private static final Unsafe UNSAFE;
+
+    static {
+        try {
+            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+            theUnsafe.setAccessible(true);
+            UNSAFE = (Unsafe) theUnsafe.get(null);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD;
     private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD;
@@ -81,5 +98,9 @@ public abstract class ClassLoaderUtils {
 
     public static JavaMethod<ClassLoader, Package> getPackageMethod() {
         return GET_PACKAGE_METHOD;
+    }
+
+    public static <T> Class<T> define(ClassLoader targetClassLoader, String className, byte[] clazzBytes) {
+        return Cast.uncheckedCast(UNSAFE.defineClass(className, clazzBytes, 0, clazzBytes.length, targetClassLoader, null));
     }
 }
