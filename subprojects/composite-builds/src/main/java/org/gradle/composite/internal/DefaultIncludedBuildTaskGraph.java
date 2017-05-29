@@ -50,13 +50,11 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
 
     @Override
     public void awaitCompletion(BuildIdentifier targetBuild, String taskPath) {
-        IncludedBuildController controller = getBuildController(targetBuild);
-
         // Start task execution if necessary: this is required for building plugin artifacts,
         // since these are built on-demand prior to the regular start signal for included builds.
-        controller.startTaskExecution();
+        includedBuilds.startTaskExecution();
 
-        controller.awaitCompletion(taskPath);
+        getBuildController(targetBuild).awaitCompletion(taskPath);
     }
 
     public boolean isComplete(BuildIdentifier targetBuild, String taskPath) {
