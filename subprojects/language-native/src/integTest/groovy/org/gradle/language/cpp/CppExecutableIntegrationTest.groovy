@@ -89,7 +89,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         executable("app/build/exe/app").assertExists()
         sharedLibrary("hello/build/lib/hello").assertExists()
         installation("app/build/install/app").exec().out == app.englishOutput
-        sharedLibrary("app/build/install/app/lib/hello").assertExists()
+        sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
     }
 
     def "can compile and link against library with dependencies"() {
@@ -127,7 +127,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary("lib2/build/lib/lib2").assertExists()
         executable("app/build/exe/app").assertExists()
         installation("app/build/install/app").exec().out == app.englishOutput
-        sharedLibrary("app/build/install/app/lib/lib1").assertExists()
-        sharedLibrary("app/build/install/app/lib/lib2").assertExists()
+        sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
     }
 }
