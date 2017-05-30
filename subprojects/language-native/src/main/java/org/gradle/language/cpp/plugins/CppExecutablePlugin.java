@@ -18,11 +18,14 @@ package org.gradle.language.cpp.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -75,12 +78,32 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - should reflect changes to build directory
         // TODO - need to set basename
-        String exeName = ((NativeToolChainInternal) toolChain).select(currentPlatform).getExecutableName("build/exe/main");
+        String exeName = ((NativeToolChainInternal) toolChain).select(currentPlatform).getExecutableName("build/exe/" + project.getName());
         link.setOutputFile(project.file(exeName));
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);
 
-        project.getTasks().getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
+        // Add an install task
+        final InstallExecutable install = project.getTasks().create("installMain", InstallExecutable.class);
+        install.setPlatform(currentPlatform);
+        install.setToolChain(toolChain);
+        // TODO - should reflect changes to build directory
+        // TODO - need to set basename
+        install.setDestinationDir(project.file("build/install/" + project.getName()));
+        // TODO - should reflect changes to task output
+        install.setExecutable(link.getOutputFile());
+        // TODO - infer this
+        install.dependsOn(link);
+        // TODO - and this
+        install.onlyIf(new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return install.getExecutable().exists();
+            }
+        });
+        install.lib(project.getConfigurations().getByName(CppBasePlugin.NATIVE_RUNTIME));
+
+        project.getTasks().getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
 
         // TODO - add lifecycle tasks
     }

@@ -48,6 +48,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
     def "sources are compiled with C++ compiler"() {
         given:
+        settingsFile << "rootProject.name = 'hello'"
         def app = new CppHelloWorldApp()
         app.library.writeSources(file('src/main'))
 
@@ -59,11 +60,12 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
-        sharedLibrary("build/lib/main").assertExists()
+        sharedLibrary("build/lib/hello").assertExists()
     }
 
     def "can define public headers"() {
         given:
+        settingsFile << "rootProject.name = 'hello'"
         def app = new CppHelloWorldApp()
         app.library.headerFiles.each { it.writeToFile(file("src/main/public/$it.name")) }
         app.library.sourceFiles.each { it.writeToFile(file("src/main/cpp/$it.name")) }
@@ -76,7 +78,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
-        sharedLibrary("build/lib/main").assertExists()
+        sharedLibrary("build/lib/hello").assertExists()
     }
 
     def "can compile and link against another library"() {
@@ -103,8 +105,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds ":lib1:assemble"
         result.assertTasksExecuted(":lib2:compileCpp", ":lib2:linkMain", ":lib1:compileCpp", ":lib1:linkMain", ":lib1:assemble")
-        sharedLibrary("lib1/build/lib/main").assertExists()
-        sharedLibrary("lib2/build/lib/main").assertExists()
+        sharedLibrary("lib1/build/lib/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/lib2").assertExists()
     }
 
 }

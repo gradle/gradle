@@ -83,9 +83,16 @@ public interface Usage extends Named {
     String C_PLUS_PLUS_API = "cplusplus-api";
 
     /**
-     * The native link files of a library.
+     * The native link files of a library, packaged as static or shared library.
      *
      * @since 4.1
      */
     String NATIVE_LINK = "native-link";
+
+    /**
+     * The native runtime files of a library, packaged as a shared library.
+     *
+     * @since 4.1
+     */
+    String NATIVE_RUNTIME = "native-runtime";
 }

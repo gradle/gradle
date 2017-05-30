@@ -46,13 +46,19 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
      */
     public static final String NATIVE_LINK = "nativeLink";
 
+    /**
+     * The name of the native runtime files configuration.
+     */
+    public static final String NATIVE_RUNTIME = "nativeRuntime";
+
     @Override
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
 
-        // TODO - make not consumable or resolvable
         Configuration implementation = project.getConfigurations().create(IMPLEMENTATION);
+        implementation.setCanBeConsumed(false);
+        implementation.setCanBeResolved(false);
 
         Configuration includePath = project.getConfigurations().create(CPP_INCLUDE_PATH);
         includePath.extendsFrom(implementation);
@@ -63,5 +69,10 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         nativeLink.extendsFrom(implementation);
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_LINK));
+
+        Configuration nativeRuntime = project.getConfigurations().create(NATIVE_RUNTIME);
+        nativeRuntime.extendsFrom(implementation);
+        nativeRuntime.setCanBeConsumed(false);
+        nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_RUNTIME));
     }
 }

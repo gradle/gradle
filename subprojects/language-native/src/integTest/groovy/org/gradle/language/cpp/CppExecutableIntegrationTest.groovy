@@ -45,6 +45,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
     }
 
     def "sources are compiled with C++ compiler"() {
+        settingsFile << "rootProject.name = 'app'"
         def app = new CppCompilerDetectingTestApp()
 
         given:
@@ -57,12 +58,13 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
-        executable("build/exe/main").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+        executable("build/exe/app").assertExists()
+        installation("build/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
     def "can compile and link against a library"() {
-        settingsFile << "include 'app', 'lib'"
+        settingsFile << "include 'app', 'hello'"
         def app = new CppHelloWorldApp()
 
         given:
@@ -70,21 +72,24 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
             project(':app') {
                 apply plugin: 'cpp-executable'
                 dependencies {
-                    implementation project(':lib')
+                    implementation project(':hello')
                 }
             }
-            project(':lib') {
+            project(':hello') {
                 apply plugin: 'cpp-library'
             }
 """
-        app.library.headerFiles.each { it.writeToFile(file("lib/src/main/public/$it.name")) }
-        app.library.sourceFiles.each { it.writeToFile(file("lib/src/main/cpp/$it.name")) }
+        app.library.headerFiles.each { it.writeToFile(file("hello/src/main/public/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("hello/src/main/cpp/$it.name")) }
         app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":lib:compileCpp", ":lib:linkMain", ":app:compileCpp", ":app:linkMain", ":app:assemble")
-        executable("app/build/exe/main").exec().out == app.englishOutput
+        result.assertTasksExecuted(":hello:compileCpp", ":hello:linkMain", ":app:compileCpp", ":app:linkMain", ":app:installMain", ":app:assemble")
+        executable("app/build/exe/app").assertExists()
+        sharedLibrary("hello/build/lib/hello").assertExists()
+        installation("app/build/install/app").exec().out == app.englishOutput
+        sharedLibrary("app/build/install/app/lib/hello").assertExists()
     }
 
     def "can compile and link against library with dependencies"() {
@@ -117,7 +122,12 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":lib1:compileCpp", ":lib1:linkMain", ":lib2:compileCpp", ":lib2:linkMain", ":app:compileCpp", ":app:linkMain", ":app:assemble")
-        executable("app/build/exe/main").exec().out == app.englishOutput
+        result.assertTasksExecuted(":lib1:compileCpp", ":lib1:linkMain", ":lib2:compileCpp", ":lib2:linkMain", ":app:compileCpp", ":app:linkMain", ":app:installMain", ":app:assemble")
+        sharedLibrary("lib1/build/lib/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/lib2").assertExists()
+        executable("app/build/exe/app").assertExists()
+        installation("app/build/install/app").exec().out == app.englishOutput
+        sharedLibrary("app/build/install/app/lib/lib1").assertExists()
+        sharedLibrary("app/build/install/app/lib/lib2").assertExists()
     }
 }

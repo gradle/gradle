@@ -31,6 +31,7 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import java.util.Collections;
 
@@ -72,6 +73,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         // TODO - make this lazy
         NativeToolChain toolChain = project.getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
+        PlatformToolProvider platformToolChain = ((NativeToolChainInternal) toolChain).select(currentPlatform);
         compile.setToolChain(toolChain);
 
         // Add a link task
@@ -82,8 +84,9 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - should reflect changes to build directory
         // TODO - need to set basename and soname
-        String libName = ((NativeToolChainInternal) toolChain).select(currentPlatform).getSharedLibraryName("build/lib/main");
-        link.setOutputFile(project.file(libName));
+        String runtimeFileName = platformToolChain.getSharedLibraryName("build/lib/" + project.getName());
+        String linkFileName = platformToolChain.getSharedLibraryLinkFileName("build/lib/" + project.getName());
+        link.setOutputFile(project.file(runtimeFileName));
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);
 
@@ -91,17 +94,31 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         // TODO - add lifecycle tasks
 
-        // TODO - make not resolvable
         Configuration apiElements = project.getConfigurations().create("cppApiElements");
+        apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.C_PLUS_PLUS_API));
         apiElements.getOutgoing().artifact(project.file("src/main/public"));
 
-        // TODO - make not resolvable
+        Configuration implementation = project.getConfigurations().getByName(CppBasePlugin.IMPLEMENTATION);
+
         Configuration linkElements = project.getConfigurations().create("linkElements");
-        linkElements.extendsFrom(project.getConfigurations().getByName(CppBasePlugin.IMPLEMENTATION));
+        linkElements.extendsFrom(implementation);
+        linkElements.setCanBeResolved(false);
         linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should be lazy and reflect changes to output file
-        linkElements.getOutgoing().artifact(link.getOutputFile(), new Action<ConfigurablePublishArtifact>() {
+        // TODO - should be lazy and reflect changes to task output file
+        linkElements.getOutgoing().artifact(project.file(linkFileName), new Action<ConfigurablePublishArtifact>() {
+            @Override
+            public void execute(ConfigurablePublishArtifact artifact) {
+                artifact.builtBy(link);
+            }
+        });
+
+        Configuration runtimeElements = project.getConfigurations().create("runtimeElements");
+        runtimeElements.extendsFrom(implementation);
+        runtimeElements.setCanBeResolved(false);
+        runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_RUNTIME));
+        // TODO - should be lazy and reflect changes to task output file
+        runtimeElements.getOutgoing().artifact(link.getOutputFile(), new Action<ConfigurablePublishArtifact>() {
             @Override
             public void execute(ConfigurablePublishArtifact artifact) {
                 artifact.builtBy(link);
