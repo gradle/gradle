@@ -570,8 +570,8 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         when:
         TestFile outputDir2 = temporaryFolder.createDir("output-dir-2")
         TestFile outputDirFile2 = outputDir2.file("output-file-2")
-        TaskInternal task1 = builder.withOutputFiles(dir: [outputDir]).createsFiles(outputDirFile).task()
-        TaskInternal task2 = builder.withOutputFiles(dir: [outputDir2]).createsFiles(outputDirFile2).task()
+        TaskInternal task1 = builder.withOutputFiles(dir: [outputDir]).createsFiles(outputDirFile).withPath('task1').task()
+        TaskInternal task2 = builder.withOutputFiles(dir: [outputDir2]).createsFiles(outputDirFile2).withPath('task2').task()
 
         execute(task1, task2)
 
@@ -597,26 +597,6 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
         then:
         repository.getStateFor(task).originBuildInvocationId == buildScopeId.id
-    }
-
-    def "has no origin build ID if outputs are not usable"() {
-        when:
-        execute(task)
-
-        then:
-        def state1 = repository.getStateFor(task)
-        state1.originBuildInvocationId == buildScopeId.id
-        state1.isUpToDate([])
-
-        when:
-        def changedOutputsTask = builder.withOutputFiles(temporaryFolder.createDir("output-dir-2")).task()
-
-        then:
-
-        task.path == changedOutputsTask.path
-        def state2 = repository.getStateFor(changedOutputsTask)
-        state2.originBuildInvocationId == null
-        !state2.isUpToDate([])
     }
 
     private void outOfDate(TaskInternal task) {
