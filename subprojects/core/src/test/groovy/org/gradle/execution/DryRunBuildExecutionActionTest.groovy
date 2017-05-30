@@ -18,6 +18,7 @@ package org.gradle.execution
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -25,6 +26,7 @@ import spock.lang.Specification
 import static org.gradle.util.WrapUtil.toList
 
 public class DryRunBuildExecutionActionTest extends Specification {
+    private static final String EOL = SystemProperties.instance.lineSeparator
     def executionContext = Mock(BuildExecutionContext.class)
     def gradle = Mock(GradleInternal.class)
     def taskExecuter = Mock(TaskGraphExecuter.class)
@@ -51,7 +53,7 @@ public class DryRunBuildExecutionActionTest extends Specification {
         action.execute(executionContext)
 
         then:
-        textOutputFactory.toString() == "{$category}:task1 {progressstatus}SKIPPED\n{$category}:task2 {progressstatus}SKIPPED\n"
+        textOutputFactory.toString() == "{$category}:task1 {progressstatus}SKIPPED$EOL{$category}:task2 {progressstatus}SKIPPED$EOL"
         1 * task1.getIdentityPath() >> Path.path(':task1')
         1 * task2.getIdentityPath() >> Path.path(':task2')
         0 * executionContext.proceed()
