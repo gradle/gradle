@@ -59,8 +59,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         compile.source(sourceTree);
         // TODO - dependencies
 
-        // TODO - should use PIC
         compile.setCompilerArgs(Collections.<String>emptyList());
+        compile.setPositionIndependentCode(true);
         compile.setMacros(Collections.<String, String>emptyMap());
 
         // TODO - should reflect changes to build directory
