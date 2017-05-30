@@ -53,11 +53,12 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         compile.includes("src/main/public");
         compile.includes("src/main/headers");
+        compile.includes(project.getConfigurations().getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+
         ConfigurableFileTree sourceTree = project.fileTree("src/main/cpp");
         sourceTree.include("**/*.cpp");
         sourceTree.include("**/*.c++");
         compile.source(sourceTree);
-        // TODO - dependencies
 
         compile.setCompilerArgs(Collections.<String>emptyList());
         compile.setPositionIndependentCode(true);
@@ -77,8 +78,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         final LinkSharedLibrary link = project.getTasks().create("linkMain", LinkSharedLibrary.class);
         // TODO - include only object files
         link.source(compile.getOutputs().getFiles().getAsFileTree());
+        link.lib(project.getConfigurations().getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
-        // TODO - dependencies
         // TODO - should reflect changes to build directory
         // TODO - need to set basename and soname
         String libName = ((NativeToolChainInternal) toolChain).select(currentPlatform).getSharedLibraryName("build/lib/main");

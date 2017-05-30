@@ -19,6 +19,7 @@ package org.gradle.language.cpp
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 
 import static org.gradle.util.Matchers.containsText
 
@@ -83,6 +84,40 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(":lib:compileCpp", ":lib:linkMain", ":app:compileCpp", ":app:linkMain", ":app:assemble")
+        executable("app/build/exe/main").exec().out == app.englishOutput
+    }
+
+    def "can compile and link against library with dependencies"() {
+        settingsFile << "include 'app', 'lib1', 'lib2'"
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':lib1')
+                }
+            }
+            project(':lib1') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    implementation project(':lib2')
+                }
+            }
+            project(':lib2') {
+                apply plugin: 'cpp-library'
+            }
+"""
+        app.library.headerFiles.each { it.writeToFile(file("lib1/src/main/public/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/cpp/$it.name")) }
+        app.greetingsLibrary.headerFiles.each { it.writeToFile(file("lib2/src/main/public/$it.name")) }
+        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/cpp/$it.name")) }
+        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":lib1:compileCpp", ":lib1:linkMain", ":lib2:compileCpp", ":lib2:linkMain", ":app:compileCpp", ":app:linkMain", ":app:assemble")
         executable("app/build/exe/main").exec().out == app.englishOutput
     }
 }

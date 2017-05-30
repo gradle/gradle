@@ -18,6 +18,7 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 
 import static org.gradle.util.Matchers.containsText
@@ -77,4 +78,33 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
         sharedLibrary("build/lib/main").assertExists()
     }
+
+    def "can compile and link against another library"() {
+        settingsFile << "include 'lib1', 'lib2'"
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+
+        given:
+        buildFile << """
+            project(':lib1') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    implementation project(':lib2')
+                }
+            }
+            project(':lib2') {
+                apply plugin: 'cpp-library'
+            }
+"""
+        app.library.headerFiles.each { it.writeToFile(file("lib1/src/main/headers/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/cpp/$it.name")) }
+        app.greetingsLibrary.headerFiles.each { it.writeToFile(file("lib2/src/main/public/$it.name")) }
+        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/cpp/$it.name")) }
+
+        expect:
+        succeeds ":lib1:assemble"
+        result.assertTasksExecuted(":lib2:compileCpp", ":lib2:linkMain", ":lib1:compileCpp", ":lib1:linkMain", ":lib1:assemble")
+        sharedLibrary("lib1/build/lib/main").assertExists()
+        sharedLibrary("lib2/build/lib/main").assertExists()
+    }
+
 }
