@@ -48,9 +48,8 @@ public class InstallExecutable extends DefaultTask {
     private NativePlatform platform;
     private File destinationDir;
     private File executable;
-    private FileCollection libs;
+    private final ConfigurableFileCollection libs;
 
-    @Inject
     public InstallExecutable() {
         this.libs = getProject().files();
     }
@@ -112,14 +111,14 @@ public class InstallExecutable extends DefaultTask {
     }
 
     public void setLibs(FileCollection libs) {
-        this.libs = libs;
+        this.libs.setFrom(libs);
     }
 
     /**
      * Adds a set of library files to be installed. The provided libs object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
     public void lib(Object libs) {
-        ((ConfigurableFileCollection) this.libs).from(libs);
+        this.libs.from(libs);
     }
 
     /**
@@ -148,7 +147,6 @@ public class InstallExecutable extends DefaultTask {
         } else {
             installUnix();
         }
-
     }
 
     private void installWindows() {
@@ -167,7 +165,6 @@ public class InstallExecutable extends DefaultTask {
 
             toolChainPath.append("%PATH%");
         }
-
 
         String runScriptText =
               "\n@echo off"

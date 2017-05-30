@@ -54,10 +54,9 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private NativePlatformInternal targetPlatform;
     private File outputFile;
     private List<String> linkerArgs;
-    private FileCollection source;
-    private FileCollection libs;
+    private final ConfigurableFileCollection source;
+    private final ConfigurableFileCollection libs;
 
-    @Inject
     public AbstractLinkTask() {
         libs = getProject().files();
         source = getProject().files();
@@ -134,7 +133,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     public void setSource(FileCollection source) {
-        this.source = source;
+        this.source.setFrom(source);
     }
 
     /**
@@ -146,21 +145,21 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     public void setLibs(FileCollection libs) {
-        this.libs = libs;
+        this.libs.setFrom(libs);
     }
 
     /**
      * Adds a set of object files to be linked. The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
     public void source(Object source) {
-        ((ConfigurableFileCollection) this.source).from(source);
+        this.source.from(source);
     }
 
     /**
      * Adds a set of library files to be linked. The provided libs object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
     public void lib(Object libs) {
-        ((ConfigurableFileCollection) this.libs).from(libs);
+        this.libs.from(libs);
     }
 
     @Inject
