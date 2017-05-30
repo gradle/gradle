@@ -124,9 +124,9 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         // project defaults
-        executer.withArguments("-m").run().assertTasksExecuted(":a", ":b");
+        executer.withArguments("-m").run().normalizedOutput.contains(":a SKIPPED\n:b SKIPPED")
         // named tasks
-        executer.withArguments("-m").withTasks("b").run().assertTasksExecuted(":a", ":b");
+        executer.withArguments("-m").withTasks("b").run().normalizedOutput.contains(":a SKIPPED\n:b SKIPPED")
     }
 
     def executesTaskActionsInCorrectEnvironment() {

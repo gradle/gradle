@@ -17,18 +17,33 @@ package org.gradle.execution;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 /**
  * A {@link org.gradle.execution.BuildExecutionAction} that disables all selected tasks before they are executed.
  */
 public class DryRunBuildExecutionAction implements BuildExecutionAction {
+    private final StyledTextOutputFactory textOutputFactory;
+
+    public DryRunBuildExecutionAction(StyledTextOutputFactory textOutputFactory) {
+        this.textOutputFactory = textOutputFactory;
+    }
+
     public void execute(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
         if (gradle.getStartParameter().isDryRun()) {
             for (Task task : gradle.getTaskGraph().getAllTasks()) {
-                task.setEnabled(false);
+                textOutputFactory.create(DryRunBuildExecutionAction.class)
+                    .append(((TaskInternal) task).getIdentityPath().getPath())
+                    .append(" ")
+                    .style(StyledTextOutput.Style.ProgressStatus)
+                    .append("SKIPPED")
+                    .println();
             }
+        } else {
+            context.proceed();
         }
-        context.proceed();
     }
 }
