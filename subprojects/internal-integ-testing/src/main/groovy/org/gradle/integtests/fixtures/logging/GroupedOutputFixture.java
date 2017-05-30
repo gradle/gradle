@@ -66,14 +66,15 @@ public class GroupedOutputFixture {
 
 
     private final String originalOutput;
+    private final String stripedOutput;
     private Map<String, GroupedTaskFixture> tasks;
 
     public GroupedOutputFixture(String output) {
         this.originalOutput = output;
-        parse(output);
+        this.stripedOutput = parse(output);
     }
 
-    private void parse(String output) {
+    private String parse(String output) {
         tasks = new HashMap<String, GroupedTaskFixture>();
 
         String stripedOutput = stripAnsiCodes(stripWorkInProgressArea(output));
@@ -90,6 +91,8 @@ public class GroupedOutputFixture {
                 tasks.put(taskName, task);
             }
         }
+
+        return stripedOutput;
     }
 
     private String stripWorkInProgressArea(String output) {
@@ -130,6 +133,10 @@ public class GroupedOutputFixture {
         }
 
         return tasks.get(taskName);
+    }
+
+    public String getStripedOutput() {
+        return stripedOutput;
     }
 
     public String toString() {

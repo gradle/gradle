@@ -143,4 +143,25 @@ includeBuild '../buildB'
         executed ":buildB:jar"
     }
 
+    def "does not execute task actions when dry run specified on composite build"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+
+        when:
+        execute(buildA, ":build", ["--dry-run"])
+
+        then:
+        result.normalizedOutput.contains ":compileJava SKIPPED\n" +
+            ":processResources SKIPPED\n" +
+            ":classes SKIPPED\n" +
+            ":jar SKIPPED\n" +
+            ":assemble SKIPPED\n" +
+            ":compileTestJava SKIPPED\n" +
+            ":processTestResources SKIPPED\n" +
+            ":testClasses SKIPPED\n" +
+            ":test SKIPPED\n" +
+            ":check SKIPPED\n" +
+            ":build SKIPPED"
+    }
+
 }
