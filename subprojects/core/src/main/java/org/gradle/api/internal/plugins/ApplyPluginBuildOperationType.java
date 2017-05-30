@@ -37,9 +37,9 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
         String getPluginId();
 
         /**
-         * The fully qualified class name of the Plugin implementation.
+         * The class of the plugin implementation.
          */
-        String getClassName();
+        Class<?> getPluginClass();
 
         /**
          * The target of the plugin.
@@ -57,6 +57,7 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
          * The build path of the target.
          */
         String getBuildPath();
+
     }
 
     private ApplyPluginBuildOperationType() {

@@ -287,8 +287,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
             return pluginId == null ? null : pluginId.getId();
         }
 
-        public String getClassName() {
-            return pluginImplementation.asClass().getName();
+        @Override
+        public Class<?> getPluginClass() {
+            return pluginImplementation.asClass();
         }
 
         @Override
