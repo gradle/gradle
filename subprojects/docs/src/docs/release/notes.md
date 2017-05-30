@@ -441,21 +441,19 @@ You can no longer add copy specs to a copy (like `Copy` and `Sync`) or archive t
 
 Starting with Gradle 4.0, builds that rely on this behavior will fail.  Previously, Gradle only failed if the task was cacheable and emitted a warning otherwise. 
 
-```groovy
-// This task adds a copy spec during the execution phase.
-task copy(type: Copy) {
-    from ("some-dir")
-    into ("build/output")
-
-    doFirst {
-        // Adding copy specs during runtime is not allowed anymore
-        // The build will fail with 4.0
-        from ("some-other-dir") {
-            exclude "non-existent-file"
+    // This task adds a copy spec during the execution phase.
+    task copy(type: Copy) {
+        from ("some-dir")
+        into ("build/output")
+    
+        doFirst {
+            // Adding copy specs during runtime is not allowed anymore
+            // The build will fail with 4.0
+            from ("some-other-dir") {
+                exclude "non-existent-file"
+            }
         }
     }
-}
-```
 
 ### Changes to how build cache configurations are described
 
