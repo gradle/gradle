@@ -347,7 +347,7 @@ Bye world
         GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
 
         then:
-        groupedOutput.stripedOutput == '''
+        groupedOutput.strippedOutput == '''
 > Task :buildSrc:helloWorld
 Hello world
 

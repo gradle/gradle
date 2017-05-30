@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.internal.SystemProperties
 import spock.lang.Ignore
 
-//@Ignore("Build fails and passes depending on timing")
 class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
     private static final String EOL = SystemProperties.instance.lineSeparator
     private static final String PROJECT_A_NAME = 'projectA'
@@ -80,7 +79,7 @@ class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec 
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withArgument("--dry-run").withTasks('compileJava').run()
 
         then:
-        result.groupedOutput.stripedOutput.contains ":byeWorld SKIPPED$EOL:compileJava SKIPPED$EOL"
+        result.groupedOutput.strippedOutput.contains ":byeWorld SKIPPED$EOL:compileJava SKIPPED$EOL"
     }
 
     static String javaProject() {
