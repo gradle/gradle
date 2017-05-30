@@ -99,6 +99,7 @@ task srcZip(type: Zip) {
                 spec.include "$it/*.gradle"
                 spec.include "$it/src/"
             }
+            include 'gradle.properties'
             include 'config/'
             include 'gradle/'
             include 'src/'

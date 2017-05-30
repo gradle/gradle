@@ -22,7 +22,6 @@ import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GradleVersion;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ComparableGradleBuildExecuter {
@@ -48,25 +47,10 @@ public class ComparableGradleBuildExecuter {
         return GradleVersion.version(getSpec().getGradleVersion());
     }
 
-    private List<String> getImpliedArguments() {
-        List<String> rawArgs = getSpec().getArguments();
-
-        // Note: we don't know for certain that this is how to invoke this functionality for this Gradle version.
-        //       unsure of any other alternative.
-        if (rawArgs.contains("-u") || rawArgs.contains("--no-search-upward")) {
-            return rawArgs;
-        } else {
-            List<String> ammendedArgs = new ArrayList<String>(rawArgs.size() + 1);
-            ammendedArgs.add("--no-search-upward");
-            ammendedArgs.addAll(rawArgs);
-            return ammendedArgs;
-        }
-    }
-
     public ProjectOutcomes executeWith(ProjectConnection connection) {
         List<String> tasksList = getSpec().getTasks();
         String[] tasks = tasksList.toArray(new String[0]);
-        List<String> argumentsList = getImpliedArguments();
+        List<String> argumentsList = getSpec().getArguments();
         String[] arguments = argumentsList.toArray(new String[0]);
 
         // Run the build and get the build outcomes model
