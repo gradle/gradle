@@ -17,15 +17,18 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 
 import static org.gradle.util.Matchers.containsText
 
-class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    HelloWorldApp helloWorldApp = new CppHelloWorldApp()
+
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-library'
          """
 
         and:
@@ -43,19 +46,18 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
     }
 
     def "sources are compiled with C++ compiler"() {
-        def app = new CppCompilerDetectingTestApp()
-
         given:
-        app.writeSources(file('src/main'))
+        def app = new CppHelloWorldApp()
+        app.library.writeSources(file('src/main'))
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-library'
          """
 
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
-        executable("build/exe/main").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        sharedLibrary("build/lib/main").assertExists()
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -32,19 +32,20 @@ import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPl
 import java.util.Collections;
 
 /**
- * <p>A plugin that produces a native executable from C++ source.</p>
+ * <p>A plugin that produces a native library from C++ source.</p>
  *
  * <p>Assumes the source files are located in `src/main/cpp` and header files are located in `src/main/headers`.</p>
  *
  * @since 4.1
  */
 @Incubating
-public class CppExecutablePlugin implements Plugin<ProjectInternal> {
+public class CppLibraryPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
 
+        // TODO - extract some common code to setup the compile task and conventions
         // Add a compile task
         CppCompile compile = project.getTasks().create("compileCpp", CppCompile.class);
 
@@ -55,6 +56,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         sourceTree.include("**/*.c++");
         compile.source(sourceTree);
 
+        // TODO - should use PIC
         compile.setCompilerArgs(Collections.<String>emptyList());
         compile.setMacros(Collections.<String, String>emptyMap());
 
@@ -69,14 +71,14 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         compile.setToolChain(toolChain);
 
         // Add a link task
-        LinkExecutable link = project.getTasks().create("linkMain", LinkExecutable.class);
+        LinkSharedLibrary link = project.getTasks().create("linkMain", LinkSharedLibrary.class);
         // TODO - include only object files
         link.source(compile.getOutputs().getFiles().getAsFileTree());
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - should reflect changes to build directory
-        // TODO - need to set basename
-        String exeName = ((NativeToolChainInternal) toolChain).select(currentPlatform).getExecutableName("build/exe/main");
-        link.setOutputFile(project.file(exeName));
+        // TODO - need to set basename and soname
+        String libName = ((NativeToolChainInternal) toolChain).select(currentPlatform).getSharedLibraryName("build/lib/main");
+        link.setOutputFile(project.file(libName));
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);
 
