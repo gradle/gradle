@@ -63,7 +63,8 @@ public class PackageListGenerator extends DefaultTask {
         "org/apache/log4j",
         "org/apache/xerces",
         "org/w3c/dom",
-        "org/xml/sax");
+        "org/xml/sax",
+        "sun/misc");
 
     private File outputFile;
     private FileCollection classpath;
