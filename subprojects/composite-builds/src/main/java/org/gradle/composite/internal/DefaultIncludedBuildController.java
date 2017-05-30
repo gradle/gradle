@@ -37,8 +37,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBuildController {
-    private static final String SHUTDOWN_SIGNAL = " ";
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuildController.class);
     private final IncludedBuildInternal includedBuild;
 
@@ -79,8 +77,15 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     }
 
     public void stop() {
-        queueForExecution(SHUTDOWN_SIGNAL);
+        stopped.set(true);
         started.countDown();
+
+        lock.lock();
+        try {
+            taskQueued.signalAll();
+        } finally {
+            lock.unlock();
+        }
     }
 
     private Set<String> getQueuedTasks() {
