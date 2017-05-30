@@ -80,8 +80,13 @@ public class BuildOperationTrace implements Stoppable {
 
     public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager listenerManager) {
         Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
-        this.basePath = sysProps.get(SYSPROP);
+        String basePath = sysProps.get(SYSPROP);
         if (basePath == null) {
+            basePath = System.getProperty(SYSPROP);
+        }
+
+        this.basePath = basePath;
+        if (this.basePath == null) {
             this.logOutputStream = null;
             return;
         }
