@@ -531,6 +531,42 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         !result.error.contains("Wrong magic bytes")
     }
 
+    def "can disable progress output"() {
+        given:
+        buildFile << """
+            findbugs {
+                showProgress = false
+            }
+        """
+
+        and:
+        goodCode()
+
+        when:
+        run "findbugsMain"
+
+        then:
+        !output.contains("Scanning archives")
+    }
+
+    def "can enable progress output"() {
+        given:
+        buildFile << """
+            findbugs {
+                showProgress = true 
+            }
+        """
+
+        and:
+        goodCode()
+
+        when:
+        run "findbugsMain"
+
+        then:
+        output.contains("Scanning archives")
+    }
+
     private static boolean containsXmlMessages(File xmlReportFile) {
         new XmlSlurper().parseText(xmlReportFile.text).BugInstance.children().collect { it.name() }.containsAll(['ShortMessage', 'LongMessage'])
     }

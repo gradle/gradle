@@ -48,6 +48,10 @@
                 <td>excludeFilter</td>
                 <td><literal>null</literal></td>
             </tr>
+            <tr>
+                <td>showProgress</td>
+                <td><literal>false</literal></td>
+            </tr>
         </table>
     </section>
     <section>

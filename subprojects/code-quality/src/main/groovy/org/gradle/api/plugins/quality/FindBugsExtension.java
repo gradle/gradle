@@ -40,6 +40,7 @@ import java.util.Collection;
  *         ignoreFailures = true
  *         reportsDir = file("$project.buildDir/findbugsReports")
  *         effort = "max"
+ *         showProgress = true
  *         reportLevel = "high"
  *         visitors = ["FindSqlInjection", "SwitchFallthrough"]
  *         omitVisitors = ["FindNonShortCircuit"]
@@ -63,6 +64,7 @@ public class FindBugsExtension extends CodeQualityExtension {
     private TextResource excludeFilterConfig;
     private TextResource excludeBugsFilterConfig;
     private Collection<String> extraArgs;
+    private boolean showProgress;
 
     public FindBugsExtension(Project project) {
         this.project = project;
@@ -284,5 +286,23 @@ public class FindBugsExtension extends CodeQualityExtension {
      */
     public void setExtraArgs(Collection<String> extraArgs) {
         this.extraArgs = extraArgs;
+    }
+
+    /**
+     * Whether Findbugs' analysis progress should be printed on standard output.
+     *
+     * @since 4.0
+     */
+    public boolean isShowProgress() {
+        return showProgress;
+    }
+
+    /**
+     * Whether Findbugs' analysis progress should be printed on standard output.
+     *
+     * @since 4.0
+     */
+    public void setShowProgress(boolean showProgress) {
+        this.showProgress = showProgress;
     }
 }
