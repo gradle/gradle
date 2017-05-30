@@ -19,7 +19,7 @@ package org.gradle.internal.concurrent;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public interface StoppableExecutor extends AsyncStoppable, ExecutorService {
+public interface ManagedExecutor extends AsyncStoppable, ExecutorService {
     /**
      * Stops accepting new jobs and blocks until all currently executing jobs have been completed.
      */
@@ -32,4 +32,9 @@ public interface StoppableExecutor extends AsyncStoppable, ExecutorService {
      * @throws IllegalStateException on timeout.
      */
     void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException;
+
+    /**
+     * Sets the fixed size of the thread pool for the executor.
+     */
+    void setFixedPoolSize(int numThreads);
 }

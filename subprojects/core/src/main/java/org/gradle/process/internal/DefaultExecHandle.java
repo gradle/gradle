@@ -22,7 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
@@ -91,7 +91,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private final Condition condition;
 
-    private final StoppableExecutor executor;
+    private final ManagedExecutor executor;
 
     /**
      * State of this ExecHandle.

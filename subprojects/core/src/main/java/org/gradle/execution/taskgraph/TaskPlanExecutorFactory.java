@@ -16,26 +16,35 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.collect.Lists;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ParallelExecutionManager;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import java.util.List;
+
 public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
-    private final int parallelThreads;
+    private final ParallelExecutionManager parallelExecutionManager;
     private final ExecutorFactory executorFactory;
     private final WorkerLeaseService workerLeaseService;
+    private final List<TaskPlanExecutor> taskPlanExecutors = Lists.newArrayList();
 
-    public TaskPlanExecutorFactory(int parallelThreads, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
-        this.parallelThreads = parallelThreads;
+    public TaskPlanExecutorFactory(ParallelExecutionManager parallelExecutionManager, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+        this.parallelExecutionManager = parallelExecutionManager;
         this.executorFactory = executorFactory;
         this.workerLeaseService = workerLeaseService;
     }
 
     public TaskPlanExecutor create() {
+        int parallelThreads = parallelExecutionManager.getParallelismConfiguration().getMaxWorkerCount();
         if (parallelThreads < 1) {
             throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
         }
 
-        return new DefaultTaskPlanExecutor(parallelThreads, executorFactory, workerLeaseService);
+        // TODO: Make task plan executor respond to changes in parallelism configuration
+        TaskPlanExecutor taskPlanExecutor = new DefaultTaskPlanExecutor(parallelExecutionManager.getParallelismConfiguration(), executorFactory, workerLeaseService);
+        taskPlanExecutors.add(taskPlanExecutor);
+        return taskPlanExecutor;
     }
 }

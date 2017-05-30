@@ -23,6 +23,9 @@ import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfiguration;
+import org.gradle.internal.concurrent.ParallelismConfigurationListener;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.AbstractTrackedResourceLock;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -42,23 +45,32 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
 
-public class DefaultWorkerLeaseService implements WorkerLeaseService {
+public class DefaultWorkerLeaseService implements WorkerLeaseService, ParallelismConfigurationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
 
-    private final int maxWorkerCount;
+    private volatile int maxWorkerCount;
     private int counter = 1;
     private final Root root = new Root();
 
     private final ResourceLockCoordinationService coordinationService;
     private final ProjectLockRegistry projectLockRegistry;
     private final WorkerLeaseLockRegistry workerLeaseLockRegistry;
+    private final ParallelExecutionManager parallelExecutionManager;
 
-    public DefaultWorkerLeaseService(ResourceLockCoordinationService coordinationService, boolean parallelEnabled, int maxWorkerCount) {
-        this.maxWorkerCount = maxWorkerCount;
+    public DefaultWorkerLeaseService(ResourceLockCoordinationService coordinationService, ParallelExecutionManager parallelExecutionManager) {
+        this.maxWorkerCount = parallelExecutionManager.getParallelismConfiguration().getMaxWorkerCount();
         this.coordinationService = coordinationService;
-        this.projectLockRegistry = new ProjectLockRegistry(coordinationService, parallelEnabled);
+        this.projectLockRegistry = new ProjectLockRegistry(coordinationService, parallelExecutionManager.getParallelismConfiguration().isParallelProjectExecutionEnabled());
         this.workerLeaseLockRegistry = new WorkerLeaseLockRegistry(coordinationService);
+        this.parallelExecutionManager = parallelExecutionManager;
+        parallelExecutionManager.addListener(this);
         LOGGER.info("Using {} worker leases.", maxWorkerCount);
+    }
+
+    @Override
+    public void onConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
+        this.maxWorkerCount = parallelismConfiguration.getMaxWorkerCount();
+        projectLockRegistry.setParallelEnabled(parallelismConfiguration.isParallelProjectExecutionEnabled());
     }
 
     @Override
@@ -90,6 +102,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
 
     @Override
     public void stop() {
+        parallelExecutionManager.removeListener(this);
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
@@ -204,10 +217,14 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
     }
 
     private static class ProjectLockRegistry extends AbstractResourceLockRegistry<ExclusiveAccessResourceLock> {
-        private final boolean parallelEnabled;
+        private volatile boolean parallelEnabled;
 
         ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled) {
             super(coordinationService);
+            this.parallelEnabled = parallelEnabled;
+        }
+
+        void setParallelEnabled(boolean parallelEnabled) {
             this.parallelEnabled = parallelEnabled;
         }
 

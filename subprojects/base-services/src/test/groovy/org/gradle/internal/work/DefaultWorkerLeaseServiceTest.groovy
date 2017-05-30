@@ -17,7 +17,10 @@
 package org.gradle.internal.work
 
 import org.gradle.api.Action
+import org.gradle.initialization.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.resources.TestTrackedResourceLock
 import spock.lang.Specification
 
@@ -26,7 +29,7 @@ import java.util.concurrent.Callable
 
 class DefaultWorkerLeaseServiceTest extends Specification {
     def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, true, 1)
+    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
 
     def "can use withLocks to execute a runnable with resources locked"() {
         boolean executed = false
@@ -153,6 +156,36 @@ class DefaultWorkerLeaseServiceTest extends Specification {
         !lock2.lockedState
     }
 
+    def "registers/deregisters a listener for parallelism configuration changes"() {
+        ParallelExecutionManager parallelExecutionManager = parallelExecutionManager()
+
+        when:
+        workerLeaseService = new DefaultWorkerLeaseService(Mock(ResourceLockCoordinationService), parallelExecutionManager)
+
+        then:
+        1 * parallelExecutionManager.addListener(_)
+
+        when:
+        workerLeaseService.stop()
+
+        then:
+        1 * parallelExecutionManager.removeListener(_)
+    }
+
+    def "adjusts max worker count on parallelism configuration change"() {
+        when:
+        workerLeaseService.onConfigurationChange(new DefaultParallelismConfiguration(true, 2))
+
+        then:
+        workerLeaseService.getMaxWorkerCount() == 2
+
+        when:
+        workerLeaseService.onConfigurationChange(new DefaultParallelismConfiguration(false, 4))
+
+        then:
+        workerLeaseService.getMaxWorkerCount() == 4
+    }
+
     TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock=false) {
         return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked, hasLock)
     }
@@ -176,6 +209,12 @@ class DefaultWorkerLeaseServiceTest extends Specification {
             Object call() throws Exception {
                 return closure.call()
             }
+        }
+    }
+
+    ParallelExecutionManager parallelExecutionManager() {
+        return Mock(ParallelExecutionManager) {
+            _ * getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
         }
     }
 }

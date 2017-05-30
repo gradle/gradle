@@ -15,10 +15,10 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ParallelExecutionManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -39,14 +39,14 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
         return new InMemoryCacheFactory();
     }
 
-    BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, WorkerLeaseService workerLeaseService, ProgressLoggerFactory progressLoggerFactory, StartParameter startParameter, ExecutorFactory executorFactory) {
-        return new ProjectBuilderBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, startParameter.getMaxWorkerCount());
+    BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, WorkerLeaseService workerLeaseService, ProgressLoggerFactory progressLoggerFactory, ExecutorFactory executorFactory, ParallelExecutionManager parallelExecutionManager) {
+        return new ProjectBuilderBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, parallelExecutionManager);
     }
 
     private static class ProjectBuilderBuildOperationExecutor extends DefaultBuildOperationExecutor {
 
-        public ProjectBuilderBuildOperationExecutor(BuildOperationListener broadcaster, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory, DefaultBuildOperationQueueFactory defaultBuildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
-            super(broadcaster, timeProvider, progressLoggerFactory, defaultBuildOperationQueueFactory, executorFactory, maxWorkerCount);
+        public ProjectBuilderBuildOperationExecutor(BuildOperationListener broadcaster, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory, DefaultBuildOperationQueueFactory defaultBuildOperationQueueFactory, ExecutorFactory executorFactory, ParallelExecutionManager parallelExecutionManager) {
+            super(broadcaster, timeProvider, progressLoggerFactory, defaultBuildOperationQueueFactory, executorFactory, parallelExecutionManager);
             createRunningRootOperation("ProjectBuilder");
         }
     }

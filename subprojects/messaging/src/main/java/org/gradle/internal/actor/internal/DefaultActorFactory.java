@@ -126,7 +126,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
 
     private class NonBlockingActor implements Actor {
         private final Dispatch<MethodInvocation> dispatch;
-        private final StoppableExecutor executor;
+        private final ManagedExecutor executor;
         private final ExceptionTrackingFailureHandler failureHandler;
 
         public NonBlockingActor(Object targetObject) {

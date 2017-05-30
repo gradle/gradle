@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations;
+package org.gradle.internal.concurrent;
 
-import org.gradle.internal.concurrent.ManagedExecutor;
+import java.util.concurrent.ScheduledExecutorService;
 
-public interface BuildOperationQueueFactory {
-    <T extends BuildOperation> BuildOperationQueue<T> create(ManagedExecutor executor, BuildOperationQueue.QueueWorker<T> worker);
+public interface ManagedScheduledExecutor extends ManagedExecutor, ScheduledExecutorService {
 }

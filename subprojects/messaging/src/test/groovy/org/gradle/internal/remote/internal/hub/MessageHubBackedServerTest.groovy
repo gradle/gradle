@@ -17,7 +17,7 @@ package org.gradle.internal.remote.internal.hub
 
 import org.gradle.api.Action
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.remote.ConnectionAcceptor
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.remote.internal.ConnectCompletion
@@ -35,7 +35,7 @@ class MessageHubBackedServerTest extends Specification {
         ConnectionAcceptor acceptor = Mock()
         Action<ObjectConnection> connectAction = Mock()
         RemoteConnection<InterHubMessage> backingConnection = Mock()
-        StoppableExecutor executor = Mock()
+        ManagedExecutor executor = Mock()
         ConnectCompletion completion = Mock()
         Action<ConnectCompletion> acceptAction
         def connection

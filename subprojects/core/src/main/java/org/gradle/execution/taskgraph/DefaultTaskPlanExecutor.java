@@ -21,7 +21,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ParallelismConfiguration;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
@@ -38,8 +39,10 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     private final ExecutorFactory executorFactory;
     private final WorkerLeaseService workerLeaseService;
 
-    public DefaultTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+
+    public DefaultTaskPlanExecutor(ParallelismConfiguration parallelismConfiguration, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.executorFactory = executorFactory;
+        int numberOfParallelExecutors = parallelismConfiguration.getMaxWorkerCount();
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }
@@ -50,7 +53,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
 
     @Override
     public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
-        StoppableExecutor executor = executorFactory.create("Task worker");
+        ManagedExecutor executor = executorFactory.create("Task worker");
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);

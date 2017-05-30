@@ -21,10 +21,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class StoppableScheduledExecutorImpl extends StoppableExecutorImpl implements StoppableScheduledExecutor {
+public class ManagedScheduledExecutorImpl extends ManagedExecutorImpl implements ManagedScheduledExecutor {
     private final ScheduledExecutorService executor;
 
-    StoppableScheduledExecutorImpl(ScheduledExecutorService executor, ExecutorPolicy executorPolicy) {
+    ManagedScheduledExecutorImpl(ScheduledExecutorService executor, ExecutorPolicy executorPolicy) {
         super(executor, executorPolicy);
         this.executor = executor;
     }
