@@ -17,6 +17,7 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -136,6 +137,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         ensureResolved(false);
 
         final List<Object> taskDependencies = new ArrayList<Object>();
+        final List<Throwable> failures = new ArrayList<Throwable>();
         resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(new BuildDependenciesVisitor() {
             @Override
             public void visitDependency(Object dep) {
@@ -144,9 +146,12 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
             @Override
             public void visitFailure(Throwable failure) {
-                throw UncheckedException.throwAsUncheckedException(failure);
+                failures.add(failure);
             }
         });
+        if (!failures.isEmpty()) {
+            throw new ResolveException(getDisplayName(), failures);
+        }
         return TaskDependencies.of(taskDependencies);
     }
 

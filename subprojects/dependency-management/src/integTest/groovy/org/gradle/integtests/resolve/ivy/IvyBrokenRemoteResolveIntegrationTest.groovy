@@ -245,7 +245,7 @@ task showMissing { doLast { println configurations.missing.files } }
         then:
         fails("showMissing")
         failure.assertHasDescription('Execution failed for task \':showMissing\'.')
-                .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
+                .assertHasCause('Could not resolve all files for configuration \':missing\'.')
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
     ${module.ivy.uri}
@@ -296,7 +296,7 @@ task showMissing { doLast { println configurations.missing.files } }
         then:
         fails("showMissing")
         failure.assertHasDescription('Execution failed for task \':showMissing\'.')
-                .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
+                .assertHasCause('Could not resolve all files for configuration \':missing\'.')
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
     ${moduleInRepo1.ivy.uri}

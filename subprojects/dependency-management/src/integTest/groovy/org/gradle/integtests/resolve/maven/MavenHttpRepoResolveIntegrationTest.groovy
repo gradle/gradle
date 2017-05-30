@@ -397,10 +397,10 @@ task listJars {
 
         fails 'retrieve'
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve org.group.name:projectA:1.2.")
+        failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
     }
-
 
     def "resolves artifact-only module via HTTP not modified"() {
         given:

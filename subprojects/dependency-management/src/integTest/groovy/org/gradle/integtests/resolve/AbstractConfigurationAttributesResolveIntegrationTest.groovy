@@ -565,12 +565,8 @@ Configuration 'bar':
         fails ':a:checkDebug'
 
         then:
-        if (FluidDependenciesResolveRunner.isFluid()) {
-            failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
-        } else {
-            failure.assertHasDescription("Execution failed for task ':a:checkDebug'.")
-        }
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:_compileFreeDebug'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("""Unable to find a matching configuration of project :b:
   - Configuration 'bar':

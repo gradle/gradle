@@ -124,23 +124,23 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
         return new SelectedArtifactSet() {
             @Override
-            public void collectSelectionFailures(Collection<? super Throwable> failures) {
-                for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                    failures.add(unresolvedDependency.getProblem());
-                }
-            }
-
-            @Override
             public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-                if (hasError()) {
-                    visitor.visitFailure(getFailure());
+                for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
+                    visitor.visitFailure(unresolvedDependency.getProblem());
                 }
-
                 artifactResults.getArtifacts().collectBuildDependencies(visitor);
             }
 
             @Override
-            public void visitArtifacts(ArtifactVisitor visitor) {
+            public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
+                if (!unresolvedDependencies.isEmpty()) {
+                    for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
+                        visitor.visitFailure(unresolvedDependency.getProblem());
+                    }
+                    if (!continueOnSelectionFailure) {
+                        return;
+                    }
+                }
                 DefaultLenientConfiguration.this.visitArtifactsWithBuildOperation(dependencySpec, artifactResults, fileDependencyResults, visitor);
             }
         };

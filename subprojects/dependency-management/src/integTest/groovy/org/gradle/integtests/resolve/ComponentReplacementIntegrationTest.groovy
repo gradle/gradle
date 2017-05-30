@@ -185,7 +185,9 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredReplacements 'a->b'
 
         expect:
-        fails("resolvedFiles").assertResolutionFailure(":conf")
+        fails("resolvedFiles")
+        failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
+        failure.assertHasCause("Could not find org:b:1")
     }
 
     def "replacement source unresolved"() {
@@ -194,7 +196,9 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredReplacements 'a->b'
 
         expect:
-        fails("resolvedFiles").assertResolutionFailure(":conf")
+        fails("resolvedFiles")
+        failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
+        failure.assertHasCause("Could not find org:b:1")
     }
 
     def "human error in declaring replacements is neatly reported"() {

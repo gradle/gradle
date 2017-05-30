@@ -101,8 +101,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
 
         then:
         fails("artifacts")
-
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertResolutionFailure(":compile")
         failure.assertHasCause("Could not resolve test:test:1.0.")
 
         where:
