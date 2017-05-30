@@ -136,4 +136,51 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
         sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
     }
+
+    def "can compile and link against libraries in included builds"() {
+        settingsFile << """
+            rootProject.name = 'app'
+            includeBuild 'lib1'
+            includeBuild 'lib2'
+        """
+        file("lib1/settings.gradle") << "rootProject.name = 'lib1'"
+        file("lib2/settings.gradle") << "rootProject.name = 'lib2'"
+
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+
+        given:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+            dependencies {
+                implementation 'test:lib1:1.2'
+            }
+        """
+        file("lib1/build.gradle") << """
+            apply plugin: 'cpp-library'
+            group = 'test'
+            dependencies {
+                implementation 'test:lib2:1.4'
+            }
+        """
+        file("lib2/build.gradle") << """
+            apply plugin: 'cpp-library'
+            group = 'test'
+        """
+
+        app.library.headerFiles.each { it.writeToFile(file("lib1/src/main/public/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/cpp/$it.name")) }
+        app.greetingsLibrary.headerFiles.each { it.writeToFile(file("lib2/src/main/public/$it.name")) }
+        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/cpp/$it.name")) }
+        app.executable.sourceFiles.each { it.writeToDir(file('src/main')) }
+
+        expect:
+        succeeds ":assemble"
+        result.assertTasksExecuted(":lib1:compileCpp", ":lib1:linkMain", ":lib1:lib2", ":lib1", ":lib2:compileCpp", ":lib2:linkMain", ":lib2", ":compileCpp", ":linkMain", ":installMain", ":assemble")
+        sharedLibrary("lib1/build/lib/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/lib2").assertExists()
+        executable("build/exe/app").assertExists()
+        installation("build/install/app").exec().out == app.englishOutput
+        sharedLibrary("build/install/app/lib/lib1").file.assertExists()
+        sharedLibrary("build/install/app/lib/lib2").file.assertExists()
+    }
 }
