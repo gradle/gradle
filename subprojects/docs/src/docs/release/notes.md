@@ -340,9 +340,9 @@ In Gradle 3.5 `ForkOptions.executable` has been deprecated. In Gradle 4.0 it is 
 
 ## Potential breaking changes
 
-### Build Scan 1.7.2 or newer is required when used with Gradle 4.0
+### Build Scan 1.7.4 or newer is required when used with Gradle 4.0
 
-To support additional features, you must use [Build Scan 1.7.2](https://plugins.gradle.org/plugin/com.gradle.build-scan) or newer with Gradle 4.0.
+To support additional features, you must use [Build Scan 1.7.4](https://plugins.gradle.org/plugin/com.gradle.build-scan) or newer with Gradle 4.0.
 
 ### Multiple class directories for a single source set
 
