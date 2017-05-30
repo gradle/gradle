@@ -41,9 +41,11 @@ class Install extends Sync {
                     throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
                 }
                 if (installDir.directory) {
-                    File libDir = new File(installDir, "lib")
-                    if (!libDir.directory || !libDir.list().findAll { it.matches('gradle.*\\.jar')}) {
-                        throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
+                    if (!(installDir.list() as List).empty) {
+                        File libDir = new File(installDir, "lib")
+                        if (!libDir.directory || !libDir.list().findAll { it.matches('gradle.*\\.jar')}) {
+                            throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
+                        }
                     }
                 }
                 into installDir
