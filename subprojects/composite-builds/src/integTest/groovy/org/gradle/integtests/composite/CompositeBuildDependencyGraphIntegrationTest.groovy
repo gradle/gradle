@@ -704,7 +704,7 @@ afterEvaluate {
         then:
         failure.assertHasDescription("Failed to build artifacts for build 'buildC'")
         failure.assertHasCause("Could not determine the dependencies of task ':buildC:buildOutputs'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':buildC:buildInputs'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
     ${m.pom.file.toURL()}

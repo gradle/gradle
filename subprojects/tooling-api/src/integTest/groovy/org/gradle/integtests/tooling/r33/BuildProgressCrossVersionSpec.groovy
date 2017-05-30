@@ -235,7 +235,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def e = thrown(BuildException)
-        e.cause.message =~ /Could not resolve all dependencies for configuration ':compileClasspath'./
+        e.cause.message =~ /Could not resolve all (dependencies|files) for configuration ':compileClasspath'./
 
         events.assertIsABuild()
 
