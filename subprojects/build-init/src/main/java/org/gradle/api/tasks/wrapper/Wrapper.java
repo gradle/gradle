@@ -161,6 +161,7 @@ public class Wrapper extends DefaultTask {
 
     private void addBuildReceipt(ZipOutputStream zipOutputStream) throws IOException {
         ZipEntry buildReceipt = new ZipEntry("build-receipt.properties");
+        buildReceipt.setTime(GUtil.CONSTANT_TIME_FOR_ZIP_ENTRIES);
         zipOutputStream.putNextEntry(buildReceipt);
         String contents = "versionNumber=" + GradleVersion.current().getVersion();
         zipOutputStream.write(contents.getBytes(StandardCharsets.ISO_8859_1));
