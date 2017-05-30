@@ -74,4 +74,18 @@ public interface Usage extends Named {
      * @since 4.0
      */
     String JAVA_RUNTIME_RESOURCES = "java-runtime-resources";
+
+    /**
+     * The C++ API of a library, packaged as header directories.
+     *
+     * @since 4.1
+     */
+    String C_PLUS_PLUS_API = "cplusplus-api";
+
+    /**
+     * The native link files of a library.
+     *
+     * @since 4.1
+     */
+    String NATIVE_LINK = "native-link";
 }

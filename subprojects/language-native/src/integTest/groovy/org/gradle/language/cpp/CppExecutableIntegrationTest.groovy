@@ -18,6 +18,7 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
 import static org.gradle.util.Matchers.containsText
 
@@ -57,5 +58,31 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
         executable("build/exe/main").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+    }
+
+    def "can compile and link against a library"() {
+        settingsFile << "include 'app', 'lib'"
+        def app = new CppHelloWorldApp()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':lib')
+                }
+            }
+            project(':lib') {
+                apply plugin: 'cpp-library'
+            }
+"""
+        app.library.headerFiles.each { it.writeToFile(file("lib/src/main/public/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("lib/src/main/cpp/$it.name")) }
+        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":lib:compileCpp", ":lib:linkMain", ":app:compileCpp", ":app:linkMain", ":app:assemble")
+        executable("app/build/exe/main").exec().out == app.englishOutput
     }
 }

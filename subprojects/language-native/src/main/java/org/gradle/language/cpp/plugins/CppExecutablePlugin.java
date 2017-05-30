@@ -27,7 +27,6 @@ import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
 import java.util.Collections;
 
@@ -42,13 +41,13 @@ import java.util.Collections;
 public class CppExecutablePlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(LifecycleBasePlugin.class);
-        project.getPluginManager().apply(StandardToolChainsPlugin.class);
+        project.getPluginManager().apply(CppBasePlugin.class);
 
         // Add a compile task
         CppCompile compile = project.getTasks().create("compileCpp", CppCompile.class);
 
         compile.includes("src/main/headers");
+        compile.includes(project.getConfigurations().getByName(CppBasePlugin.CPP_INCLUDE_PATH));
 
         ConfigurableFileTree sourceTree = project.fileTree("src/main/cpp");
         sourceTree.include("**/*.cpp");
@@ -72,6 +71,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         LinkExecutable link = project.getTasks().create("linkMain", LinkExecutable.class);
         // TODO - include only object files
         link.source(compile.getOutputs().getFiles().getAsFileTree());
+        link.lib(project.getConfigurations().getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - should reflect changes to build directory
         // TODO - need to set basename

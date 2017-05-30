@@ -60,4 +60,21 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
         sharedLibrary("build/lib/main").assertExists()
     }
+
+    def "can define public headers"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.library.headerFiles.each { it.writeToFile(file("src/main/public/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("src/main/cpp/$it.name")) }
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        sharedLibrary("build/lib/main").assertExists()
+    }
 }

@@ -35,6 +35,7 @@ class CppLibraryPluginTest extends Specification {
         then:
         def compileCpp = project.tasks.compileCpp
         compileCpp instanceof CppCompile
+        compileCpp.includes.files as List == [project.file("src/main/public"), project.file("src/main/headers")]
 
         def link = project.tasks.linkMain
         link instanceof LinkSharedLibrary
