@@ -27,7 +27,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import java.util.Map;
 
 public class FileDependencyCollectingGraphVisitor implements DependencyArtifactsVisitor {
-    private final Map<FileCollectionDependency, ArtifactSet> rootFiles = Maps.newLinkedHashMap();
+    private final Map<FileCollectionDependency, Integer> rootFiles = Maps.newLinkedHashMap();
 
     @Override
     public void startArtifacts(DependencyGraphNode root) {
@@ -44,7 +44,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyArtifacts
     @Override
     public void visitArtifacts(DependencyGraphNode node, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
         if (node.isRoot()) {
-            rootFiles.put(fileDependency.getSource(), artifactSet);
+            rootFiles.put(fileDependency.getSource(), artifactSetId);
         }
     }
 

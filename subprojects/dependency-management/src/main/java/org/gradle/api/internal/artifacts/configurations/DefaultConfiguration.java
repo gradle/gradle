@@ -101,12 +101,10 @@ import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -824,7 +822,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public TaskDependency getBuildDependencies() {
             assertResolvingAllowed();
-            return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
+            return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, lenient);
         }
 
         public Spec<? super Dependency> getDependencySpec() {
@@ -837,12 +835,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         public Set<File> getFiles() {
             ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
-            getSelectedArtifacts().collectSelectionFailures(visitor.getFailures());
-            if (!lenient && !visitor.getFailures().isEmpty()) {
-                throw new ResolveException(getDisplayName(), visitor.getFailures());
-            }
-
-            getSelectedArtifacts().visitArtifacts(visitor);
+            getSelectedArtifacts().visitArtifacts(visitor, lenient);
 
             if (!lenient) {
                 rethrowFailure("files", visitor.getFailures());
@@ -1200,16 +1193,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor();
-            failures = visitor.getFailures();
-
-            fileCollection.getSelectedArtifacts().collectSelectionFailures(visitor.getFailures());
-            if (!lenient && !failures.isEmpty()) {
-                throw new ResolveException(getDisplayName(), failures);
-            }
-
-            fileCollection.getSelectedArtifacts().visitArtifacts(visitor);
+            fileCollection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
 
             artifactResults = visitor.getArtifacts();
+            failures = visitor.getFailures();
 
             if (!lenient) {
                 rethrowFailure("artifacts", failures);
@@ -1221,13 +1208,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final Spec<? super Dependency> dependencySpec;
         private final AttributeContainerInternal requestedAttributes;
         private final Spec<? super ComponentIdentifier> componentIdentifierSpec;
+        private final boolean lenient;
         private final boolean allowNoMatchingVariants;
 
-        ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec, boolean allowNoMatchingVariants) {
+        ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec, boolean allowNoMatchingVariants, boolean lenient) {
             this.dependencySpec = dependencySpec;
             this.requestedAttributes = requestedAttributes;
             this.componentIdentifierSpec = componentIdentifierSpec;
             this.allowNoMatchingVariants = allowNoMatchingVariants;
+            this.lenient = lenient;
         }
 
         @Override
@@ -1246,19 +1235,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     // Otherwise, already have a result, so reuse it
                     results = cachedResolverResults;
                 }
-                final List<Throwable> failures = new ArrayList<Throwable>();
-                results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants).collectBuildDependencies(new BuildDependenciesVisitor() {
-                    @Override
-                    public void visitDependency(Object dep) {
-                        context.add(dep);
-                    }
-
+                SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
+                final Set<Throwable> failures = new LinkedHashSet<Throwable>();
+                selected.collectBuildDependencies(new BuildDependenciesVisitor() {
                     @Override
                     public void visitFailure(Throwable failure) {
                         failures.add(failure);
                     }
+
+                    @Override
+                    public void visitDependency(Object dep) {
+                        context.add(dep);
+                    }
                 });
-                rethrowFailure("task dependencies", failures);
+                if (!lenient) {
+                    rethrowFailure("task dependencies", failures);
+                }
             }
         }
     }

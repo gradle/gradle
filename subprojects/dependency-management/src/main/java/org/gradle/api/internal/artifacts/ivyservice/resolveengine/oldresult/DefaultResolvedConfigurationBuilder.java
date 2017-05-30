@@ -17,25 +17,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultResolvedConfigurationBuilder implements ResolvedConfigurationBuilder {
-    private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
     private final Map<Long, ModuleDependency> modulesMap = new HashMap<Long, ModuleDependency>();
     private final TransientConfigurationResultsBuilder builder;
 
     public DefaultResolvedConfigurationBuilder(TransientConfigurationResultsBuilder builder) {
         this.builder = builder;
-    }
-
-    public void addUnresolvedDependency(UnresolvedDependency unresolvedDependency) {
-        unresolvedDependencies.add(unresolvedDependency);
     }
 
     @Override
@@ -68,6 +60,6 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
 
     @Override
     public ResolvedGraphResults complete() {
-        return new DefaultResolvedGraphResults(unresolvedDependencies, modulesMap);
+        return new DefaultResolvedGraphResults(modulesMap);
     }
 }

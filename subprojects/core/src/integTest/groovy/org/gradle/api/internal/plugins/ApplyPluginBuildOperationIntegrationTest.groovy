@@ -37,7 +37,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 it.details.buildPath == ":"
         }
 
-        plugins.details*.className == [
+        plugins.details*.pluginClass == [
             "org.gradle.api.plugins.HelpTasksPlugin",
             "org.gradle.api.plugins.JavaPlugin",
             "org.gradle.api.plugins.JavaBasePlugin",
@@ -80,7 +80,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
         ops.size() == 1
         def op = ops.first()
-        op.details.className == "MyPlugin"
+        op.details.pluginClass == "MyPlugin"
         op.details.buildPath == ":"
         op.details.targetPath == null
     }
@@ -104,7 +104,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
         ops.size() == 1
         def op = ops.first()
-        op.details.className == "MyPlugin"
+        op.details.pluginClass == "MyPlugin"
         op.details.buildPath == ":"
         op.details.targetPath == null
     }
@@ -133,7 +133,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def p1 = operations.first(ApplyPluginBuildOperationType) {
-            it.details.className == "Plugin1"
+            it.details.pluginClass == "Plugin1"
         }
         p1.details.targetPath == ":a"
 
@@ -145,7 +145,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         def p2 = children.first()
 
         p2.details.targetPath == ":b"
-        p2.details.className == "Plugin2"
+        p2.details.pluginClass == "Plugin2"
     }
 
     def "associates target to correct build"() {
@@ -185,13 +185,13 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def ops = operations.all(ApplyPluginBuildOperationType) {
-            it.details.className.startsWith("Plugin")
+            it.details.pluginClass.startsWith("Plugin")
         }
 
         ops.size() == 3
-        ops.find { it.details.buildPath == ":" }.details.className == "PluginRoot"
-        ops.find { it.details.buildPath == ":a" }.details.className == "PluginA"
-        ops.find { it.details.buildPath == ":b" }.details.className == "PluginB"
+        ops.find { it.details.buildPath == ":" }.details.pluginClass == "PluginRoot"
+        ops.find { it.details.buildPath == ":a" }.details.pluginClass == "PluginA"
+        ops.find { it.details.buildPath == ":b" }.details.pluginClass == "PluginB"
     }
 
 }

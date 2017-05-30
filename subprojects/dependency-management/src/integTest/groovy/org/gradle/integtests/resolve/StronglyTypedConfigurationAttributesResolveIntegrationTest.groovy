@@ -15,9 +15,6 @@
  */
 
 package org.gradle.integtests.resolve
-
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
@@ -1012,12 +1009,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        if (FluidDependenciesResolveRunner.isFluid()) {
-            failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
-        } else {
-            failure.assertHasDescription("Execution failed for task ':a:check'.")
-        }
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
@@ -1076,12 +1069,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        if (FluidDependenciesResolveRunner.isFluid()) {
-            failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
-        } else {
-            failure.assertHasDescription("Execution failed for task ':a:check'.")
-        }
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("broken!")
@@ -1152,12 +1141,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        if (FluidDependenciesResolveRunner.isFluid()) {
-            failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
-        } else {
-            failure.assertHasDescription("Execution failed for task ':a:check'.")
-        }
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
@@ -1228,12 +1213,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        if (FluidDependenciesResolveRunner.isFluid()) {
-            failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
-        } else {
-            failure.assertHasDescription("Execution failed for task ':a:check'.")
-        }
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
         failure.assertHasCause("broken!")

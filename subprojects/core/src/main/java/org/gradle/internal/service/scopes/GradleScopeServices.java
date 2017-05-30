@@ -67,6 +67,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.notify.BuildOperationNotificationServices;
 import org.gradle.internal.reflect.Instantiator;
@@ -126,9 +127,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildExecuter createBuildExecuter() {
+    BuildExecuter createBuildExecuter(StyledTextOutputFactory textOutputFactory) {
         return new DefaultBuildExecuter(
-            asList(new DryRunBuildExecutionAction(),
+            asList(new DryRunBuildExecutionAction(textOutputFactory),
                 new SelectedTaskExecutionAction()));
     }
 

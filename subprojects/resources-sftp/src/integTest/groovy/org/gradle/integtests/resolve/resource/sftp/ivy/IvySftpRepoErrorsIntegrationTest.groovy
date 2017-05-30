@@ -47,7 +47,7 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
 
         then:
         fails 'retrieve'
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
                 .assertHasCause("""Could not find org.group.name:projectA:1.2.
 Searched in the following locations:
     ${module.ivy.uri}
@@ -81,7 +81,7 @@ Required by:
 
         then:
         fails 'retrieve'
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
                 .assertHasCause("""Could not find any matches for org.group.name:projectA:1.+ as no versions of org.group.name:projectA are available.
 Searched in the following locations:
     ${ivySftpRepo.uri}/org.group.name/projectA/
@@ -113,7 +113,7 @@ Required by:
         fails 'retrieve'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
                 .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
@@ -144,7 +144,7 @@ Required by:
         fails 'retrieve'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
                 .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
@@ -176,7 +176,7 @@ Required by:
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
                 .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
     }
@@ -210,7 +210,7 @@ Required by:
         failure = executer.withTasks('retrieve').runWithFailure()
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
                 .assertHasCause("Could not get resource '${projectA.ivy.uri}'")
     }

@@ -73,7 +73,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //TODO should expose the failed task in the error message like
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Could not resolve all files for configuration \':compile\'.')
         failure.assertThatCause(Matchers.containsString("Received status code 500 from server: broken"))
 
 
@@ -109,7 +109,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //TODO should expose the failed task in the error message like
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Could not resolve all files for configuration \':compile\'.')
         failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused.*"))
 
         when:
@@ -144,7 +144,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //TODO should expose the failed task in the error message like
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Could not resolve all files for configuration \':compile\'.')
         failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused.*"))
 
         when:
@@ -182,7 +182,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //TODO should expose the failed task in the error message like
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Could not resolve all files for configuration \':compile\'.')
         failure.assertThatCause(Matchers.containsString("Received status code 401 from server: Unauthorized"))
 
         when:
@@ -241,7 +241,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //TODO should expose the failed task in the error message like
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Could not resolve all files for configuration \':compile\'.')
         failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused.*"))
 
         when:
@@ -293,7 +293,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Could not resolve all files for configuration \':compile\'.')
         failure.assertHasCause("Could not list versions using Ivy pattern 'http://localhost:${port}/ivyRepo/[organisation]/[module]/[revision]/ivy-[revision].xml")
         failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused.*"))
 

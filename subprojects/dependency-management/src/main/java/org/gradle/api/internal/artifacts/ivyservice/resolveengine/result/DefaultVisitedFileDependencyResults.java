@@ -16,44 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
-import org.gradle.api.internal.artifacts.transform.VariantSelector;
-import org.gradle.api.specs.Spec;
 
 import java.util.Map;
 
 public class DefaultVisitedFileDependencyResults implements VisitedFileDependencyResults {
-    private final Map<FileCollectionDependency, ArtifactSet> rootFiles;
+    private final Map<FileCollectionDependency, Integer> rootFiles;
 
-    public DefaultVisitedFileDependencyResults(Map<FileCollectionDependency, ArtifactSet> rootFiles) {
+    public DefaultVisitedFileDependencyResults(Map<FileCollectionDependency, Integer> rootFiles) {
         this.rootFiles = rootFiles;
     }
 
     @Override
-    public SelectedFileDependencyResults select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
-        ImmutableMap.Builder<FileCollectionDependency, ResolvedArtifactSet> rootFilesBuilder = ImmutableMap.builder();
-        for (Map.Entry<FileCollectionDependency, ArtifactSet> entry : rootFiles.entrySet()) {
-            rootFilesBuilder.put(entry.getKey(), entry.getValue().select(componentFilter, selector));
-        }
-        return new DefaultFileDependencyResults(rootFilesBuilder.build());
-    }
-
-    private static class DefaultFileDependencyResults implements SelectedFileDependencyResults {
-        private final Map<FileCollectionDependency, ResolvedArtifactSet> rootFiles;
-
-        DefaultFileDependencyResults(Map<FileCollectionDependency, ResolvedArtifactSet> rootFiles) {
-            this.rootFiles = rootFiles;
-        }
-
-        @Override
-        public Map<FileCollectionDependency, ResolvedArtifactSet> getFirstLevelFiles() {
-            return rootFiles;
-        }
+    public Map<FileCollectionDependency, Integer> getFirstLevelFiles() {
+        return rootFiles;
     }
 }

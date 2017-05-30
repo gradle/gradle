@@ -519,7 +519,7 @@ task show {
         fails 'show'
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not find any matches for org:test:1.0+ as no versions of org:test are available.")
         failure.assertHasCause("Could not resolve org:test2:2.0.")
 

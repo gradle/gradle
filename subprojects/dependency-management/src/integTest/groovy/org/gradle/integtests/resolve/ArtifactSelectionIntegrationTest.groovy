@@ -762,8 +762,8 @@ task show {
 
         expect:
         fails "resolveView"
-        failure.assertHasDescription("Execution failed for task ':app:resolveView'.")
-        failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveView'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':app:compile'.")
         failure.assertHasCause("""More than one variant of project :lib matches the consumer attributes:
   - Configuration ':lib:compile':
       - Required artifactType 'jar' and found compatible value 'jar'.
@@ -863,7 +863,6 @@ task show {
 
                 task resolveView {
                     def files = configurations.compile.incoming.artifactView { }.files
-                    inputs.files files
                     doLast {
                         assert files.empty
                     }
@@ -873,6 +872,9 @@ task show {
 
         expect:
         fails "resolveView"
+
+        failure.assertHasDescription("Execution failed for task ':app:resolveView'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
 
         failure.assertHasCause("""No variants of project :lib match the consumer attributes:
   - Configuration ':lib:compile':

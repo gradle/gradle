@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.executer
 
+import java.util.regex.Pattern
+
 import static org.gradle.util.Matchers.*;
 import org.hamcrest.Matcher
 
@@ -28,7 +30,7 @@ public class DependencyResolutionFailure {
     }
 
     DependencyResolutionFailure assertFailedConfiguration(String configuration) {
-        failure.assertHasCause("Could not resolve all dependencies for configuration '$configuration'.")
+        failure.assertThatCause(matchesRegexp("Could not resolve all (dependencies|artifacts|files) for configuration '${Pattern.quote(configuration)}'."))
         this
     }
 

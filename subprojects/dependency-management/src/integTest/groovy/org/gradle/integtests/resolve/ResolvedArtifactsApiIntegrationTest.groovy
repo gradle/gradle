@@ -648,7 +648,7 @@ ${showFailuresTask(expression)}
         fails 'show'
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
         failure.assertHasCause("Could not find any matches for org:test:1.0+ as no versions of org:test are available.")
         failure.assertHasCause("Could not resolve org:test2:2.0.")
 
@@ -688,7 +688,7 @@ ${showFailuresTask(expression)}
         fails 'show'
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
         failure.assertHasCause("""Unable to find a matching configuration of project :a:
   - Configuration 'compile': Required volume '11' and found incompatible value '8'.""")
         failure.assertHasCause("""Unable to find a matching configuration of project :b:
@@ -886,6 +886,68 @@ Searched in the following locations:
         outputContains("""failure 6: More than one variant of project :a matches the consumer attributes:
   - Configuration ':a:default' variant v1: Required usage 'compile' but no value provided.
   - Configuration ':a:default' variant v2: Required usage 'compile' but no value provided.""")
+    }
+
+    def "successfully resolved local artifacts are built when lenient file view used as task input"() {
+        settingsFile << "include 'a', 'b', 'c'"
+
+        buildFile << """
+allprojects {
+    repositories { maven { url '$mavenHttpRepo.uri' } }
+    tasks.withType(Jar) { archiveName = project.name + '-' + name + ".jar" }
+}
+dependencies {
+    compile 'org:missing-module:1.0'
+    compile project(':a')
+    compile project(':b')
+}
+
+configurations.compile.attributes.attribute(usage, "compile")
+
+project(':a') {
+    task jar1(type: Jar)
+    task jar2(type: Jar)
+    dependencies { 
+        compile project(':c')
+    }
+    configurations.default.outgoing.variants {
+        v1 { artifact jar1 }
+        v2 { artifact jar2 }
+    }
+}
+
+project(':b') {
+    configurations.compile.attributes.attribute(usage, "broken")
+    task jar1(type: Jar)
+    artifacts { compile jar1 }
+}
+
+project(':c') {
+    task jar1(type: Jar)
+    artifacts { compile jar1 }
+}
+
+task resolveLenient {
+    def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
+    inputs.files lenientView.files
+    doLast {
+        def resolvedFiles = ['c-jar1.jar']
+        assert lenientView.files.collect { it.name } == resolvedFiles
+        assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
+        assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
+        assert lenientView.artifacts.failures.size() == 3
+    }
+}
+"""
+
+        given:
+        def m0 = mavenHttpRepo.module('org', 'missing-module', '1.0')
+        m0.pom.expectGetMissing()
+        m0.artifact.expectHeadMissing()
+
+        expect:
+        succeeds 'resolveLenient'
+        result.assertTasksExecuted(":c:jar1", ":resolveLenient")
     }
 
     def showFailuresTask(expression) {
