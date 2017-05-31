@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.includedbuild.IncludedBuildControllers;
 import org.gradle.initialization.includedbuild.IncludedBuildTaskGraph;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
@@ -39,15 +38,12 @@ public class CompositeBuildIdeProjectResolver {
     private final ProjectArtifactBuilder artifactBuilder;
 
     public static CompositeBuildIdeProjectResolver from(ServiceRegistry services) {
-        return new CompositeBuildIdeProjectResolver(services.get(LocalComponentRegistry.class), services.get(IncludedBuildControllers.class), services.get(BuildIdentity.class));
+        return new CompositeBuildIdeProjectResolver(services.get(LocalComponentRegistry.class), services.get(IncludedBuildTaskGraph.class), services.get(BuildIdentity.class));
     }
 
-    public CompositeBuildIdeProjectResolver(LocalComponentRegistry registry, IncludedBuildControllers includedBuilds, BuildIdentity buildIdentity) {
+    public CompositeBuildIdeProjectResolver(LocalComponentRegistry registry, IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
         this.registry = registry;
-        // Can't use the session-scope `IncludedBuildTaskGraph`, because we don't want to be execute jar tasks (which are pre-registered)
-        // This should be addressed in gradle/composite-builds#104
-        IncludedBuildTaskGraph taskGraph = new DefaultIncludedBuildTaskGraph(includedBuilds);
-        artifactBuilder = new CompositeProjectArtifactBuilder(new IncludedBuildArtifactBuilder(taskGraph), buildIdentity);
+        artifactBuilder = new CompositeProjectArtifactBuilder(new IncludedBuildArtifactBuilder(includedBuilds), buildIdentity);
     }
 
     /**

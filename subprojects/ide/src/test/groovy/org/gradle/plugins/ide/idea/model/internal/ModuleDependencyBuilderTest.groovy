@@ -18,8 +18,8 @@ package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.composite.internal.CompositeBuildIdeProjectResolver
-import org.gradle.initialization.includedbuild.IncludedBuildControllers
 import org.gradle.initialization.DefaultBuildIdentity
+import org.gradle.initialization.includedbuild.IncludedBuildTaskGraph
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
@@ -32,7 +32,7 @@ class ModuleDependencyBuilderTest extends Specification {
     def projectId = newProjectId(":nested:project-name")
     def ideDependency = new IdeProjectDependency(projectId)
     def localComponentRegistry = Mock(LocalComponentRegistry)
-    def ideProjectResolver = new CompositeBuildIdeProjectResolver(localComponentRegistry, Stub(IncludedBuildControllers), new DefaultBuildIdentity(projectId.build))
+    def ideProjectResolver = new CompositeBuildIdeProjectResolver(localComponentRegistry, Stub(IncludedBuildTaskGraph), new DefaultBuildIdentity(projectId.build))
     def builder = new ModuleDependencyBuilder(ideProjectResolver)
 
     def "builds dependency for nonIdea project"() {
