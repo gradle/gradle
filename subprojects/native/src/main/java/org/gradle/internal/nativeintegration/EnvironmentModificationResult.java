@@ -34,4 +34,8 @@ public enum EnvironmentModificationResult {
     public String toString() {
         return reason;
     }
+
+    public boolean isSuccess() {
+        return this == SUCCESS;
+    }
 }

@@ -64,15 +64,14 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
 
         LOGGER.debug("Configuring env variables: {}", build.getParameters().getEnvVariables());
         EnvironmentModificationResult setEnvironmentResult = processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
-        if(!setEnvironmentResult.equals(EnvironmentModificationResult.SUCCESS)) {
-            StringBuffer sb = new StringBuffer("Warning: Unable able to set daemon's environment variables to match the client because: ")
-                .append(System.getProperty("line.separator")).append("  ")
-                .append(setEnvironmentResult)
-                .append(System.getProperty("line.separator")).append("  ")
-                .append("If the daemon was started with a significantly different environment from the client, and your build ")
-                .append(System.getProperty("line.separator")).append("  ")
-                .append("relies on environment variables, you may experience unexpected behavior.");
-            LOGGER.warn(sb.toString());
+        if(!setEnvironmentResult.isSuccess()) {
+            LOGGER.warn("Warning: Unable able to set daemon's environment variables to match the client because: "
+                + System.getProperty("line.separator") + "  "
+                + setEnvironmentResult
+                + System.getProperty("line.separator") + "  "
+                + "If the daemon was started with a significantly different environment from the client, and your build "
+                + System.getProperty("line.separator") + "  "
+                + "relies on environment variables, you may experience unexpected behavior.");
         }
         processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
 
