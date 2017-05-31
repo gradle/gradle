@@ -51,6 +51,9 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
 
         Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
         if (!includedBuilds.isEmpty()) {
+            if (gradle.getStartParameter().getMaxWorkerCount() <= includedBuilds.size()) {
+                throw new GradleException("Use --max-workers to provide at least one worker per build in a composite");
+            }
             gradle.setIncludedBuilds(includedBuilds);
             compositeContextBuilder.addIncludedBuilds(includedBuilds);
         }
