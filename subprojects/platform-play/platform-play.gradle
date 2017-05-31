@@ -3,19 +3,6 @@ apply plugin: "groovy"
 // Compiler daemon
 sourceCompatibility = 1.6
 
-sourceSets {
-    integTestPrepare {
-        compileClasspath += main.output
-        runtimeClasspath += main.output
-    }
-}
-
-configurations {
-    integTestPrepareCompile.extendsFrom integTestCompile
-    integTestPrepareImplementation.extendsFrom integTestImplementation
-    integTestPrepareRuntime.extendsFrom integTestRuntime
-}
-
 dependencies {
     compile project(":core")
     compile project(":platformJvm")
@@ -42,13 +29,16 @@ useTestFixtures(project: ':platformBase')
 useClassycle()
 strictCompile()
 
+integTest {
+    exclude 'org/gradle/play/prepare/**'
+}
+
 task integTestPrepare(type: org.gradle.testing.IntegrationTest) {
     systemProperties['org.gradle.integtest.executer'] = 'embedded'
     if (isCiServer) {
         systemProperties['org.gradle.integtest.multiversion'] = 'all'
     }
-    testClassesDirs = sourceSets.integTestPrepare.output.classesDirs
-    classpath = sourceSets.integTestPrepare.runtimeClasspath
+    include 'org/gradle/play/prepare/**'
     maxParallelForks = 1
 }
 
