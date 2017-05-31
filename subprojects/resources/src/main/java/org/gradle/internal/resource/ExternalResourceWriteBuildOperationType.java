@@ -20,7 +20,7 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * A read of the metadata of an external resource.
+ * A write of content to an external resource.
  *
  * @since 4.0
  */

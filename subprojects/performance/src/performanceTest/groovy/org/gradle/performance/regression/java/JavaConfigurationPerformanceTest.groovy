@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.regression.corefeature
+package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import spock.lang.Unroll
 
-class ProjectCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-    def "create many empty projects"() {
+class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+
+    @Unroll
+    def "configure #testProject"() {
         given:
-        runner.testProject = "bigEmpty"
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['help']
-        runner.gradleOpts = ['-Xms1500m', '-Xmx1500m']
         runner.targetVersions = ["4.0-rc-1"]
 
         when:
@@ -32,5 +37,10 @@ class ProjectCreationPerformanceTest extends AbstractCrossVersionPerformanceTest
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject                   | _
+        LARGE_MONOLITHIC_JAVA_PROJECT | _
+        LARGE_JAVA_MULTI_PROJECT      | _
     }
 }
