@@ -18,7 +18,6 @@ package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.internal.SystemProperties
-import spock.lang.Ignore
 
 class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
     private static final String EOL = SystemProperties.instance.lineSeparator
