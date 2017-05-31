@@ -38,7 +38,7 @@ import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
 
     @Unroll
-    def "#gradleCleanupTask #gradleTask on #testProject (Gradle vs Maven)"() {
+    def "clean #gradleTask on #testProject (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
         runner.testProject = testProject
