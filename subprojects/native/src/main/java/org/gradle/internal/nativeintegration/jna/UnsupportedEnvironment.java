@@ -18,6 +18,7 @@ package org.gradle.internal.nativeintegration.jna;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +59,8 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
     }
 
     @Override
-    public boolean maybeSetEnvironment(Map<String, String> source) {
-        return false;
+    public EnvironmentModificationResult maybeSetEnvironment(Map<String, String> source) {
+        return EnvironmentModificationResult.UNSUPPORTED_ENVIRONMENT;
     }
 
     @Override
@@ -68,8 +69,8 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
     }
 
     @Override
-    public boolean maybeRemoveEnvironmentVariable(String name) {
-        return false;
+    public EnvironmentModificationResult maybeRemoveEnvironmentVariable(String name) {
+        return EnvironmentModificationResult.UNSUPPORTED_ENVIRONMENT;
     }
 
     @Override
@@ -78,8 +79,8 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
     }
 
     @Override
-    public boolean maybeSetEnvironmentVariable(String name, String value) {
-        return false;
+    public EnvironmentModificationResult maybeSetEnvironmentVariable(String name, String value) {
+        return EnvironmentModificationResult.UNSUPPORTED_ENVIRONMENT;
     }
 
     @Override

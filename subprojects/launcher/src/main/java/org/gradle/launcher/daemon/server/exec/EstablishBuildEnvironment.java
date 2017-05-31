@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
@@ -62,13 +63,16 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
         }
 
         LOGGER.debug("Configuring env variables: {}", build.getParameters().getEnvVariables());
-        boolean couldSetEnvironment = processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
-        if(!couldSetEnvironment) {
-            LOGGER.warn(
-                "Warning: Unable able to set daemon's environment variables to match the client. "
-                    + "If the daemon was started with a significantly different environment from the client, and your build "
-                    + "relies on environment variables, you may experience unexpected behavior."
-            );
+        EnvironmentModificationResult setEnvironmentResult = processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
+        if(!setEnvironmentResult.equals(EnvironmentModificationResult.SUCCESS)) {
+            StringBuffer sb = new StringBuffer("Warning: Unable able to set daemon's environment variables to match the client because: ")
+                .append(System.getProperty("line.separator")).append("  ")
+                .append(setEnvironmentResult)
+                .append(System.getProperty("line.separator")).append("  ")
+                .append("If the daemon was started with a significantly different environment from the client, and your build ")
+                .append(System.getProperty("line.separator")).append("  ")
+                .append("relies on environment variables, you may experience unexpected behavior.");
+            LOGGER.warn(sb.toString());
         }
         processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
 

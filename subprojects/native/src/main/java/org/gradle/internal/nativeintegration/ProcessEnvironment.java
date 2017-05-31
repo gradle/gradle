@@ -30,7 +30,7 @@ public interface ProcessEnvironment {
      * @param source The environment
      * @return true if environment changed, false if not possible.
      */
-    public boolean maybeSetEnvironment(Map<String, String> source);
+    EnvironmentModificationResult maybeSetEnvironment(Map<String, String> source);
 
     /**
      * Removes the given environment variable.
@@ -46,7 +46,7 @@ public interface ProcessEnvironment {
      * @param name The name of the environment variable.
      * @return true if removed, false if not possible.
      */
-    boolean maybeRemoveEnvironmentVariable(String name);
+    EnvironmentModificationResult maybeRemoveEnvironmentVariable(String name);
 
     /**
      * Sets the given environment variable.
@@ -64,7 +64,7 @@ public interface ProcessEnvironment {
      * @param value The value
      * @return true if set, false if not possible.
      */
-    boolean maybeSetEnvironmentVariable(String name, String value);
+    EnvironmentModificationResult maybeSetEnvironmentVariable(String name, String value);
 
     /**
      * Returns the working directory of the current process.
