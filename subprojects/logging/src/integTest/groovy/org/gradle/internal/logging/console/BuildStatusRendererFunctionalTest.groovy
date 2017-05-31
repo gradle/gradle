@@ -53,19 +53,16 @@ class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
         expect:
         server.waitFor()
         assertHasBuildPhase("INITIALIZING")
-        println("INIT PHASE OK")
         server.release()
 
         and:
         server.waitFor()
         assertHasBuildPhase("CONFIGURING")
-        println("CONFIG PHASE OK")
         server.release()
 
         and:
         server.waitFor()
         assertHasBuildPhase("EXECUTING")
-        println("EXEC PHASE OK")
         server.release()
 
         cleanup:
