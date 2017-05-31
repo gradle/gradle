@@ -29,3 +29,4 @@ useTestFixtures(project: ":ide")
 useClassycle()
 strictCompile()
 
+parallelIntegTest.dependsOn(':platformPlay:integTestPrepare')
