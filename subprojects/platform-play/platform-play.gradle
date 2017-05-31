@@ -52,4 +52,8 @@ task integTestPrepare(type: org.gradle.testing.IntegrationTest) {
     maxParallelForks = 1
 }
 
-parallelIntegTest.dependsOn(integTestPrepare)
+tasks.withType(org.gradle.testing.IntegrationTest) { task ->
+    if (task != integTestPrepare) {
+        task.dependsOn(integTestPrepare)
+    }
+}
