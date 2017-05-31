@@ -55,6 +55,10 @@
                     <literal><replaceable>sourceSet</replaceable>.compileClasspath</literal>
                 </td>
             </tr>
+            <tr>
+                <td>cache</td>
+		<td><literal><replaceable>${project.buildDir}</replaceable>/pmd-cache/<replaceable>taskName</replaceable>.cache</literal></td>
+            </tr>
         </table>
     </section>
     <section>
