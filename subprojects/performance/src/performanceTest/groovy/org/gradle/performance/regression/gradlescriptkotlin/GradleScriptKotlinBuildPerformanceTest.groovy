@@ -29,7 +29,7 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
-        runner.targetVersions = ["3.5-20170221000043+0000"]
+        runner.targetVersions = ["4.0-rc-1"]
 
         when:
         def result = runner.run()
@@ -50,7 +50,7 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         runner.tasksToRun = ['help']
         runner.args = ['--recompile-scripts']
         runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
-        runner.targetVersions = ["3.5-20170221000043+0000"]
+        runner.targetVersions = ["4.0-rc-1"]
 
         when:
         def result = runner.run()

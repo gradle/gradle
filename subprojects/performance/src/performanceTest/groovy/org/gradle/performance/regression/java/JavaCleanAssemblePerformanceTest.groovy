@@ -32,7 +32,7 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.tasksToRun = ["clean", "assemble"]
-        runner.targetVersions = ["3.5-20170223000042+0000"]
+        runner.targetVersions = ["4.0-rc-1"]
 
         when:
         def result = runner.run()
