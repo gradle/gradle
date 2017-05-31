@@ -37,15 +37,21 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     @Override
     public boolean maybeSetEnvironment(Map<String, String> source) {
         try {
+            boolean removalsHaveSucceeded = true;
+            boolean setingHasSucceeded = true;
             // need to take copy to prevent ConcurrentModificationException
             List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
             for (String key : keysToRemove) {
-                removeEnvironmentVariable(key);
+                if (removalsHaveSucceeded) {
+                    removalsHaveSucceeded = maybeRemoveEnvironmentVariable(key);
+                }
             }
             for (Map.Entry<String, String> entry : source.entrySet()) {
-                setEnvironmentVariable(entry.getKey(), entry.getValue());
+                if (setingHasSucceeded) {
+                    setingHasSucceeded = maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());
+                }
             }
-            return true;
+            return removalsHaveSucceeded && setingHasSucceeded;
         } catch (ImmutableEnvironmentException e) {
             return false;
         }
@@ -68,8 +74,11 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
         try {
             removeEnvironmentVariable(name);
             return true;
-        } catch (ImmutableEnvironmentException e) {
-            return false;
+        } catch (NativeIntegrationException e) {
+            if (e.getCause() instanceof ImmutableEnvironmentException) {
+                return false;
+            }
+            throw e;
         }
     }
 
@@ -95,8 +104,11 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
         try {
             setEnvironmentVariable(name, value);
             return true;
-        } catch (ImmutableEnvironmentException e) {
-            return false;
+        } catch (NativeIntegrationException e) {
+            if (e.getCause() instanceof ImmutableEnvironmentException) {
+                return false;
+            }
+            throw e;
         }
     }
 

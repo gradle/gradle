@@ -22,7 +22,6 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.HashMap;
@@ -65,10 +64,11 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
         LOGGER.debug("Configuring env variables: {}", build.getParameters().getEnvVariables());
         boolean couldSetEnvironment = processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
         if(!couldSetEnvironment) {
-            SingleMessageLogger.nagUserWith(
+            LOGGER.warn(
                 "Warning: Unable able to set daemon's environment variables to match the client. "
-                + "If the daemon was started with a significantly different environment from the client, and your build "
-                + "relies on environment variables, you may experience unexpected behavior.");
+                    + "If the daemon was started with a significantly different environment from the client, and your build "
+                    + "relies on environment variables, you may experience unexpected behavior."
+            );
         }
         processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
 
