@@ -22,7 +22,7 @@ buildCache {
         enabled = !isCiServer
     }
     remote(HttpBuildCache) {
-        url = 'https://example.com:8123/build-cache/'
+        url = 'https://example.com:8123/cache/'
         push = isCiServer
     }
 }
