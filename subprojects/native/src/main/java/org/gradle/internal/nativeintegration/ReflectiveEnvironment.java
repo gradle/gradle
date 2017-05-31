@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration;
 
-import org.gradle.internal.nativeintegration.jvm.Java9Detector;
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.lang.reflect.Field;
@@ -26,15 +26,11 @@ import java.util.Map;
  * Uses reflection to update private environment state
  */
 public class ReflectiveEnvironment {
-    private final Java9Detector java9Detector;
-
-    public ReflectiveEnvironment(Java9Detector java9Detector) {
-        this.java9Detector = java9Detector;
-    }
+    private static final String JAVA_9_IMMUTABLE_ENVIRONMENT_MESSAGE =  "Java 9 Doesn't allow you to mutate the environment";
 
     public void unsetenv(String name) {
-        if (java9Detector.isJava9()) {
-            return;
+        if (JavaVersion.current().isJava9Compatible()) {
+            throw new ImmutableEnvironmentException(JAVA_9_IMMUTABLE_ENVIRONMENT_MESSAGE);
         }
         Map<String, String> map = getEnv();
         map.remove(name);
@@ -45,8 +41,8 @@ public class ReflectiveEnvironment {
     }
 
     public void setenv(String name, String value) {
-        if (java9Detector.isJava9()) {
-            return;
+        if (JavaVersion.current().isJava9Compatible()) {
+            throw new ImmutableEnvironmentException(JAVA_9_IMMUTABLE_ENVIRONMENT_MESSAGE);
         }
         Map<String, String> map = getEnv();
         map.put(name, value);

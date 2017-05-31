@@ -41,7 +41,6 @@ import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformB
 import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
 import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
-import org.gradle.internal.nativeintegration.jvm.Java9Detector;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -148,21 +147,17 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return Jvm.current();
     }
 
-    protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem, Java9Detector java9Detector) {
+    protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 net.rubygrapefruit.platform.Process process = net.rubygrapefruit.platform.Native.get(Process.class);
-                return new NativePlatformBackedProcessEnvironment(process, java9Detector);
+                return new NativePlatformBackedProcessEnvironment(process);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
             }
         }
 
         return new UnsupportedEnvironment();
-    }
-
-    protected Java9Detector createJava9Detector() {
-        return new Java9Detector();
     }
 
     protected ConsoleDetector createConsoleDetector(OperatingSystem operatingSystem) {

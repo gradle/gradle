@@ -17,10 +17,10 @@ package org.gradle.internal.nativeintegration.processenvironment;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.internal.nativeintegration.ImmutableEnvironmentException;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.ReflectiveEnvironment;
-import org.gradle.internal.nativeintegration.jvm.Java9Detector;
 
 import java.io.File;
 import java.util.List;
@@ -28,39 +28,49 @@ import java.util.Map;
 
 public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     //for updates to private JDK caches of the environment state
-    final Java9Detector java9Detector;
     private final ReflectiveEnvironment reflectiveEnvironment;
 
-    public AbstractProcessEnvironment(Java9Detector java9Detector) {
-        this.java9Detector = java9Detector;
-        this.reflectiveEnvironment = new ReflectiveEnvironment(java9Detector);
+    public AbstractProcessEnvironment() {
+        this.reflectiveEnvironment = new ReflectiveEnvironment();
     }
 
     @Override
     public boolean maybeSetEnvironment(Map<String, String> source) {
-        // need to take copy to prevent ConcurrentModificationException
-        List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
-        for (String key : keysToRemove) {
-            removeEnvironmentVariable(key);
+        try {
+            // need to take copy to prevent ConcurrentModificationException
+            List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
+            for (String key : keysToRemove) {
+                removeEnvironmentVariable(key);
+            }
+            for (Map.Entry<String, String> entry : source.entrySet()) {
+                setEnvironmentVariable(entry.getKey(), entry.getValue());
+            }
+            return true;
+        } catch (ImmutableEnvironmentException e) {
+            return false;
         }
-        for (Map.Entry<String, String> entry : source.entrySet()) {
-            setEnvironmentVariable(entry.getKey(), entry.getValue());
-        }
-        return true;
     }
 
     @Override
     public void removeEnvironmentVariable(String name) throws NativeIntegrationException {
-        removeNativeEnvironmentVariable(name);
-        reflectiveEnvironment.unsetenv(name);
+        try {
+            removeNativeEnvironmentVariable(name);
+            reflectiveEnvironment.unsetenv(name);
+        } catch (ImmutableEnvironmentException e) {
+            throw new NativeIntegrationException(String.format("Couldn't remove environment variable: %s", name), e);
+        }
     }
 
     protected abstract void removeNativeEnvironmentVariable(String name);
 
     @Override
     public boolean maybeRemoveEnvironmentVariable(String name) {
-        removeEnvironmentVariable(name);
-        return true;
+        try {
+            removeEnvironmentVariable(name);
+            return true;
+        } catch (ImmutableEnvironmentException e) {
+            return false;
+        }
     }
 
     @Override
@@ -70,16 +80,24 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
             return;
         }
 
-        setNativeEnvironmentVariable(name, value);
-        reflectiveEnvironment.setenv(name, value);
+        try {
+            setNativeEnvironmentVariable(name, value);
+            reflectiveEnvironment.setenv(name, value);
+        } catch (ImmutableEnvironmentException e) {
+            throw new NativeIntegrationException(String.format("Couldn't set environment variable %s to %s", name, value), e);
+        }
     }
 
     protected abstract void setNativeEnvironmentVariable(String name, String value);
 
     @Override
     public boolean maybeSetEnvironmentVariable(String name, String value) {
-        setEnvironmentVariable(name, value);
-        return true;
+        try {
+            setEnvironmentVariable(name, value);
+            return true;
+        } catch (ImmutableEnvironmentException e) {
+            return false;
+        }
     }
 
     @Override
