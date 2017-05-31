@@ -17,7 +17,7 @@ package org.gradle.internal.nativeintegration.processenvironment;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.internal.nativeintegration.ImmutableEnvironmentException;
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.ReflectiveEnvironment;
@@ -36,50 +36,35 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
 
     @Override
     public boolean maybeSetEnvironment(Map<String, String> source) {
-        try {
-            boolean removalsHaveSucceeded = true;
-            boolean setingHasSucceeded = true;
-            // need to take copy to prevent ConcurrentModificationException
-            List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
-            for (String key : keysToRemove) {
-                if (removalsHaveSucceeded) {
-                    removalsHaveSucceeded = maybeRemoveEnvironmentVariable(key);
-                }
-            }
-            for (Map.Entry<String, String> entry : source.entrySet()) {
-                if (setingHasSucceeded) {
-                    setingHasSucceeded = maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());
-                }
-            }
-            return removalsHaveSucceeded && setingHasSucceeded;
-        } catch (ImmutableEnvironmentException e) {
+        if (JavaVersion.current().isJava9Compatible()) {
             return false;
         }
+        // need to take copy to prevent ConcurrentModificationException
+        List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
+        for (String key : keysToRemove) {
+            removeEnvironmentVariable(key);
+        }
+        for (Map.Entry<String, String> entry : source.entrySet()) {
+           setEnvironmentVariable(entry.getKey(), entry.getValue());
+        }
+        return true;
     }
 
     @Override
     public void removeEnvironmentVariable(String name) throws NativeIntegrationException {
-        try {
-            removeNativeEnvironmentVariable(name);
-            reflectiveEnvironment.unsetenv(name);
-        } catch (ImmutableEnvironmentException e) {
-            throw new NativeIntegrationException(String.format("Couldn't remove environment variable: %s", name), e);
-        }
+        removeNativeEnvironmentVariable(name);
+        reflectiveEnvironment.unsetenv(name);
     }
 
     protected abstract void removeNativeEnvironmentVariable(String name);
 
     @Override
     public boolean maybeRemoveEnvironmentVariable(String name) {
-        try {
-            removeEnvironmentVariable(name);
-            return true;
-        } catch (NativeIntegrationException e) {
-            if (e.getCause() instanceof ImmutableEnvironmentException) {
-                return false;
-            }
-            throw e;
+        if (JavaVersion.current().isJava9Compatible()) {
+            return false;
         }
+        removeEnvironmentVariable(name);
+        return true;
     }
 
     @Override
@@ -89,27 +74,19 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
             return;
         }
 
-        try {
-            setNativeEnvironmentVariable(name, value);
-            reflectiveEnvironment.setenv(name, value);
-        } catch (ImmutableEnvironmentException e) {
-            throw new NativeIntegrationException(String.format("Couldn't set environment variable %s to %s", name, value), e);
-        }
+        setNativeEnvironmentVariable(name, value);
+        reflectiveEnvironment.setenv(name, value);
     }
 
     protected abstract void setNativeEnvironmentVariable(String name, String value);
 
     @Override
     public boolean maybeSetEnvironmentVariable(String name, String value) {
-        try {
-            setEnvironmentVariable(name, value);
-            return true;
-        } catch (NativeIntegrationException e) {
-            if (e.getCause() instanceof ImmutableEnvironmentException) {
-                return false;
-            }
-            throw e;
+        if (JavaVersion.current().isJava9Compatible()) {
+            return false;
         }
+        setEnvironmentVariable(name, value);
+        return true;
     }
 
     @Override

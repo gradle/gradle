@@ -16,13 +16,10 @@
 package org.gradle.internal.nativeintegration.processenvironment;
 
 import net.rubygrapefruit.platform.Process;
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.nativeintegration.ImmutableEnvironmentException;
 
 import java.io.File;
 
 public class NativePlatformBackedProcessEnvironment extends AbstractProcessEnvironment {
-    private static final String JAVA_9_IMMUTABLE_ENVIRONMENT_MESSAGE =  "Java 9 Doesn't allow you to mutate the environment";
     private final Process process;
 
     public NativePlatformBackedProcessEnvironment(Process process) {
@@ -31,17 +28,11 @@ public class NativePlatformBackedProcessEnvironment extends AbstractProcessEnvir
 
     @Override
     protected void removeNativeEnvironmentVariable(String name) {
-        if (JavaVersion.current().isJava9Compatible()) {
-            throw new ImmutableEnvironmentException(JAVA_9_IMMUTABLE_ENVIRONMENT_MESSAGE);
-        }
         process.setEnvironmentVariable(name, null);
     }
 
     @Override
     protected void setNativeEnvironmentVariable(String name, String value) {
-        if (JavaVersion.current().isJava9Compatible()) {
-            throw new ImmutableEnvironmentException(JAVA_9_IMMUTABLE_ENVIRONMENT_MESSAGE);
-        }
         process.setEnvironmentVariable(name, value);
     }
 
