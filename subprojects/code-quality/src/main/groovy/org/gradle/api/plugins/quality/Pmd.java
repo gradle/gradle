@@ -32,6 +32,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -45,6 +46,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -66,6 +68,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private int rulePriority;
     private boolean consoleOutput;
     private FileCollection classpath;
+    private File cache;
 
     public Pmd() {
         reports = getInstantiator().newInstance(PmdReportsImpl.class, this);
@@ -329,5 +332,35 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     @Incubating
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
+    }
+
+    /**
+     * Location for analysis cache.
+     *
+     * The cache allows PMD to perform incremental analysis, and therefore be much faster.
+     *
+     * This is only supported for PMD 5.6.0 or better.
+     *
+     * @since 4.0
+     */
+    @Internal
+    @Optional
+    @Incubating
+    public File getCache() {
+        return cache;
+    }
+
+    /**
+     * Location for analysis cache.
+     *
+     * The cache allows PMD to perform incremental analysis, and therefore be much faster.
+     *
+     * This is only supported for PMD 5.6.0 or better.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    public void setCache(File cache) {
+        this.cache = cache;
     }
 }
