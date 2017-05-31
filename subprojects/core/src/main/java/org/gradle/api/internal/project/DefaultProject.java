@@ -52,6 +52,7 @@ import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
@@ -172,10 +173,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private Factory<AntBuilder> antBuilderFactory;
 
     private AntBuilder ant;
-
-    private Object buildDir = Project.DEFAULT_BUILD_DIR_NAME;
-
-    private File buildDirCached;
 
     private final int depth;
 
@@ -696,10 +693,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public File getBuildDir() {
-        if (buildDirCached == null) {
-            buildDirCached = file(buildDir);
-        }
-        return buildDirCached;
+        return getLayout().getBuildDirectory().get();
     }
 
     @Override
@@ -709,8 +703,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void setBuildDir(Object path) {
-        buildDir = path;
-        buildDirCached = null;
+        getLayout().setBuildDirectory(path);
     }
 
     @Override
@@ -815,6 +808,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     @Inject
     public ObjectFactory getObjects() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Inject
+    public DefaultProjectLayout getLayout() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

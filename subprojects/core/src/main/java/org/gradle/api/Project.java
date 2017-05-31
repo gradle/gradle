@@ -31,6 +31,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ReturnType;
 import org.gradle.api.invocation.Gradle;
@@ -958,6 +959,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     ObjectFactory getObjects();
+
+    /**
+     * Provides access to various important directories for this project.
+     *
+     * @since 4.1
+     */
+    @Incubating
+    ProjectLayout getLayout();
 
     /**
      * Creates a directory and returns a file pointing to it.
