@@ -4,7 +4,7 @@ import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 class Gradle_Check_TestCoverageCrossVersionJava7Linux_1(bucket: String) : BuildType({
     template(Gradle_Check.buildTypes.Gradle_Check_TestCoverageForkedLinux)
-    uuid = "78508f82-0840-41ee-80d8-8d86eb553e36"
+    uuid = "Gradle_Check_TestCoverageCrossVersionJava7Linux_$bucket"
     extId = "Gradle_Check_TestCoverageCrossVersionJava7Linux_$bucket"
     name = "Test Coverage - Cross-version Java7 Linux ($bucket)"
 
