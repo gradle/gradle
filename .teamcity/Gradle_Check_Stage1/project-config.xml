@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Check" uuid="5d298c31-2341-4e48-82f1-96e0e6f4aaa9" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
-  <name>Stage 1 - Sanity Check and Distribution</name>
-  <parameters />
-  <cleanup />
-  <buildTypesOrder order="Gradle_Check_Stage1_Passes,Gradle_Check_Stage1_SanityCheck,Gradle_Check_Stage1_BuildDistributions" />
-</project>
-

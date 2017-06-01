@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Check" uuid="965a2e53-9e1a-4a8f-8ca7-a846127710d7" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
-  <name>Stage 4 - Test Forked Linux/Windows, Performance, Gradleception</name>
-  <parameters />
-  <cleanup />
-  <buildTypesOrder order="Gradle_Check_Stage4_Passes,Gradle_Check_GradleceptionJava8Linux,Gradle_Check_PerformanceTestCoordinatorLinux" />
-</project>
-

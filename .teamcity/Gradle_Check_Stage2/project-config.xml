@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Check" uuid="c3269e7a-a10e-432e-8127-e67b6e1b8803" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
-  <name>Stage 2 - Test Embedded Java8 Linux</name>
-  <parameters />
-  <cleanup />
-</project>
-

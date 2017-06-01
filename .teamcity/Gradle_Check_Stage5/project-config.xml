@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Check" uuid="cbcb11d3-1666-45a7-a425-6506e1d49158" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
-  <name>Stage 5 - Test Parallel, Java9, IBM VM, Cross-Version, Smoke Tests, Colony</name>
-  <description>Triggered for every commit on Release and Master</description>
-  <parameters />
-  <cleanup />
-  <buildTypesOrder order="Gradle_Check_Stage5_Passes,Gradle_Check_SmokeTestsJava8Linux,Gradle_Check_ColonyCompatibility" />
-</project>
-
