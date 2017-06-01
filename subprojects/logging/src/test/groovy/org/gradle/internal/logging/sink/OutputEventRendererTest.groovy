@@ -27,6 +27,7 @@ import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import org.gradle.internal.nativeintegration.console.UnixConsoleMetaData
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.util.RedirectStdOutAndErr
@@ -367,9 +368,10 @@ class OutputEventRendererTest extends OutputSpecification {
     def "executor schedules at fixes rate"() {
         given:
         def executor = Mock(ScheduledExecutorService)
+        renderer.updateNowExecutor = executor
 
         when:
-        new OutputEventRenderer(new TrueTimeProvider(), executor)
+        renderer.addConsole(console, true, true, new UnixConsoleMetaData(true, true))
 
         then:
         1 * executor.scheduleAtFixedRate(_, _, _, TimeUnit.MILLISECONDS)
@@ -379,6 +381,7 @@ class OutputEventRendererTest extends OutputSpecification {
         given:
         def listener = new TestOutputEventListener()
         renderer.addOutputEventListener(listener)
+        renderer.addConsole(console, true, true, new UnixConsoleMetaData(true, true))
 
         when:
         Thread.sleep(OutputEventRenderer.UPDATE_NOW_FLUSH_INITIAL_DELAY_MS + OutputEventRenderer.UPDATE_NOW_FLUSH_PERIOD_MS + 100)
@@ -390,10 +393,11 @@ class OutputEventRendererTest extends OutputSpecification {
     def "shuts down executor when receiving end output event"() {
         given:
         def executor = Mock(ScheduledExecutorService)
-        def scheduledRenderer = new OutputEventRenderer(new TrueTimeProvider(), executor)
+        renderer.updateNowExecutor = executor
+        renderer.addConsole(console, true, true, new UnixConsoleMetaData(true, true))
 
         when:
-        scheduledRenderer.onOutput(new EndOutputEvent())
+        renderer.onOutput(new EndOutputEvent())
 
         then:
         1 * executor.shutdownNow()

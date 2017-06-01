@@ -71,7 +71,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final AtomicInteger maxWorkerCount = new AtomicInteger();
     private final TimeProvider timeProvider;
-    private final ScheduledExecutorService updateNowExecutor;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -82,18 +81,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
     private OutputEventListener console;
+    private ScheduledExecutorService updateNowExecutor;
 
     public OutputEventRenderer() {
         this(new TrueTimeProvider());
     }
 
     OutputEventRenderer(TimeProvider timeProvider) {
-        this(timeProvider, Executors.newSingleThreadScheduledExecutor());
-    }
-
-    OutputEventRenderer(TimeProvider timeProvider, ScheduledExecutorService updateNowExecutor) {
         this.timeProvider = timeProvider;
-        this.updateNowExecutor = updateNowExecutor;
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
@@ -108,16 +103,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             }
         });
         formatters.add(stdErrChain);
-        scheduleUpdateNowExecutor();
-    }
-
-    private void scheduleUpdateNowExecutor() {
-        updateNowExecutor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
-            }
-        }, UPDATE_NOW_FLUSH_INITIAL_DELAY_MS, UPDATE_NOW_FLUSH_PERIOD_MS, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -267,7 +252,23 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             consoleChain.onOutput(new MaxWorkerCountChangeEvent(maxWorkerCount.get()));
             formatters.add(this.console);
         }
+
+        if (!(consoleMetaData instanceof FallbackConsoleMetaData)) {
+            scheduleUpdateNowExecutor();
+        }
         return this;
+    }
+
+    private void scheduleUpdateNowExecutor() {
+        if (updateNowExecutor == null) {
+            updateNowExecutor = Executors.newSingleThreadScheduledExecutor();
+        }
+        updateNowExecutor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
+            }
+        }, UPDATE_NOW_FLUSH_INITIAL_DELAY_MS, UPDATE_NOW_FLUSH_PERIOD_MS, TimeUnit.MILLISECONDS);
     }
 
     private OutputEventListener onError(final OutputEventListener listener) {
@@ -352,7 +353,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             }
             this.maxWorkerCount.set(newMaxWorkerCount);
         } else if (event instanceof EndOutputEvent) {
-            updateNowExecutor.shutdownNow();
+            if (updateNowExecutor != null) {
+                updateNowExecutor.shutdownNow();
+            }
         }
         synchronized (lock) {
             formatters.getSource().onOutput(event);
@@ -391,5 +394,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             }
             delegate.onOutput(event);
         }
+    }
+
+    void setUpdateNowExecutor(ScheduledExecutorService updateNowExecutor) {
+        this.updateNowExecutor = updateNowExecutor;
     }
 }
