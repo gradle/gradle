@@ -10,5 +10,8 @@ object Project : Project({
     parentId = "Gradle_Check_Stage3"
     name = "Test Coverage - Embedded Java7 Windows"
 
-    buildType(Gradle_Check_TestCoverageEmbeddedJava7Windows_1)
+
+    for (bucket in 1..8) {
+        buildType(Gradle_Check_TestCoverageEmbeddedJava7Windows_1("" + bucket))
+    }
 })

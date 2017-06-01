@@ -1,7 +1,6 @@
 package Gradle_Check_TestCoverageParallelJava7IBMLinux
 
-import Gradle_Check_TestCoverageParallelJava7IBMLinux.buildTypes.*
-import jetbrains.buildServer.configs.kotlin.v10.*
+import Gradle_Check_TestCoverageParallelJava7IBMLinux.buildTypes.Gradle_Check_TestCoverageParallelJava7IBMLinux_1
 import jetbrains.buildServer.configs.kotlin.v10.Project
 
 object Project : Project({
@@ -10,5 +9,8 @@ object Project : Project({
     parentId = "Gradle_Check_Stage5"
     name = "Test Coverage - Parallel Java7IBM Linux"
 
-    buildType(Gradle_Check_TestCoverageParallelJava7IBMLinux_1)
+
+    for (bucket in 1..8) {
+        buildType(Gradle_Check_TestCoverageParallelJava7IBMLinux_1("" + bucket))
+    }
 })

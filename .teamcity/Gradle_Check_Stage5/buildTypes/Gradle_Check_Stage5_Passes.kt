@@ -1,14 +1,12 @@
 package Gradle_Check_Stage5.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v10.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep.*
+import jetbrains.buildServer.configs.kotlin.v10.BuildStep
+import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import jetbrains.buildServer.configs.kotlin.v10.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v10.triggers.VcsTrigger
-import jetbrains.buildServer.configs.kotlin.v10.triggers.VcsTrigger.*
 import jetbrains.buildServer.configs.kotlin.v10.triggers.vcs
 
 object Gradle_Check_Stage5_Passes : BuildType({
@@ -90,24 +88,27 @@ object Gradle_Check_Stage5_Passes : BuildType({
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }
         }
-        dependency(Gradle_Check_TestCoverageCrossVersionJava7Linux.buildTypes.Gradle_Check_TestCoverageCrossVersionJava7Linux_1) {
-            snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+
+        for (bucket in 1..8) {
+            dependency("Gradle_Check_TestCoverageCrossVersionJava7Linux_$bucket") {
+                snapshot {
+                    onDependencyFailure = FailureAction.FAIL_TO_START
+                }
             }
-        }
-        dependency(Gradle_Check_TestCoverageCrossVersionJava7Windows.buildTypes.Gradle_Check_TestCoverageCrossVersionJava7Windows_1) {
-            snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+            dependency("Gradle_Check_TestCoverageCrossVersionJava7Windows_$bucket") {
+                snapshot {
+                    onDependencyFailure = FailureAction.FAIL_TO_START
+                }
             }
-        }
-        dependency(Gradle_Check_TestCoverageForkedJava9Linux.buildTypes.Gradle_Check_TestCoverageForkedJava9Linux_1) {
-            snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+            dependency("Gradle_Check_TestCoverageForkedJava9Linux_$bucket") {
+                snapshot {
+                    onDependencyFailure = FailureAction.FAIL_TO_START
+                }
             }
-        }
-        dependency(Gradle_Check_TestCoverageParallelJava7IBMLinux.buildTypes.Gradle_Check_TestCoverageParallelJava7IBMLinux_1) {
-            snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+            dependency("Gradle_Check_TestCoverageParallelJava7IBMLinux_$bucket") {
+                snapshot {
+                    onDependencyFailure = FailureAction.FAIL_TO_START
+                }
             }
         }
     }
