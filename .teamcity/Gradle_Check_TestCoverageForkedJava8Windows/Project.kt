@@ -1,7 +1,6 @@
 package Gradle_Check_TestCoverageForkedJava8Windows
 
-import Gradle_Check_TestCoverageForkedJava8Windows.buildTypes.*
-import jetbrains.buildServer.configs.kotlin.v10.*
+import Gradle_Check_TestCoverageForkedJava8Windows.buildTypes.Gradle_Check_Stage4_TestCoverageForkedJava8Windows_1
 import jetbrains.buildServer.configs.kotlin.v10.Project
 
 object Project : Project({
@@ -10,5 +9,7 @@ object Project : Project({
     parentId = "Gradle_Check_Stage4"
     name = "Test Coverage - Forked Java8 Windows"
 
-    buildType(Gradle_Check_Stage4_TestCoverageForkedJava8Windows_1)
+    for (bucket in 1..8) {
+        buildType(Gradle_Check_Stage4_TestCoverageForkedJava8Windows_1("" + bucket))
+    }
 })
