@@ -17,22 +17,28 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.internal.filelock.*;
+import org.gradle.cache.internal.filelock.DefaultLockStateSerializer;
+import org.gradle.cache.internal.filelock.LockFileAccess;
+import org.gradle.cache.internal.filelock.LockInfo;
+import org.gradle.cache.internal.filelock.LockOptions;
+import org.gradle.cache.internal.filelock.LockState;
+import org.gradle.cache.internal.filelock.LockStateAccess;
+import org.gradle.cache.internal.filelock.LockStateSerializer;
+import org.gradle.cache.internal.filelock.Version1LockStateSerializer;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.Timers;
-import org.gradle.internal.time.TrueTimeProvider;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.RandomLongIdGenerator;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.Timers;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -51,7 +57,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private final IdGenerator<Long> generator;
     private final FileLockContentionHandler fileLockContentionHandler;
     private final long shortTimeoutMs = 10000;
-    private final TimeProvider timeProvider = new TrueTimeProvider();
+    private final Random random = new Random();
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
         this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler);
@@ -96,6 +102,9 @@ public class DefaultFileLockManager implements FileLockManager {
     }
 
     private class DefaultFileLock extends AbstractFileAccess implements FileLock {
+        private static final int EXPONENTIAL_BACKOFF_CAP_FACTOR = 100;
+        private static final long SLOT_TIME = 25L;
+
         private final File lockFile;
         private final File target;
         private final LockMode mode;
@@ -318,6 +327,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, final CountdownTimer timer) throws IOException, InterruptedException {
+            int i = 0;
             do {
                 java.nio.channels.FileLock fileLock = lockFileAccess.tryLockState(lockMode == LockMode.Shared);
                 if (fileLock != null) {
@@ -333,18 +343,24 @@ public class DefaultFileLockManager implements FileLockManager {
                     }
                 }
                 //TODO SF we should inform on the progress/status bar that we're waiting
-                Thread.sleep(200L);
+                Thread.sleep(backoff(++i));
+                i++;
             } while (!timer.hasExpired());
             return null;
         }
 
+        private long backoff(int i) {
+            return random.nextInt(Math.min(i, EXPONENTIAL_BACKOFF_CAP_FACTOR)) * SLOT_TIME;
+        }
+
         private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, CountdownTimer timer) throws IOException, InterruptedException {
+            int i = 0;
             do {
                 java.nio.channels.FileLock fileLock = lockFileAccess.tryLockInfo(lockMode == LockMode.Shared);
                 if (fileLock != null) {
                     return fileLock;
                 }
-                Thread.sleep(200L);
+                Thread.sleep(backoff(++i));
             }
             while (!timer.hasExpired());
             return null;
