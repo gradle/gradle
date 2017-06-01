@@ -120,13 +120,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }, UPDATE_NOW_FLUSH_INITIAL_DELAY_MS, UPDATE_NOW_FLUSH_PERIOD_MS, TimeUnit.MILLISECONDS);
     }
 
-    class UpdateNowRunnable implements Runnable {
-        @Override
-        public void run() {
-            onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
-        }
-    }
-
     @Override
     public Snapshot snapshot() {
         synchronized (lock) {
