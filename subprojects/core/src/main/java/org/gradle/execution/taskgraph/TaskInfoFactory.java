@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph;
 
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.initialization.includedbuild.IncludedBuildTaskResource;
@@ -26,20 +25,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-// TODO:DAZ Rename TaskInfoFactory and remove `getNode`
-public class TaskDependencyGraph {
+public class TaskInfoFactory {
     private final Map<Task, TaskInfo> nodes = new HashMap<Task, TaskInfo>();
 
     public Set<Task> getTasks() {
         return nodes.keySet();
     }
 
-    @Nullable
-    public TaskInfo getNode(Task task) {
-        return nodes.get(task);
-    }
-
-    public TaskInfo addNode(Task task) {
+    public TaskInfo createNode(Task task) {
         TaskInfo node = nodes.get(task);
         if (node == null) {
             if (task instanceof IncludedBuildTaskResource) {
