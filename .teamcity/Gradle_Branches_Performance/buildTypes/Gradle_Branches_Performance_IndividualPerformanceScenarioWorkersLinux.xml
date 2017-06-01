@@ -32,7 +32,7 @@
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="cleanSamples cleanFullPerformanceTest %templates% fullPerformanceTests --scenarios &quot;%scenario%&quot; --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% -x prepareSamples -x performanceReport -PtimestampedVersion -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.logging.level=LIFECYCLE -s --no-daemon --continue -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="cleanSamples cleanFullPerformanceTest %templates% fullPerformanceTests --scenarios &quot;%scenario%&quot; --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% -x prepareSamples -x performanceReport -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.logging.level=LIFECYCLE -s --no-daemon --continue -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
