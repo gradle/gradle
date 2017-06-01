@@ -33,7 +33,20 @@ dependencies {
     testCompile libraries.equalsVerifier
     testCompile project(':dependencyManagement')
 
+    integTestRuntime project(":toolingApiBuilders")
 }
 
 useTestFixtures()
 useTestFixtures(project: ":dependencyManagement")
+useTestFixtures(project: ":toolingApi")
+
+forkingIntegTest {
+    maxParallelForks = Math.min(2, rootProject.maxParallelForks)
+}
+
+integTestTasks.all {
+    requiresBinZip = true
+    requiresLibsRepo = true
+}
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
