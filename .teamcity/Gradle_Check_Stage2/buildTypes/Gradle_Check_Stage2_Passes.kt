@@ -53,7 +53,7 @@ object Gradle_Check_Stage2_Passes : BuildType({
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }
         }
-        dependency(Gradle_Check_Stage2_TestCoverageEmbeddedJava8Linux.buildTypes.Gradle_Check_TestCoverageEmbeddedJava8Linux_1) {
+        dependency(Gradle_Check_TestCoverageEmbeddedJava8Linux.buildTypes.Gradle_Check_TestCoverageEmbeddedJava8Linux_1) {
             snapshot {
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }

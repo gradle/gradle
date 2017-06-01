@@ -1,4 +1,4 @@
-package Gradle_Check_Stage2_TestCoverageEmbeddedJava8Linux.buildTypes
+package Gradle_Check_TestCoverageEmbeddedJava8Linux.buildTypes
 
 import jetbrains.buildServer.configs.kotlin.v10.*
 

@@ -1,4 +1,4 @@
-package Gradle_Check_Stage2_TestCoverageEmbeddedJava8Linux
+package Gradle_Check_TestCoverageEmbeddedJava8Linux
 
 import jetbrains.buildServer.configs.kotlin.v10.*
 
@@ -23,4 +23,4 @@ calling the subProjects() method in this project.
 */
 
 version = "2017.1"
-project(Gradle_Check_Stage2_TestCoverageEmbeddedJava8Linux.Project)
+project(Gradle_Check_TestCoverageEmbeddedJava8Linux.Project)
