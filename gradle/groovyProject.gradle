@@ -47,6 +47,9 @@ testTasks.all { task ->
         // enable class unloading
         task.jvmArgs '-XX:+UseConcMarkSweepGC', '-XX:+CMSClassUnloadingEnabled'
     }
+    task.inputs.property('javaVendor') {
+        javaVendor
+    }
     doFirst {
         if (isCiServer) {
             println "maxParallelForks for '$task.path' is $task.maxParallelForks"

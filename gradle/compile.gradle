@@ -9,6 +9,7 @@ if (!hasProperty('java7Home')) {
 }
 
 ext.jvmForCompilation = Jvm.current()
+ext.javaVendor = System.getProperty("java.vendor", "unknown")
 
 tasks.withType(AbstractCompile) {
     options.fork = true // Always fork compilation
@@ -36,9 +37,15 @@ tasks.withType(JavaCompile) {
     // while compiling.
     options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
     options.incremental = true
+    inputs.property('javaVendor') {
+        java7Home ? 'Oracle Corporation' : javaVendor
+    }
 }
 tasks.withType(GroovyCompile) {
     options.encoding = 'utf-8'
     options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
     groovyOptions.encoding = 'utf-8'
+    inputs.property('javaVendor') {
+        javaVendor
+    }
 }
