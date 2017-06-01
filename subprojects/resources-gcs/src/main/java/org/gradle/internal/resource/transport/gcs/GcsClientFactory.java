@@ -27,7 +27,8 @@ import com.google.api.services.storage.Storage;
 import java.io.IOException;
 import java.io.FileInputStream;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
+
+import static java.util.Collections.singletonList;
 
 
 // Defer GcsClient creation
@@ -38,9 +39,7 @@ public class GcsClientFactory {
     private static volatile GcsClient gcsClient;
 
     public GcsClient newGcsClient() throws GeneralSecurityException, IOException {
-
         if (gcsClient == null) {
-
             HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
             JsonFactory jsonFactory = new JacksonFactory();
 
@@ -53,17 +52,14 @@ public class GcsClientFactory {
                 googleCredential = GoogleCredential.fromStream(new FileInputStream(fileName), transport, jsonFactory);
             }
             // Ensure we have a scope
-            googleCredential = googleCredential.createScoped(Arrays.asList("https://www.googleapis.com/auth/devstorage.read_write"));
+            googleCredential = googleCredential.createScoped(singletonList("https://www.googleapis.com/auth/devstorage.read_write"));
 
             HttpRequestInitializer initializer = new RetryHttpInitializerWrapper(googleCredential);
             Storage.Builder builder = new Storage.Builder(transport, jsonFactory, initializer);
             builder.setApplicationName("gradle");
             gcsClient = new GcsClient(builder.build());
-
         }
-
         return gcsClient;
-
     }
-        
+
 }

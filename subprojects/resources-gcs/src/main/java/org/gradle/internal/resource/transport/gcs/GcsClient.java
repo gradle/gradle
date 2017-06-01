@@ -16,13 +16,12 @@
 
 package org.gradle.internal.resource.transport.gcs;
 
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Objects;
 import com.google.api.services.storage.model.StorageObject;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +30,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,10 +51,6 @@ public class GcsClient {
         this.googleGcsClient = googleGcsClient;
     }
 
-    private HttpTransport createConnectionProperties() throws GeneralSecurityException, IOException {
-        return GoogleNetHttpTransport.newTrustedTransport();
-    }
-
     public void put(InputStream inputStream, Long contentLength, URI destination) {
         try {
             InputStreamContent contentStream = new InputStreamContent(null, inputStream);
@@ -62,10 +59,7 @@ public class GcsClient {
 
             // TODO - set ACL here if necessary
             String bucket = destination.getHost();
-            String path = destination.getPath().replaceAll("%2F", "/");
-            while (path.startsWith("/")) {
-                path = path.substring(1);
-            }
+            String path = cleanResourcePath(destination);
             StorageObject objectMetadata = new StorageObject().setName(path);
 
             Storage.Objects.Insert putRequest = googleGcsClient.objects().insert(bucket, objectMetadata, contentStream);
@@ -80,49 +74,36 @@ public class GcsClient {
     public StorageObject getMetaData(URI uri) {
         LOGGER.debug("Attempting to get gcs meta-data: [{}]", uri.toString());
 
-        StorageObject storageObject = null;
-
+        String path = cleanResourcePath(uri);
         try {
-            String path = uri.getPath().replaceAll("%2F", "/");
-            while (path.startsWith("/")) {
-                path = path.substring(1);
-            }
             Storage.Objects.Get getRequest = googleGcsClient.objects().get(uri.getHost(), path);
-            storageObject = getRequest.execute();
+            return getRequest.execute();
         } catch (IOException e) {
             throw ResourceExceptions.getFailed(uri, e);
         }
-
-        return storageObject;
     }
 
     public StorageObject getResource(URI uri) {
         LOGGER.debug("Attempting to get gcs resource: [{}]", uri.toString());
 
-        StorageObject storageObject = null;
-        String path = uri.getPath().replaceAll("%2F", "/");
-        while (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-
+        String path = cleanResourcePath(uri);
         try {
             Storage.Objects.Get getRequest = googleGcsClient.objects().get(uri.getHost(), path);
-            storageObject = getRequest.execute();
-        } catch (GoogleJsonResponseException ex) {
+            return getRequest.execute();
+        } catch (GoogleJsonResponseException e) {
             // To bootstrap the very first publication to Maven, we have to insert a maven-metadata.xml
             // file. Gradle always tries to read-modify-write this file, so if its not there on the first
             // publish we'll fail and never be able to publish
-            if (ex.getStatusCode() == 404 && path.endsWith("maven-metadata.xml")) {
+            if (e.getStatusCode() == 404 && path.endsWith("maven-metadata.xml")) {
                 return INITIAL_METADATA;
             }
+            throw ResourceExceptions.getFailed(uri, e);
         } catch (IOException e) {
             throw ResourceExceptions.getFailed(uri, e);
         }
-
-        return storageObject;
     }
 
-    public InputStream getResourceStream(StorageObject obj) throws IOException {
+    InputStream getResourceStream(StorageObject obj) throws IOException {
         if (obj == INITIAL_METADATA) {
             // To bootstrap the very first publication to Maven, we have to insert a maven-metadata.xml
             // file. Gradle always tries to read-modify-write this file, so if its not there on the first
@@ -132,7 +113,7 @@ public class GcsClient {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Storage.Objects.Get getObject = googleGcsClient.objects().get(obj.getBucket(), obj.getName());
         getObject.getMediaHttpDownloader().setDirectDownloadEnabled(false);
-        getObject.executeMediaAndDownloadTo(baos); 
+        getObject.executeMediaAndDownloadTo(baos);
         return new ByteArrayInputStream(baos.toByteArray());
     }
 
@@ -152,8 +133,8 @@ public class GcsClient {
                 // Get the next page, in the next iteration of this loop.
                 listRequest.setPageToken(objects.getNextPageToken());
             } while (null != objects.getNextPageToken());
-        } catch (IOException i) {
-            throw new RuntimeException(i);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         List<String> resultStrings = new ArrayList<String>();
@@ -164,26 +145,26 @@ public class GcsClient {
         return resultStrings;
     }
 
-    private List<String> resolveResourceNames(List<StorageObject> objectListing) {
-        List<String> results = new ArrayList<String>();
-
-        if (null != objectListing) {
-            for (StorageObject objectSummary : objectListing) {
-                String selfLink = objectSummary.getSelfLink();
-                if (null != selfLink) {
-                    results.add(selfLink);
-                }
-            }
-        }
-        return results;
-    }
-
-    private String extractResourceName(String key) {
+    @VisibleForTesting
+    static String extractResourceName(String key) {
         Matcher matcher = FILENAME_PATTERN.matcher(key);
         if (matcher.find()) {
             String group = matcher.group(0);
             return group.contains(".") ? group : null;
         }
         return null;
+    }
+
+    private static String cleanResourcePath(URI uri) {
+        String path;
+        try {
+            path = URLDecoder.decode(uri.getPath(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e); // fail fast, this should not happen
+        }
+        while (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        return path;
     }
 }

@@ -16,15 +16,18 @@
 
 package org.gradle.internal.resource.transport.gcs
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential
+import com.google.api.client.http.InputStreamContent
 import com.google.api.services.storage.Storage
+import com.google.api.services.storage.model.StorageObject
+import com.google.api.services.storage.model.Objects
 import org.gradle.api.resources.ResourceException
 import spock.lang.Ignore
 import spock.lang.Specification
 
 class GcsClientTest extends Specification {
 
-    @Ignore
     def "Should upload to gcs"() {
         given:
         Storage storage = Mock(Storage)
@@ -34,11 +37,15 @@ class GcsClientTest extends Specification {
         when:
         client.put(Mock(InputStream), 12L, uri)
         then:
-        1 * storage.putObject(*_) >> { args ->
-            Storage.Objects.Insert putObjectRequest = args[0]
-            assert putObjectRequest.getBucket() == client.BUCKET_NAME
-            assert putObjectRequest.getName() == 'localhost/maven/snapshot/myFile.txt'
-            assert putObjectRequest.getHttpContent().length == 12
+        1 * storage.objects(*_) >> Mock(Storage.Objects) {
+            1 * insert(*_) >> { args ->
+                assert (args.getAt(0) as String) == 'localhost'
+                assert (args[1] as StorageObject).getName() == 'maven/snapshot/myFile.txt'
+                assert (args[2] as InputStreamContent).length == 12
+                return Mock(Storage.Objects.Insert) {
+                    1 * execute()
+                }
+            }
         }
     }
 
@@ -58,41 +65,32 @@ class GcsClientTest extends Specification {
         '/'             | null
     }
 
-//    def "should resolve resource names from an GCS objectlisting"() {
-//        setup:
-//        GcsClient gcsClient = new GcsClient(Mock(Storage))
-//        ObjectListing objectListing = Mock()
-//        S3ObjectSummary objectSummary = Mock()
-//        objectSummary.getKey() >> '/SNAPSHOT/some.jar'
-//
-//        S3ObjectSummary objectSummary2 = Mock()
-//        objectSummary2.getKey() >> '/SNAPSHOT/someOther.jar'
-//        objectListing.getObjectSummaries() >> [objectSummary, objectSummary2]
-//
-//        when:
-//        def results = gcsClient.resolveResourceNames(objectListing)
-//
-//        then:
-//        results == ['some.jar', 'someOther.jar']
-//    }
+    def "should make batch call when more than one object listing page exists"() {
+        def gcsStorageClient = Mock(Storage)
+        GcsClient gcsClient = new GcsClient(gcsStorageClient)
+        def uri = new URI("gcs://mybucket.com.au/maven/release/")
 
-//    def "should make batch call when more than one object listing exists"() {
-//        def gcsStorageClient = Mock(Storage)
-//        GcsClient gcsClient = new GcsClient(gcsStorageClient)
-//        def uri = new URI("gcs://mybucket.com.au/maven/release/")
-//        ObjectListing firstListing = Mock()
-//        firstListing.isTruncated() >> true
-//
-//        ObjectListing secondListing = Mock()
-//        secondListing.isTruncated() >> false
-//
-//        when:
-//        gcsClient.list(uri)
-//
-//        then:
-//        1 * amazonS3Client.listObjects(_) >> firstListing
-//        1 * amazonS3Client.listNextBatchOfObjects(_) >> secondListing
-//    }
+        when:
+        gcsClient.list(uri)
+
+        then:
+        1 * gcsStorageClient.objects(*_) >> Mock(Storage.Objects) {
+            1 * list(uri.getHost()) >> {
+                return Mock(Storage.Objects.List) {
+                    int page = 0
+                    int maxPages = 2
+                    maxPages * execute() >> {
+                        Objects objects = new Objects()
+                        objects.setItems(Collections.singletonList(new StorageObject()))
+                        objects.setNextPageToken(page < maxPages - 1 ? Integer.toString(page) : null)
+                        page++
+                        return objects
+                    }
+                    maxPages * setPageToken(_)
+                }
+            }
+        }
+    }
 
 //    @Ignore
 //    def "should apply endpoint override with path style access"() {
@@ -150,13 +148,16 @@ class GcsClientTest extends Specification {
 //        "mydomain.com"                                           | Optional.absent()
 //    }
 
-    @Ignore
     def "should include uri when meta-data not found"() {
-        Storage.Objects.Get storageClient = Mock()
+        def gcsStorageClient = Mock(Storage)
         URI uri = new URI("https://somehost/file.txt")
-        GcsClient gcsClient = new GcsClient(storageClient)
-        Exception exception = new Exception("test exception")
-        storageClient.execute(_) >> { throw exception }
+        GcsClient gcsClient = new GcsClient(gcsStorageClient)
+
+        gcsStorageClient.objects(*_) >> Mock(Storage.Objects) {
+            get(*_) >> Mock(Storage.Objects.Get) {
+                execute() >> { throw new IOException() }
+            }
+        }
 
         when:
         gcsClient.getMetaData(uri)
@@ -165,13 +166,18 @@ class GcsClientTest extends Specification {
         ex.message.startsWith("Could not get resource 'https://somehost/file.txt'")
     }
 
-    @Ignore
     def "should include uri when file not found"() {
-        Storage.Objects.Get storageClient = Mock()
+        def gcsStorageClient = Mock(Storage)
         URI uri = new URI("https://somehost/file.txt")
-        GcsClient gcsClient = new GcsClient(storageClient)
-        Exception exception = new Exception("test exception")
-        storageClient.execute(_) >> { throw exception }
+        GcsClient gcsClient = new GcsClient(gcsStorageClient)
+
+        gcsStorageClient.objects(*_) >> Mock(Storage.Objects) {
+            get(*_) >> Mock(Storage.Objects.Get) {
+                execute() >> { throw Mock(GoogleJsonResponseException) {
+                    getStatusCode() >> 404
+                } }
+            }
+        }
 
         when:
         gcsClient.getResource(uri)
@@ -180,13 +186,16 @@ class GcsClientTest extends Specification {
         ex.message.startsWith("Could not get resource 'https://somehost/file.txt'")
     }
 
-    @Ignore
     def "should include uri when upload fails"() {
-        Storage.Objects.Insert storageClient = Mock()
+        def gcsStorageClient = Mock(Storage)
         URI uri = new URI("https://somehost/file.txt")
-        GcsClient gcsClient = new GcsClient(storageClient)
-        Exception exception = new Exception("test exception")
-        storageClient.execute(*_) >> { throw exception }
+        GcsClient gcsClient = new GcsClient(gcsStorageClient)
+
+        gcsStorageClient.objects(*_) >> Mock(Storage.Objects) {
+            insert(*_) >> Mock(Storage.Objects.Insert) {
+                execute() >> { throw new IOException() }
+            }
+        }
 
         when:
         gcsClient.put(Mock(InputStream), 0, uri)
