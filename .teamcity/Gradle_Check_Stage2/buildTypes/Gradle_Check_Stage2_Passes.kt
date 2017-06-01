@@ -50,7 +50,7 @@ object Gradle_Check_Stage2_Passes : BuildType({
             }
         }
 
-        for (bucket in 1..8) {
+        for (bucket in 8 downTo 1) {
             dependency("Gradle_Check_TestCoverageEmbeddedJava8Linux_$bucket") {
                 snapshot {
                     onDependencyFailure = FailureAction.FAIL_TO_START
