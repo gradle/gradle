@@ -16,8 +16,10 @@
 
 package org.gradle.internal.resource.transport.gcs
 
+import com.google.api.client.util.DateTime
 import com.google.api.services.storage.model.StorageObject
-import spock.lang.Ignore
+import org.apache.commons.codec.binary.Base64
+import org.gradle.internal.hash.HashValue
 import spock.lang.Specification
 
 class GcsResourceConnectorTest extends Specification {
@@ -31,19 +33,43 @@ class GcsResourceConnectorTest extends Specification {
         1 * gcsClient.list(uri)
     }
 
-    @Ignore
     def "should get a resource"() {
-        StorageObject objectMetadata = Mock()
         GcsClient gcsClient = Mock {
-            1 * getResource(uri) >> Mock(StorageObject) {
-                getObjectMetadata() >> objectMetadata
+            1 * getResource(uri) >> new StorageObject()
+        }
+
+        when:
+        def gcsResource = new GcsResourceConnector(gcsClient).openResource(uri, false)
+
+        then:
+        gcsResource != null
+    }
+
+    def "should get a resource metaData"() {
+        def lastModified = new DateTime(new Date())
+        def md5hash = '3e25960a79dbc69b674cd4ec67a72c62'
+        def contentType = 'application/zip'
+
+        GcsClient gcsClient = Mock(GcsClient) {
+            1 * getResource(uri) >> {
+                def storageObject = new StorageObject()
+                storageObject.setUpdated(lastModified)
+                storageObject.setMd5Hash(md5hash)
+                storageObject.setSize(BigInteger.TEN)
+                storageObject.setContentType(contentType)
+                storageObject.setEtag(Integer.toString(1))
             }
         }
 
         when:
-        def gcsResource = new GcsResourceConnector(gcsClient).openResource(uri)
+        def metaData = new GcsResourceConnector(gcsClient).getMetaData(uri, false)
 
         then:
-        gcsResource != null
+        metaData != null
+        metaData.lastModified == new Date(lastModified.value)
+        metaData.contentLength == BigInteger.TEN.longValue()
+        metaData.contentType == contentType
+        metaData.etag == Integer.toString(1)
+        metaData.sha1 == new HashValue(Base64.decodeBase64(md5hash))
     }
 }

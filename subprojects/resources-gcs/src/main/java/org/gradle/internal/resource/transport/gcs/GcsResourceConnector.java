@@ -64,7 +64,7 @@ public class GcsResourceConnector implements ExternalResourceConnector {
     }
 
     @Override
-    public ExternalResourceReadResponse openResource(URI location, boolean external) {
+    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource: {}", location);
         StorageObject gcsObject = getClient().getResource(location);
         if (gcsObject == null) {
@@ -74,7 +74,7 @@ public class GcsResourceConnector implements ExternalResourceConnector {
     }
 
     @Override
-    public ExternalResourceMetaData getMetaData(URI location, boolean external) {
+    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
         StorageObject gcsObject = getClient().getResource(location);
         if (gcsObject == null) {
@@ -101,5 +101,4 @@ public class GcsResourceConnector implements ExternalResourceConnector {
             inputStream.close();
         }
     }
-
 }
