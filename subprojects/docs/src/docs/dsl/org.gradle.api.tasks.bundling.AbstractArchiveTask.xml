@@ -38,7 +38,7 @@
             </tr>
             <tr>
                 <td>destinationDir</td>
-                <td><literal>project.distsDir</literal></td>
+                <td><literal>project.libsDir</literal></td>
             </tr>
             <tr>
                 <td>preserveFileTimestamps</td>
