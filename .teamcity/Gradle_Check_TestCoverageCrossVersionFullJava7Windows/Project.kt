@@ -1,6 +1,7 @@
 package Gradle_Check_TestCoverageCrossVersionFullJava7Windows
 
-import Gradle_Check_TestCoverageCrossVersionFullJava7Windows.buildTypes.Gradle_Check_TestCoverageCrossVersionFullJava7Windows_1
+import Gradle_Check_TestCoverageCrossVersionFullJava7Windows.buildTypes.*
+import jetbrains.buildServer.configs.kotlin.v10.*
 import jetbrains.buildServer.configs.kotlin.v10.Project
 
 object Project : Project({
@@ -9,7 +10,5 @@ object Project : Project({
     parentId = "Gradle_Check_Stage7"
     name = "Test Coverage - Cross-version Full Java7 Windows"
 
-    for (bucket in 1..8) {
-        buildType(Gradle_Check_TestCoverageCrossVersionFullJava7Windows_1("" + bucket))
-    }
+    buildType(Gradle_Check_TestCoverageCrossVersionFullJava7Windows_1)
 })

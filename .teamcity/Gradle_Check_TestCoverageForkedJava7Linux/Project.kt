@@ -10,8 +10,5 @@ object Project : Project({
     parentId = "Gradle_Check_Stage4"
     name = "Test Coverage - Forked Java7 Linux"
 
-
-    for (bucket in 1..8) {
-        buildType(Gradle_Check_TestCoverageForkedJava7Linux_1("" + bucket))
-    }
+    buildType(Gradle_Check_TestCoverageForkedJava7Linux_1)
 })

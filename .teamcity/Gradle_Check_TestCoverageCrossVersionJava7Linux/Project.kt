@@ -1,6 +1,7 @@
 package Gradle_Check_TestCoverageCrossVersionJava7Linux
 
-import Gradle_Check_TestCoverageCrossVersionJava7Linux.buildTypes.Gradle_Check_TestCoverageCrossVersionJava7Linux_1
+import Gradle_Check_TestCoverageCrossVersionJava7Linux.buildTypes.*
+import jetbrains.buildServer.configs.kotlin.v10.*
 import jetbrains.buildServer.configs.kotlin.v10.Project
 
 object Project : Project({
@@ -9,7 +10,5 @@ object Project : Project({
     parentId = "Gradle_Check_Stage5"
     name = "Test Coverage - Cross-version Java7 Linux"
 
-    for (bucket in 1..8) {
-        buildType(Gradle_Check_TestCoverageCrossVersionJava7Linux_1("" + bucket))
-    }
+    buildType(Gradle_Check_TestCoverageCrossVersionJava7Linux_1)
 })

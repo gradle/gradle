@@ -1,12 +1,14 @@
 package Gradle_Check_Stage7.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v10.BuildStep
-import jetbrains.buildServer.configs.kotlin.v10.BuildType
-import jetbrains.buildServer.configs.kotlin.v10.CheckoutMode
-import jetbrains.buildServer.configs.kotlin.v10.FailureAction
+import jetbrains.buildServer.configs.kotlin.v10.*
+import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep.*
+import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep
+import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep.*
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v10.triggers.ScheduleTrigger
+import jetbrains.buildServer.configs.kotlin.v10.triggers.ScheduleTrigger.*
 import jetbrains.buildServer.configs.kotlin.v10.triggers.schedule
 
 object Gradle_Check_Stage7_Passes : BuildType({
@@ -86,30 +88,26 @@ object Gradle_Check_Stage7_Passes : BuildType({
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }
         }
-
-        for (bucket in 1..8) {
-            dependency("Gradle_Check_TestCoverageCrossVersionFullJava7Linux_$bucket") {
-                snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
-                }
-            }
-            dependency("Gradle_Check_TestCoverageCrossVersionFullJava7Windows_$bucket") {
-                snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
-                }
-            }
-            dependency("Gradle_Check_TestCoverageNoDaemonJava8Linux_$bucket") {
-                snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
-                }
-            }
-            dependency("Gradle_Check_TestCoverageNoDaemonJava8Windows_$bucket") {
-                snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
-                }
+        dependency(Gradle_Check_TestCoverageCrossVersionFullJava7Linux.buildTypes.Gradle_Check_TestCoverageCrossVersionFullJava7Linux_1) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
             }
         }
-
+        dependency(Gradle_Check_TestCoverageCrossVersionFullJava7Windows.buildTypes.Gradle_Check_TestCoverageCrossVersionFullJava7Windows_1) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+        }
+        dependency(Gradle_Check_TestCoverageNoDaemonJava8Linux.buildTypes.Gradle_Check_TestCoverageNoDaemonJava8Linux_1) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+        }
+        dependency(Gradle_Check_TestCoverageNoDaemonJava8Windows.buildTypes.Gradle_Check_TestCoverageNoDaemonJava8Windows_1) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+        }
     }
 
     requirements {

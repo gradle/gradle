@@ -73,8 +73,8 @@ object Gradle_Check_PerformanceTestCoordinatorLinux : BuildType({
                 hours = "0/2"
             }
             triggerBuild = always()
-            withPendingChangesOnly = false
             param("revisionRule", "lastFinished")
+            param("triggerBuildWithPendingChangesOnly", "")
             param("dayOfWeek", "Sunday")
         }
     }
