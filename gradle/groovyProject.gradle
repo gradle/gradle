@@ -47,8 +47,8 @@ testTasks.all { task ->
         // enable class unloading
         task.jvmArgs '-XX:+UseConcMarkSweepGC', '-XX:+CMSClassUnloadingEnabled'
     }
-    task.inputs.property('javaVendor') {
-        javaVendor
+    task.inputs.property('javaInstallation') {
+        currentJavaInstallation.displayName
     }
     doFirst {
         if (isCiServer) {
