@@ -46,6 +46,8 @@ import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
+import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.FileLockManager;
@@ -327,5 +329,9 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     ParallelExecutionManager createMaxWorkersManager(ListenerManager listenerManager) {
         return new DefaultParallelExecutionManager(listenerManager);
+    }
+
+    PatternSpecFactory createPatternSpecFactory() {
+        return new CachingPatternSpecFactory();
     }
 }

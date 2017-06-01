@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
@@ -97,7 +96,7 @@ public class BasicGlobalScopeServices {
     }
 
     PatternSpecFactory createPatternSpecFactory() {
-        return new CachingPatternSpecFactory();
+        return PatternSpecFactory.INSTANCE;
     }
 
     protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
