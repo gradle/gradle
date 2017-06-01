@@ -18,7 +18,7 @@ package org.gradle.api.internal;
 import org.gradle.BuildListener;
 import org.gradle.api.Nullable;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;

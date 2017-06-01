@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.idea.model.internal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.composite.internal.CompositeBuildIdeProjectResolver
 import org.gradle.initialization.DefaultBuildIdentity
-import org.gradle.initialization.includedbuild.IncludedBuildTaskGraph
+import org.gradle.includedbuild.internal.IncludedBuildTaskGraph
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency

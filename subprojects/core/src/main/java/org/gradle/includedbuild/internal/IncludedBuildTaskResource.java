@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization.includedbuild;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
+package org.gradle.includedbuild.internal;
 
-public interface IncludedBuildControllers {
-    void startTaskExecution();
-
-    IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
+/**
+ * A resource produced by a task in an included build.
+ */
+public interface IncludedBuildTaskResource {
+    boolean isComplete();
 }

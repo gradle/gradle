@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization.includedbuild;
 
-public interface IncludedBuildController {
-    void queueForExecution(String taskPath);
+/**
+ * Classes for declaring and interacting with included builds in a composite.
+ */
+@Incubating
+package org.gradle.includedbuild;
 
-    void awaitCompletion(String taskPath);
-
-    boolean isComplete(String taskPath);
-
-    void startTaskExecution();
-}
+import org.gradle.api.Incubating;

@@ -19,7 +19,7 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.initialization.includedbuild.IncludedBuildTaskResource;
+import org.gradle.includedbuild.internal.IncludedBuildTaskResource;
 
 import java.util.HashMap;
 import java.util.Map;
