@@ -21,7 +21,7 @@
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="&quot;-Djava7.home=%windows.java7.oracle.64bit%&quot; -I ./gradle/buildScanInit.gradle -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.logging.level=LIFECYCLE -s --no-daemon --continue" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="&quot;-Djava7.home=%windows.java7.oracle.64bit%&quot; --build-cache  -Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password% -I ./gradle/taskCacheDetailedStatsInit.gradle -I ./gradle/buildScanInit.gradle -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.logging.level=LIFECYCLE -s --no-daemon --continue" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="clean platformTest8" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
