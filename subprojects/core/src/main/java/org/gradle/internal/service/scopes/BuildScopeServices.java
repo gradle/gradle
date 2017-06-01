@@ -37,7 +37,6 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.component.DefaultComponentTypeRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -72,13 +71,7 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
-import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
-import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
-import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
-import org.gradle.caching.internal.BuildCacheServiceProvider;
-import org.gradle.caching.local.DirectoryBuildCache;
-import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
+import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
@@ -174,6 +167,7 @@ import java.util.List;
 public class BuildScopeServices extends DefaultServiceRegistry {
     public BuildScopeServices(final ServiceRegistry parent) {
         super(parent);
+        addProvider(new BuildCacheServices());
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
@@ -439,24 +433,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildOutputCleanupListener createBuildOutputCleanupListener() {
         return new BuildOutputCleanupListener();
-    }
-
-    BuildCacheConfigurationInternal createBuildCacheConfiguration(Instantiator instantiator, StartParameter startParameter, List<BuildCacheServiceRegistration> allBuildCacheServiceFactories) {
-        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
-    }
-
-    BuildCacheServiceProvider createBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor, TemporaryFileProvider temporaryFileProvider, InstantiatorFactory instantiatorFactory) {
-        return new BuildCacheServiceProvider(
-            buildCacheConfiguration,
-            startParameter,
-            instantiatorFactory.inject(this),
-            buildOperationExecutor,
-            temporaryFileProvider
-        );
-    }
-
-    BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
-        return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
     }
 
     protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions) {

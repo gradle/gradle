@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.controller;
 
-public abstract class AbstractRoleAwareBuildCacheServiceDecorator extends ForwardingBuildCacheService implements RoleAwareBuildCacheService {
-    private final RoleAwareBuildCacheService delegate;
+import org.gradle.caching.BuildCacheService;
 
-    protected AbstractRoleAwareBuildCacheServiceDecorator(RoleAwareBuildCacheService delegate) {
-        this.delegate = delegate;
-    }
+import java.io.Closeable;
+
+/**
+ * Internal coordinator of build cache operations.
+ *
+ * Wraps user {@link BuildCacheService} implementations.
+ */
+public interface BuildCacheController extends Closeable {
+
+    void load(BuildCacheLoadOp loadOp);
+
+    void store(BuildCacheStoreOp storeOp);
 
     @Override
-    final protected RoleAwareBuildCacheService delegate() {
-        return delegate;
-    }
+    void close();
 
-    @Override
-    public String getRole() {
-        return delegate().getRole();
-    }
 }

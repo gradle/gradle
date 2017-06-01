@@ -23,13 +23,14 @@ import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
+import org.gradle.caching.internal.controller.BuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.Path
 
-class BuildCacheServiceProviderTest extends Specification {
+class BuildCacheControllerFactoryTest extends Specification {
 
     def buildCacheEnabled = true
     def startParameter = Mock(StartParameter) {
@@ -44,7 +45,7 @@ class BuildCacheServiceProviderTest extends Specification {
         new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
 
     ])
-    def provider = new BuildCacheServiceProvider(config, startParameter, DirectInstantiator.INSTANCE, buildOperationExecuter, temporaryFileProvider)
+    def provider = new BuildCacheControllerFactory(config, startParameter, DirectInstantiator.INSTANCE, buildOperationExecuter, temporaryFileProvider)
 
     private <T extends BuildCacheService> T create(Class<? extends T> serviceType) {
         def service = provider.createBuildCacheService(Path.path("test"))
@@ -52,13 +53,13 @@ class BuildCacheServiceProviderTest extends Specification {
         serviceType.cast(service)
     }
 
-    private FinalizeBuildCacheConfigurationBuildOperationType.ResultImpl buildOpResult() {
+    private FinalizeBuildCacheConfigurationBuildOperationType.Result buildOpResult() {
         buildOperationExecuter.log.mostRecentResult(FinalizeBuildCacheConfigurationBuildOperationType)
     }
 
     def 'local cache service is created when remote is not configured'() {
         when:
-        def c = create(RoleAwareBuildCacheService)
+        def c = create(BuildCacheService)
 
         then:
         c.role == "local"
@@ -75,7 +76,7 @@ class BuildCacheServiceProviderTest extends Specification {
         config.remote(TestRemoteBuildCache).enabled = false
 
         when:
-        def s = create(RoleAwareBuildCacheService)
+        def s = create(BuildCacheService)
 
         then:
         s.role == "local"
@@ -91,7 +92,7 @@ class BuildCacheServiceProviderTest extends Specification {
         config.remote(TestRemoteBuildCache)
 
         when:
-        def c = create(RoleAwareBuildCacheService)
+        def c = create(BuildCacheService)
 
         then:
         c.role == "remote"
@@ -146,7 +147,7 @@ class BuildCacheServiceProviderTest extends Specification {
         BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
             def chain = describer.type("directory")
             if (configuration.directory != null) {
-               chain.config("location", configuration.directory.toString())
+                chain.config("location", configuration.directory.toString())
             }
 
             new NoOpBuildCacheService()

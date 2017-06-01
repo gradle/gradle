@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.BuildCacheService;
 
-public interface RoleAwareBuildCacheService extends BuildCacheService {
-    String getRole();
+/**
+ * Encapsulates a service, and any config external to it.
+ */
+public class BuildCacheServiceRef {
+
+    public final BuildCacheService service;
+    public final boolean pushEnabled;
+
+    public BuildCacheServiceRef(BuildCacheService service, boolean pushEnabled) {
+        this.service = service;
+        this.pushEnabled = pushEnabled;
+    }
+
 }

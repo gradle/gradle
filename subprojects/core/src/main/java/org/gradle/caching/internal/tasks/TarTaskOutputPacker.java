@@ -27,7 +27,6 @@ import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.zip.UnixStat;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
@@ -79,16 +78,16 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(final SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, final TaskOutputOriginWriter writeOrigin) {
-        IoActions.withResource(new TarOutputStream(output, "utf-8"), new Action<TarOutputStream>() {
+    public PackResult pack(final SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, final TaskOutputOriginWriter writeOrigin) {
+        return IoActions.withResource(new TarOutputStream(output, "utf-8"), new Transformer<PackResult, TarOutputStream>() {
             @Override
-            public void execute(TarOutputStream outputStream) {
+            public PackResult transform(TarOutputStream outputStream) {
                 outputStream.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
                 outputStream.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
                 outputStream.setAddPaxHeadersForNonAsciiNames(true);
                 try {
                     packMetadata(writeOrigin, outputStream);
-                    pack(propertySpecs, outputStream);
+                    return new PackResult(pack(propertySpecs, outputStream) + 1);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -107,50 +106,56 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         outputStream.closeEntry();
     }
 
-    private void pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarOutputStream outputStream) {
+    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarOutputStream outputStream) {
+        long entries = 0;
         for (ResolvedTaskOutputFilePropertySpec spec : propertySpecs) {
             try {
-                packProperty(spec, outputStream);
+                entries += packProperty(spec, outputStream);
             } catch (Exception ex) {
                 throw new GradleException(String.format("Could not pack property '%s': %s", spec.getPropertyName(), ex.getMessage()), ex);
             }
         }
+        return entries;
     }
 
-    private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, TarOutputStream outputStream) throws IOException {
+    private long packProperty(CacheableTaskOutputFilePropertySpec propertySpec, TarOutputStream outputStream) throws IOException {
         String propertyName = propertySpec.getPropertyName();
         File outputFile = propertySpec.getOutputFile();
         if (outputFile == null) {
-            return;
+            return 0;
         }
         String propertyPath = "property-" + propertyName;
         if (!outputFile.exists()) {
             storeMissingProperty(propertyPath, outputStream);
-            return;
+            return 1;
         }
         switch (propertySpec.getOutputType()) {
             case DIRECTORY:
-                storeDirectoryProperty(propertyPath, outputFile, outputStream);
-                break;
+                return storeDirectoryProperty(propertyPath, outputFile, outputStream);
             case FILE:
                 storeFileProperty(propertyPath, outputFile, outputStream);
-                break;
+                return 1;
             default:
                 throw new AssertionError();
         }
     }
 
-    private void storeDirectoryProperty(String propertyPath, File directory, final TarOutputStream outputStream) throws IOException {
+    private long storeDirectoryProperty(String propertyPath, File directory, final TarOutputStream outputStream) throws IOException {
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", directory));
         }
         final String propertyRoot = propertyPath + "/";
         outputStream.putNextEntry(new TarEntry(propertyRoot));
         outputStream.closeEntry();
-        FileVisitor visitor = new FileVisitor() {
+
+        class CountingFileVisitor implements FileVisitor {
+
+            private long entries;
+
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
                 try {
+                    ++entries;
                     storeDirectoryEntry(dirDetails, propertyRoot, outputStream);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
@@ -160,14 +165,18 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 try {
+                    ++entries;
                     String path = propertyRoot + fileDetails.getRelativePath().getPathString();
                     storeFileEntry(fileDetails.getFile(), path, fileDetails.getLastModified(), fileDetails.getSize(), fileDetails.getMode(), outputStream);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
             }
-        };
+        }
+
+        CountingFileVisitor visitor = new CountingFileVisitor();
         directoryWalkerFactory.create().walkDir(directory, RelativePath.EMPTY_ROOT, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
+        return visitor.entries;
     }
 
     private void storeFileProperty(String propertyPath, File file, TarOutputStream outputStream) throws IOException {
@@ -204,10 +213,10 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public TaskOutputOriginMetadata unpack(final SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, final TaskOutputOriginReader readOrigin) {
-        return IoActions.withResource(new TarInputStream(input), new Transformer<TaskOutputOriginMetadata, TarInputStream>() {
+    public UnpackResult unpack(final SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, final TaskOutputOriginReader readOrigin) {
+        return IoActions.withResource(new TarInputStream(input), new Transformer<UnpackResult, TarInputStream>() {
             @Override
-            public TaskOutputOriginMetadata transform(TarInputStream tarInput) {
+            public UnpackResult transform(TarInputStream tarInput) {
                 try {
                     return unpack(propertySpecs, tarInput, readOrigin);
                 } catch (IOException e) {
@@ -217,7 +226,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         });
     }
 
-    private TaskOutputOriginMetadata unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
+    private UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
         Map<String, ResolvedTaskOutputFilePropertySpec> propertySpecsMap = Maps.uniqueIndex(propertySpecs, new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
@@ -226,7 +235,10 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         });
         TarEntry entry;
         TaskOutputOriginMetadata originMetadata = null;
+
+        long entries = 0;
         while ((entry = tarInput.getNextEntry()) != null) {
+            ++entries;
             String name = entry.getName();
 
             if (name.equals(METADATA_PATH)) {
@@ -254,7 +266,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             throw new IllegalStateException("Cached result format error, no origin metadata was found.");
         }
 
-        return originMetadata;
+        return new UnpackResult(originMetadata, entries);
     }
 
     private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarEntry entry, String childPath, boolean missing) throws IOException {
