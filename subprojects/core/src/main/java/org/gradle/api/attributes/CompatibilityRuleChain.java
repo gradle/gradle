@@ -65,6 +65,7 @@ public interface CompatibilityRuleChain<T> {
      * to say that they are not compatible. It is not mandatory for a rule to express an opinion.</p>
      *
      * @param rule the rule to add to the chain
+     * @since 4.0
      */
     void add(Class<? extends AttributeCompatibilityRule<T>> rule);
 
@@ -73,6 +74,7 @@ public interface CompatibilityRuleChain<T> {
      *
      * @param rule the rule to add to the chain
      * @param configureAction the action to use to configure the rule
+     * @since 4.0
      */
     void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction);
 

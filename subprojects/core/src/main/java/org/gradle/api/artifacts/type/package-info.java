@@ -16,5 +16,8 @@
 
 /**
  * Types related to artifact type definitions.
+ *
+ * @since 4.0
  */
+@org.gradle.api.Incubating
 package org.gradle.api.artifacts.type;

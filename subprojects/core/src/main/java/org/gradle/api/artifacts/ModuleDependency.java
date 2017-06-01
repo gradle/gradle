@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 import java.util.Map;
@@ -144,7 +145,10 @@ public interface ModuleDependency extends Dependency {
     /**
      * Sets the requested target configuration of this dependency. This is the name of the configuration in the target module that should be used when
      * selecting the matching configuration. If {@code null}, a default configuration will be used.
+     *
+     * @since 4.0
      */
+    @Incubating
     void setTargetConfiguration(@Nullable String name);
 
     /**
