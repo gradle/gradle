@@ -204,8 +204,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             layout = instantiator.newInstance(MavenRepositoryLayout.class);
         } else if ("pattern".equals(layoutName)) {
             layout = instantiator.newInstance(DefaultIvyPatternRepositoryLayout.class);
-        } else {
+        } else if ("gradle".equals(layoutName)) {
             layout = instantiator.newInstance(GradleRepositoryLayout.class);
+        } else {
+            // TODO: make "ivy" the default in a future release
+            // the default was previously "gradle", which is a non-standard layout
+            // didn't want to change the layout straight from "gradle" to "ivy" as it might produce
+            // unexpected results, so we're forcing folks to specify a layout to avoid that problem
+            throw new IllegalArgumentException("Layout name must be one of: ivy, maven, pattern, gradle");
         }
     }
 
