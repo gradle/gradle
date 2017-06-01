@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="8b8d6838-c872-44eb-8c1c-474994348e80" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Test Coverage - Forked Java9 Linux (1)</name>
+  <description />
+  <settings ref="Gradle_Check_TestCoverageForkedLinux">
+    <parameters>
+      <param name="org.gradle.test.bucket" value="1" />
+      <param name="org.gradle.test.buildType" value="platform" />
+      <param name="webhook.body"><![CDATA[{
+"text":" ${buildResult} - *${buildName}* <${buildStatusUrl}|#${buildNumber}> (triggered by ${triggeredBy})"
+}]]></param>
+    </parameters>
+    <build-runners order="" />
+    <vcs-settings />
+    <requirements />
+    <build-triggers />
+    <cleanup />
+  </settings>
+</build-type>
+

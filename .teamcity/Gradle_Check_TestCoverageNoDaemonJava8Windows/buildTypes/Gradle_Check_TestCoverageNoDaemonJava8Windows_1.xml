@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="bda20233-f0f8-47be-8076-16c4ac0e7e2c" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Test Coverage - No-daemon Java8 Windows</name>
+  <description />
+  <settings ref="Gradle_Check_TestCoverageForkedWindows">
+    <parameters>
+      <param name="env.JAVA_HOME" value="%windows.java8.oracle.64bit%" />
+      <param name="org.gradle.test.bucket" value="1" />
+      <param name="org.gradle.test.buildType" value="noDaemon" />
+      <param name="webhook.body"><![CDATA[{
+"text":" ${buildResult} - *${buildName}* <${buildStatusUrl}|#${buildNumber}> (triggered by ${triggeredBy})"
+}]]></param>
+    </parameters>
+    <build-runners order="" />
+    <vcs-settings />
+    <requirements />
+    <build-triggers />
+    <cleanup />
+  </settings>
+</build-type>
+

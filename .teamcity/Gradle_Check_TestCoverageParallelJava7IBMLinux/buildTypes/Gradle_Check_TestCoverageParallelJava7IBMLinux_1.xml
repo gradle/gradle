@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="3adf743c-f725-4956-bae5-2f81fc22411d" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Test Coverage - Parallel Java7IBM Linux (1)</name>
+  <description />
+  <settings ref="Gradle_Check_TestCoverageForkedLinux">
+    <parameters>
+      <param name="env.JAVA_HOME" value="%linux.java7.ibm.64bit%" />
+      <param name="org.gradle.test.bucket" value="1" />
+      <param name="org.gradle.test.buildType" value="parallel" />
+      <param name="webhook.body"><![CDATA[{
+"text":" ${buildResult} - *${buildName}* <${buildStatusUrl}|#${buildNumber}> (triggered by ${triggeredBy})"
+}]]></param>
+    </parameters>
+    <build-runners order="" />
+    <vcs-settings />
+    <requirements />
+    <build-triggers />
+    <cleanup />
+  </settings>
+</build-type>
+

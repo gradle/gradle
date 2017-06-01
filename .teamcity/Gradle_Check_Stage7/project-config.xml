@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Check" uuid="2b1ca8e4-b319-4210-9c6e-36000c5783c9" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Stage 7 - Test Cross-version (All Versions), No-daemon, Performance Historical</name>
+  <description>Triggered weekly on Release and Master</description>
+  <parameters />
+  <cleanup />
+  <buildTypesOrder order="Gradle_Check_Stage7_Passes,Gradle_Check_PerformanceHistoricalBuild" />
+</project>
+

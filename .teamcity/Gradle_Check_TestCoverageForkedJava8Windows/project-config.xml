@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Check_Stage4" uuid="d7fddd14-db8f-41ed-ba9e-ce3b3cf7695e" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Test Coverage - Forked Java8 Windows</name>
+  <parameters />
+  <cleanup />
+</project>
+

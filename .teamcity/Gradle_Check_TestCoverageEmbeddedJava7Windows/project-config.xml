@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Check_Stage3" uuid="05fc0c64-4e60-4203-9861-cc0d75138d98" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Test Coverage - Embedded Java7 Windows</name>
+  <parameters />
+  <cleanup />
+</project>
+

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="78508f82-0840-41ee-80d8-8d86eb553e36" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Test Coverage - Cross-version Java7 Linux (1)</name>
+  <description />
+  <settings ref="Gradle_Check_TestCoverageForkedLinux">
+    <parameters>
+      <param name="org.gradle.test.bucket" value="1" />
+      <param name="org.gradle.test.buildType" value="quickFeedbackCrossVersion" />
+      <param name="webhook.body"><![CDATA[{
+"text":" ${buildResult} - *${buildName}* <${buildStatusUrl}|#${buildNumber}> (triggered by ${triggeredBy})"
+}]]></param>
+    </parameters>
+    <build-runners order="" />
+    <vcs-settings />
+    <requirements />
+    <build-triggers />
+    <cleanup />
+  </settings>
+</build-type>
+
