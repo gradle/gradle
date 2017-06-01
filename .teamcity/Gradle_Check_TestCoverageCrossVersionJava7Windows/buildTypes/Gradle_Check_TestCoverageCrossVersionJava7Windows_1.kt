@@ -4,7 +4,7 @@ import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 class Gradle_Check_TestCoverageCrossVersionJava7Windows_1(bucket: String) : BuildType({
     template(Gradle_Check.buildTypes.Gradle_Check_TestCoverageForkedWindows)
-    uuid = "e96578b9-fa11-47c8-99b0-2e24f2cbe2e1"
+    uuid = "Gradle_Check_TestCoverageCrossVersionJava7Windows_$bucket"
     extId = "Gradle_Check_TestCoverageCrossVersionJava7Windows_$bucket"
     name = "Test Coverage - Cross-version Java7 Windows ($bucket)"
 

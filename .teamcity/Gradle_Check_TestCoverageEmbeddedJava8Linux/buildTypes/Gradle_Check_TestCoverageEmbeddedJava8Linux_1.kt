@@ -4,7 +4,7 @@ import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 class Gradle_Check_TestCoverageEmbeddedJava8Linux_1(bucket: String) : BuildType({
     template(Gradle_Check.buildTypes.Gradle_Check_TestCoverageEmbeddedLinux)
-    uuid = "a7ad9017-cb90-4703-b1e5-9dd6508626c6"
+    uuid = "Gradle_Check_TestCoverageEmbeddedJava8Linux_$bucket"
     extId = "Gradle_Check_TestCoverageEmbeddedJava8Linux_$bucket"
     name = "Test Coverage - Embedded Java8 Linux ($bucket)"
 

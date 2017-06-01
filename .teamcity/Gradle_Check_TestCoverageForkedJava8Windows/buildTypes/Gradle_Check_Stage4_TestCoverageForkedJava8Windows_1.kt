@@ -4,7 +4,7 @@ import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 class Gradle_Check_Stage4_TestCoverageForkedJava8Windows_1(bucket: String) : BuildType({
     template(Gradle_Check.buildTypes.Gradle_Check_TestCoverageForkedWindows)
-    uuid = "5311ca7c-522d-4871-90d4-186206e42788"
+    uuid = "Gradle_Check_Stage4_TestCoverageForkedJava8Windows_$bucket"
     extId = "Gradle_Check_Stage4_TestCoverageForkedJava8Windows_$bucket"
     name = "Test Coverage - Forked Java8 Windows ($bucket)"
 

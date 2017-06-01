@@ -4,7 +4,7 @@ import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 class Gradle_Check_TestCoverageNoDaemonJava8Linux_1(bucket: String) : BuildType({
     template(Gradle_Check.buildTypes.Gradle_Check_TestCoverageForkedLinux)
-    uuid = "8c23fc7a-fc66-4317-8f60-f9562c174946"
+    uuid = "Gradle_Check_TestCoverageNoDaemonJava8Linux_$bucket"
     extId = "Gradle_Check_TestCoverageNoDaemonJava8Linux_$bucket"
     name = "No-daemon Java8 Linux ($bucket)"
 

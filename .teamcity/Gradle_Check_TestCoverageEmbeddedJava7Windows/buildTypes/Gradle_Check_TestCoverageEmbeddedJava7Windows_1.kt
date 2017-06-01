@@ -4,7 +4,7 @@ import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 class Gradle_Check_TestCoverageEmbeddedJava7Windows_1(bucket: String) : BuildType({
     template(Gradle_Check.buildTypes.Gradle_Check_TestCoverageEmbeddedWindows)
-    uuid = "809a2f3a-644e-41fd-be19-3b3fcad572cf"
+    uuid = "Gradle_Check_TestCoverageEmbeddedJava7Windows_$bucket"
     extId = "Gradle_Check_TestCoverageEmbeddedJava7Windows_$bucket"
     name = "Test Coverage - Embedded Java7 Windows ($bucket)"
 

@@ -4,7 +4,7 @@ import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 class Gradle_Check_TestCoverageNoDaemonJava8Windows_1(bucket: String) : BuildType({
     template(Gradle_Check.buildTypes.Gradle_Check_TestCoverageForkedWindows)
-    uuid = "bda20233-f0f8-47be-8076-16c4ac0e7e2c"
+    uuid = "Gradle_Check_TestCoverageNoDaemonJava8Windows_$bucket"
     extId = "Gradle_Check_TestCoverageNoDaemonJava8Windows_$bucket"
     name = "Test Coverage - No-daemon Java8 Windows ($bucket)"
 
