@@ -518,6 +518,38 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
     }
 
+    def "handles separate compile and compileOnly dependencies on different artifacts"() {
+        given:
+        dependency 'org.test:buildC:1.0'
+
+        buildB.buildFile << """
+            gradle.taskGraph.whenReady {
+                println "Executing buildB: " + it.allTasks.collect { it.identityPath }
+            }
+ """
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                dependencies {
+                    compile 'org.test:b1:1.0'
+                    compileOnly 'org.test:b2:1.0'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executedInOrder ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:compileJava", ":buildC:jar"
+
+        and: // Executes tasks in separate invocations
+        outputContains("Executing buildB: [:buildB:b1:compileJava, :buildB:b1:processResources, :buildB:b1:classes, :buildB:b1:jar]")
+        outputContains("Executing buildB: [:buildB:b2:compileJava, :buildB:b2:processResources, :buildB:b2:classes, :buildB:b2:jar]")
+    }
+
     def "reports failure to build dependent artifact"() {
         given:
         dependency "org.test:buildB:1.0"
