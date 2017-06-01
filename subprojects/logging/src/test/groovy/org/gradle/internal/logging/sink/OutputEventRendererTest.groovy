@@ -21,13 +21,20 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.console.ConsoleStub
+import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.progress.BuildOperationCategory
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Unroll
+
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -356,6 +363,41 @@ class OutputEventRendererTest extends OutputSpecification {
         outputs.stdOut.readLines() == ['info']
         outputs.stdErr == ''
     }
+
+    def "executor schedules at fixes rate"() {
+        given:
+        def executor = Mock(ScheduledExecutorService)
+
+        when:
+        new OutputEventRenderer(new TrueTimeProvider(), executor)
+
+        then:
+        1 * executor.scheduleAtFixedRate(_, _, _, TimeUnit.MILLISECONDS)
+    }
+
+    def "executor emits update now event when executing"() {
+        given:
+        def listener = new TestOutputEventListener()
+        renderer.addOutputEventListener(listener)
+
+        when:
+        Thread.sleep(OutputEventRenderer.UPDATE_NOW_FLUSH_INITIAL_DELAY_MS + OutputEventRenderer.UPDATE_NOW_FLUSH_PERIOD_MS + 100)
+
+        then:
+        listener.outputEvent instanceof UpdateNowEvent
+    }
+
+    def "shuts down executor when receiving end output event"() {
+        given:
+        def executor = Mock(ScheduledExecutorService)
+        def scheduledRenderer = new OutputEventRenderer(new TrueTimeProvider(), executor)
+
+        when:
+        scheduledRenderer.onOutput(new EndOutputEvent())
+
+        then:
+        1 * executor.shutdownNow()
+    }
 }
 
 class TestListener implements StandardOutputListener {
@@ -367,6 +409,19 @@ class TestListener implements StandardOutputListener {
 
     public void onOutput(CharSequence output) {
         writer.append(output);
+    }
+}
+
+class TestOutputEventListener implements OutputEventListener {
+    private OutputEvent event
+
+    OutputEvent getOutputEvent() {
+        event
+    }
+
+    @Override
+    void onOutput(OutputEvent event) {
+        this.event = event
     }
 }
 

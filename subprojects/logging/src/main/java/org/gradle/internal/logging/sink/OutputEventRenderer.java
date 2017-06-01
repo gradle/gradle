@@ -65,12 +65,13 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @ThreadSafe
 public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
-    private static final long UPDATE_NOW_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
+    static final long UPDATE_NOW_FLUSH_INITIAL_DELAY_MS = 5000L;
+    static final long UPDATE_NOW_FLUSH_PERIOD_MS = 500L;
     private final Object lock = new Object();
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final AtomicInteger maxWorkerCount = new AtomicInteger();
     private final TimeProvider timeProvider;
-    private final ScheduledExecutorService executor;
+    private final ScheduledExecutorService updateNowExecutor;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -87,8 +88,12 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     OutputEventRenderer(TimeProvider timeProvider) {
+        this(timeProvider, Executors.newSingleThreadScheduledExecutor());
+    }
+
+    OutputEventRenderer(TimeProvider timeProvider, ScheduledExecutorService updateNowExecutor) {
         this.timeProvider = timeProvider;
-        this.executor = Executors.newSingleThreadScheduledExecutor();
+        this.updateNowExecutor = updateNowExecutor;
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
@@ -107,12 +112,19 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     private void scheduleUpdateNowExecutor() {
-        executor.scheduleAtFixedRate(new Runnable() {
+        updateNowExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
             }
-        }, UPDATE_NOW_FLUSH_TIMEOUT, 500, TimeUnit.MILLISECONDS);
+        }, UPDATE_NOW_FLUSH_INITIAL_DELAY_MS, UPDATE_NOW_FLUSH_PERIOD_MS, TimeUnit.MILLISECONDS);
+    }
+
+    class UpdateNowRunnable implements Runnable {
+        @Override
+        public void run() {
+            onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
+        }
     }
 
     @Override
@@ -347,7 +359,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             }
             this.maxWorkerCount.set(newMaxWorkerCount);
         } else if (event instanceof EndOutputEvent) {
-            executor.shutdownNow();
+            updateNowExecutor.shutdownNow();
         }
         synchronized (lock) {
             formatters.getSource().onOutput(event);
