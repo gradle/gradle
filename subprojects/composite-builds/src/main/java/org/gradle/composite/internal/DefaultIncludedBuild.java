@@ -119,9 +119,11 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     @Override
-    public BuildResult execute(Iterable<String> tasks) {
+    public BuildResult execute(Iterable<String> tasks, Object listener) {
         GradleLauncher launcher = getGradleLauncher();
-        launcher.getGradle().getStartParameter().setTaskNames(tasks);
+        GradleInternal gradle = launcher.getGradle();
+        gradle.getStartParameter().setTaskNames(tasks);
+        gradle.addListener(listener);
         try {
             return launcher.run();
         } finally {
