@@ -344,7 +344,6 @@ public class DefaultFileLockManager implements FileLockManager {
                 }
                 //TODO SF we should inform on the progress/status bar that we're waiting
                 Thread.sleep(backoff(++i));
-                i++;
             } while (!timer.hasExpired());
             return null;
         }
