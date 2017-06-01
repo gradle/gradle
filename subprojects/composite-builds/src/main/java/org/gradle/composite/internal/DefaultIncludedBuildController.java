@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
@@ -224,6 +225,13 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
         @Override
         public void graphPopulated(TaskExecutionGraph taskExecutionGraph) {
+            // TODO:DAZ There must be a better way to do this: this failure should occur during evaluation, not execution
+            for (String task : tasksToExecute) {
+                if (!taskExecutionGraph.hasTask(task)) {
+                    throw new GradleException("Task '" + task + "' not found in build '" + includedBuild.getName() + "'.");
+                }
+            }
+
             taskExecutionGraph.addTaskExecutionListener(new TaskCompletionRecorder());
         }
 

@@ -243,6 +243,30 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         failure.assertHasCause("Task path 'logProject' is not a qualified task path (e.g. ':task' or ':project:task')")
     }
 
+    def "reports failure when task path is substring of task in included build"() {
+        given:
+        buildA.buildFile << """
+    task delegate {
+        dependsOn gradle.includedBuild('buildB').task(':logP')
+    }
+    task subDelegate {
+        dependsOn gradle.includedBuild('buildB').task(':b1:logP')
+    }
+"""
+
+        when:
+        fails(buildA, ":delegate")
+
+        then:
+        failure.assertHasDescription("Task ':logP' not found in build 'buildB'.")
+
+        when:
+        fails(buildA, ":subDelegate")
+
+        then:
+        failure.assertHasDescription("Task ':b1:logP' not found in build 'buildB'.")
+    }
+
     def "reports failure when attempting to access included build when build is not a composite"() {
         when:
         buildB.buildFile << """

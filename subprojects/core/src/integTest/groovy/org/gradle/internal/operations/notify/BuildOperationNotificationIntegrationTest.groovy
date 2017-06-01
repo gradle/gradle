@@ -71,7 +71,8 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         """
 
         file("buildSrc/build.gradle") << ""
-        file("a/buildSrc/build.gradle") << "task t"
+        file("a/buildSrc/build.gradle") << ""
+        file("a/build.gradle") << "task t"
         file("a/settings.gradle") << ""
         file("settings.gradle") << "includeBuild 'a'"
         buildScript """
