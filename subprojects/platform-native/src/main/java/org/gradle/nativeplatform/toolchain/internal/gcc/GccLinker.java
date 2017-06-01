@@ -34,7 +34,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-class GccLinker implements Compiler<LinkerSpec> {
+public class GccLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<LinkerSpec> argsTransformer;
@@ -43,7 +43,7 @@ class GccLinker implements Compiler<LinkerSpec> {
     private final BuildOperationExecutor buildOperationExecutor;
 
 
-    GccLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile) {
+    public GccLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.argsTransformer = new GccLinkerArgsTransformer();
         this.invocationContext = invocationContext;

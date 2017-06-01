@@ -25,9 +25,11 @@ import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
+import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
@@ -37,6 +39,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin;
+import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
@@ -96,6 +99,7 @@ public class AvailableToolChains {
             } else {
                 compilers.add(findGcc());
                 compilers.add(findClang());
+                compilers.add(findSwiftc());
             }
             toolChains = compilers;
         }
@@ -184,6 +188,15 @@ public class AvailableToolChains {
         }
 
         return new UnavailableToolChain("gcc");
+    }
+
+    static private ToolChainCandidate findSwiftc() {
+        List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
+        if (!swiftcCandidates.isEmpty()) {
+            return new InstalledSwiftc("swiftc");
+        }
+
+        return new UnavailableToolChain("swiftc");
     }
 
     public static abstract class ToolChainCandidate {
@@ -412,6 +425,42 @@ public class AvailableToolChains {
                 return "cygwin";
             }
             return "UNKNOWN";
+        }
+    }
+
+    public static class InstalledSwiftc extends InstalledToolChain {
+        public InstalledSwiftc(String displayName) {
+            super(displayName);
+        }
+
+        @Override
+        public String getInstanceDisplayName() {
+            return String.format("Tool chain '%s' (Swiftc)", getId());
+        }
+
+        @Override
+        public String getBuildScriptConfig() {
+            return "swiftc(Swiftc)";
+        }
+
+        @Override
+        public String getImplementationClass() {
+            return Swiftc.class.getSimpleName();
+        }
+
+        @Override
+        public String getPluginClass() {
+            return SwiftCompilerPlugin.class.getSimpleName();
+        }
+
+        @Override
+        public String getUnitTestPlatform() {
+            return null;
+        }
+
+        @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return requirement == ToolChainRequirement.SWIFT || requirement == ToolChainRequirement.AVAILABLE;
         }
     }
 
