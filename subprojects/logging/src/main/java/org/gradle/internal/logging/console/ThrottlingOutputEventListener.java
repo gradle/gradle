@@ -20,7 +20,6 @@ import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
@@ -33,11 +32,9 @@ import java.util.concurrent.TimeUnit;
  * Queue output events to be forwarded and schedule flush when time passed or if end of build is signalled.
  */
 public class ThrottlingOutputEventListener implements OutputEventListener {
-    private static final long UPDATE_NOW_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
     private final BatchOutputEventListener listener;
 
     private final ScheduledExecutorService executor;
-    private final ScheduledExecutorService updateNowExecutor;
     private final TimeProvider timeProvider;
     private final int throttleMs;
     private final Object lock = new Object();
@@ -46,27 +43,14 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
     public ThrottlingOutputEventListener(BatchOutputEventListener listener, TimeProvider timeProvider) {
-        this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), Executors.newSingleThreadScheduledExecutor(), timeProvider);
+        this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), timeProvider);
     }
 
-    ThrottlingOutputEventListener(BatchOutputEventListener listener, int throttleMs, ScheduledExecutorService executor, ScheduledExecutorService updateNowExecutor, TimeProvider timeProvider) {
+    ThrottlingOutputEventListener(BatchOutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
         this.throttleMs = throttleMs;
         this.listener = listener;
         this.executor = executor;
-        this.updateNowExecutor = updateNowExecutor;
         this.timeProvider = timeProvider;
-        scheduleUpdateNowExecutor();
-    }
-
-    private void scheduleUpdateNowExecutor() {
-        updateNowExecutor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (lock) {
-                    listener.onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
-                }
-            }
-        }, UPDATE_NOW_FLUSH_TIMEOUT, 500, TimeUnit.MILLISECONDS);
     }
 
     public void onOutput(OutputEvent newEvent) {

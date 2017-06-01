@@ -42,6 +42,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
@@ -52,6 +53,9 @@ import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -61,10 +65,12 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @ThreadSafe
 public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
+    private static final long UPDATE_NOW_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
     private final Object lock = new Object();
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final AtomicInteger maxWorkerCount = new AtomicInteger();
     private final TimeProvider timeProvider;
+    private final ScheduledExecutorService executor;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -82,6 +88,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     OutputEventRenderer(TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
+        this.executor = Executors.newSingleThreadScheduledExecutor();
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
@@ -96,6 +103,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             }
         });
         formatters.add(stdErrChain);
+        scheduleUpdateNowExecutor();
+    }
+
+    private void scheduleUpdateNowExecutor() {
+        executor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
+            }
+        }, UPDATE_NOW_FLUSH_TIMEOUT, 500, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -329,6 +346,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 return;
             }
             this.maxWorkerCount.set(newMaxWorkerCount);
+        } else if (event instanceof EndOutputEvent) {
+            executor.shutdownNow();
         }
         synchronized (lock) {
             formatters.getSource().onOutput(event);

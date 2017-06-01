@@ -34,6 +34,11 @@ public class UpdateNowEvent extends OutputEvent {
     }
 
     @Override
+    public String toString() {
+        return UpdateNowEvent.class.getSimpleName() + " " + timestamp;
+    }
+
+    @Override
     public LogLevel getLogLevel() {
         return null;
     }

@@ -23,7 +23,6 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.logging.text.Style;
@@ -91,8 +90,6 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
             }
         } else if (event instanceof EndOutputEvent) {
             buildSessionFinished();
-        } else if (event instanceof UpdateNowEvent) {
-            listener.onOutput(event);
         }
     }
 
