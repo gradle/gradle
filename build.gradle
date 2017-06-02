@@ -109,7 +109,7 @@ buildTypes {
         tasks "crossVersionIntegTest"
         projectProperties useIncomingDistributions: true
     }
-    quickFeedbackCrossVersionIntegTest {
+    quickFeedbackCrossVersionTest {
         tasks "quickFeedbackCrossVersionIntegTest"
         projectProperties useIncomingDistributions: true
     }
