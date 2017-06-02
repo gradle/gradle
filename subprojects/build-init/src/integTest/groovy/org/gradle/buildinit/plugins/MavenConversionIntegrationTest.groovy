@@ -247,7 +247,7 @@ it.exclude group: '*', module: 'badArtifact'
         withSharedResources()
         def repo = mavenHttpServer()
         //update pom with test repo url
-        file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
+        file("pom.xml").text = file("pom.xml").text.replace('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
 
         expectParentPomRequest(repo)
 
@@ -289,7 +289,7 @@ it.exclude group: '*', module: 'badArtifact'
         withSharedResources()
         def repo = mavenHttpServer()
         //update pom with test repo url
-        file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
+        file("pom.xml").text = file("pom.xml").text.replace('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
 
         expectParentPomRequest(repo)
 
