@@ -29,6 +29,11 @@ public class LoadOperationHitResult implements BuildCacheLoadBuildOperationType.
     }
 
     @Override
+    public boolean isHit() {
+        return true;
+    }
+
+    @Override
     public long getArchiveSize() {
         return size;
     }

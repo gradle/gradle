@@ -46,17 +46,17 @@ public final class BuildCacheLoadBuildOperationType implements BuildOperationTyp
 
     public interface Result {
 
+        boolean isHit();
+
         /**
-         * The number of bytes of the loaded cache artifact.
-         *
-         * 0 if the load resulted in a cache miss.
+         * The number of bytes of the loaded cache artifact if it was a hit.
+         * Else undetermined.
          */
         long getArchiveSize();
 
         /**
-         * The number of entries in the loaded cache artifact.
-         *
-         * 0 if the load resulted in a cache miss.
+         * The number of entries in the loaded cache artifact if it was a hit.
+         * Else undetermined.
          */
         long getArchiveEntryCount();
 

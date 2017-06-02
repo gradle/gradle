@@ -26,6 +26,11 @@ public class LoadOperationMissResult implements BuildCacheLoadBuildOperationType
     }
 
     @Override
+    public boolean isHit() {
+        return false;
+    }
+
+    @Override
     public long getArchiveSize() {
         return 0;
     }

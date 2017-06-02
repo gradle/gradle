@@ -23,8 +23,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 /**
  * A store operation to a build cache.
  *
- * A store operation may STORE or NOT-STORE.
- * It may also fail.
+ * A store operation may actually store or fail.
  * Store operation results and failures are mutually exclusive.
  */
 public final class BuildCacheStoreBuildOperationType implements BuildOperationType<BuildCacheStoreBuildOperationType.Details, BuildCacheStoreBuildOperationType.Result> {

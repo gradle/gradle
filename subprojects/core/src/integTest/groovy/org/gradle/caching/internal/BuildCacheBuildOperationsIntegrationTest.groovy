@@ -116,8 +116,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def missLoadOp = operations.only(BuildCacheLoadBuildOperationType)
         missLoadOp.details.cacheKey != null
         missLoadOp.details.role == "local"
-        missLoadOp.result.archiveSize == 0
-        missLoadOp.result.archiveEntryCount == 0
+        missLoadOp.result.hit == false
 
         def storeOp = operations.only(BuildCacheStoreBuildOperationType)
         storeOp.details.cacheKey == missLoadOp.details.cacheKey
