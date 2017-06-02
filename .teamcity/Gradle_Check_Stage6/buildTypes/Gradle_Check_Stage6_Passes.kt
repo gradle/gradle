@@ -1,14 +1,11 @@
 package Gradle_Check_Stage6.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v10.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep.*
+import jetbrains.buildServer.configs.kotlin.v10.BuildStep
+import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import jetbrains.buildServer.configs.kotlin.v10.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.v10.triggers.ScheduleTrigger
-import jetbrains.buildServer.configs.kotlin.v10.triggers.ScheduleTrigger.*
 import jetbrains.buildServer.configs.kotlin.v10.triggers.schedule
 
 object Gradle_Check_Stage6_Passes : BuildType({
@@ -73,7 +70,7 @@ object Gradle_Check_Stage6_Passes : BuildType({
             """.trimIndent()
             triggerBuild = always()
             param("revisionRule", "lastFinished")
-            param("branchFilter", "+:master")
+            param("branchFilter", "+:new-pipeline-master")
             param("dayOfWeek", "Sunday")
         }
     }

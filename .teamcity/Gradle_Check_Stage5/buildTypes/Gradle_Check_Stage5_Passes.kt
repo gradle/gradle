@@ -68,7 +68,7 @@ object Gradle_Check_Stage5_Passes : BuildType({
                 -:design-docs
                 -:subprojects/docs/src/docs/release
             """.trimIndent()
-            branchFilter = "+:cc/flaky-fix-it/quick-cross-version-tests"
+            branchFilter = "+:new-pipeline-master"
         }
     }
 

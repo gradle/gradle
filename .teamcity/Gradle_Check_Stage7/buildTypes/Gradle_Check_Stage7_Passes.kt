@@ -71,7 +71,7 @@ object Gradle_Check_Stage7_Passes : BuildType({
             """.trimIndent()
             triggerBuild = always()
             param("revisionRule", "lastFinished")
-            param("branchFilter", "+:master")
+            param("branchFilter", "+:new-pipeline-master")
         }
     }
 
