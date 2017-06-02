@@ -19,13 +19,16 @@ package org.gradle.caching.internal.controller
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.caching.BuildCacheEntryReader
+import org.gradle.caching.BuildCacheEntryWriter
+import org.gradle.caching.BuildCacheException
+import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
-import org.gradle.caching.internal.NoOpBuildCacheService
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
@@ -77,8 +80,8 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.local != null
-        c.remote == null
+        c.local.service != null
+        c.remote.service == null
 
         and:
         with(buildOpResult()) {
@@ -95,8 +98,8 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.local != null
-        c.remote == null
+        c.local.service != null
+        c.remote.service == null
         with(buildOpResult()) {
             local.type == "directory"
             local.className == DirectoryBuildCache.name
@@ -112,7 +115,7 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.remote.service instanceof NoOpBuildCacheService
+        c.remote.service instanceof TestBuildCacheService
         with(buildOpResult()) {
             local == null
             remote.type == "remote"
@@ -127,8 +130,8 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.local != null
-        c.remote != null
+        c.local.service != null
+        c.remote.service != null
         with(buildOpResult()) {
             local.type == "directory"
             remote.type == "remote"
@@ -157,7 +160,25 @@ class BuildCacheControllerFactoryTest extends Specification {
             if (configuration.value != null) {
                 chain.config("value", configuration.value)
             }
-            new NoOpBuildCacheService()
+            new TestBuildCacheService()
+        }
+    }
+
+    static class TestBuildCacheService implements BuildCacheService {
+
+        @Override
+        boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+            return false
+        }
+
+        @Override
+        void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+
+        }
+
+        @Override
+        void close() throws IOException {
+
         }
     }
 
@@ -169,7 +190,7 @@ class BuildCacheControllerFactoryTest extends Specification {
                 chain.config("location", configuration.directory.toString())
             }
 
-            new NoOpBuildCacheService()
+            new TestBuildCacheService()
         }
     }
 
