@@ -83,11 +83,11 @@ public final class BuildCacheControllerFactory {
                 }
 
                 DescribedBuildCacheService localDescribedService = localEnabled
-                    ? createBuildCacheService(local, "local", buildIdentityPath, buildCacheConfiguration, instantiator)
+                    ? createBuildCacheService(local, BuildCacheServiceRole.LOCAL, buildIdentityPath, buildCacheConfiguration, instantiator)
                     : null;
 
                 DescribedBuildCacheService remoteDescribedService = remoteEnabled
-                    ? createBuildCacheService(remote, "remote", buildIdentityPath, buildCacheConfiguration, instantiator)
+                    ? createBuildCacheService(remote, BuildCacheServiceRole.REMOTE, buildIdentityPath, buildCacheConfiguration, instantiator)
                     : null;
 
                 context.setResult(new ResultImpl(
@@ -106,8 +106,7 @@ public final class BuildCacheControllerFactory {
                     return NoOpBuildCacheController.INSTANCE;
                 } else {
                     return new DefaultBuildCacheController(
-                        localDescribedService == null ? null : new BuildCacheServiceRef(localDescribedService.service, local.isPush()),
-                        remoteDescribedService == null ? null : new BuildCacheServiceRef(remoteDescribedService.service, remote.isPush()),
+                        toConfiguration(local, remote, localDescribedService, remoteDescribedService),
                         buildOperationExecutor,
                         temporaryFileProvider,
                         startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS
@@ -123,8 +122,17 @@ public final class BuildCacheControllerFactory {
         });
     }
 
+    private static BuildCacheServicesConfiguration toConfiguration(BuildCache local, BuildCache remote, DescribedBuildCacheService localDescribedService, DescribedBuildCacheService remoteDescribedService) {
+        return new BuildCacheServicesConfiguration(
+            localDescribedService == null ? null : localDescribedService.service,
+            local != null && local.isPush(),
+            remoteDescribedService == null ? null : remoteDescribedService.service,
+            remote != null && remote.isPush()
+        );
+    }
 
-    private static <T extends BuildCache> DescribedBuildCacheService createBuildCacheService(final T configuration, String role, Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, Instantiator instantiator) {
+
+    private static <T extends BuildCache> DescribedBuildCacheService createBuildCacheService(final T configuration, BuildCacheServiceRole role, Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, Instantiator instantiator) {
         Class<? extends BuildCacheServiceFactory<T>> castFactoryType = Cast.uncheckedCast(
             buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
         );
@@ -140,7 +148,7 @@ public final class BuildCacheControllerFactory {
         return new DescribedBuildCacheService(service, description);
     }
 
-    private static void logConfig(Path buildIdentityPath, String role, BuildCacheDescription description) {
+    private static void logConfig(Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescription description) {
         if (LOGGER.isLifecycleEnabled()) {
             StringBuilder config = new StringBuilder();
             boolean pullOnly = !description.isPush();
@@ -176,7 +184,7 @@ public final class BuildCacheControllerFactory {
             }
 
             LOGGER.lifecycle("Using {} {} build cache for {}{}.",
-                role,
+                role.getDisplayName(),
                 description.type == null ? description.className : description.type,
                 buildDescription,
                 config

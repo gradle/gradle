@@ -56,10 +56,10 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
     private final AtomicReference<String> disabledMessage = new AtomicReference<String>();
     private boolean closed;
 
-    DefaultBuildCacheServiceHandle(BuildCacheServiceRef serviceRef, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
+    DefaultBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
         this.role = role;
-        this.service = serviceRef.service;
-        this.pushEnabled = serviceRef.pushEnabled;
+        this.service = service;
+        this.pushEnabled = push;
         this.buildOperationExecutor = buildOperationExecutor;
         this.logStackTraces = logStackTraces;
     }

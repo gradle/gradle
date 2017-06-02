@@ -22,6 +22,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheException;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.GFileUtils;
@@ -47,14 +48,13 @@ public class DefaultBuildCacheController implements BuildCacheController {
     private final TemporaryFileProvider temporaryFileProvider;
 
     public DefaultBuildCacheController(
-        @Nullable BuildCacheServiceRef local,
-        @Nullable BuildCacheServiceRef remote,
+        BuildCacheServicesConfiguration config,
         BuildOperationExecutor buildOperationExecutor,
         TemporaryFileProvider temporaryFileProvider,
         boolean logStackTraces
     ) {
-        this.local = toHandle(local, BuildCacheServiceRole.LOCAL, buildOperationExecutor, logStackTraces);
-        this.remote = toHandle(remote, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces);
+        this.local = toHandle(config.local, config.localPush, BuildCacheServiceRole.LOCAL, buildOperationExecutor, logStackTraces);
+        this.remote = toHandle(config.remote, config.remotePush, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces);
         this.temporaryFileProvider = temporaryFileProvider;
     }
 
@@ -116,10 +116,10 @@ public class DefaultBuildCacheController implements BuildCacheController {
         CompositeStoppable.stoppable(local, remote).stop();
     }
 
-    private static BuildCacheServiceHandle toHandle(BuildCacheServiceRef ref, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
-        return ref == null
+    private static BuildCacheServiceHandle toHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
+        return service == null
             ? NullBuildCacheServiceHandle.INSTANCE
-            : new DefaultBuildCacheServiceHandle(ref, role, buildOperationExecutor, logStackTraces);
+            : new DefaultBuildCacheServiceHandle(service, push, role, buildOperationExecutor, logStackTraces);
     }
 
 }

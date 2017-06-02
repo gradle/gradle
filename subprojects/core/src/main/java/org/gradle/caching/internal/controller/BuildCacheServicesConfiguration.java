@@ -18,17 +18,17 @@ package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.BuildCacheService;
 
-/**
- * Encapsulates a service, and any config external to it.
- */
-public class BuildCacheServiceRef {
+final class BuildCacheServicesConfiguration {
 
-    public final BuildCacheService service;
-    public final boolean pushEnabled;
+    final BuildCacheService local;
+    final boolean localPush;
+    final BuildCacheService remote;
+    final boolean remotePush;
 
-    public BuildCacheServiceRef(BuildCacheService service, boolean pushEnabled) {
-        this.service = service;
-        this.pushEnabled = pushEnabled;
+    BuildCacheServicesConfiguration(BuildCacheService local, boolean localPush, BuildCacheService remote, boolean remotePush) {
+        this.local = local;
+        this.localPush = localPush;
+        this.remote = remote;
+        this.remotePush = remotePush;
     }
-
 }

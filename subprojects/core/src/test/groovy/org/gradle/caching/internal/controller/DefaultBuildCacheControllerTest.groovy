@@ -48,8 +48,10 @@ class DefaultBuildCacheControllerTest extends Specification {
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def controller = new DefaultBuildCacheController(
-        new BuildCacheServiceRef(local, true),
-        new BuildCacheServiceRef(remote, true),
+        new BuildCacheServicesConfiguration(
+            local, true,
+            remote, true
+        ),
         operations,
         new DefaultTemporaryFileProvider({ tmpDir.file("dir") }),
         false
