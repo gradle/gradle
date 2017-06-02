@@ -20,6 +20,7 @@ import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ import java.util.concurrent.TimeUnit;
  * Queue output events to be forwarded and schedule flush when time passed or if end of build is signalled.
  */
 public class ThrottlingOutputEventListener implements OutputEventListener {
+    private final long updateNowFlushInitialDelayMs = 500L;
+    private final long updateNowFlushPeriodMs = 500L;
     private final BatchOutputEventListener listener;
 
     private final ScheduledExecutorService executor;
@@ -51,6 +54,16 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
         this.listener = listener;
         this.executor = executor;
         this.timeProvider = timeProvider;
+        scheduleUpdateNow();
+    }
+
+    private void scheduleUpdateNow() {
+        executor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
+            }
+        }, updateNowFlushInitialDelayMs, updateNowFlushPeriodMs, TimeUnit.MILLISECONDS);
     }
 
     public void onOutput(OutputEvent newEvent) {

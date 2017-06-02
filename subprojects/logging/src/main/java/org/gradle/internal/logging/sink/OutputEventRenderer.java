@@ -42,7 +42,6 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
@@ -53,9 +52,6 @@ import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -65,8 +61,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @ThreadSafe
 public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
-    static final long UPDATE_NOW_FLUSH_INITIAL_DELAY_MS = 500L;
-    static final long UPDATE_NOW_FLUSH_PERIOD_MS = 500L;
     private final Object lock = new Object();
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final AtomicInteger maxWorkerCount = new AtomicInteger();
@@ -81,7 +75,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
     private OutputEventListener console;
-    private ScheduledExecutorService updateNowExecutor;
 
     public OutputEventRenderer() {
         this(new TrueTimeProvider());
@@ -252,23 +245,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             consoleChain.onOutput(new MaxWorkerCountChangeEvent(maxWorkerCount.get()));
             formatters.add(this.console);
         }
-
-        if (!(consoleMetaData instanceof FallbackConsoleMetaData)) {
-            scheduleUpdateNowExecutor();
-        }
         return this;
-    }
-
-    private void scheduleUpdateNowExecutor() {
-        if (updateNowExecutor == null) {
-            updateNowExecutor = Executors.newSingleThreadScheduledExecutor();
-        }
-        updateNowExecutor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
-            }
-        }, UPDATE_NOW_FLUSH_INITIAL_DELAY_MS, UPDATE_NOW_FLUSH_PERIOD_MS, TimeUnit.MILLISECONDS);
     }
 
     private OutputEventListener onError(final OutputEventListener listener) {
@@ -352,10 +329,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 return;
             }
             this.maxWorkerCount.set(newMaxWorkerCount);
-        } else if (event instanceof EndOutputEvent) {
-            if (updateNowExecutor != null) {
-                updateNowExecutor.shutdownNow();
-            }
         }
         synchronized (lock) {
             formatters.getSource().onOutput(event);
@@ -394,9 +367,5 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             }
             delegate.onOutput(event);
         }
-    }
-
-    void setUpdateNowExecutor(ScheduledExecutorService updateNowExecutor) {
-        this.updateNowExecutor = updateNowExecutor;
     }
 }
