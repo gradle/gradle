@@ -17,6 +17,8 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType
+import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.resource.ExternalResourceListBuildOperationType
@@ -64,15 +66,33 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         downloadOps[1].details.location == m.artifact.uri.toString()
         downloadOps[1].result.bytesRead == m.artifact.file.length()
 
+        // TODO - should have an event for graph resolution as well
+
+        def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
+        artifactsOps.size() == 1
+        artifactsOps[0].details.configurationPath == ':archives'
+
+        def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps.size() == 1
+        artifactOps[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+
         when:
         executer.withArguments("--refresh-dependencies")
         run "help"
 
         then:
-        def metaDataOps = buildOperations.all(ExternalResourceReadMetadataBuildOperationType)
-        metaDataOps.size() == 2
-        metaDataOps[0].details.location == m.pom.uri.toString()
-        metaDataOps[1].details.location == m.artifact.uri.toString()
+        def metaDataOps2 = buildOperations.all(ExternalResourceReadMetadataBuildOperationType)
+        metaDataOps2.size() == 2
+        metaDataOps2[0].details.location == m.pom.uri.toString()
+        metaDataOps2[1].details.location == m.artifact.uri.toString()
+
+        def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
+        artifactsOps2.size() == 1
+        artifactsOps2[0].details.configurationPath == ':archives'
+
+        def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps2.size() == 1
+        artifactOps2[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
 
         where:
         chunked << [true, false]
@@ -131,15 +151,23 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         listOps[0].details.location == missingDir.uri.toString()
         listOps[1].details.location == dir.uri.toString()
 
+        def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
+        artifactsOps.size() == 1
+        artifactsOps[0].details.configurationPath == ':archives'
+
+        def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps.size() == 1
+        artifactOps[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+
         when:
         executer.withArguments("--refresh-dependencies")
         run "help"
 
         then:
-        def metaDataOps = buildOperations.all(ExternalResourceReadMetadataBuildOperationType)
-        metaDataOps.size() == 2
-        metaDataOps[0].details.location == m.pom.uri.toString()
-        metaDataOps[1].details.location == m.artifact.uri.toString()
+        def metaDataOps2 = buildOperations.all(ExternalResourceReadMetadataBuildOperationType)
+        metaDataOps2.size() == 2
+        metaDataOps2[0].details.location == m.pom.uri.toString()
+        metaDataOps2[1].details.location == m.artifact.uri.toString()
 
         def listOps2 = buildOperations.all(ExternalResourceListBuildOperationType)
         listOps2.size() == 2
@@ -152,6 +180,14 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         downloadOps[0].result.bytesRead == 0
         downloadOps[1].details.location == m.rootMetaData.uri.toString()
         downloadOps[1].result.bytesRead == 0
+
+        def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
+        artifactsOps2.size() == 1
+        artifactsOps2[0].details.configurationPath == ':archives'
+
+        def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps2.size() == 1
+        artifactOps2[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
     }
 
     def "emits events for dynamic dependency resolution"() {
@@ -197,15 +233,23 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         listOps.size() == 1
         listOps[0].details.location == dir.uri.toString()
 
+        def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
+        artifactsOps.size() == 1
+        artifactsOps[0].details.configurationPath == ':archives'
+
+        def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps.size() == 1
+        artifactOps[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+
         when:
         executer.withArguments("--refresh-dependencies")
         run "help"
 
         then:
-        def metaDataOps = buildOperations.all(ExternalResourceReadMetadataBuildOperationType)
-        metaDataOps.size() == 2
-        metaDataOps[0].details.location == m.pom.uri.toString()
-        metaDataOps[1].details.location == m.artifact.uri.toString()
+        def metaDataOps2 = buildOperations.all(ExternalResourceReadMetadataBuildOperationType)
+        metaDataOps2.size() == 2
+        metaDataOps2[0].details.location == m.pom.uri.toString()
+        metaDataOps2[1].details.location == m.artifact.uri.toString()
 
         def listOps2 = buildOperations.all(ExternalResourceListBuildOperationType)
         listOps2.size() == 1
@@ -215,6 +259,89 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         downloadOps2.size() == 1
         downloadOps2[0].details.location == m.rootMetaData.uri.toString()
         downloadOps2[0].result.bytesRead == 0
+
+        def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
+        artifactsOps2.size() == 1
+        artifactsOps2[0].details.configurationPath == ':archives'
+
+        def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps2.size() == 1
+        artifactOps2[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+    }
+
+    def "emits events for an artifact once per build"() {
+        given:
+        def m = mavenHttpRepo.module("org.utils", "impl", '1.3')
+            .allowAll()
+            .publish()
+
+        buildFile << """
+            apply plugin: "base"
+
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+            }
+            
+            dependencies {
+              archives "org.utils:impl:1.3"
+            }
+            
+            configurations {
+                moreArchives { extendsFrom archives }
+            }
+            
+            println configurations.archives.files
+            println configurations.archives.files
+            println configurations.moreArchives.files
+        """
+
+        when:
+        run "help"
+
+        then:
+        buildOperations.all(ExternalResourceReadMetadataBuildOperationType).size() == 0
+
+        def downloadOps = buildOperations.all(ExternalResourceReadBuildOperationType)
+        downloadOps.size() == 2
+        downloadOps[0].details.location == m.pom.uri.toString()
+        downloadOps[0].result.bytesRead == m.pom.file.length()
+        downloadOps[1].details.location == m.artifact.uri.toString()
+        downloadOps[1].result.bytesRead == m.artifact.file.length()
+
+        def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
+        artifactsOps.size() == 3
+        artifactsOps[0].details.configurationPath == ':archives'
+        artifactsOps[1].details.configurationPath == ':archives'
+        artifactsOps[2].details.configurationPath == ':moreArchives'
+
+        def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps.size() == 1
+        artifactOps[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+
+        when:
+        executer.withArguments("--refresh-dependencies")
+        run "help"
+
+        then:
+        def metaDataOps2 = buildOperations.all(ExternalResourceReadMetadataBuildOperationType)
+        metaDataOps2.size() == 2
+        metaDataOps2[0].details.location == m.pom.uri.toString()
+        metaDataOps2[1].details.location == m.artifact.uri.toString()
+
+        buildOperations.all(ExternalResourceReadBuildOperationType).size() == 0
+
+        def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
+        artifactsOps2.size() == 3
+        artifactsOps2[0].details.configurationPath == ':archives'
+        artifactsOps2[1].details.configurationPath == ':archives'
+        artifactsOps2[2].details.configurationPath == ':moreArchives'
+
+        def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps2.size() == 1
+        artifactOps2[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+
+        where:
+        chunked << [true, false]
     }
 
 }

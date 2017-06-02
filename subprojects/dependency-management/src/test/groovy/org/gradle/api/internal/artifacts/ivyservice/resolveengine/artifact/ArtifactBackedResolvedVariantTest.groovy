@@ -83,8 +83,10 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         _ * listener.requireArtifactFiles() >> true
         _ * artifact1.id >> Stub(ComponentArtifactIdentifier)
         _ * artifact2.id >> Stub(ComponentArtifactIdentifier)
+        1 * artifact1.resolved >> false
         1 * artifact1.file >> f1
         1 * listener.artifactAvailable(artifact1)
+        1 * artifact2.resolved >> false
         1 * artifact2.file >> f2
         1 * listener.artifactAvailable(artifact2)
         0 * _
@@ -105,6 +107,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         then:
         _ * listener.requireArtifactFiles() >> true
         _ * artifact1.id >> Stub(ComponentArtifactIdentifier)
+        1 * artifact1.resolved >> false
         1 * artifact1.file >> f1
         1 * listener.artifactAvailable(artifact1)
         0 * _

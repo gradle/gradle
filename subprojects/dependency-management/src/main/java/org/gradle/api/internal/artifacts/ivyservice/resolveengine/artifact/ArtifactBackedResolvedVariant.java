@@ -98,6 +98,9 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
                     // Cannot currently build these artifacts asynchronously due to various locking problems
                     // Build it now instead
                     new DownloadArtifactFile(artifact, this, listener).run(null);
+                } else if (artifact.isResolved()){
+                    // Already resolved. Push the artifact to the listener now, rather than queuing it up
+                    new DownloadArtifactFile(artifact, this, listener).run(null);
                 } else {
                     // Resolve it later
                     actions.add(new DownloadArtifactFile(artifact, this, listener));
