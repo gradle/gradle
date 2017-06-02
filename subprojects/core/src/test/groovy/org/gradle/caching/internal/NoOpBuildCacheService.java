@@ -24,7 +24,7 @@ import org.gradle.caching.BuildCacheService;
 
 import java.io.IOException;
 
-class NoOpBuildCacheService implements BuildCacheService {
+public class NoOpBuildCacheService implements BuildCacheService {
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         return false;

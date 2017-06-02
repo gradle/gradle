@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal
+package org.gradle.caching.internal.controller
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
-import org.gradle.caching.internal.controller.BuildCacheControllerFactory
+import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
+import org.gradle.caching.internal.NoOpBuildCacheService
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
@@ -37,6 +39,10 @@ class BuildCacheControllerFactoryTest extends Specification {
         getSystemPropertiesArgs() >> [:]
         isBuildCacheEnabled() >> { buildCacheEnabled }
     }
+    def gradle = Mock(GradleInternal) {
+        getStartParameter() >> startParameter
+        getIdentityPath() >> Path.path("test")
+    }
 
     def buildOperationExecuter = new TestBuildOperationExecutor()
     def temporaryFileProvider = Mock(TemporaryFileProvider)
@@ -45,12 +51,21 @@ class BuildCacheControllerFactoryTest extends Specification {
         new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
 
     ])
-    def provider = new BuildCacheControllerFactory(config, startParameter, DirectInstantiator.INSTANCE, buildOperationExecuter, temporaryFileProvider)
 
-    private <T extends BuildCacheService> T create(Class<? extends T> serviceType) {
-        def service = provider.createBuildCacheService(Path.path("test"))
-        assert serviceType.isInstance(service)
-        serviceType.cast(service)
+    private DefaultBuildCacheController createController() {
+        createController(DefaultBuildCacheController)
+    }
+
+    private <T extends BuildCacheController> T createController(Class<T> controllerType) {
+        def controller = BuildCacheControllerFactory.create(
+            buildOperationExecuter,
+            gradle,
+            config,
+            temporaryFileProvider,
+            DirectInstantiator.INSTANCE
+        )
+        assert controllerType.isInstance(controller)
+        controllerType.cast(controller)
     }
 
     private FinalizeBuildCacheConfigurationBuildOperationType.Result buildOpResult() {
@@ -59,10 +74,11 @@ class BuildCacheControllerFactoryTest extends Specification {
 
     def 'local cache service is created when remote is not configured'() {
         when:
-        def c = create(BuildCacheService)
+        def c = createController()
 
         then:
-        c.role == "local"
+        c.local != null
+        c.remote == null
 
         and:
         with(buildOpResult()) {
@@ -76,10 +92,11 @@ class BuildCacheControllerFactoryTest extends Specification {
         config.remote(TestRemoteBuildCache).enabled = false
 
         when:
-        def s = create(BuildCacheService)
+        def c = createController()
 
         then:
-        s.role == "local"
+        c.local != null
+        c.remote == null
         with(buildOpResult()) {
             local.type == "directory"
             local.className == DirectoryBuildCache.name
@@ -92,10 +109,10 @@ class BuildCacheControllerFactoryTest extends Specification {
         config.remote(TestRemoteBuildCache)
 
         when:
-        def c = create(BuildCacheService)
+        def c = createController()
 
         then:
-        c.role == "remote"
+        c.remote.service instanceof NoOpBuildCacheService
         with(buildOpResult()) {
             local == null
             remote.type == "remote"
@@ -103,24 +120,26 @@ class BuildCacheControllerFactoryTest extends Specification {
         }
     }
 
-    def 'dispatching cache service is created when local and remote are enabled'() {
+    def 'can enable both'() {
         config.remote(TestRemoteBuildCache)
 
         when:
-        create(DispatchingBuildCacheService)
+        def c = createController()
 
         then:
+        c.local != null
+        c.remote != null
         with(buildOpResult()) {
             local.type == "directory"
             remote.type == "remote"
         }
     }
 
-    def 'when caching is disabled no services are` created'() {
+    def 'when caching is disabled no services are created'() {
         buildCacheEnabled = false
 
         expect:
-        create(NoOpBuildCacheService)
+        createController(NoOpBuildCacheController)
         with(buildOpResult()) {
             local == null
             remote == null

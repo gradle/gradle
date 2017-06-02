@@ -18,9 +18,11 @@ package org.gradle.caching.internal.controller
 
 import org.gradle.api.GradleException
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider
+import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
+import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
@@ -33,10 +35,10 @@ class DefaultBuildCacheControllerTest extends Specification {
     def key = Mock(BuildCacheKey)
     def local = Mock(BuildCacheService)
     def remote = Mock(BuildCacheService)
-    def storeOp = Stub(BuildCacheStoreCommand) {
+    def storeCommand = Stub(BuildCacheStoreCommand) {
         getKey() >> key
     }
-    def loadOp = Stub(BuildCacheLoadCommand) {
+    def loadCommand = Stub(BuildCacheLoadCommand) {
         getKey() >> key
     }
 
@@ -58,7 +60,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         1 * local.load(key, _) >> { throw new RuntimeException() }
 
         when:
-        controller.load(loadOp)
+        controller.load(loadCommand)
 
         then:
         def exception = thrown(GradleException)
@@ -71,7 +73,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         1 * remote.store(key, _) >> { throw new RuntimeException() }
 
         when:
-        controller.store(storeOp)
+        controller.store(storeCommand)
 
         then:
         noExceptionThrown()
@@ -80,9 +82,9 @@ class DefaultBuildCacheControllerTest extends Specification {
     def "stops calling through after defined number of read errors"() {
         when:
         (MAX_ERRORS + 1).times {
-            controller.load(loadOp)
+            controller.load(loadCommand)
         }
-        controller.store(storeOp)
+        controller.store(storeCommand)
 
         then:
         MAX_ERRORS * local.load(key, _) >> { throw new BuildCacheException("Error") }
@@ -95,14 +97,18 @@ class DefaultBuildCacheControllerTest extends Specification {
     def "stops calling through after defined number of write errors"() {
         when:
         (MAX_ERRORS + 1).times {
-            controller.store(storeOp)
+            controller.store(storeCommand)
         }
-        controller.load(loadOp)
+        controller.load(loadCommand)
 
         then:
         MAX_ERRORS * local.store(key, _) >> { throw new BuildCacheException("Error") }
-        MAX_ERRORS * remote.store(key, _)
-        1 * remote.store(key, _)
+        MAX_ERRORS * remote.store(key, _) >> { BuildCacheKey key, BuildCacheEntryWriter writer ->
+            writer.writeTo(NullOutputStream.INSTANCE)
+        }
+        1 * remote.store(key, _) >> { BuildCacheKey key, BuildCacheEntryWriter writer ->
+            writer.writeTo(NullOutputStream.INSTANCE)
+        }
         0 * local.load(_, _)
         1 * remote.load(_, _)
     }

@@ -28,11 +28,10 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
+import org.gradle.caching.internal.controller.BuildCacheStoreCommand
+import org.gradle.caching.internal.tasks.TaskBuildCacheCommandFactory
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
-import org.gradle.caching.internal.tasks.TaskOutputPacker
-import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
-import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
 
@@ -49,16 +48,15 @@ class SkipCachedTaskExecuterTest extends Specification {
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
     def buildCache = Mock(BuildCacheController)
-    def taskOutputPacker = Mock(TaskOutputPacker)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
-    def taskOutputOriginFactory = Mock(TaskOutputOriginFactory)
-    def originReader = Mock(TaskOutputOriginReader)
-    def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
+    def taskOutputGenerationListener = Mock(TaskOutputsGenerationListener)
+    def loadCommand = Mock(BuildCacheLoadCommand)
+    def storeCommand = Mock(BuildCacheStoreCommand)
+    def buildCacheCommandFactory = Mock(TaskBuildCacheCommandFactory)
 
-    def executer = new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCache, taskOutputPacker, internalTaskExecutionListener, delegate, buildCacheOpFactory)
+    def executer = new SkipCachedTaskExecuter(buildCache, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
 
     def "skip task when cached results exist"() {
-        def inputStream = Mock(InputStream)
         def originId = UniqueId.generate()
 
         when:
@@ -75,12 +73,10 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCache.load(_) >> { BuildCacheLoadCommand loadOp ->
-            loadOp.load(inputStream)
-        }
-        1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
-        1 * taskOutputOriginFactory.createReader(task) >> originReader
-        1 * taskOutputPacker.unpack(_, inputStream, originReader) >> new TaskOutputOriginMetadata(originId)
+        1 * buildCacheCommandFactory.load(cacheKey, _, task, taskOutputGenerationListener, _) >> loadCommand
+
+        then:
+        1 * buildCache.load(loadCommand) >> new TaskOutputOriginMetadata(originId)
 
         then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
@@ -103,7 +99,10 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCache.load(_)
+        1 * buildCacheCommandFactory.load(cacheKey, _, task, taskOutputGenerationListener, _) >> loadCommand
+
+        then:
+        1 * buildCache.load(loadCommand) >> null
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -111,7 +110,10 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCache.store(_)
+        1 * buildCacheCommandFactory.store(cacheKey, _, task, _) >> storeCommand
+
+        then:
+        1 * buildCache.store(storeCommand)
         0 * _
     }
 
@@ -137,7 +139,10 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCache.store(_)
+        1 * buildCacheCommandFactory.store(cacheKey, _, task, _) >> storeCommand
+
+        then:
+        1 * buildCache.store(storeCommand)
         0 * _
     }
 
@@ -156,6 +161,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
+        1 * buildCacheCommandFactory.load(*_)
         1 * buildCache.load(_)
 
         then:
@@ -212,6 +218,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
 
         then:
+        1 * buildCacheCommandFactory.load(*_)
         1 * buildCache.load(_) >> { throw new RuntimeException("unknown error") }
 
         then:
@@ -236,6 +243,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
+        1 * buildCacheCommandFactory.load(*_)
         1 * buildCache.load(_)
 
         then:
@@ -244,6 +252,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * cacheKey.isValid() >> true
         1 * taskState.getFailure() >> null
+        1 * buildCacheCommandFactory.store(*_)
         1 * buildCache.store(_) >> { throw new RuntimeException("unknown error") }
         0 * _
         then:

@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.controller;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -45,7 +46,9 @@ class BuildCacheServiceHandle implements Closeable {
 
     private static final Logger LOGGER = Logging.getLogger(BuildCacheServiceHandle.class);
 
-    private final BuildCacheService service;
+    @VisibleForTesting
+    final BuildCacheService service;
+
     private final BuildCacheServiceRole role;
     private final boolean pushEnabled;
     private final BuildOperationExecutor buildOperationExecutor;

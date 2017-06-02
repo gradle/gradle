@@ -37,8 +37,11 @@ public class DefaultBuildCacheController implements BuildCacheController {
     @VisibleForTesting
     static final int MAX_ERRORS = 3;
 
-    private final BuildCacheServiceHandle local;
-    private final BuildCacheServiceHandle remote;
+    @VisibleForTesting
+    final BuildCacheServiceHandle local;
+
+    @VisibleForTesting
+    final BuildCacheServiceHandle remote;
 
     private final TemporaryFileProvider temporaryFileProvider;
 

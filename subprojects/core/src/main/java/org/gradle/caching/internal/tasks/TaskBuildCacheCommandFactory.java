@@ -45,11 +45,11 @@ public class TaskBuildCacheCommandFactory {
         this.taskOutputOriginFactory = taskOutputOriginFactory;
     }
 
-    public LoadCommand load(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, Timer clock) {
+    public BuildCacheLoadCommand<TaskOutputOriginMetadata> load(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, Timer clock) {
         return new LoadCommand(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock);
     }
 
-    public StoreCommand store(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
+    public BuildCacheStoreCommand store(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
         return new StoreCommand(cacheKey, outputProperties, task, clock);
     }
 
