@@ -147,7 +147,7 @@ libraries.spock = [
     'org.spockframework:spock-core:1.0-groovy-2.4@jar',
     libraries.groovy,
     libraries.objenesis,
-    'cglib:cglib-nodep:2.2.2'
+    'cglib:cglib-nodep:3.2.5'
 ]
 libraries.jmock = [
     'org.jmock:jmock:2.5.1',
@@ -156,7 +156,7 @@ libraries.jmock = [
     dependencies.create('org.jmock:jmock-junit4:2.5.1') { exclude group: 'junit', module: 'junit-dep' }, //junit-dep pulls old definitions of core junit types.
     'org.jmock:jmock-legacy:2.5.1',
     libraries.objenesis,
-    'cglib:cglib-nodep:2.2'
+    'cglib:cglib-nodep:3.2.5'
 ]
 
 versions.findbugs = "2.0.1"
