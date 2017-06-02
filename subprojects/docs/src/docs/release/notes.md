@@ -40,6 +40,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
+### Configurations can be unresolvable
+
+The concept of unresolvable configurations has been introduced. When trying to resolve an unresolvable configuration an `IllegalStateException` will be thrown. You can check whether a configuration is resolvable by calling `Configuration.isCanBeResolved()`.
+
+Though the concept has already been introduced with Gradle 3.3, the first release that comes with unresolvable configurations by default is Gradle 3.4. The Java plugin adds the following unresolvable configurations: ```"apiElements", "implementation", "runtimeElements", "runtimeOnly", "testImplementation", "testRuntimeOnly"```. The concept has been introduced in order to support variant aware dependency resolution.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
