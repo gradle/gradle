@@ -33,8 +33,7 @@ import java.util.concurrent.TimeUnit;
  * Queue output events to be forwarded and schedule flush when time passed or if end of build is signalled.
  */
 public class ThrottlingOutputEventListener implements OutputEventListener {
-    private final long updateNowFlushInitialDelayMs = 500L;
-    private final long updateNowFlushPeriodMs = 500L;
+    private final static long UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS = 500L;
     private final BatchOutputEventListener listener;
 
     private final ScheduledExecutorService executor;
@@ -63,7 +62,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
             public void run() {
                 onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
             }
-        }, updateNowFlushInitialDelayMs, updateNowFlushPeriodMs, TimeUnit.MILLISECONDS);
+        }, UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS, UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS, TimeUnit.MILLISECONDS);
     }
 
     public void onOutput(OutputEvent newEvent) {
