@@ -57,7 +57,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private final IdGenerator<Long> generator;
     private final FileLockContentionHandler fileLockContentionHandler;
     private final long shortTimeoutMs = 10000;
-    private final Random random = new Random();
+    private final ExponentialBackoff backoff = new ExponentialBackoff();
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
         this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler);
@@ -102,9 +102,6 @@ public class DefaultFileLockManager implements FileLockManager {
     }
 
     private class DefaultFileLock extends AbstractFileAccess implements FileLock {
-        private static final int EXPONENTIAL_BACKOFF_CAP_FACTOR = 100;
-        private static final long SLOT_TIME = 25L;
-
         private final File lockFile;
         private final File target;
         private final LockMode mode;
@@ -326,43 +323,65 @@ public class DefaultFileLockManager implements FileLockManager {
             return out;
         }
 
-        private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, final CountdownTimer timer) throws IOException, InterruptedException {
-            int i = 0;
-            do {
-                java.nio.channels.FileLock fileLock = lockFileAccess.tryLockState(lockMode == LockMode.Shared);
-                if (fileLock != null) {
-                    return fileLock;
-                }
-                if (port != -1) { //we don't like the assumption about the port very much
-                    LockInfo lockInfo = readInformationRegion(timer);
-                    if (lockInfo.port != -1) {
-                        LOGGER.debug("The file lock is held by a different Gradle process (pid: {}, operation: {}). Will attempt to ping owner at port {}", lockInfo.pid, lockInfo.operation, lockInfo.port);
-                        fileLockContentionHandler.pingOwner(lockInfo.port, lockInfo.lockId, displayName);
-                    } else {
-                        LOGGER.debug("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
+        private java.nio.channels.FileLock lockStateRegion(final LockMode lockMode, final CountdownTimer timer) throws IOException, InterruptedException {
+            return backoff.retryUntil(timer, new IOQuery<java.nio.channels.FileLock>() {
+                @Override
+                public java.nio.channels.FileLock run() throws IOException, InterruptedException {
+                    java.nio.channels.FileLock fileLock = lockFileAccess.tryLockState(lockMode == LockMode.Shared);
+                    if (fileLock != null) {
+                        return fileLock;
                     }
+                    if (port != -1) { //we don't like the assumption about the port very much
+                        LockInfo lockInfo = readInformationRegion(timer);
+                        if (lockInfo.port != -1) {
+                            LOGGER.debug("The file lock is held by a different Gradle process (pid: {}, operation: {}). Will attempt to ping owner at port {}", lockInfo.pid, lockInfo.operation, lockInfo.port);
+                            fileLockContentionHandler.pingOwner(lockInfo.port, lockInfo.lockId, displayName);
+                        } else {
+                            LOGGER.debug("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
+                        }
+                    }
+                    return null;
+                }
+            });
+        }
+
+        private java.nio.channels.FileLock lockInformationRegion(final LockMode lockMode, CountdownTimer timer) throws IOException, InterruptedException {
+            return backoff.retryUntil(timer, new IOQuery<java.nio.channels.FileLock>() {
+                @Override
+                public java.nio.channels.FileLock run() throws IOException {
+                    return lockFileAccess.tryLockInfo(lockMode == LockMode.Shared);
+                }
+            });
+        }
+    }
+
+    private interface IOQuery<T> {
+        T run() throws IOException, InterruptedException;
+    }
+
+    private static class ExponentialBackoff {
+
+        private static final int CAP_FACTOR = 100;
+
+        private static final long SLOT_TIME = 25L;
+
+        private final Random random = new Random();
+
+        <T> T retryUntil(CountdownTimer timer, IOQuery<T> query) throws IOException, InterruptedException {
+            int iteration = 0;
+            T result;
+            while ((result = query.run()) == null) {
+                if (timer.hasExpired()) {
+                    break;
                 }
                 //TODO SF we should inform on the progress/status bar that we're waiting
-                Thread.sleep(backoff(++i));
-            } while (!timer.hasExpired());
-            return null;
-        }
-
-        private long backoff(int i) {
-            return random.nextInt(Math.min(i, EXPONENTIAL_BACKOFF_CAP_FACTOR)) * SLOT_TIME;
-        }
-
-        private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, CountdownTimer timer) throws IOException, InterruptedException {
-            int i = 0;
-            do {
-                java.nio.channels.FileLock fileLock = lockFileAccess.tryLockInfo(lockMode == LockMode.Shared);
-                if (fileLock != null) {
-                    return fileLock;
-                }
-                Thread.sleep(backoff(++i));
+                Thread.sleep(backoffPeriodFor(++iteration));
             }
-            while (!timer.hasExpired());
-            return null;
+            return result;
+        }
+
+        long backoffPeriodFor(int iteration) {
+            return random.nextInt(Math.min(iteration, CAP_FACTOR)) * SLOT_TIME;
         }
     }
 }
