@@ -16,10 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift;
 
-import com.google.common.collect.Lists;
-import org.gradle.api.Transformer;
+import com.google.common.collect.Iterables;
+import org.gradle.api.Action;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
@@ -27,14 +28,12 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
+// TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of is applies to SwiftCompiler)
 class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
 
     SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
@@ -43,12 +42,7 @@ class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
 
     @Override
     protected List<String> getOutputArgs(File outputFile) {
-        return Arrays.asList("-o", outputFile.getAbsolutePath()/*, "-emit-module-path", outputFile.getAbsolutePath() + ".swiftmodule"*/);
-    }
-
-    @Override
-    protected List<String> getSourceArgs(File sourceFile) {
-        return Arrays.asList("-primary-file", sourceFile.getAbsolutePath());
+        return Arrays.asList("-o", outputFile.getAbsolutePath());
     }
 
     @Override
@@ -61,14 +55,27 @@ class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
     }
 
     @Override
-    protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, SwiftCompileSpec spec) {
-        List<String> gen = new ArrayList<String>(genericArgs);
-        for (File f : spec.getSourceFiles()) {
-            if (!f.equals(sourceFile)) {
-                gen.add(f.getAbsolutePath());
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final SwiftCompileSpec spec) {
+        final List<String> genericArgs = getArguments(spec);
+
+        final File objectDir = spec.getObjectFileDir();
+        return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+            @Override
+            public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
+                buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+
+                for (File sourceFile : spec.getSourceFiles()) {
+                    genericArgs.add(sourceFile.getAbsolutePath());
+                }
+
+                List<String> outputArgs = getOutputArgs(new File(objectDir, "main"));
+
+
+                CommandLineToolInvocation perFileInvocation =
+                    newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs), spec.getOperationLogger());
+                buildQueue.add(perFileInvocation);
             }
-        }
-        return super.createPerFileInvocation(gen, sourceFile, objectDir, spec);
+        };
     }
 
     private static class SwiftCompileArgsTransformer implements ArgsTransformer<SwiftCompileSpec> {

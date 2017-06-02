@@ -29,6 +29,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.Include;
@@ -67,22 +68,28 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
     @Override
     public WorkResult execute(final T spec) {
         final T transformedSpec = specTransformer.transform(spec);
-        final List<String> genericArgs = getArguments(transformedSpec);
 
-        final File objectDir = transformedSpec.getObjectFileDir();
-        buildOperationExecutor.runAll(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+        buildOperationExecutor.runAll(commandLineToolInvocationWorker, newInvocationAction(transformedSpec));
+
+        return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
+    }
+
+    // TODO(daniel): Should support in a better way multi file invocation.
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final T spec) {
+        final List<String> genericArgs = getArguments(spec);
+
+        final File objectDir = spec.getObjectFileDir();
+        return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
             public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
-                for (File sourceFile : transformedSpec.getSourceFiles()) {
+                for (File sourceFile : spec.getSourceFiles()) {
                     CommandLineToolInvocation perFileInvocation =
                         createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
                     buildQueue.add(perFileInvocation);
                 }
             }
-        });
-
-        return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
+        };
     }
 
     protected List<String> getArguments(T spec) {
@@ -165,7 +172,11 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
         List<String> outputArgs = getOutputArgs(getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
-        return invocationContext.createInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());
+        return newInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());
+    }
+
+    protected CommandLineToolInvocation newInvocation(String name, File objectDir, Iterable<String> args, BuildOperationLogger operationLogger) {
+        return invocationContext.createInvocation(name, objectDir, args, operationLogger);
     }
 
     protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {

@@ -32,6 +32,13 @@ import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
 import java.util.Collections;
 
+/**
+ * <p>A plugin that produces a native executable from Swift source.</p>
+ *
+ * <p>Assumes the source files are located in `src/main/swift`.</p>
+ *
+ * @since 4.1
+ */
 public class SwiftExecutablePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
@@ -47,11 +54,12 @@ public class SwiftExecutablePlugin implements Plugin<Project> {
 
         compile.setCompilerArgs(Lists.newArrayList(
             "-sdk", "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk",
-            "-module-name", "Foo"));
+            "-module-name", "Foo",
+            "-emit-executable"));
         compile.setMacros(Collections.<String, String>emptyMap());
 
         // TODO - should reflect changes to build directory
-        compile.setObjectFileDir(project.file("build/main/objs"));
+        compile.setObjectFileDir(project.file("build/exe"));
 
         DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
         compile.setTargetPlatform(currentPlatform);
@@ -60,22 +68,6 @@ public class SwiftExecutablePlugin implements Plugin<Project> {
         NativeToolChain toolChain = ((ProjectInternal) project).getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
         compile.setToolChain(toolChain);
 
-        // Add a link task
-        LinkExecutable link = project.getTasks().create("linkMain", LinkExecutable.class);
-        // TODO - include only object files
-        link.source(compile.getOutputs().getFiles().getAsFileTree());
-        link.setLinkerArgs(Lists.newArrayList("-arch", "x86_64",
-            "-no_objc_category_merging",
-            "-L", "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx",
-            "-rpath", "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx",
-            "-syslibroot", "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk",
-            "-lSystem"));
-        // TODO - should reflect changes to build directory
-        // TODO - need to set basename
-        link.setOutputFile(project.file("build/exe/main"));
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
-
-        project.getTasks().getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
+        project.getTasks().getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(compile);
     }
 }

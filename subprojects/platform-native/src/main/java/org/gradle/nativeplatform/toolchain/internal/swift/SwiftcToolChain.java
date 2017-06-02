@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift;
 
-import org.gradle.api.Action;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -24,11 +23,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
-import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.SwiftcPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider;
@@ -43,15 +39,12 @@ import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.gcc.GccLinker;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
-import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
-import java.util.List;
 
 public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain> implements Swiftc, NativeToolChainInternal {
     public static final String DEFAULT_NAME = "swiftc";
@@ -82,15 +75,9 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
             }
 
             protected Compiler<SwiftCompileSpec> createSwiftCompiler() {
-                GccCommandLineToolConfigurationInternal swiftCompilerTool = instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.SWIFT_COMPILER, "swift");
+                GccCommandLineToolConfigurationInternal swiftCompilerTool = instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.SWIFT_COMPILER, "swiftc");
                 SwiftCompiler swiftCompiler = new SwiftCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(swiftCompilerTool), context(swiftCompilerTool), getObjectFileExtension(), false);
                 return new OutputCleaningCompiler<SwiftCompileSpec>(swiftCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-            }
-
-            @Override
-            protected Compiler<LinkerSpec> createLinker() {
-                GccCommandLineToolConfigurationInternal linkerTool = instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.LINKER, "ld");;
-                return new GccLinker(buildOperationExecutor, commandLineTool(linkerTool), context(linkerTool), false);
             }
 
             private CommandLineToolInvocationWorker commandLineTool(GccCommandLineToolConfigurationInternal tool) {
@@ -104,15 +91,6 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
                 // MinGW requires the path to be set
 //                    baseInvocation.addPath(toolSearchPath.getPath());
 //                baseInvocation.addEnvironmentVar("CYGWIN", "nodosfilewarning");
-                if (toolConfiguration.getToolType() == ToolType.SWIFT_COMPILER) {
-                    toolConfiguration.withArguments(new Action<List<String>>() {
-                        @Override
-                        public void execute(List<String> strings) {
-                            strings.add(0, "-c");
-                            strings.add(0, "-frontend");
-                        }
-                    });
-                }
                 baseInvocation.setArgAction(toolConfiguration.getArgAction());
                 return baseInvocation;
             }

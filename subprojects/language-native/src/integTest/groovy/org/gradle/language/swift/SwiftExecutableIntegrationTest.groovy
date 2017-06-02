@@ -63,15 +63,12 @@ allprojects { p ->
         fails "assemble"
         failure.assertHasDescription("Execution failed for task ':compileSwift'.");
         failure.assertHasCause("A build operation failed.")
-        failure.assertThatCause(containsText("Swift compiler failed while compiling broken.swift"))
+        failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }
 
     def "sources are compiled with Swift compiler"() {
-        def app = new SwiftCompilerDetectingTestApp()
-
         given:
         helloWorldApp.writeSources(file('src/main'))
-//        app.writeSources(file('src/main'))
 
         and:
         buildFile << """
@@ -80,7 +77,7 @@ allprojects { p ->
 
         expect:
         succeeds "assemble"
-
+        result.assertTasksExecuted(":compileSwift", ":assemble")
         executable("build/exe/main").exec().out == "Hello, World!\n12\n"//app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
