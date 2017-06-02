@@ -122,20 +122,16 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
         }
     }
 
-    @SuppressWarnings("GroovyMissingReturnStatement")
     protected String toDifferenceDescription(ArchiveEntryComparison entryComparison) {
         switch (entryComparison.comparisonResultType) {
             case SOURCE_ONLY:
-                "entry does not exist in target build archive"
-                break
+                return "entry does not exist in target build archive"
             case TARGET_ONLY:
-                "entry does not exist in source build archive"
-                break
+                return "entry does not exist in source build archive"
             case UNEQUAL:
-                toDifferenceDescription(entryComparison.source, entryComparison.target)
-                break
+                return toDifferenceDescription(entryComparison.source, entryComparison.target)
             default:
-                entryComparison.comparisonResultType.throwUnsupported()
+                return entryComparison.comparisonResultType.throwUnsupported()
         }
     }
 
