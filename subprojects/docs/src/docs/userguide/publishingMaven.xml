@@ -305,4 +305,14 @@
             </para>
         </note>
     </section>
+    <section id="publishing_maven:known-issues">
+        <title>Known Issues</title>
+        <para>
+            These are some of the known issues with the “<literal>maven-publish</literal>” plugin
+            <itemizedlist>
+                <listitem><para>[<ulink url='https://github.com/gradle/gradle/issues/1118'>#1118]</ulink> Published POMs
+                    using the “<literal>maven-publish</literal>” plugin have “<literal>runtime</literal>” for all dependency scopes</para></listitem>
+            </itemizedlist>
+        </para>
+    </section>
 </chapter>
