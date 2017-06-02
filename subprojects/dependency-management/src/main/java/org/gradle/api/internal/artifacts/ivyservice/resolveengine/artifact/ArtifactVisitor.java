@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 
@@ -29,10 +28,10 @@ public interface ArtifactVisitor {
     /**
      * Visits an artifact. Artifacts are resolved but not necessarily downloaded unless {@link #requireArtifactFiles()} returns true.
      */
-    void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact);
+    void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact);
 
     /**
-     * Should the file for each artifacts be made available prior to calling {@link #visitArtifact(AttributeContainer, ResolvedArtifact)}?
+     * Should the file for each artifacts be made available prior to calling {@link #visitArtifact(AttributeContainer, ResolvableArtifact)}?
      *
      * Returns true here allows the collection to pre-emptively resolve the files in parallel.
      */

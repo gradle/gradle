@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Factory;
@@ -42,7 +42,7 @@ import java.util.Map;
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleComponentRepositoryAccess localAccess;
     private final ModuleComponentRepositoryAccess remoteAccess;
-    private final Map<ComponentArtifactIdentifier, ResolvedArtifact> resolvedArtifactsCache;
+    private final Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactsCache;
 
     public InMemoryCachedModuleComponentRepository(InMemoryModuleComponentRepositoryCaches cache, ModuleComponentRepository delegate) {
         super(delegate);
@@ -62,7 +62,7 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
     }
 
     @Override
-    public Map<ComponentArtifactIdentifier, ResolvedArtifact> getArtifactCache() {
+    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
         return resolvedArtifactsCache;
     }
 

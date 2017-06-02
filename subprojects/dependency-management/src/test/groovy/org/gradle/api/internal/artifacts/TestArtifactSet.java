@@ -19,13 +19,16 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import java.io.File;
 import java.util.Collection;
 
 public class TestArtifactSet implements ResolvedArtifactSet {
@@ -46,8 +49,8 @@ public class TestArtifactSet implements ResolvedArtifactSet {
         return new Completion() {
             @Override
             public void visit(ArtifactVisitor visitor) {
-                for (ResolvedArtifact artifact : artifacts) {
-                    visitor.visitArtifact(variant, artifact);
+                for (final ResolvedArtifact artifact : artifacts) {
+                    visitor.visitArtifact(variant, new Adapter(artifact));
                 }
             }
         };
@@ -57,6 +60,34 @@ public class TestArtifactSet implements ResolvedArtifactSet {
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
         for (ResolvedArtifact artifact : artifacts) {
             visitor.visitDependency(((Buildable) artifact).getBuildDependencies());
+        }
+    }
+
+    private static class Adapter implements ResolvableArtifact {
+        private final ResolvedArtifact artifact;
+
+        Adapter(ResolvedArtifact artifact) {
+            this.artifact = artifact;
+        }
+
+        @Override
+        public ComponentArtifactIdentifier getId() {
+            return artifact.getId();
+        }
+
+        @Override
+        public boolean isResolved() {
+            return false;
+        }
+
+        @Override
+        public File getFile() {
+            return artifact.getFile();
+        }
+
+        @Override
+        public ResolvedArtifact toPublicView() {
+            return artifact;
         }
     }
 }

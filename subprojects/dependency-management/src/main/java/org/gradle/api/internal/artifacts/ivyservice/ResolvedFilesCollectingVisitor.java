@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 
 import java.io.File;
 import java.util.Collection;
@@ -31,7 +31,7 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
 
     @Override
-    public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
+    public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
         try {
             File file = artifact.getFile(); // triggering file resolve
             this.files.add(file);
