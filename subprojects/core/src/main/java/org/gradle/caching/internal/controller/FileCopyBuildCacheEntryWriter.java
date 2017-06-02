@@ -16,24 +16,30 @@
 
 package org.gradle.caching.internal.controller;
 
-import org.gradle.api.Nullable;
-import org.gradle.caching.BuildCacheService;
+import com.google.common.io.Files;
+import org.gradle.caching.BuildCacheEntryWriter;
 
-import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
-/**
- * Internal coordinator of build cache operations.
- *
- * Wraps user {@link BuildCacheService} implementations.
- */
-public interface BuildCacheController extends Closeable {
+class FileCopyBuildCacheEntryWriter implements BuildCacheEntryWriter {
 
-    @Nullable
-    <T> T load(BuildCacheLoadCommand<T> command);
+    private final File file;
 
-    void store(BuildCacheStoreCommand command);
+    boolean copied;
+
+    FileCopyBuildCacheEntryWriter(File file) {
+        this.file = file;
+    }
 
     @Override
-    void close();
+    public void writeTo(OutputStream output) throws IOException {
+        if (copied) {
+            throw new IllegalStateException("Build cache entry has already been written");
+        }
 
+        Files.copy(file, output);
+        copied = true;
+    }
 }

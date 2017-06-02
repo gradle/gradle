@@ -84,9 +84,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
         private Object result;
         private String status;
+        private Throwable failure;
 
         @Override
         public void failed(@Nullable Throwable failure) {
+            this.failure = failure;
         }
 
         @Override
@@ -208,7 +210,9 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             try {
                 buildOperation.run(context);
             } catch (Throwable failure) {
-                record.failure = failure;
+                if (record.failure == null) {
+                    record.failure = failure;
+                }
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
             record.result = context.result;
@@ -222,7 +226,9 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             try {
                 t = buildOperation.call(context);
             } catch (Throwable failure) {
-                record.failure = failure;
+                if (record.failure == null) {
+                    record.failure = failure;
+                }
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
             record.result = context.result;

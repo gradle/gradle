@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.controller.BuildCacheController
-import org.gradle.caching.internal.controller.BuildCacheLoadOp
+import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.TaskOutputPacker
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
@@ -75,7 +75,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCache.load(_) >> { BuildCacheLoadOp loadOp ->
+        1 * buildCache.load(_) >> { BuildCacheLoadCommand loadOp ->
             loadOp.load(inputStream)
         }
         1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()

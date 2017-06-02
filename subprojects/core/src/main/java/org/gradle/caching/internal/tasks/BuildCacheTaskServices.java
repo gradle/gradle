@@ -43,10 +43,10 @@ public class BuildCacheTaskServices {
         return new TaskCacheKeyCalculator();
     }
 
-    TaskOutputPacker createTaskResultPacker(FileSystem fileSystem) {
-        return new GZipTaskOutputPacker(
-            new TarTaskOutputPacker(fileSystem)
-        );
+    TaskOutputPacker createTaskResultPacker(
+        FileSystem fileSystem
+    ) {
+        return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem));
     }
 
     TaskOutputOriginFactory createTaskOutputOriginFactory(
@@ -59,11 +59,11 @@ public class BuildCacheTaskServices {
         return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildInvocationScopeId);
     }
 
-    TaskBuildCacheOpFactory createTaskBuildCacheOpFactory(
+    TaskBuildCacheCommandFactory createTaskBuildCacheCommandFactory(
         TaskOutputPacker taskOutputPacker,
         TaskOutputOriginFactory taskOutputOriginFactory
     ) {
-        return new TaskBuildCacheOpFactory(taskOutputPacker, taskOutputOriginFactory);
+        return new TaskBuildCacheCommandFactory(taskOutputPacker, taskOutputOriginFactory);
     }
 
     // TODO: Should live in BuildCacheServices

@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller;
+package org.gradle.caching.internal.controller.operations;
 
-import org.gradle.api.Nullable;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.BuildCacheLoadBuildOperationType;
 
-import java.io.Closeable;
+public class LoadOperationMissResult implements BuildCacheLoadBuildOperationType.Result {
 
-/**
- * Internal coordinator of build cache operations.
- *
- * Wraps user {@link BuildCacheService} implementations.
- */
-public interface BuildCacheController extends Closeable {
+    public static final BuildCacheLoadBuildOperationType.Result INSTANCE = new LoadOperationMissResult();
 
-    @Nullable
-    <T> T load(BuildCacheLoadCommand<T> command);
-
-    void store(BuildCacheStoreCommand command);
+    private LoadOperationMissResult() {
+    }
 
     @Override
-    void close();
+    public long getArchiveSize() {
+        return 0;
+    }
+
+    @Override
+    public long getArchiveEntryCount() {
+        return 0;
+    }
 
 }

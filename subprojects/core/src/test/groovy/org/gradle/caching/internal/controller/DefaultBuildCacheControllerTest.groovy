@@ -33,10 +33,10 @@ class DefaultBuildCacheControllerTest extends Specification {
     def key = Mock(BuildCacheKey)
     def local = Mock(BuildCacheService)
     def remote = Mock(BuildCacheService)
-    def storeOp = Stub(BuildCacheStoreOp) {
+    def storeOp = Stub(BuildCacheStoreCommand) {
         getKey() >> key
     }
-    def loadOp = Stub(BuildCacheLoadOp) {
+    def loadOp = Stub(BuildCacheLoadCommand) {
         getKey() >> key
     }
 

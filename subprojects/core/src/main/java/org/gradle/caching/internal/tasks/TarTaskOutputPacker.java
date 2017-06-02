@@ -131,7 +131,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
         switch (propertySpec.getOutputType()) {
             case DIRECTORY:
-                return storeDirectoryProperty(propertyPath, outputFile, outputStream);
+                return 1 + storeDirectoryProperty(propertyPath, outputFile, outputStream);
             case FILE:
                 storeFileProperty(propertyPath, outputFile, outputStream);
                 return 1;

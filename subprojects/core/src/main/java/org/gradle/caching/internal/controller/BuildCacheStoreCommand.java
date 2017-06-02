@@ -21,28 +21,27 @@ import org.gradle.caching.BuildCacheKey;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/**
- * A stateful record of a potential store operation.
- */
-public interface BuildCacheStoreOp {
+public interface BuildCacheStoreCommand {
 
     BuildCacheKey getKey();
 
     /**
-     * Called exactly once to initiate a store via the output stream.
+     * Called at-most-once to initiate writing the artifact to the output stream.
      */
-    void store(OutputStream outputStream) throws IOException;
+    Result store(OutputStream outputStream) throws IOException;
 
-    boolean isStored();
+    interface Result {
 
-    /**
-     * If the store has completed, the number of entries in the stored artifact.
-     *
-     * This is used as a rough metric of the complexity of the archive for processing
-     * (in conjunction with the archive size).
-     *
-     * The meaning of “entry” is intentionally loose.
-     */
-    long getArtifactEntryCount();
+        /**
+         * The number of entries in the stored artifact.
+         *
+         * This is used as a rough metric of the complexity of the archive for processing
+         * (in conjunction with the archive size).
+         *
+         * The meaning of “entry” is intentionally loose.
+         */
+        long getArtifactEntryCount();
+
+    }
 
 }

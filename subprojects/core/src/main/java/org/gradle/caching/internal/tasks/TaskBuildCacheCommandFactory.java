@@ -22,8 +22,8 @@ import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.controller.BuildCacheLoadOp;
-import org.gradle.caching.internal.controller.BuildCacheStoreOp;
+import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
+import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.internal.time.Timer;
@@ -33,27 +33,27 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.SortedSet;
 
-public class TaskBuildCacheOpFactory {
+public class TaskBuildCacheCommandFactory {
 
-    private static final Logger LOGGER = Logging.getLogger(TaskBuildCacheOpFactory.class);
+    private static final Logger LOGGER = Logging.getLogger(TaskBuildCacheCommandFactory.class);
 
     private final TaskOutputPacker packer;
     private final TaskOutputOriginFactory taskOutputOriginFactory;
 
-    public TaskBuildCacheOpFactory(TaskOutputPacker packer, TaskOutputOriginFactory taskOutputOriginFactory) {
+    public TaskBuildCacheCommandFactory(TaskOutputPacker packer, TaskOutputOriginFactory taskOutputOriginFactory) {
         this.packer = packer;
         this.taskOutputOriginFactory = taskOutputOriginFactory;
     }
 
-    public LoadOp loadOp(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, Timer clock) {
-        return new LoadOp(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock);
+    public LoadCommand load(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, Timer clock) {
+        return new LoadCommand(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock);
     }
 
-    public StoreOp storeOp(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
-        return new StoreOp(cacheKey, outputProperties, task, clock);
+    public StoreCommand store(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
+        return new StoreCommand(cacheKey, outputProperties, task, clock);
     }
 
-    public class LoadOp implements BuildCacheLoadOp {
+    private class LoadCommand implements BuildCacheLoadCommand<TaskOutputOriginMetadata> {
 
         private final TaskOutputCachingBuildCacheKey cacheKey;
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
@@ -61,11 +61,7 @@ public class TaskBuildCacheOpFactory {
         private final TaskOutputsGenerationListener taskOutputsGenerationListener;
         private final Timer clock;
 
-        public TaskOutputOriginMetadata originMetadata;
-
-        private long artifactEntryCount;
-
-        private LoadOp(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, Timer clock) {
+        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, Timer clock) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
             this.task = task;
@@ -79,35 +75,33 @@ public class TaskBuildCacheOpFactory {
         }
 
         @Override
-        public void load(InputStream input) {
+        public BuildCacheLoadCommand.Result<TaskOutputOriginMetadata> load(InputStream input) {
             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
-            TaskOutputPacker.UnpackResult unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
+            final TaskOutputPacker.UnpackResult unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
-            originMetadata = unpackResult.originMetadata;
-            artifactEntryCount = unpackResult.entries;
-        }
 
-        @Override
-        public boolean isLoaded() {
-            return originMetadata != null;
-        }
+            return new BuildCacheLoadCommand.Result<TaskOutputOriginMetadata>() {
+                @Override
+                public long getArtifactEntryCount() {
+                    return unpackResult.entries;
+                }
 
-        @Override
-        public long getArtifactEntryCount() {
-            return artifactEntryCount;
+                @Override
+                public TaskOutputOriginMetadata getMetadata() {
+                    return unpackResult.originMetadata;
+                }
+            };
         }
     }
 
-    public class StoreOp implements BuildCacheStoreOp {
+    private class StoreCommand implements BuildCacheStoreCommand {
 
         private final TaskOutputCachingBuildCacheKey cacheKey;
         private final TaskInternal task;
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
         private final Timer clock;
 
-        long artifactEntryCount;
-
-        private StoreOp(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
+        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
             this.cacheKey = cacheKey;
             this.task = task;
             this.outputProperties = outputProperties;
@@ -120,20 +114,15 @@ public class TaskBuildCacheOpFactory {
         }
 
         @Override
-        public void store(OutputStream output) throws IOException {
+        public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
             LOGGER.info("Packing {}", task.getPath());
-            TaskOutputPacker.PackResult packResult = packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
-            artifactEntryCount = packResult.entries;
-        }
-
-        @Override
-        public boolean isStored() {
-            return artifactEntryCount > 0;
-        }
-
-        @Override
-        public long getArtifactEntryCount() {
-            return artifactEntryCount;
+            final TaskOutputPacker.PackResult packResult = packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
+            return new BuildCacheStoreCommand.Result() {
+                @Override
+                public long getArtifactEntryCount() {
+                    return packResult.entries;
+                }
+            };
         }
 
     }

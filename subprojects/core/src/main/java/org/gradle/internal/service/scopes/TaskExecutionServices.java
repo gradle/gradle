@@ -57,7 +57,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.BuildCacheTaskServices;
-import org.gradle.caching.internal.tasks.TaskBuildCacheOpFactory;
+import org.gradle.caching.internal.tasks.TaskBuildCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
@@ -86,7 +86,7 @@ public class TaskExecutionServices {
     }
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
-                                    TaskBuildCacheOpFactory taskBuildCacheOpFactory,
+                                    TaskBuildCacheCommandFactory taskBuildCacheCommandFactory,
                                     BuildCacheController buildCacheController,
                                     StartParameter startParameter,
                                     ListenerManager listenerManager,
@@ -111,7 +111,7 @@ public class TaskExecutionServices {
             executer = new SkipCachedTaskExecuter(
                 buildCacheController,
                 taskOutputsGenerationListener,
-                taskBuildCacheOpFactory,
+                taskBuildCacheCommandFactory,
                 executer
             );
         }

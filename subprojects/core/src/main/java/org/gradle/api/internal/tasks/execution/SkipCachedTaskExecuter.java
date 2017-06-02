@@ -26,8 +26,9 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.tasks.TaskBuildCacheOpFactory;
+import org.gradle.caching.internal.tasks.TaskBuildCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.slf4j.Logger;
@@ -41,16 +42,16 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final BuildCacheController buildCache;
     private final TaskExecuter delegate;
     private final TaskOutputsGenerationListener taskOutputsGenerationListener;
-    private final TaskBuildCacheOpFactory buildCacheOpFactory;
+    private final TaskBuildCacheCommandFactory buildCacheCommandFactory;
 
     public SkipCachedTaskExecuter(
         BuildCacheController buildCache,
         TaskOutputsGenerationListener taskOutputsGenerationListener,
-        TaskBuildCacheOpFactory buildCacheOpFactory,
+        TaskBuildCacheCommandFactory buildCacheCommandFactory,
         TaskExecuter delegate
     ) {
         this.taskOutputsGenerationListener = taskOutputsGenerationListener;
-        this.buildCacheOpFactory = buildCacheOpFactory;
+        this.buildCacheCommandFactory = buildCacheCommandFactory;
         this.buildCache = buildCache;
         this.delegate = delegate;
     }
@@ -76,11 +77,12 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 // property values are locked in at this point.
                 outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
-                    TaskBuildCacheOpFactory.LoadOp loadOp = buildCacheOpFactory.loadOp(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock);
-                    buildCache.load(loadOp);
-                    if (loadOp.isLoaded()) {
+                    TaskOutputOriginMetadata originMetadata = buildCache.load(
+                        buildCacheCommandFactory.load(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock)
+                    );
+                    if (originMetadata != null) {
                         state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
-                        context.setOriginBuildInvocationId(loadOp.originMetadata.getBuildInvocationId());
+                        context.setOriginBuildInvocationId(originMetadata.getBuildInvocationId());
                         return;
                     }
                 } else {
@@ -96,7 +98,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         if (taskOutputCachingEnabled) {
             if (cacheKey.isValid()) {
                 if (state.getFailure() == null) {
-                    buildCache.store(buildCacheOpFactory.storeOp(cacheKey, outputProperties, task, clock));
+                    buildCache.store(buildCacheCommandFactory.store(cacheKey, outputProperties, task, clock));
                 } else {
                     LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
                 }

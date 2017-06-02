@@ -20,31 +20,34 @@ import org.gradle.caching.BuildCacheKey;
 
 import java.io.InputStream;
 
-/**
- * A stateful record of a potential load operation.
- */
-public interface BuildCacheLoadOp {
+public interface BuildCacheLoadCommand<T> {
 
     BuildCacheKey getKey();
 
     /**
-     * Can be called once to initiate a load.
+     * Called at-most-once to initiate loading the artifact from the input stream.
      */
-    void load(InputStream inputStream);
+    Result<T> load(InputStream inputStream);
 
-    /**
-     * True if a load has completed.
-     */
-    boolean isLoaded();
+    interface Result<T> {
 
-    /**
-     * If the store has completed, the number of entries in the stored artifact.
-     *
-     * This is used as a rough metric of the complexity of the archive for processing
-     * (in conjunction with the archive size).
-     *
-     * The meaning of “entry” is intentionally loose.
-     */
-    long getArtifactEntryCount();
+        /**
+         * The number of entries in the loaded artifact.
+         *
+         * This is used as a rough metric of the complexity of the archive for processing
+         * (in conjunction with the archive size).
+         *
+         * The meaning of “entry” is intentionally loose.
+         */
+        long getArtifactEntryCount();
+
+        /**
+         * Any metadata about the loaded artifact.
+         *
+         * Value may not be null.
+         */
+        T getMetadata();
+
+    }
 
 }

@@ -24,12 +24,12 @@ public class NoOpBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public void load(BuildCacheLoadOp loadOp) {
-
+    public <T> T load(BuildCacheLoadCommand<T> command) {
+        return null;
     }
 
     @Override
-    public void store(BuildCacheStoreOp storeOp) {
+    public void store(BuildCacheStoreCommand command) {
 
     }
 
