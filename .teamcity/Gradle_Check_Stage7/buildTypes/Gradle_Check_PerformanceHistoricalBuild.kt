@@ -1,10 +1,9 @@
 package Gradle_Check_Stage7.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v10.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep.*
+import jetbrains.buildServer.configs.kotlin.v10.BuildStep
+import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import jetbrains.buildServer.configs.kotlin.v10.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 
@@ -35,7 +34,7 @@ object Gradle_Check_PerformanceHistoricalBuild : BuildType({
     steps {
         gradle {
             name = "GRADLE_RUNNER"
-            gradleParams = "cleanDistributedFullPerformanceTest distributedFullPerformanceTests -x prepareSamples -PtimestampedVersion -PmaxParallelForks=%maxParallelForks% --baselines %baselines% --checks none -s --no-daemon --continue -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -PteamCityUsername=%TC_USERNAME% -PteamCityPassword=%teamcity.password.restbot% -Porg.gradle.performance.buildTypeId=Gradle_Master_Performance_IndividualPerformanceScenarioWorkersLinux -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% -Porg.gradle.performance.branchName=master  -Djava7.home=%linux.jdk.for.gradle.compile% -I ./gradle/buildScanInit.gradle"
+            gradleParams = "cleanDistributedFullPerformanceTest distributedFullPerformanceTests -x prepareSamples -PtimestampedVersion -PmaxParallelForks=%maxParallelForks% --baselines %baselines% --checks none -s --no-daemon --continue -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -PteamCityUsername=%TC_USERNAME% -PteamCityPassword=%teamcity.password.restbot% -Porg.gradle.performance.buildTypeId=Gradle_Master_Performance_IndividualPerformanceScenarioWorkersLinux -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% -Porg.gradle.performance.branchName=%teamcity.build.branch% -Djava7.home=%linux.jdk.for.gradle.compile% -I ./gradle/buildScanInit.gradle"
             useGradleWrapper = true
         }
         script {
