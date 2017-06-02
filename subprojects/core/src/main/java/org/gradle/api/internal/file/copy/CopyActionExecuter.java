@@ -25,6 +25,9 @@ public class CopyActionExecuter {
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
 
+    public CopyActionExecuter(Instantiator instantiator, FileSystem fileSystem) {
+      this(instantiator,fileSystem,false);
+    }
     public CopyActionExecuter(Instantiator instantiator, FileSystem fileSystem, boolean reproducibleFileOrder) {
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
