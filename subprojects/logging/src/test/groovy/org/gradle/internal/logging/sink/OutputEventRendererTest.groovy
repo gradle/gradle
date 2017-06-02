@@ -364,7 +364,7 @@ class OutputEventRendererTest extends OutputSpecification {
         outputs.stdErr == ''
     }
 
-    def "executor schedules at fixes rate"() {
+    def "executor schedules at fixed rate"() {
         given:
         def executor = Mock(ScheduledExecutorService)
         renderer.updateNowExecutor = executor
