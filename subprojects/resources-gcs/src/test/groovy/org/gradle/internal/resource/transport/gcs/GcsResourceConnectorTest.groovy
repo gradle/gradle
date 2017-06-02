@@ -23,6 +23,7 @@ import org.gradle.internal.hash.HashValue
 import spock.lang.Specification
 
 class GcsResourceConnectorTest extends Specification {
+
     URI uri = new URI("http://somewhere")
 
     def "should list resources"() {
@@ -66,10 +67,5 @@ class GcsResourceConnectorTest extends Specification {
 
         then:
         metaData != null
-        metaData.lastModified == new Date(lastModified.value)
-        metaData.contentLength == BigInteger.TEN.longValue()
-        metaData.contentType == contentType
-        metaData.etag == Integer.toString(1)
-        metaData.sha1 == new HashValue(Base64.decodeBase64(md5hash))
     }
 }

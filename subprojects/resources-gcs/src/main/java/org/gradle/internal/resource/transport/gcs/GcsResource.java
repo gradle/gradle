@@ -16,17 +16,15 @@
 
 package org.gradle.internal.resource.transport.gcs;
 
-import com.google.api.client.util.DateTime;
 import com.google.api.services.storage.model.StorageObject;
-import org.apache.commons.codec.binary.Base64;
-import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+
+import static org.gradle.internal.resource.transport.gcs.ResourceMapper.toExternalResourceMetaData;
 
 public class GcsResource implements ExternalResourceReadResponse {
 
@@ -40,31 +38,14 @@ public class GcsResource implements ExternalResourceReadResponse {
         this.uri = uri;
     }
 
+    @Override
     public InputStream openStream() throws IOException {
         return gcsClient.getResourceStream(gcsObject);
     }
 
-    public URI getURI() {
-        return uri;
-    }
-
-    public long getContentLength() {
-        return gcsObject.getSize().longValue();
-    }
-
-    public boolean isLocal() {
-        return false;
-    }
-
+    @Override
     public ExternalResourceMetaData getMetaData() {
-        DateTime lastModified = gcsObject.getUpdated();
-        byte[] hash = Base64.decodeBase64(gcsObject.getMd5Hash());
-        return new DefaultExternalResourceMetaData(uri,
-                lastModified.getValue(),
-                getContentLength(),
-                gcsObject.getContentType(),
-                gcsObject.getEtag(),
-                new HashValue(hash));
+        return toExternalResourceMetaData(uri, gcsObject);
     }
 
     @Override
