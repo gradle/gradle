@@ -61,7 +61,15 @@ class LoggingCommandLineConverterTest extends Specification {
          expect:
          checkConversion(['-w'])
          checkConversion(['--warn'])
-     }
+    }
+
+    def convertsDryRun() {
+        expectedConfig.dryRun = true
+
+        expect:
+        checkConversion(['-m'])
+        checkConversion(['--dry-run'])
+    }
 
     def convertsConsole() {
         expectedConfig.consoleOutput = consoleOutput

@@ -239,6 +239,7 @@ public class CommandLineActionFactory {
 
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
+            loggingManager.setDryRun(loggingConfiguration.isDryRun());
 
             if (parallelismConfiguration.isParallelProjectExecutionEnabled()) {
                 loggingManager.setMaxWorkerCount(parallelismConfiguration.getMaxWorkerCount());

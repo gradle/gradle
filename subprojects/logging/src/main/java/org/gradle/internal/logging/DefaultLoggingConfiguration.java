@@ -29,6 +29,7 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
+    private boolean dryRun;
 
     public boolean equals(Object obj) {
         return EqualsBuilder.reflectionEquals(this, obj);
@@ -58,6 +59,16 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     @Incubating
     public void setConsoleOutput(ConsoleOutput consoleOutput) {
         this.consoleOutput = consoleOutput;
+    }
+
+    @Override
+    public boolean isDryRun() {
+        return dryRun;
+    }
+
+    @Override
+    public void setDryRun(boolean dryRun) {
+        this.dryRun = dryRun;
     }
 
     @Override

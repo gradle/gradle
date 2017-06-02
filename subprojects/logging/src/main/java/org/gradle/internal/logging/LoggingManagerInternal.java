@@ -55,4 +55,9 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
      * Sets the worker count to display in the UI.
      */
     LoggingManagerInternal setMaxWorkerCount(int maxWorkerCount);
+
+    /**
+     * Enables or disables dry run mode.
+     */
+    LoggingManagerInternal setDryRun(boolean enableDryRun);
 }

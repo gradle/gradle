@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.sink
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.OperationIdentifier
@@ -35,6 +36,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 
 class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
+    private static final String EOL = "<Normal>${SystemProperties.instance.lineSeparator}</Normal>"
     private final OutputEventListener downstreamListener = Mock(OutputEventListener)
     def logHeaderFormatter = Mock(LogHeaderFormatter)
     def timeProvider = new MockTimeProvider()
@@ -153,7 +155,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskBStartEvent.description</Normal>".toString() })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" })
         then: 1 * logHeaderFormatter.format(taskAStartEvent.loggingHeader, taskAStartEvent.description, taskAStartEvent.shortDescription, taskACompleteEvent.status) >> { [new StyledTextOutputEvent.Span("Header $taskAStartEvent.description")] }
-        then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
+        then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] $EOL<Normal>Header $taskAStartEvent.description</Normal>".toString() })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
         then: 0 * downstreamListener._
     }
@@ -236,13 +238,13 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         when: listener.onOutput([taskBStartEvent, taskBOutput, taskBCompleteEvent])
 
         then: 1 * logHeaderFormatter.format(taskBStartEvent.loggingHeader, taskBStartEvent.description, taskBStartEvent.shortDescription, taskBCompleteEvent.status) >> { [new StyledTextOutputEvent.Span("Header $taskBStartEvent.description")] }
-        then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskBStartEvent.description</Normal>".toString() })
+        then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] $EOL<Normal>Header $taskBStartEvent.description</Normal>".toString() })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" })
 
         when: listener.onOutput([taskAOutput2, taskACompleteEvent, endEvent])
 
         then: 1 * logHeaderFormatter.format(taskAStartEvent.loggingHeader, taskAStartEvent.description, taskAStartEvent.shortDescription, taskACompleteEvent.status) >> { [new StyledTextOutputEvent.Span("Header $taskAStartEvent.description")] }
-        then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
+        then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] $EOL<Normal>Header $taskAStartEvent.description</Normal>".toString() })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] second message for task a" })
     }
 

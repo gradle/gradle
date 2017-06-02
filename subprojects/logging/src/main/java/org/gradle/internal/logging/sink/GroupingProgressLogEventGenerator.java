@@ -18,7 +18,9 @@ package org.gradle.internal.logging.sink;
 
 import com.google.common.base.Objects;
 import org.gradle.api.Nullable;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
+import org.gradle.internal.logging.events.DryRunChangeEvent;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
@@ -50,12 +52,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class GroupingProgressLogEventGenerator extends BatchOutputEventListener {
     static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
+    private static final StyledTextOutputEvent.Span EOL = new StyledTextOutputEvent.Span(SystemProperties.getInstance().getLineSeparator());
 
     private final OutputEventListener listener;
     private final TimeProvider timeProvider;
     private final ScheduledExecutorService executor;
     private final LogHeaderFormatter headerFormatter;
-    private final boolean alwaysRenderTasks;
+    private boolean renderTasks;
 
     // Maintain a hierarchy of all build operation ids — heads up: this is a *forest*, not just 1 tree
     private final Map<Object, Object> buildOpIdHierarchy = new HashMap<Object, Object>();
@@ -63,18 +66,19 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
     private final Map<OperationIdentifier, Object> progressToBuildOpIdMap = new HashMap<OperationIdentifier, Object>();
 
     private Object lastRenderedBuildOpId;
+    private boolean didHaveOutput;
     private ScheduledFuture future;
 
     public GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider, LogHeaderFormatter headerFormatter, boolean alwaysRenderTasks) {
         this(listener, timeProvider, Executors.newSingleThreadScheduledExecutor(), headerFormatter, alwaysRenderTasks);
     }
 
-    public GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider, ScheduledExecutorService executor, LogHeaderFormatter headerFormatter, boolean alwaysRenderTasks) {
+    public GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider, ScheduledExecutorService executor, LogHeaderFormatter headerFormatter, boolean renderTasks) {
         this.listener = listener;
         this.timeProvider = timeProvider;
         this.executor = executor;
         this.headerFormatter = headerFormatter;
-        this.alwaysRenderTasks = alwaysRenderTasks;
+        this.renderTasks = renderTasks;
     }
 
     public void onOutput(OutputEvent event) {
@@ -91,6 +95,9 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             executor.shutdownNow();
             onEnd((EndOutputEvent) event);
         } else if (!(event instanceof ProgressEvent)) {
+            if (event instanceof DryRunChangeEvent) {
+                renderTasks = ((DryRunChangeEvent) event).isDryRunEnabled();
+            }
             listener.onOutput(event);
         }
     }
@@ -163,6 +170,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             listener.onOutput(spacerLine(event.getTimestamp(), event.getCategory()));
             lastRenderedBuildOpId = null;
         }
+        didHaveOutput = true;
         listener.onOutput(event);
     }
 
@@ -207,7 +215,11 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         }
 
         private StyledTextOutputEvent header() {
-            return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, headerFormatter.format(loggingHeader, description, shortDescription, status));
+            List<StyledTextOutputEvent.Span> spans = headerFormatter.format(loggingHeader, description, shortDescription, status);
+            if (didHaveOutput) {
+                spans.add(0, EOL);
+            }
+            return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, spans);
         }
 
         synchronized void bufferOutput(RenderableOutputEvent output) {
@@ -226,6 +238,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
                     listener.onOutput(header());
                 }
 
+                didHaveOutput = bufferedLogs.size() > 0;
                 for (RenderableOutputEvent renderableEvent : bufferedLogs) {
                     listener.onOutput(renderableEvent);
                 }
@@ -247,7 +260,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         }
 
         private boolean shouldForward() {
-            return !bufferedLogs.isEmpty() || (alwaysRenderTasks && buildOperationCategory == BuildOperationCategory.TASK);
+            return !bufferedLogs.isEmpty() || (renderTasks && buildOperationCategory == BuildOperationCategory.TASK);
         }
     }
 }

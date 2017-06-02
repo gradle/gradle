@@ -188,12 +188,6 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
     }
 
     @Test
-    public void withDryRunFlagSet() {
-        expectedDryRun = true;
-        checkConversion("-m");
-    }
-
-    @Test
     public void withExcludeTask() {
         expectedExcludedTasks.add("excluded");
         checkConversion("-x", "excluded");

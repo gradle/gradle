@@ -44,6 +44,8 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     public static final String QUIET = "q";
     public static final String QUIET_LONG = "quiet";
     public static final String CONSOLE = "console";
+    public static final String DRY_RUN = "m";
+    public static final String DRY_RUN_LONG = "dry-run";
     public static final String FULL_STACKTRACE = "S";
     public static final String FULL_STACKTRACE_LONG = "full-stacktrace";
     public static final String STACKTRACE = "s";
@@ -84,6 +86,10 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
             }
         }
 
+        if (commandLine.hasOption(DRY_RUN) || commandLine.hasOption(DRY_RUN_LONG)) {
+            loggingConfiguration.setDryRun(true);
+        }
+
         return loggingConfiguration;
     }
 
@@ -95,6 +101,8 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         parser.allowOneOf(DEBUG, QUIET, INFO, WARN);
 
         parser.option(CONSOLE).hasArgument().hasDescription("Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'.");
+
+        parser.option(DRY_RUN, DRY_RUN_LONG).hasDescription("Run the builds with all task actions disabled.");
 
         parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace for all exceptions.");
         parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for all exceptions.");

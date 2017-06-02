@@ -79,7 +79,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean useEmptySettings;
     private File buildFile;
     private List<File> initScripts = new ArrayList<File>();
-    private boolean dryRun;
     private boolean rerunTasks;
     private boolean profile;
     private boolean continueOnFailure;
@@ -201,7 +200,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.gradleHomeDir = gradleHomeDir;
         p.initScripts = new ArrayList<File>(initScripts);
         p.includedBuilds = new ArrayList<File>(includedBuilds);
-        p.dryRun = dryRun;
+        p.setDryRun(isDryRun());
         p.projectCacheDir = projectCacheDir;
         return p;
     }
@@ -441,11 +440,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     public boolean isDryRun() {
-        return dryRun;
+        return loggingConfiguration.isDryRun();
     }
 
     public void setDryRun(boolean dryRun) {
-        this.dryRun = dryRun;
+        loggingConfiguration.setDryRun(dryRun);
     }
 
     /**
@@ -734,7 +733,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", showStacktrace=" + getShowStacktrace()
             + ", buildFile=" + buildFile
             + ", initScripts=" + initScripts
-            + ", dryRun=" + dryRun
+            + ", dryRun=" + isDryRun()
             + ", rerunTasks=" + rerunTasks
             + ", recompileScripts=" + recompileScripts
             + ", offline=" + offline
