@@ -34,6 +34,9 @@ import org.gradle.internal.os.OperatingSystem
  */
 @CompileStatic
 class DistributionTest extends Test {
+    
+    private Map<String, File> fileSystemProperties = [:]
+    private Set<String> ignoredSystemProperties = [] as Set
 
     DistributionTest() {
         dependsOn { requiresDists  ? ['all', 'bin', 'src'].collect { ":distributions:${it}Zip" } : null }
@@ -59,7 +62,7 @@ class DistributionTest extends Test {
      */
     @Input
     Map<String, Object> getPlainSystemProperties() {
-        super.getSystemProperties() - fileSystemProperties.collectEntries { key, value -> [(key): value.absolutePath] }
+        (super.getSystemProperties() - fileSystemProperties.collectEntries { key, value -> [(key): value.absolutePath] }).findAll { key, value -> !ignoredSystemProperties.contains(key)}
     }
 
     /**
@@ -148,8 +151,6 @@ class DistributionTest extends Test {
         this.daemonRegistry = fileSystemProperty('org.gradle.integtest.daemon.registry', daemonRegistry)
     }
 
-    private Map<String, File> fileSystemProperties = [:]
-
     File fileSystemProperty(String key, File value) {
         super.systemProperty(key, value.absolutePath)
         fileSystemProperties[key] = value
@@ -160,5 +161,9 @@ class DistributionTest extends Test {
         files.each { key, value ->
             fileSystemProperty(key, value)
         }
+    }
+
+    void ignoreSystemProperty(String name) {
+        ignoredSystemProperties.add(name)
     }
 }

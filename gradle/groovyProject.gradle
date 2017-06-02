@@ -1,4 +1,5 @@
 import org.gradle.build.ClasspathManifest
+import org.gradle.testing.DistributionTest
 
 import java.util.jar.Attributes
 
@@ -38,9 +39,14 @@ testTasks.all { task ->
             'org.gradle.ci.agentNum': rootProject.agentNum,
         ]
         systemProperties(ciProperties)
+
         // Ignore Forking/agentNum properties in order to be able to pull tests
-        inputs.property('systemProperties') {
-            systemProperties - ciProperties
+        if (task instanceof DistributionTest) {
+            ciProperties.each { key, value -> task.ignoreSystemProperty(key) }
+        } else {
+            inputs.property('systemProperties') {
+                systemProperties - ciProperties
+            }
         }
     }
     if (javaVersion.java7) {
