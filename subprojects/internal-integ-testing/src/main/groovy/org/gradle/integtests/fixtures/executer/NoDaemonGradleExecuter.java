@@ -38,17 +38,17 @@ import java.util.Map;
 
 import static org.junit.Assert.fail;
 
-public class ForkingGradleExecuter extends AbstractGradleExecuter {
+public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
-    public ForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
+    public NoDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
     }
 
-    public ForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion version) {
+    public NoDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion version) {
         super(distribution, testDirectoryProvider, version);
     }
 
-    public ForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+    public NoDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
 
@@ -154,7 +154,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             public File getWorkingDir() {
                 // Override this, so that the working directory is not canonicalised. Some int tests require that
                 // the working directory is not canonicalised
-                return ForkingGradleExecuter.this.getWorkingDir();
+                return NoDaemonGradleExecuter.this.getWorkingDir();
             }
         };
 

@@ -37,11 +37,7 @@ forkingIntegTest {
     maxParallelForks = Math.min(2, rootProject.maxParallelForks)
 }
 
-parallelIntegTest {
-    enabled = false //tooling integ tests use parallel settings, don't run
-}
-
-daemonIntegTest {
+[ forkingIntegTest, parallelIntegTest ]*.configure {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 

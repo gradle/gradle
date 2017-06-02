@@ -34,7 +34,7 @@ configurations {
     dists
 }
 
-daemonIntegTest.enabled = false
+[ forkingIntegTest, parallelIntegTest ]*.configure { enabled = false }
 
 evaluationDependsOn ":docs"
 

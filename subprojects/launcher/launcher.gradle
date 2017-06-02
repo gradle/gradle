@@ -53,7 +53,7 @@ task startScripts(type: GradleStartScriptGenerator) {
     launcherJar = jar.outputs.files
 }
 
-daemonIntegTest {
+[ forkingIntegTest, parallelIntegTest ]*.configure {
     //those tests are always using the daemon, they use exclusive daemons and they are a part of a regular check-in build anyway.
     //since they are using exclusive daemons they don't contribute to the daemonIntegTest stress/load test.
     //excluding to avoid unnecessary re-running and stealing resources.

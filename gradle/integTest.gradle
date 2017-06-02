@@ -52,7 +52,7 @@ task integTest(type: IntegrationTest) {
 }
 check.dependsOn(integTest)
 
-['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
+['embedded', 'forking', 'noDaemon', 'embeddedDaemon', 'parallel'].each { mode ->
     def taskName = "${mode}IntegTest"
     tasks.create(taskName, IntegrationTest).configure {
         description "Runs integTests with '${mode}' executer"
