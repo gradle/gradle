@@ -215,6 +215,15 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         ! stdout.stdErr.contains("java.lang.IllegalStateException")
     }
 
+    def "handles output during worker shutdown"() {
+        when:
+        execute(worker(new MessageProducingProcess()))
+
+        then:
+        noExceptionThrown()
+        ! stdout.stdErr.contains("java.lang.IllegalStateException")
+    }
+
     private class ChildProcess {
         private boolean stopFails;
         private boolean startFails;
