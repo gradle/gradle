@@ -76,7 +76,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     @Override
     public <T> T doLoad(final BuildCacheLoadCommand<T> command) {
-        final String description = "Loading entry " + command.getKey() + " from " + role.getDisplayName() + " build cache";
+        final String description = "Load entry " + command.getKey() + " from " + role.getDisplayName() + " build cache";
         return buildOperationExecutor.call(new CallableBuildOperation<T>() {
             @Override
             public T call(BuildOperationContext context) {
@@ -159,7 +159,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     private void doStoreInner(final BuildCacheKey key, final Factory<BuildCacheStoreBuildOperationType.Result> resultFactory) {
-        final String description = "Storing entry " + key + " in " + role.getDisplayName() + " build cache";
+        final String description = "Store entry " + key + " in " + role.getDisplayName() + " build cache";
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
