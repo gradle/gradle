@@ -104,7 +104,11 @@ project.logger.debug("debug logging");
         then:
         def out = op.result.output
         def err = op.result.error
-        normaliseOutput(out) == normaliseOutput(commandLineResult.output)
+        def commandLineOutput = commandLineResult.output
+        if (commandLineOutput.startsWith('Starting a Gradle Daemon')) {
+            commandLineOutput = commandLineOutput.substring(commandLineOutput.indexOf('\n') + 1)
+        }
+        normaliseOutput(out) == normaliseOutput(commandLineOutput)
         err == commandLineResult.error
 
         and:
@@ -122,7 +126,6 @@ project.logger.debug("debug logging");
     private ExecutionResult runUsingCommandLine() {
         targetDist.executer(temporaryFolder, getBuildContext())
             .requireGradleDistribution()
-            .withArgument("--no-daemon") //suppress daemon usage suggestions
             .withBuildJvmOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
             .run()
     }
