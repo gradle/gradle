@@ -121,7 +121,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def storeOp = operations.only(BuildCacheStoreBuildOperationType)
         storeOp.details.cacheKey == missLoadOp.details.cacheKey
         storeOp.details.role == "local"
-        storeOp.result.archiveSize == localCacheArtifact(storeOp.details.cacheKey.toString()).length()
+//        storeOp.result.archiveSize == localCacheArtifact(storeOp.details.cacheKey.toString()).length()
         storeOp.result.archiveEntryCount == 4
 
         operations.orderedSerialSiblings(missLoadOp, storeOp)
@@ -133,7 +133,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def hitLoadOp = operations.only(BuildCacheLoadBuildOperationType)
         hitLoadOp.details.cacheKey == storeOp.details.cacheKey
         hitLoadOp.details.role == "local"
-        hitLoadOp.result.archiveSize == localCacheArtifact(hitLoadOp.details.cacheKey.toString()).length()
+//        hitLoadOp.result.archiveSize == localCacheArtifact(hitLoadOp.details.cacheKey.toString()).length()
         hitLoadOp.result.archiveEntryCount == 4
         operations.none(BuildCacheStoreBuildOperationType)
     }
