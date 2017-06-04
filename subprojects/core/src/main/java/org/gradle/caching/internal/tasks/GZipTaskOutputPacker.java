@@ -63,6 +63,14 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
         try {
             return delegate.unpack(propertySpecs, gzipInput, readOrigin);
         } finally {
+            try {
+                //noinspection StatementWithEmptyBody
+                while (gzipInput.read() != -1) {
+                    // loop
+                }
+            } catch (IOException ignore) {
+                // ignore
+            }
             IOUtils.closeQuietly(gzipInput);
         }
     }
