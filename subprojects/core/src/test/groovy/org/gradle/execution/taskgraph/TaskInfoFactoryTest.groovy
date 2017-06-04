@@ -19,8 +19,8 @@ package org.gradle.execution.taskgraph
 import org.gradle.api.internal.TaskInternal
 import spock.lang.Specification
 
-class TaskDependencyGraphTest extends Specification {
-    def graph = new TaskDependencyGraph()
+class TaskInfoFactoryTest extends Specification {
+    def graph = new TaskInfoFactory()
     def a = task('a')
     def b = task('b')
     def c = task('c')
@@ -36,7 +36,7 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'can create a node for a task'() {
         when:
-        def node = graph.addNode(a)
+        def node = graph.createNode(a)
 
         then:
         !node.inKnownState
@@ -49,17 +49,16 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'caches node for a given task'() {
         when:
-        def node = graph.addNode(a)
+        def node = graph.createNode(a)
 
         then:
-        graph.getNode(a).is(node)
-        graph.addNode(a).is(node)
+        graph.createNode(a).is(node)
     }
 
     void 'can add multiple nodes'() {
         when:
-        graph.addNode(a)
-        graph.addNode(b)
+        graph.createNode(a)
+        graph.createNode(b)
 
         then:
         graph.tasks == [a, b] as Set
@@ -67,9 +66,9 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'clear'() {
         when:
-        graph.addNode(a)
-        graph.addNode(b)
-        graph.addNode(c)
+        graph.createNode(a)
+        graph.createNode(b)
+        graph.createNode(c)
         graph.clear()
 
         then:

@@ -17,30 +17,29 @@
 package org.gradle.execution.taskgraph;
 
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.includedbuild.internal.IncludedBuildTaskResource;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class TaskDependencyGraph {
+public class TaskInfoFactory {
     private final Map<Task, TaskInfo> nodes = new HashMap<Task, TaskInfo>();
 
     public Set<Task> getTasks() {
         return nodes.keySet();
     }
 
-    @Nullable
-    public TaskInfo getNode(Task task) {
-        return nodes.get(task);
-    }
-
-    public TaskInfo addNode(Task task) {
+    public TaskInfo createNode(Task task) {
         TaskInfo node = nodes.get(task);
         if (node == null) {
-            node = new TaskInfo((TaskInternal) task);
+            if (task instanceof IncludedBuildTaskResource) {
+                node = new TaskResourceTaskInfo((TaskInternal) task);
+            } else {
+                node = new TaskInfo((TaskInternal) task);
+            }
             nodes.put(task, node);
         }
         return node;
@@ -48,5 +47,23 @@ public class TaskDependencyGraph {
 
     public void clear() {
         nodes.clear();
+    }
+
+    private static class TaskResourceTaskInfo extends TaskInfo {
+        public TaskResourceTaskInfo(TaskInternal task) {
+            super(task);
+            doNotRequire();
+        }
+
+        @Override
+        public void require() {
+            // Ignore
+        }
+
+        @Override
+        public boolean isComplete() {
+            IncludedBuildTaskResource task = (IncludedBuildTaskResource) getTask();
+            return task.isComplete();
+        }
     }
 }

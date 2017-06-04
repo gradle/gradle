@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.includedbuild.internal;
 
-import org.gradle.api.initialization.IncludedBuild;
-
-public interface IncludedBuilds {
-    Iterable<IncludedBuild> getBuilds();
-    IncludedBuild getBuild(String name);
+/**
+ * A resource produced by a task in an included build.
+ */
+public interface IncludedBuildTaskResource {
+    boolean isComplete();
 }

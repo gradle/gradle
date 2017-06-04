@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.composite;
+/**
+ * Classes for declaring and interacting with included builds in a composite.
+ */
+@Incubating
+package org.gradle.includedbuild;
 
-import org.gradle.includedbuild.IncludedBuild;
-import org.gradle.api.internal.SettingsInternal;
-
-public interface CompositeContextBuilder {
-    /**
-     * Set the root, or including, build.
-     */
-    void setRootBuild(SettingsInternal settings);
-
-    /**
-     * Add the participants to the composite context, using the currently executing build context.
-     */
-    void addIncludedBuilds(Iterable<IncludedBuild> includedBuilds);
-}
+import org.gradle.api.Incubating;

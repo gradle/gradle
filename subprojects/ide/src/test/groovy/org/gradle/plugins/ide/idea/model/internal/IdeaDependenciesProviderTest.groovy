@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildIdentity
-import org.gradle.initialization.IncludedBuildExecuter
+import org.gradle.includedbuild.internal.IncludedBuildTaskGraph
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
@@ -35,7 +35,7 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
     def serviceRegistry = new DefaultServiceRegistry()
         .add(LocalComponentRegistry, Stub(LocalComponentRegistry))
-        .add(IncludedBuildExecuter, Stub(IncludedBuildExecuter))
+        .add(IncludedBuildTaskGraph, Stub(IncludedBuildTaskGraph))
         .add(BuildIdentity, new DefaultBuildIdentity(new DefaultBuildIdentifier("foo")))
     private final dependenciesProvider = new IdeaDependenciesProvider(serviceRegistry)
 

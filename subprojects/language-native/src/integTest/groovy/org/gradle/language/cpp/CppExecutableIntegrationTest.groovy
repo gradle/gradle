@@ -175,7 +175,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":assemble"
-        result.assertTasksExecuted(":lib1:compileCpp", ":lib1:linkMain", ":lib1:lib2", ":lib1", ":lib2:compileCpp", ":lib2:linkMain", ":lib2", ":compileCpp", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksExecuted(":lib1:compileCpp", ":lib1:linkMain",  ":lib2:compileCpp", ":lib2:linkMain", ":compileCpp", ":linkMain", ":installMain", ":assemble")
         sharedLibrary("lib1/build/lib/lib1").assertExists()
         sharedLibrary("lib2/build/lib/lib2").assertExists()
         executable("build/exe/app").assertExists()

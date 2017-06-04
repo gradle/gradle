@@ -111,6 +111,7 @@ class DefaultGradleLauncherSpec extends Specification {
         _ * taskExecuterMock.getFilteredTasks() >> [Mock(Task)]
         _ * gradleMock.getStartParameter() >> expectedStartParams
         _ * gradleMock.getServices() >> buildScopeServices
+        _ * gradleMock.includedBuilds >> []
         0 * gradleMock._
 
         buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess

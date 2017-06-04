@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.includedbuild.internal;
 
-package org.gradle.internal.composite;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 
-import org.gradle.includedbuild.IncludedBuild;
-import org.gradle.api.internal.SettingsInternal;
+public interface IncludedBuildControllers {
+    void startTaskExecution();
 
-public interface CompositeContextBuilder {
-    /**
-     * Set the root, or including, build.
-     */
-    void setRootBuild(SettingsInternal settings);
-
-    /**
-     * Add the participants to the composite context, using the currently executing build context.
-     */
-    void addIncludedBuilds(Iterable<IncludedBuild> includedBuilds);
+    IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
 }

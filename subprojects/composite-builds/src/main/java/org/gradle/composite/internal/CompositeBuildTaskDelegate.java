@@ -19,17 +19,16 @@ package org.gradle.composite.internal;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.initialization.IncludedBuildTaskGraph;
+import org.gradle.api.tasks.Internal;
+import org.gradle.includedbuild.internal.IncludedBuildTaskResource;
+import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
 
 import javax.inject.Inject;
 
-// TODO:DAZ Make a separate delegating task per target task in the included build
-// so that we can wait for the specific task required.
-// Or get rid of the delegating task altogether
-public class CompositeBuildTaskDelegate extends DefaultTask {
+public class CompositeBuildTaskDelegate extends DefaultTask implements IncludedBuildTaskResource {
     private final IncludedBuildTaskGraph taskGraph;
     private BuildIdentifier build;
+    private String taskPath;
 
     @Inject
     public CompositeBuildTaskDelegate(IncludedBuildTaskGraph taskGraph) {
@@ -45,8 +44,18 @@ public class CompositeBuildTaskDelegate extends DefaultTask {
         this.build = build;
     }
 
-    @TaskAction
-    public void executeTasksInOtherBuild() {
-        taskGraph.awaitCompletion(build);
+    @Input
+    public String getTaskPath() {
+        return taskPath;
+    }
+
+    public void setTaskPath(String taskPath) {
+        this.taskPath = taskPath;
+    }
+
+    @Internal
+    @Override
+    public boolean isComplete() {
+        return taskGraph.isComplete(build, taskPath);
     }
 }

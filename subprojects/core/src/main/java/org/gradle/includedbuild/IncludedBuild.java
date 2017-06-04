@@ -14,12 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.includedbuild;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.Incubating;
+import org.gradle.api.tasks.TaskReference;
+import org.gradle.internal.HasInternalProtocol;
 
-public interface IncludedBuildTaskGraph {
-    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskName);
+import java.io.File;
 
-    void awaitCompletion(BuildIdentifier targetBuild);
+/**
+ * A build that is included in the composite.
+ */
+@Incubating
+@HasInternalProtocol
+public interface IncludedBuild {
+    /**
+     * The name of the included build.
+     */
+    String getName();
+
+    /**
+     * The root directory of the included build.
+     */
+    File getProjectDir();
+
+    /**
+     * Produces a reference to a task in the included build.
+     */
+    TaskReference task(String path);
 }
