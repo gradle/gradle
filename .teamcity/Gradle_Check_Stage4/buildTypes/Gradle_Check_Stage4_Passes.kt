@@ -48,29 +48,29 @@ object Gradle_Check_Stage4_Passes : BuildType({
     dependencies {
         dependency(Gradle_Check_Stage4.buildTypes.Gradle_Check_GradleceptionJava8Linux) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
         dependency(Gradle_Check_Stage4.buildTypes.Gradle_Check_PerformanceTestCoordinatorLinux) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
         dependency(Gradle_Check_Stage3.buildTypes.Gradle_Check_Stage3_Passes) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
 
         for (bucket in 1..8) {
             dependency("Gradle_Check_Stage4_TestCoverageForkedJava8Windows_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
             dependency("Gradle_Check_TestCoverageForkedJava7Linux_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
         }

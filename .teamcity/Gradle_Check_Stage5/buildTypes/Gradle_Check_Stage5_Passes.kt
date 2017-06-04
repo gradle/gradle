@@ -75,39 +75,39 @@ object Gradle_Check_Stage5_Passes : BuildType({
     dependencies {
         dependency(Gradle_Check_Stage5.buildTypes.Gradle_Check_ColonyCompatibility) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
         dependency(Gradle_Check_Stage5.buildTypes.Gradle_Check_SmokeTestsJava8Linux) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
         dependency(Gradle_Check_Stage4.buildTypes.Gradle_Check_Stage4_Passes) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
 
         for (bucket in 1..8) {
             dependency("Gradle_Check_TestCoverageCrossVersionJava7Linux_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
             dependency("Gradle_Check_TestCoverageCrossVersionJava7Windows_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
             dependency("Gradle_Check_TestCoverageForkedJava9Linux_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
             dependency("Gradle_Check_TestCoverageParallelJava7IBMLinux_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
         }

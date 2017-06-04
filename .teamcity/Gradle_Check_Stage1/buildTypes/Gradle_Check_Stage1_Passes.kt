@@ -1,10 +1,9 @@
 package Gradle_Check_Stage1.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v10.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep.*
+import jetbrains.buildServer.configs.kotlin.v10.BuildStep
+import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import jetbrains.buildServer.configs.kotlin.v10.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 
@@ -49,12 +48,12 @@ object Gradle_Check_Stage1_Passes : BuildType({
     dependencies {
         dependency(Gradle_Check_Stage1.buildTypes.Gradle_Check_Stage1_BuildDistributions) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
         dependency(Gradle_Check_Stage1.buildTypes.Gradle_Check_Stage1_SanityCheck) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
     }

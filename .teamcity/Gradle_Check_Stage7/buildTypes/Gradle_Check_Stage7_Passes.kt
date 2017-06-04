@@ -78,34 +78,34 @@ object Gradle_Check_Stage7_Passes : BuildType({
     dependencies {
         dependency(Gradle_Check_Stage7.buildTypes.Gradle_Check_PerformanceHistoricalBuild) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
         dependency(Gradle_Check_Stage6.buildTypes.Gradle_Check_Stage6_Passes) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
 
         for (bucket in 1..8) {
             dependency("Gradle_Check_TestCoverageCrossVersionFullJava7Linux_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
             dependency("Gradle_Check_TestCoverageCrossVersionFullJava7Windows_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
             dependency("Gradle_Check_TestCoverageNoDaemonJava8Linux_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
             dependency("Gradle_Check_TestCoverageNoDaemonJava8Windows_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
         }

@@ -46,14 +46,14 @@ object Gradle_Check_Stage2_Passes : BuildType({
         dependency(Gradle_Check_Stage1.buildTypes.Gradle_Check_Stage1_Passes) {
             snapshot {
                 reuseBuilds = ReuseBuilds.NO
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
 
         for (bucket in 8 downTo 1) {
             dependency("Gradle_Check_TestCoverageEmbeddedJava8Linux_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
         }

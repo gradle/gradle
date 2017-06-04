@@ -61,14 +61,14 @@ object Gradle_Check_Stage3_Passes : BuildType({
     dependencies {
         dependency(Gradle_Check_Stage2.buildTypes.Gradle_Check_Stage2_Passes) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
 
         for (bucket in 1..8) {
             dependency("Gradle_Check_TestCoverageEmbeddedJava7Windows_$bucket") {
                 snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
         }

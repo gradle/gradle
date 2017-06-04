@@ -78,22 +78,22 @@ object Gradle_Check_Stage6_Passes : BuildType({
     dependencies {
         dependency(Gradle_Check_Stage6.buildTypes.Gradle_Check_PerformanceExperimentsCoordinatorLinux) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
         dependency(Gradle_Check_Stage6.buildTypes.Gradle_Check_SoakTestsJava8Linux) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
         dependency(Gradle_Check_Stage6.buildTypes.Gradle_Check_SoakTestsJava8Windows) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
         dependency(Gradle_Check_Stage5.buildTypes.Gradle_Check_Stage5_Passes) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyFailure = FailureAction.ADD_PROBLEM
             }
         }
     }
