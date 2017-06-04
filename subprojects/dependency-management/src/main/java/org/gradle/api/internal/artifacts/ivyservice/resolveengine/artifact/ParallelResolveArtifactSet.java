@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -72,7 +71,7 @@ public abstract class ParallelResolveArtifactSet {
             }
 
             @Override
-            public void artifactAvailable(ResolvedArtifact artifact) {
+            public void artifactAvailable(ResolvableArtifact artifact) {
                 // Don't care, collect the artifacts later (in the correct order)
             }
 
