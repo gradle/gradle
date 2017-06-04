@@ -58,8 +58,11 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
+    private final WorkerDirectoryProvider workerDirectoryProvider;
 
-    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
+                                 FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor,
+                                 AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -68,6 +71,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
+        this.workerDirectoryProvider = workerDirectoryProvider;
     }
 
     @Override
@@ -79,12 +83,12 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         // Serialize parameters in this thread prior to starting work in a separate thread
         ActionExecutionSpec spec;
         try {
-            spec = new ActionExecutionSpec(actionClass, description, configuration.getParams());
+            spec = new ActionExecutionSpec(actionClass, description, workerDirectoryProvider.getDefaultWorkerDirectory(), configuration.getForkOptions().getWorkingDir(), configuration.getParams());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
 
-        submit(spec, configuration.getForkOptions().getWorkingDir(), configuration.getIsolationMode(), getDaemonForkOptions(actionClass, configuration));
+        submit(spec, workerDirectoryProvider.getDefaultWorkerDirectory(), configuration.getIsolationMode(), getDaemonForkOptions(actionClass, configuration));
     }
 
     private void submit(final ActionExecutionSpec spec, final File workingDir, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
@@ -95,7 +99,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             public DefaultWorkResult call() throws Exception {
                 try {
                     WorkerFactory workerFactory = getWorkerFactory(isolationMode);
-                    Worker<ActionExecutionSpec> worker = workerFactory.getWorker(WorkerDaemonServer.class, workingDir, daemonForkOptions);
+                    Worker<ActionExecutionSpec> worker = workerFactory.getWorker(getWorkerServer(isolationMode), workingDir, daemonForkOptions);
                     return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);
@@ -122,6 +126,19 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 return noIsolationWorkerFactory;
             case PROCESS:
                 return daemonWorkerFactory;
+            default:
+                throw new IllegalArgumentException("Unknown isolation mode: " + isolationMode);
+        }
+    }
+
+    private Class<? extends WorkerProtocol<ActionExecutionSpec>> getWorkerServer(IsolationMode isolationMode) {
+        switch(isolationMode) {
+            case AUTO:
+            case CLASSLOADER:
+            case NONE:
+                return WorkerServer.class;
+            case PROCESS:
+                return WorkerDaemonServer.class;
             default:
                 throw new IllegalArgumentException("Unknown isolation mode: " + isolationMode);
         }

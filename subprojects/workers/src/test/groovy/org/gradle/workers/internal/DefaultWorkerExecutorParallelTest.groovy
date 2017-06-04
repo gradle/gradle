@@ -40,6 +40,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
+    def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
     def fileResolver = Mock(FileResolver)
     def stoppableExecutor = Mock(ManagedExecutor)
     ListenableFutureTask task
@@ -49,7 +50,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * fileResolver.resolveLater(_) >> fileFactory()
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * workerExecutorFactory.create(_ as String) >> stoppableExecutor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider)
     }
 
     @Unroll

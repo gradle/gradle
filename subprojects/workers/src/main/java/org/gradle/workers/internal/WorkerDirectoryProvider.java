@@ -18,6 +18,9 @@ package org.gradle.workers.internal;
 
 import java.io.File;
 
-public interface WorkerFactory {
-    <T extends WorkSpec> Worker<T> getWorker(Class<? extends WorkerProtocol<T>> workerImplementationClass, File workingDir, DaemonForkOptions forkOptions);
+public interface WorkerDirectoryProvider {
+    /**
+     * Returns a File object representing the default working directory for providers.
+     */
+    File getDefaultWorkerDirectory();
 }

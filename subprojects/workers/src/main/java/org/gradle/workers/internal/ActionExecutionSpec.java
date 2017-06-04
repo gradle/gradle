@@ -21,6 +21,7 @@ import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -31,11 +32,15 @@ import java.io.ObjectOutputStream;
 public class ActionExecutionSpec implements WorkSpec {
     private final String displayName;
     private final Class<? extends Runnable> implementationClass;
+    private final File defaultDir;
+    private final File workingDir;
     private final byte[] params;
 
-    ActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, Object[] params) {
+    ActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, File defaultDir, File workingDir, Object[] params) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
+        this.defaultDir = defaultDir;
+        this.workingDir = workingDir;
         this.params = serialize(params);
     }
 
@@ -46,6 +51,14 @@ public class ActionExecutionSpec implements WorkSpec {
     @Override
     public String getDisplayName() {
         return displayName;
+    }
+
+    public File getDefaultDir() {
+        return defaultDir;
+    }
+
+    public File getWorkingDir() {
+        return workingDir;
     }
 
     public Object[] getParams(ClassLoader classLoader) {
