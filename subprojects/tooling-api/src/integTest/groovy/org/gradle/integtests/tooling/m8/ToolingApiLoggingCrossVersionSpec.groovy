@@ -105,7 +105,7 @@ project.logger.debug("debug logging");
         def out = op.result.output
         def err = op.result.error
         def commandLineOutput = commandLineResult.output
-        if (commandLineOutput.startsWith('Starting a Gradle Daemon')) {
+        if (commandLineOutput.startsWith('Starting a Gradle Daemon') || commandLineOutput.startsWith("Parallel execution is an incubating feature.")) {
             commandLineOutput = commandLineOutput.substring(commandLineOutput.indexOf('\n') + 1)
         }
         normaliseOutput(out) == normaliseOutput(commandLineOutput)
