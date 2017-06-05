@@ -119,7 +119,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         fails('log')
 
         then:
-        result.groupedOutput.task(':log').output == "First line of text\n\n\nLast line of text"
+        result.groupedOutput.task(':log').output =~ /First line of text\n{3,}Last line of text/
     }
 
     @IgnoreIf({ !GradleContextualExecuter.parallel })
