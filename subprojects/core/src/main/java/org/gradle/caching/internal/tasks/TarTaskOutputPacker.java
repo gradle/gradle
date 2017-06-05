@@ -213,12 +213,23 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public UnpackResult unpack(final SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, final TaskOutputOriginReader readOrigin) {
+    public UnpackResult unpack(final SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, final InputStream input, final TaskOutputOriginReader readOrigin) {
         return IoActions.withResource(new TarInputStream(input), new Transformer<UnpackResult, TarInputStream>() {
             @Override
             public UnpackResult transform(TarInputStream tarInput) {
                 try {
-                    return unpack(propertySpecs, tarInput, readOrigin);
+                    UnpackResult unpack = unpack(propertySpecs, tarInput, readOrigin);
+                    try {
+                        int read = input.read();
+                        System.out.println("read: " + read);
+                        while (read != -1) {
+                            read = input.read();
+                            System.out.println("read: " + read);
+                        }
+                    } catch (IOException ignore) {
+                        ignore.printStackTrace();
+                    }
+                    return unpack;
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
