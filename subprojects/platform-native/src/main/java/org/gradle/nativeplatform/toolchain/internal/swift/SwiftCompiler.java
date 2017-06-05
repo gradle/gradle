@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.swift;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -28,6 +29,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Arrays;
@@ -68,7 +70,19 @@ class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
                     genericArgs.add(sourceFile.getAbsolutePath());
                 }
 
-                List<String> outputArgs = getOutputArgs(new File(objectDir, "main"));
+                boolean isLibrary = null != CollectionUtils.findFirst(genericArgs, new Spec<String>() {
+                    @Override
+                    public boolean isSatisfiedBy(String element) {
+                        return element.equals("-emit-library");
+                    }
+                });
+                String extension = "";
+                String prefix = "";
+                if (isLibrary) {
+                    extension = ".dylib";
+                    prefix = "lib";
+                }
+                List<String> outputArgs = getOutputArgs(new File(objectDir, prefix + "main" + extension));
 
 
                 CommandLineToolInvocation perFileInvocation =
