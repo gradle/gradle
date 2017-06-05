@@ -19,7 +19,6 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -64,26 +63,14 @@ include 'a', 'b'
 
     def useClassesDir() {
         buildFile << """import static org.gradle.api.attributes.Usage.*;
-            def testUsage = Attribute.of('test.usage', String)
             allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(testUsage)
+                configurations.apiElements.outgoing.variants {
+                    classes {
+                        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API_CLASSES))
+                        artifact file: compileJava.destinationDir, builtBy: compileJava
+                        artifact file: emptyDirs.destinationDir, builtBy: emptyDirs
+                        artifact file: processResources.destinationDir, builtBy: processResources
                     }
-                }
-                configurations.compile {
-                    attributes.attribute USAGE_ATTRIBUTE, FOR_COMPILE
-                    attributes.attribute testUsage, 'classdir'
-                }
-                configurations.compileClasspath {
-                    attributes.attribute USAGE_ATTRIBUTE, FOR_COMPILE
-                    attributes.attribute testUsage, 'classdir'
-                    canBeConsumed = false
-                }
-                artifacts {
-                    compile file: compileJava.destinationDir, builtBy: compileJava
-                    compile file: emptyDirs.destinationDir, builtBy: emptyDirs
-                    compile file: processResources.destinationDir, builtBy: processResources
                 }
             }
         """
@@ -1032,20 +1019,17 @@ public class ToolImpl {
         executedAndNotSkipped ':d:compileJava'
     }
 
-    @Unroll
     @Issue("gradle/gradle#1913")
-    def "detects changes in compile classpath with #config change"() {
+    def "detects changes in compile classpath"() {
         given:
         buildFile << """
-            apply plugin: 'java-library'
-               
             repositories {
                jcenter()
             }
             
             dependencies {
                if (project.hasProperty('useCommons')) {
-                  $config 'org.apache.commons:commons-lang3:3.5'
+                  implementation 'org.apache.commons:commons-lang3:3.5'
                }
                
                // There MUST be at least 3 dependencies, in that specific order, for the bug to show up.
@@ -1053,8 +1037,8 @@ public class ToolImpl {
                // beginning of a list, when the collection is ordered. It has been agreed not to fix it now, but
                // rather change the incremental compiler not to rely on this incorrect information
                
-               $config 'net.jcip:jcip-annotations:1.0'
-               $config 'org.slf4j:slf4j-api:1.7.10'
+               implementation 'net.jcip:jcip-annotations:1.0'
+               implementation 'org.slf4j:slf4j-api:1.7.10'
             }
         """
         file("src/main/java/Client.java") << """import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -1077,13 +1061,9 @@ public class ToolImpl {
 
         then:
         failure.assertHasCause('Compilation failed; see the compiler error output for details.')
-
-        where:
-        config << ['api', 'implementation', 'compile']
     }
 
-    @Unroll
-    def "detects changes in compile classpath order with #config"() {
+    def "detects changes in compile classpath order"() {
         given:
         ['a', 'b'].each {
             // Same class is defined in both project `a` and `b` but with a different ABI
@@ -1095,8 +1075,6 @@ public class ToolImpl {
             """
         }
         buildFile << """
-            apply plugin: 'java-library'
-               
             repositories {
                jcenter()
             }
@@ -1104,14 +1082,14 @@ public class ToolImpl {
             dependencies {
                switch (project.getProperty('order') as int) {
                   case 0:
-                    $config 'org.apache.commons:commons-lang3:3.5'
-                    $config project(':a')
-                    $config project(':b')
+                    implementation 'org.apache.commons:commons-lang3:3.5'
+                    implementation project(':a')
+                    implementation project(':b')
                     break
                   case 1:
-                    $config 'org.apache.commons:commons-lang3:3.5'
-                    $config project(':b')
-                    $config project(':a')
+                    implementation 'org.apache.commons:commons-lang3:3.5'
+                    implementation project(':b')
+                    implementation project(':a')
                }
             }
         """
@@ -1136,9 +1114,5 @@ public class ToolImpl {
 
         then:
         failure.assertHasCause('Compilation failed; see the compiler error output for details.')
-
-        where:
-        config << ['api'/*, 'implementation', 'compile'*/]
     }
-
 }

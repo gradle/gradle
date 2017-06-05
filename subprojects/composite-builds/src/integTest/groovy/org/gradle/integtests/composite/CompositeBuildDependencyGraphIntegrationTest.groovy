@@ -100,6 +100,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -127,9 +128,11 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
             edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -150,9 +153,11 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
             edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -177,11 +182,12 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                 }
-
             }
         }
     }
@@ -207,6 +213,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 module("org.test:transitive2:1.0") {
                     module("org.test:transitive1:1.0")
@@ -243,6 +250,7 @@ include ':b1:b11'
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 project(":buildB:b1", "org.test:b1:2.0") {
                     project(":buildB:b1:b11", "org.test:b11:2.0") {}
@@ -274,6 +282,7 @@ include ':b1:b11'
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 module("org.test:transitive2:1.0")
             }
@@ -305,8 +314,10 @@ include ':b1:b11'
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                 }
             }
@@ -350,6 +361,7 @@ include ':b1:b11'
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -440,6 +452,7 @@ afterEvaluate {
         then:
         checkGraph {
             edge("group.requires.subproject.evaluation:b1:1.0", "project :buildB:b1", "group.requires.subproject.evaluation:b1:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -477,9 +490,11 @@ afterEvaluate {
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
             edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -509,9 +524,11 @@ afterEvaluate {
         then:
         checkGraph {
             edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
             edge("org.test:c1:1.0", "project :buildC:c1", "org.test:c1:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -590,6 +607,7 @@ afterEvaluate {
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 project(":buildB:b1", "org.test:b1:2.0") {}
             }
@@ -637,6 +655,7 @@ afterEvaluate {
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }

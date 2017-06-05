@@ -859,6 +859,63 @@ All of them match the consumer attributes:
         result.assertTasksExecuted(':b:barJar', ':a:check')
     }
 
+    def "producer can apply disambiguation when consumer does not define any attributes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class SelectionRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    details.closestMatch(details.candidateValues.sort { it }.first())
+                }
+            }
+
+            def platform = Attribute.of('platform', String)
+
+            project(':a') {
+                configurations {
+                    compile
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       assert configurations.compile.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                dependencies.attributesSchema.attribute(platform) {
+                    compatibilityRules.assumeCompatibleWhenMissing()
+                    disambiguationRules.add(SelectionRule)
+                }
+                configurations {
+                    foo.attributes { attribute(platform, 'b'); $debug }
+                    bar.attributes { attribute(platform, 'a'); $debug }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:check'
+
+        then:
+        result.assertTasksExecuted(':b:barJar', ':a:check')
+    }
+
     def "both dependencies will choose the same default value"() {
         given:
         file('settings.gradle') << "include 'a', 'b', 'c'"

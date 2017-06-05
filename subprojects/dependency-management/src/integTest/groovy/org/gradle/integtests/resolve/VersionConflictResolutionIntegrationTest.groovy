@@ -150,9 +150,11 @@ project(':tool') {
         resolve.expectGraph {
             root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
+                    configuration = "runtimeElements"
                     edge("org:foo:1.3.3", "org:foo:1.4.4")
                 }
                 project(":impl", "test:impl:") {
+                    configuration = "runtimeElements"
                     module("org:foo:1.4.4").byConflictResolution()
                 }
             }

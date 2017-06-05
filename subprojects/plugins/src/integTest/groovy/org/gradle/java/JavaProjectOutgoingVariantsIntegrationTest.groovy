@@ -78,8 +78,8 @@ project(':consumer') {
         result.assertOutputContains("files: [java.jar, file-dep.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         result.assertOutputContains("file-dep.jar {artifactType=jar}")
         result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar}")
-        result.assertOutputContains("java.jar (project :java) {artifactType=jar}")
+        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.api.attributes.Usage=java-runtime-jars}")
+        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.api.attributes.Usage=java-runtime-jars}")
 
         when:
         buildFile << """
