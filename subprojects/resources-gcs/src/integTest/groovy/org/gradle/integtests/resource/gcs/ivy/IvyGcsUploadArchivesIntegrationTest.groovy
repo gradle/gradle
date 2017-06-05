@@ -20,9 +20,7 @@ import org.gradle.api.publish.ivy.AbstractIvyRemoteLegacyPublishIntegrationTest
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore
 class IvyGcsUploadArchivesIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
     @Rule
     public GcsServer server = new GcsServer(temporaryFolder)
@@ -34,5 +32,6 @@ class IvyGcsUploadArchivesIntegrationTest extends AbstractIvyRemoteLegacyPublish
 
     def setup() {
         executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
+        executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
     }
 }

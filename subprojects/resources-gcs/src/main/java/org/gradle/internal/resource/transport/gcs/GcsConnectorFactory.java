@@ -16,12 +16,14 @@
 
 package org.gradle.internal.resource.transport.gcs;
 
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,8 +46,7 @@ public class GcsConnectorFactory implements ResourceConnectorFactory {
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
         GcsResourceConnector resourceConnector;
         try {
-            // Disable the default JUL logging which will log authentication tokens if its on here
-            resourceConnector = new GcsResourceConnector();
+            resourceConnector = new GcsResourceConnector(GcsClient.create(new GcsConnectionProperties()));
         } catch (Exception e) {
             throw new RuntimeException("Google Credentials must be set for GCS backed repository.", e);
         }

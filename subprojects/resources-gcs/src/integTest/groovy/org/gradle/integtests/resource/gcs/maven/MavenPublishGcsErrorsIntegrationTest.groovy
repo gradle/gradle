@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsRepository
 import org.junit.Rule
-import spock.lang.Ignore
 
 class MavenPublishGcsErrorsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -36,9 +35,9 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.withArgument('-i')
         executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
+        executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
     }
 
-    @Ignore
     def "should fail with an authentication error"() {
         setup:
         settingsFile << "rootProject.name = '${projectName}'"
@@ -54,10 +53,6 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractIntegrationSpec {
         repositories {
                 maven {
                    url "${mavenGcsRepo.uri}"
-                    credentials(AwsCredentials) {
-                        accessKey "someKey"
-                        secretKey "someSecret"
-                    }
                 }
             }
         publications {
@@ -70,8 +65,8 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         def module = mavenGcsRepo.module("org.gradle", "publishGcsTest", "1.45")
-        module.artifact.expectPutAuthencicationError()
-        module.pom.expectPutAuthencicationError()
+        module.artifact.expectPutAuthenticationError()
+        module.pom.expectPutAuthenticationError()
 
         then:
         fails 'publish'
@@ -79,7 +74,7 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':publishPubPublicationToMavenRepository'.")
         failure.assertHasCause("Failed to publish publication 'pub' to repository 'maven'")
         failure.assertHasCause("Could not write to resource '${module.artifact.uri}'.")
-        failure.assertHasCause("The AWS Access Key Id you provided dGcss not exist in our records.")
+        failure.assertHasCause("403 Forbidden")
     }
 
     MavenGcsRepository getMavenGcsRepo() {

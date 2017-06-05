@@ -27,87 +27,88 @@ import com.google.api.client.http.HttpUnsuccessfulResponseHandler;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.client.util.Sleeper;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
 
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 /**
  * RetryHttpInitializerWrapper will automatically retry upon RPC failures, preserving the
  * auto-refresh behavior of the Google Credentials.
+ *
+ * Adapted from https://github.com/GoogleCloudPlatform/java-docs-samples
  */
-public class RetryHttpInitializerWrapper implements HttpRequestInitializer {
+final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
 
-  private static final Logger LOG = Logger.getLogger(RetryHttpInitializerWrapper.class.getName());
-  private final Credential wrappedCredential;
-  private final Sleeper sleeper;
-  private static final int MILLIS_PER_MINUTE = 60 * 1000;
+    private static final Logger LOG = Logger.getLogger(RetryHttpInitializerWrapper.class.getName());
+    private final Supplier<Credential> credentialSupplier;
+    private final Sleeper sleeper;
+    private static final int MILLIS_PER_MINUTE = 60 * 1000;
 
-  /**
-   * A constructor using the default Sleeper.
-   *
-   * @param wrappedCredential
-   *          the credential used to authenticate with a Google Cloud Platform project
-   */
-  public RetryHttpInitializerWrapper(Credential wrappedCredential) {
-    this(wrappedCredential, Sleeper.DEFAULT);
-  }
+    /**
+     * A constructor using the default Sleeper.
+     *
+     * @param credentialSupplier the credential used to authenticate with a Google Cloud Platform project
+     */
+    RetryHttpInitializerWrapper(Supplier<Credential> credentialSupplier) {
+        this(credentialSupplier, Sleeper.DEFAULT);
+    }
 
-  /**
-   * A constructor used only for testing.
-   *
-   * @param wrappedCredential
-   *          the credential used to authenticate with a Google Cloud Platform project
-   * @param sleeper
-   *          a user-supplied Sleeper
-   */
-  RetryHttpInitializerWrapper(Credential wrappedCredential, Sleeper sleeper) {
-    this.wrappedCredential = Preconditions.checkNotNull(wrappedCredential);
-    this.sleeper = sleeper;
-  }
+    /**
+     * A constructor used only for testing.
+     *
+     * @param credentialSupplier the credential used to authenticate with a Google Cloud Platform project
+     * @param sleeper a user-supplied Sleeper
+     */
+    RetryHttpInitializerWrapper(Supplier<Credential> credentialSupplier, Sleeper sleeper) {
+        this.credentialSupplier = Preconditions.checkNotNull(credentialSupplier);
+        this.sleeper = sleeper;
+    }
 
-  /**
-   * Initialize an HttpRequest.
-   *
-   * @param request
-   *          an HttpRequest that should be initialized
-   */
-  public void initialize(HttpRequest request) {
-
-    // Turn off request logging, this can end up logging OAUTH
-    // tokens which should not ever be in a build log
-    final boolean loggingEnabled = false;
-    request.setLoggingEnabled(loggingEnabled);
-    request.setCurlLoggingEnabled(loggingEnabled);
-    Logger.getLogger(HttpTransport.class.getName()).setLevel(Level.OFF);
-
-    request.setReadTimeout(2 * MILLIS_PER_MINUTE); // 2 minutes read timeout
-    final HttpUnsuccessfulResponseHandler backoffHandler =
-        new HttpBackOffUnsuccessfulResponseHandler(
-          new ExponentialBackOff()).setSleeper(sleeper);
-    request.setInterceptor(wrappedCredential);
-    request.setUnsuccessfulResponseHandler(new HttpUnsuccessfulResponseHandler() {
-      public boolean handleResponse(final HttpRequest request, final HttpResponse response,
-          final boolean supportsRetry) throws IOException {
-        // Turn off request logging unless debug mode is enabled
+    /**
+     * Initialize an HttpRequest.
+     *
+     * @param request an HttpRequest that should be initialized
+     */
+    @Override
+    public void initialize(HttpRequest request) {
+        // Turn off request logging, this can end up logging OAUTH
+        // tokens which should not ever be in a build log
+        final boolean loggingEnabled = false;
         request.setLoggingEnabled(loggingEnabled);
         request.setCurlLoggingEnabled(loggingEnabled);
-        if (wrappedCredential.handleResponse(request, response, supportsRetry)) {
-          // If credential decides it can handle it, the return code or message indicated
-          // something specific to authentication, and no backoff is desired.
-          return true;
-        } else if (backoffHandler.handleResponse(request, response, supportsRetry)) {
-          // Otherwise, we defer to the judgement of our internal backoff handler.
-          LOG.info("Retrying " + request.getUrl().toString());
-          return true;
-        } else {
-          return false;
+        Logger.getLogger(HttpTransport.class.getName()).setLevel(Level.OFF);
+
+        request.setReadTimeout(2 * MILLIS_PER_MINUTE); // 2 minutes read timeout
+        final HttpUnsuccessfulResponseHandler backoffHandler =
+            new HttpBackOffUnsuccessfulResponseHandler(
+                new ExponentialBackOff()).setSleeper(sleeper);
+        final Credential credential = credentialSupplier.get();
+        if (credential != null) {
+            request.setInterceptor(credential);
+            request.setUnsuccessfulResponseHandler(new HttpUnsuccessfulResponseHandler() {
+                @Override
+                public boolean handleResponse(final HttpRequest request, final HttpResponse response,
+                                              final boolean supportsRetry) throws IOException {
+                    // Turn off request logging unless debug mode is enabled
+                    request.setLoggingEnabled(loggingEnabled);
+                    request.setCurlLoggingEnabled(loggingEnabled);
+                    if (credential.handleResponse(request, response, supportsRetry)) {
+                        // If credential decides it can handle it, the return code or message indicated
+                        // something specific to authentication, and no backoff is desired.
+                        return true;
+                    } else if (backoffHandler.handleResponse(request, response, supportsRetry)) {
+                        // Otherwise, we defer to the judgement of our internal backoff handler.
+                        LOG.info("Retrying " + request.getUrl().toString());
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            });
         }
-      }
-    });
-    request.setIOExceptionHandler(new HttpBackOffIOExceptionHandler(new ExponentialBackOff())
-        .setSleeper(sleeper));
-  }
+        request.setIOExceptionHandler(new HttpBackOffIOExceptionHandler(new ExponentialBackOff())
+            .setSleeper(sleeper));
+    }
 }
-//[END all]

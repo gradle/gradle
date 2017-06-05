@@ -52,7 +52,7 @@ class GcsResource implements RemoteResource {
         server.stubFileNotFound(path)
     }
 
-    void expectDownloadAuthencicationError() {
+    void expectDownloadAuthenticationError() {
         server.stubGetFileAuthFailure(relativeFilePath())
     }
 
@@ -101,7 +101,7 @@ class GcsResource implements RemoteResource {
         absolute.substring(absolute.indexOf(base), absolute.length())
     }
 
-    def expectPutAuthencicationError() {
-        server.stubPutFileAuthFailure(relativeFilePath());
+    def expectPutAuthenticationError() {
+        server.stubPutFileAuthFailure(relativeFilePath())
     }
 }

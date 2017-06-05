@@ -19,18 +19,17 @@ package org.gradle.integtests.resource.gcs.ivy
 import org.gradle.api.publish.ivy.AbstractIvyPublishIntegTest
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.junit.Rule
-import spock.lang.Ignore
 
 class IvyPublishGcsIntegrationTest extends AbstractIvyPublishIntegTest {
     @Rule
     public GcsServer server = new GcsServer(temporaryFolder)
 
     def setup() {
-        executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.getUri()}")
+        executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
+        executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
     }
 
-    @Ignore
-    def "can publish to an Gcs Ivy repository"() {
+    def "can publish to a Gcs Ivy repository"() {
         given:
         def ivyRepo = server.remoteIvyRepo
 
@@ -46,10 +45,6 @@ publishing {
     repositories {
         ivy {
             url "${ivyRepo.uri}"
-            credentials(AwsCredentials) {
-                accessKey "someKey"
-                secretKey "someSecret"
-            }
         }
     }
     publications {

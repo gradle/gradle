@@ -34,37 +34,22 @@ import static org.gradle.internal.resource.transport.gcs.ResourceMapper.toExtern
 public class GcsResourceConnector implements ExternalResourceConnector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GcsResourceConnector.class);
-    private static final GcsClientFactory GCS_CLIENT_FACTORY = new GcsClientFactory();
-    private volatile GcsClient gcsClient;
 
-    public GcsResourceConnector() {
-    }
+    private final GcsClient gcsClient;
 
     public GcsResourceConnector(GcsClient gcsClient) {
         this.gcsClient = gcsClient;
     }
 
-    // Defer creation of client and credentials as long as possible
-    private GcsClient getClient() {
-        if (gcsClient == null) {
-            try {
-                gcsClient = GCS_CLIENT_FACTORY.newGcsClient();
-            } catch (Exception e) {
-                throw new IllegalStateException(e);
-            }
-        }
-        return gcsClient;
-    }
-
     public List<String> list(URI parent) {
         LOGGER.debug("Listing parent resources: {}", parent);
-        return getClient().list(parent);
+        return gcsClient.list(parent);
     }
 
     @Override
     public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource: {}", location);
-        StorageObject gcsObject = getClient().getResource(location);
+        StorageObject gcsObject = gcsClient.getResource(location);
         if (gcsObject == null) {
             return null;
         }
@@ -74,7 +59,7 @@ public class GcsResourceConnector implements ExternalResourceConnector {
     @Override
     public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
-        StorageObject gcsObject = getClient().getResource(location);
+        StorageObject gcsObject = gcsClient.getResource(location);
         if (gcsObject == null) {
             return null;
         }
@@ -86,7 +71,7 @@ public class GcsResourceConnector implements ExternalResourceConnector {
         LOGGER.debug("Attempting to upload stream to : {}", destination);
         InputStream inputStream = resource.open();
         try {
-            getClient().put(inputStream, resource.getContentLength(), destination);
+            gcsClient.put(inputStream, resource.getContentLength(), destination);
         } finally {
             inputStream.close();
         }

@@ -27,7 +27,7 @@ class IvyGcsRepository implements RemoteIvyRepository {
     IvyFileRepository backingRepository
     String repositoryPath
 
-    public IvyGcsRepository(GcsServer server, TestFile repoDir, String repositoryPath, String bucket, boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
+    IvyGcsRepository(GcsServer server, TestFile repoDir, String repositoryPath, String bucket, boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
         assert !bucket.startsWith('/')
         this.server = server
         this.bucket = bucket
@@ -36,7 +36,7 @@ class IvyGcsRepository implements RemoteIvyRepository {
     }
 
     URI getUri() {
-        new URI("s3://${bucket}${repositoryPath}")
+        new URI("gcs://${bucket}${repositoryPath}")
     }
 
     @Override
@@ -50,8 +50,8 @@ class IvyGcsRepository implements RemoteIvyRepository {
     }
 
     @Override
-    IvyGcsModule module(java.lang.String organisation, java.lang.String module, java.lang.String version) {
-        return new IvyGcsModule(server, backingRepository.module(organisation, module, revision), repositoryPath, bucket)
+    IvyGcsModule module(String organisation, String module, String version) {
+        return new IvyGcsModule(server, backingRepository.module(organisation, module, version), repositoryPath, bucket)
     }
 
     String getArtifactPattern() {

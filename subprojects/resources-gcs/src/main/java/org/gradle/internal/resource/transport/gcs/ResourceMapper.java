@@ -33,7 +33,7 @@ final class ResourceMapper {
             storageObject.getSize().longValue(),
             storageObject.getContentType(),
             storageObject.getEtag(),
-            new HashValue(Base64.decodeBase64(storageObject.getMd5Hash()))
+            null // we cannot use md5 instead of sha1 here because cache will get corrupted due to its expectation of sha1 hashes
         );
     }
 

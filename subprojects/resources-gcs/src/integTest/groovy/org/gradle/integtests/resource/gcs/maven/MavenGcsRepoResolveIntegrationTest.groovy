@@ -18,23 +18,21 @@ package org.gradle.integtests.resource.gcs.maven
 
 import org.gradle.integtests.resource.gcs.AbstractGcsDependencyResolutionTest
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsModule
-import spock.lang.Ignore
 
 class MavenGcsRepoResolveIntegrationTest extends AbstractGcsDependencyResolutionTest {
+
+    String artifactVersion = "1.85"
+    MavenGcsModule module
 
     @Override
     String getRepositoryPath() {
         return '/maven/release/'
     }
 
-    String artifactVersion = "1.85"
-    MavenGcsModule module
-
     def setup(){
         module = getMavenGcsRepo().module("org.gradle", "test", artifactVersion)
     }
 
-    @Ignore
     def "should not download artifacts when already present in maven home"() {
         setup:
         module.publish()
@@ -76,7 +74,7 @@ task retrieve(type: Sync) {
         assertLocallyAvailableLogged(module.pom, module.artifact)
     }
 
-    @Ignore
+//    @Ignore
     def "should download artifacts when maven local artifacts are different to remote "() {
         setup:
         module.publish()

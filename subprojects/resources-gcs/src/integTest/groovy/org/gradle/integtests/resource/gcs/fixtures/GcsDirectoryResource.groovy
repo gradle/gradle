@@ -35,7 +35,7 @@ class GcsDirectoryResource implements RemoteResource {
     }
 
     URI getUri() {
-        return new URI("s3", bucket, path, null, null)
+        return new URI("gcs", bucket, path, null, null)
     }
 
     @Override
@@ -88,15 +88,15 @@ class GcsDirectoryResource implements RemoteResource {
         throw new UnsupportedOperationException()
     }
 
-    public void expectGet() {
+    void expectGet() {
         server.stubListFile(directory, bucket, path)
     }
 
-    public void expectGetMissing() {
+    void expectGetMissing() {
         server.expectGetMissing("/$bucket")
     }
 
-    public void expectGetBroken() {
+    void expectGetBroken() {
         server.expectGetBroken("/$bucket")
     }
 }

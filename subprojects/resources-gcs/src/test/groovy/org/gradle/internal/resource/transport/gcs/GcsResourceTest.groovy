@@ -46,6 +46,6 @@ class GcsResourceTest extends Specification {
         metaData.contentLength == BigInteger.ONE.longValue()
         metaData.contentType == contentType
         metaData.etag == Integer.toString(5)
-        metaData.sha1 == new HashValue(Base64.decodeBase64(md5hash))
+        metaData.sha1 == null
     }
 }

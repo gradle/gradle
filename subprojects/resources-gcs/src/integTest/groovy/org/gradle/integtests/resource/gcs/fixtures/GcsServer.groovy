@@ -34,15 +34,20 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.security.MessageDigest
 
+import static org.apache.commons.codec.binary.Base64.encodeBase64String
+import static org.gradle.internal.hash.HashUtil.createHash
+
 class GcsServer extends HttpServer implements RepositoryServer {
 
     public static final String BUCKET_NAME = "testgcsbucket"
     private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0)
     protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z")
             .withLocale(Locale.US)
-            .withZone(GMT);
+            .withZone(GMT)
+    protected static final DateTimeFormatter RCF_3339_DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+        .withLocale(Locale.US)
+        .withZone(GMT)
 
-    public static final String ETAG = 'd41d8cd98f00b204e9800998ecf8427e'
     public static final String DATE_HEADER = 'Mon, 29 Sep 2014 11:04:27 GMT'
     public static final String SERVER_GCS = 'GCS'
 
@@ -50,7 +55,7 @@ class GcsServer extends HttpServer implements RepositoryServer {
 
     GcsServer(TestDirectoryProvider testDirectoryProvider) {
         super()
-        this.testDirectoryProvider = testDirectoryProvider;
+        this.testDirectoryProvider = testDirectoryProvider
     }
 
     @Override
@@ -99,17 +104,41 @@ class GcsServer extends HttpServer implements RepositoryServer {
 
     @Override
     String getValidCredentials() {
-        return new GoogleCredential().getRefreshToken();
+        return new GoogleCredential().getRefreshToken()
     }
 
     def stubPutFile(File file, String url) {
+        def urlParts = urlParts(url)
+        def bucketName = urlParts.first
+        def uploadLocation = "/${UUID.randomUUID()}"
+
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
-                method = 'PUT'
-                path = url
+                method = 'POST'
+                path = "/upload/b/$bucketName/o"
                 headers = [
-                        'Content-Type': 'application/octet-stream',
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Connection'  : 'Keep-Alive'
+                ]
+            }
+            response {
+                status = 200
+                headers = [
+                    'Date'            : DATE_HEADER,
+                    'Server'          : SERVER_GCS,
+                    'Location'        : "$uri$uploadLocation"
+                ]
+            }
+        }
+        expect(httpStub)
+
+        httpStub = HttpStub.stubInteraction {
+            request {
+                method = 'PUT'
+                path = uploadLocation
+                headers = [
+                    'Content-Type': 'application/octet-stream',
+                    'Connection'  : 'Keep-Alive'
                 ]
                 body = { InputStream content ->
                     file.parentFile.mkdirs()
@@ -119,36 +148,44 @@ class GcsServer extends HttpServer implements RepositoryServer {
             response {
                 status = 200
                 headers = [
-                        'Date'            : DATE_HEADER,
-                        "ETag"            : { calculateEtag(file) },
-                        'Server'          : SERVER_GCS
+                    'Date'            : DATE_HEADER,
+                    "ETag"            : { calculateEtag(file) },
+                    'Server'          : SERVER_GCS
                 ]
+                body = { '{}' }
             }
         }
         expect(httpStub)
     }
 
     def stubMetaData(File file, String url) {
+        def urlParts = urlParts(url)
+        def bucketName = urlParts.first
+        def objectName = urlParts.rest
+
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path = url
+                path = "/b/$bucketName/o/$objectName"
                 headers = [
-                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Connection'  : 'Keep-Alive'
                 ]
             }
             response {
                 status = 200
                 headers = [
-                        'Date'            : DATE_HEADER,
-                        'ETag'            : { calculateEtag(file) },
-                        'Server'          : SERVER_GCS,
-                        'Accept-Ranges'   : 'bytes',
-                        'Content-Type'    : 'application/octet-stream',
-                        'Content-Length'  : "0",
-                        'Last-Modified'   : RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Date'            : DATE_HEADER,
+                    'Server'          : SERVER_GCS,
+                    'Accept-Ranges'   : 'bytes',
+                    'Content-Type'    : 'application/json; charset=utf-8',
                 ]
+                body = { "{ " +
+                    "\"etag\": \"${calculateEtag(file)}\", " +
+                    "\"size\": \"0\", " +
+                    "\"updated\": \"${RCF_3339_DATE_FORMAT.print(file.lastModified())}\", " +
+                    "\"md5Hash\": \"${encodeBase64String(createHash(file, "MD5").asByteArray())}\" " +
+                    "}" }
             }
         }
         expect(httpStub)
@@ -163,47 +200,81 @@ class GcsServer extends HttpServer implements RepositoryServer {
     }
 
     private stubMetaDataLightWeightGet(String url, int statusCode) {
+        def urlParts = urlParts(url)
+        def bucketName = urlParts.first
+        def objectName = urlParts.rest
+
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path = url
+                path = "/b/$bucketName/o/$objectName"
                 headers = [
-                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Connection'  : 'Keep-Alive'
                 ]
             }
             response {
                 status = statusCode
                 headers = [
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_GCS,
-                        'Content-Type'    : 'application/xml',
+                    'Date'            : DATE_HEADER,
+                    'Server'          : SERVER_GCS,
+                    'Content-Type': 'application/json; charset=utf-8',
                 ]
+                body = { '{}' }
             }
         }
        expect(httpStub)
     }
 
     def stubGetFile(File file, String url) {
+        def urlParts = urlParts(url)
+        def bucketName = urlParts.first
+        def objectName = urlParts.rest
+
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path = url
+                path = "/b/$bucketName/o/$objectName"
                 headers = [
-                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type':  'application/json; charset=utf-8',
+                    'Connection'  : 'Keep-Alive'
                 ]
             }
             response {
                 status = 200
                 headers = [
-                        'Date'            : DATE_HEADER,
-                        'ETag'            : { calculateEtag(file) },
-                        'Server'          : SERVER_GCS,
-                        'Accept-Ranges'   : 'bytes',
-                        'Content-Type'    : 'application/octet-stream',
-                        'Content-Length'  : { file.length()},
-                        'Last-Modified'   : RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Date'            : DATE_HEADER,
+                    'Server'          : SERVER_GCS,
+                    'Accept-Ranges'   : 'bytes',
+                    'Content-Type'    : 'application/json; charset=utf-8',
+                ]
+                body = { "{ " +
+                    "\"etag\": \"${calculateEtag(file)}\", " +
+                    "\"size\": \"${file.length()}\", " +
+                    "\"bucket\": \"${bucketName}\", " +
+                    "\"name\": \"${objectName}\", " +
+                    "\"updated\": \"${RCF_3339_DATE_FORMAT.print(file.lastModified())}\" " +
+                    "}" }
+            }
+        }
+        expect(httpStub)
+
+        httpStub = HttpStub.stubInteraction {
+            request {
+                method = 'GET'
+                path = "/b/$bucketName/o/$objectName"
+                headers = [
+                    'Content-Type':  'application/octet-stream',
+                    'Connection'  : 'Keep-Alive'
+                ]
+            }
+            response {
+                status = 200
+                headers = [
+                    'Date'            : DATE_HEADER,
+                    'Server'          : SERVER_GCS,
+                    'Accept-Ranges'   : 'bytes',
+                    'Content-Type'    : 'application/octet-stream',
                 ]
                 body = { file.bytes }
             }
@@ -211,134 +282,70 @@ class GcsServer extends HttpServer implements RepositoryServer {
         expect(httpStub)
     }
 
-    def stubListFile(File file, String bucketName, prefix = 'maven/release/', delimiter = '/') {
-        def xml = new StreamingMarkupBuilder().bind {
-            ListBucketResult(xmlns: "http://s3.amazonaws.com/doc/2006-03-01/") {
-                Name(bucketName)
-                Prefix(prefix)
-                Marker()
-                MaxKeys('1000')
-                Delimiter(delimiter)
-                IsTruncated('false')
-                Contents {
-                    Key(prefix)
-                    LastModified('2014-09-21T06:44:09.000Z')
-                    ETag(ETAG)
-                    Size('0')
-                    Owner {
-                        ID("${(1..57).collect { 'a' }.join()}")
-                        DisplayName('me')
-                    }
-                    StorageClass('STANDARD')
-                }
-                file.listFiles().each { currentFile ->
-                    Contents {
-                        Key(prefix + currentFile.name)
-                        LastModified('2014-10-01T13:03:29.000Z')
-                        ETag(ETAG)
-                        Size(currentFile.length())
-                        Owner {
-                            ID("${(1..57).collect { 'a' }.join()}")
-                            DisplayName('me')
-                        }
-                        StorageClass('STANDARD')
-                    }
-                    CommonPrefixes {
-                        Prefix("${prefix}com/")
-                    }
-                }
-                Contents {
-                    Key(prefix + file.name)
-                    LastModified('2014-10-01T13:03:29.000Z')
-                    ETag(ETAG)
-                    Size('19')
-                    Owner {
-                        ID("${(1..57).collect { 'a' }.join()}")
-                        DisplayName('me')
-                    }
-                    StorageClass('STANDARD')
-                }
-                CommonPrefixes {
-                    Prefix("${prefix}com/")
-                }
-            }
-        }
-
+    def stubListFile(File file, String bucketName, prefix = 'maven/release/') {
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path = "/${bucketName}/"
+                path = "/b/${bucketName}/o"
                 headers = [
-                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
-                        'Connection'  : 'Keep-Alive'
-                ]
-                params = [
-                        'prefix'   : [prefix],
-                        'delimiter': [delimiter],
-                        'max-keys' : ["1000"]
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Connection'  : 'Keep-Alive'
                 ]
             }
             response {
                 status = 200
                 headers = [
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_GCS,
-                        'Content-Type'    : 'application/xml',
+                    'Date'            : DATE_HEADER,
+                    'Server'          : SERVER_GCS,
+                    'Content-Type'    : 'application/json; charset=utf-8',
                 ]
-                body = { xml.toString() }
+                body = {
+                    "{ " +
+                        "\"kind\": \"storage#objects\", " +
+                        "\"prefixes\": [\"$prefix\"], " +
+                        "\"items\": [${ file.listFiles().collect { currentFile -> "{ \"name\": \"${currentFile.name}\" }"}.join(',') }]" +
+                    "}"
+                }
             }
         }
         expect(httpStub)
     }
 
     def stubGetFileAuthFailure(String url) {
-        def xml = new StreamingMarkupBuilder().bind {
-            Error() {
-                Code("InvalidAccessKeyId")
-                Message("The AWS Access Key Id you provided does not exist in our records.")
-                AWSAccessKeyId("notRelevant")
-                RequestId("stubbedAuthFailureRequestId")
-                HostId("stubbedAuthFailureHostId")
-            }
-        }
+        def urlParts = urlParts(url)
+        def bucketName = urlParts.first
+        def objectName = urlParts.rest
 
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path = url
+                path =  "/b/$bucketName/o/$objectName"
                 headers = [
                         'Content-Type': 'application/octet-stream',
                         'Connection'  : 'Keep-Alive'
                 ]
             }
             response {
-                status = 403
+                status = 401
                 headers = [
                         'Date'            : DATE_HEADER,
                         'Server'          : SERVER_GCS,
-                        'Content-Type'    : 'application/xml',
+                        'Content-Type'    : 'text/plain; charset=UTF-8',
                 ]
-                body = { xml.toString() }
             }
         }
         expect(httpStub)
     }
 
     def stubPutFileAuthFailure(String url) {
-        def xml = new StreamingMarkupBuilder().bind {
-            Error() {
-                Code("InvalidAccessKeyId")
-                Message("The AWS Access Key Id you provided does not exist in our records.")
-                AWSAccessKeyId("notRelevant")
-                RequestId("stubbedAuthFailureRequestId")
-                HostId("stubbedAuthFailureHostId")
-            }
-        }
+        def urlParts = urlParts(url)
+        def bucketName = urlParts.first
+        def objectName = urlParts.rest
 
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
-                method = 'PUT'
-                path = url
+                method = 'POST'
+                path = "/upload/b/$bucketName/o"
                 headers = [
                         'Content-Type': 'application/octet-stream',
                         'Connection'  : 'Keep-Alive'
@@ -349,29 +356,22 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 headers = [
                         'Date'            : DATE_HEADER,
                         'Server'          : SERVER_GCS,
-                        'Content-Type'    : 'application/xml',
+                        'Content-Type'    : 'text/plain; charset=UTF-8',
                 ]
-                body = { xml.toString() }
             }
         }
         expect(httpStub)
     }
 
     def stubFileNotFound(String url) {
-        def xml = new StreamingMarkupBuilder().bind {
-            Error() {
-                Code("NoSuchKey")
-                Message("The specified key does not exist.")
-                Key(url)
-                RequestId("stubbedRequestId")
-                HostId("stubbedHostId")
-            }
-        }
+        def urlParts = urlParts(url)
+        def bucketName = urlParts.first
+        def objectName = urlParts.rest
 
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path = url
+                path =  "/b/$bucketName/o/$objectName"
                 headers = [
                         'Content-Type': 'application/octet-stream',
                         'Connection'  : 'Keep-Alive'
@@ -382,28 +382,22 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 headers = [
                         'Date'            : DATE_HEADER,
                         'Server'          : SERVER_GCS,
-                        'Content-Type'    : 'application/xml',
+                        'Content-Type'    : 'text/plain; charset=UTF-8',
                 ]
-                body = { xml.toString() }
             }
         }
         expect(httpStub)
     }
 
     def stubGetFileBroken(String url) {
+        def urlParts = urlParts(url)
+        def bucketName = urlParts.first
+        def objectName = urlParts.rest
+
         HttpStub httpStub = HttpStub.stubInteraction {
-            def xml = new StreamingMarkupBuilder().bind {
-                Error() {
-                    Code("Internal Server Error")
-                    Message("Something went seriously wrong")
-                    Key(url)
-                    RequestId("stubbedRequestId")
-                    HostId("stubbedHostId")
-                }
-            }
             request {
                 method = 'GET'
-                path = url
+                path = "/b/$bucketName/o/$objectName"
                 headers = [
                         'Content-Type': 'application/octet-stream',
                         'Connection'  : 'Keep-Alive'
@@ -414,9 +408,8 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 headers = [
                         'Date'            : DATE_HEADER,
                         'Server'          : SERVER_GCS,
-                        'Content-Type'    : 'application/xml',
+                        'Content-Type'    : 'text/plain; charset=UTF-8',
                 ]
-                body = { xml.toString() }
             }
 
         }
@@ -465,10 +458,16 @@ class GcsServer extends HttpServer implements RepositoryServer {
         })
     }
 
-
-    private calculateEtag(File file) {
+    private static calculateEtag(File file) {
         MessageDigest digest = MessageDigest.getInstance("MD5")
-        digest.update(file.bytes);
+        digest.update(file.bytes)
         new BigInteger(1, digest.digest()).toString(16).padLeft(32, '0')
+    }
+
+    static def urlParts(String url) {
+        def parts = url.split('/') - ''
+        def first = parts.first()
+        def rest = (parts - first).join('/')
+        return [ first: first, rest: rest ]
     }
 }

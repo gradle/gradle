@@ -20,17 +20,17 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsRepository
 import org.junit.Rule
-import spock.lang.Ignore
 
 class MavenPublishGcsIntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     public GcsServer server = new GcsServer(temporaryFolder)
 
     def setup() {
-        executer.withArgument("-Dorg.gradle.Gcs.endpoint=${server.getUri()}")
+        executer.withArgument('-i')
+        executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
+        executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
     }
 
-    @Ignore
     def "can publish to a Gcs Maven repository"() {
         given:
         def mavenRepo = new MavenGcsRepository(server, file("repo"), "/maven", "testGcsBucket")

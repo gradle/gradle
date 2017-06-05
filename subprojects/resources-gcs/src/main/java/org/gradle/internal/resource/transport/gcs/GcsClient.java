@@ -16,18 +16,29 @@
 
 package org.gradle.internal.resource.transport.gcs;
 
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpRequestInitializer;
+import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.InputStreamContent;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Objects;
 import com.google.api.services.storage.model.StorageObject;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import org.gradle.api.Nullable;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -39,16 +50,36 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Collections.singletonList;
+
 public class GcsClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GcsClient.class);
     private static final Pattern FILENAME_PATTERN = Pattern.compile("[^\\/]+\\.*$");
-    private static final StorageObject INITIAL_METADATA = new StorageObject();
+    private final static String GOOGLE_CREDENTIALS_SYSTEM_PROPERTY = "GOOGLE_APPLICATION_CREDENTIALS";
 
     private final Storage googleGcsClient;
 
-    public GcsClient(Storage googleGcsClient) throws GeneralSecurityException, IOException {
-        this.googleGcsClient = googleGcsClient;
+    public static GcsClient create(GcsConnectionProperties gcsConnectionProperties) throws GeneralSecurityException, IOException {
+        HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
+        JsonFactory jsonFactory = new JacksonFactory();
+        Supplier<Credential> credentialSupplier = getCredentialSupplier(transport, jsonFactory);
+//        HttpRequestInitializer initializer = new RetryHttpInitializerWrapper(credentialSupplier);
+        Storage.Builder builder = new Storage.Builder(transport, jsonFactory, null);
+        if (gcsConnectionProperties.getEndpoint().isPresent()) {
+            builder.setRootUrl(gcsConnectionProperties.getEndpoint().get().toString());
+        }
+        if (gcsConnectionProperties.getServicePath().isPresent()) {
+            builder.setServicePath(gcsConnectionProperties.getServicePath().get());
+        }
+        builder.setApplicationName("gradle");
+        return new GcsClient(builder.build());
+    }
+
+    @VisibleForTesting
+    GcsClient(Storage storage) {
+        googleGcsClient = storage;
     }
 
     public void put(InputStream inputStream, Long contentLength, URI destination) {
@@ -83,6 +114,7 @@ public class GcsClient {
         }
     }
 
+    @Nullable
     public StorageObject getResource(URI uri) {
         LOGGER.debug("Attempting to get gcs resource: [{}]", uri.toString());
 
@@ -91,11 +123,8 @@ public class GcsClient {
             Storage.Objects.Get getRequest = googleGcsClient.objects().get(uri.getHost(), path);
             return getRequest.execute();
         } catch (GoogleJsonResponseException e) {
-            // To bootstrap the very first publication to Maven, we have to insert a maven-metadata.xml
-            // file. Gradle always tries to read-modify-write this file, so if its not there on the first
-            // publish we'll fail and never be able to publish
-            if (e.getStatusCode() == 404 && path.endsWith("maven-metadata.xml")) {
-                return INITIAL_METADATA;
+            if (e.getStatusCode() == 404) {
+                return null;
             }
             throw ResourceExceptions.getFailed(uri, e);
         } catch (IOException e) {
@@ -103,13 +132,7 @@ public class GcsClient {
         }
     }
 
-    InputStream getResourceStream(StorageObject obj) throws IOException {
-        if (obj == INITIAL_METADATA) {
-            // To bootstrap the very first publication to Maven, we have to insert a maven-metadata.xml
-            // file. Gradle always tries to read-modify-write this file, so if its not there on the first
-            // publish we'll fail and never be able to publish
-            return new ByteArrayInputStream("<metadata/>".getBytes());
-        }
+    public InputStream getResourceStream(StorageObject obj) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Storage.Objects.Get getObject = googleGcsClient.objects().get(obj.getBucket(), obj.getName());
         getObject.getMediaHttpDownloader().setDirectDownloadEnabled(false);
@@ -166,5 +189,30 @@ public class GcsClient {
             path = path.substring(1);
         }
         return path;
+    }
+
+    private static Supplier<Credential> getCredentialSupplier(final HttpTransport transport, final JsonFactory jsonFactory) {
+        return Suppliers.memoize(new Supplier<Credential>() {
+            @Override
+            public Credential get() {
+                // Get the users credential, or use a service account if explicitly provided
+                GoogleCredential googleCredential;
+                // Get from system property because gradle forks and can't read the host environment properly
+                String fileName = System.getProperty(GOOGLE_CREDENTIALS_SYSTEM_PROPERTY);
+                try {
+                    if (isNullOrEmpty(fileName)) {
+                        googleCredential = GoogleCredential.getApplicationDefault(transport, jsonFactory);
+                    } else {
+                        googleCredential = GoogleCredential.fromStream(new FileInputStream(fileName), transport, jsonFactory);
+                    }
+                } catch (IOException e) {
+//                    throw new RuntimeException("Could not initialize GCS credentials", e);
+                    return null;
+                }
+                // Ensure we have a scope
+                googleCredential = googleCredential.createScoped(singletonList("https://www.googleapis.com/auth/devstorage.read_write"));
+                return googleCredential;
+            }
+        });
     }
 }

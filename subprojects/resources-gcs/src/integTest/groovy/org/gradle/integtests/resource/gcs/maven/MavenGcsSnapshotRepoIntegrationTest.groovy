@@ -18,7 +18,6 @@ package org.gradle.integtests.resource.gcs.maven
 
 import org.gradle.integtests.resource.gcs.AbstractGcsDependencyResolutionTest
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsModule
-import spock.lang.Ignore
 
 class MavenGcsSnapshotRepoIntegrationTest extends AbstractGcsDependencyResolutionTest {
 
@@ -29,7 +28,6 @@ class MavenGcsSnapshotRepoIntegrationTest extends AbstractGcsDependencyResolutio
         module = getMavenGcsRepo().module("org.gradle", "test", artifactVersion)
     }
 
-    @Ignore
     def "resolves a maven snapshot module stored in Gcs"() {
         setup:
         module.publish()
@@ -60,7 +58,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('test-1.45-SNAPSHOT.jar')
     }
 
-    @Ignore
     def "resolves a dynamic maven snapshot module stored in Gcs"() {
         setup:
         module.publish()
@@ -94,7 +91,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('test-1.45-SNAPSHOT.jar')
     }
 
-    @Ignore
     def "should download snapshot artifacts when maven local artifacts are different to remote"() {
         setup:
         module.publishWithChangedContent()

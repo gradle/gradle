@@ -23,7 +23,6 @@ import com.google.api.services.storage.Storage
 import com.google.api.services.storage.model.StorageObject
 import com.google.api.services.storage.model.Objects
 import org.gradle.api.resources.ResourceException
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class GcsClientTest extends Specification {

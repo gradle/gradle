@@ -38,7 +38,8 @@ class MavenGcsRepository implements MavenRepository {
         new URI("gcs://${bucket}${repositoryPath}")
     }
 
-    MavenGcsModule module(String organisation, String module, String revision = "1.0") {
-        new MavenGcsModule(server, backingRepository.module(organisation, module, revision), repositoryPath, bucket)
+    @Override
+    MavenGcsModule module(String organisation, String module, String version = "1.0") {
+        new MavenGcsModule(server, backingRepository.module(organisation, module, version), repositoryPath, bucket)
     }
 }

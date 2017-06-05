@@ -23,8 +23,9 @@ import org.gradle.integtests.resource.gcs.fixtures.MavenGcsModule
 import spock.lang.Ignore
 
 class MavenGcsRepoErrorsIntegrationTest extends AbstractGcsDependencyResolutionTest {
-    final String artifactVersion = "1.85"
-    MavenGcsModule module;
+
+    String artifactVersion = "1.85"
+    MavenGcsModule module
 
     @Override
     String getRepositoryPath() {
@@ -47,22 +48,21 @@ task retrieve(type: Sync) {
 """
     }
 
-    @Ignore
-    def "should fail with an AWS GCS authentication error"() {
+    def "should fail with a GCS authentication error"() {
         setup:
         buildFile << mavenGcsRepoDsl()
         when:
-        module.pom.expectDownloadAuthencicationError()
+        module.pom.expectDownloadAuthenticationError()
         then:
         fails 'retrieve'
         and:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause('Could not resolve org.gradle:test:1.85')
-                .assertHasCause("Could not get resource '${module.pom.uri}'.")
-                .assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+            .assertHasCause('Could not resolve org.gradle:test:1.85.')
+            .assertHasCause("Could not get resource '${module.pom.uri}'.")
+            .assertHasCause("401 Unauthorized")
     }
 
-    @Ignore
+//    @Ignore
     def "fails when providing PasswordCredentials with decent error"() {
         setup:
         buildFile << """
@@ -104,7 +104,6 @@ repositories {
 
     }
 
-    @Ignore
     def "should include resource uri when file not found"() {
         setup:
         buildFile << mavenGcsRepoDsl()
@@ -115,9 +114,9 @@ repositories {
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause(
-                """Could not find org.gradle:test:1.85.
+            """Could not find org.gradle:test:1.85.
 Searched in the following locations:
     ${module.pom.uri}
     ${module.artifact.uri}

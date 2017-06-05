@@ -21,9 +21,7 @@ import org.gradle.integtests.resolve.ivy.AbstractIvyRemoteRepoResolveIntegration
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore
 class IvyGcsRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
@@ -35,13 +33,12 @@ class IvyGcsRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInteg
     }
 
     protected ExecutionResult succeeds(String... tasks) {
-        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
-        executer.withArgument("-Dorg.gradle.s3.maxErrorRetry=0")
+        executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
+        executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
         result = executer.withTasks(*tasks).run()
     }
 
-    @Ignore
-    def "cannot add invalid authentication types for s3 repo"() {
+    def "cannot add invalid authentication types for gcs repo"() {
         given:
         def remoteIvyRepo = server.getRemoteIvyRepo()
         def module = remoteIvyRepo.module('org.group.name', 'projectA', '1.2')
@@ -68,6 +65,6 @@ class IvyGcsRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInteg
         expect:
         fails 'retrieve'
         and:
-        failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 's3'")
+        failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'gcs'")
     }
 }

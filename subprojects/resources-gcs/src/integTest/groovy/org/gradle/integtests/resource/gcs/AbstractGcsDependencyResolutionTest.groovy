@@ -17,6 +17,7 @@
 package org.gradle.integtests.resource.gcs
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.resource.gcs.fixtures.GcsResource
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.integtests.resource.gcs.fixtures.IvyGcsRepository
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsRepository
@@ -30,6 +31,7 @@ abstract class AbstractGcsDependencyResolutionTest extends AbstractDependencyRes
     def setup() {
         executer.withArgument('-i')
         executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
+        executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
     }
 
     String getBucket() {
@@ -37,7 +39,6 @@ abstract class AbstractGcsDependencyResolutionTest extends AbstractDependencyRes
     }
 
     abstract String getRepositoryPath()
-
 
     MavenGcsRepository getMavenGcsRepo() {
         new MavenGcsRepository(server, file(getTestDirectory()), getRepositoryPath(), getBucket())
@@ -47,11 +48,11 @@ abstract class AbstractGcsDependencyResolutionTest extends AbstractDependencyRes
         new IvyGcsRepository(server, file(getTestDirectory()), getRepositoryPath(), getBucket())
     }
 
-//    def assertLocallyAvailableLogged(GcsResource... resources) {
-//        resources.each {
-//            assert output.contains("Found locally available resource with matching checksum: [gcs:/${it.relativeFilePath()}")
-//        }
-//    }
+    def assertLocallyAvailableLogged(GcsResource... resources) {
+        resources.each {
+            assert output.contains("Found locally available resource with matching checksum: [gcs:/${it.relativeFilePath()}")
+        }
+    }
 
     String mavenGcsRepoDsl() {
         """
