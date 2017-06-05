@@ -165,6 +165,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
             @Override
             public void run(BuildOperationContext context) {
                 try {
+                    LOGGER.debug(description);
                     BuildCacheStoreBuildOperationType.Result result = resultFactory.create();
                     context.setResult(result);
                 } catch (Exception e) {
