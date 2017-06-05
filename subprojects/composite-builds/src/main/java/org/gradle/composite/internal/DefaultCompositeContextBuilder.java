@@ -87,7 +87,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
         DependencySubstitutionsInternal substitutions = build.resolveDependencySubstitutions();
         if (!substitutions.hasRules()) {
             // Configure the included build to discover substitutions
-            LOGGER.lifecycle("[composite-build] Configuring build: " + build.getProjectDir());
+            LOGGER.info("[composite-build] Configuring build: " + build.getProjectDir());
             contextBuilder.build(build);
         } else {
             // Register the defined substitutions for included build
