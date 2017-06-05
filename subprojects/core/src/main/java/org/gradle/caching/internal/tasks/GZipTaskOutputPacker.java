@@ -65,8 +65,10 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
         } finally {
             try {
                 int read = input.read();
+                System.out.println("read: " + input);
                 while (read != -1) {
                     read = input.read();
+                    System.out.println("read: " + input);
                 }
             } catch (IOException ignore) {
                 // ignore
