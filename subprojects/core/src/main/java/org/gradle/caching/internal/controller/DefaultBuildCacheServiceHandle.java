@@ -145,7 +145,6 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     @Override
     public void doStore(final BuildCacheKey key, final File file, final BuildCacheStoreCommand.Result storeResult) {
-        // TODO: indicate that this operation does not include “packing” the archive
         doStoreInner(key, new Factory<BuildCacheStoreBuildOperationType.Result>() {
             @Override
             public BuildCacheStoreBuildOperationType.Result create() {
@@ -175,9 +174,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
                     if (e instanceof BuildCacheException) {
                         recordFailure();
                     } else {
-                        // TODO: somehow indicate via the operation result that this was fatal?
-                        // Alternatively, the scan server side infrastructure can make this determination based on the exception.
-                        disable("a non-recoverable error was encountered.", true);
+                        disable("a non-recoverable error was encountered", true);
                     }
                 }
             }
@@ -196,7 +193,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     private void recordFailure() {
         if (errorCount.incrementAndGet() == DefaultBuildCacheController.MAX_ERRORS) {
-            disable(DefaultBuildCacheController.MAX_ERRORS + " recoverable errors were encountered.", false);
+            disable(DefaultBuildCacheController.MAX_ERRORS + " recoverable errors were encountered", false);
         }
     }
 
@@ -216,7 +213,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    LOGGER.warn("The {} build cache is now disabled because {}", role.getDisplayName(), message);
+                    LOGGER.warn("The {} build cache is now disabled because {}.", role.getDisplayName(), message);
                 }
 
                 @Override
@@ -238,7 +235,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
         if (!closed) {
             String disableMessage = disabledMessage.get();
             if (disableMessage != null) {
-                LOGGER.warn("The {} build cache was disabled during the build because {}", role.getDisplayName(), disableMessage);
+                LOGGER.warn("The {} build cache was disabled during the build because {}.", role.getDisplayName(), disableMessage);
             }
             try {
                 service.close();

@@ -236,4 +236,27 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         operations.orderedSerialSiblings(localMissLoadOp, remoteMissLoadOp, localStoreOp, remoteStoreOp)
     }
 
+    def "emits operation for disabling service"() {
+        when:
+        local("", "throw new IOException('!')")
+        settingsFile << """
+            buildCache { local($localCacheClass) }
+        """
+        buildFile << cacheableTask() << """
+            apply plugin: "base"
+            tasks.create("t1", CustomTask).paths << "out1" << "out2"
+        """
+
+        executer.withStackTraceChecksDisabled()
+        succeeds("t1")
+
+        then:
+        def disableOp = operations.only(BuildCacheDisableServiceBuildOperationType)
+        disableOp.details.role == "local"
+        disableOp.details.message == "a non-recoverable error was encountered"
+        disableOp.details.reason == BuildCacheDisableServiceBuildOperationType.Details.DisabledReason.NON_RECOVERABLE_ERROR.name()
+
+        disableOp.result == null
+    }
+
 }
