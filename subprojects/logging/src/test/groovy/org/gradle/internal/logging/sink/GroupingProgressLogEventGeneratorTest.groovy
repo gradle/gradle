@@ -20,34 +20,24 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.OperationIdentifier
-import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.StyledTextOutputEvent
+import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.logging.format.LogHeaderFormatter
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.util.MockTimeProvider
 import spock.lang.Subject
 
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-
 class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     private final OutputEventListener downstreamListener = Mock(OutputEventListener)
     def logHeaderFormatter = Mock(LogHeaderFormatter)
     def timeProvider = new MockTimeProvider()
-    def executor = Mock(ScheduledExecutorService)
-    def future = Mock(ScheduledFuture)
-    @Subject listener = new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, executor, logHeaderFormatter, false)
-    def latestScheduledRunnable
+    @Subject listener = new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, logHeaderFormatter, false)
 
     def setup() {
-        executor.scheduleAtFixedRate(_, _, _, _) >> { runnable, initialDelay, delay, timeUnit ->
-            latestScheduledRunnable = runnable
-            future
-        }
         logHeaderFormatter.format(_, _, _, _) >> { h, d, s, st -> [new StyledTextOutputEvent.Span("Header $d")] }
     }
 
@@ -95,7 +85,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "STATUS")
 
-        when: new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, executor, logHeaderFormatter, true).onOutput([taskStartEvent, taskCompleteEvent])
+        when: new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, logHeaderFormatter, true).onOutput([taskStartEvent, taskCompleteEvent])
 
         then: 1 * logHeaderFormatter.format(taskStartEvent.loggingHeader, taskStartEvent.description, taskStartEvent.shortDescription, taskCompleteEvent.status) >> {
             [new StyledTextOutputEvent.Span(taskStartEvent.description + ' '), new StyledTextOutputEvent.Span(StyledTextOutput.Style.ProgressStatus, taskCompleteEvent.status)]
@@ -158,105 +148,67 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then: 0 * downstreamListener._
     }
 
-    def "schedules render at fixed rate once an root progress event is started"() {
-        def event = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
-
-        when:
-        listener.onOutput([event] as ArrayList<OutputEvent>)
-
-        then:
-        1 * executor.scheduleAtFixedRate(_, _, _, _)
-    }
-
-    def "forward a group of logs after a initial delay"() {
+    def "does not forward a batched group of events after receiving update now event before flush period"() {
         given:
-        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
-        def taskAOutput = event(timeProvider.currentTime, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, timeProvider.currentTime, 'UP-TO-DATE')
-        def endEvent = new EndOutputEvent()
+        def olderTimestamp = timeProvider.currentTime
+        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
+        def updateNowEvent = new UpdateNowEvent(timeProvider.currentTime)
 
         when:
         listener.onOutput([taskAStartEvent, taskAOutput])
-        timeProvider.increment(GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT)
-        latestScheduledRunnable.run()
+
+        then:
+        0 * downstreamListener.onOutput(_)
+
+        when:
+        listener.onOutput([updateNowEvent])
+
+        then:
+        0 * downstreamListener.onOutput(_)
+    }
+
+    def "forwards a batched group of events after receiving update now event after flush period"() {
+        given:
+        def olderTimestamp = timeProvider.currentTime - GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT
+        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
+        def updateNowEvent = new UpdateNowEvent(timeProvider.currentTime)
+
+        when:
+        listener.onOutput([taskAStartEvent, taskAOutput])
+
+        then:
+        0 * downstreamListener.onOutput(_)
+
+        when:
+        listener.onOutput([updateNowEvent])
 
         then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
+    }
+
+    def "forwards multiple batched groups of events after receiving update now event after flush period"() {
+        given:
+        def olderTimestamp = timeProvider.currentTime - GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT
+        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
+        def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-13L), new OperationIdentifier(-14L), olderTimestamp, CATEGORY, "Execute :b", ":b", null, null, new OperationIdentifier(12L), null, BuildOperationCategory.TASK)
+        def taskBOutput = event(olderTimestamp, 'message for task b', LogLevel.WARN, taskBStartEvent.buildOperationId)
+        def updateNowEvent = new UpdateNowEvent(timeProvider.currentTime)
 
         when:
-        listener.onOutput([taskACompleteEvent, endEvent])
+        listener.onOutput([taskAStartEvent, taskBStartEvent, taskAOutput, taskBOutput])
 
         then:
-        1 * downstreamListener.onOutput(endEvent)
-        0 * downstreamListener._
-    }
+        0 * downstreamListener.onOutput(_)
 
-    def "keep forwarding the task output while still in focus"() {
-        given:
-        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
-        def taskAOutput1 = event(timeProvider.currentTime, 'first message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def taskAOutput2 = event(timeProvider.currentTime, 'second message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, timeProvider.currentTime, 'UP-TO-DATE')
-        def endEvent = new EndOutputEvent()
+        when:
+        listener.onOutput([updateNowEvent])
 
-        and:
-        listener.onOutput([taskAStartEvent, taskAOutput1])
-        timeProvider.increment(GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT)
-        latestScheduledRunnable.run()
-
-        when: listener.onOutput([taskAOutput2])
-
-        then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] second message for task a" })
-
-        when: listener.onOutput([taskACompleteEvent, endEvent])
-
-        then:
-        1 * downstreamListener.onOutput(endEvent)
-        0 * downstreamListener._
-    }
-
-    def "correctly interlace grouped of logs of long running task with a short running task"() {
-        given:
-        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
-        def taskAOutput1 = event(timeProvider.currentTime, 'first message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-5L), new OperationIdentifier(-6L), timeProvider.currentTime, CATEGORY, "Execute :b", ":b", null, null, new OperationIdentifier(3L), null, BuildOperationCategory.TASK)
-        def taskBOutput = event(timeProvider.currentTime, 'message for task b', LogLevel.WARN, taskBStartEvent.buildOperationId)
-        def taskBCompleteEvent = new ProgressCompleteEvent(taskBStartEvent.progressOperationId, timeProvider.currentTime, 'UP-TO-DATE')
-        def taskAOutput2 = event(timeProvider.currentTime, 'second message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, timeProvider.currentTime, 'UP-TO-DATE')
-        def endEvent = new EndOutputEvent()
-
-        and:
-        listener.onOutput([taskAStartEvent, taskAOutput1])
-        timeProvider.increment(GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT)
-        latestScheduledRunnable.run()
-
-        // then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] first message for task a" })
-
-        when: listener.onOutput([taskBStartEvent, taskBOutput, taskBCompleteEvent])
-
-        then: 1 * logHeaderFormatter.format(taskBStartEvent.loggingHeader, taskBStartEvent.description, taskBStartEvent.shortDescription, taskBCompleteEvent.status) >> { [new StyledTextOutputEvent.Span("Header $taskBStartEvent.description")] }
+        then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
+        then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskBStartEvent.description</Normal>".toString() })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" })
-
-        when: listener.onOutput([taskAOutput2, taskACompleteEvent, endEvent])
-
-        then: 1 * logHeaderFormatter.format(taskAStartEvent.loggingHeader, taskAStartEvent.description, taskAStartEvent.shortDescription, taskACompleteEvent.status) >> { [new StyledTextOutputEvent.Span("Header $taskAStartEvent.description")] }
-        then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
-        then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] second message for task a" })
-    }
-
-    def "correctly cancel the future and shutdown executor once the end event is received"() {
-        def startEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
-        def end = new EndOutputEvent()
-
-        given:
-        listener.onOutput([startEvent] as ArrayList<OutputEvent>)
-
-        when:
-        listener.onOutput([end] as ArrayList<OutputEvent>)
-
-        then: 1 * future.cancel(false)
-        then: 1 * executor.shutdownNow()
     }
 }
