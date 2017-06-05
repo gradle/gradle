@@ -22,14 +22,14 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpec {
     @Rule
-    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def "multi-project build tasks logs are grouped"() {
         given:
@@ -177,22 +177,25 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
     }
 
     def "long running task output are flushed after delay"() {
+        server.start()
+
         given:
         buildFile << """
             task log {
                 doLast {
                     logger.quiet 'Before'
-                    new URL('${server.uri}').text
+                    new URL('${server.uri('running')}').text
                     logger.quiet 'After'
                 }
             }
         """
         GradleHandle gradle = executer.withTasks('log').start()
+        def handle = server.expectAndBlock(server.resource('running'))
 
         when:
-        server.waitFor()
+        handle.waitForAllPendingCalls()
         assertOutputContains(gradle, "Before${SystemProperties.instance.lineSeparator}")
-        server.release()
+        handle.releaseAll()
         result = gradle.waitForFinish()
 
         then:
