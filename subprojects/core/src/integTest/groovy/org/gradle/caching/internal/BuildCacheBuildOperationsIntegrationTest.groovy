@@ -133,7 +133,14 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def hitLoadOp = operations.only(BuildCacheLoadBuildOperationType)
         hitLoadOp.details.cacheKey == storeOp.details.cacheKey
         hitLoadOp.details.role == "local"
-        hitLoadOp.result.archiveSize == localCacheArtifact(hitLoadOp.details.cacheKey.toString()).length()
+
+        // Not all of the tar.gz bytes need to be read in order to unpack the archive.
+        // On Linux at least, the archive may have redundant padding bytes
+        // Furthermore, the exact amount of padding appears to be non deterministic.
+        def artifactLength = localCacheArtifact(hitLoadOp.details.cacheKey.toString())
+        def sizeDiff = artifactLength - hitLoadOp.result.archiveSize
+        sizeDiff > -100 && sizeDiff < 100
+
         hitLoadOp.result.archiveEntryCount == 4
         operations.none(BuildCacheStoreBuildOperationType)
     }

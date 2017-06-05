@@ -218,18 +218,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             @Override
             public UnpackResult transform(TarInputStream tarInput) {
                 try {
-                    UnpackResult unpack = unpack(propertySpecs, tarInput, readOrigin);
-                    try {
-                        int read = input.read();
-                        System.out.println("read: " + read);
-                        while (read != -1) {
-                            read = input.read();
-                            System.out.println("read: " + read);
-                        }
-                    } catch (IOException ignore) {
-                        ignore.printStackTrace();
-                    }
-                    return unpack;
+                    return unpack(propertySpecs, tarInput, readOrigin);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
