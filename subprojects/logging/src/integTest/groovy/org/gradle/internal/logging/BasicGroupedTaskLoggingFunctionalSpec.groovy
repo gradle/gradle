@@ -18,11 +18,18 @@ package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpec {
+    @Rule
+    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def "multi-project build tasks logs are grouped"() {
         given:
@@ -171,21 +178,34 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
 
     def "long running task output are flushed after delay"() {
         given:
-        def sleepTime = GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT / 2 * 3
         buildFile << """
             task log {
                 doLast {
                     logger.quiet 'Before'
-                    sleep($sleepTime)
+                    new URL('${server.uri}').text
                     logger.quiet 'After'
                 }
             }
         """
+        GradleHandle gradle = executer.withTasks('log').start()
 
         when:
-        succeeds('log')
+        server.waitFor()
+        assertOutputContains(gradle, "Before${SystemProperties.instance.lineSeparator}")
+        server.release()
+        result = gradle.waitForFinish()
 
         then:
-        result.groupedOutput.task(':log').outputs == ["Before\nAfter"]
+        result.groupedOutput.task(':log').outputs.size() == 1
+        result.groupedOutput.task(':log').outputs[0] =~ /Before\n+After/
+
+        cleanup:
+        gradle?.waitForFinish()
+    }
+
+    private void assertOutputContains(GradleHandle gradle, String str) {
+        ConcurrentTestUtil.poll {
+            assert gradle.standardOutput =~ /(?ms)$str/
+        }
     }
 }
