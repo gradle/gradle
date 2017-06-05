@@ -88,10 +88,6 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
 
     @Override
     public void setProcessDir(File processDir) throws NativeIntegrationException {
-        if (!processDir.exists()) {
-            return;
-        }
-
         setNativeProcessDir(processDir);
         System.setProperty("user.dir", processDir.getAbsolutePath());
     }

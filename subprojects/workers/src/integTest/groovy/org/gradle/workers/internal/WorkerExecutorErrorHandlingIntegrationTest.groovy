@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal
 
-import groovy.transform.NotYetImplemented
 import org.gradle.internal.jvm.Jvm
 import org.gradle.workers.IsolationMode
 import spock.lang.Unroll
@@ -101,7 +100,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("Failed to run Gradle Worker Daemon")
     }
 
-    @NotYetImplemented
     def "produces a sensible error if the specified working directory cannot be used"() {
         executer.withStackTraceChecksDisabled()
         withRunnableClassInBuildSrc()
