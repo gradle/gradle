@@ -23,17 +23,21 @@ import org.gradle.includedbuild.internal.IncludedBuildController;
 import org.gradle.includedbuild.internal.IncludedBuildControllers;
 import org.gradle.includedbuild.internal.IncludedBuilds;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.Map;
 
 class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = Maps.newHashMap();
+    private final ManagedExecutor executorService;
     private final IncludedBuilds includedBuilds;
     private boolean taskExecutionStarted;
 
-    DefaultIncludedBuildControllers(IncludedBuilds includedBuilds) {
+    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuilds includedBuilds) {
         this.includedBuilds = includedBuilds;
+        this.executorService = executorFactory.create("included builds");
     }
 
     public IncludedBuildController getBuildController(BuildIdentifier buildId) {
@@ -45,9 +49,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         IncludedBuild build = includedBuilds.getBuild(buildId.getName());
         DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build);
         buildControllers.put(buildId, newBuildController);
-
-        // TODO:DAZ Do this properly
-        new Thread(newBuildController).start();
+        executorService.submit(newBuildController);
 
         // Required for build controllers created after initial start
         if (taskExecutionStarted) {
@@ -68,5 +70,6 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     @Override
     public void stop() {
         CompositeStoppable.stoppable(buildControllers.values()).stop();
+        executorService.stop();
     }
 }
