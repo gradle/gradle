@@ -85,12 +85,12 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
     }
 
-    private void doStoreBoth(BuildCacheStoreCommand storeOp) {
+    private void doStoreBoth(BuildCacheStoreCommand command) {
         File destination = temporaryFileProvider.createTemporaryFile("gradle_cache", "entry");
         try {
-            BuildCacheStoreCommand.Result result = doTmpFileStore(storeOp, destination);
-            local.doStore(storeOp.getKey(), destination, result);
-            remote.doStore(storeOp.getKey(), destination, result);
+            BuildCacheStoreCommand.Result result = doTmpFileStore(command, destination);
+            local.doStore(command.getKey(), destination, result);
+            remote.doStore(command.getKey(), destination, result);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
