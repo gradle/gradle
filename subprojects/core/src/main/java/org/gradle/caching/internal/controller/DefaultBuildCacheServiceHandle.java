@@ -22,8 +22,10 @@ import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.BuildCacheDisableServiceBuildOperationType.Details.DisabledReason;
 import org.gradle.caching.internal.BuildCacheLoadBuildOperationType;
 import org.gradle.caching.internal.BuildCacheStoreBuildOperationType;
+import org.gradle.caching.internal.controller.operations.DisableOperationDetails;
 import org.gradle.caching.internal.controller.operations.LoadOperationDetails;
 import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
 import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
@@ -175,7 +177,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
                     } else {
                         // TODO: somehow indicate via the operation result that this was fatal?
                         // Alternatively, the scan server side infrastructure can make this determination based on the exception.
-                        disable("a non-recoverable error was encountered.");
+                        disable("a non-recoverable error was encountered.", true);
                     }
                 }
             }
@@ -194,7 +196,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     private void recordFailure() {
         if (errorCount.incrementAndGet() == DefaultBuildCacheController.MAX_ERRORS) {
-            disable(DefaultBuildCacheController.MAX_ERRORS + " recoverable errors were encountered.");
+            disable(DefaultBuildCacheController.MAX_ERRORS + " recoverable errors were encountered.", false);
         }
     }
 
@@ -209,10 +211,24 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
         }
     }
 
-    private void disable(String message) {
-        // TODO: fire operation indicating the cache was disabled
+    private void disable(final String message, final boolean nonRecoverable) {
         if (disabledMessage.compareAndSet(null, message)) {
-            LOGGER.warn("The {} build cache is now disabled because {}", role.getDisplayName(), message);
+            buildOperationExecutor.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    LOGGER.warn("The {} build cache is now disabled because {}", role.getDisplayName(), message);
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Disable " + role.getDisplayName() + " build cache")
+                        .details(new DisableOperationDetails(
+                            role,
+                            message,
+                            nonRecoverable ? DisabledReason.NON_RECOVERABLE_ERROR : DisabledReason.TOO_MANY_RECOVERABLE_ERRORS
+                        ));
+                }
+            });
         }
     }
 
