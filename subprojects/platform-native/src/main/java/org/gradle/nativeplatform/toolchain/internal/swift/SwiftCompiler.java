@@ -82,7 +82,8 @@ class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
                         .dependencyFile(getOutputFileDir(sourceFile, objectDir, ".d"))
                         .objectFile(getOutputFileDir(sourceFile, objectDir, ".o"))
                         .swiftModuleFile(getOutputFileDir(sourceFile, objectDir, "~partial.swiftmodule"))
-                        .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"));
+                        .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"))
+                        .diagnosticsFile(getOutputFileDir(sourceFile, objectDir, ".dia"));
                     genericArgs.add(sourceFile.getAbsolutePath());
                 }
                 if (null != spec.getModuleName()) {
@@ -171,6 +172,11 @@ class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
                 entry.swiftDependencies = swiftDependenciesFile.getAbsolutePath();
                 return this;
             }
+
+            public Builder diagnosticsFile(File diagnosticsFile) {
+                entry.diagnostics = diagnosticsFile.getAbsolutePath();
+                return this;
+            }
         }
 
         private static class Entry {
@@ -178,6 +184,7 @@ class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
             private String object;
             private String swiftmodule;
             private String swiftDependencies;
+            private String diagnostics;
         }
     }
 }
