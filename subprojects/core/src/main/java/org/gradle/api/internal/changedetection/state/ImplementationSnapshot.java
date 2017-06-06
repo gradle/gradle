@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.Nullable;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 /**
@@ -27,7 +28,7 @@ public class ImplementationSnapshot implements Snapshot {
     private final String typeName;
     private final HashCode classLoaderHash;
 
-    public ImplementationSnapshot(String typeName, HashCode classLoaderHash) {
+    public ImplementationSnapshot(String typeName, @Nullable HashCode classLoaderHash) {
         this.typeName = typeName;
         this.classLoaderHash = classLoaderHash;
     }
