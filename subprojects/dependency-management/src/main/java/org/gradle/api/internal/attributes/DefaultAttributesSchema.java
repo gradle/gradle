@@ -162,7 +162,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public void disambiguate(Attribute<?> attribute, Object requested, MultipleCandidatesResult<Object> result) {
+        public void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
             DisambiguationRule<Object> rules = disambiguationRules(attribute);
             rules.execute(result);
             if (result.hasResult()) {
@@ -175,6 +175,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
                 return;
             }
 
+            Object requested = result.getConsumerValue();
             if (requested != null && result.getCandidateValues().contains(requested)) {
                 result.closestMatch(requested);
                 return;

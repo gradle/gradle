@@ -64,7 +64,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         }
 
         op.result.upToDateMessages == ["Task has not declared any outputs."]
-        op.failure == "Execution failed for task ':t'."
+        op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 
     def "does not emit result for beforeTask failure"() {
@@ -86,7 +86,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         }
 
         op.result == null
-        op.failure == "!"
+        op.failure == "java.lang.RuntimeException: !"
     }
 
     def "does emit result for afterTask failure"() {
@@ -108,7 +108,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         }
 
         op.result != null
-        op.failure == "!"
+        op.failure == "java.lang.RuntimeException: !"
     }
 
     def "afterTask failure supersedes task failure"() {
@@ -132,7 +132,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         }
 
         op.result != null
-        op.failure == "2"
+        op.failure == "java.lang.RuntimeException: 2"
     }
 
 }

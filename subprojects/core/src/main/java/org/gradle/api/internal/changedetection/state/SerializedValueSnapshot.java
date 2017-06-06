@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
@@ -48,32 +49,45 @@ public class SerializedValueSnapshot implements ValueSnapshot {
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot snapshot = snapshotter.snapshot(value);
+        if (hasSameSerializedValue(value, snapshot)) {
+            return this;
+        }
+        return snapshot;
+    }
 
+    @Override
+    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot snapshot = snapshotter.isolatableSnapshot(value);
+        if (hasSameSerializedValue(value, snapshot)) {
+            if (this instanceof Isolatable) {
+                return this;
+            } else {
+                return snapshotter.wrap(value, this);
+            }
+        }
+        return snapshot;
+    }
+
+    private boolean hasSameSerializedValue(Object value, ValueSnapshot snapshot) {
         if (snapshot instanceof SerializedValueSnapshot) {
             SerializedValueSnapshot newSnapshot = (SerializedValueSnapshot) snapshot;
             if (!Objects.equal(implementationHash, newSnapshot.implementationHash)) {
                 // Different implementation - assume value has changed
-                return newSnapshot;
+                return false;
             }
             if (Arrays.equals(serializedValue, newSnapshot.serializedValue)) {
                 // Same serialized content - value has not changed
-                return this;
+                return true;
             }
 
             // Deserialize the old value and use the equals() implementation. This will be removed at some point
-            Object oldValue;
-            try {
-                oldValue = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), value.getClass().getClassLoader()).readObject();
-            } catch (Exception e) {
-                throw new UncheckedIOException(e);
-            }
+            Object oldValue = populateClass(value.getClass());
             if (oldValue.equals(value)) {
                 // Same value
-                return this;
+                return true;
             }
         }
-
-        return snapshot;
+        return false;
     }
 
     @Override
@@ -96,6 +110,16 @@ public class SerializedValueSnapshot implements ValueSnapshot {
         }
         SerializedValueSnapshot other = (SerializedValueSnapshot) obj;
         return Objects.equal(implementationHash, other.implementationHash) && Arrays.equals(serializedValue, other.serializedValue);
+    }
+
+    protected  Object populateClass(Class<?> originalClass) {
+        Object populated;
+        try {
+            populated = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), originalClass.getClassLoader()).readObject();
+        } catch (Exception e) {
+            throw new UncheckedIOException(e);
+        }
+        return populated;
     }
 
     @Override

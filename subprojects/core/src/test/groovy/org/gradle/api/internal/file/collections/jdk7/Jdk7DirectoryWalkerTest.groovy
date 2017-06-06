@@ -207,15 +207,15 @@ class Jdk7DirectoryWalkerTest extends Specification {
 
         def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visited = []
-        def visitClosure = { visited << it.file.absolutePath }
+        def visitClosure = { visited << it.file.canonicalPath }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
 
         when:
         fileTree.visit(fileVisitor)
 
         then:
-        visited.contains(file.absolutePath)
-        visited.contains(link.absolutePath)
+        visited.contains(file.canonicalPath)
+        visited.contains(link.canonicalPath)
         link.text == "Hello world"
 
         cleanup:

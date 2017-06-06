@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
+@UsedByScanPlugin("doesn't link against this type, but expects these values - See ExecuteTaskBuildOperationType")
 public enum TaskOutputCachingDisabledReasonCategory {
     UNKNOWN,
     BUILD_CACHE_DISABLED,

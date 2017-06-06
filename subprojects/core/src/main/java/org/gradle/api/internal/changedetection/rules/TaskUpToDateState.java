@@ -37,10 +37,10 @@ public class TaskUpToDateState {
 
     public static final int MAX_OUT_OF_DATE_MESSAGES = 3;
 
-    private TaskStateChanges inputFileChanges;
-    private DiscoveredInputsListener discoveredInputsListener;
-    private TaskStateChanges allTaskChanges;
-    private TaskStateChanges rebuildChanges;
+    private final TaskStateChanges inputFileChanges;
+    private final DiscoveredInputsListener discoveredInputsListener;
+    private final TaskStateChanges allTaskChanges;
+    private final TaskStateChanges rebuildChanges;
 
     public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history,
                              OutputFilesSnapshotter outputFilesSnapshotter, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
@@ -66,8 +66,8 @@ public class TaskUpToDateState {
         this.discoveredInputsListener = discoveredChanges;
         TaskStateChanges discoveredInputFilesChanges = caching(discoveredChanges);
 
-        allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges));
-        rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges));
+        this.allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges));
+        this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges));
     }
 
     private TaskStateChanges caching(TaskStateChanges wrapped) {

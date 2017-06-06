@@ -198,10 +198,10 @@ class DefaultAttributesSchemaTest extends Specification {
         def candidates = LinkedListMultimap.create()
         candidates.put("foo", "item1")
         candidates.put("bar", "item2")
-        def candidateDetails = new DefaultCandidateResult(candidates, best)
+        def candidateDetails = new DefaultCandidateResult(candidates, "bar", best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "bar", candidateDetails)
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
         best == ["item2"]
@@ -223,10 +223,10 @@ class DefaultAttributesSchemaTest extends Specification {
         def candidates = LinkedListMultimap.create()
         candidates.put("foo", "item1")
         candidates.put("bar", "item2")
-        def candidateDetails = new DefaultCandidateResult(candidates, best)
+        def candidateDetails = new DefaultCandidateResult(candidates, "bar", best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "bar", candidateDetails)
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
         best == ["item2"]
@@ -242,10 +242,10 @@ class DefaultAttributesSchemaTest extends Specification {
         def candidates = LinkedListMultimap.create()
         candidates.put("foo", "item1")
         candidates.put("bar", "item2")
-        def candidateDetails = new DefaultCandidateResult(candidates, best)
+        def candidateDetails = new DefaultCandidateResult(candidates, "other", best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "other", candidateDetails)
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
         best == ["item1", "item2"]
@@ -261,10 +261,10 @@ class DefaultAttributesSchemaTest extends Specification {
         def candidates = LinkedListMultimap.create()
         candidates.put("foo", "item1")
         candidates.put("bar", "item2")
-        def candidateDetails = new DefaultCandidateResult(candidates, best)
+        def candidateDetails = new DefaultCandidateResult(candidates, "other", best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "other", candidateDetails)
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
         best == ["item1", "item2"]
@@ -285,18 +285,18 @@ class DefaultAttributesSchemaTest extends Specification {
 
         when:
         def best = []
-        def candidateDetails = new DefaultCandidateResult(candidates, best)
+        def candidateDetails = new DefaultCandidateResult(candidates, [requested: 'abc'], best)
 
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, [requested: 'abc'], candidateDetails)
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
         best == ["item1"]
 
         when:
         best = []
-        candidateDetails = new DefaultCandidateResult(candidates, best)
+        candidateDetails = new DefaultCandidateResult(candidates, value2, best)
 
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, value2, candidateDetails)
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
         best == ["item1"]
@@ -353,9 +353,9 @@ class DefaultAttributesSchemaTest extends Specification {
 
         when:
         def best = []
-        def candidateDetails = new DefaultCandidateResult(candidates, best)
+        def candidateDetails = new DefaultCandidateResult(candidates, [requested: 'abc'], best)
 
-        schema.mergeWith(producer).disambiguate(attr, [requested: 'abc'], candidateDetails)
+        schema.mergeWith(producer).disambiguate(attr, candidateDetails)
 
         then:
         best == ["item1"]

@@ -33,7 +33,7 @@ public final class DownloadArtifactBuildOperationType implements BuildOperationT
 
     }
 
-    public static class DetailsImpl {
+    public static class DetailsImpl implements Details {
 
         private String artifactIdentifier;
 

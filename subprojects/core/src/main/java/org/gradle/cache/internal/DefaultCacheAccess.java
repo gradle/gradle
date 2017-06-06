@@ -30,7 +30,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.CollectionUtils;
 
@@ -65,7 +65,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
     private final CacheAccessOperationsStack operations;
 
-    private StoppableExecutor cacheUpdateExecutor;
+    private ManagedExecutor cacheUpdateExecutor;
     private CacheAccessWorker cacheAccessWorker;
     private final Lock stateLock = new ReentrantLock(); // protects the following state
     private final Condition condition = stateLock.newCondition();

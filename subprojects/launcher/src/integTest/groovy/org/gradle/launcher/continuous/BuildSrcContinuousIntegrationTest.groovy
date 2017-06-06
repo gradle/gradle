@@ -29,7 +29,7 @@ class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         succeeds("help")
     }
 
-    def "can build and reload a project with buildSrc"() {
+    def "can build and reload a project with buildSrc when buildSrc changes"() {
         when:
         buildScript """
             task a {
@@ -50,12 +50,6 @@ class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
               public static final String VALUE = "changed"
             }
         """
-
-        then:
-        noBuildTriggered()
-
-        when:
-        file("a") << "added"
 
         then:
         succeeds()

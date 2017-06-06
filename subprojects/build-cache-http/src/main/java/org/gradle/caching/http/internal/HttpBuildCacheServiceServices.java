@@ -20,23 +20,11 @@ import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.http.HttpBuildCache;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
-public class HttpBuildCacheServiceServices implements PluginServiceRegistry {
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
+public class HttpBuildCacheServiceServices extends AbstractPluginServiceRegistry {
 
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(BuildCacheServiceRegistration.class, new DefaultBuildCacheServiceRegistration(HttpBuildCache.class, DefaultHttpBuildCacheServiceFactory.class));
-    }
-
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    public void registerProjectServices(ServiceRegistration registration) {
-
     }
 }

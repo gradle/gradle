@@ -33,6 +33,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.work.AsyncWorkCompletion;
 import org.gradle.internal.work.AsyncWorkTracker;
+import org.gradle.internal.work.NoAvailableWorkerLeaseException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.JavaForkOptions;
@@ -87,7 +88,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private void submit(final ActionExecutionSpec spec, final File workingDir, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
-        final WorkerLease currentWorkerWorkerLease = workerLeaseRegistry.getCurrentWorkerLease();
+        final WorkerLease currentWorkerWorkerLease = getCurrentWorkerLease();
         final BuildOperationState currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
             @Override
@@ -102,6 +103,14 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             }
         });
         registerAsyncWork(spec.getDisplayName(), workerDaemonResult);
+    }
+
+    private WorkerLease getCurrentWorkerLease() {
+        try {
+            return workerLeaseRegistry.getCurrentWorkerLease();
+        } catch (NoAvailableWorkerLeaseException e) {
+            throw new IllegalStateException("An attempt was made to submit work from a thread not managed by Gradle.  Work may only be submitted from a Gradle-managed thread.", e);
+        }
     }
 
     private WorkerFactory getWorkerFactory(IsolationMode isolationMode) {
@@ -145,7 +154,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     public void await() throws WorkerExecutionException {
         BuildOperationState currentOperation = buildOperationExecutor.getCurrentOperation();
         try {
-            asyncWorkTracker.waitForCompletion(currentOperation);
+            asyncWorkTracker.waitForCompletion(currentOperation, false);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());
         }

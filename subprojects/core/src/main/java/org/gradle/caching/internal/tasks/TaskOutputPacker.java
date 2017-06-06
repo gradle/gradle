@@ -34,7 +34,28 @@ public interface TaskOutputPacker {
     // - any major changes of the layout of a cache entry
     int CACHE_ENTRY_FORMAT = 1;
 
-    void pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin);
+    PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin);
 
-    TaskOutputOriginMetadata unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin);
+    class PackResult {
+
+        public final long entries;
+
+        public PackResult(long entries) {
+            this.entries = entries;
+        }
+
+    }
+
+    UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin);
+
+    class UnpackResult {
+
+        public final TaskOutputOriginMetadata originMetadata;
+        public final long entries;
+
+        public UnpackResult(TaskOutputOriginMetadata originMetadata, long entries) {
+            this.originMetadata = originMetadata;
+            this.entries = entries;
+        }
+    }
 }

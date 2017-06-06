@@ -17,22 +17,10 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
-public class PublishServices implements PluginServiceRegistry {
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
+public class PublishServices extends AbstractPluginServiceRegistry {
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(ProjectDependencyPublicationResolver.class);
-    }
-
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 }

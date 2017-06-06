@@ -42,7 +42,7 @@ public interface PluginRequest {
     @Nullable
     String getVersion();
 
-    /*
+    /**
      * The implementation module of the plugin if one was explicitly specified, otherwise null.
      */
     @Nullable

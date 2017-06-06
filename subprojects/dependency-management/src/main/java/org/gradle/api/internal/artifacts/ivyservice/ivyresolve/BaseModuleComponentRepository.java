@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 
 import java.util.Map;
 
@@ -60,7 +60,7 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
     }
 
     @Override
-    public Map<ComponentArtifactIdentifier, ResolvedArtifact> getArtifactCache() {
+    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
         throw new UnsupportedOperationException();
     }
 

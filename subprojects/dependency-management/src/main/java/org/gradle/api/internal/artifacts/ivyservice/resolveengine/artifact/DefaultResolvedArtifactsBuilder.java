@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
@@ -60,16 +61,23 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         } else {
             ConfigurationMetadata configurationMetadata = to.getMetadata();
             if (configurationMetadata instanceof LocalConfigurationMetadata) {
-                if (from.getOwner().getComponentId() instanceof ProjectComponentIdentifier) {
-                    // This is here to attempt to leave out build dependencies that would cause a cycle in the task graph for the current build, so that the cross-build cycle detection kicks in. It's not fully correct
-                    ProjectComponentIdentifier incomingId = (ProjectComponentIdentifier) from.getOwner().getComponentId();
-                    if (!incomingId.getBuild().isCurrentBuild()) {
+                // TODO:DAZ Make this better
+                // For a dependency from _another_ build to _this_ build, don't make the artifact buildable
+                // Doing so leads to poor error reporting due to direct task dependency cycle (losing the intervening build dependencies)
+                ComponentIdentifier incomingId = from.getOwner().getComponentId();
+                ComponentIdentifier outgoingId = to.getOwner().getComponentId();
+                if (incomingId instanceof ProjectComponentIdentifier && outgoingId instanceof ProjectComponentIdentifier) {
+                    if (!isCurrentBuild(incomingId) && isCurrentBuild(outgoingId)) {
                         artifacts = new NoBuildDependenciesArtifactSet(artifacts);
                     }
                 }
             }
         }
         collectArtifacts(artifactSetId, artifacts);
+    }
+
+    private boolean isCurrentBuild(ComponentIdentifier incomingId) {
+        return ((ProjectComponentIdentifier) incomingId).getBuild().isCurrentBuild();
     }
 
     private void collectArtifacts(int artifactSetId, ArtifactSet artifacts) {

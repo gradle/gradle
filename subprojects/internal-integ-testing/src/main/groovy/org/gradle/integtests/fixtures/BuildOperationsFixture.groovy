@@ -62,6 +62,11 @@ class BuildOperationsFixture {
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> void none(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        assert all(type, predicate).isEmpty()
+    }
+
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord only(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def records = all(type, predicate)
         assert records.size() == 1
@@ -113,5 +118,14 @@ class BuildOperationsFixture {
         }
 
         matches
+    }
+
+    void orderedSerialSiblings(BuildOperationRecord... expectedOrder) {
+        def expectedOrderList = expectedOrder.toList()
+        assert expectedOrder*.parentId.unique().size() == 1
+        def startTimeOrdered = expectedOrderList.sort(false) { it.startTime }
+        assert expectedOrderList == startTimeOrdered
+        def endTimeOrdered = expectedOrderList.sort(false) { it.endTime }
+        assert endTimeOrdered == startTimeOrdered
     }
 }

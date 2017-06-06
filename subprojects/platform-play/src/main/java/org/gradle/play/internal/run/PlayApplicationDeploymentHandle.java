@@ -51,6 +51,9 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
                 reloadFromResult(result);
             }
         });
+        if (isRunning()) {
+            runnerToken.rebuildInProgress();
+        }
     }
 
     void reloadFromResult(BuildResult result) {

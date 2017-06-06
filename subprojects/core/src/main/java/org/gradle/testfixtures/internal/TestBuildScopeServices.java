@@ -32,8 +32,8 @@ import java.io.File;
 public class TestBuildScopeServices extends BuildScopeServices {
     private final File homeDir;
 
-    public TestBuildScopeServices(ServiceRegistry parent, StartParameter startParameter, File homeDir) {
-        super(parent, startParameter);
+    public TestBuildScopeServices(ServiceRegistry parent, File homeDir) {
+        super(parent);
         this.homeDir = homeDir;
     }
 

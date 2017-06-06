@@ -16,9 +16,11 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.initialization.SettingsLocation;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.File;
 
+@UsedByScanPlugin
 public class BuildLayout extends SettingsLocation {
     private final File rootDirectory;
 

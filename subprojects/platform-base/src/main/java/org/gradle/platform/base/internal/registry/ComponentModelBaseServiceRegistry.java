@@ -21,13 +21,13 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractionStrategy;
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy;
 
-public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry {
+public class ComponentModelBaseServiceRegistry extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -35,21 +35,8 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-
-    }
-
-    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeServices());
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private static class BuildScopeServices {

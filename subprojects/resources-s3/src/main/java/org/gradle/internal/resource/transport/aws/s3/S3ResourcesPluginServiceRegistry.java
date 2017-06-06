@@ -21,25 +21,16 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAwsImAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 
-public class S3ResourcesPluginServiceRegistry implements PluginServiceRegistry {
+public class S3ResourcesPluginServiceRegistry extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalScopeServices());
     }
 
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new AuthenticationSchemeAction());
-    }
-
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private static class GlobalScopeServices {

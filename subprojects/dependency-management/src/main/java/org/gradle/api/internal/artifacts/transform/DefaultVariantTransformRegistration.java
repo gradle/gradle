@@ -24,8 +24,10 @@ import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.changedetection.state.ArrayValueSnapshot;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
+import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.Instantiator;
@@ -55,10 +57,9 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
 
         // TODO - should snapshot later?
-        // TODO - should make params immutable
         ValueSnapshot snapshot;
         try {
-            snapshot = valueSnapshotter.snapshot(params);
+            snapshot = valueSnapshotter.isolatableSnapshot(params);
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(String.format("Could not snapshot configuration values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
         }
@@ -66,7 +67,13 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         snapshot.appendToHasher(hasher);
         inputsHash = hasher.hash();
 
-        this.transformer = new ArtifactTransformBackedTransformer(implementation, params, instantiator);
+        // Isolate Parameters
+        if (!(snapshot instanceof ArrayValueSnapshot)) {
+            throw new IsolationException("Snapshotting the ActionConfiguration's params didn't create an ArrayValueSnapshot.");
+        }
+        ArrayValueSnapshot paramsSnapshot = (ArrayValueSnapshot) snapshot;
+
+        this.transformer = new ArtifactTransformBackedTransformer(implementation, paramsSnapshot, instantiator);
     }
 
     public AttributeContainerInternal getFrom() {

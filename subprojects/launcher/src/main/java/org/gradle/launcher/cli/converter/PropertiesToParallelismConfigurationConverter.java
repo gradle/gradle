@@ -17,7 +17,7 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
-import org.gradle.initialization.ParallelismConfiguration;
+import org.gradle.internal.concurrent.ParallelismConfiguration;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 
 import java.util.Map;

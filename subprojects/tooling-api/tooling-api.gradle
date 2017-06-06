@@ -53,7 +53,7 @@ task shadedJarWithoutVersion(type: ShadedJar) {
     classesDir = file("$outputDir/classes")
     jarFile = file("$outputDir/gradle-tooling-api-shaded-${baseVersion}.jar")
     keepPackages = ["org.gradle.tooling"]
-    unshadedPackages = ["org.gradle", "org.slf4j"]
+    unshadedPackages = ["org.gradle", "org.slf4j", "sun.misc"]
     ignorePackages = ["org.gradle.tooling.provider.model"]
     shadowPackage = "org.gradle.internal.impldep"
 }

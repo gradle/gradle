@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.loader
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.actor.ActorFactory
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -138,7 +139,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
 
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> new DefaultClassPath()
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> ClassPath.EMPTY
 
         expect:
         loader.create(distribution, loggerFactory, progressListener, connectionParameters, cancellationToken) instanceof NoToolingApiConnection

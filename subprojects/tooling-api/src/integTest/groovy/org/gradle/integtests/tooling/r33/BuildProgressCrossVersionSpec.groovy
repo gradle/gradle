@@ -339,12 +339,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         def buildSrc = events.operation("Build buildSrc")
-        def configureBuildSrc = buildSrc.child("Configure build")
+        def configureBuildSrc = buildSrc.child({ it.startsWith("Configure build") })
         configureBuildSrc.child("Configure project :buildSrc")
         configureBuildSrc.child("Configure project :buildSrc:a")
         configureBuildSrc.child("Configure project :buildSrc:b")
 
-        def buildSrcTasks = buildSrc.child("Run tasks")
+        def buildSrcTasks = buildSrc.child({ it.startsWith("Run tasks") })
 
         def buildSrcCompileJava = buildSrcTasks.child("Task :buildSrc:compileJava")
         buildSrcCompileJava.descriptor.name == ':buildSrc:compileJava'

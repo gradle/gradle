@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.TreeVisitor;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.List;
 /**
  * A {@code LocationAwareException} is an exception which can be annotated with a location in a script.
  */
+@UsedByScanPlugin
 public class LocationAwareException extends GradleException implements FailureResolutionAware {
     private final String sourceDisplayName;
     private final Integer lineNumber;

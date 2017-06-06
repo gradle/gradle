@@ -25,7 +25,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
-    private final Set<StoppableExecutor> executors = new CopyOnWriteArraySet<StoppableExecutor>();
+    private final Set<ManagedExecutor> executors = new CopyOnWriteArraySet<ManagedExecutor>();
 
     public void stop() {
         try {
@@ -35,8 +35,8 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         }
     }
 
-    public StoppableExecutor create(String displayName) {
-        StoppableExecutor executor = new TrackedStoppableExecutor(createExecutor(displayName), new ExecutorPolicy.CatchAndRecordFailures());
+    public ManagedExecutor create(String displayName) {
+        ManagedExecutor executor = new TrackedManagedExecutor(createExecutor(displayName), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
     }
@@ -45,8 +45,8 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         return Executors.newCachedThreadPool(new ThreadFactoryImpl(displayName));
     }
 
-    public StoppableExecutor create(String displayName, int fixedSize) {
-        StoppableExecutor executor = new TrackedStoppableExecutor(createExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
+    public ManagedExecutor create(String displayName, int fixedSize) {
+        TrackedManagedExecutor executor = new TrackedManagedExecutor(createExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
     }
@@ -56,9 +56,8 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     }
 
     @Override
-    public StoppableScheduledExecutor createScheduled(String displayName, int fixedSize) {
-        ScheduledExecutorService delegate = createScheduledExecutor(displayName, fixedSize);
-        StoppableScheduledExecutor executor = new TrackedScheduledStoppableExecutor(delegate, new ExecutorPolicy.CatchAndRecordFailures());
+    public ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
+        ManagedScheduledExecutor executor = new TrackedScheduledManagedExecutor(createScheduledExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
     }
@@ -67,11 +66,12 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         return new ScheduledThreadPoolExecutor(fixedSize, new ThreadFactoryImpl(displayName));
     }
 
-    private class TrackedStoppableExecutor extends StoppableExecutorImpl {
-        public TrackedStoppableExecutor(ExecutorService executor, ExecutorPolicy executorPolicy) {
+    private class TrackedManagedExecutor extends ManagedExecutorImpl {
+        TrackedManagedExecutor(ExecutorService executor, ExecutorPolicy executorPolicy) {
             super(executor, executorPolicy);
         }
 
+        @Override
         public void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException {
             try {
                 super.stop(timeoutValue, timeoutUnits);
@@ -81,12 +81,12 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         }
     }
 
-    private class TrackedScheduledStoppableExecutor extends StoppableScheduledExecutorImpl {
-
-        public TrackedScheduledStoppableExecutor(ScheduledExecutorService executor, ExecutorPolicy executorPolicy) {
+    private class TrackedScheduledManagedExecutor extends ManagedScheduledExecutorImpl {
+        TrackedScheduledManagedExecutor(ScheduledExecutorService executor, ExecutorPolicy executorPolicy) {
             super(executor, executorPolicy);
         }
 
+        @Override
         public void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException {
             try {
                 super.stop(timeoutValue, timeoutUnits);

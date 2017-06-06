@@ -16,8 +16,8 @@
 
 package org.gradle.internal.classloader;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.IOException;
 import java.net.URL;
@@ -46,8 +46,13 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     static {
         EXT_CLASS_LOADER = ClassLoaderUtils.getPlatformClassLoader();
-        JavaMethod<ClassLoader, Package[]> method = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
-        Package[] systemPackages = method.invoke(EXT_CLASS_LOADER);
+        Package[] systemPackages;
+        JavaMethod<ClassLoader, Package[]> method = ClassLoaderUtils.getPackagesMethod();
+        try {
+            systemPackages = method.invoke(EXT_CLASS_LOADER);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
         for (Package p : systemPackages) {
             SYSTEM_PACKAGES.add(p.getName());
         }
@@ -288,23 +293,23 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             }
             Spec other = (Spec) obj;
             return other.packageNames.equals(packageNames)
-                    && other.packagePrefixes.equals(packagePrefixes)
-                    && other.resourceNames.equals(resourceNames)
-                    && other.resourcePrefixes.equals(resourcePrefixes)
-                    && other.classNames.equals(classNames)
-                    && other.disallowedClassNames.equals(disallowedClassNames)
-                    && other.disallowedPackagePrefixes.equals(disallowedPackagePrefixes);
+                && other.packagePrefixes.equals(packagePrefixes)
+                && other.resourceNames.equals(resourceNames)
+                && other.resourcePrefixes.equals(resourcePrefixes)
+                && other.classNames.equals(classNames)
+                && other.disallowedClassNames.equals(disallowedClassNames)
+                && other.disallowedPackagePrefixes.equals(disallowedPackagePrefixes);
         }
 
         @Override
         public int hashCode() {
             return packageNames.hashCode()
-                    ^ packagePrefixes.hashCode()
-                    ^ resourceNames.hashCode()
-                    ^ resourcePrefixes.hashCode()
-                    ^ classNames.hashCode()
-                    ^ disallowedClassNames.hashCode()
-                    ^ disallowedPackagePrefixes.hashCode();
+                ^ packagePrefixes.hashCode()
+                ^ resourceNames.hashCode()
+                ^ resourcePrefixes.hashCode()
+                ^ classNames.hashCode()
+                ^ disallowedClassNames.hashCode()
+                ^ disallowedPackagePrefixes.hashCode();
         }
 
         Set<String> getPackageNames() {

@@ -17,6 +17,8 @@
 package org.gradle.internal.work
 
 import org.gradle.api.Transformer
+import org.gradle.initialization.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
@@ -31,7 +33,7 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 
 class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     def coordinationService = new DefaultResourceLockCoordinationService();
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, true, 1)
+    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallel())
 
     def "can cleanly lock and unlock a project"() {
         def projectLock = workerLeaseService.getProjectLock("root", ":project")
@@ -40,7 +42,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         assert !lockIsHeld(projectLock)
 
         when:
-        workerLeaseService.withLocks(projectLock).execute {
+        workerLeaseService.withLocks([projectLock]) {
             assert lockIsHeld(projectLock)
         }
 
@@ -59,7 +61,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                     started.countDown()
                     thread.blockUntil.releaseAll
                     def projectLock = workerLeaseService.getProjectLock("root", ":project")
-                    workerLeaseService.withLocks(projectLock).execute {
+                    workerLeaseService.withLocks([projectLock]) {
                         assert lockIsHeld(projectLock)
                     }
                 }
@@ -115,7 +117,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
             threadCount.times { i ->
                 start {
                     def projectLock = workerLeaseService.getProjectLock("root", ":project${i}")
-                    workerLeaseService.withLocks(projectLock).execute {
+                    workerLeaseService.withLocks([projectLock]) {
                         started.countDown()
                         thread.blockUntil.releaseAll
                         assert lockIsHeld(projectLock)
@@ -131,7 +133,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     }
 
     def "multiple threads can coordinate on locking of entire build when not in parallel"() {
-        def projectLockService = new DefaultWorkerLeaseService(coordinationService, false, 1)
+        def projectLockService = new DefaultWorkerLeaseService(coordinationService, notParallel())
         def testLock = new ReentrantLock()
         def threadCount = 10
         def started = new CountDownLatch(threadCount)
@@ -143,7 +145,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                     started.countDown()
                     thread.blockUntil.releaseAll
                     def projectLock = projectLockService.getProjectLock("root", ":project${i}")
-                    workerLeaseService.withLocks(projectLock).execute {
+                    workerLeaseService.withLocks([projectLock]) {
                         assert testLock.tryLock()
                         try {
                             assert lockIsHeld(projectLock)
@@ -162,7 +164,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     }
 
     def "multiple threads can coordinate on locking of multiple builds when not in parallel"() {
-        def projectLockService = new DefaultWorkerLeaseService(coordinationService, false, 1)
+        def projectLockService = new DefaultWorkerLeaseService(coordinationService, notParallel())
         def threadCount = 20
         def buildCount = 4
         def testLock = []
@@ -177,7 +179,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                     thread.blockUntil.releaseAll
                     def buildIndex = i % buildCount
                     def projectLock = projectLockService.getProjectLock("build${buildIndex}", ":project${i}")
-                    workerLeaseService.withLocks(projectLock).execute {
+                    workerLeaseService.withLocks([projectLock]) {
                         assert testLock[buildIndex].tryLock()
                         try {
                             assert lockIsHeld(projectLock)
@@ -203,7 +205,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         assert !lockIsHeld(projectLock)
 
         when:
-        workerLeaseService.withLocks(projectLock).execute {
+        workerLeaseService.withLocks([projectLock]) {
             assert lockIsHeld(projectLock)
             workerLeaseService.withoutProjectLock() {
                 assert !lockIsHeld(projectLock)
@@ -226,7 +228,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         assert !lockIsHeld(projectLock)
 
         when:
-        workerLeaseService.withLocks(projectLock, otherProjectLock).execute {
+        workerLeaseService.withLocks([projectLock, otherProjectLock]) {
             assert lockIsHeld(projectLock)
             assert lockIsHeld(otherProjectLock)
             workerLeaseService.withoutProjectLock {
@@ -263,7 +265,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         async {
             start {
                 def workerLease = workerLeaseService.getWorkerLease()
-                workerLeaseService.withLocks(projectLock, workerLease).execute {
+                workerLeaseService.withLocks([projectLock, workerLease]) {
                     workerLeaseService.withoutProjectLock {
                         thread.blockUntil.projectLocked
                     }
@@ -271,7 +273,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                 }
             }
 
-            workerLeaseService.withLocks(projectLock).execute {
+            workerLeaseService.withLocks([projectLock]) {
                 instant.projectLocked
                 start {
                     def workerLease = workerLeaseService.getWorkerLease()
@@ -300,5 +302,19 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
             }
         })
         return held.get()
+    }
+
+    ParallelExecutionManager parallel(boolean parallelEnabled) {
+        return Stub(ParallelExecutionManager) {
+            getParallelismConfiguration() >> new DefaultParallelismConfiguration(parallelEnabled, 1)
+        }
+    }
+
+    ParallelExecutionManager notParallel() {
+        return parallel(false)
+    }
+
+    ParallelExecutionManager parallel() {
+        return parallel(true)
     }
 }

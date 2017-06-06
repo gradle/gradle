@@ -31,7 +31,6 @@ import java.util.Map;
  *
  * @since 4.0
  */
-@UsedByScanPlugin
 public final class SnapshotTaskInputsBuildOperationType implements BuildOperationType<SnapshotTaskInputsBuildOperationType.Details, SnapshotTaskInputsBuildOperationType.Result> {
 
     @UsedByScanPlugin

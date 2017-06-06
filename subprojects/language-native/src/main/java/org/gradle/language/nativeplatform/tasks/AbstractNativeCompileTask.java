@@ -59,8 +59,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private NativePlatformInternal targetPlatform;
     private boolean positionIndependentCode;
     private File objectFileDir;
-    private ConfigurableFileCollection includes;
-    private ConfigurableFileCollection source;
+    private final ConfigurableFileCollection includes;
+    private final ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
     private ImmutableList<String> includePaths;

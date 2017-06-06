@@ -17,11 +17,14 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.BuildCacheHasher;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MapValueSnapshot implements ValueSnapshot {
+public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
     private final ImmutableMap<ValueSnapshot, ValueSnapshot> entries;
 
     public MapValueSnapshot(ImmutableMap<ValueSnapshot, ValueSnapshot> entries) {
@@ -45,11 +48,17 @@ public class MapValueSnapshot implements ValueSnapshot {
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot newSnapshot = snapshotter.snapshot(value);
-        if (newSnapshot instanceof MapValueSnapshot) {
-            MapValueSnapshot mapSnapshot = (MapValueSnapshot) newSnapshot;
-            if (entries.equals(mapSnapshot.entries)) {
-                return this;
-            }
+        if (equals(newSnapshot)) {
+            return this;
+        }
+        return newSnapshot;
+    }
+
+    @Override
+    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot newSnapshot = snapshotter.isolatableSnapshot(value);
+        if (equals(newSnapshot)) {
+            return this;
         }
         return newSnapshot;
     }
@@ -69,5 +78,22 @@ public class MapValueSnapshot implements ValueSnapshot {
     @Override
     public int hashCode() {
         return entries.hashCode();
+    }
+
+    @Override
+    public Map isolate() {
+        Map map = new LinkedHashMap();
+        for (Map.Entry<ValueSnapshot, ValueSnapshot> entry : entries.entrySet()) {
+            if (entry.getKey() instanceof Isolatable) {
+                if (entry.getValue() instanceof Isolatable) {
+                    map.put(((Isolatable) entry.getKey()).isolate(), ((Isolatable) entry.getValue()).isolate());
+                } else {
+                    throw new IsolationException(entry.getValue());
+                }
+            } else {
+                throw new IsolationException(entry.getKey());
+            }
+        }
+        return map;
     }
 }

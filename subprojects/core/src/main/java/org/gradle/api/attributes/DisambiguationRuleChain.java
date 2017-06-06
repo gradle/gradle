@@ -49,6 +49,7 @@ public interface DisambiguationRuleChain<T> {
      * <p>It is not mandatory for a rule to choose, and it is not an error to select multiple candidates.</p>
      *
      * @param rule the rule to add
+     * @since 4.0
      */
     void add(Class<? extends AttributeDisambiguationRule<T>> rule);
 
@@ -57,6 +58,7 @@ public interface DisambiguationRuleChain<T> {
      *
      * @param rule the rule to add
      * @param configureAction the action to use to configure the rule
+     * @since 4.0
      */
     void add(Class<? extends AttributeDisambiguationRule<T>> rule, Action<? super ActionConfiguration> configureAction);
 

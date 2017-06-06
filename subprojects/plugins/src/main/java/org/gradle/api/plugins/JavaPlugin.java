@@ -393,7 +393,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.setCanBeResolved(false);
         apiElementsConfiguration.setCanBeConsumed(true);
         apiElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
-        apiElementsConfiguration.extendsFrom(compileConfiguration, runtimeConfiguration);
+        apiElementsConfiguration.extendsFrom(runtimeConfiguration);
 
         Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
         runtimeElementsConfiguration.setVisible(false);

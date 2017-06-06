@@ -47,6 +47,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
+import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
@@ -71,13 +72,13 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.useLogger(new ProjectEvaluationLogger(progressLoggerFactory));
     }
 
-    private GradleLauncher createChildInstance(StartParameter startParameter, GradleLauncher parent, BuildSessionScopeServices buildSessionScopeServices, List<?> servicesToStop) {
+    private GradleLauncher createChildInstance(StartParameter startParameter, GradleLauncher parent, BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
         ServiceRegistry services = parent.getGradle().getServices();
         BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class));
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
 
-        return doNewInstance(startParameter, parent, cancellationToken, requestMetaData, buildEventConsumer, buildSessionScopeServices, servicesToStop);
+        return doNewInstance(startParameter, parent, cancellationToken, requestMetaData, buildEventConsumer, buildTreeScopeServices, servicesToStop);
     }
 
     @Override
@@ -87,12 +88,12 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             throw new IllegalStateException("Cannot have a current build");
         }
 
-        if (!(parentRegistry instanceof BuildSessionScopeServices)) {
-            throw new IllegalArgumentException("Service registry must be of build session scope");
+        if (!(parentRegistry instanceof BuildTreeScopeServices)) {
+            throw new IllegalArgumentException("Service registry must be of build-tree scope");
         }
-        BuildSessionScopeServices sessionScopeServices = (BuildSessionScopeServices) parentRegistry;
+        BuildTreeScopeServices buildTreeScopeServices = (BuildTreeScopeServices) parentRegistry;
 
-        DefaultGradleLauncher launcher = doNewInstance(startParameter, null, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), sessionScopeServices, ImmutableList.of(new Stoppable() {
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, null, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildTreeScopeServices, ImmutableList.of(new Stoppable() {
             @Override
             public void stop() {
                 rootBuild = null;
@@ -107,13 +108,14 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private DefaultGradleLauncher doNewInstance(StartParameter startParameter, GradleLauncher parent,
-                                                BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, final BuildSessionScopeServices sessionScopeServices, List<?> servicesToStop) {
-        BuildScopeServices serviceRegistry = BuildScopeServices.forSession(sessionScopeServices);
+                                                BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer,
+                                                final BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
+        BuildScopeServices serviceRegistry = new BuildScopeServices(buildTreeScopeServices);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
         serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
-        NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(sessionScopeServices);
+        NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(buildTreeScopeServices);
         serviceRegistry.add(NestedBuildFactory.class, nestedBuildFactory);
 
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
@@ -172,23 +174,24 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private class NestedBuildFactoryImpl implements NestedBuildFactory {
-        private final BuildSessionScopeServices sessionScopeServices;
+        private final BuildTreeScopeServices buildTreeScopeServices;
         private DefaultGradleLauncher parent;
 
-        public NestedBuildFactoryImpl(BuildSessionScopeServices sessionScopeServices) {
-            this.sessionScopeServices = sessionScopeServices;
+        public NestedBuildFactoryImpl(BuildTreeScopeServices buildTreeScopeServices) {
+            this.buildTreeScopeServices = buildTreeScopeServices;
         }
 
         @Override
         public GradleLauncher nestedInstance(StartParameter startParameter) {
-            return createChildInstance(startParameter, parent, sessionScopeServices, ImmutableList.of());
+            return createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of());
         }
 
         @Override
         public GradleLauncher nestedInstanceWithNewSession(StartParameter startParameter) {
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
             BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY);
-            return createChildInstance(startParameter, parent, sessionScopeServices, ImmutableList.of(sessionScopeServices, new Stoppable() {
+            BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
+            return createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
                 @Override
                 public void stop() {
                     userHomeDirServiceRegistry.release(userHomeServices);

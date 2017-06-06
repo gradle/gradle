@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -70,7 +69,7 @@ public interface ResolvedArtifactSet {
         /**
          * Visits an artifact once it is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.
          */
-        void artifactAvailable(ResolvedArtifact artifact);
+        void artifactAvailable(ResolvableArtifact artifact);
 
         /**
          * Should the file for each artifacts be made available when visiting the result?

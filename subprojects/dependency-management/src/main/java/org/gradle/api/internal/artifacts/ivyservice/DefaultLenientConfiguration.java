@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -286,14 +287,15 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
 
         @Override
-        public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
+        public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
             try {
-                if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
+                ResolvedArtifact resolvedArtifact = artifact.toPublicView();
+                if (resolvedArtifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
                     // Trigger download
                     // TODO - get rid of the special case, it's used as a side effect by the IDE plugins to avoid building the JAR for included builds
                     artifact.getFile();
                 }
-                artifacts.add(artifact);
+                artifacts.add(resolvedArtifact);
             } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
                 //ignore
             }
@@ -324,7 +326,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         final Set<File> files = Sets.newLinkedHashSet();
 
         @Override
-        public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
+        public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
             try {
                 files.add(artifact.getFile());
             } catch (org.gradle.internal.resolve.ArtifactResolveException e) {

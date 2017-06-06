@@ -22,7 +22,9 @@ import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.changedetection.state.ArrayValueSnapshot
 import org.gradle.api.internal.changedetection.state.StringValueSnapshot
+import org.gradle.api.internal.changedetection.state.ValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.reflect.ObjectInstantiationException
@@ -50,6 +52,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, transformedFileCache, valueSnapshotter, classLoaderHierarchyHasher)
 
     def "creates registration without configuration"() {
+        given:
+        def valueSnapshotArray = [] as ValueSnapshot[]
+
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
@@ -58,7 +63,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
+        1 * valueSnapshotter.isolatableSnapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -82,6 +87,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     def "creates registration with configuration"() {
+        given:
+        def valueSnapshotArray = [new StringValueSnapshot("EXTRA_1"), new StringValueSnapshot("EXTRA_2")] as ValueSnapshot[]
+
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
@@ -92,7 +100,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2"] as Object[]) >> new StringValueSnapshot("inputs")
+        1 * valueSnapshotter.isolatableSnapshot(["EXTRA_1", "EXTRA_2"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray);
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -119,6 +127,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     def "fails when artifactTransform cannot be instantiated"() {
+        given:
+        def valueSnapshotArray = [] as ValueSnapshot[]
+
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
@@ -127,7 +138,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
+        1 * valueSnapshotter.isolatableSnapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(AbstractArtifactTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -148,6 +159,11 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     def "fails when incorrect number of artifactTransform parameters supplied for registration"() {
+        given:
+        def valueSnapshotArray = [new StringValueSnapshot("EXTRA_1"),
+                                  new StringValueSnapshot("EXTRA_2"),
+                                  new StringValueSnapshot("EXTRA_3")] as ValueSnapshot[]
+
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
@@ -159,7 +175,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new StringValueSnapshot("inputs")
+        1 * valueSnapshotter.isolatableSnapshot(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransformWithParams.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -182,6 +198,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     def "fails when artifactTransform throws exception"() {
+        given:
+        def valueSnapshotArray = [] as ValueSnapshot[]
+
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
@@ -190,7 +209,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
+        1 * valueSnapshotter.isolatableSnapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(BrokenTransform.classLoader) >> HashCode.fromInt(123)
 
         and:

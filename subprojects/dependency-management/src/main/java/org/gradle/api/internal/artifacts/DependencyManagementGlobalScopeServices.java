@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
-import org.gradle.cache.internal.DefaultProducerGuard;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -78,6 +77,6 @@ class DependencyManagementGlobalScopeServices {
     }
 
     ProducerGuard<ExternalResourceName> createProducerAccess() {
-        return new DefaultProducerGuard<ExternalResourceName>();
+        return ProducerGuard.adaptive();
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.util.BiFunction;
 
@@ -26,10 +27,10 @@ import java.util.List;
 
 class ArtifactTransformBackedTransformer implements BiFunction<List<File>, File, File> {
     private final Class<? extends ArtifactTransform> implementationClass;
-    private final Object[] parameters;
     private final Instantiator instantiator;
+    private final Isolatable<Object[]> parameters;
 
-    ArtifactTransformBackedTransformer(Class<? extends ArtifactTransform> implementationClass, Object[] parameters, Instantiator instantiator) {
+    ArtifactTransformBackedTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, Instantiator instantiator) {
         this.implementationClass = implementationClass;
         this.parameters = parameters;
         this.instantiator = instantiator;
@@ -37,7 +38,7 @@ class ArtifactTransformBackedTransformer implements BiFunction<List<File>, File,
 
     @Override
     public List<File> apply(File file, File outputDir) {
-        ArtifactTransform artifactTransform = instantiator.newInstance(implementationClass, parameters);
+        ArtifactTransform artifactTransform = instantiator.newInstance(implementationClass, parameters.isolate());
         artifactTransform.setOutputDirectory(outputDir);
         List<File> outputs = artifactTransform.transform(file);
         if (outputs == null) {

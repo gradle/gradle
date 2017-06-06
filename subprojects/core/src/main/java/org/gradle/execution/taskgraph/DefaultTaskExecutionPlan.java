@@ -75,7 +75,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -90,7 +89,7 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
-    private final TaskDependencyGraph graph = new TaskDependencyGraph();
+    private final TaskInfoFactory nodeFactory = new TaskInfoFactory();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
@@ -121,7 +120,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         List<Task> sortedTasks = new ArrayList<Task>(tasks);
         Collections.sort(sortedTasks);
         for (Task task : sortedTasks) {
-            TaskInfo node = graph.addNode(task);
+            TaskInfo node = nodeFactory.createNode(task);
             if (node.isMustNotRun()) {
                 requireWithDependencies(node);
             } else if (filter.isSatisfiedBy(task)) {
@@ -160,25 +159,25 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
                 Set<? extends Task> dependsOnTasks = context.getDependencies(task);
                 for (Task dependsOnTask : dependsOnTasks) {
-                    TaskInfo targetNode = graph.addNode(dependsOnTask);
+                    TaskInfo targetNode = nodeFactory.createNode(dependsOnTask);
                     node.addDependencySuccessor(targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
                 for (Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
-                    TaskInfo targetNode = graph.addNode(finalizerTask);
+                    TaskInfo targetNode = nodeFactory.createNode(finalizerTask);
                     addFinalizerNode(node, targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
                 for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
-                    TaskInfo targetNode = graph.addNode(mustRunAfter);
+                    TaskInfo targetNode = nodeFactory.createNode(mustRunAfter);
                     node.addMustSuccessor(targetNode);
                 }
                 for (Task shouldRunAfter : task.getShouldRunAfter().getDependencies(task)) {
-                    TaskInfo targetNode = graph.addNode(shouldRunAfter);
+                    TaskInfo targetNode = nodeFactory.createNode(shouldRunAfter);
                     node.addShouldSuccessor(targetNode);
                 }
                 if (node.isRequired()) {
@@ -268,8 +267,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         int visitingSegmentCounter = nodeQueue.size();
 
         HashMultimap<TaskInfo, Integer> visitingNodes = HashMultimap.create();
-        Stack<GraphEdge> walkedShouldRunAfterEdges = new Stack<GraphEdge>();
-        Stack<TaskInfo> path = new Stack<TaskInfo>();
+        Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<GraphEdge>();
+        Deque<TaskInfo> path = new ArrayDeque<TaskInfo>();
         HashMap<TaskInfo, Integer> planBeforeVisiting = new HashMap<TaskInfo, Integer>();
 
         while (!nodeQueue.isEmpty()) {
@@ -297,7 +296,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 addAllSuccessorsInReverseOrder(taskNode, successors);
                 for (TaskInfo successor : successors) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
-                        if (!walkedShouldRunAfterEdges.empty()) {
+                        if (!walkedShouldRunAfterEdges.isEmpty()) {
                             //remove the last walked should run after edge and restore state from before walking it
                             GraphEdge toBeRemoved = walkedShouldRunAfterEdges.pop();
                             toBeRemoved.from.removeShouldRunAfterSuccessor(toBeRemoved.to);
@@ -353,7 +352,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return mutations;
     }
 
-    private void maybeRemoveProcessedShouldRunAfterEdge(Stack<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
+    private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
         if (!walkedShouldRunAfterEdges.isEmpty() && walkedShouldRunAfterEdges.peek().to.equals(taskNode)) {
             walkedShouldRunAfterEdges.pop();
         }
@@ -381,7 +380,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void restorePath(Stack<TaskInfo> path, GraphEdge toBeRemoved) {
+    private void restorePath(Deque<TaskInfo> path, GraphEdge toBeRemoved) {
         TaskInfo removedFromPath = null;
         while (!toBeRemoved.from.equals(removedFromPath)) {
             removedFromPath = path.pop();
@@ -409,8 +408,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void recordEdgeIfArrivedViaShouldRunAfter(Stack<GraphEdge> walkedShouldRunAfterEdges, Stack<TaskInfo> path, TaskInfo taskNode) {
-        if (!path.empty() && path.peek().getShouldSuccessors().contains(taskNode)) {
+    private void recordEdgeIfArrivedViaShouldRunAfter(Deque<GraphEdge> walkedShouldRunAfterEdges, Deque<TaskInfo> path, TaskInfo taskNode) {
+        if (!path.isEmpty() && path.peek().getShouldSuccessors().contains(taskNode)) {
             walkedShouldRunAfterEdges.push(new GraphEdge(path.peek(), taskNode));
         }
     }
@@ -491,7 +490,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                graph.clear();
+                nodeFactory.clear();
                 entryTasks.clear();
                 executionPlan.clear();
                 executionQueue.clear();

@@ -22,30 +22,14 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.java.artifact.JavadocArtifact;
 
-public class JavaLanguagePluginServiceRegistry implements PluginServiceRegistry {
-    @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
+public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegistry {
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
         registration.addProvider(new JavaGradleScopeServices());
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private static class JavaGradleScopeServices {

@@ -17,9 +17,14 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public class SetValueSnapshot implements ValueSnapshot {
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
     private final ImmutableSet<ValueSnapshot> elements;
 
     public SetValueSnapshot(ImmutableSet<ValueSnapshot> elements) {
@@ -42,13 +47,29 @@ public class SetValueSnapshot implements ValueSnapshot {
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot newSnapshot = snapshotter.snapshot(value);
+        if (isEqualSetValueSnapshot(newSnapshot)) {
+            return this;
+        }
+        return newSnapshot;
+    }
+
+    @Override
+    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot newSnapshot = snapshotter.isolatableSnapshot(value);
+        if (isEqualSetValueSnapshot(newSnapshot)) {
+            return this;
+        }
+        return newSnapshot;
+    }
+
+    private boolean isEqualSetValueSnapshot(ValueSnapshot newSnapshot) {
         if (newSnapshot instanceof SetValueSnapshot) {
             SetValueSnapshot other = (SetValueSnapshot) newSnapshot;
             if (elements.equals(other.elements)) {
-                return this;
+                return true;
             }
         }
-        return newSnapshot;
+        return false;
     }
 
     @Override
@@ -66,5 +87,19 @@ public class SetValueSnapshot implements ValueSnapshot {
     @Override
     public int hashCode() {
         return elements.hashCode();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Set isolate() {
+        Set set = new LinkedHashSet();
+        for (ValueSnapshot snapshot : elements) {
+            if (snapshot instanceof Isolatable) {
+                set.add(((Isolatable) snapshot).isolate());
+            } else {
+                throw new IsolationException(snapshot);
+            }
+        }
+        return set;
     }
 }

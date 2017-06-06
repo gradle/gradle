@@ -56,6 +56,7 @@ import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
+import org.gradle.internal.concurrent.ParallelExecutionManager;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -148,6 +149,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         WorkerLeaseService workerLeaseService,
         StartParameter startParameter,
         ExecutorFactory executorFactory,
+        ParallelExecutionManager parallelExecutionManager,
         @SuppressWarnings("unused") BuildOperationTrace buildOperationTrace // required in order to init this
     ) {
         return new DefaultBuildOperationExecutor(
@@ -155,7 +157,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             timeProvider, progressLoggerFactory,
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
-            startParameter.getMaxWorkerCount()
+            parallelExecutionManager
         );
     }
 
@@ -251,8 +253,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultAsyncWorkTracker(projectLeaseRegistry);
     }
 
-    WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService coordinationService, StartParameter startParameter) {
-        return new DefaultWorkerLeaseService(coordinationService, startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount());
+    WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService coordinationService, ParallelExecutionManager parallelExecutionManager) {
+        return new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager);
     }
 
     UserScopeId createUserScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {

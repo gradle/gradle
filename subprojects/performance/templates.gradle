@@ -22,7 +22,8 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject',
- 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG'].each { template ->
+ 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG',
+ 'smallJavaMultiProject'].each { template ->
     tasks.create(template, JavaExec) {
         outputs.dir new File(buildDir, template)
         classpath = sourceSets.performanceTest.runtimeClasspath

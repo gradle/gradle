@@ -15,8 +15,11 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 import java.lang.reflect.Type;
 
+@UsedByScanPlugin
 public class UnknownServiceException extends IllegalArgumentException {
     private final Type type;
 

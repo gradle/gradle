@@ -17,7 +17,10 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
+import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.MultipleBuildOperationFailures
@@ -31,34 +34,22 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.util.concurrent.Executor
-
 class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private resultsProvider = Mock(TestResultsProvider)
     BuildOperationExecutor buildOperationExecutor
     Binary2JUnitXmlReportGenerator generator
-    final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
+    final WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
 
     def generatorWithMaxThreads(int numThreads) {
+        ParallelExecutionManager parallelExecutionManager = Mock(ParallelExecutionManager) { _ * getParallelismConfiguration() >> new DefaultParallelismConfiguration(false, numThreads)}
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), numThreads)
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelExecutionManager)
         Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationExecutor, "localhost")
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator
-    }
-
-    def setup() {
-        _ * workerLeaseService.withLocks(_) >> { args ->
-            new Executor() {
-                @Override
-                void execute(Runnable runnable) {
-                    runnable.run()
-                }
-            }
-        }
     }
 
     @Unroll

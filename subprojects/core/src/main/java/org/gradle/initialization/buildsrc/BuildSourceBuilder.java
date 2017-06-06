@@ -27,7 +27,6 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
@@ -75,7 +74,7 @@ public class BuildSourceBuilder {
         LOGGER.debug("Starting to build the build sources.");
         if (!startParameter.getCurrentDir().isDirectory()) {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
-            return new DefaultClassPath();
+            return ClassPath.EMPTY;
         }
         return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {
             @Override

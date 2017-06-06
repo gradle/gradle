@@ -207,8 +207,8 @@ public class ComponentAttributeMatcher {
                 // missing or unknown
                 return;
             }
-            MultipleCandidatesResult<Object> details = new DefaultCandidateResult<MatchDetails<T>>(candidatesByValue, best);
-            schema.disambiguate(attribute, requested, details);
+            MultipleCandidatesResult<Object> details = new DefaultCandidateResult<MatchDetails<T>>(candidatesByValue, requested, best);
+            schema.disambiguate(attribute, details);
             remainingMatches.retainAll(best);
         }
     }

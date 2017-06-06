@@ -17,9 +17,7 @@
 package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
-import spock.lang.Ignore
 
-@Ignore("Build fails and passes depending on timing")
 class ConsoleBuildSrcFunctionalTest extends AbstractConsoleFunctionalSpec {
 
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
@@ -47,7 +45,7 @@ class ConsoleBuildSrcFunctionalTest extends AbstractConsoleFunctionalSpec {
         succeeds('byeWorld')
 
         then:
-        result.groupedOutput.task(':buildSrc:helloWorld').output == HELLO_WORLD_MESSAGE
-        result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
+        result.groupedOutput.task(':buildSrc:helloWorld').output.contains(HELLO_WORLD_MESSAGE)
+        result.groupedOutput.task(':byeWorld').output.contains(BYE_WORLD_MESSAGE)
     }
 }

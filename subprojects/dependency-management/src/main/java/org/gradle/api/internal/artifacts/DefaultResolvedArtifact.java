@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -28,7 +29,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
+public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, ResolvableArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
@@ -89,22 +90,39 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
         return owner.hashCode() ^ artifactId.hashCode();
     }
 
+    @Override
     public String getName() {
         return artifact.getName();
     }
 
+    @Override
     public String getType() {
         return artifact.getType();
     }
 
+    @Override
     public String getExtension() {
         return artifact.getExtension();
     }
 
+    @Override
     public String getClassifier() {
         return artifact.getClassifier();
     }
 
+    @Override
+    public ResolvedArtifact toPublicView() {
+        return this;
+    }
+
+    @Override
+    public boolean isResolved() {
+        synchronized (this) {
+            return file != null || failure != null;
+        }
+    }
+
+    @Override
     public File getFile() {
         synchronized (this) {
             if (file != null) {

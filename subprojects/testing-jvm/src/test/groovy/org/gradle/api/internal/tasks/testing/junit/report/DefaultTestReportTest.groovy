@@ -18,7 +18,10 @@ package org.gradle.api.internal.tasks.testing.junit.report
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
+import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.progress.BuildOperationListener
@@ -33,8 +36,6 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.util.concurrent.Executor
-
 class DefaultTestReportTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -43,24 +44,14 @@ class DefaultTestReportTest extends Specification {
     final TestFile reportDir = tmpDir.file('report')
     final TestFile indexFile = reportDir.file('index.html')
     final TestResultsProvider testResultProvider = Mock()
-    final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
+    final WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
 
     def reportWithMaxThreads(int numThreads) {
+        ParallelExecutionManager parallelExecutionManager = Mock(ParallelExecutionManager) { _ * getParallelismConfiguration() >> new DefaultParallelismConfiguration(false, numThreads)}
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), numThreads)
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelExecutionManager)
         return new DefaultTestReport(buildOperationExecutor)
-    }
-
-    def setup() {
-        _ * workerLeaseService.withLocks(_) >> { args ->
-            new Executor() {
-                @Override
-                void execute(Runnable runnable) {
-                    runnable.run()
-                }
-            }
-        }
     }
 
     def generatesReportWhenThereAreNoTestResults() {

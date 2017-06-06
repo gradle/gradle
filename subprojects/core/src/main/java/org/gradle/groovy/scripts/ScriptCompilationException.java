@@ -16,10 +16,12 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.api.GradleScriptException;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A {@code ScriptCompilationException} is thrown when a script cannot be compiled.
  */
+@UsedByScanPlugin
 public class ScriptCompilationException extends GradleScriptException {
     private final ScriptSource scriptSource;
     private final Integer lineNumber;

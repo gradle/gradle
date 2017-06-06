@@ -17,13 +17,12 @@
 package org.gradle.plugin.use.internal;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
@@ -34,7 +33,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
@@ -58,7 +56,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.util.CollectionUtils.any;
+import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 import static org.gradle.util.CollectionUtils.collect;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
@@ -96,21 +96,16 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         });
 
         // Could be different to ids in the requests as they may be unqualified
-        final Map<Result, PluginId> legacyActualPluginIds = Maps.newLinkedHashMap();
-        final Map<Result, PluginImplementation<?>> pluginImpls = Maps.newLinkedHashMap();
-        final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = Maps.newLinkedHashMap();
+        final Map<Result, PluginId> legacyActualPluginIds = newLinkedHashMap();
+        final Map<Result, PluginImplementation<?>> pluginImpls = newLinkedHashMap();
+        final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = newLinkedHashMap();
 
         if (!results.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
 
-            for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
-                if (pluginRepository instanceof BackedByArtifactRepositories) {
-                    ((BackedByArtifactRepositories) pluginRepository).createArtifactRepositories(repositories);
-                }
-            }
+            createPluginArtifactRepositories(repositories);
 
-            final List<MavenArtifactRepository> mavenRepos = repositories.withType(MavenArtifactRepository.class);
-            final Set<String> repoUrls = Sets.newLinkedHashSet();
+            final Set<String> repoUrls = newLinkedHashSet();
 
             for (final Result result : results) {
                 applyPlugin(result.request, result.found.getPluginId(), new Runnable() {
@@ -142,20 +137,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 });
             }
 
-            for (final String m2RepoUrl : repoUrls) {
-                boolean repoExists = any(mavenRepos, new Spec<MavenArtifactRepository>() {
-                    public boolean isSatisfiedBy(MavenArtifactRepository element) {
-                        return element.getUrl().toString().equals(m2RepoUrl);
-                    }
-                });
-                if (!repoExists) {
-                    repositories.maven(new Action<MavenArtifactRepository>() {
-                        public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                            mavenArtifactRepository.setUrl(m2RepoUrl);
-                        }
-                    });
-                }
-            }
+            addMissingMavenRepositories(repositories, repoUrls);
         }
 
         defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplsFromOtherLoaders.values());
@@ -187,6 +169,44 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
     }
 
+    private void createPluginArtifactRepositories(RepositoryHandler repositories) {
+        for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
+            if (pluginRepository instanceof BackedByArtifactRepositories) {
+                ((BackedByArtifactRepositories) pluginRepository).createArtifactRepositories(repositories);
+            }
+        }
+    }
+
+    private void addMissingMavenRepositories(RepositoryHandler repositories, Set<String> repoUrls) {
+        if (repoUrls.isEmpty()) {
+            return;
+        }
+        final Set<String> existingMavenUrls = existingMavenUrls(repositories);
+        for (final String repoUrl : repoUrls) {
+            if (!existingMavenUrls.contains(repoUrl)) {
+                maven(repositories, repoUrl);
+            }
+        }
+    }
+
+    private void maven(RepositoryHandler repositories, final String m2RepoUrl) {
+        repositories.maven(new Action<MavenArtifactRepository>() {
+            public void execute(MavenArtifactRepository mavenArtifactRepository) {
+                mavenArtifactRepository.setUrl(m2RepoUrl);
+            }
+        });
+    }
+
+    private Set<String> existingMavenUrls(RepositoryHandler repositories) {
+        Set<String> mavenUrls = newHashSet();
+        for (ArtifactRepository repo : repositories) {
+            if (repo instanceof MavenArtifactRepository) {
+                mavenUrls.add(((MavenArtifactRepository) repo).getUrl().toString());
+            }
+        }
+        return mavenUrls;
+    }
+
     private void defineScriptHandlerClassScope(ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, Iterable<PluginImplementation<?>> pluginsFromOtherLoaders) {
         ClassPath classPath = scriptHandler.getScriptClassPath();
         ClassPath cachedJarClassPath = cachedClasspathTransformer.transform(classPath);
@@ -209,21 +229,27 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             try {
                 applicator.run();
             } catch (UnknownPluginException e) {
-                throw new InvalidPluginException(
-                    String.format(
-                        "Could not apply requested plugin %s as it does not provide a plugin with id '%s'."
-                            + " This is caused by an incorrect plugin implementation."
-                            + " Please contact the plugin author(s).",
-                        request, id
-                    ),
-                    e
-                );
+                throw couldNotApply(request, id, e);
             } catch (Exception e) {
-                throw new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request), e);
+                throw exceptionOccurred(request, e);
             }
         } catch (Exception e) {
             throw new LocationAwareException(e, request.getScriptDisplayName(), request.getLineNumber());
         }
+    }
+
+    private InvalidPluginException couldNotApply(PluginRequestInternal request, PluginId id, UnknownPluginException cause) {
+        return new InvalidPluginException(
+            String.format(
+                "Could not apply requested plugin %s as it does not provide a plugin with id '%s'."
+                    + " This is caused by an incorrect plugin implementation."
+                    + " Please contact the plugin author(s).",
+                request, id),
+            cause);
+    }
+
+    private InvalidPluginException exceptionOccurred(PluginRequestInternal request, Exception e) {
+        return new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request), e);
     }
 
     private Result resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequestInternal request) {

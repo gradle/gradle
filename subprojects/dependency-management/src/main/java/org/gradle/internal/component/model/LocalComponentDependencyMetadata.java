@@ -104,10 +104,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
         boolean consumerHasAttributes = !fromConfigurationAttributes.isEmpty();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && consumerHasAttributes;
-        AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
+        List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
+        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !consumableConfigurations.isEmpty());
         if (useConfigurationAttributes) {
-            List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
+            AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             AttributeMatcher attributeMatcher = consumerSchema.withProducer(producerAttributeSchema);
             ConfigurationMetadata fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
             if (fallbackConfiguration != null && !fallbackConfiguration.isCanBeConsumed()) {
@@ -133,11 +133,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
         if (consumerHasAttributes && !toConfiguration.getAttributes().isEmpty()) {
             // need to validate that the selected configuration still matches the consumer attributes
+            AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), fromConfigurationAttributes)) {
                 throw new IncompatibleConfigurationSelectionException(fromConfigurationAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration);
             }
         }
-        if (useConfigurationAttributes) {
+        if (!fromConfigurationAttributes.isEmpty()) {
             toConfiguration = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(toConfiguration, fromConfigurationAttributes);
         }
         return ImmutableSet.of(toConfiguration);

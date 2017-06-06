@@ -46,9 +46,7 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    if (pluginServiceRegistry instanceof SettingScopePluginServiceRegistry) {
-                        ((SettingScopePluginServiceRegistry) pluginServiceRegistry).registerSettingsServices(registration);
-                    }
+                    pluginServiceRegistry.registerSettingsServices(registration);
                 }
             }
         });

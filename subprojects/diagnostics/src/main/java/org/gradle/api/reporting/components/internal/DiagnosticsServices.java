@@ -17,12 +17,12 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import java.util.List;
 
-public class DiagnosticsServices implements PluginServiceRegistry {
+public class DiagnosticsServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
@@ -35,21 +35,5 @@ public class DiagnosticsServices implements PluginServiceRegistry {
                 return renderer;
             }
         });
-    }
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 }

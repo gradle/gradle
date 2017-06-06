@@ -18,7 +18,9 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+@UsedByScanPlugin
 public class TestCompleteEvent {
     private final long endTime;
     private final TestResult.ResultType resultType;

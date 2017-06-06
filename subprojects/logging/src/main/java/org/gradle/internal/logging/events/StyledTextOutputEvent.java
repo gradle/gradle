@@ -19,12 +19,14 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@UsedByScanPlugin
 public class StyledTextOutputEvent extends RenderableOutputEvent {
     private final List<Span> spans;
 
@@ -70,6 +72,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         }
     }
 
+    @UsedByScanPlugin
     public static class Span implements Serializable {
         private final String text;
         private final StyledTextOutput.Style style;

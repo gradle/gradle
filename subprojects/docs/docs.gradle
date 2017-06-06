@@ -437,6 +437,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/caching/**'
     include 'org/gradle/external/javadoc/**'
     include 'org/gradle/ide/**'
+    include 'org/gradle/includedbuild/**'
     include 'org/gradle/ivy/**'
     include 'org/gradle/jvm/**'
     include 'org/gradle/language/**'

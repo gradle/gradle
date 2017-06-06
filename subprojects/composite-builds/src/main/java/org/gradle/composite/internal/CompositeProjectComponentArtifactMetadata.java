@@ -18,7 +18,8 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.tasks.TaskDependencies;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
@@ -86,7 +87,14 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return TaskDependencies.EMPTY;
+        return new AbstractTaskDependency() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                for (String task : tasks) {
+                    context.add(new IncludedBuildTaskReference(componentIdentifier.getBuild().getName(), task));
+                }
+            }
+        };
     }
 
     @Override

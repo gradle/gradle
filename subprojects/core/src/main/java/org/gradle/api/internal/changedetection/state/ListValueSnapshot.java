@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableValueSnapshotStrategy;
+import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.BuildCacheHasher;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ListValueSnapshot implements ValueSnapshot {
+public class ListValueSnapshot implements ValueSnapshot, Isolatable<List> {
     public static final ValueSnapshot EMPTY = new ListValueSnapshot(new ValueSnapshot[0]);
 
     private final ValueSnapshot[] elements;
@@ -45,8 +49,17 @@ public class ListValueSnapshot implements ValueSnapshot {
 
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
+        return processList(value, new ValueSnapshotStrategy(snapshotter));
+    }
+
+    @Override
+    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
+        return processList(value, new IsolatableValueSnapshotStrategy(snapshotter));
+    }
+
+    private ValueSnapshot processList(Object value, ValueSnapshotStrategy strategy) {
         if (!(value instanceof List)) {
-            return snapshotter.snapshot(value);
+            return strategy.snapshot(value);
         }
 
         // Find first position where values are different
@@ -56,7 +69,7 @@ public class ListValueSnapshot implements ValueSnapshot {
         ValueSnapshot newElement = null;
         for (; pos < len; pos++) {
             ValueSnapshot element = elements[pos];
-            newElement = snapshotter.snapshot(list.get(pos), element);
+            newElement = strategy.snapshot(list.get(pos), element);
             if (element != newElement) {
                 break;
             }
@@ -72,7 +85,7 @@ public class ListValueSnapshot implements ValueSnapshot {
         if (pos < list.size()) {
             newElements[pos] = newElement;
             for (int i = pos + 1; i < list.size(); i++) {
-                newElements[i] = snapshotter.snapshot(list.get(i));
+                newElements[i] = strategy.snapshot(list.get(i));
             }
         }
 
@@ -94,5 +107,20 @@ public class ListValueSnapshot implements ValueSnapshot {
     @Override
     public int hashCode() {
         return Arrays.hashCode(elements);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List isolate() {
+        List list = new ArrayList();
+        ValueSnapshot[] elements = getElements();
+        for (ValueSnapshot snapshot : elements) {
+            if (snapshot instanceof Isolatable) {
+                list.add(((Isolatable) snapshot).isolate());
+            } else {
+                throw new IsolationException(snapshot);
+            }
+        }
+        return list;
     }
 }

@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.cache.internal.DefaultProducerGuard;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -44,9 +43,11 @@ import java.util.List;
 /**
  * Responsible for snapshotting various aspects of the file system.
  *
- * Currently logic and state are split between this class and {@link FileSystemMirror}, as there are several instances of this class created in different scopes. This introduces some inefficiencies that could be improved by shuffling this relationship around.
+ * Currently logic and state are split between this class and {@link FileSystemMirror}, as there are several instances of this class created in different scopes. This introduces some inefficiencies
+ * that could be improved by shuffling this relationship around.
  *
- * The implementations attempt to do 2 things: avoid doing the same work in parallel (e.g. scanning the same directory from multiple threads, and avoid doing work where the result is almost certainly the same as before (e.g. don't scan the output directory of a task a bunch of times).
+ * The implementations attempt to do 2 things: avoid doing the same work in parallel (e.g. scanning the same directory from multiple threads, and avoid doing work where the result is almost certainly
+ * the same as before (e.g. don't scan the output directory of a task a bunch of times).
  *
  * The implementations are currently intentionally very, very simple, and so there are a number of ways in which they can be made much more efficient. This can happen over time.
  */
@@ -56,9 +57,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileSystemMirror fileSystemMirror;
-    private final ProducerGuard<String> producingSelfSnapshots = new DefaultProducerGuard<String>();
-    private final ProducerGuard<String> producingTrees = new DefaultProducerGuard<String>();
-    private final ProducerGuard<String> producingAllSnapshots = new DefaultProducerGuard<String>();
+    private final ProducerGuard<String> producingSelfSnapshots = ProducerGuard.striped();
+    private final ProducerGuard<String> producingTrees = ProducerGuard.striped();
+    private final ProducerGuard<String> producingAllSnapshots = ProducerGuard.striped();
     private final DefaultGenericFileCollectionSnapshotter snapshotter;
 
     public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {

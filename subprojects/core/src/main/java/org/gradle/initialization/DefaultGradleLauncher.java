@@ -28,15 +28,17 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.includedbuild.internal.IncludedBuildControllers;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -113,7 +115,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
         final AtomicReference<BuildResult> buildResult = new AtomicReference<BuildResult>();
         WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
-        workerLeaseService.withLocks(workerLeaseService.getWorkerLease()).execute(new Runnable() {
+        workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Runnable() {
             @Override
             public void run() {
                 Throwable failure = null;
@@ -167,6 +169,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         buildOperationExecutor.run(new CalculateTaskGraph());
 
+        if (!gradle.getIncludedBuilds().isEmpty()) {
+            IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
+            buildControllers.startTaskExecution();
+        }
+
         buildOperationExecutor.run(new ExecuteTasks());
     }
 
@@ -203,7 +210,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Configure build");
+            return BuildOperationDescriptor.displayName(contextualize("Configure build"));
         }
     }
 
@@ -241,7 +248,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Calculate task graph")
+            return BuildOperationDescriptor.displayName(contextualize("Calculate task graph"))
                 .details(new CalculateTaskGraphBuildOperationType.Details() {
                 });
         }
@@ -255,7 +262,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Run tasks");
+            return BuildOperationDescriptor.displayName(contextualize("Run tasks"));
         }
     }
 
@@ -266,5 +273,16 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void projectsEvaluated() {
         buildListener.projectsEvaluated(gradle);
+    }
+
+    private String contextualize(String descriptor) {
+        if (isNestedBuild()) {
+            return descriptor + " (" + gradle.getIdentityPath() + ")";
+        }
+        return descriptor;
+    }
+
+    private boolean isNestedBuild() {
+        return gradle.getParent() != null;
     }
 }

@@ -250,7 +250,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         fails 'runInWorker'
 
         then:
-        failure.assertHasCause 'No worker lease associated with the current thread'
+        failure.assertHasCause 'An attempt was made to submit work from a thread not managed by Gradle.  Work may only be submitted from a Gradle-managed thread.'
 
         where:
         isolationMode << ISOLATION_MODES

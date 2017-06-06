@@ -19,6 +19,11 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableEnumValueSnapshot;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableSerializedValueSnapshot;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableValueSnapshotStrategy;
+import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.ByteArrayOutputStream;
@@ -43,6 +48,24 @@ public class ValueSnapshotter {
      * @throws UncheckedIOException On failure to snapshot the value.
      */
     public ValueSnapshot snapshot(Object value) throws UncheckedIOException {
+        return processValue(value, new ValueSnapshotStrategy(this));
+    }
+
+    /**
+     * Create an {@link Isolatable} {@link Snapshot} of a value.
+     *
+     * @throws UncheckedIOException On failure to snapshot the value.
+     */
+    public ValueSnapshot isolatableSnapshot(Object value) throws UncheckedIOException {
+        ValueSnapshot possible = processValue(value, new IsolatableValueSnapshotStrategy(this));
+        if (possible instanceof Isolatable) {
+            return possible;
+        } else {
+            return wrap(value, possible);
+        }
+    }
+
+    private ValueSnapshot processValue(Object value, ValueSnapshotStrategy strategy) {
         if (value == null) {
             return NullValueSnapshot.INSTANCE;
         }
@@ -60,7 +83,7 @@ public class ValueSnapshotter {
             ValueSnapshot[] elements = new ValueSnapshot[list.size()];
             for (int i = 0; i < list.size(); i++) {
                 Object element = list.get(i);
-                elements[i] = snapshot(element);
+                elements[i] = strategy.snapshot(element);
             }
             return new ListValueSnapshot(elements);
         }
@@ -86,7 +109,7 @@ public class ValueSnapshotter {
             Set<?> set = (Set<?>) value;
             ImmutableSet.Builder<ValueSnapshot> builder = ImmutableSet.builder();
             for (Object element : set) {
-                builder.add(snapshot(element));
+                builder.add(strategy.snapshot(element));
             }
             return new SetValueSnapshot(builder.build());
         }
@@ -94,7 +117,7 @@ public class ValueSnapshotter {
             Map<?, ?> map = (Map<?, ?>) value;
             ImmutableMap.Builder<ValueSnapshot, ValueSnapshot> builder = new ImmutableMap.Builder<ValueSnapshot, ValueSnapshot>();
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                builder.put(snapshot(entry.getKey()), snapshot(entry.getValue()));
+                builder.put(strategy.snapshot(entry.getKey()), strategy.snapshot(entry.getValue()));
             }
             return new MapValueSnapshot(builder.build());
         }
@@ -106,7 +129,7 @@ public class ValueSnapshotter {
             ValueSnapshot[] elements = new ValueSnapshot[length];
             for (int i = 0; i < length; i++) {
                 Object element = Array.get(value, i);
-                elements[i] = snapshot(element);
+                elements[i] = strategy.snapshot(element);
             }
             return new ArrayValueSnapshot(elements);
         }
@@ -129,10 +152,29 @@ public class ValueSnapshotter {
         return new SerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), outputStream.toByteArray());
     }
 
+    ValueSnapshot wrap(Object value, ValueSnapshot possible) {
+        if (possible instanceof EnumValueSnapshot) {
+            return new IsolatableEnumValueSnapshot((Enum) value);
+        }
+        if (possible instanceof SerializedValueSnapshot) {
+            SerializedValueSnapshot original = (SerializedValueSnapshot) possible;
+            return new IsolatableSerializedValueSnapshot(original.getImplementationHash(), original.getValue(), value.getClass());
+        }
+        throw new IsolationException(value);
+    }
+
     /**
      * Creates a snapshot of the given value, given a candidate snapshot. If the value is the same as the value provided by the candidate snapshot, the candidate _must_ be returned.
      */
     public ValueSnapshot snapshot(Object value, ValueSnapshot candidate) {
         return candidate.snapshot(value, this);
+    }
+
+    /**
+     * Creates an {@link Isolatable} {@link Snapshot} of the given value, given a candidate snapshot. If the value is
+     * the same as the value provided by the candidate snapshot, the candidate _must_ be returned.
+     */
+    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshot candidate) {
+        return candidate.isolatableSnapshot(value, this);
     }
 }

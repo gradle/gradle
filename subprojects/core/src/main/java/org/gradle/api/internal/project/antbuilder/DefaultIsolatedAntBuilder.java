@@ -64,7 +64,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         this.classPathRegistry = classPathRegistry;
         this.classLoaderFactory = classLoaderFactory;
         this.moduleRegistry = moduleRegistry;
-        this.libClasspath = new DefaultClassPath();
+        this.libClasspath = ClassPath.EMPTY;
         GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
         this.classLoaderCache = new ClassPathToClassLoaderCache(groovySystemLoaderFactory);
 

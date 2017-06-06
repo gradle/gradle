@@ -24,7 +24,8 @@ import org.gradle.caching.BuildCacheService;
 
 import java.io.IOException;
 
-class NoOpBuildCacheService implements BuildCacheService {
+@SuppressWarnings("unused") // used in integration tests
+public class NoOpBuildCacheService implements BuildCacheService {
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         return false;

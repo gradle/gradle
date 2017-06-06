@@ -194,6 +194,9 @@ class FileContentGenerator {
                 
                 cleanAssemble {
                   tasks = ["clean", "assemble"]
+                   maven {
+                    targets = ["clean", "package", "-Dmaven.test.skip=true", "-T", "4"]
+                  }
                 }
                 
                 cleanAssembleCached {
@@ -232,6 +235,18 @@ class FileContentGenerator {
                   }
                 }
                 
+                cleanTest {
+                  tasks = ["clean", "test"]
+                  maven {
+                    targets = ["clean", "test", "-T", "4"]
+                  }
+                }
+                
+                cleanTestCached {
+                  tasks = ["clean", "test"]
+                  gradle-args = ["--build-cache"]
+                }
+
             """.stripIndent()
         }
     }

@@ -26,7 +26,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;

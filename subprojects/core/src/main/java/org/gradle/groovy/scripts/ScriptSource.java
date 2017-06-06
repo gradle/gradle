@@ -16,12 +16,14 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.Serializable;
 
 /**
  * The source for the text of a script, with some meta-info about the script.
  */
+@UsedByScanPlugin
 public interface ScriptSource extends Serializable {
     /**
      * Returns the name to use for the compiled class for this script. Never returns null.

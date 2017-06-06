@@ -514,6 +514,92 @@ All of them match the consumer attributes:
         result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
     }
 
+    def "can select best compatible match based on requested value"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    details.compatible()
+                }
+            }
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    if (details.consumerValue == null) {
+                        details.closestMatch(details.candidateValues.find { it.value == 'ONE' }) 
+                    } else if (details.consumerValue.value == 'free') {
+                        details.closestMatch(details.candidateValues.find { it.value == 'TWO' }) 
+                    }
+                }
+            }
+
+            project(':a') {
+               dependencies.attributesSchema {
+                  attribute(flavor) {
+                      compatibilityRules.add(FlavorCompatibilityRule)
+                      disambiguationRules.add(FlavorSelectionRule)
+                  }
+               }
+            }
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileDebug.attributes { $debug }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileDebug project(':b')
+                }
+                task checkFreeDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo2.jar']
+                    }
+                }
+                task checkDebug(dependsOn: configurations._compileDebug) {
+                    doLast {
+                       assert configurations._compileDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                        attributes { attribute(flavor, Flavor.of("ONE")) }
+                    }
+                    foo2 {
+                        attributes { attribute(flavor, Flavor.of("TWO")) }
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task foo2Jar(type: Jar) {
+                   baseName = 'b-foo2'
+                }
+                artifacts {
+                    foo fooJar
+                    foo2 foo2Jar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkFreeDebug'
+
+        then:
+        result.assertTasksExecuted(':b:foo2Jar', ':a:checkFreeDebug')
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+    }
+
     def "producer can apply additional compatibility rules when consumer does not have an opinion for attribute known to both"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
@@ -733,6 +819,63 @@ All of them match the consumer attributes:
             project(':a') {
                 configurations {
                     compile.attributes { $debug }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       assert configurations.compile.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                dependencies.attributesSchema.attribute(platform) {
+                    compatibilityRules.assumeCompatibleWhenMissing()
+                    disambiguationRules.add(SelectionRule)
+                }
+                configurations {
+                    foo.attributes { attribute(platform, 'b'); $debug }
+                    bar.attributes { attribute(platform, 'a'); $debug }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:check'
+
+        then:
+        result.assertTasksExecuted(':b:barJar', ':a:check')
+    }
+
+    def "producer can apply disambiguation when consumer does not define any attributes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class SelectionRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    details.closestMatch(details.candidateValues.sort { it }.first())
+                }
+            }
+
+            def platform = Attribute.of('platform', String)
+
+            project(':a') {
+                configurations {
+                    compile
                 }
                 dependencies {
                     compile project(':b')

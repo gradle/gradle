@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
@@ -38,8 +39,8 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
-        this.artifacts.add(artifact);
+    public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
+        this.artifacts.add(artifact.toPublicView());
     }
 
     @Override

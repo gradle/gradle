@@ -17,7 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-
+import org.gradle.util.Matchers
 /**
  * Tests for plugin development scenarios within a composite build.
  */
@@ -40,9 +40,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         given:
         applyPlugin(buildA)
 
-        buildA.settingsFile << """
-            includeBuild('${pluginBuild.toURI()}')
-"""
+        includeBuild pluginBuild
 
         when:
         execute(buildA, "tasks")
@@ -60,14 +58,11 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
                 compile "org.test:buildB:1.0"
             }
 """
-        buildA.settingsFile << """
-            includeBuild('${buildB.toURI()}') {
-                dependencySubstitution { // By declaring substitutions, don't need to pre-configure
-                    substitute module("org.test:buildB") with project(":")
-                }
-            }
-            includeBuild('${pluginBuild.toURI()}')
+
+        includeBuild buildB, """
+            substitute module("org.test:buildB") with project(":")
 """
+        includeBuild pluginBuild
 
         when:
         execute(buildA, "assemble")
@@ -96,13 +91,9 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         applyPlugin(buildA)
 
-        buildA.settingsFile << """
-            includeBuild('${pluginBuild.toURI()}') {
-                dependencySubstitution {
-                    // Only substitute version 1.0 with project dependency. This allows this project to build with the published dependency.
-                    substitute module("org.test:pluginC:1.0") with project(":")
-                }
-            }
+        includeBuild pluginBuild, """
+            // Only substitute version 1.0 with project dependency. This allows this project to build with the published dependency.
+            substitute module("org.test:pluginC:1.0") with project(":")
 """
 
         when:
@@ -110,6 +101,36 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         outputContains("taskFromPluginC")
+    }
+
+    def "detects dependency cycle between included builds required for buildscript classpath"() {
+        given:
+        def buildD = singleProjectBuild("buildD") {
+            buildFile << """
+                apply plugin: 'java'
+                version "2.0"
+"""
+        }
+
+        dependency pluginBuild, "org.test:buildB:1.0"
+        dependency buildB, "org.test:buildD:1.0"
+        dependency buildD, "org.test:buildB:1.0"
+
+        applyPlugin(buildA)
+
+        includeBuild pluginBuild
+        includeBuild buildB
+        includeBuild buildD
+
+        when:
+        fails(buildA, "tasks")
+
+        then:
+        failure
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildD'"))
+            .assertThatCause(Matchers.containsText("build 'buildD' -> build 'buildB'"))
     }
 
     def applyPlugin(BuildTestFile build) {
@@ -155,4 +176,6 @@ public class ${className} implements Plugin<Project> {
         }
 
     }
+
+
 }

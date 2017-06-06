@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Arrays;
 
-public class ArrayValueSnapshot implements ValueSnapshot {
+public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
     public static final ValueSnapshot EMPTY = new ArrayValueSnapshot(new ValueSnapshot[0]);
     private final ValueSnapshot[] elements;
 
@@ -44,13 +46,29 @@ public class ArrayValueSnapshot implements ValueSnapshot {
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot other = snapshotter.snapshot(value);
+        if (isEqualArrayValueSnapshot(other)) {
+            return this;
+        }
+        return other;
+    }
+
+    @Override
+    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot other = snapshotter.isolatableSnapshot(value);
+        if (isEqualArrayValueSnapshot(other)) {
+            return this;
+        }
+        return other;
+    }
+
+    private boolean isEqualArrayValueSnapshot(ValueSnapshot other) {
         if (other instanceof ArrayValueSnapshot) {
             ArrayValueSnapshot otherArray = (ArrayValueSnapshot) other;
             if (Arrays.equals(elements, otherArray.elements)) {
-                return this;
+                return true;
             }
         }
-        return other;
+        return false;
     }
 
     @Override
@@ -68,5 +86,20 @@ public class ArrayValueSnapshot implements ValueSnapshot {
     @Override
     public int hashCode() {
         return Arrays.hashCode(elements);
+    }
+
+    @Override
+    public Object[] isolate() {
+        ValueSnapshot[] elements = getElements();
+        Object[] toReturn = new Object[elements.length];
+        for (int i = 0; i < elements.length; i++) {
+            ValueSnapshot snapshot = elements[i];
+            if (snapshot instanceof Isolatable) {
+                toReturn[i] = ((Isolatable) snapshot).isolate();
+            } else {
+                throw new IsolationException(snapshot);
+            }
+        }
+        return toReturn;
     }
 }

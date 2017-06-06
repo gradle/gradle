@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public class NullValueSnapshot implements ValueSnapshot {
+public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     public static final NullValueSnapshot INSTANCE = new NullValueSnapshot();
 
     private NullValueSnapshot() {
@@ -33,7 +34,20 @@ public class NullValueSnapshot implements ValueSnapshot {
     }
 
     @Override
+    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
+        if (value == null) {
+            return this;
+        }
+        return snapshotter.isolatableSnapshot(value);
+    }
+
+    @Override
     public void appendToHasher(BuildCacheHasher hasher) {
         hasher.putNull();
+    }
+
+    @Override
+    public Object isolate() {
+        return null;
     }
 }

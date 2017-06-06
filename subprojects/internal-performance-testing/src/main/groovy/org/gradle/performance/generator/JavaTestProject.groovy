@@ -27,7 +27,9 @@ enum JavaTestProject {
     MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 10000, 0, '4g', false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),
     MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", 100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
 
-    MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", 100, 100, '256m', true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)])
+    MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", 100, 100, '256m', true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)]),
+
+    SMALL_JAVA_MULTI_PROJECT("smallJavaMultiProject", 50, 10, '256m', false, [assemble: productionFile('smallJavaMultiProject')]),
 
     private TestProjectGeneratorConfiguration config
 

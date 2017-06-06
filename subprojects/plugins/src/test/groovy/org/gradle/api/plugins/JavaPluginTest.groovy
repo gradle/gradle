@@ -175,7 +175,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         !apiElements.visible
-        apiElements.extendsFrom == [compile, runtime] as Set
+        apiElements.extendsFrom == [runtime] as Set
         apiElements.canBeConsumed
         !apiElements.canBeResolved
 

@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
@@ -30,8 +31,11 @@ import org.gradle.tooling.events.task.TaskProgressEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
+import org.junit.Rule
 
 class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
+
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=1.2 <2.5")
     def "ignores listeners when Gradle version does not generate task events"() {
@@ -208,25 +212,27 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.5 <3.6")
     def "receive task progress events when tasks are executed in parallel"() {
         given:
+        server.start()
         if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
             toolingApi.requireDaemons()
         }
         buildFile << """
             @ParallelizableTask
             class ParTask extends DefaultTask {
-                @TaskAction zzz() { Thread.sleep(1000) }
+                @TaskAction zzz() { ${server.callFromBuildUsingExpression('name')} }
             }
 
             task para1(type:ParTask)
             task para2(type:ParTask)
-            task parallelSleep(dependsOn:[para1,para2])
+            task parallelTasks(dependsOn:[para1,para2])
         """
+        server.expectConcurrent("para1", "para2")
 
         when:
         def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2').forTasks('parallelSleep').addProgressListener(events).run()
+                connection.newBuild().withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2').forTasks('parallelTasks').addProgressListener(events).run()
         }
 
         then:
@@ -236,11 +242,14 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def t1 = events.operation("Task :para1")
         def t2 = events.operation("Task :para2")
-        def t3 = events.operation("Task :parallelSleep")
+        def t3 = events.operation("Task :parallelTasks")
 
         t1.parent == runTasks
         t2.parent == runTasks
         t3.parent == runTasks
+
+        cleanup:
+        server.stop()
     }
 
 
@@ -248,32 +257,47 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=3.6")
     def "receive task progress events when tasks are executed in parallel (with async work)"() {
         given:
+        server.start()
         if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
             toolingApi.requireDaemons()
         }
         buildFile << """
             import org.gradle.workers.WorkerExecutor
+            import org.gradle.workers.IsolationMode
+            import javax.inject.Inject
             
-            class SleepRunnable implements Runnable {
+            class TestRunnable implements Runnable {
+                String name
+
+                @Inject
+                public TestRunnable(String name) { this.name = name }
+
                 public void run() {
-                    Thread.sleep(1000)
+                    ${server.callFromBuildUsingExpression('name')}
                 }
             }
             
             class ParTask extends DefaultTask {
-                @TaskAction zzz() { services.get(WorkerExecutor.class).submit(SleepRunnable) { it.displayName = "Sleep \$path" } }
+                @TaskAction zzz() {
+                    services.get(WorkerExecutor.class).submit(TestRunnable) { 
+                        it.isolationMode = IsolationMode.NONE
+                        it.displayName = "Test \$path"  
+                        it.params = [ name ]
+                    }
+                }
             }
 
             task para1(type:ParTask)
             task para2(type:ParTask)
-            task parallelSleep(dependsOn:[para1,para2])
+            task parallelTasks(dependsOn:[para1,para2])
         """
+        server.expectConcurrent("para1", "para2")
 
         when:
         def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().withArguments('--parallel', '--max-workers=2').forTasks('parallelSleep').addProgressListener(events).run()
+                connection.newBuild().withArguments('--parallel', '--max-workers=2').forTasks('parallelTasks').addProgressListener(events).run()
         }
 
         then:
@@ -283,11 +307,14 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def t1 = events.operation("Task :para1")
         def t2 = events.operation("Task :para2")
-        def t3 = events.operation("Task :parallelSleep")
+        def t3 = events.operation("Task :parallelTasks")
 
         t1.parent == runTasks
         t2.parent == runTasks
         t3.parent == runTasks
+
+        cleanup:
+        server.stop()
     }
 
     @ToolingApiVersion(">=2.5")

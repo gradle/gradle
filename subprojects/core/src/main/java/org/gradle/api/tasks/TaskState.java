@@ -18,11 +18,13 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * {@code TaskState} provides information about the execution state of a {@link org.gradle.api.Task}. You can obtain a
  * {@code TaskState} instance by calling {@link org.gradle.api.Task#getState()}.
  */
+@HasInternalProtocol
 public interface TaskState {
     /**
      * <p>Returns true if this task has been executed.</p>
@@ -72,7 +74,6 @@ public interface TaskState {
      * Returns true if the execution of this task was skipped because the task was up-to-date.
      *
      * @return true if this task has been considered up-to-date
-     *
      * @since 2.5
      */
     @Incubating
@@ -82,7 +83,6 @@ public interface TaskState {
      * Returns true if the execution of this task was skipped due to task inputs are empty.
      *
      * @return true if this task has no input files assigned
-     *
      * @since 3.4
      */
     @Incubating

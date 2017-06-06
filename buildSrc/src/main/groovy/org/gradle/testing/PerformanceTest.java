@@ -111,4 +111,9 @@ public class PerformanceTest extends DistributionTest {
             systemProperty("org.gradle.performance.honestprofiler", artifactsDirectory.getAbsolutePath());
         }
     }
+
+    @Option(option = "sampling-interval", description = "How many ms to wait between two samples when profiling")
+    public void setSamplingInterval(String samplingInterval) {
+        systemProperty("org.gradle.performance.samplinginterval", samplingInterval);
+    }
 }

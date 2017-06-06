@@ -305,7 +305,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
     }
 
     @Unroll
-    def "user can take responsibility for failing work items in #isolationMode (using: #waitMethod)"() {
+    def "user can take responsibility for failing work items in #isolationMode"() {
         given:
         buildFile << """
             import java.util.concurrent.ExecutionException
@@ -342,13 +342,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         output.contains("A failure occurred while executing work item 2")
 
         where:
-        waitMethod                       | isolationMode
-        'result.get()'                   | 'IsolationMode.NONE'
-        'result.get()'                   | 'IsolationMode.PROCESS'
-        'result.get()'                   | 'IsolationMode.CLASSLOADER'
-        'workerExecutor.await([result])' | 'IsolationMode.NONE'
-        'workerExecutor.await([result])' | 'IsolationMode.PROCESS'
-        'workerExecutor.await([result])' | 'IsolationMode.CLASSLOADER'
+        isolationMode << ISOLATION_MODES
     }
 
     def "max workers is honored by parallel work"() {
@@ -421,6 +415,31 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
+    def "can start another task when the current task has multiple actions and is waiting on async work"() {
+        given:
+        buildFile << """
+            task firstTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("task1-1") }
+                doLast { submitWorkItem("task1-2") }
+            }
+            
+            task secondTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("task2") }
+            }
+            
+            task allTasks {
+                dependsOn firstTask, secondTask
+            }
+        """
+
+        blockingHttpServer.expectConcurrent("task1-1", "task2")
+        blockingHttpServer.expectConcurrent("task1-2")
+
+        expect:
+        args("--max-workers=2")
+        succeeds("allTasks")
+    }
+
     def "does not start a task in another project when a task action is executing without --parallel"() {
         given:
         settingsFile << """
@@ -478,7 +497,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "can start another task when the user is waiting on async work"() {
+    def "does not start another task when the user is waiting on async work"() {
         given:
         buildFile << """
             task firstTask(type: MultipleWorkItemTask) {
@@ -498,15 +517,50 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             }
         """
 
-        blockingHttpServer.expectConcurrent("task1-1", "task2")
+        blockingHttpServer.expectConcurrent("task1-1")
         blockingHttpServer.expectConcurrent("task1-2")
+        blockingHttpServer.expectConcurrent("task2")
 
         expect:
         args("--max-workers=3")
         succeeds("allTasks")
     }
 
-    def "can start another task in a different project when the user is waiting on async work"() {
+    def "does not start another task in a different project when the user is waiting on async work"() {
+        given:
+        settingsFile << """
+            include ':childProject'
+        """
+        buildFile << """
+            task firstTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("task1-1") 
+                    workerExecutor.await()
+                    ${blockingHttpServer.callFromBuild("task1-2")}
+                }
+            }
+            
+            project(':childProject') {
+                task secondTask(type: MultipleWorkItemTask) {
+                    doLast { ${blockingHttpServer.callFromBuild("task2")} }
+                }
+            }
+            
+            task allTasks {
+                dependsOn firstTask, project(':childProject').secondTask
+            }
+        """
+
+        blockingHttpServer.expectConcurrent("task1-1")
+        blockingHttpServer.expectConcurrent("task1-2")
+        blockingHttpServer.expectConcurrent("task2")
+
+        expect:
+        args("--max-workers=3")
+        succeeds("allTasks")
+    }
+
+    def "can start another task in a different project when the user is waiting on async work with --parallel"() {
         given:
         settingsFile << """
             include ':childProject'
@@ -535,7 +589,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         blockingHttpServer.expectConcurrent("task1-2")
 
         expect:
-        args("--max-workers=3")
+        args("--max-workers=3", "--parallel")
         succeeds("allTasks")
     }
 
