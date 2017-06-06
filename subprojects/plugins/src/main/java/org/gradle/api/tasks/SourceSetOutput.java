@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.SourceDirectorySet;
 
 import java.io.File;
 import java.util.Map;
@@ -87,7 +88,7 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @return The classes dir.
-     * @deprecated Use {@link #getClassesDirs()}
+     * @deprecated Use {@link #getClassesDirs()} or {@link SourceDirectorySet#getOutputDir()}
      */
     @Deprecated
     File getClassesDir();
