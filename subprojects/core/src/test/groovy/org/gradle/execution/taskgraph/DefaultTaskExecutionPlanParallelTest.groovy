@@ -64,7 +64,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService)
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService, gradle)
         parentWorkerLease.start()
     }
 

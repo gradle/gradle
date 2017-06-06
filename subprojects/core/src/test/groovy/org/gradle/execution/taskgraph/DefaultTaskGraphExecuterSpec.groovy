@@ -54,7 +54,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
     def workerLeases = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
     def executorFactory = Mock(ExecutorFactory)
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService)
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService, gradleInternal)
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []
 
@@ -354,7 +354,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
 
     def "notifies graph listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService)
+        def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService, gradleInternal)
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
         Task a = task("a")
 
@@ -372,7 +372,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
 
     def "executes whenReady listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService)
+        def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService, gradleInternal)
         def closure = Mock(Closure)
         def action = Mock(Action)
         Task a = task("a")

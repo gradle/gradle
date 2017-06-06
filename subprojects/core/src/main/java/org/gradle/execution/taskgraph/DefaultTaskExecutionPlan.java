@@ -98,6 +98,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
+
     private final BuildCancellationToken cancellationToken;
     private final Set<TaskInfo> runningTasks = Sets.newIdentityHashSet();
     private final Set<Task> filteredTasks = Sets.newIdentityHashSet();
@@ -107,12 +108,20 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInfo> dependenciesCompleteCache = Sets.newHashSet();
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseService workerLeaseService;
+    private final GradleInternal gradle;
+
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService) {
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService, GradleInternal gradle) {
         this.cancellationToken = cancellationToken;
         this.coordinationService = coordinationService;
         this.workerLeaseService = workerLeaseService;
+        this.gradle = gradle;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return gradle.getIdentityPath().toString();
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
