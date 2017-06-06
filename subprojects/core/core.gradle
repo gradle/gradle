@@ -55,6 +55,7 @@ dependencies {
     runtimeOnly project(":docs")
 
     testImplementation libraries.jsoup
+    testImplementation libraries.log4j_to_slf4j
 
     testRuntimeOnly libraries.xerces
     testRuntimeOnly project(":diagnostics")
