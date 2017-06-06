@@ -50,6 +50,7 @@ import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
@@ -767,7 +768,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private Set<String> getOutputPaths(TaskInfo task) {
-        return canonicalizedPaths(canonicalizedFileCache, task.getTask().getOutputs().getFiles());
+        try {
+            return canonicalizedPaths(canonicalizedFileCache, task.getTask().getOutputs().getFiles());
+        } catch (ResourceDeadlockException e) {
+            throw new IllegalStateException("A deadlock was detected while resolving the task outputs for " + task.getTask().getPath() + ".  This can be caused, for instance, by a task output causing dependency resolution.", e);
+        }
     }
 
     private Set<String> getDestroyablePaths(TaskInfo task) {
