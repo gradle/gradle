@@ -70,7 +70,7 @@ object Gradle_Check_Stage6_Passes : BuildType({
             """.trimIndent()
             triggerBuild = always()
             param("revisionRule", "lastFinished")
-            param("branchFilter", "+:new-pipeline-master")
+            param("branchFilter", "+:master")
             param("dayOfWeek", "Sunday")
         }
     }

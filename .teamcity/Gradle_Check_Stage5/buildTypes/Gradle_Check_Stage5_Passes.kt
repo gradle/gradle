@@ -68,7 +68,7 @@ object Gradle_Check_Stage5_Passes : BuildType({
                 -:design-docs
                 -:subprojects/docs/src/docs/release
             """.trimIndent()
-            branchFilter = "+:new-pipeline-master"
+            branchFilter = "+:master"
         }
     }
 
