@@ -292,7 +292,7 @@ Gradle now tracks changes to this version and recompiles whenever necessary.
 
 ### Configure log level using Gradle properties
 
-Gradle now allows you to specify the log level as a Gradle property, allowing a default log level to be set for a project, a machine, etc.  See the [user guide](userguide/build_environment.html#sec:gradle_configuration_properties) for more information.
+Gradle now allows you to specify the log level as a Gradle property: `org.gradle.logging.level`. Allowed values are `quiet`, `warn`, `lifecycle` (default), `info`, and `debug`. This allows a default log level to be set for a project, a machine, etc.  See the [user guide](userguide/build_environment.html#sec:gradle_configuration_properties) for more information.
 
 <!--
 ### Example new and noteworthy
