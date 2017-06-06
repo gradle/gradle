@@ -31,6 +31,8 @@ dependencies {
     compile libraries.joda
     compile libraries.jsch
     compile libraries.jcifs
+    compile libraries.jansi
+    compile libraries.commons_collections
     runtime project(':logging')
 }
 
