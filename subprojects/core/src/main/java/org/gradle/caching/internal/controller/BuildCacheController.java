@@ -14,10 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.controller;
 
+import org.gradle.api.Nullable;
 import org.gradle.caching.BuildCacheService;
 
-public interface RoleAwareBuildCacheService extends BuildCacheService {
-    String getRole();
+import java.io.Closeable;
+
+/**
+ * Internal coordinator of build cache operations.
+ *
+ * Wraps user {@link BuildCacheService} implementations.
+ */
+public interface BuildCacheController extends Closeable {
+
+    @Nullable
+    <T> T load(BuildCacheLoadCommand<T> command);
+
+    void store(BuildCacheStoreCommand command);
+
+    @Override
+    void close();
+
 }

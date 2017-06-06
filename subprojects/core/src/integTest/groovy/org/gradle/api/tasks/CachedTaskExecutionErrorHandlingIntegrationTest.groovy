@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.logging.configuration.ShowStacktrace
-import org.gradle.caching.internal.ShortCircuitingErrorHandlerBuildCacheServiceDecorator
+import org.gradle.caching.internal.controller.DefaultBuildCacheController
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import spock.lang.Unroll
@@ -132,7 +132,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         output.count("The remote build cache is now disabled because 3 recoverable errors were encountered.") == 1
         output.count("The remote build cache was disabled during the build because 3 recoverable errors were encountered.") == 1
         if (expectStacktrace) {
-            assert stackTraceContains(ShortCircuitingErrorHandlerBuildCacheServiceDecorator)
+            assert stackTraceContains(DefaultBuildCacheController)
         }
 
         when:
@@ -142,7 +142,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         !output.contains("The remote build cache is now disabled")
         !output.contains("The remote build cache was disabled during the build")
         if (expectStacktrace) {
-            assert !stackTraceContains(ShortCircuitingErrorHandlerBuildCacheServiceDecorator)
+            assert !stackTraceContains(DefaultBuildCacheController)
         }
         skippedTasks.empty
 
@@ -172,7 +172,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         output.count("The remote build cache is now disabled because a non-recoverable error was encountered.") == 1
         output.count("The remote build cache was disabled during the build because a non-recoverable error was encountered.") == 1
         if (expectStacktrace) {
-            assert stackTraceContains(ShortCircuitingErrorHandlerBuildCacheServiceDecorator)
+            assert stackTraceContains(DefaultBuildCacheController)
         }
 
         when:
@@ -182,7 +182,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         !output.contains("The remote build cache is now disabled")
         !output.contains("The remote build cache was disabled during the build")
         if (expectStacktrace) {
-            assert !stackTraceContains(ShortCircuitingErrorHandlerBuildCacheServiceDecorator)
+            assert !stackTraceContains(DefaultBuildCacheController)
         }
         skippedTasks.empty
 

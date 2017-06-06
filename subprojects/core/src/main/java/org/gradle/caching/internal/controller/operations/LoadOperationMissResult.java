@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.controller.operations;
 
-import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheEntryWriter;
-import org.gradle.caching.BuildCacheException;
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.BuildCacheLoadBuildOperationType;
 
-import java.io.IOException;
+public class LoadOperationMissResult implements BuildCacheLoadBuildOperationType.Result {
 
-@SuppressWarnings("unused") // used in integration tests
-public class NoOpBuildCacheService implements BuildCacheService {
+    public static final BuildCacheLoadBuildOperationType.Result INSTANCE = new LoadOperationMissResult();
+
+    private LoadOperationMissResult() {
+    }
+
     @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+    public boolean isHit() {
         return false;
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+    public long getArchiveSize() {
+        return 0;
     }
 
     @Override
-    public void close() throws IOException {
-        // Do nothing
+    public long getArchiveEntryCount() {
+        return 0;
     }
+
 }

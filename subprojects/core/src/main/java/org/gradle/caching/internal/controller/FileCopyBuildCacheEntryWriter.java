@@ -14,29 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.controller;
 
-import org.gradle.caching.BuildCacheEntryReader;
+import com.google.common.io.Files;
 import org.gradle.caching.BuildCacheEntryWriter;
-import org.gradle.caching.BuildCacheException;
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 
-@SuppressWarnings("unused") // used in integration tests
-public class NoOpBuildCacheService implements BuildCacheService {
-    @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        return false;
+class FileCopyBuildCacheEntryWriter implements BuildCacheEntryWriter {
+
+    private final File file;
+
+    boolean copied;
+
+    FileCopyBuildCacheEntryWriter(File file) {
+        this.file = file;
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-    }
+    public void writeTo(OutputStream output) throws IOException {
+        if (copied) {
+            throw new IllegalStateException("Build cache entry has already been written");
+        }
 
-    @Override
-    public void close() throws IOException {
-        // Do nothing
+        Files.copy(file, output);
+        copied = true;
     }
 }

@@ -22,6 +22,8 @@ public interface BuildOperationContext {
     /**
      * Marks the build operation as failed, without throwing an exception out of the operation.
      *
+     * If called with non-null, will suppress any exception thrown by the operation being used as the operation failure.
+     *
      * @param failure Can be null, in which case this method does nothing.
      */
     void failed(@Nullable Throwable failure);

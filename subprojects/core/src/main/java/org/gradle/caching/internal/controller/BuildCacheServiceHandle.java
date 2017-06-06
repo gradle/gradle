@@ -14,29 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.controller;
 
-import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheEntryWriter;
-import org.gradle.caching.BuildCacheException;
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.Nullable;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 
-import java.io.IOException;
+import java.io.Closeable;
+import java.io.File;
 
-@SuppressWarnings("unused") // used in integration tests
-public class NoOpBuildCacheService implements BuildCacheService {
-    @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        return false;
-    }
+public interface BuildCacheServiceHandle extends Closeable {
+
+    @Nullable
+    @VisibleForTesting
+    BuildCacheService getService();
+
+    boolean canLoad();
+
+    <T> T doLoad(BuildCacheLoadCommand<T> command);
+
+    boolean canStore();
+
+    void doStore(BuildCacheStoreCommand command);
+
+    void doStore(BuildCacheKey key, File file, BuildCacheStoreCommand.Result storeResult);
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-    }
-
-    @Override
-    public void close() throws IOException {
-        // Do nothing
-    }
+    void close();
 }

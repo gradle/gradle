@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.controller.operations;
 
-import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheEntryWriter;
-import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.BuildCacheStoreBuildOperationType;
+import org.gradle.caching.internal.controller.BuildCacheServiceRole;
 
-import java.io.IOException;
+public class StoreOperationDetails implements BuildCacheStoreBuildOperationType.Details {
 
-@SuppressWarnings("unused") // used in integration tests
-public class NoOpBuildCacheService implements BuildCacheService {
-    @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        return false;
+    private final BuildCacheKey cacheKey;
+    private final BuildCacheServiceRole role;
+
+    public StoreOperationDetails(BuildCacheKey cacheKey, BuildCacheServiceRole role) {
+        this.cacheKey = cacheKey;
+        this.role = role;
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+    public String getRole() {
+        return role.getDisplayName();
     }
 
     @Override
-    public void close() throws IOException {
-        // Do nothing
+    public String getCacheKey() {
+        return cacheKey.getHashCode();
     }
 }

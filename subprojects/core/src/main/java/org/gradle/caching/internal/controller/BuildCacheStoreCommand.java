@@ -14,29 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.controller;
 
-import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheEntryWriter;
-import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
-@SuppressWarnings("unused") // used in integration tests
-public class NoOpBuildCacheService implements BuildCacheService {
-    @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        return false;
+public interface BuildCacheStoreCommand {
+
+    BuildCacheKey getKey();
+
+    /**
+     * Called at-most-once to initiate writing the artifact to the output stream.
+     */
+    Result store(OutputStream outputStream) throws IOException;
+
+    interface Result {
+
+        /**
+         * The number of entries in the stored artifact.
+         *
+         * This is used as a rough metric of the complexity of the archive for processing
+         * (in conjunction with the archive size).
+         *
+         * The meaning of “entry” is intentionally loose.
+         */
+        long getArtifactEntryCount();
+
     }
 
-    @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-    }
-
-    @Override
-    public void close() throws IOException {
-        // Do nothing
-    }
 }
