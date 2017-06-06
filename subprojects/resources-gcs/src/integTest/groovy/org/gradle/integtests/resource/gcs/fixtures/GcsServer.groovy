@@ -336,7 +336,6 @@ class GcsServer extends HttpServer implements RepositoryServer {
     def stubPutFileAuthFailure(String url) {
         def urlParts = urlParts(url)
         def bucketName = urlParts.first
-        def objectName = urlParts.rest
 
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
