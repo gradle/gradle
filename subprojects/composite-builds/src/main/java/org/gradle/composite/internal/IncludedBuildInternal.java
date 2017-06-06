@@ -17,10 +17,10 @@
 package org.gradle.composite.internal;
 
 import org.gradle.BuildResult;
-import org.gradle.includedbuild.ConfigurableIncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
+import org.gradle.includedbuild.ConfigurableIncludedBuild;
 
 public interface IncludedBuildInternal extends ConfigurableIncludedBuild {
     DependencySubstitutionsInternal resolveDependencySubstitutions();

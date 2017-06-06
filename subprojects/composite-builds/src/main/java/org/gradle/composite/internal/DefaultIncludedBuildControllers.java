@@ -61,10 +61,10 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
 
     @Override
     public void startTaskExecution() {
+        this.taskExecutionStarted = true;
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.startTaskExecution();
         }
-        taskExecutionStarted = true;
     }
 
     @Override

@@ -96,7 +96,7 @@ public class BuildSourceBuilder {
         try {
             GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
             try {
-                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, buildSrcBuildListenerFactory));
+                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, buildSrcBuildListenerFactory, buildOperationExecutor));
             } finally {
                 gradleLauncher.stop();
             }

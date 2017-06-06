@@ -55,13 +55,13 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private final Condition taskQueued = lock.newCondition();
     private final Condition taskCompleted = lock.newCondition();
 
-    public DefaultIncludedBuildController(IncludedBuild includedBuild) {
-        this.includedBuild = (IncludedBuildInternal) includedBuild;
-    }
-
     private final CountDownLatch started = new CountDownLatch(1);
     private final AtomicBoolean stopRequested = new AtomicBoolean();
     private final CountDownLatch stopped = new CountDownLatch(1);
+
+    public DefaultIncludedBuildController(IncludedBuild includedBuild) {
+        this.includedBuild = (IncludedBuildInternal) includedBuild;
+    }
 
     @Override
     public void run() {
@@ -81,6 +81,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         stopped.countDown();
     }
 
+    @Override
     public void startTaskExecution() {
         started.countDown();
     }
