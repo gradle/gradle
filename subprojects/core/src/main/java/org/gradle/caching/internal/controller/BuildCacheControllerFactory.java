@@ -149,7 +149,7 @@ public final class BuildCacheControllerFactory {
     }
 
     private static void logConfig(Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescription description) {
-        if (LOGGER.isLifecycleEnabled()) {
+        if (LOGGER.isInfoEnabled()) {
             StringBuilder config = new StringBuilder();
             boolean pullOnly = !description.isPush();
             if (!description.config.isEmpty() || pullOnly) {
@@ -183,7 +183,7 @@ public final class BuildCacheControllerFactory {
                 buildDescription = "build '" + buildIdentityPath + "'";
             }
 
-            LOGGER.lifecycle("Using {} {} build cache for {}{}.",
+            LOGGER.info("Using {} {} build cache for {}{}.",
                 role.getDisplayName(),
                 description.type == null ? description.className : description.type,
                 buildDescription,
