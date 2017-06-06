@@ -1,10 +1,9 @@
 package Gradle_Check.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v10.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep.*
+import jetbrains.buildServer.configs.kotlin.v10.BuildStep
+import jetbrains.buildServer.configs.kotlin.v10.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
+import jetbrains.buildServer.configs.kotlin.v10.Template
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 
@@ -40,7 +39,7 @@ object Gradle_Check_TestCoverageForkedWindows : Template({
             name = "GRADLE_RUNNER"
             id = "RUNNER_98"
             tasks = "clean %org.gradle.test.buildType%Test%org.gradle.test.bucket%"
-            gradleParams = """-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle "-Djava7.home=%windows.java7.oracle.64bit%""""
+            gradleParams = """-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle "-Djava7.home=%windows.java7.oracle.64bit%" --build-cache -Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password% -I ./gradle/taskCacheDetailedStatsInit.gradle"""
             useGradleWrapper = true
             param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
         }

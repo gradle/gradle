@@ -39,7 +39,7 @@ object Gradle_Check_TestCoverageForkedLinux : Template({
             name = "GRADLE_RUNNER"
             id = "RUNNER_641"
             tasks = "clean %org.gradle.test.buildType%Test%org.gradle.test.bucket%"
-            gradleParams = "-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle -Djava7.home=%linux.jdk.for.gradle.compile%"
+            gradleParams = "-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle -Djava7.home=%linux.jdk.for.gradle.compile% --build-cache -Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password% -I ./gradle/taskCacheDetailedStatsInit.gradle"
             useGradleWrapper = true
             param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
         }
