@@ -1,10 +1,9 @@
 package Gradle_Check_Stage4.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v10.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep.*
+import jetbrains.buildServer.configs.kotlin.v10.BuildStep
+import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import jetbrains.buildServer.configs.kotlin.v10.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 
@@ -39,7 +38,7 @@ object Gradle_Check_GradleceptionJava8Linux : BuildType({
         gradle {
             name = "BUILD_WITH_WRAPPER"
             tasks = "clean :install -Pgradle_installPath=dogfood-first"
-            gradleParams = "-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle -Djava7.home=%linux.jdk.for.gradle.compile%"
+            gradleParams = "-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle -Djava7.home=%linux.jdk.for.gradle.compile% --build-cache -Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password% -I ./gradle/taskCacheDetailedStatsInit.gradle"
             useGradleWrapper = true
         }
         gradle {

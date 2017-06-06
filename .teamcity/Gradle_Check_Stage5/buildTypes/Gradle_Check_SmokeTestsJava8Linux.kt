@@ -1,10 +1,9 @@
 package Gradle_Check_Stage5.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v10.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.GradleBuildStep.*
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.ScriptBuildStep.*
+import jetbrains.buildServer.configs.kotlin.v10.BuildStep
+import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import jetbrains.buildServer.configs.kotlin.v10.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 
@@ -40,7 +39,7 @@ object Gradle_Check_SmokeTestsJava8Linux : BuildType({
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean smokeTest:smokeTest"
-            gradleParams = "-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle -Djava7.home=%linux.jdk.for.gradle.compile%"
+            gradleParams = "-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle -Djava7.home=%linux.jdk.for.gradle.compile% --build-cache -Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password% -I ./gradle/taskCacheDetailedStatsInit.gradle"
             useGradleWrapper = true
         }
         script {
