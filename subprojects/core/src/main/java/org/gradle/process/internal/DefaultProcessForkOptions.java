@@ -103,9 +103,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     public ProcessForkOptions copyTo(ProcessForkOptions target) {
         target.setExecutable(executable);
         target.setWorkingDir(workingDir);
-        if (environment != null) {
-            target.setEnvironment(environment);
-        }
+        target.setEnvironment(getEnvironment());
         return this;
     }
 }
