@@ -17,17 +17,18 @@
 package org.gradle.integtests.resource.gcs
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.api.client.http.HttpRequest
+import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.model.StorageObject
 import org.apache.commons.io.IOUtils
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
-import org.gradle.internal.resource.transport.gcs.GcsClient
+import org.gradle.internal.resource.transport.gcp.gcs.GcsClient
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Ignore
-import spock.lang.Shared
 import spock.lang.Specification
 
 class GcsClientIntegrationTest extends Specification {
@@ -38,15 +39,8 @@ class GcsClientIntegrationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    @Shared
-    GoogleCredential gcsCredentials = new GoogleCredential()
-
     @Rule
     public final GcsServer server = new GcsServer(temporaryFolder)
-
-    def setup() {
-        gcsCredentials.refreshToken()
-    }
 
     def "should perform put get and list on an Gcs bucket"() {
         setup:
@@ -104,8 +98,18 @@ class GcsClientIntegrationTest extends Specification {
     @Ignore
     def "should interact with real Gcs"() {
         String bucketName = System.getenv('G_GCS_BUCKET')
-        GoogleCredential credential = GoogleCredential.getApplicationDefault()
-        GcsClient gcsClient = new GcsClient(credential)
+        def transport = new NetHttpTransport()
+        def jacksonFactory = new JacksonFactory()
+        Storage.Builder builder = new Storage.Builder(transport, jacksonFactory, null)
+        GoogleCredential googleCredential = GoogleCredential.getApplicationDefault(transport, jacksonFactory)
+        builder.setHttpRequestInitializer(new HttpRequestInitializer() {
+            @Override
+            void initialize(HttpRequest request) throws IOException {
+                request.setInterceptor(googleCredential)
+            }
+        })
+        builder.setApplicationName("gradle")
+        GcsClient gcsClient = new GcsClient(builder.build())
 
         def fileContents = 'This is only a test'
         File file = temporaryFolder.createFile(FILE_NAME)

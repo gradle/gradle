@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.gcs
+package org.gradle.internal.resource.transport.gcp.gcs
 
 import com.google.api.client.util.DateTime
 import com.google.api.services.storage.model.StorageObject
-import org.apache.commons.codec.binary.Base64
-import org.gradle.internal.hash.HashValue
 import spock.lang.Specification
 
 class GcsResourceConnectorTest extends Specification {

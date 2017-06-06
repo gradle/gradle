@@ -36,6 +36,7 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument('-i')
         executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
         executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
+        executer.withArgument("-Dorg.gradle.gcs.disableAuthentication=true")
     }
 
     def "should fail with an authentication error"() {

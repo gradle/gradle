@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.gcs;
+package org.gradle.internal.resource.transport.gcp.gcs;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.http.HttpBackOffIOExceptionHandler;
@@ -85,29 +85,27 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
             new HttpBackOffUnsuccessfulResponseHandler(
                 new ExponentialBackOff()).setSleeper(sleeper);
         final Credential credential = credentialSupplier.get();
-        if (credential != null) {
-            request.setInterceptor(credential);
-            request.setUnsuccessfulResponseHandler(new HttpUnsuccessfulResponseHandler() {
-                @Override
-                public boolean handleResponse(final HttpRequest request, final HttpResponse response,
-                                              final boolean supportsRetry) throws IOException {
-                    // Turn off request logging unless debug mode is enabled
-                    request.setLoggingEnabled(loggingEnabled);
-                    request.setCurlLoggingEnabled(loggingEnabled);
-                    if (credential.handleResponse(request, response, supportsRetry)) {
-                        // If credential decides it can handle it, the return code or message indicated
-                        // something specific to authentication, and no backoff is desired.
-                        return true;
-                    } else if (backoffHandler.handleResponse(request, response, supportsRetry)) {
-                        // Otherwise, we defer to the judgement of our internal backoff handler.
-                        LOG.info("Retrying " + request.getUrl().toString());
-                        return true;
-                    } else {
-                        return false;
-                    }
+        request.setInterceptor(credential);
+        request.setUnsuccessfulResponseHandler(new HttpUnsuccessfulResponseHandler() {
+            @Override
+            public boolean handleResponse(final HttpRequest request, final HttpResponse response,
+                                          final boolean supportsRetry) throws IOException {
+                // Turn off request logging unless debug mode is enabled
+                request.setLoggingEnabled(loggingEnabled);
+                request.setCurlLoggingEnabled(loggingEnabled);
+                if (credential.handleResponse(request, response, supportsRetry)) {
+                    // If credential decides it can handle it, the return code or message indicated
+                    // something specific to authentication, and no backoff is desired.
+                    return true;
+                } else if (backoffHandler.handleResponse(request, response, supportsRetry)) {
+                    // Otherwise, we defer to the judgement of our internal backoff handler.
+                    LOG.info("Retrying " + request.getUrl().toString());
+                    return true;
+                } else {
+                    return false;
                 }
-            });
-        }
+            }
+        });
         request.setIOExceptionHandler(new HttpBackOffIOExceptionHandler(new ExponentialBackOff())
             .setSleeper(sleeper));
     }

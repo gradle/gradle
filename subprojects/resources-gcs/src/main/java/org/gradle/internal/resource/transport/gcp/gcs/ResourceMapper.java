@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.gcs;
+package org.gradle.internal.resource.transport.gcp.gcs;
 
 import com.google.api.services.storage.model.StorageObject;
-import org.apache.commons.codec.binary.Base64;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 

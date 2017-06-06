@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.gcs;
+package org.gradle.internal.resource.transport.gcp.gcs;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -31,18 +31,24 @@ final class GcsConnectionProperties {
 
     private static final String GCS_ENDPOINT_PROPERTY = "org.gradle.gcs.endpoint";
     private static final String GCS_SERVICE_PATH_PROPERTY = "org.gradle.gcs.servicePath";
+    // Controls when to disable reading default authentication credentials, should be used in tests only
+    private static final String GCS_DISABLE_AUTH_PROPERTY = "org.gradle.gcs.disableAuthentication";
     private static final Set<String> SUPPORTED_SCHEMES = Sets.newHashSet("HTTP", "HTTPS");
 
     private final URI endpoint;
     private final String servicePath;
+    private final boolean disableAuthentication;
 
     GcsConnectionProperties() {
-        this(configureEndpoint(getProperty(GCS_ENDPOINT_PROPERTY)), configureServicePath(getProperty(GCS_SERVICE_PATH_PROPERTY)));
+        this(configureEndpoint(getProperty(GCS_ENDPOINT_PROPERTY)),
+            configureServicePath(getProperty(GCS_SERVICE_PATH_PROPERTY)),
+            configureDisableAuthentication(getProperty(GCS_DISABLE_AUTH_PROPERTY)));
     }
 
-    GcsConnectionProperties(URI endpoint, String servicePath) {
+    GcsConnectionProperties(URI endpoint, String servicePath, boolean disableAuthentication) {
         this.endpoint = endpoint;
         this.servicePath = servicePath;
+        this.disableAuthentication = disableAuthentication;
     }
 
     Optional<URI> getEndpoint() {
@@ -51,6 +57,10 @@ final class GcsConnectionProperties {
 
     Optional<String> getServicePath() {
         return Optional.fromNullable(servicePath);
+    }
+
+    boolean requiresAuthentication() {
+        return !disableAuthentication;
     }
 
     private static URI configureEndpoint(String property) {
@@ -74,5 +84,9 @@ final class GcsConnectionProperties {
         } else {
             return null;
         }
+    }
+
+    private static boolean configureDisableAuthentication(String property) {
+        return StringUtils.isNotBlank(property) && Boolean.parseBoolean(property);
     }
 }

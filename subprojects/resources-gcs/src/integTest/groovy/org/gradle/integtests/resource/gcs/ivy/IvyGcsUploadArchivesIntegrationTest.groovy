@@ -33,5 +33,6 @@ class IvyGcsUploadArchivesIntegrationTest extends AbstractIvyRemoteLegacyPublish
     def setup() {
         executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
         executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
+        executer.withArgument("-Dorg.gradle.gcs.disableAuthentication=true")
     }
 }

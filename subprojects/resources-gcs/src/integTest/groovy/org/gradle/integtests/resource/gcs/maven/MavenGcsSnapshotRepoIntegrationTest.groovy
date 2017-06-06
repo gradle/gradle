@@ -133,5 +133,4 @@ task retrieve(type: Sync) {
     String getRepositoryPath() {
         return '/maven/snapshot/'
     }
-
 }

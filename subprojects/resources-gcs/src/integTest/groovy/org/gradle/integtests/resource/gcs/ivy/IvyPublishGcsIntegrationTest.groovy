@@ -27,6 +27,7 @@ class IvyPublishGcsIntegrationTest extends AbstractIvyPublishIntegTest {
     def setup() {
         executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
         executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
+        executer.withArgument("-Dorg.gradle.gcs.disableAuthentication=true")
     }
 
     def "can publish to a Gcs Ivy repository"() {

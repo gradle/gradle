@@ -17,10 +17,8 @@
 
 package org.gradle.integtests.resource.gcs.maven
 
-import org.gradle.api.credentials.AwsCredentials
 import org.gradle.integtests.resource.gcs.AbstractGcsDependencyResolutionTest
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsModule
-import spock.lang.Ignore
 
 class MavenGcsRepoErrorsIntegrationTest extends AbstractGcsDependencyResolutionTest {
 
@@ -62,7 +60,6 @@ task retrieve(type: Sync) {
             .assertHasCause("401 Unauthorized")
     }
 
-//    @Ignore
     def "fails when providing PasswordCredentials with decent error"() {
         setup:
         buildFile << """
@@ -76,32 +73,12 @@ repositories {
     }
 }
 """
-
         when:
         fails 'retrieve'
         then:
         //TODO would be good to have a reference of the wrong configured repository in the error message
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("Credentials must be an instance of '${AwsCredentials.class.getName()}'.")
-    }
-
-    @Ignore
-    def "fails when no credentials provided"() {
-        setup:
-        buildFile << """
-repositories {
-    maven {
-        url "${mavenGcsRepo.uri}"
-    }
-}
-"""
-
-        when:
-        fails 'retrieve'
-        then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("AwsCredentials must be set for GCS backed repository.")
-
+                .assertHasCause("Authentication scheme 'all'(Authentication) is not supported by protocol 'gcs'")
     }
 
     def "should include resource uri when file not found"() {

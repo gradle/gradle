@@ -14,26 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.gcs;
+package org.gradle.internal.resource.transport.gcp.gcs;
 
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 public class GcsResourcesPluginServiceRegistry implements PluginServiceRegistry {
+
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalScopeServices());
     }
 
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerProjectServices(ServiceRegistration registration) {
     }
 

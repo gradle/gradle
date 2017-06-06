@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.gcs;
+package org.gradle.internal.resource.transport.gcp.gcs;
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.authentication.Authentication;
-import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
+
+import static java.util.Collections.emptySet;
 
 public class GcsConnectorFactory implements ResourceConnectorFactory {
 
@@ -37,19 +35,15 @@ public class GcsConnectorFactory implements ResourceConnectorFactory {
 
     @Override
     public Set<Class<? extends Authentication>> getSupportedAuthentication() {
-        Set<Class<? extends Authentication>> supported = new HashSet<Class<? extends Authentication>>();
-        supported.add(AllSchemesAuthentication.class);
-        return supported;
+        return emptySet();
     }
 
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
-        GcsResourceConnector resourceConnector;
         try {
-            resourceConnector = new GcsResourceConnector(GcsClient.create(new GcsConnectionProperties()));
+            return new GcsResourceConnector(GcsClient.create(new GcsConnectionProperties()));
         } catch (Exception e) {
-            throw new RuntimeException("Google Credentials must be set for GCS backed repository.", e);
+            throw new RuntimeException("Google credentials must be set for GCS backed repository.", e);
         }
-        return resourceConnector;
     }
 }

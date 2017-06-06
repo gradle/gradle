@@ -35,6 +35,7 @@ class IvyGcsRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInteg
     protected ExecutionResult succeeds(String... tasks) {
         executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
         executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
+        executer.withArgument("-Dorg.gradle.gcs.disableAuthentication=true")
         result = executer.withTasks(*tasks).run()
     }
 

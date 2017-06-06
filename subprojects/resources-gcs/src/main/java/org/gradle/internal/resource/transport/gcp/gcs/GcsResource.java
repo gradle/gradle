@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.gcs;
+package org.gradle.internal.resource.transport.gcp.gcs;
 
 import com.google.api.services.storage.model.StorageObject;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-import static org.gradle.internal.resource.transport.gcs.ResourceMapper.toExternalResourceMetaData;
+import static org.gradle.internal.resource.transport.gcp.gcs.ResourceMapper.toExternalResourceMetaData;
 
 public class GcsResource implements ExternalResourceReadResponse {
 

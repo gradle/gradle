@@ -29,6 +29,7 @@ class MavenPublishGcsIntegrationTest extends AbstractMavenPublishIntegTest {
         executer.withArgument('-i')
         executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
         executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
+        executer.withArgument("-Dorg.gradle.gcs.disableAuthentication=true")
     }
 
     def "can publish to a Gcs Maven repository"() {
@@ -46,10 +47,6 @@ publishing {
     repositories {
         maven {
             url "${mavenRepo.uri}"
-            credentials(AwsCredentials) {
-                accessKey "someKey"
-                secretKey "someSecret"
-            }
         }
     }
     publications {

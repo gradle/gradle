@@ -32,6 +32,7 @@ abstract class AbstractGcsDependencyResolutionTest extends AbstractDependencyRes
         executer.withArgument('-i')
         executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
         executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
+        executer.withArgument("-Dorg.gradle.gcs.disableAuthentication=true")
     }
 
     String getBucket() {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.gcs
+package org.gradle.internal.resource.transport.gcp.gcs
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential
