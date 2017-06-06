@@ -137,8 +137,8 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         // Not all of the tar.gz bytes need to be read in order to unpack the archive.
         // On Linux at least, the archive may have redundant padding bytes
         // Furthermore, the exact amount of padding appears to be non deterministic.
-        def artifactLength = localCacheArtifact(hitLoadOp.details.cacheKey.toString())
-        def sizeDiff = artifactLength - hitLoadOp.result.archiveSize
+        def cacheArtifact = localCacheArtifact(hitLoadOp.details.cacheKey.toString())
+        def sizeDiff = cacheArtifact.length() - hitLoadOp.result.archiveSize.toLong()
         sizeDiff > -100 && sizeDiff < 100
 
         hitLoadOp.result.archiveEntryCount == 4
