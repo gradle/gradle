@@ -34,6 +34,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -93,6 +94,7 @@ class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
                     outputFileMap.newEntry("")
                         .swiftModuleFile(new File(spec.getOutputFile().getParentFile(), spec.getModuleName() + ".swiftmodule"));
                 }
+                genericArgs.add("-v");
 
                 File outputFileMapFile = new File(spec.getObjectFileDir(), "output-file-map.json");
                 outputFileMap.writeToFile(outputFileMapFile);
@@ -101,9 +103,20 @@ class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
                 outputArgs.add("-output-file-map");
                 outputArgs.add(outputFileMapFile.getAbsolutePath());
 
+                List<String> importRootArgs = Lists.newArrayList();
+                for (File importRoot : spec.getIncludeRoots()) {
+                    importRootArgs.add("-I");
+                    importRootArgs.add(importRoot.getAbsolutePath());
+                }
+
+                List<String> libraryArgs = Lists.newArrayList();
+                for (File library : spec.getLibraries()) {
+                    // TODO(daniel): Linking dynamic library doesn't require -l flag
+                    libraryArgs.add(library.getAbsolutePath());
+                }
 
                 CommandLineToolInvocation perFileInvocation =
-                    newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs), spec.getOperationLogger());
+                    newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs, libraryArgs), spec.getOperationLogger());
                 buildQueue.add(perFileInvocation);
             }
         };

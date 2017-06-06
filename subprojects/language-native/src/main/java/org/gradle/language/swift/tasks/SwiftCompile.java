@@ -16,7 +16,10 @@
 
 package org.gradle.language.swift.tasks;
 
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
@@ -29,12 +32,18 @@ import java.io.File;
 public class SwiftCompile extends AbstractNativeSourceCompileTask {
     private File outputFile;
     private String moduleName;
+    private final ConfigurableFileCollection libs;
+
+    public SwiftCompile() {
+        libs = getProject().files();
+    }
 
     @Override
     protected NativeCompileSpec createCompileSpec() {
         SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
         spec.setOutputFile(outputFile);
         spec.setModuleName(moduleName);
+        spec.libraries(getLibs());
         return spec;
     }
 
@@ -55,5 +64,24 @@ public class SwiftCompile extends AbstractNativeSourceCompileTask {
 
     public void setModuleName(String moduleName) {
         this.moduleName = moduleName;
+    }
+
+    /**
+     * The library files to be passed to the linker.
+     */
+    @InputFiles
+    public FileCollection getLibs() {
+        return libs;
+    }
+
+    public void setLibs(FileCollection libs) {
+        this.libs.setFrom(libs);
+    }
+
+    /**
+     * Adds a set of library files to be linked. The provided libs object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     */
+    public void lib(Object libs) {
+        this.libs.from(libs);
     }
 }

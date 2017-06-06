@@ -78,13 +78,7 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
     def SourceFile getCommonHeader() {
-        sourceFile("headers", "common.h", """
-            #ifndef COMMON_H
-            #define COMMON_H
-            #include "hello.h"
-            #include <iostream>
-            #endif
-        """)
+        sourceFile("headers", "common.h", "")
     }
 
     List<SourceFile> librarySources = [
@@ -97,6 +91,7 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
 
 
             public class Greeter {
+                public init() {}
                 public func sayHello() {
                     #if FRENCH
                     print(greeting())

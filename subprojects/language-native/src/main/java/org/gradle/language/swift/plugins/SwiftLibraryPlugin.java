@@ -17,17 +17,21 @@
 package org.gradle.language.swift.plugins;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
 import java.util.Collections;
 
@@ -41,12 +45,14 @@ import java.util.Collections;
 public class SwiftLibraryPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        project.getPluginManager().apply(LifecycleBasePlugin.class);
-        project.getPluginManager().apply(SwiftCompilerPlugin.class);
+        project.getPluginManager().apply(SwiftBasePlugin.class);
 
         // TODO - extract some common code to setup the compile task and conventions
         // Add a compile task
-        SwiftCompile compile = project.getTasks().create("compileSwift", SwiftCompile.class);
+        final SwiftCompile compile = project.getTasks().create("compileSwift", SwiftCompile.class);
+
+        compile.includes(project.getConfigurations().getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
+        compile.lib(project.getConfigurations().getByName(CppBasePlugin.NATIVE_LINK));
 
         ConfigurableFileTree sourceTree = project.fileTree("src/main/swift");
         sourceTree.include("**/*.swift");
@@ -75,5 +81,44 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.getTasks().getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(compile);
 
         // TODO - add lifecycle tasks
+
+
+        // TODO - make not resolvable
+        Configuration apiElements = project.getConfigurations().create("swiftApiElements");
+        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.SWIFT_API));
+        // TODO - should be lazy and reflect changes to output file
+        apiElements.getOutgoing().artifact(project.file("build/lib"), new Action<ConfigurablePublishArtifact>() {
+            @Override
+            public void execute(ConfigurablePublishArtifact artifact) {
+                artifact.builtBy(compile);
+            }
+        });
+
+        Configuration implementation = project.getConfigurations().getByName(CppBasePlugin.IMPLEMENTATION);
+
+        Configuration linkElements = project.getConfigurations().create("linkElements");
+        linkElements.extendsFrom(implementation);
+        linkElements.setCanBeResolved(false);
+        linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_LINK));
+        // TODO - should be lazy and reflect changes to task output file
+        // TODO - Libary on macOS are dylib which could change on other system (like Linux)
+        linkElements.getOutgoing().artifact(compile.getOutputFile(), new Action<ConfigurablePublishArtifact>() {
+            @Override
+            public void execute(ConfigurablePublishArtifact artifact) {
+                artifact.builtBy(compile);
+            }
+        });
+
+        Configuration runtimeElements = project.getConfigurations().create("runtimeElements");
+        runtimeElements.extendsFrom(implementation);
+        runtimeElements.setCanBeResolved(false);
+        runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_RUNTIME));
+        // TODO - should be lazy and reflect changes to task output file
+        runtimeElements.getOutgoing().artifact(compile.getOutputFile(), new Action<ConfigurablePublishArtifact>() {
+            @Override
+            public void execute(ConfigurablePublishArtifact artifact) {
+                artifact.builtBy(compile);
+            }
+        });
     }
 }

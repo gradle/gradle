@@ -22,14 +22,12 @@ import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
 import java.util.Collections;
 
@@ -43,11 +41,13 @@ import java.util.Collections;
 public class SwiftExecutablePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        project.getPluginManager().apply(LifecycleBasePlugin.class);
-        project.getPluginManager().apply(SwiftCompilerPlugin.class);
+        project.getPluginManager().apply(SwiftBasePlugin.class);
 
         // Add a compile task
         SwiftCompile compile = project.getTasks().create("compileSwift", SwiftCompile.class);
+
+        compile.includes(project.getConfigurations().getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
+        compile.lib(project.getConfigurations().getByName(CppBasePlugin.NATIVE_LINK));
 
         ConfigurableFileTree sourceTree = project.fileTree("src/main/swift");
         sourceTree.include("**/*.swift");

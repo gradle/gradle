@@ -19,6 +19,7 @@ package org.gradle.language.swift
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
+import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin
 
@@ -75,6 +76,74 @@ allprojects { p ->
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":assemble")
         executable("build/exe/app").exec().out == "Hello, World!\n12\n"//app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+    }
+
+    def "can compile and link against a library"() {
+        settingsFile << "include 'app', 'lib'"
+        def app = new SwiftHelloWorldApp()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-executable'
+                dependencies {
+                    implementation project(':lib')
+                }
+            }
+            project(':lib') {
+                apply plugin: 'swift-library'
+
+                tasks.withType(SwiftCompile)*.moduleName = 'Greeter'
+            }
+"""
+        app.library.sourceFiles.each { it.writeToFile(file("lib/src/main/swift/$it.name")) }
+        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
+        def f = file('app/src/main/swift/main.swift')
+        f.text = """import Greeter
+
+${f.text}"""
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":lib:compileSwift", ":app:compileSwift", ":app:assemble")
+        executable("app/build/exe/app").exec().out == "Hello, World!\n12\n"//app.englishOutput
+    }
+
+    def "can compile and link against library with dependencies"() {
+        settingsFile << "include 'app', 'lib1', 'lib2'"
+        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-executable'
+                dependencies {
+                    implementation project(':lib1')
+                    swiftImportPath project(':lib2')  // TODO(daniel): Not sure why this is required
+                }
+            }
+            project(':lib1') {
+                apply plugin: 'swift-library'
+                dependencies {
+                    implementation project(':lib2')
+                }
+
+                tasks.withType(SwiftCompile)*.moduleName = 'Hello'
+            }
+            project(':lib2') {
+                apply plugin: 'swift-library'
+
+                tasks.withType(SwiftCompile)*.moduleName = 'Greeting'
+            }
+"""
+        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/swift/$it.name")) }
+        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/swift/$it.name")) }
+        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":lib1:compileSwift", ":lib2:compileSwift", ":app:compileSwift", ":app:assemble")
+        executable("app/build/exe/app").exec().out == app.englishOutput
     }
 
     def ExecutableFixture executable(Object path) {

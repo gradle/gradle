@@ -18,7 +18,9 @@ package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
+import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin
 
@@ -76,6 +78,52 @@ allprojects { p ->
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":assemble")
         sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "can define public module"() {
+        settingsFile << "rootProject.name = 'hello'"
+        given:
+        def app = new SwiftHelloWorldApp()
+        app.library.sourceFiles.each { it.writeToFile(file("src/main/swift/$it.name")) }
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":assemble")
+        sharedLibrary("build/lib/hello").assertExists()
+        file("build/lib/hello.swiftmodule").assertExists()
+    }
+
+    def "can compile and link against another library"() {
+        settingsFile << "include 'lib1', 'lib2'"
+        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+
+        given:
+        buildFile << """
+            project(':lib1') {
+                apply plugin: 'swift-library'
+                dependencies {
+                    implementation project(':lib2')
+                }
+                tasks.withType(SwiftCompile)*.moduleName = 'Hello'
+            }
+            project(':lib2') {
+                apply plugin: 'swift-library'
+                tasks.withType(SwiftCompile)*.moduleName = 'Greeting'
+            }
+"""
+        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/swift/$it.name")) }
+        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/swift/$it.name")) }
+
+        expect:
+        succeeds ":lib1:assemble"
+        result.assertTasksExecuted(":lib2:compileSwift", ":lib1:compileSwift", ":lib1:assemble")
+        sharedLibrary("lib1/build/lib/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/lib2").assertExists()
     }
 
     def SharedLibraryFixture sharedLibrary(Object path) {
