@@ -18,29 +18,13 @@ package org.gradle.internal.resource.transport.gcp.gcs;
 
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
-public class GcsResourcesPluginServiceRegistry implements PluginServiceRegistry {
+public class GcsResourcesPluginServiceRegistry extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalScopeServices());
-    }
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private static class GlobalScopeServices {
