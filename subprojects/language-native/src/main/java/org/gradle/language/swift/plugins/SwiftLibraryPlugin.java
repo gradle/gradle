@@ -83,8 +83,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         // TODO - add lifecycle tasks
 
 
-        // TODO - make not resolvable
         Configuration apiElements = project.getConfigurations().create("swiftApiElements");
+        apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.SWIFT_API));
         // TODO - should be lazy and reflect changes to output file
         apiElements.getOutgoing().artifact(project.file("build/lib"), new Action<ConfigurablePublishArtifact>() {

@@ -19,12 +19,15 @@ package org.gradle.language.swift.plugins;
 import com.google.common.collect.Lists;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -71,6 +74,26 @@ public class SwiftExecutablePlugin implements Plugin<Project> {
         String exeName = ((NativeToolChainInternal) toolChain).select(currentPlatform).getExecutableName("build/exe/" + project.getName());
         compile.setOutputFile(project.file(exeName));
 
-        project.getTasks().getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(compile);
+        // Add an install task
+        final InstallExecutable install = project.getTasks().create("installMain", InstallExecutable.class);
+        install.setPlatform(currentPlatform);
+        install.setToolChain(toolChain);
+        // TODO - should reflect changes to build directory
+        // TODO - need to set basename
+        install.setDestinationDir(project.file("build/install/" + project.getName()));
+        // TODO - should reflect changes to task output
+        install.setExecutable(compile.getOutputFile());
+        // TODO - infer this
+        install.dependsOn(compile);
+        // TODO - and this
+        install.onlyIf(new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return install.getExecutable().exists();
+            }
+        });
+        install.lib(project.getConfigurations().getByName(CppBasePlugin.NATIVE_RUNTIME));
+
+        project.getTasks().getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
     }
 }

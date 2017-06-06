@@ -44,6 +44,8 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
 
         // TODO - make not consumable or resolvable
         Configuration implementation = project.getConfigurations().create(IMPLEMENTATION);
+        implementation.setCanBeConsumed(false);
+        implementation.setCanBeResolved(false);
 
         Configuration includePath = project.getConfigurations().create(SWIFT_IMPORT_PATH);
         includePath.extendsFrom(implementation);

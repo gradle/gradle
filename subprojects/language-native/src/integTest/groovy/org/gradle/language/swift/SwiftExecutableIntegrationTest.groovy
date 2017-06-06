@@ -17,8 +17,11 @@
 package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
+import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
+import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin
@@ -64,8 +67,10 @@ allprojects { p ->
 
     def "sources are compiled with Swift compiler"() {
         settingsFile << "rootProject.name = 'app'"
+        def app = new SwiftHelloWorldApp()
+
         given:
-        helloWorldApp.writeSources(file('src/main'))
+        app.writeSources(file('src/main'))
 
         and:
         buildFile << """
@@ -74,12 +79,12 @@ allprojects { p ->
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":assemble")
-        executable("build/exe/app").exec().out == "Hello, World!\n12\n"//app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        result.assertTasksExecuted(":compileSwift", ":installMain", ":assemble")
+        executable("build/exe/app").exec().out == app.englishOutput
     }
 
     def "can compile and link against a library"() {
-        settingsFile << "include 'app', 'lib'"
+        settingsFile << "include 'app', 'hello'"
         def app = new SwiftHelloWorldApp()
 
         given:
@@ -87,16 +92,16 @@ allprojects { p ->
             project(':app') {
                 apply plugin: 'swift-executable'
                 dependencies {
-                    implementation project(':lib')
+                    implementation project(':hello')
                 }
             }
-            project(':lib') {
+            project(':hello') {
                 apply plugin: 'swift-library'
 
                 tasks.withType(SwiftCompile)*.moduleName = 'Greeter'
             }
 """
-        app.library.sourceFiles.each { it.writeToFile(file("lib/src/main/swift/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("hello/src/main/swift/$it.name")) }
         app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
         def f = file('app/src/main/swift/main.swift')
         f.text = """import Greeter
@@ -105,8 +110,11 @@ ${f.text}"""
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":lib:compileSwift", ":app:compileSwift", ":app:assemble")
-        executable("app/build/exe/app").exec().out == "Hello, World!\n12\n"//app.englishOutput
+        result.assertTasksExecuted(":hello:compileSwift", ":app:compileSwift", ":app:installMain", ":app:assemble")
+        executable("app/build/exe/app").assertExists()
+        sharedLibrary("hello/build/lib/hello").assertExists()
+        installation("app/build/install/app").exec().out == app.englishOutput
+        sharedLibrary("app/build/install/app/lib/hello").assertExists()
     }
 
     def "can compile and link against library with dependencies"() {
@@ -142,7 +150,7 @@ ${f.text}"""
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":lib1:compileSwift", ":lib2:compileSwift", ":app:compileSwift", ":app:assemble")
+        result.assertTasksExecuted(":lib1:compileSwift", ":lib2:compileSwift", ":app:compileSwift", ":app:installMain", ":app:assemble")
         executable("app/build/exe/app").exec().out == app.englishOutput
     }
 
@@ -150,4 +158,11 @@ ${f.text}"""
         return new AvailableToolChains.InstalledSwiftc().executable(file(path));
     }
 
+    def SharedLibraryFixture sharedLibrary(Object path) {
+        return new AvailableToolChains.InstalledSwiftc().sharedLibrary(file(path));
+    }
+
+    def NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
+        return new NativeInstallationFixture(file(installDir), os)
+    }
 }

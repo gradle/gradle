@@ -26,7 +26,7 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
             func main() -> Int {
               let greeter = Greeter()
               greeter.sayHello()
-              print(sum(a: 5, b: 7))
+              print(sum(a: 5, b: 7), terminator: "")
               return 0
             }
 
@@ -50,30 +50,7 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
     SourceFile getLibraryHeader() {
-        return sourceFile("headers", "hello.h", """
-            #ifndef HELLO_H
-            #define HELLO_H
-            #ifdef _WIN32
-            #define DLL_FUNC __declspec(dllexport)
-            #else
-            #define DLL_FUNC
-            #endif
-
-            class Greeter {
-                public:
-                void DLL_FUNC sayHello();
-            };
-
-            int DLL_FUNC sum(int a, int b);
-
-            #ifdef FRENCH
-            #pragma message("<==== compiling bonjour.h ====>")
-            #else
-            #pragma message("<==== compiling hello.h ====>")
-            #endif
-
-            #endif
-        """);
+        return sourceFile("headers", "hello.h", "");
     }
 
     @Override
@@ -109,22 +86,21 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     ]
 
     List<SourceFile> alternateLibrarySources = [
-        sourceFile("cpp", "hello.cpp", """
-            #include "common.h"
-
-            void DLL_FUNC Greeter::sayHello() {
-                std::cout << "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]" << std::endl;
+        sourceFile("swift", "hello.swift", """
+            public class Greeter {
+                public init() {}
+                public func sayHello() {
+                    print("[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]");
+                }
             }
 
             // Extra function to ensure library has different size
-            int anotherFunction() {
+            public func anotherFunction() -> Int {
                 return 1000;
             }
         """),
         sourceFile("cpp", "sum.cpp", """
-            #include "common.h"
-
-            int DLL_FUNC sum(int a, int b) {
+            public func sum(a: Int, b: Int) -> Int {
                 return a + b;
             }
         """)

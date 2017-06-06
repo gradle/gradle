@@ -17,6 +17,7 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.language.swift.tasks.SwiftCompile
+import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -34,5 +35,8 @@ class SwiftExecutablePluginTest extends Specification {
         then:
         def compileSwift = project.tasks.compileSwift
         compileSwift instanceof SwiftCompile
+
+        def install = project.tasks.installMain
+        install instanceof InstallExecutable
     }
 }
