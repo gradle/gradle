@@ -109,6 +109,10 @@ buildTypes {
         tasks "crossVersionIntegTest"
         projectProperties useIncomingDistributions: true
     }
+    quickFeedbackCrossVersionTest {
+        tasks "quickFeedbackCrossVersionIntegTest"
+        projectProperties useIncomingDistributions: true
+    }
 
     // Used to build production distros and smoke test them
     packageBuild {
