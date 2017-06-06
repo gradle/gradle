@@ -133,14 +133,6 @@ public class GcsClient {
         }
     }
 
-    public InputStream getResourceStream(StorageObject obj) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        Storage.Objects.Get getObject = storage.objects().get(obj.getBucket(), obj.getName());
-        getObject.getMediaHttpDownloader().setDirectDownloadEnabled(false);
-        getObject.executeMediaAndDownloadTo(byteArrayOutputStream);
-        return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-    }
-
     public List<String> list(URI uri) {
         List<StorageObject> results = new ArrayList<StorageObject>();
 
@@ -167,6 +159,14 @@ public class GcsClient {
         }
 
         return resultStrings;
+    }
+
+    InputStream getResourceStream(StorageObject obj) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Storage.Objects.Get getObject = storage.objects().get(obj.getBucket(), obj.getName());
+        getObject.getMediaHttpDownloader().setDirectDownloadEnabled(false);
+        getObject.executeMediaAndDownloadTo(byteArrayOutputStream);
+        return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     }
 
     @VisibleForTesting
