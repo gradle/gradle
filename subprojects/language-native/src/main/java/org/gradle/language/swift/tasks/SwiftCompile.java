@@ -16,13 +16,44 @@
 
 package org.gradle.language.swift.tasks;
 
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.language.swift.internal.DefaultSwiftCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+
+import java.io.File;
 
 public class SwiftCompile extends AbstractNativeSourceCompileTask {
+    private File outputFile;
+    private String moduleName;
+
     @Override
     protected NativeCompileSpec createCompileSpec() {
-        return new DefaultSwiftCompileSpec();
+        SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
+        spec.setOutputFile(outputFile);
+        spec.setModuleName(moduleName);
+        return spec;
+    }
+
+    @OutputFile
+    public File getOutputFile() {
+        return outputFile;
+    }
+
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
+    }
+
+    @Optional
+    @Input
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    public void setModuleName(String moduleName) {
+        this.moduleName = moduleName;
     }
 }

@@ -17,15 +17,10 @@
 package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
-import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.SwiftCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin
-import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.Matchers.containsText
 
@@ -67,6 +62,7 @@ allprojects { p ->
     }
 
     def "sources are compiled with Swift compiler"() {
+        settingsFile << "rootProject.name = 'app'"
         given:
         helloWorldApp.writeSources(file('src/main'))
 
@@ -78,7 +74,7 @@ allprojects { p ->
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":assemble")
-        executable("build/exe/main").exec().out == "Hello, World!\n12\n"//app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        executable("build/exe/app").exec().out == "Hello, World!\n12\n"//app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
     def ExecutableFixture executable(Object path) {

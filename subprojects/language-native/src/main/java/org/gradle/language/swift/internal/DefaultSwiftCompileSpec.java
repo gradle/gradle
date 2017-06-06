@@ -19,5 +19,29 @@ package org.gradle.language.swift.internal;
 import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
+import java.io.File;
+
 public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implements SwiftCompileSpec {
+    private File outputFile;
+    private String moduleName;
+
+    @Override
+    public File getOutputFile() {
+        return outputFile;
+    }
+
+    @Override
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
+    }
+
+    @Override
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    @Override
+    public void setModuleName(String moduleName) {
+        this.moduleName = moduleName;
+    }
 }

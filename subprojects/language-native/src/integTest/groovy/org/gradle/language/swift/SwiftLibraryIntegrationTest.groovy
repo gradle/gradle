@@ -18,7 +18,6 @@ package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin
@@ -63,6 +62,8 @@ allprojects { p ->
     }
 
     def "sources are compiled with Swift compiler"() {
+        settingsFile << "rootProject.name = 'hello'"
+
         given:
         helloWorldApp.librarySources*.writeToDir(file('src/main'))
 
@@ -74,7 +75,7 @@ allprojects { p ->
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":assemble")
-        sharedLibrary("build/lib/main").assertExists()
+        sharedLibrary("build/lib/hello").assertExists()
     }
 
     def SharedLibraryFixture sharedLibrary(Object path) {

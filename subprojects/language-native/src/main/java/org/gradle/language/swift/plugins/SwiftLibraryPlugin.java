@@ -25,6 +25,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
@@ -54,12 +55,12 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         // TODO - should use PIC
         compile.setCompilerArgs(Lists.newArrayList(
             "-sdk", "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk",
-            "-module-name", "Foo",
             "-emit-library"));
         compile.setMacros(Collections.<String, String>emptyMap());
+        compile.setModuleName(project.getName());
 
         // TODO - should reflect changes to build directory
-        compile.setObjectFileDir(project.file("build/lib"));
+        compile.setObjectFileDir(project.file("build/main/objs"));
 
         DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
         compile.setTargetPlatform(currentPlatform);
@@ -67,6 +68,9 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         // TODO - make this lazy
         NativeToolChain toolChain = ((ProjectInternal) project).getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
         compile.setToolChain(toolChain);
+
+        String libName = ((NativeToolChainInternal) toolChain).select(currentPlatform).getSharedLibraryName("build/lib/" + project.getName());
+        compile.setOutputFile(project.file(libName));
 
         project.getTasks().getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(compile);
 
