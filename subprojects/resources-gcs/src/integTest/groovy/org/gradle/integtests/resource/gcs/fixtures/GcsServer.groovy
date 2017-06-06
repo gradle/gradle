@@ -17,7 +17,6 @@
 package org.gradle.integtests.resource.gcs.fixtures
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import groovy.xml.StreamingMarkupBuilder
 import org.gradle.integtests.resource.gcs.fixtures.stub.HttpStub
 import org.gradle.integtests.resource.gcs.fixtures.stub.StubRequest
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -41,9 +40,6 @@ class GcsServer extends HttpServer implements RepositoryServer {
 
     public static final String BUCKET_NAME = "testgcsbucket"
     private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0)
-    protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z")
-            .withLocale(Locale.US)
-            .withZone(GMT)
     protected static final DateTimeFormatter RCF_3339_DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
         .withLocale(Locale.US)
         .withZone(GMT)
