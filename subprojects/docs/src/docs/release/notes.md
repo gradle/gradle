@@ -346,7 +346,7 @@ To support additional features, you must use [Build Scan 1.7.4](https://plugins.
 
 ### Multiple class directories for a single source set
 
-In projects that use multiple JVM languages (Java and Scala, Groovy and other languages) in separate source directories (e.g., `src/main/groovy` and `src/main/java`), Gradle now uses separate output directories for each language. 
+In projects that use multiple JVM languages (Java and Scala, Groovy and other languages) in separate source directories (e.g., `src/main/groovy` and `src/main/java`), Gradle now uses separate output directories for each language.
 
 To return to the old behavior, explicitly set the classes directory:
 
@@ -355,21 +355,39 @@ To return to the old behavior, explicitly set the classes directory:
 
 Please be aware that this will interfere with the effectiveness of the build cache when using multiple JVM languages in the same source set. Gradle will disable caching for tasks when it detects that multiple tasks create outputs in the same location.
 
+### Detecting test classes for custom `Test` tasks
+
+Before Gradle 4.0, all test classes were compiled into a single output directory. As [described above](#multiple-class-directories-for-a-single-source-set), Gradle now uses separate classes directories for each language in a source set. 
+
+Builds that define custom `Test` tasks may not find the same test classes due to these changes if tests are written in languages other than Java. Deprecation warnings warn about this behavior. *Test classes that were found in previous versions of Gradle may not run until the deprecation message is fixed.*
+ 
+Instead of configuring a single path for `testClassesDir`, you must now configure a collection of paths with `testClassesDirs`.  A sample is provided in the `Test` [javadoc](javadoc/org/gradle/api/tasks/testing/Test.html#setTestClassesDirs(org.gradle.api.file.FileCollection)).
+
+This found all "integrationTest" classes before 4.0:
+
+    integrationTest.testClassesDir = sourceSets.integrationTest.output.classesDir
+
+This is required for 4.0 and going forward:
+
+    integrationTest.testClassesDirs = sourceSets.integrationTest.output.classesDirs
+
 ### Location of classes in the build directory
 
 The default location of classes when using the `java`, `groovy` or `scala` plugin has changed from:
 
-    Java: build/classes/main
-    Groovy: build/classes/main
-    Scala: build/classes/main
-    Generically: build/classes/${sourceSet.name}
+    Java, `src/main/java` -> build/classes/main
+    Groovy, `src/main/groovy` -> build/classes/main
+    Scala, `src/main/scala` -> build/classes/main
+    Generically, `src/main/${sourceDirectorySet.name}` -> build/classes/${sourceSet.name}
 
 to
 
-    Java: build/classes/java/main
-    Groovy: build/classes/groovy/main
-    Scala: build/classes/scala/main
-    Generically: build/classes/${sourceDirectorySet.name}/${sourceSet.name}
+    Java, `src/main/java` -> build/classes/java/main
+    Groovy, `src/main/groovy` -> build/classes/groovy/main
+    Scala, `src/main/scala` -> build/classes/scala/main
+    Generically, `src/main/${sourceDirectorySet.name}` -> build/classes/${sourceDirectorySet.name}/${sourceSet.name}
+
+Some compilers, like the Groovy and Scala compilers, support Java compilation as well.  Java files compiled by these tools will be written into the output directory of that language, not in the Java classes directory.
 
 Plugins, tasks or builds that used hardcoded paths may fail. You can access the specific output directory for a particular language via [`SourceDirectorySet#outputDir`](dsl/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir) or the collection of all of the output directories with [`SourceSetOutput#getClassesDirs()`](dsl/org.gradle.api.tasks.SourceSetOutput.html#org.gradle.api.tasks.SourceSetOutput:classesDirs).
 
