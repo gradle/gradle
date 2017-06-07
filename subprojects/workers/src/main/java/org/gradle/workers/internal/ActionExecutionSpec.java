@@ -35,7 +35,7 @@ public class ActionExecutionSpec implements WorkSpec {
     private final File executionWorkingDir;
     private final byte[] params;
 
-    ActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, File executionWorkingDir, Object[] params) {
+    public ActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, File executionWorkingDir, Object[] params) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.executionWorkingDir = executionWorkingDir;

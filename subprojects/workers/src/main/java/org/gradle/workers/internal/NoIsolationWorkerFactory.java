@@ -23,6 +23,7 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.workers.IsolationMode;
 
 public class NoIsolationWorkerFactory implements WorkerFactory {
     private final WorkerLeaseRegistry workerLeaseRegistry;
@@ -62,5 +63,10 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                 }
             }
         };
+    }
+
+    @Override
+    public IsolationMode getIsolationMode() {
+        return IsolationMode.NONE;
     }
 }

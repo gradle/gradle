@@ -25,6 +25,7 @@ import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.workers.IsolationMode;
 
 /**
  * Controls the lifecycle of the worker daemon and provides access to it.
@@ -68,6 +69,11 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
                 return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
         };
+    }
+
+    @Override
+    public IsolationMode getIsolationMode() {
+        return IsolationMode.PROCESS;
     }
 
     @Override

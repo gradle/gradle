@@ -25,7 +25,6 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
-import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.IsolationMode
@@ -41,7 +40,6 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
-    def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
     def fileResolver = Mock(FileResolver)
     def stoppableExecutor = Mock(ManagedExecutor)
     ListenableFutureTask task
@@ -51,7 +49,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * fileResolver.resolveLater(_) >> fileFactory()
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * workerExecutorFactory.create(_ as String) >> stoppableExecutor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker)
     }
 
     @Unroll

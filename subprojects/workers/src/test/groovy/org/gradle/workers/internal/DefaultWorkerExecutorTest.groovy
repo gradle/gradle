@@ -24,7 +24,6 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
-import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.IsolationMode
@@ -44,7 +43,6 @@ class DefaultWorkerExecutorTest extends Specification {
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
-    def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
     def fileResolver = Mock(FileResolver)
     def factory = Mock(Factory)
     def runnable = Mock(Runnable)
@@ -57,7 +55,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * fileResolver.resolveLater(_) >> factory
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * executorFactory.create(_ as String) >> executor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
     }
 
     def "worker configuration fork property defaults to AUTO"() {

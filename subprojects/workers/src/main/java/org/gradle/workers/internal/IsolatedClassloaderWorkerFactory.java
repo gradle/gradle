@@ -40,6 +40,7 @@ import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.util.GUtil;
+import org.gradle.workers.IsolationMode;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -90,6 +91,11 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
                 }
             }
         };
+    }
+
+    @Override
+    public IsolationMode getIsolationMode() {
+        return IsolationMode.CLASSLOADER;
     }
 
     private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(Class<? extends WorkerProtocol<T>> workerImplementationClass, T spec, DaemonForkOptions forkOptions) {
