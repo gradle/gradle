@@ -359,7 +359,7 @@ Please be aware that this will interfere with the effectiveness of the build cac
 
 Before Gradle 4.0, all test classes were compiled into a single output directory. As [described above](#multiple-class-directories-for-a-single-source-set), Gradle now uses separate classes directories for each language in a source set. 
 
-Builds that define custom `Test` tasks may not find the same test classes due to these changes if tests are written in languages other than Java. Deprecation warnings warn about this behavior.
+Builds that define custom `Test` tasks may not find the same test classes due to these changes if tests are written in languages other than Java. Deprecation warnings warn about this behavior. *Test classes that were found in previous versions of Gradle may not run until the deprecation message is fixed.*
  
 Instead of configuring a single path for `testClassesDir`, you must now configure a collection of paths with `testClassesDirs`.  A sample is provided in the `Test` [javadoc](javadoc/org/gradle/api/tasks/testing/Test.html#setTestClassesDirs(org.gradle.api.file.FileCollection)).
 
