@@ -21,6 +21,7 @@ import org.gradle.internal.progress.BuildOperationState
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease
 import org.gradle.process.internal.health.memory.MemoryManager
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -32,9 +33,10 @@ class WorkerDaemonFactoryTest extends Specification {
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def workerOperation = Mock(WorkerLease)
-    def buildOperation= Mock(BuildOperationState)
+    def buildOperation = Mock(BuildOperationState)
+    def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
 
-    @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
+    @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor, workerDirectoryProvider)
 
     def workingDir = new File("some-dir")
     def options = Stub(DaemonForkOptions)
@@ -43,7 +45,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "getting a worker daemon does not assume client use"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, workingDir, options);
+        factory.getWorker(workerProtocolImplementation.class, options);
 
         then:
         0 * clientsManager._
@@ -51,7 +53,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "new client is created when daemon is executed and no idle clients found"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(spec)
+        factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease() >> workerOperation
@@ -61,7 +63,8 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveIdleClient(options) >> null
 
         then:
-        1 * clientsManager.reserveNewClient(workerProtocolImplementation.class, workingDir, options) >> client
+        1 * workerDirectoryProvider.idleWorkingDirectory
+        1 * clientsManager.reserveNewClient(workerProtocolImplementation.class, _, options) >> client
 
         then:
         1 * client.execute(spec, workerOperation, buildOperation)
@@ -73,7 +76,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "idle client is reused when daemon is executed"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(spec)
+        factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease() >> workerOperation
@@ -92,7 +95,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "client is released even if execution fails"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(spec)
+        factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease() >> workerOperation
@@ -114,7 +117,7 @@ class WorkerDaemonFactoryTest extends Specification {
         WorkerDaemonExpiration workerDaemonExpiration
 
         when:
-        def factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
+        def factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor, workerDirectoryProvider)
 
         then:
         1 * memoryManager.addMemoryHolder(_) >> { args -> workerDaemonExpiration = args[0] }

@@ -18,18 +18,28 @@ package org.gradle.workers.internal;
 
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+
+import javax.inject.Inject;
 
 public class WorkerDaemonServer extends WorkerServer {
+    private final WorkerDirectoryProvider workerDirectoryProvider;
+
+    @Inject
+    WorkerDaemonServer(WorkerDirectoryProvider workerDirectoryProvider) {
+        this.workerDirectoryProvider = workerDirectoryProvider;
+    }
+
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
         try {
-            processEnvironment.maybeSetProcessDir(spec.getWorkingDir());
+            processEnvironment.maybeSetProcessDir(spec.getExecutionWorkingDir());
             return super.execute(spec);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         } finally {
-            processEnvironment.maybeSetProcessDir(spec.getDefaultDir());
+            processEnvironment.maybeSetProcessDir(workerDirectoryProvider.getIdleWorkingDirectory());
         }
     }
 

@@ -24,6 +24,7 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.IsolationMode
@@ -144,7 +145,7 @@ class DefaultWorkerExecutorTest extends Specification {
         task.run()
 
         then:
-        1 * workerDaemonFactory.getWorker(_, _, _) >> worker
+        1 * workerDaemonFactory.getWorker(_, _) >> worker
         1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
@@ -166,7 +167,7 @@ class DefaultWorkerExecutorTest extends Specification {
         task.run()
 
         then:
-        1 * inProcessWorkerFactory.getWorker(_, _, _) >> worker
+        1 * inProcessWorkerFactory.getWorker(_, _) >> worker
         1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
@@ -188,7 +189,7 @@ class DefaultWorkerExecutorTest extends Specification {
         task.run()
 
         then:
-        1 * noIsolationWorkerFactory.getWorker(_, _, _) >> worker
+        1 * noIsolationWorkerFactory.getWorker(_, _) >> worker
         1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)

@@ -16,8 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import java.io.File;
-
 public interface WorkerFactory {
-    <T extends WorkSpec> Worker<T> getWorker(Class<? extends WorkerProtocol<T>> workerImplementationClass, File workingDir, DaemonForkOptions forkOptions);
+    <T extends WorkSpec> Worker<T> getWorker(Class<? extends WorkerProtocol<T>> workerImplementationClass, DaemonForkOptions forkOptions);
 }

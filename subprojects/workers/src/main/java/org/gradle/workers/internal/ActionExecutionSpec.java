@@ -32,15 +32,13 @@ import java.io.ObjectOutputStream;
 public class ActionExecutionSpec implements WorkSpec {
     private final String displayName;
     private final Class<? extends Runnable> implementationClass;
-    private final File defaultDir;
-    private final File workingDir;
+    private final File executionWorkingDir;
     private final byte[] params;
 
-    ActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, File defaultDir, File workingDir, Object[] params) {
+    ActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, File executionWorkingDir, Object[] params) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
-        this.defaultDir = defaultDir;
-        this.workingDir = workingDir;
+        this.executionWorkingDir = executionWorkingDir;
         this.params = serialize(params);
     }
 
@@ -53,12 +51,8 @@ public class ActionExecutionSpec implements WorkSpec {
         return displayName;
     }
 
-    public File getDefaultDir() {
-        return defaultDir;
-    }
-
-    public File getWorkingDir() {
-        return workingDir;
+    public File getExecutionWorkingDir() {
+        return executionWorkingDir;
     }
 
     public Object[] getParams(ClassLoader classLoader) {

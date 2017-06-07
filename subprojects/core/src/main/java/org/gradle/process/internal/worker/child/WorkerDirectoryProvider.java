@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+package org.gradle.process.internal.worker.child;
 
 import java.io.File;
 
 public interface WorkerDirectoryProvider {
     /**
-     * Returns a File object representing the default working directory for providers.
+     * Returns a File object representing the idle working directory for workers.
      */
-    File getDefaultWorkerDirectory();
+    File getIdleWorkingDirectory();
 }
