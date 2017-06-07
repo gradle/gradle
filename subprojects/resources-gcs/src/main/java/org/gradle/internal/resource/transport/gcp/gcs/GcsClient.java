@@ -31,6 +31,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import org.gradle.api.Nullable;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +45,6 @@ import java.net.URLDecoder;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonList;
@@ -53,7 +52,6 @@ import static java.util.Collections.singletonList;
 public class GcsClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GcsClient.class);
-    private static final Pattern FILENAME_PATTERN = Pattern.compile("[^\\/]+\\.*$");
     private static final String GOOGLE_CREDENTIALS_SYSTEM_PROPERTY = "GOOGLE_APPLICATION_CREDENTIALS";
 
     private final Storage storage;
@@ -81,7 +79,7 @@ public class GcsClient {
         this.storage = storage;
     }
 
-    public void put(InputStream inputStream, Long contentLength, URI destination) {
+    public void put(InputStream inputStream, Long contentLength, URI destination) throws ResourceException {
         try {
             InputStreamContent contentStream = new InputStreamContent(null, inputStream);
             // Setting the length improves upload performance
@@ -101,7 +99,8 @@ public class GcsClient {
         }
     }
 
-    public StorageObject getMetaData(URI uri) {
+    @Nullable
+    public StorageObject getMetaData(URI uri) throws ResourceException {
         LOGGER.debug("Attempting to get gcs meta-data: [{}]", uri.toString());
 
         String path = cleanResourcePath(uri);
@@ -114,7 +113,7 @@ public class GcsClient {
     }
 
     @Nullable
-    public StorageObject getResource(URI uri) {
+    public StorageObject getResource(URI uri) throws ResourceException {
         LOGGER.debug("Attempting to get gcs resource: [{}]", uri.toString());
 
         String path = cleanResourcePath(uri);
@@ -131,7 +130,8 @@ public class GcsClient {
         }
     }
 
-    public List<String> list(URI uri) {
+    @Nullable
+    public List<String> list(URI uri) throws ResourceException {
         List<StorageObject> results = new ArrayList<StorageObject>();
 
         try {
@@ -148,7 +148,7 @@ public class GcsClient {
                 listRequest.setPageToken(objects.getNextPageToken());
             } while (null != objects.getNextPageToken());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw ResourceExceptions.getFailed(uri, e);
         }
 
         List<String> resultStrings = new ArrayList<String>();
@@ -164,16 +164,6 @@ public class GcsClient {
         Storage.Objects.Get getObject = storage.objects().get(obj.getBucket(), obj.getName());
         getObject.getMediaHttpDownloader().setDirectDownloadEnabled(false);
         return getObject.executeMediaAsInputStream();
-    }
-
-    @VisibleForTesting
-    static String extractResourceName(String key) {
-        Matcher matcher = FILENAME_PATTERN.matcher(key);
-        if (matcher.find()) {
-            String group = matcher.group(0);
-            return group.contains(".") ? group : null;
-        }
-        return null;
     }
 
     private static String cleanResourcePath(URI uri) {

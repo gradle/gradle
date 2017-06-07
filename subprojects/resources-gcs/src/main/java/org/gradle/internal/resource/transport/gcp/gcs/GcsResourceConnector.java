@@ -17,6 +17,8 @@
 package org.gradle.internal.resource.transport.gcp.gcs;
 
 import com.google.api.services.storage.model.StorageObject;
+import org.gradle.api.Nullable;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
@@ -41,13 +43,16 @@ public class GcsResourceConnector implements ExternalResourceConnector {
         this.gcsClient = gcsClient;
     }
 
-    public List<String> list(URI parent) {
+    @Nullable
+    @Override
+    public List<String> list(URI parent) throws ResourceException {
         LOGGER.debug("Listing parent resources: {}", parent);
         return gcsClient.list(parent);
     }
 
+    @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
+    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) throws ResourceException {
         LOGGER.debug("Attempting to get resource: {}", location);
         StorageObject gcsObject = gcsClient.getResource(location);
         if (gcsObject == null) {
@@ -56,8 +61,9 @@ public class GcsResourceConnector implements ExternalResourceConnector {
         return new GcsResource(gcsClient, gcsObject, location);
     }
 
+    @Nullable
     @Override
-    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
+    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) throws ResourceException {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
         StorageObject gcsObject = gcsClient.getResource(location);
         if (gcsObject == null) {

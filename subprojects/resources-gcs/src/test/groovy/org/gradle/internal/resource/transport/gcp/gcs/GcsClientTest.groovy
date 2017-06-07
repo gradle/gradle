@@ -48,22 +48,6 @@ class GcsClientTest extends Specification {
         }
     }
 
-    def "should extract file name from gcs listing"() {
-        GcsClient gcsClient = new GcsClient(Mock(Storage))
-
-        expect:
-        gcsClient.extractResourceName(listing) == expected
-
-        where:
-        listing         | expected
-        '/a/b/file.pom' | 'file.pom'
-        '/file.pom'     | 'file.pom'
-        '/file.pom'     | 'file.pom'
-        '/SNAPSHOT/'    | null
-        '/SNAPSHOT/bin' | null
-        '/'             | null
-    }
-
     def "should make batch call when more than one object listing page exists"() {
         def gcsStorageClient = Mock(Storage)
         GcsClient gcsClient = new GcsClient(gcsStorageClient)
