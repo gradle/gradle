@@ -114,7 +114,7 @@ ${f.text}"""
         executable("app/build/exe/app").assertExists()
         sharedLibrary("hello/build/lib/hello").assertExists()
         installation("app/build/install/app").exec().out == app.englishOutput
-        sharedLibrary("app/build/install/app/lib/hello").assertExists()
+        sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
     }
 
     def "can compile and link against library with dependencies"() {
@@ -151,7 +151,62 @@ ${f.text}"""
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(":lib1:compileSwift", ":lib2:compileSwift", ":app:compileSwift", ":app:installMain", ":app:assemble")
+        sharedLibrary("lib1/build/lib/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/lib2").assertExists()
         executable("app/build/exe/app").exec().out == app.englishOutput
+        sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
+    }
+
+
+    def "can compile and link against libraries in included builds"() {
+        settingsFile << """
+            rootProject.name = 'app'
+            includeBuild 'lib1'
+            includeBuild 'lib2'
+        """
+        file("lib1/settings.gradle") << "rootProject.name = 'lib1'"
+        file("lib2/settings.gradle") << "rootProject.name = 'lib2'"
+
+        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+
+        given:
+        buildFile << """
+            apply plugin: 'swift-executable'
+            dependencies {
+                implementation 'test:lib1:1.2'
+                swiftImportPath 'test:lib2:1.4'  // TODO(daniel): Not sure why this is required
+            }
+        """
+        file("lib1/build.gradle") << """
+            apply plugin: 'swift-library'
+            group = 'test'
+            dependencies {
+                implementation 'test:lib2:1.4'
+            }
+
+            tasks.withType(SwiftCompile)*.moduleName = 'Hello'
+        """
+        file("lib2/build.gradle") << """
+            apply plugin: 'swift-library'
+            group = 'test'
+
+            tasks.withType(SwiftCompile)*.moduleName = 'Greeting'
+        """
+
+        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/swift/$it.name")) }
+        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/swift/$it.name")) }
+        app.executable.sourceFiles.each { it.writeToDir(file('src/main')) }
+
+        expect:
+        succeeds ":assemble"
+        result.assertTasksExecuted(":lib1:compileSwift", ":lib1:lib2", ":lib1", ":lib2:compileSwift", ":lib2", ":compileSwift", ":installMain", ":assemble")
+        sharedLibrary("lib1/build/lib/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/lib2").assertExists()
+        executable("build/exe/app").assertExists()
+        installation("build/install/app").exec().out == app.englishOutput
+        sharedLibrary("build/install/app/lib/lib1").file.assertExists()
+        sharedLibrary("build/install/app/lib/lib2").file.assertExists()
     }
 
     def ExecutableFixture executable(Object path) {
