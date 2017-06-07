@@ -24,6 +24,7 @@ import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -44,7 +45,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     def generatorWithMaxThreads(int numThreads) {
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), numThreads)
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), numThreads)
         Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationExecutor, "localhost")
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator

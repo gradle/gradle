@@ -21,6 +21,7 @@ import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -34,7 +35,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def registry = buildOperationWorkerRegistry(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
+            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), maxWorkers)
         def processorWorker = new SimpleWorker()
 
         when:
@@ -76,7 +77,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def registry = buildOperationWorkerRegistry(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
+            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), maxWorkers)
         def processorWorker = new SimpleWorker()
 
         when:
@@ -118,7 +119,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def registry = buildOperationWorkerRegistry(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
+            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), maxWorkers)
         def processorWorker = new SimpleWorker()
 
         when:

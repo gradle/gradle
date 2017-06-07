@@ -27,6 +27,7 @@ import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
@@ -54,11 +55,12 @@ abstract class NativeCompilerTest extends Specification {
     protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
 
     WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
+    ResourceLockCoordinationService resourceLockCoordinationService = Stub(ResourceLockCoordinationService)
 
     private BuildOperationListener buildOperationListener = Mock(BuildOperationListener)
     private TimeProvider timeProvider = Mock(TimeProvider)
     protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, new NoOpProgressLoggerFactory(),
-        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), 1)
+        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), resourceLockCoordinationService, 1)
 
     def setup() {
         _ * workerLeaseService.withLocks(_) >> { args ->
@@ -69,6 +71,7 @@ abstract class NativeCompilerTest extends Specification {
                 }
             }
         }
+        _ * resourceLockCoordinationService.current >> null
     }
 
     def "arguments include source file"() {

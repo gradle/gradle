@@ -1189,4 +1189,35 @@ task generate(type: TransformerTask) {
         result.assertTasksExecuted(":customTask")
         file("build/output/file.txt").assertExists()
     }
+
+    def "produces a sensible error when a task output causes dependency resolution"() {
+        buildFile << """
+            repositories {
+                jcenter()
+            }
+            
+            configurations {
+                foo
+            }
+            
+            dependencies {
+                foo "commons-io:commons-io:1.2"
+            }
+            
+            task foobar(type: TaskWithOutputFileCollection) {
+                outputFiles = configurations.foo
+            }
+            
+            class TaskWithOutputFileCollection extends DefaultTask {
+                @OutputFiles 
+                def outputFiles 
+            }
+        """
+
+        when:
+        fails("foobar")
+
+        then:
+        failure.assertHasDescription("A deadlock was detected while resolving the task outputs for :foobar.  This can be caused, for instance, by a task output causing dependency resolution.")
+    }
 }

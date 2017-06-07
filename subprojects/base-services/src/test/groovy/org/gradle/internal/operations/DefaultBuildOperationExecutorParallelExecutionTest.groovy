@@ -27,6 +27,7 @@ import org.gradle.internal.progress.BuildOperationState
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -45,7 +46,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), true, maxThreads)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), maxThreads)
+            new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), maxThreads)
         outerOperationCompletion = workerRegistry.getWorkerLease().start()
         outerOperation = workerRegistry.getCurrentWorkerLease()
     }
@@ -206,7 +207,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
 
         def buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            buildOperationQueueFactory, Stub(ExecutorFactory), 1)
+            buildOperationQueueFactory, Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), 1)
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -234,7 +235,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
         def buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            buildOperationQueueFactory, Stub(ExecutorFactory), 1)
+            buildOperationQueueFactory, Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), 1)
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 

@@ -148,6 +148,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         WorkerLeaseService workerLeaseService,
         StartParameter startParameter,
         ExecutorFactory executorFactory,
+        ResourceLockCoordinationService resourceLockCoordinationService,
         @SuppressWarnings("unused") BuildOperationTrace buildOperationTrace // required in order to init this
     ) {
         return new DefaultBuildOperationExecutor(
@@ -155,8 +156,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             timeProvider, progressLoggerFactory,
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
+            resourceLockCoordinationService,
             startParameter.getMaxWorkerCount()
-        );
+            );
     }
 
     WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
