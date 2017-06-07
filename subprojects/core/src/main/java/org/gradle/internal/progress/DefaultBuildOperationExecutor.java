@@ -46,6 +46,8 @@ import org.gradle.internal.operations.BuildOperationWorker;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.resources.ResourceDeadlockException;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -65,6 +67,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final TimeProvider timeProvider;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
+    private final ResourceLockCoordinationService resourceLockCoordinationService;
     private final ManagedExecutor fixedSizePool;
     private final ParallelExecutionManager parallelExecutionManager;
 
@@ -72,11 +75,13 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final ThreadLocal<DefaultBuildOperationState> currentOperation = new ThreadLocal<DefaultBuildOperationState>();
 
     public DefaultBuildOperationExecutor(BuildOperationListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory,
-                                         BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelExecutionManager parallelExecutionManager) {
+                                         BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory,
+                                         ResourceLockCoordinationService resourceLockCoordinationService, ParallelExecutionManager parallelExecutionManager) {
         this.listener = listener;
         this.timeProvider = timeProvider;
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
+        this.resourceLockCoordinationService = resourceLockCoordinationService;
         this.fixedSizePool = executorFactory.create("build operations", parallelExecutionManager.getParallelismConfiguration().getMaxWorkerCount());
         this.parallelExecutionManager = parallelExecutionManager;
         parallelExecutionManager.addListener(this);
@@ -135,6 +140,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private <O extends BuildOperation> void executeInParallel(BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction) {
+        failIfInResourceLockTransform();
+
         BuildOperationQueue<O> queue = buildOperationQueueFactory.create(fixedSizePool, worker);
 
         List<GradleException> failures = Lists.newArrayList();
@@ -159,6 +166,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable DefaultBuildOperationState defaultParent) {
+        failIfInResourceLockTransform();
+
         BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
         DefaultBuildOperationState parent = (DefaultBuildOperationState) descriptorBuilder.getParentState();
         if (parent == null) {
@@ -212,6 +221,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
                 BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
             }
             currentOperation.setRunning(false);
+        }
+    }
+
+    private void failIfInResourceLockTransform() {
+        if (resourceLockCoordinationService.getCurrent() != null) {
+            throw new ResourceDeadlockException("An attempt was made to execute build operations inside of a resource lock transform.  Aborting to avoid a deadlock.");
         }
     }
 

@@ -1,4 +1,3 @@
-[composite-build] Configuring build: /home/user/gradle/samples/compositeBuilds/basic/my-utils
 :compileJava
 :my-utils:number-utils:compileJava
 :my-utils:number-utils:processResources NO-SOURCE

@@ -30,6 +30,7 @@ import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
@@ -37,6 +38,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.util.concurrent.Executor
 
 abstract class NativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
@@ -55,12 +58,25 @@ abstract class NativeCompilerTest extends Specification {
     protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
 
     WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
+    ResourceLockCoordinationService resourceLockCoordinationService = Stub(ResourceLockCoordinationService)
 
     private BuildOperationListener buildOperationListener = Mock(BuildOperationListener)
     private TimeProvider timeProvider = Mock(TimeProvider)
     ParallelExecutionManager parallelExecutionManager = Stub(ParallelExecutionManager) { getParallelismConfiguration() >> DefaultParallelismConfiguration.DEFAULT }
     protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, new NoOpProgressLoggerFactory(),
-        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelExecutionManager)
+        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), resourceLockCoordinationService, parallelExecutionManager)
+
+    def setup() {
+        _ * workerLeaseService.withLocks(_) >> { args ->
+            new Executor() {
+                @Override
+                void execute(Runnable runnable) {
+                    runnable.run()
+                }
+            }
+        }
+        _ * resourceLockCoordinationService.current >> null
+    }
 
     def "arguments include source file"() {
         given:

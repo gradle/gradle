@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.BatchOutputEventListener;
-import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -30,22 +29,15 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.Collections;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public class BuildStatusRenderer extends BatchOutputEventListener {
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
-    private static final long RENDER_NOW_PERIOD_MILLISECONDS = 250;
     private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
     private final BatchOutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
     private final TimeProvider timeProvider;
-    private final ScheduledExecutorService executor;
-    private final Object lock = new Object();
 
     // What actually shows up on the console
     private String currentBuildStatus;
@@ -53,20 +45,14 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
 
     // Used to maintain timer
     private long buildStartTimestamp;
-    private ScheduledFuture future;
     private boolean timerEnabled;
 
     public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider) {
-        this(listener, buildStatusLabel, console, consoleMetaData, timeProvider, Executors.newSingleThreadScheduledExecutor());
-    }
-
-    BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider, ScheduledExecutorService executor) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
         this.consoleMetaData = consoleMetaData;
         this.timeProvider = timeProvider;
-        this.executor = executor;
     }
 
     @Override
@@ -88,18 +74,14 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
             if (isPhaseProgressEvent(progressEvent.getProgressOperationId())) {
                 phaseProgressed(progressEvent);
             }
-        } else if (event instanceof EndOutputEvent) {
-            buildSessionFinished();
         }
     }
 
     @Override
     public void onOutput(Iterable<OutputEvent> events) {
-        synchronized (lock) {
-            super.onOutput(events);
-            listener.onOutput(events);
-            renderNow(timeProvider.getCurrentTime());
-        }
+        super.onOutput(events);
+        listener.onOutput(events);
+        renderNow(timeProvider.getCurrentTime());
     }
 
     private String trimToConsole(String str) {
@@ -112,16 +94,6 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
 
     private void renderNow(long now) {
         if (currentBuildStatus != null && !currentBuildStatus.isEmpty()) {
-            if ((future == null || future.isCancelled()) && !executor.isShutdown()) {
-                future = executor.scheduleAtFixedRate(new Runnable() {
-                    @Override
-                    public void run() {
-                        synchronized (lock) {
-                            renderNow(timeProvider.getCurrentTime());
-                        }
-                    }
-                }, RENDER_NOW_PERIOD_MILLISECONDS, RENDER_NOW_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
-            }
             final String buildStatusToRender = trimToConsole(format(currentBuildStatus, timerEnabled, now - buildStartTimestamp));
             buildStatusLabel.setText(Collections.singletonList(new Span(Style.of(Style.Emphasis.BOLD), buildStatusToRender)));
         }
@@ -156,12 +128,5 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     private void phaseEnded(ProgressCompleteEvent progressCompleteEvent) {
         currentBuildStatus = progressCompleteEvent.getStatus();
         timerEnabled = false;
-    }
-
-    private void buildSessionFinished() {
-        if (future != null && !future.isCancelled()) {
-            future.cancel(false);
-        }
-        executor.shutdownNow();
     }
 }

@@ -86,6 +86,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         MessagingServices messagingServices = new MessagingServices();
         WorkerServices workerServices = new WorkerServices(messagingServices);
 
+        ObjectConnection connection = null;
         WorkerLogEventListener workerLogEventListener = null;
         try {
             // Read serialized worker
@@ -100,29 +101,29 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
 
-            final ObjectConnection connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
+            connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
             workerLogEventListener = configureLogging(loggingManager, connection);
             if (shouldPublishJvmMemoryInfo) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
             }
 
-            try {
-                action.execute(new WorkerContext() {
-                    public ClassLoader getApplicationClassLoader() {
-                        return ClassLoader.getSystemClassLoader();
-                    }
+            final ObjectConnection serverConnection = connection;
+            action.execute(new WorkerContext() {
+                public ClassLoader getApplicationClassLoader() {
+                    return ClassLoader.getSystemClassLoader();
+                }
 
-                    @Override
-                    public ObjectConnection getServerConnection() {
-                        return connection;
-                    }
-                });
-            } finally {
-                connection.stop();
-            }
+                @Override
+                public ObjectConnection getServerConnection() {
+                    return serverConnection;
+                }
+            });
         } finally {
             if (workerLogEventListener != null) {
                 loggingManager.removeOutputEventListener(workerLogEventListener);
+            }
+            if (connection != null) {
+                connection.stop();
             }
             messagingServices.close();
             loggingManager.stop();

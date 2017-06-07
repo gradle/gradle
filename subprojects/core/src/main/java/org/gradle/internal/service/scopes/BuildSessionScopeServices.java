@@ -149,6 +149,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         WorkerLeaseService workerLeaseService,
         StartParameter startParameter,
         ExecutorFactory executorFactory,
+        ResourceLockCoordinationService resourceLockCoordinationService,
         ParallelExecutionManager parallelExecutionManager,
         @SuppressWarnings("unused") BuildOperationTrace buildOperationTrace // required in order to init this
     ) {
@@ -157,6 +158,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             timeProvider, progressLoggerFactory,
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
+            resourceLockCoordinationService,
             parallelExecutionManager
         );
     }
