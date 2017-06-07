@@ -25,6 +25,7 @@ import org.gradle.api.tasks.TaskOutputs
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+import java.nio.file.Paths
 import java.util.concurrent.Callable
 
 @UsesNativeServices
@@ -377,6 +378,19 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[0] instanceof ListBackedFileSet
         result[0].files as List == [file]
         1 * resolver.resolve('a') >> file
+    }
+
+    def resolveNioPath() {
+        File file = file('a')
+
+        when:
+        context.add(Paths.get('a'))
+        def result = context.resolveAsMinimalFileCollections()
+
+        then:
+        result.size() == 1
+        result[0] instanceof ListBackedFileSet
+        result[0].files as List == [file]
     }
 
     def canPushContextWhichUsesADifferentFileResolverToConvertToFileCollections() {

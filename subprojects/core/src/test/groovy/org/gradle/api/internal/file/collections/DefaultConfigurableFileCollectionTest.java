@@ -35,6 +35,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -352,4 +354,25 @@ public class DefaultConfigurableFileCollectionTest {
         assertThat(collection.getAsFileTree().matching(TestUtil.TEST_CLOSURE).getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
     }
 
+    @Test(timeout = 5000)
+    public void resolveNioPath() {
+        final Path dir = Paths.get("testdir");
+
+        final Path srcFile1 = Paths.get("1");
+        final Path srcFile2 = Paths.get("2");
+        final File resolvedFile1 = dir.resolve(srcFile1).toFile();
+        final File resolvedFile2 = dir.resolve(srcFile2).toFile();
+
+        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub, srcFile1, srcFile2);
+
+        context.checking(new Expectations() {{
+            oneOf(resolverMock).resolve(srcFile1);
+            will(returnValue(resolvedFile1));
+            oneOf(resolverMock).resolve(srcFile2);
+            will(returnValue(resolvedFile2));
+        }});
+
+        assertThat(collection.getFrom(), equalTo(toLinkedSet((Object) srcFile1, srcFile2)));
+        assertThat(collection.getFiles(), equalTo(toLinkedSet(resolvedFile1, resolvedFile2)));
+    }
 }
