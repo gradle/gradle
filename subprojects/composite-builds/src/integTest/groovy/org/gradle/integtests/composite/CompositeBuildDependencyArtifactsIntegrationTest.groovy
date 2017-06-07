@@ -544,10 +544,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         executedInOrder ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:compileJava", ":buildC:jar"
-
-        and: // Executes tasks in separate invocations
-        outputContains("Executing buildB: [:buildB:b1:compileJava, :buildB:b1:processResources, :buildB:b1:classes, :buildB:b1:jar]")
-        outputContains("Executing buildB: [:buildB:b2:compileJava, :buildB:b2:processResources, :buildB:b2:classes, :buildB:b2:jar]")
     }
 
     def "reports failure to build dependent artifact"() {
