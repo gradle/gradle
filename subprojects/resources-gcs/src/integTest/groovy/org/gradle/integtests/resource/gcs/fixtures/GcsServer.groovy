@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resource.gcs.fixtures
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import org.gradle.integtests.resource.gcs.fixtures.stub.HttpStub
 import org.gradle.integtests.resource.gcs.fixtures.stub.StubRequest
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -100,7 +99,7 @@ class GcsServer extends HttpServer implements RepositoryServer {
 
     @Override
     String getValidCredentials() {
-        return new GoogleCredential().getRefreshToken()
+        return null
     }
 
     def stubPutFile(File file, String url) {
