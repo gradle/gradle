@@ -9,6 +9,7 @@ class Gradle_Check_TestCoverageForkedJava9Linux_1(bucket: String) : BuildType({
     name = "Test Coverage - Forked Java9 Linux ($bucket)"
 
     params {
+        param("env.JAVA_HOME", "%linux.java9.oracle.64bit%")
         param("org.gradle.test.bucket", bucket)
         param("org.gradle.test.buildType", "platform")
         param("webhook.body", """
