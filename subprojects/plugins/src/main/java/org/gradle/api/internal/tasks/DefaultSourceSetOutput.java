@@ -76,7 +76,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         if (isLegacyLayout()) {
             return fileResolver.resolve(classesDir);
         }
-        SingleMessageLogger.nagUserOfDeprecatedBehaviour("Using a single directory for all classes from a source set");
+        SingleMessageLogger.nagUserOfDeprecatedBehaviour("Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set");
         Object firstClassesDir = CollectionUtils.findFirst(classesDirs.getFrom(), Specs.SATISFIES_ALL);
         if (firstClassesDir!=null) {
             return fileResolver.resolve(firstClassesDir);
@@ -91,7 +91,6 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     @Override
     public void setClassesDir(Object classesDir) {
-        SingleMessageLogger.nagUserOfDeprecatedBehaviour("Using a single directory for all classes from a source set");
         this.classesDir = classesDir;
         this.classesDirs.setFrom(classesDir);
     }
