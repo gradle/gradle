@@ -74,7 +74,6 @@ task retrieve(type: Sync) {
         assertLocallyAvailableLogged(module.pom, module.artifact)
     }
 
-//    @Ignore
     def "should download artifacts when maven local artifacts are different to remote "() {
         setup:
         module.publish()
