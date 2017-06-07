@@ -23,7 +23,7 @@ class GcsDirectoryResource implements RemoteResource {
 
     private final GcsServer server
     private final TestFile directory
-    private String bucket
+    private final String bucket
     private final String path
 
     GcsDirectoryResource(GcsServer server, String bucket, TestFile directory) {

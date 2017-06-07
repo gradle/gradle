@@ -37,14 +37,14 @@ import static org.gradle.internal.hash.HashUtil.createHash
 
 class GcsServer extends HttpServer implements RepositoryServer {
 
-    public static final String BUCKET_NAME = "testgcsbucket"
+    private static final String BUCKET_NAME = "testgcsbucket"
     private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0)
-    protected static final DateTimeFormatter RCF_3339_DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    private static final DateTimeFormatter RCF_3339_DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
         .withLocale(Locale.US)
         .withZone(GMT)
 
-    public static final String DATE_HEADER = 'Mon, 29 Sep 2014 11:04:27 GMT'
-    public static final String SERVER_GCS = 'GCS'
+    private static final String DATE_HEADER = 'Mon, 29 Sep 2014 11:04:27 GMT'
+    private static final String SERVER_GCS = 'GCS'
 
     TestDirectoryProvider testDirectoryProvider
 
@@ -175,12 +175,16 @@ class GcsServer extends HttpServer implements RepositoryServer {
                     'Accept-Ranges'   : 'bytes',
                     'Content-Type'    : 'application/json; charset=utf-8',
                 ]
-                body = { "{ " +
-                    "\"etag\": \"${calculateEtag(file)}\", " +
-                    "\"size\": \"0\", " +
-                    "\"updated\": \"${RCF_3339_DATE_FORMAT.print(file.lastModified())}\", " +
-                    "\"md5Hash\": \"${encodeBase64String(createHash(file, "MD5").asByteArray())}\" " +
-                    "}" }
+                body = {
+                    """
+                    { 
+                        "etag": "${calculateEtag(file)}",
+                        "size": "0",
+                        "updated": "${RCF_3339_DATE_FORMAT.print(file.lastModified())}",
+                        "md5Hash": "${encodeBase64String(createHash(file, "MD5").asByteArray())}"
+                    }
+                    """
+                }
             }
         }
         expect(httpStub)
@@ -243,13 +247,17 @@ class GcsServer extends HttpServer implements RepositoryServer {
                     'Accept-Ranges'   : 'bytes',
                     'Content-Type'    : 'application/json; charset=utf-8',
                 ]
-                body = { "{ " +
-                    "\"etag\": \"${calculateEtag(file)}\", " +
-                    "\"size\": \"${file.length()}\", " +
-                    "\"bucket\": \"${bucketName}\", " +
-                    "\"name\": \"${objectName}\", " +
-                    "\"updated\": \"${RCF_3339_DATE_FORMAT.print(file.lastModified())}\" " +
-                    "}" }
+                body = {
+                    """
+                    {
+                        "etag": "${calculateEtag(file)}",
+                        "size": "${file.length()}",
+                        "bucket": "${bucketName}",
+                        "name": "${objectName}",
+                        "updated": "${RCF_3339_DATE_FORMAT.print(file.lastModified())}"
+                    }
+                    """
+                }
             }
         }
         expect(httpStub)
@@ -295,11 +303,13 @@ class GcsServer extends HttpServer implements RepositoryServer {
                     'Content-Type'    : 'application/json; charset=utf-8',
                 ]
                 body = {
-                    "{ " +
-                        "\"kind\": \"storage#objects\", " +
-                        "\"prefixes\": [\"$prefix\"], " +
-                        "\"items\": [${ file.listFiles().collect { currentFile -> "{ \"name\": \"${currentFile.name}\" }"}.join(',') }]" +
-                    "}"
+                    """
+                    {
+                        "kind": "storage#objects",
+                        "prefixes": ["$prefix"],
+                        "items": [${ file.listFiles().collect { currentFile -> """{ "name": "${currentFile.name}" }"""}.join(',') }]
+                    }
+                    """
                 }
             }
         }
