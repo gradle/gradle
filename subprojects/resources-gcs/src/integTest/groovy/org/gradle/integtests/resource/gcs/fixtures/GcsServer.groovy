@@ -265,7 +265,7 @@ class GcsServer extends HttpServer implements RepositoryServer {
         httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path = "/b/$bucketName/o/$objectName"
+                path = "/download/b/$bucketName/o/$objectName"
                 headers = [
                     'Content-Type':  'application/octet-stream',
                     'Connection'  : 'Keep-Alive'

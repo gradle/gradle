@@ -35,8 +35,6 @@ import org.gradle.internal.resource.ResourceExceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -161,12 +159,11 @@ public class GcsClient {
         return resultStrings;
     }
 
+    @VisibleForTesting
     InputStream getResourceStream(StorageObject obj) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         Storage.Objects.Get getObject = storage.objects().get(obj.getBucket(), obj.getName());
         getObject.getMediaHttpDownloader().setDirectDownloadEnabled(false);
-        getObject.executeMediaAndDownloadTo(byteArrayOutputStream);
-        return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+        return getObject.executeMediaAsInputStream();
     }
 
     @VisibleForTesting

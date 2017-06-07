@@ -119,6 +119,8 @@ class GcsClientIntegrationTest extends Specification {
         def stream = new FileInputStream(file)
         def uri = new URI("gcs://${bucketName}/maven/release/${new Date().getTime()}-mavenTest.txt")
         gcsClient.put(stream, file.length(), uri)
-        gcsClient.getResource(new URI("gcs://${bucketName}/maven/release/idontExist.txt"))
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream()
+        IOUtils.copyLarge(gcsClient.getResourceStream(gcsClient.getResource(uri)), outStream)
+        outStream.toString() == fileContents
     }
 }
