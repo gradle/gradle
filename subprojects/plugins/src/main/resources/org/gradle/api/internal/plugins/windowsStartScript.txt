@@ -66,6 +66,14 @@ set CMD_LINE_ARGS=%*
 
 set CLASSPATH=$classpath
 
+@rem Check if a script for setting environmental variables exists
+if not exist "%APP_HOME%/bin/setenv.bat" goto checkSetenvHome
+call "%APP_HOME%/bin/setenv.bat"
+goto setenvDone
+:checkSetenvHome
+if exist "%APP_HOME%/setenv.bat" call "%APP_HOME%/setenv.bat"
+:setenvDone
+
 @rem Execute ${applicationName}
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %${optsEnvironmentVar}% <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=%APP_BASE_NAME%"<% } %> -classpath "%CLASSPATH%" ${mainClassName} %CMD_LINE_ARGS%
 
