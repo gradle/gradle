@@ -196,7 +196,9 @@ libraries.awsS3 = [
 libraries.zinc = 'com.typesafe.zinc:zinc:0.3.13'
 
 libraries.gcs = [
-        dependencies.create('com.google.apis:google-api-services-storage:v1-rev78-1.22.0') { exclude group: 'commons-logging', module: 'commons-logging' } ,
+        dependencies.create('com.google.apis:google-api-services-storage:v1-rev78-1.22.0') {
+            exclude group: 'commons-logging', module: 'commons-logging'
+        },
         "com.fasterxml.jackson.core:jackson-core:${versions.jackson}@jar",
         "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}@jar",
         "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
