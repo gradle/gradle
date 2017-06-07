@@ -91,62 +91,6 @@ class GcsClientTest extends Specification {
         }
     }
 
-//    @Ignore
-//    def "should apply endpoint override with path style access"() {
-//        setup:
-//        Optional<URI> someEndpoint = Optional.of(new URI("http://someEndpoint"))
-//        S3ConnectionProperties s3Properties = Stub()
-//        s3Properties.getEndpoint() >> someEndpoint
-//
-//        when:
-//        S3Client s3Client = new S3Client(credentials(), s3Properties)
-//
-//        then:
-//        s3Client.amazonS3Client.clientOptions.pathStyleAccess == true
-//        s3Client.amazonS3Client.endpoint == someEndpoint.get()
-//    }
-
-//    @Ignore
-//    def "should configure HTTPS proxy"() {
-//        setup:
-//        S3ConnectionProperties s3Properties = Mock()
-//        s3Properties.getProxy() >> Optional.of(new HttpProxySettings.HttpProxy("localhost", 8080, 'username', 'password'))
-//        s3Properties.getEndpoint() >> Optional.absent()
-//        s3Properties.getMaxErrorRetryCount() >> Optional.absent()
-//        when:
-//        S3Client s3Client = new S3Client(credentials(), s3Properties)
-//
-//        then:
-//        s3Client.amazonS3Client.clientConfiguration.proxyHost == 'localhost'
-//        s3Client.amazonS3Client.clientConfiguration.proxyPort == 8080
-//        s3Client.amazonS3Client.clientConfiguration.proxyPassword == 'password'
-//        s3Client.amazonS3Client.clientConfiguration.proxyUsername == 'username'
-//    }
-
-//    @Ignore
-//    def "should not configure HTTPS proxy when non-proxied host"() {
-//        setup:
-//        HttpProxySettings proxySettings = Mock()
-//        proxySettings.getProxy(nonProxied) >> null
-//
-//        S3ConnectionProperties s3Properties = Mock()
-//        s3Properties.getProxy() >> Optional.absent()
-//        s3Properties.getEndpoint() >> endpointOverride
-//        when:
-//
-//        S3Client s3Client = new S3Client(credentials(), s3Properties)
-//        then:
-//        s3Client.amazonS3Client.clientConfiguration.proxyHost == null
-//        s3Client.amazonS3Client.clientConfiguration.proxyPort == -1
-//        s3Client.amazonS3Client.clientConfiguration.proxyPassword == null
-//        s3Client.amazonS3Client.clientConfiguration.proxyUsername == null
-//
-//        where:
-//        nonProxied                                               | endpointOverride
-//        com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME | Optional.absent()
-//        "mydomain.com"                                           | Optional.absent()
-//    }
-
     def "should include uri when meta-data not found"() {
         def gcsStorageClient = Mock(Storage)
         URI uri = new URI("https://somehost/file.txt")
