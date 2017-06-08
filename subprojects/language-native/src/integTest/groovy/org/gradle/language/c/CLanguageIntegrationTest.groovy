@@ -26,7 +26,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
-@RequiresSupportedLanguage([NativeLanguageRequirement.C])
+@RequiresSupportedLanguage(NativeLanguageRequirement.C)
 class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CHelloWorldApp()

@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain;
-
-import org.gradle.api.Incubating;
-
 /**
- * The <a href="https://swift.org/">Swift Compiler</a> tool chain.
- *
- * @since 4.1
+ * Tasks for compiling Swift sources for a native runtime.
  */
-@Incubating
-public interface Swiftc extends NativeToolChain {
-}
+@org.gradle.api.Incubating
+package org.gradle.language.swift.tasks;

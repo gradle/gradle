@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
@@ -51,9 +50,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2012;
-import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2013;
-import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2015;
+import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.*;
 
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;

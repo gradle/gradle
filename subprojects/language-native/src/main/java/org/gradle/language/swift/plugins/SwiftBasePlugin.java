@@ -25,6 +25,11 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
+/**
+ * A common base plugin for the Swift executable and library plugins
+ *
+ * @since 4.1
+ */
 @Incubating
 public class SwiftBasePlugin implements Plugin<ProjectInternal> {
     /**

@@ -16,6 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain;
 
+import org.gradle.api.Incubating;
+
+/**
+ * Swiftc specific settings for the tools used to build for a particular platform.
+ */
+@Incubating
 public interface SwiftcPlatformToolChain extends NativePlatformToolChain {
     CommandLineToolConfiguration getSwiftCompiler();
 }

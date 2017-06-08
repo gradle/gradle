@@ -29,6 +29,11 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec
 
 import java.io.File;
 
+/**
+ * Compiles Swift source files into object files, executables and libraries.
+ *
+ * @since 4.1
+ */
 public class SwiftCompile extends AbstractNativeSourceCompileTask {
     private File outputFile;
     private String moduleName;
