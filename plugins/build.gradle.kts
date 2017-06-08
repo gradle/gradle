@@ -1,6 +1,4 @@
 import build.kotlinVersion
-import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
-
 
 plugins {
     `java-gradle-plugin`
@@ -50,11 +48,11 @@ tasks {
 // --- Plugin declaration ----------------------------------------------
 val pluginId = "embedded-kotlin"
 
-configure<GradlePluginDevelopmentExtension> {
     `plugins` {
         val plugin: PluginDeclaration by creating
         plugin.id = pluginId
         plugin.implementationClass = "org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin"
+gradlePlugin {
     }
 }
 
