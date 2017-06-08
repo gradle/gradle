@@ -17,6 +17,7 @@
 package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
 import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
@@ -28,26 +29,8 @@ import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin
 import static org.gradle.util.Matchers.containsText
 
 @RequiresSupportedLanguage(NativeLanguageRequirement.SWIFT)
-class SwiftLibraryIntegrationTest extends AbstractIntegrationSpec {
+class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new SwiftHelloWorldApp()
-    File initScript
-
-    def setup() {
-        initScript = file("init.gradle") << """
-allprojects { p ->
-    apply plugin: ${SwiftCompilerPlugin.simpleName}
-
-    model {
-          toolChains {
-            swiftc(Swiftc)
-          }
-    }
-}
-"""
-        executer.beforeExecute({
-            usingInitScript(initScript)
-        })
-    }
 
     def "build fails when compilation fails"() {
         given:
@@ -126,10 +109,6 @@ allprojects { p ->
         result.assertTasksExecuted(":lib2:compileSwift", ":lib1:compileSwift", ":lib1:assemble")
         sharedLibrary("lib1/build/lib/lib1").assertExists()
         sharedLibrary("lib2/build/lib/lib2").assertExists()
-    }
-
-    def SharedLibraryFixture sharedLibrary(Object path) {
-        return new AvailableToolChains.InstalledSwiftc().sharedLibrary(file(path));
     }
 
 }
