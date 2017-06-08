@@ -6,6 +6,10 @@ plugins {
     `java-gradle-plugin`
 }
 
+apply {
+    plugin("kotlin")
+}
+
 base {
     archivesBaseName = "gradle-script-kotlin-plugins"
 }
