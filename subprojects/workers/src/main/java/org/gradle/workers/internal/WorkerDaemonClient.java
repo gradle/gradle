@@ -32,13 +32,15 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
     private final WorkerDaemonProcess<T> workerDaemonProcess;
     private final WorkerProcess workerProcess;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final KeepAliveMode keepAliveMode;
     private int uses;
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<T> workerDaemonProcess, WorkerProcess workerProcess, BuildOperationExecutor buildOperationExecutor) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<T> workerDaemonProcess, WorkerProcess workerProcess, BuildOperationExecutor buildOperationExecutor, KeepAliveMode keepAliveMode) {
         this.forkOptions = forkOptions;
         this.workerDaemonProcess = workerDaemonProcess;
         this.workerProcess = workerProcess;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.keepAliveMode = keepAliveMode;
     }
 
     @Override
@@ -86,5 +88,9 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
 
     public int getUses() {
         return uses;
+    }
+
+    public KeepAliveMode getKeepAliveMode() {
+        return keepAliveMode;
     }
 }

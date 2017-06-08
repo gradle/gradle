@@ -19,7 +19,10 @@ package org.gradle.workers.internal;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.specs.Spec;
+import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -36,10 +39,15 @@ public class WorkerDaemonClientsManager {
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
     private final List<WorkerDaemonClient> idleClients = new ArrayList<WorkerDaemonClient>();
 
-    private WorkerDaemonStarter workerDaemonStarter;
+    private final WorkerDaemonStarter workerDaemonStarter;
+    private final ListenerManager listenerManager;
+    private final SessionLifecycleListener stopSessionScopeWorkers;
 
-    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter) {
+    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager) {
         this.workerDaemonStarter = workerDaemonStarter;
+        this.listenerManager = listenerManager;
+        this.stopSessionScopeWorkers = new StopSessionScopedWorkers();
+        listenerManager.addListener(stopSessionScopeWorkers);
     }
 
     // TODO - should supply and check for the same parameters as passed to reserveNewClient()
@@ -78,10 +86,9 @@ public class WorkerDaemonClientsManager {
 
     public void stop() {
         synchronized (lock) {
-            LOGGER.debug("Stopping {} worker daemon(s).", allClients.size());
-            CompositeStoppable.stoppable(allClients).stop();
-            LOGGER.info("Stopped {} worker daemon(s).", allClients.size());
+            stopWorkers(allClients);
             allClients.clear();
+            listenerManager.removeListener(stopSessionScopeWorkers);
         }
     }
 
@@ -102,9 +109,31 @@ public class WorkerDaemonClientsManager {
             if (!clientsToStop.isEmpty()) {
                 idleClients.removeAll(clientsToStop);
                 allClients.removeAll(clientsToStop);
-                LOGGER.debug("Stopping {} worker daemon(s).", clientsToStop.size());
-                CompositeStoppable.stoppable(clientsToStop).stop();
-                LOGGER.info("Stopped {} worker daemon(s).", clientsToStop.size());
+                stopWorkers(clientsToStop);
+            }
+        }
+    }
+
+    private void stopWorkers(List<WorkerDaemonClient> clientsToStop) {
+        LOGGER.debug("Stopping {} worker daemon(s).", clientsToStop.size());
+        CompositeStoppable.stoppable(clientsToStop).stop();
+        LOGGER.info("Stopped {} worker daemon(s).", clientsToStop.size());
+    }
+
+    private class StopSessionScopedWorkers implements SessionLifecycleListener {
+        @Override
+        public void afterStart() { }
+
+        @Override
+        public void beforeComplete() {
+            synchronized (lock) {
+                List<WorkerDaemonClient> sessionScopedClients = CollectionUtils.filter(allClients, new Spec<WorkerDaemonClient>() {
+                    @Override
+                    public boolean isSatisfiedBy(WorkerDaemonClient client) {
+                        return client.getKeepAliveMode() == KeepAliveMode.SESSION;
+                    }
+                });
+                stopWorkers(sessionScopedClients);
             }
         }
     }
