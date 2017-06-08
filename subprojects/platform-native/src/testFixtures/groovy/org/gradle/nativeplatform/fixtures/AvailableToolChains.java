@@ -188,7 +188,7 @@ public class AvailableToolChains {
         return new UnavailableToolChain("gcc");
     }
 
-    static private ToolChainCandidate findSwiftc() {
+    static ToolChainCandidate findSwiftc() {
         File compilerExe = new File("/opt/swift/latest/usr/bin/swiftc");
         if (compilerExe.isFile()) {
             return new InstalledSwiftc("swiftc").inPath(compilerExe.getParentFile());
@@ -325,6 +325,15 @@ public class AvailableToolChains {
             return Collections.emptyList();
         }
 
+        protected List<String> toRuntimeEnv() {
+            if (pathEntries.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
+            return Collections.singletonList(pathVarName + "=" + path);
+        }
+
         public String getId() {
             return displayName.replaceAll("\\W", "");
         }
@@ -418,13 +427,9 @@ public class AvailableToolChains {
         /**
          * The environment required to execute a binary created by this toolchain.
          */
+        @Override
         public List<String> getRuntimeEnv() {
-            if (pathEntries.isEmpty()) {
-                return Collections.emptyList();
-            }
-
-            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
-            return Collections.singletonList(pathVarName + "=" + path);
+            return toRuntimeEnv();
         }
 
         @Override
@@ -444,6 +449,14 @@ public class AvailableToolChains {
             super(displayName);
         }
 
+        /**
+         * The environment required to execute a binary created by this toolchain.
+         */
+        @Override
+        public List<String> getRuntimeEnv() {
+            return toRuntimeEnv();
+        }
+
         @Override
         public String getInstanceDisplayName() {
             return String.format("Tool chain '%s' (Swiftc)", getId());
@@ -451,7 +464,11 @@ public class AvailableToolChains {
 
         @Override
         public String getBuildScriptConfig() {
-            return "swiftc(Swiftc)";
+            String config = String.format("%s(%s)\n", getId(), getImplementationClass());
+            for (File pathEntry : getPathEntries()) {
+                config += String.format("%s.path file('%s')", getId(), pathEntry.toURI());
+            }
+            return config;
         }
 
         @Override

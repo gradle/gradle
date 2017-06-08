@@ -21,9 +21,14 @@ public enum NativeLanguageRequirement {
     C_PLUS_PLUS,
     // C language
     C,
+    // Windows resource language (i.e. *.rc)
     WINDOWS_RESOURCE,
+    // Assembly language
     ASSEMBLY,
+    // Objective-C language
     OBJECTIVE_C,
+    // Objective-C++ language
     OBJECTIVE_C_PLUS_PLUS,
+    // Apple Swift language
     SWIFT
 }

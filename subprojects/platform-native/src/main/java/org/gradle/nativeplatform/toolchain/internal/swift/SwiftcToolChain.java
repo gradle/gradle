@@ -42,25 +42,44 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
+import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
+import java.util.List;
 
 public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain> implements Swiftc, NativeToolChainInternal {
     public static final String DEFAULT_NAME = "swiftc";
 
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final Instantiator instantiator;
-//    private final ToolSearchPath toolSearchPath;
+    private final ToolSearchPath toolSearchPath;
     private final ExecActionFactory execActionFactory;
 
     public SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory,
                            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProviderFactory compilerMetaDataProviderFactory, Instantiator instantiator) {
+        this(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, new ToolSearchPath(operatingSystem), compilerMetaDataProviderFactory, instantiator);
+    }
+
+    SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory,
+                    CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProviderFactory compilerMetaDataProviderFactory, Instantiator instantiator) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.instantiator = instantiator;
-        //this.toolSearchPath = instantiator.newInstance(tools;
+        this.toolSearchPath = tools;
         this.execActionFactory = execActionFactory;
+    }
+
+    @Override
+    public List<File> getPath() {
+        return toolSearchPath.getPath();
+    }
+
+    @Override
+    public void path(Object... pathEntries) {
+        for (Object path : pathEntries) {
+            toolSearchPath.path(resolve(path));
+        }
     }
 
     @Override
@@ -83,7 +102,7 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
             private CommandLineToolInvocationWorker commandLineTool(GccCommandLineToolConfigurationInternal tool) {
                 ToolType key = tool.getToolType();
                 String exeName = tool.getExecutable();
-                return new DefaultCommandLineToolInvocationWorker(key.getToolName(), new File(exeName), execActionFactory);
+                return new DefaultCommandLineToolInvocationWorker(key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
             }
 
             private CommandLineToolContext context(GccCommandLineToolConfigurationInternal toolConfiguration) {

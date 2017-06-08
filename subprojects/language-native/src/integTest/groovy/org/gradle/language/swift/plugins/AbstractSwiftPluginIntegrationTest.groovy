@@ -16,5 +16,22 @@
 
 package org.gradle.language.swift.plugins
 
-class SwiftExecutablePluginIntegrationTest extends AbstractSwiftPluginIntegrationTest {
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+
+abstract class AbstractSwiftPluginIntegrationTest extends WellBehavedPluginTest {
+    AvailableToolChains.InstalledToolChain toolChain
+
+    def setup() {
+        toolChain = AvailableToolChains.findSwiftc()
+        if (toolChain.isAvailable()) {
+            toolChain.initialiseEnvironment()
+        }
+    }
+
+    def cleanup() {
+        if (toolChain.isAvailable()) {
+            toolChain.resetEnvironment()
+        }
+    }
 }
