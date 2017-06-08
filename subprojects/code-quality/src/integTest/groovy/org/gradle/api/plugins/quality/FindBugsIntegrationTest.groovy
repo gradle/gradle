@@ -15,5 +15,32 @@
  */
 package org.gradle.api.plugins.quality
 
+import spock.lang.Issue
+
 class FindBugsIntegrationTest extends AbstractFindBugsPluginIntegrationTest {
+
+    @Issue(["https://github.com/gradle/gradle/issues/1745",
+        "https://github.com/gradle/gradle/issues/1094"])
+    def "remove non-jar files from -auxclasspath"() {
+        given:
+        def nonJarFile = temporaryFolder.createFile("test.xml")
+        nonJarFile << 'something'
+        buildFile << """
+            apply plugin: 'findbugs'
+            apply plugin: 'java'
+            
+            dependencies {
+                compile files('${nonJarFile.toString().replace('\\', '\\\\')}')
+            }
+        """
+        testDirectory.createFile('src/main/java/a/A.java') << 'package a;class A{}'
+
+        when:
+        run 'findbugsMain'
+
+        then:
+        result.output.contains('BUILD SUCCESSFUL')
+        !result.error.contains('IOException')
+        !result.error.contains('Wrong magic bytes')
+    }
 }
