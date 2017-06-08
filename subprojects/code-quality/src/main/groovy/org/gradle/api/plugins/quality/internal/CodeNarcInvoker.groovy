@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.internal
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.SingleFileReport
@@ -49,12 +50,12 @@ abstract class CodeNarcInvoker {
                     reports.enabled.each { SingleFileReport r ->
                         // See http://codenarc.sourceforge.net/codenarc-TextReportWriter.html
                         if (r.name == 'console') {
-                            setLifecycleLogLevel(ant,'INFO')
+                            setLifecycleLogLevel(ant, 'INFO')
                             report(type: 'text') {
                                 option(name: 'writeToStandardOut', value: true)
                             }
                         } else {
-                            setLifecycleLogLevel(ant,null)
+                            setLifecycleLogLevel(ant, null)
                             report(type: r.name) {
                                 option(name: 'outputFile', value: r.destination)
                             }
@@ -85,7 +86,7 @@ abstract class CodeNarcInvoker {
     static void setLifecycleLogLevel(Object ant, String lifecycleLogLevel) {
         ant?.builder?.project?.buildListeners?.each {
             // We cannot use instanceof or getClass()==AntLoggingAdapter since they're in different class loaders
-            if (it.class.simpleName == 'AntLoggingAdapter') {
+            if (it.class.name == AntLoggingAdapter.name) {
                 it.lifecycleLogLevel = lifecycleLogLevel
             }
         }
