@@ -61,6 +61,11 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
     }
 
     @Override
+    public String toString() {
+        return displayName.getDisplayName();
+    }
+
+    @Override
     public DisplayName asDescribable() {
         return displayName;
     }

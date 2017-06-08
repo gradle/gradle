@@ -108,6 +108,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public String toString() {
+            return asDescribable().getDisplayName();
+        }
+
+        @Override
         public ResolvedArtifactSet getArtifacts() {
             return this;
         }
