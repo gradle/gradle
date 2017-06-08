@@ -170,10 +170,13 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         for(PomDependencyMgt currentDependencyMgt : currentDependencyMgts) {
             if(isDependencyImportScoped(currentDependencyMgt)) {
                 PomReader importDescr = parseImportedPom(parseContext, currentDependencyMgt);
-                importedDependencyMgts.putAll(importDescr.getDependencyMgt());
+                for (Map.Entry<MavenDependencyKey, PomDependencyMgt> entry : importDescr.getDependencyMgt().entrySet()) {
+                    if (!importedDependencyMgts.containsKey(entry.getKey())) {
+                        importedDependencyMgts.put(entry.getKey(), entry.getValue());
+                    }
+                }
             }
         }
-
         return importedDependencyMgts;
     }
 
