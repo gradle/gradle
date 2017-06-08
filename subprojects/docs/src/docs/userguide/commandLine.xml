@@ -140,7 +140,7 @@
             <term><option>-m</option>, <option>--dry-run</option>
             </term>
             <listitem>
-                <para>Runs the build with all task actions disabled. See <xref linkend="sec:dry_run"/>.
+                <para>Runs the build with all task actions disabled. In order to see which tasks would have been run, you must also include <option>--console=plain</option> or run with a logging level at INFO or higher. See <xref linkend="sec:dry_run"/>.
                 </para>
             </listitem>
         </varlistentry>
