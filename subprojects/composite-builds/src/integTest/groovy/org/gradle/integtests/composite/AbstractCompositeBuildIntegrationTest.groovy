@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.file.TestFile
 abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     BuildTestFile buildA
     List<File> includedBuilds = []
+    def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         buildTestFixture.withBuildInSubDir()
