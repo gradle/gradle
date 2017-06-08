@@ -48,11 +48,12 @@ tasks {
 // --- Plugin declaration ----------------------------------------------
 val pluginId = "embedded-kotlin"
 
-    `plugins` {
-        val plugin: PluginDeclaration by creating
-        plugin.id = pluginId
-        plugin.implementationClass = "org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin"
 gradlePlugin {
+    (plugins) {
+        pluginId {
+            id = pluginId
+            implementationClass = "org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin"
+        }
     }
 }
 
