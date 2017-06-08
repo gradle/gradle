@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.gradle.process.internal.worker.child;
 
-import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.internal.service.ServiceRegistry;
+import java.io.File;
 
-public interface WorkerContext {
-    ClassLoader getApplicationClassLoader();
-    ObjectConnection getServerConnection();
-    ServiceRegistry getServiceRegistry();
+public interface WorkerDirectoryProvider {
+    /**
+     * Returns a File object representing the idle working directory for workers.
+     */
+    File getIdleWorkingDirectory();
 }

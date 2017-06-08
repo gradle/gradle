@@ -19,6 +19,7 @@ package org.gradle.process.internal.worker.child;
 import org.gradle.api.Action;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,7 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
 
     public void execute(final WorkerContext workerContext) {
         final ObjectConnection clientConnection = workerContext.getServerConnection();
+        final ServiceRegistry serviceRegistry = workerContext.getServiceRegistry();
         LOGGER.debug("Starting {}.", displayName);
         WorkerProcessContext context = new WorkerProcessContext() {
             public ObjectConnection getServerConnection() {
@@ -64,6 +66,11 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
 
             public String getDisplayName() {
                 return displayName;
+            }
+
+            @Override
+            public ServiceRegistry getServiceRegistry() {
+                return serviceRegistry;
             }
         };
 

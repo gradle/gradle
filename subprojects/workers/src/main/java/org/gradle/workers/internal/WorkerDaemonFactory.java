@@ -24,8 +24,8 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
-
-import java.io.File;
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.workers.IsolationMode;
 
 /**
  * Controls the lifecycle of the worker daemon and provides access to it.
@@ -37,23 +37,25 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     private final WorkerDaemonExpiration workerDaemonExpiration;
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final WorkerDirectoryProvider workerDirectoryProvider;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, WorkerDirectoryProvider workerDirectoryProvider) {
         this.clientsManager = clientsManager;
         this.memoryManager = memoryManager;
         this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, getTotalPhysicalMemory());
         memoryManager.addMemoryHolder(workerDaemonExpiration);
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.workerDirectoryProvider = workerDirectoryProvider;
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, final File workingDir, final DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
         return new Worker<T>() {
             public DefaultWorkResult execute(T spec, WorkerLease parentWorkerWorkerLease, BuildOperationState parentBuildOperation) {
                 WorkerDaemonClient<T> client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
-                    client = clientsManager.reserveNewClient(workerImplementationClass, workingDir, forkOptions);
+                    client = clientsManager.reserveNewClient(workerImplementationClass, workerDirectoryProvider.getIdleWorkingDirectory(), forkOptions);
                 }
                 try {
                     return client.execute(spec, parentWorkerWorkerLease, parentBuildOperation);
@@ -67,6 +69,11 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
                 return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
         };
+    }
+
+    @Override
+    public IsolationMode getIsolationMode() {
+        return IsolationMode.PROCESS;
     }
 
     @Override

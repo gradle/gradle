@@ -16,22 +16,30 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.DefaultInstantiatorFactory;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 
-public class WorkerDaemonServer implements WorkerProtocol<ActionExecutionSpec> {
-    private final InstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator());
+import javax.inject.Inject;
+
+public class WorkerDaemonServer extends WorkerServer {
+    private final WorkerDirectoryProvider workerDirectoryProvider;
+
+    @Inject
+    WorkerDaemonServer(WorkerDirectoryProvider workerDirectoryProvider) {
+        this.workerDirectoryProvider = workerDirectoryProvider;
+    }
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
+        ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
         try {
-            Class<? extends Runnable> implementationClass = spec.getImplementationClass();
-            Runnable runnable = instantiatorFactory.inject().newInstance(implementationClass, spec.getParams(implementationClass.getClassLoader()));
-            runnable.run();
-            return new DefaultWorkResult(true, null);
+            processEnvironment.maybeSetProcessDir(spec.getExecutionWorkingDir());
+            return super.execute(spec);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
+        } finally {
+            processEnvironment.maybeSetProcessDir(workerDirectoryProvider.getIdleWorkingDirectory());
         }
     }
 

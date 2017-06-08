@@ -143,7 +143,7 @@ class DefaultWorkerExecutorTest extends Specification {
         task.run()
 
         then:
-        1 * workerDaemonFactory.getWorker(_, _, _) >> worker
+        1 * workerDaemonFactory.getWorker(_, _) >> worker
         1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
@@ -165,7 +165,7 @@ class DefaultWorkerExecutorTest extends Specification {
         task.run()
 
         then:
-        1 * inProcessWorkerFactory.getWorker(_, _, _) >> worker
+        1 * inProcessWorkerFactory.getWorker(_, _) >> worker
         1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
@@ -187,7 +187,7 @@ class DefaultWorkerExecutorTest extends Specification {
         task.run()
 
         then:
-        1 * noIsolationWorkerFactory.getWorker(_, _, _) >> worker
+        1 * noIsolationWorkerFactory.getWorker(_, _) >> worker
         1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
