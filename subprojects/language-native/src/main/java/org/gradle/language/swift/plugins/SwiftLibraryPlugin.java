@@ -59,9 +59,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         compile.source(sourceTree);
 
         // TODO - should use PIC
-        compile.setCompilerArgs(Lists.newArrayList(
-            "-sdk", "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk",
-            "-emit-library"));
+        compile.setCompilerArgs(Lists.newArrayList("-emit-library"));
         compile.setMacros(Collections.<String, String>emptyMap());
         compile.setModuleName(project.getName());
 

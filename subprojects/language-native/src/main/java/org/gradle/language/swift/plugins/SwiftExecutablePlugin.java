@@ -56,9 +56,7 @@ public class SwiftExecutablePlugin implements Plugin<Project> {
         sourceTree.include("**/*.swift");
         compile.source(sourceTree);
 
-        compile.setCompilerArgs(Lists.newArrayList(
-            "-sdk", "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk",
-            "-emit-executable"));
+        compile.setCompilerArgs(Lists.newArrayList("-emit-executable"));
         compile.setMacros(Collections.<String, String>emptyMap());
 
         // TODO - should reflect changes to build directory
