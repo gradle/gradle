@@ -20,11 +20,11 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.Timers;
 import org.gradle.internal.time.TrueTimeProvider;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
  * <li>The client sends exactly one {@link org.gradle.launcher.daemon.protocol.Stop} message.</li>
  * <li>The daemon sends exactly one {@link org.gradle.launcher.daemon.protocol.Result} message. It may no longer send any messages.</li>
  * <li>The client sends a {@link org.gradle.launcher.daemon.protocol.Finished} message once it has received the {@link org.gradle.launcher.daemon.protocol.Result} message.
- *     It may no longer send any messages.</li>
+ * It may no longer send any messages.</li>
  * <li>The client closes the connection.</li>
  * <li>The daemon closes the connection once it has received the {@link org.gradle.launcher.daemon.protocol.Finished} message.</li>
  * </ul>
@@ -103,11 +103,11 @@ public class DaemonStopClient {
 
         DaemonClientConnection connection = connector.maybeConnect(spec);
         if (connection == null) {
-            LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
+            LOGGER.quiet(DaemonMessages.NO_DAEMONS_RUNNING);
             return;
         }
 
-        LOGGER.lifecycle("Stopping Daemon(s)");
+        LOGGER.quiet("Stopping Daemon(s)");
 
         //iterate and stop all daemons
         int numStopped = 0;
@@ -126,7 +126,7 @@ public class DaemonStopClient {
         }
 
         if (numStopped > 0) {
-            LOGGER.lifecycle(numStopped + " Daemon" + ((numStopped > 1) ? "s" : "") + " stopped");
+            LOGGER.quiet(numStopped + " Daemon" + ((numStopped > 1) ? "s" : "") + " stopped");
         }
 
         if (connection != null) {
