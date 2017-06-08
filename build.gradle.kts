@@ -4,8 +4,6 @@ import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
 import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
 import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask
 
-import build.*
-
 buildscript {
 
     build.loadExtraPropertiesOf(project)
