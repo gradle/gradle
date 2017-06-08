@@ -19,6 +19,10 @@ codenarc {
 }
 ```
 
+### Faster Gradle command line client
+
+The Gradle command line client now starts up ~200ms faster, speeding up every build.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
