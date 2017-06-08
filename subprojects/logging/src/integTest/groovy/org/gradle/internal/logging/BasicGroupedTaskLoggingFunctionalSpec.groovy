@@ -18,11 +18,18 @@ package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpec {
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def "multi-project build tasks logs are grouped"() {
         given:
@@ -112,7 +119,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         fails('log')
 
         then:
-        result.groupedOutput.task(':log').output == "First line of text\n\n\nLast line of text"
+        result.groupedOutput.task(':log').output =~ /First line of text\n{3,}Last line of text/
     }
 
     @IgnoreIf({ !GradleContextualExecuter.parallel })
@@ -170,22 +177,38 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
     }
 
     def "long running task output are flushed after delay"() {
+        server.start()
+
         given:
-        def sleepTime = GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT / 2 * 3
         buildFile << """
             task log {
                 doLast {
                     logger.quiet 'Before'
-                    sleep($sleepTime)
+                    new URL('${server.uri('running')}').text
                     logger.quiet 'After'
                 }
             }
         """
+        GradleHandle gradle = executer.withTasks('log').start()
+        def handle = server.expectAndBlock(server.resource('running'))
 
         when:
-        succeeds('log')
+        handle.waitForAllPendingCalls()
+        assertOutputContains(gradle, "Before${SystemProperties.instance.lineSeparator}")
+        handle.releaseAll()
+        result = gradle.waitForFinish()
 
         then:
-        result.groupedOutput.task(':log').outputs == ["Before\nAfter"]
+        result.groupedOutput.task(':log').outputs.size() == 1
+        result.groupedOutput.task(':log').outputs[0] =~ /Before\n+After/
+
+        cleanup:
+        gradle?.waitForFinish()
+    }
+
+    private void assertOutputContains(GradleHandle gradle, String str) {
+        ConcurrentTestUtil.poll {
+            assert gradle.standardOutput =~ /(?ms)$str/
+        }
     }
 }
