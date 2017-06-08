@@ -10,6 +10,10 @@ Add-->
 
 Gradle's [continuous build feature](userguide/continuous_build.html) now works with [composite builds](userguide/composite_builds.html). Gradle will automatically detect changes to any input from any build and rebuild the appropriate pieces.
 
+### CodeNarc plugin supports report format 'console'
+
+CodeNarc plugin supports outputting report to console now. In some scenarios this is convenient for user.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
