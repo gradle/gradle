@@ -34,6 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class SingleMessageLogger {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeprecationLogger.class);
     private static final Set<String> FEATURES = Collections.synchronizedSet(new HashSet<String>());
+    private static final Set<String> WARNINGS = Collections.synchronizedSet(new HashSet<String>());
 
     private static final ThreadLocal<Boolean> ENABLED = new ThreadLocal<Boolean>() {
         @Override
@@ -67,6 +68,7 @@ public class SingleMessageLogger {
 
     public static void reset() {
         FEATURES.clear();
+        WARNINGS.clear();
         LOCK.lock();
         try {
             handler = new LoggingDeprecatedFeatureHandler();
@@ -244,6 +246,15 @@ public class SingleMessageLogger {
                 message = message + "\n" + additionalWarning;
             }
             LOGGER.warn(message);
+        }
+    }
+
+    public static void warn(String warning) {
+        // Since WARNINGS is a synchronized set, we can be sure that each
+        // warning will only be logged once (i.e. The first time it is added to
+        // the set.)
+        if (WARNINGS.add(warning)) {
+            LOGGER.warn(warning);
         }
     }
 }

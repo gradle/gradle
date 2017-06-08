@@ -53,6 +53,29 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         events[1].message.startsWith('nag')
     }
 
+    def "logs generic warnings once until reset"() {
+        given:
+        def message = "Watch out!"
+
+        when:
+        SingleMessageLogger.warn(message)
+        SingleMessageLogger.warn(message)
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == message
+
+        when:
+        SingleMessageLogger.reset()
+        SingleMessageLogger.warn(message)
+
+        then:
+        events.size() == 2
+        events[0].message == message
+        events[1].message == message
+    }
+
     def "does not log warning while disabled with factory"() {
         given:
         Factory<String> factory = Mock(Factory)
