@@ -12,7 +12,12 @@ Gradle's [continuous build feature](userguide/continuous_build.html) now works w
 
 ### CodeNarc plugin supports report format 'console'
 
-CodeNarc plugin supports outputting report to console now. In some scenarios this is convenient for user.
+The CodeNarc plugin now supports outputting reports directly to the console through the `console` report format.
+```
+codenarc {
+    reportFormat = 'console'
+}
+```
 
 ## Promoted features
 
