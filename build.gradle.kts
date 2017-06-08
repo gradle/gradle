@@ -35,7 +35,8 @@ val publishedProjects =
         project(":provider"),
         project(":compiler-plugin"),
         project(":tooling-models"),
-        project(":tooling-builders"))
+        project(":tooling-builders"),
+        project(":plugins"))
 
 // For documentation and meaningful `./gradlew dependencies` output
 val distribution by configurations.creating
