@@ -19,15 +19,14 @@ package org.gradle.language.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.app.TestNativeComponent;
-
+import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 
 // TODO integrate objective-c/cpp we have coverage on windows
-public class DuplicateMixedSameBaseNamesTestApp extends TestNativeComponent {
+class DuplicateMixedSameBaseNamesTestApp extends TestNativeComponent {
 
     AvailableToolChains.InstalledToolChain toolChain
 
-    public DuplicateMixedSameBaseNamesTestApp(AvailableToolChains.InstalledToolChain toolChain) {
+    DuplicateMixedSameBaseNamesTestApp(AvailableToolChains.InstalledToolChain toolChain) {
         this.toolChain = toolChain
     }
 
@@ -36,7 +35,7 @@ public class DuplicateMixedSameBaseNamesTestApp extends TestNativeComponent {
     def functionalSourceSets = [asm:'**/*.s', c:'**/*.c', cpp:'**/*.cpp']
 
     @Override
-    public List<SourceFile> getSourceFiles() {
+    List<SourceFile> getSourceFiles() {
         [sourceFile("c", "main.c", """
             #include <stdio.h>
             #include "hello.h"
@@ -125,7 +124,7 @@ _sayFooFromAsm:
     }
 
     @Override
-    public List<SourceFile> getHeaderFiles() {
+    List<SourceFile> getHeaderFiles() {
         [sourceFile("headers", "hello.h", """
             #ifdef __cplusplus
             extern "C" {

@@ -18,6 +18,8 @@ package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
+import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
@@ -25,6 +27,7 @@ import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin
 
 import static org.gradle.util.Matchers.containsText
 
+@RequiresSupportedLanguage(NativeLanguageRequirement.SWIFT)
 class SwiftLibraryIntegrationTest extends AbstractIntegrationSpec {
     def helloWorldApp = new SwiftHelloWorldApp()
     File initScript

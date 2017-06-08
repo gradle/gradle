@@ -17,9 +17,12 @@
 package org.gradle.language.c
 
 import org.gradle.language.AbstractNativeLanguageIncrementalBuildIntegrationTest
+import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
+import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 
+@RequiresSupportedLanguage(NativeLanguageRequirement.C)
 class CLanguageIncrementalBuildIntegrationTest extends AbstractNativeLanguageIncrementalBuildIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {

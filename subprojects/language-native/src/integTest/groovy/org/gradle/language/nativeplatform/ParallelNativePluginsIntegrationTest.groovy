@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
+import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
+import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
@@ -41,6 +43,7 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+    @RequiresSupportedLanguage([NativeLanguageRequirement.C, NativeLanguageRequirement.C_PLUS_PLUS, NativeLanguageRequirement.OBJECTIVE_C, NativeLanguageRequirement.OBJECTIVE_C_PLUS_PLUS])
     def "can produce multiple executables from a single project in parallel"() {
         given:
         Map<String, HelloWorldApp> apps = [
@@ -80,6 +83,7 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @RequiresSupportedLanguage(NativeLanguageRequirement.C_PLUS_PLUS)
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
         Map<String, ExeWithLibraryUsingLibraryHelloWorldApp> apps = [

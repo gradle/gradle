@@ -20,7 +20,9 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
+import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
@@ -29,6 +31,7 @@ import spock.lang.IgnoreIf
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 @RequiresInstalledToolChain(VISUALCPP)
+@RequiresSupportedLanguage(NativeLanguageRequirement.WINDOWS_RESOURCE)
 class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
     ExecutableFixture mainExe

@@ -16,13 +16,16 @@
 
 package org.gradle.language.objectivecpp
 
+import org.gradle.language.objectivec.ObjectiveCLanguageIncrementalBuildIntegrationTest
+import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
+import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
-import org.gradle.language.objectivec.ObjectiveCLanguageIncrementalBuildIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+@RequiresSupportedLanguage(NativeLanguageRequirement.OBJECTIVE_C_PLUS_PLUS)
 class ObjectiveCppLanguageIncrementalBuildIntegrationTest  extends ObjectiveCLanguageIncrementalBuildIntegrationTest{
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {

@@ -17,7 +17,9 @@ package org.gradle.language.rc
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
+import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -27,6 +29,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(VISUALCPP)
+@RequiresSupportedLanguage(NativeLanguageRequirement.WINDOWS_RESOURCE)
 class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()

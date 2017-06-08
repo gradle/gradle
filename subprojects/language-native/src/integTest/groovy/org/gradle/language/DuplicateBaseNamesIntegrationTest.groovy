@@ -25,7 +25,9 @@ import org.gradle.language.fixtures.app.DuplicateObjectiveCBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateObjectiveCppBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -33,6 +35,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
+    @RequiresSupportedLanguage([NativeLanguageRequirement.C, NativeLanguageRequirement.C_PLUS_PLUS, NativeLanguageRequirement.ASSEMBLY])
     def "can have sourcefiles with same base name but different directories"() {
         setup:
         testApp.writeSources(file("src/main"))
@@ -74,6 +77,7 @@ model {
      * story-language-source-sets-filter-source-files-by-file-extension
      * is implemented
      * */
+    @RequiresSupportedLanguage([NativeLanguageRequirement.C, NativeLanguageRequirement.C_PLUS_PLUS, NativeLanguageRequirement.ASSEMBLY])
     def "can have sourcefiles with same base name in same directory"() {
         setup:
         def testApp = new DuplicateMixedSameBaseNamesTestApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
@@ -130,6 +134,7 @@ model {
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+    @RequiresSupportedLanguage([NativeLanguageRequirement.OBJECTIVE_C, NativeLanguageRequirement.OBJECTIVE_C_PLUS_PLUS])
     def "can have objectiveC and objectiveCpp source files with same name in different directories"(){
         setup:
         testApp.writeSources(file("src/main"))
@@ -154,6 +159,7 @@ model {
     }
 
     @RequiresInstalledToolChain(VISUALCPP)
+    @RequiresSupportedLanguage(NativeLanguageRequirement.WINDOWS_RESOURCE)
     def "windows-resources can have sourcefiles with same base name but different directories"() {
         setup:
         def testApp = new DuplicateWindowsResourcesBaseNamesTestApp();

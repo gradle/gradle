@@ -16,38 +16,17 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.ExecutableFixture
-import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
-import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
+import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
-import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin
 
 import static org.gradle.util.Matchers.containsText
 
-class SwiftExecutableIntegrationTest extends AbstractIntegrationSpec {
+@RequiresSupportedLanguage(NativeLanguageRequirement.SWIFT)
+class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new SwiftHelloWorldApp()
-    File initScript
-
-    def setup() {
-        initScript = file("init.gradle") << """
-allprojects { p ->
-    apply plugin: ${SwiftCompilerPlugin.simpleName}
-
-    model {
-          toolChains {
-            swiftc(Swiftc)
-          }
-    }
-}
-"""
-        executer.beforeExecute({
-            usingInitScript(initScript)
-        })
-    }
 
     def "build fails when compilation fails"() {
         given:
@@ -200,24 +179,12 @@ ${f.text}"""
 
         expect:
         succeeds ":assemble"
-        result.assertTasksExecuted(":lib1:compileSwift", ":lib1:lib2", ":lib1", ":lib2:compileSwift", ":lib2", ":compileSwift", ":installMain", ":assemble")
+        result.assertTasksExecuted(":lib1:compileSwift", ":lib2:compileSwift", ":compileSwift", ":installMain", ":assemble")
         sharedLibrary("lib1/build/lib/lib1").assertExists()
         sharedLibrary("lib2/build/lib/lib2").assertExists()
         executable("build/exe/app").assertExists()
         installation("build/install/app").exec().out == app.englishOutput
         sharedLibrary("build/install/app/lib/lib1").file.assertExists()
         sharedLibrary("build/install/app/lib/lib2").file.assertExists()
-    }
-
-    def ExecutableFixture executable(Object path) {
-        return new AvailableToolChains.InstalledSwiftc().executable(file(path));
-    }
-
-    def SharedLibraryFixture sharedLibrary(Object path) {
-        return new AvailableToolChains.InstalledSwiftc().sharedLibrary(file(path));
-    }
-
-    def NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
-        return new NativeInstallationFixture(file(installDir), os)
     }
 }

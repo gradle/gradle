@@ -48,6 +48,7 @@ import org.gradle.util.VersionNumber;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2012;
@@ -211,6 +212,8 @@ public class AvailableToolChains {
 
         public abstract boolean meets(ToolChainRequirement requirement);
 
+        public abstract boolean meets(EnumSet<NativeLanguageRequirement> requirement);
+
         public abstract void initialiseEnvironment();
 
         public abstract void resetEnvironment();
@@ -339,6 +342,12 @@ public class AvailableToolChains {
             return new File(getPathEntries().get(0), tool).getAbsolutePath();
         }
 
+        @Override
+        public boolean meets(EnumSet<NativeLanguageRequirement> requirement) {
+            return EnumSet.of(NativeLanguageRequirement.C_PLUS_PLUS, NativeLanguageRequirement.C, NativeLanguageRequirement.ASSEMBLY,
+                NativeLanguageRequirement.OBJECTIVE_C, NativeLanguageRequirement.OBJECTIVE_C_PLUS_PLUS).containsAll(requirement);
+        }
+
         public String getLinker() {
             return getCCompiler();
         }
@@ -462,6 +471,11 @@ public class AvailableToolChains {
         public boolean meets(ToolChainRequirement requirement) {
             return requirement == ToolChainRequirement.SWIFT || requirement == ToolChainRequirement.AVAILABLE;
         }
+
+        @Override
+        public boolean meets(EnumSet<NativeLanguageRequirement> requirement) {
+            return requirement.contains(NativeLanguageRequirement.SWIFT);
+        }
     }
 
     public static class InstalledVisualCpp extends InstalledToolChain {
@@ -504,6 +518,12 @@ public class AvailableToolChains {
                 default:
                     return false;
             }
+        }
+
+        @Override
+        public boolean meets(EnumSet<NativeLanguageRequirement> requirement) {
+            return EnumSet.of(NativeLanguageRequirement.C_PLUS_PLUS, NativeLanguageRequirement.C, NativeLanguageRequirement.ASSEMBLY,
+                NativeLanguageRequirement.WINDOWS_RESOURCE).containsAll(requirement);
         }
 
         @Override
@@ -598,6 +618,11 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
+            return false;
+        }
+
+        @Override
+        public boolean meets(EnumSet<NativeLanguageRequirement> requirement) {
             return false;
         }
 
