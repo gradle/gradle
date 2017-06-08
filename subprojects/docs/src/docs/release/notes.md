@@ -57,7 +57,8 @@ We would like to thank the following community members for making contributions 
 -->
 
  - [Jörn Huxhorn](https://github.com/huxi) - Replace uses of `Stack` with `ArrayDeque` (#771)
- - [Björn Kautler](https://github.com/Vampire) - Fix WTP component version (#2076).
+ - [Björn Kautler](https://github.com/Vampire) - Fix WTP component version (#2076)
+ - [Bo Zhang](https://github.com/blindpirate) - Add support for 'console' output type of CodeNarc plugin (#2170)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
