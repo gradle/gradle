@@ -16,76 +16,15 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.io.ClassLoaderObjectInputStream;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
-/**
- * Represents a {@link WorkSpec} that contains constructor parameters.
- */
-public class ActionExecutionSpec implements WorkSpec {
-    private final String displayName;
-    private final Class<? extends Runnable> implementationClass;
-    private final File executionWorkingDir;
-    private final byte[] params;
-
-    public ActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, File executionWorkingDir, Object[] params) {
-        this.implementationClass = implementationClass;
-        this.displayName = displayName;
-        this.executionWorkingDir = executionWorkingDir;
-        this.params = serialize(params);
-    }
-
-    public Class<? extends Runnable> getImplementationClass() {
-        return implementationClass;
-    }
+public interface ActionExecutionSpec extends WorkSpec {
+    Class<? extends Runnable> getImplementationClass();
 
     @Override
-    public String getDisplayName() {
-        return displayName;
-    }
+    String getDisplayName();
 
-    public File getExecutionWorkingDir() {
-        return executionWorkingDir;
-    }
+    File getExecutionWorkingDir();
 
-    public Object[] getParams(ClassLoader classLoader) {
-        return deserialize(classLoader);
-    }
-
-    private byte[] serialize(Object[] params) {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            oos.writeObject(params);
-        } catch (IOException e) {
-            throw new ParameterSerializationException("Could not serialize parameters", e);
-        }
-        return bos.toByteArray();
-    }
-
-    private Object[] deserialize(ClassLoader classLoader) {
-        ByteArrayInputStream bis = new ByteArrayInputStream(params);
-        try {
-            ObjectInputStream ois = new ClassLoaderObjectInputStream(bis, classLoader);
-            return (Object[])ois.readObject();
-        } catch (IOException e) {
-            throw new ParameterSerializationException("Could not deserialize parameters", e);
-        } catch (ClassNotFoundException e) {
-            throw new ParameterSerializationException("Could not deserialize parameters", e);
-        }
-    }
-
-    @Contextual
-    static class ParameterSerializationException extends RuntimeException {
-        ParameterSerializationException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
+    Object[] getParams(ClassLoader classLoader);
 }
