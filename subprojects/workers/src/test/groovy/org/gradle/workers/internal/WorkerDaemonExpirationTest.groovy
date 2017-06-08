@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.internal.health.memory.JvmMemoryStatus
 import org.gradle.process.internal.health.memory.MaximumHeapHelper
@@ -26,10 +27,10 @@ class WorkerDaemonExpirationTest extends Specification {
     static final int OS_MEMORY_GB = 6
 
     def workingDir = new File("some-dir")
-    def defaultOptions = new DaemonForkOptions(null, null, ['default-options'])
-    def oneGbOptions = new DaemonForkOptions('1g', '1g', ['one-gb-options'])
-    def twoGbOptions = new DaemonForkOptions('2g', '2g', ['two-gb-options'])
-    def threeGbOptions = new DaemonForkOptions('3g', '3g', ['three-gb-options'])
+    def defaultOptions = new DaemonForkOptions(null, null, ['default-options'], KeepAliveMode.SESSION)
+    def oneGbOptions = new DaemonForkOptions('1g', '1g', ['one-gb-options'], KeepAliveMode.SESSION)
+    def twoGbOptions = new DaemonForkOptions('2g', '2g', ['two-gb-options'], KeepAliveMode.SESSION)
+    def threeGbOptions = new DaemonForkOptions('3g', '3g', ['three-gb-options'], KeepAliveMode.SESSION)
     def reportsMemoryUsage = true
     def daemonStarter = Mock(WorkerDaemonStarter) {
         startDaemon(_, _, _) >> { Class<? extends WorkerProtocol> impl, File workDir, DaemonForkOptions forkOptions ->
@@ -50,7 +51,7 @@ class WorkerDaemonExpirationTest extends Specification {
             }
         }
     }
-    def clientsManager = new WorkerDaemonClientsManager(daemonStarter)
+    def clientsManager = new WorkerDaemonClientsManager(daemonStarter, Mock(ListenerManager))
     def expiration = new WorkerDaemonExpiration(clientsManager, MemoryAmount.ofGigaBytes(OS_MEMORY_GB).bytes)
 
     def "expires least recently used idle worker daemon to free system memory when requested to release some memory"() {

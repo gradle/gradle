@@ -17,6 +17,9 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.Transformer
+import org.gradle.initialization.SessionLifecycleListener
+import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.event.ListenerManager
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Subject
 
@@ -27,8 +30,9 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def options = Stub(DaemonForkOptions)
     def starter = Stub(WorkerDaemonStarter)
     def serverImpl = Stub(WorkerProtocol)
+    def listenerManager = Stub(ListenerManager)
 
-    @Subject manager = new WorkerDaemonClientsManager(starter)
+    @Subject manager = new WorkerDaemonClientsManager(starter, listenerManager)
 
     def "does not reserve idle client when no clients"() {
         expect:
@@ -78,6 +82,44 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         then:
         1 * client1.stop()
         1 * client2.stop()
+    }
+
+    def "can stop session-scoped clients"() {
+        listenerManager = new DefaultListenerManager()
+        manager = new WorkerDaemonClientsManager(starter, listenerManager)
+        def client1 = Mock(WorkerDaemonClient)
+        def client2 = Mock(WorkerDaemonClient)
+        starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2]
+
+        when:
+        manager.reserveNewClient(serverImpl.class, workingDir, options)
+        manager.reserveNewClient(serverImpl.class, workingDir, options)
+        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+
+        then:
+        1 * client1.getKeepAliveMode() >> KeepAliveMode.SESSION
+        1 * client2.getKeepAliveMode() >> KeepAliveMode.SESSION
+        1 * client1.stop()
+        1 * client2.stop()
+    }
+
+    def "Stopping session-scoped clients does not stop other clients"() {
+        listenerManager = new DefaultListenerManager()
+        manager = new WorkerDaemonClientsManager(starter, listenerManager)
+        def client1 = Mock(WorkerDaemonClient)
+        def client2 = Mock(WorkerDaemonClient)
+        starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2]
+
+        when:
+        manager.reserveNewClient(serverImpl.class, workingDir, options)
+        manager.reserveNewClient(serverImpl.class, workingDir, options)
+        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+
+        then:
+        1 * client1.getKeepAliveMode() >> KeepAliveMode.SESSION
+        1 * client2.getKeepAliveMode() >> KeepAliveMode.DAEMON
+        1 * client1.stop()
+        0 * client2.stop()
     }
 
     def "clients can be released for further use"() {

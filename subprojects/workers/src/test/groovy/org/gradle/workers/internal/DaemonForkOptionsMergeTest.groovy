@@ -20,9 +20,9 @@ import spock.lang.Specification
 
 class DaemonForkOptionsMergeTest extends Specification {
     DaemonForkOptions options1 = new DaemonForkOptions("200m", "1g", [" -Dfork=true ", "-Xdebug=false"],
-            [new File("lib/lib1.jar"), new File("lib/lib2.jar")], ["foo.bar", "baz.bar"])
+        [new File("lib/lib1.jar"), new File("lib/lib2.jar")], ["foo.bar", "baz.bar"], KeepAliveMode.SESSION)
     DaemonForkOptions options2 = new DaemonForkOptions("1g", "2000m", ["-XX:MaxHeapSize=300m", "-Dfork=true"],
-            [new File("lib/lib2.jar"), new File("lib/lib3.jar")], ["baz.bar", "other"])
+        [new File("lib/lib2.jar"), new File("lib/lib3.jar")], ["baz.bar", "other"], KeepAliveMode.SESSION)
     DaemonForkOptions merged = options1.mergeWith(options2)
 
     def "takes highest minHeapSize"() {
@@ -48,5 +48,16 @@ class DaemonForkOptionsMergeTest extends Specification {
     def "concatenates sharedPackages (retaining order, eliminating duplicates)"() {
         expect:
         merged.sharedPackages as List == ["foo.bar", "baz.bar", "other"]
+    }
+
+    def "throws an exception when merging options with different keepAlive modes"() {
+        options2 = new DaemonForkOptions("1g", "2000m", ["-XX:MaxHeapSize=300m", "-Dfork=true"],
+            [new File("lib/lib2.jar"), new File("lib/lib3.jar")], ["baz.bar", "other"], KeepAliveMode.DAEMON)
+
+        when:
+        options1.mergeWith(options2)
+
+        then:
+        thrown(IllegalArgumentException)
     }
 }
