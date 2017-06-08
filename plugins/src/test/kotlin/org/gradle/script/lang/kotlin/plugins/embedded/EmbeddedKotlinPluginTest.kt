@@ -1,7 +1,7 @@
 package org.gradle.script.lang.kotlin.plugins.embedded
 
 import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
-import org.gradle.testkit.runner.GradleRunner
+import org.gradle.script.lang.kotlin.fixtures.gradleRunnerFor
 import org.gradle.testkit.runner.TaskOutcome
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -130,8 +130,7 @@ class EmbeddedKotlinPluginTest : AbstractIntegrationTest() {
 
     private
     fun runWithArguments(vararg arguments: String) =
-        GradleRunner.create()
-            .withProjectDir(projectRoot)
+        gradleRunnerFor(projectRoot)
             .withPluginClasspath()
             .withArguments(*arguments)
             .build()
