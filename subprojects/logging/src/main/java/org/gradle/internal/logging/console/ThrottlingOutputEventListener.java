@@ -45,7 +45,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
     public ThrottlingOutputEventListener(BatchOutputEventListener listener, TimeProvider timeProvider) {
-        this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), timeProvider);
+        this(listener, Integer.getInteger("org.gradle.console.throttle", 200), Executors.newSingleThreadScheduledExecutor(), timeProvider);
     }
 
     ThrottlingOutputEventListener(BatchOutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
