@@ -31,8 +31,9 @@ object CIBuildModel {
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
-                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java9),
-                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java9)
+                            //TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm)
+            )),
             Stage("Test Cross-version (All Versions), No-daemon, Soak Tests, Performance Experiments",
                     functionalTests = listOf(
                             TestCoverage(TestType.soak, OS.linux, JvmVersion.java8),
