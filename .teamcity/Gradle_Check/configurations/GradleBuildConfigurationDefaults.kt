@@ -12,7 +12,7 @@ val gradleParameters: List<String> = asList(
         "--no-daemon",
         "--continue",
         "-I ./gradle/buildScanInit.gradle",
-        "'-Djava7.home=%linux.jdk.for.gradle.compile%'"
+        "-Djava7.home=%linux.jdk.for.gradle.compile%"
 )
 
 val gradleBuildCacheParameters: List<String> = asList(
@@ -71,7 +71,8 @@ fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistributio
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            gradleParams = gradleParameters.joinToString(separator = " ") + " " + gradleBuildCacheParameters.joinToString(separator = " ") + " " + extraParameters
+            val parameters = if (runsOnWindows) gradleParameters.joinToString(separator = "' '", prefix = "'", postfix = "'") else gradleParameters.joinToString(separator = " ")
+            gradleParams = parameters + " " + gradleBuildCacheParameters.joinToString(separator = " ") + " " + extraParameters
             useGradleWrapper = true
         }
     }
