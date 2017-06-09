@@ -57,11 +57,9 @@ Previous versions of Gradle would select the `runtimeElements` when both project
 
 This change makes the selection behaviour consistent so that the `runtimeElements` configuration is selected regardless of whether the consuming project uses the Java plugin or not. This is also consistent with the selection when the consuming project is using one of the Android plugins.
 
-### Changes to setTestNameIncludePatterns() of Test task
+### test.testNameIncludePatterns property now overrides test.include and test.exclude
 
-`setTestNameIncludePatterns` method of `Test` task is designed to be used in command line, therefore it will override configurations of `include`/`exclude` in `build.gradle` according to [Test filtering](userguide/java_plugin.html#test_filtering).
-
-However, in previous versions of Gradle, this overriding mechanism is not implemented. Now, if `setTestNameIncludePatterns` is invoked directly, it will disable `include`/`exclude` defined in `build.gradle`. If you're affected by this change, use `filter.setIncludePatterns` instead.
+The `testNameIncludePatterns` property and the corrspondig command line option `--tests` now override any `include` and `exclude` defined in the test task configuration. This corresponds to behavior that is described in the [Test filtering](userguide/java_plugin.html#test_filtering) documentation. Previous versions of Gradle did not implemented this overriding behavior. Instead, the filters were combined. For the previous behavior, use `test.filter.includePatterns` instead of `test.testNameIncludePatterns`.
 
 ## External contributions
 
@@ -74,6 +72,7 @@ We would like to thank the following community members for making contributions 
  - [Jörn Huxhorn](https://github.com/huxi) - Replace uses of `Stack` with `ArrayDeque` (#771)
  - [Björn Kautler](https://github.com/Vampire) - Fix WTP component version (#2076)
  - [Bo Zhang](https://github.com/blindpirate) - Add support for 'console' output type of CodeNarc plugin (#2170)
+ - [Bo Zhang](https://github.com/blindpirate) - Let --tests option override test.include and test.exclude (#2172)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

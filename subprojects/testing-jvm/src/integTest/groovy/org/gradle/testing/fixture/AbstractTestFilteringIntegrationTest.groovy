@@ -271,13 +271,12 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     }
 
     @Unroll
-    def "invoking testNameIncludePatterns() disable include/exclude filter"() {
+    def "invoking testNameIncludePatterns disables include/exclude filter"() {
         given:
         buildFile << """
         test {
             include '*ATest*', '*BTest*'
-            testNameIncludePatterns = [ '*BTest*', '*CTest*' ] //meant to be used from cmd line, but the user could do this
-
+            testNameIncludePatterns = [ '*BTest*', '*CTest*' ] //used by --tests command line argument
         }
         """
 
@@ -298,8 +297,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         buildFile << """
         test {
             include '*ATest*', '*BTest*'
-            filter.includePatterns = [ '*BTest*', '*CTest*' ] //meant to be used from cmd line, but the user could do this
-
+            filter.includePatterns = [ '*BTest*', '*CTest*' ]
         }
         """
 
@@ -314,7 +312,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         !output.contains('CTest!')
     }
 
-    def createTestABC(){
+    private createTestABC(){
         file('src/test/java/ATest.java') << """import $imports;
             public class ATest {
                 @Test public void test() { System.out.println("ATest!"); }
@@ -332,7 +330,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         """
     }
 
-    def String[] stringArrayOf(List<String> strings) {
+    private String[] stringArrayOf(List<String> strings) {
         return strings.toArray()
     }
 }
