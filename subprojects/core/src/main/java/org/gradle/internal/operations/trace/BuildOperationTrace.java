@@ -204,7 +204,7 @@ public class BuildOperationTrace implements Stoppable {
         return new BuildOperationTree(roots);
     }
 
-    private static List<BuildOperationRecord> readLogToTreeRoots(File logFile) {
+    private static List<BuildOperationRecord> readLogToTreeRoots(final File logFile) {
         try {
             final JsonSlurper slurper = new JsonSlurper();
 
@@ -250,7 +250,7 @@ public class BuildOperationTrace implements Stoppable {
                             roots.add(record);
                         } else {
                             List<BuildOperationRecord> parentChildren = childrens.get(start.parentId);
-                            assert parentChildren != null;
+                            assert parentChildren != null : "parentChildren != null '" + line + "' from " + logFile;
                             parentChildren.add(record);
                         }
                     }
