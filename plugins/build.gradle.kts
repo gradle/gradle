@@ -5,9 +5,7 @@ plugins {
     id("com.gradle.plugin-publish") version "0.9.7"
 }
 
-apply {
-    plugin("kotlin")
-}
+apply<plugins.GskModule>()
 
 base {
     archivesBaseName = "gradle-script-kotlin-plugins"

@@ -46,7 +46,7 @@ dependencies {
 }
 
 configure(publishedProjects) {
-    apply<plugins.GskModule>()
+    apply<plugins.GskPublishedModule>()
 }
 
 tasks {
