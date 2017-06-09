@@ -25,7 +25,7 @@ import org.gradle.plugin.use.PluginDependencySpec
  * Fetched from plugin repositories using the following plugin id:
  * `org.gradle.script.lang.kotlin.plugins.embedded-kotlin`.
  *
- * @see org.gradle.script.lang.kotlin.plugins.EmbeddedKotlinPlugin
+ * @see org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin
  */
 inline val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
     get() = id("org.gradle.script.lang.kotlin.plugins.embedded-kotlin") version gradleScriptKotlinVersion
