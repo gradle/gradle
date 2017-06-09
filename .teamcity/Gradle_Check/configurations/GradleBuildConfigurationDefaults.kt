@@ -71,8 +71,7 @@ fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistributio
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            val parameters = if (runsOnWindows) gradleParameters.joinToString(separator = "' '", prefix = "'", postfix = "'") else gradleParameters.joinToString(separator = " ")
-            gradleParams = parameters + " " + gradleBuildCacheParameters.joinToString(separator = " ") + " " + extraParameters
+            gradleParams = gradleParameters.joinToString(separator = " ") + " " + gradleBuildCacheParameters.joinToString(separator = " ") + " " + extraParameters
             useGradleWrapper = true
         }
     }
