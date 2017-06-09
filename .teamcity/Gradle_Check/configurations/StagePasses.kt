@@ -10,8 +10,11 @@ import jetbrains.buildServer.configs.kotlin.v10.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.v10.triggers.VcsTrigger
 import jetbrains.buildServer.configs.kotlin.v10.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v10.triggers.vcs
+
 import model.CIBuildModel
+import model.CIBuildModel.testBucketCount
 import model.Stage
+import model.TestType
 import model.Trigger
 
 class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
@@ -81,7 +84,7 @@ class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
                 }
             }
         }
-/*
+
         stage.specificBuilds.forEach {
             dependency(it) {
                 snapshot {}
@@ -108,6 +111,5 @@ class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
                 }
             }
         }
-        */
     }
 })
