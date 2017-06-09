@@ -22,7 +22,7 @@ object ColonyCompatibility : BuildType({
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean :gradle-test:test"
-            gradleParams = gradleParameters.joinToString(separator = " ")
+            gradleParams = gradleParameters.joinToString(separator = " ").replace("-I ./gradle/buildScanInit.gradle","")
             useGradleWrapper = true
         }
         script {
