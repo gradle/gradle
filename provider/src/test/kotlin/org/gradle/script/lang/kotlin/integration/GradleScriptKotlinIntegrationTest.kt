@@ -164,7 +164,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
             buildscript {
                 repositories {
-                    gradleScriptKotlin()
+                    jcenter()
                 }
                 dependencies {
                     classpath(kotlin("gradle-plugin", version = "$differentKotlinVersion"))
