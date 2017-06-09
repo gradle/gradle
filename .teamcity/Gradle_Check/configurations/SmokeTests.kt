@@ -14,5 +14,5 @@ object SmokeTests : BuildType({
         param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
     }
 
-    applyDefaults(this, "smokeTest:smokeTest")
+    applyDefaults(this, "smokeTest:smokeTest", requiresDistribution = true)
 })
