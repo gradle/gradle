@@ -8,11 +8,23 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.cache.CacheRepository
 import java.io.File
 import java.net.URI
+import java.util.Properties
 import javax.inject.Inject
 
 
+private
+val pluginsProperties: Properties by lazy {
+    val properties = Properties()
+    val loader = EmbeddedKotlinPlugin::class.java.classLoader
+    loader.getResourceAsStream("embedded-kotlin-metadata.properties").use { input ->
+        properties.load(input)
+    }
+    properties
+}
+
+
 val embeddedKotlinVersion =
-    EmbeddedKotlinPlugin::class.java.classLoader.getResource("embedded-kotlin-version.txt").readText()
+    pluginsProperties.getProperty("embeddedKotlinVersion")!!
 
 
 internal

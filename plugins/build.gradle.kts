@@ -22,23 +22,17 @@ dependencies {
 }
 
 tasks {
-    "generateEmbeddedKotlinVersionResource" {
-        val generatedResourcesDir = "$buildDir/generate-resources/main"
-        val versionResourceFile = file("$generatedResourcesDir/embedded-kotlin-version.txt")
+    "generateEmbeddedKotlinMetadata"(WriteProperties::class) {
+        val metadataPropertiesFile = file("$buildDir/generate-resources/main/embedded-kotlin-metadata.properties")
 
-        inputs.property("embeddedKotlinVersion", kotlinVersion)
-        outputs.file(versionResourceFile)
+        outputFile = file(metadataPropertiesFile)
+        properties(mapOf("embeddedKotlinVersion" to kotlinVersion))
 
         val main by java.sourceSets
-        main.resources.srcDir(generatedResourcesDir)
+        main.resources.srcDir(metadataPropertiesFile.parentFile)
 
         val processResources by tasks
         processResources.dependsOn(this)
-
-        doLast {
-            versionResourceFile.parentFile.mkdirs()
-            versionResourceFile.writeText(kotlinVersion)
-        }
     }
     "test" {
         val customInstallation by rootProject.tasks
