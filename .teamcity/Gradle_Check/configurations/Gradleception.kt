@@ -14,10 +14,10 @@ object Gradleception : BuildType({
         param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
     }
 
-    applyDefaults(this, "install", extraParameters = "-Pgradle_installPath=dogfood-first", extraSteps = {
+    applyDefaults(this, ":install", extraParameters = "-Pgradle_installPath=dogfood-first", extraSteps = {
         gradle {
             name = "BUILD_WITH_BUILT_GRADLE"
-            tasks = "clean install"
+            tasks = "clean :install"
             gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
             gradleParams = "-Pgradle_installPath=dogfood-second " + gradleParameters.joinToString(separator = " ")
             param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
