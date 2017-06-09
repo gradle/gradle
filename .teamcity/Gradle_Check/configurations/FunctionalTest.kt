@@ -8,7 +8,7 @@ import model.TestType
 class FunctionalTest(testCoverage : TestCoverage, bucket: Int = 0) : BuildType({
     uuid = "${testCoverage.asId()}_$bucket"
     extId = uuid
-    name = "${testCoverage.asName()} ($bucket)"
+    name = testCoverage.asName() + if (bucket > 0) " ($bucket)" else ""
 
     val quickTest = testCoverage.testType == TestType.quick
     applyDefaults(this, "${testCoverage.testType}Test$bucket", requiresDistribution = !quickTest,

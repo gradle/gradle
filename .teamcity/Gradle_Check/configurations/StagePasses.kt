@@ -3,7 +3,6 @@ package configurations
 import jetbrains.buildServer.configs.kotlin.v10.BuildStep
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
 import jetbrains.buildServer.configs.kotlin.v10.FailureAction
-import jetbrains.buildServer.configs.kotlin.v10.ReuseBuilds
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v10.triggers.ScheduleTrigger
@@ -79,7 +78,6 @@ class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
         if (stageNumber > 1) {
             dependency("${CIBuildModel.projectPrefix}Stage${stageNumber - 1}_Passes") {
                 snapshot {
-                    reuseBuilds = ReuseBuilds.NO
                     onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
             }
