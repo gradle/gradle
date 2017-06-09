@@ -30,3 +30,15 @@ import org.gradle.plugin.use.PluginDependencySpec
 inline
 val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
     get() = id("org.gradle.kotlin.embedded-kotlin") version gradleScriptKotlinVersion
+
+
+/**
+ * The `kotlin-dsl` plugin.
+ *
+ * Fetched from plugin repositories using the following plugin id:
+ * `org.gradle.script.lang.kotlin.plugins.kotlin-dsl`.
+ *
+ * @see org.gradle.script.lang.kotlin.plugins.dsl.KotlinDslPlugin
+ */
+inline val PluginDependenciesSpec.`kotlin-dsl`: PluginDependencySpec
+    get() = id("org.gradle.kotlin.kotlin-dsl") version gradleScriptKotlinVersion
