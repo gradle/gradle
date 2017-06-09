@@ -54,6 +54,10 @@ val embeddedModules: List<EmbeddedModule> by lazy {
 }
 
 
+private
+val embeddedRepositoryCacheKeyVersion = 1
+
+
 open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRepository,
                                                     val moduleRegistry: ModuleRegistry) : Plugin<Project>
 {
@@ -91,13 +95,14 @@ open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRe
     private
     fun Project.initializeRepository(): URI
     {
-        cacheRepository.cache("embedded-kotlin-repo").withInitializer { cache ->
+        val cacheKey = "embedded-kotlin-rep-$embeddedKotlinVersion-$embeddedRepositoryCacheKeyVersion"
+        cacheRepository.cache(cacheKey).withInitializer { cache ->
             embeddedModules.forEach { module ->
                 val fromDistro = moduleRegistry.getExternalModule(module.name).classpath.asFiles.first()
-                fromDistro.copyTo(File(cache.baseDir, module.jarRepoPath))
+                fromDistro.copyTo(File(File(cache.baseDir, "repo"), module.jarRepoPath))
             }
         }.open().use { cache ->
-            return uri(cache.baseDir)
+            return uri(File(cache.baseDir, "repo"))
         }
     }
 
