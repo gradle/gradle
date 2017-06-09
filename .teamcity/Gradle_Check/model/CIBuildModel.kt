@@ -73,7 +73,7 @@ enum class TestType {
 }
 
 enum class JvmVendor {
-    sun, ibm
+    oracle, ibm
 }
 
 enum class PerformanceTestType(val taskId: String, val defaultBaselines: String = "", val defaultBaselinesBranches: String = "", val extraParameters : String = "") {
