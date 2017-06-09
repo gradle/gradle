@@ -21,7 +21,7 @@ dependencies {
 
 tasks {
     "generateEmbeddedKotlinMetadata"(WriteProperties::class) {
-        val metadataPropertiesFile = file("$buildDir/generate-resources/main/embedded-kotlin-metadata.properties")
+        val metadataPropertiesFile = file("$buildDir/generated-resources/main/embedded-kotlin-metadata.properties")
 
         outputFile = file(metadataPropertiesFile)
         properties(mapOf("embeddedKotlinVersion" to kotlinVersion))

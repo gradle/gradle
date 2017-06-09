@@ -100,7 +100,7 @@ open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRe
     private
     fun Project.initializeRepository(): URI {
 
-        val cacheKey = "embedded-kotlin-rep-$embeddedKotlinVersion-$embeddedRepositoryCacheKeyVersion"
+        val cacheKey = "embedded-kotlin-repo-$embeddedKotlinVersion-$embeddedRepositoryCacheKeyVersion"
         cacheRepository.cache(cacheKey).withInitializer { cache ->
             embeddedModules.forEach { module ->
                 val fromDistro = moduleRegistry.getExternalModule(module.name).classpath.asFiles.first()
