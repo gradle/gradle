@@ -64,7 +64,7 @@ fun RepositoryHandler.gradleScriptKotlin(): ArtifactRepository =
  * @param module simple name of the Kotlin module, for example "reflect".
  * @param version optional desired version, null implies [embeddedKotlinVersion].
  */
-fun DependencyHandler.kotlinModule(module: String, version: String? = null): Any =
+fun DependencyHandler.kotlin(module: String, version: String? = null): Any =
     "org.jetbrains.kotlin:kotlin-${'$'}module:${'$'}{version ?: embeddedKotlinVersion}"
 """)
     }

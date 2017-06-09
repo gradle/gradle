@@ -31,7 +31,7 @@ class CompilerPluginIntegrationTest : AbstractIntegrationTest() {
 
             buildscript {
                 repositories { gradleScriptKotlin() }
-                dependencies { classpath(kotlinModule("gradle-plugin")) }
+                dependencies { classpath(kotlin("gradle-plugin")) }
             }
 
             apply { plugin("kotlin") }

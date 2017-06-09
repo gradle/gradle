@@ -167,7 +167,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
                     gradleScriptKotlin()
                 }
                 dependencies {
-                    classpath(kotlinModule("gradle-plugin", version = "$differentKotlinVersion"))
+                    classpath(kotlin("gradle-plugin", version = "$differentKotlinVersion"))
                 }
             }
 
