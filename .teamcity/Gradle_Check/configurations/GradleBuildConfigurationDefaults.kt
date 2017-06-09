@@ -6,13 +6,16 @@ import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import model.CIBuildModel
 import java.util.Arrays.asList
 
+private val java7HomeLinux = "-Djava7.home=%linux.jdk.for.gradle.compile%"
+private val java7Windows = "${'"'}-Djava7.home=%windows.java7.oracle.64bit%${'"'}"
+
 val gradleParameters: List<String> = asList(
         "-PmaxParallelForks=%maxParallelForks%",
         "-s",
         "--no-daemon",
         "--continue",
         "-I ./gradle/buildScanInit.gradle",
-        "-Djava7.home=%linux.jdk.for.gradle.compile%"
+        java7HomeLinux
 )
 
 val gradleBuildCacheParameters: List<String> = asList(
@@ -64,18 +67,18 @@ fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, t
     }
 }
 
+
 fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistribution: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
     applyDefaultSettings(buildType, runsOnWindows, timeout)
+
+    val java7HomeParameter = if (runsOnWindows) java7Windows else java7HomeLinux
+    val gradleParameterString = gradleParameters.joinToString(separator = " ").replace(java7HomeLinux, java7HomeParameter)
 
     buildType.steps {
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            var parameterString = gradleParameters.joinToString(separator = " ")
-            if (runsOnWindows) {
-                parameterString = parameterString.replace("-Djava7.home=%linux.jdk.for.gradle.compile%", "${'"'}-Djava7.home=%windows.java7.oracle.64bit%${'"'}")
-            }
-            gradleParams = parameterString + " " + gradleBuildCacheParameters.joinToString(separator = " ") + " " + extraParameters
+            gradleParams = gradleParameterString + " " + gradleBuildCacheParameters.joinToString(separator = " ") + " " + extraParameters
             useGradleWrapper = true
         }
     }
@@ -91,7 +94,7 @@ fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistributio
         gradle {
             name = "VERIFY_TEST_FILES_CLEANUP"
             tasks = "verifyTestFilesCleanup"
-            gradleParams = gradleParameters.joinToString(separator = " ")
+            gradleParams = gradleParameterString
             useGradleWrapper = true
         }
         gradle {
@@ -99,7 +102,7 @@ fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistributio
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "tagBuild"
             buildFile = "gradle/buildTagging.gradle"
-            gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% -Djava7.home=%linux.jdk.for.gradle.compile%"
+            gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% $java7HomeParameter"
             useGradleWrapper = true
         }
     }
