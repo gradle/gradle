@@ -45,7 +45,7 @@ data class GradlePlugin(val displayName: String, val id: String, val implementat
 
 val plugins = listOf(
     GradlePlugin("Embedded Kotlin Gradle Plugin",
-                 "org.gradle.script.lang.kotlin.plugins.embedded-kotlin",
+                 "org.gradle.kotlin.embedded-kotlin",
                  "org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin"))
 
 plugins.forEach { plugin ->
