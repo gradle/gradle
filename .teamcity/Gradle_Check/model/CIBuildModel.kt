@@ -45,7 +45,7 @@ object CIBuildModel {
                             PerformanceTestType.experiment)),
             Stage("Performance Historical",
                     performanceTests = listOf(
-                            /*PerformanceTestType.historical)*/)
+                            /*PerformanceTestType.historical*/))
     )
 }
 
