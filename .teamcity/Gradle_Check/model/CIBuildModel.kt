@@ -28,7 +28,7 @@ object CIBuildModel {
             Stage("Test Parallel, Java9, IBM VM, Cross-Version, Smoke Tests, Colony, API Change Reporting",
                     trigger = Trigger.eachCommit,
                     specificBuilds = listOf(
-                            SmokeTests, ColonyCompatibility, APIChangeReport),
+                            SmokeTests, ColonyCompatibility),
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
