@@ -19,7 +19,7 @@ import model.Trigger
 class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
     uuid = "${CIBuildModel.projectPrefix}Stage${stageNumber}_Passes"
     extId = uuid
-    name = "Stage $stageNumber Passes"
+    name = "$stageNumber Stage Passes"
 
     applyDefaultSettings(this)
 
