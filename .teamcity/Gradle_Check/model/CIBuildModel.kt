@@ -51,7 +51,7 @@ object CIBuildModel {
 
 data class Stage(val description: String, val specificBuilds: List<BuildType> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
 
-data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.sun) {
+data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(): String {
         return "${CIBuildModel.projectPrefix}Test_Coverage_${testType.name.capitalize()}_${version.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
     }
