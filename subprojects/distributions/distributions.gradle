@@ -34,8 +34,6 @@ configurations {
     dists
 }
 
-[ forkingIntegTest, parallelIntegTest ]*.configure { enabled = false }
-
 evaluationDependsOn ":docs"
 
 ext {

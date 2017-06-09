@@ -37,10 +37,6 @@ forkingIntegTest {
     maxParallelForks = Math.min(2, rootProject.maxParallelForks)
 }
 
-[ forkingIntegTest, parallelIntegTest ]*.configure {
-    enabled = false //tooling integ tests use daemon anyway, don't rerun
-}
-
 task shadedJarWithoutVersion(type: ShadedJar) {
     ext.outputDir = file("$buildDir/shaded-jar-without-version")
     sourceFiles = jar.outputs.files +
