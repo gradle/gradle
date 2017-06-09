@@ -81,8 +81,16 @@ public class PgpSignatoryFactory {
         for (String property : PROPERTIES) {
             String qualifiedProperty = (String)getQualifiedPropertyName(prefix, property);
             if (project.hasProperty(qualifiedProperty)) {
-                values.add(
-                    project.property(qualifiedProperty));
+                Object prop = project.property(qualifiedProperty);
+                if(prop != null){
+                    values.add(prop);
+                } else {
+                    if(required){
+                        throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' was null. A valid value is needed for signing");
+                    } else {
+                        return null;
+                    }
+                }
             } else {
                 if (required) {
                     throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' could not be found on project and is needed for signing");
