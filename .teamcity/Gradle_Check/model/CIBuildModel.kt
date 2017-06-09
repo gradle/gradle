@@ -26,6 +26,7 @@ object CIBuildModel {
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
                     performanceTests = listOf(PerformanceTestType.regression)),
             Stage("Test Parallel, Java9, IBM VM, Cross-Version, Smoke Tests, Colony, API Change Reporting",
+                    trigger = Trigger.eachCommit,
                     specificBuilds = listOf(
                             SmokeTests, ColonyCompatibility, APIChangeReport),
                     functionalTests = listOf(
@@ -34,6 +35,7 @@ object CIBuildModel {
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java9),
                             TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
             Stage("Test Cross-version (All Versions), No-daemon, Soak Tests, Performance Experiments",
+                    trigger = Trigger.daily,
                     functionalTests = listOf(
                             TestCoverage(TestType.soak, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.soak, OS.windows, JvmVersion.java8),
@@ -44,6 +46,7 @@ object CIBuildModel {
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
             Stage("Performance Historical",
+                    trigger = Trigger.weekly,
                     performanceTests = listOf(
                             PerformanceTestType.historical))
     )
