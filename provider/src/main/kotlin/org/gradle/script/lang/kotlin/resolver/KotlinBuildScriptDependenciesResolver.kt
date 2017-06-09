@@ -22,10 +22,6 @@ import org.gradle.script.lang.kotlin.concurrent.future
 
 import org.gradle.tooling.ProgressListener
 
-import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
-import org.jetbrains.kotlin.script.ScriptContents
-import org.jetbrains.kotlin.script.ScriptDependenciesResolver
-
 import java.io.File
 
 import java.net.URI
@@ -33,6 +29,10 @@ import java.net.URI
 import java.security.MessageDigest
 
 import java.util.Arrays.equals
+
+import kotlin.script.dependencies.KotlinScriptExternalDependencies
+import kotlin.script.dependencies.ScriptContents
+import kotlin.script.dependencies.ScriptDependenciesResolver
 
 
 internal

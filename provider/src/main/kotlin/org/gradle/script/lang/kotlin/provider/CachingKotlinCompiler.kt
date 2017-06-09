@@ -35,11 +35,11 @@ import org.gradle.script.lang.kotlin.support.messageCollectorFor
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
-import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
 
 import java.io.File
 
 import kotlin.reflect.KClass
+import kotlin.script.dependencies.KotlinScriptExternalDependencies
 
 
 internal

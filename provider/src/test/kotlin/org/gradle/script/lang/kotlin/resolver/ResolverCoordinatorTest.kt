@@ -3,12 +3,12 @@ package org.gradle.script.lang.kotlin.resolver
 import org.gradle.script.lang.kotlin.fixtures.assertInstanceOf
 import org.gradle.script.lang.kotlin.fixtures.withInstanceOf
 
-import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
-import org.jetbrains.kotlin.script.ScriptContents
-
 import org.junit.Test
 
 import java.io.File
+
+import kotlin.script.dependencies.KotlinScriptExternalDependencies
+import kotlin.script.dependencies.ScriptContents
 
 class ResolverCoordinatorTest {
 

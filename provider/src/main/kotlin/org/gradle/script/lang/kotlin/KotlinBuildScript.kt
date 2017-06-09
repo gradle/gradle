@@ -22,8 +22,8 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 
 import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptDependenciesResolver
 
-import org.jetbrains.kotlin.script.SamWithReceiverAnnotations
-import org.jetbrains.kotlin.script.ScriptTemplateDefinition
+import kotlin.script.extensions.SamWithReceiverAnnotations
+import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**

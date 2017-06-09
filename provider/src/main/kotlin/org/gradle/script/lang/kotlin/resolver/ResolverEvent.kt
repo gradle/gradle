@@ -16,7 +16,7 @@
 
 package org.gradle.script.lang.kotlin.resolver
 
-import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
+import kotlin.script.dependencies.KotlinScriptExternalDependencies
 
 import org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel
 
