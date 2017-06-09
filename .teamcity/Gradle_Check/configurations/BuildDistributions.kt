@@ -10,4 +10,9 @@ object BuildDistributions : BuildType({
     description = "Creation and verification of the distribution and documentation"
 
     applyDefaults(this, "packageBuild")
+
+    artifactRules += """
+        build/distributions/*.zip => distributions
+        build/build-receipt.properties
+    """.trimIndent()
 })

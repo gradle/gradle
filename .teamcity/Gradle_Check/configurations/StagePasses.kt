@@ -22,6 +22,7 @@ class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
     name = "$stageNumber Stage Passes"
 
     applyDefaultSettings(this)
+    artifactRules = "build/build-receipt.properties"
 
     val triggerExcludes = """
         -:design-docs
