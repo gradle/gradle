@@ -6,29 +6,10 @@ import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.cache.CacheRepository
+import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 import java.io.File
 import java.net.URI
-import java.util.Properties
 import javax.inject.Inject
-
-
-private
-val pluginsProperties: Properties by lazy {
-
-    val properties = Properties()
-    val loader = EmbeddedKotlinPlugin::class.java.classLoader
-    loader.getResourceAsStream("embedded-kotlin-metadata.properties").use { input ->
-        properties.load(input)
-    }
-    properties
-}
-
-
-/**
- * Full version of the embedded Kotlin.
- */
-val embeddedKotlinVersion =
-    pluginsProperties.getProperty("embeddedKotlinVersion")!!
 
 
 internal

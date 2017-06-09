@@ -12,6 +12,7 @@ base {
 }
 
 dependencies {
+    compileOnly(gradleScriptKotlinApi())
 
     implementation(kotlin("stdlib"))
     implementation(kotlin("gradle-plugin"))
@@ -19,24 +20,9 @@ dependencies {
     testImplementation(project(":test-fixtures"))
 }
 
-tasks {
-    "generateEmbeddedKotlinMetadata"(WriteProperties::class) {
-        val metadataPropertiesFile = file("$buildDir/generated-resources/main/embedded-kotlin-metadata.properties")
-
-        outputFile = file(metadataPropertiesFile)
-        properties(mapOf("embeddedKotlinVersion" to kotlinVersion))
-
-        val main by java.sourceSets
-        main.resources.srcDir(metadataPropertiesFile.parentFile)
-
-        val processResources by tasks
-        processResources.dependsOn(this)
-    }
-    "test" {
-        val customInstallation by rootProject.tasks
-        dependsOn(customInstallation)
-    }
-}
+val customInstallation by rootProject.tasks
+val test by tasks
+test.dependsOn(customInstallation)
 
 
 // --- Plugins declaration ----------------------------------------------
