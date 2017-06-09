@@ -29,14 +29,11 @@ class CompilerPluginIntegrationTest : AbstractIntegrationTest() {
         withBuildScript("""
             import org.jetbrains.kotlin.gradle.tasks.*
 
-            buildscript {
-                repositories { gradleScriptKotlin() }
-                dependencies { classpath(kotlin("gradle-plugin")) }
+            plugins {
+                kotlin("jvm")
             }
 
-            apply { plugin("kotlin") }
-
-            dependencies { compile(gradleApi()) }
+            dependencies { compileOnly(gradleApi()) }
 
             val compilerPluginVersion = KotlinBuildScript::class.java.`package`.implementationVersion
             val compilerPluginFileName = "lib/gradle-script-kotlin-compiler-plugin-" + compilerPluginVersion + ".jar"

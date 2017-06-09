@@ -47,6 +47,9 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 
+import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependencySpec
+
 /**
  * The version of the Kotlin compiler embedded in gradle-script-kotlin (currently _${embeddedKotlinVersion}_).
  */
@@ -66,6 +69,18 @@ fun RepositoryHandler.gradleScriptKotlin(): ArtifactRepository =
  */
 fun DependencyHandler.kotlin(module: String, version: String? = null): Any =
     "org.jetbrains.kotlin:kotlin-${'$'}module:${'$'}{version ?: embeddedKotlinVersion}"
+
+/**
+ * Builds the plugin dependency specification for the named Kotlin Gradle plugin [module] at the given [version].
+ *
+ * Visit the [plugin portal](https://plugins.gradle.org/search?term=org.jetbrains.kotlin) to see the list of available plugins.
+ *
+ * @param module simple name of the Kotlin Gradle plugin module, for example "jvm", "android", "kapt", "plugin.allopen" etc...
+ * @param version optional desired version, null implies [embeddedKotlinVersion].
+ */
+fun PluginDependenciesSpec.kotlin(module: String, version: String? = null): PluginDependencySpec =
+    id("org.jetbrains.kotlin.${'$'}module") version (version ?: embeddedKotlinVersion)
+
 """)
     }
 }

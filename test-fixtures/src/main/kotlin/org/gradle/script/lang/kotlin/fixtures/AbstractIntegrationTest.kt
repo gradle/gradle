@@ -53,16 +53,8 @@ open class AbstractIntegrationTest {
     protected
     fun withKotlinBuildSrc() =
         withBuildScriptIn("buildSrc", """
-            buildscript {
-                configure(listOf(repositories, project.repositories)) {
-                    gradleScriptKotlin()
-                }
-                dependencies {
-                    classpath(kotlin("gradle-plugin"))
-                }
-            }
-            apply {
-                plugin("kotlin")
+            plugins {
+                kotlin("jvm")
             }
             dependencies {
                 compile(gradleScriptKotlinApi())
