@@ -2,6 +2,7 @@ import build.kotlinVersion
 
 plugins {
     `java-gradle-plugin`
+    id("com.gradle.plugin-publish") version "0.9.7"
 }
 
 apply {
@@ -53,6 +54,15 @@ gradlePlugin {
         pluginId {
             id = pluginId
             implementationClass = "org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin"
+        }
+    }
+}
+
+pluginBundle {
+    (plugins) {
+        pluginId {
+            id = pluginId
+            displayName = "Embedded Kotlin Gradle Plugin"
         }
     }
 }
