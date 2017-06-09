@@ -36,8 +36,8 @@ data class EmbeddedModule(val group: String,
                           val name: String,
                           val version: String,
                           val dependencies: List<EmbeddedModule>,
-                          val autoDependency: Boolean)
-{
+                          val autoDependency: Boolean) {
+
     val notation: String = "$group:$name:$version"
     val jarRepoPath: String = "${group.replace(".", "/")}/$name/$version/$name-$version.jar"
 }
@@ -59,12 +59,9 @@ val embeddedRepositoryCacheKeyVersion = 1
 
 
 open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRepository,
-                                                    val moduleRegistry: ModuleRegistry) : Plugin<Project>
-{
+                                                    val moduleRegistry: ModuleRegistry) : Plugin<Project> {
 
-    override fun apply(project: Project)
-    {
-
+    override fun apply(project: Project) {
         project.run {
 
             applyKotlinPlugin()
@@ -76,16 +73,14 @@ open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRe
     }
 
     private
-    fun Project.applyKotlinPlugin()
-    {
+    fun Project.applyKotlinPlugin() {
         // `kotlin` and `org.jetbrains.kotlin.jvm` are equivalent
         // the latter id is only available starting with 1.1.1 though
         plugins.apply("kotlin")
     }
 
     private
-    fun Project.addRepository()
-    {
+    fun Project.addRepository() {
         repositories.maven { repo ->
             repo.name = "Embedded Kotlin Repository"
             repo.url = initializeRepository()
@@ -93,8 +88,7 @@ open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRe
     }
 
     private
-    fun Project.initializeRepository(): URI
-    {
+    fun Project.initializeRepository(): URI {
         val cacheKey = "embedded-kotlin-rep-$embeddedKotlinVersion-$embeddedRepositoryCacheKeyVersion"
         cacheRepository.cache(cacheKey).withInitializer { cache ->
             embeddedModules.forEach { module ->
@@ -107,16 +101,14 @@ open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRe
     }
 
     private
-    fun Project.addDependencies()
-    {
+    fun Project.addDependencies() {
         embeddedModules.filter { it.autoDependency }.forEach { embeddedModule ->
             dependencies.add("implementation", clientModuleFor(embeddedModule))
         }
     }
 
     private
-    fun Project.clientModuleFor(embeddedModule: EmbeddedModule): ClientModule
-    {
+    fun Project.clientModuleFor(embeddedModule: EmbeddedModule): ClientModule {
         val clientModule = dependencies.module(embeddedModule.notation) as ClientModule
         embeddedModule.dependencies.forEach { dependency ->
             clientModule.addDependency(clientModuleFor(dependency))
@@ -125,8 +117,7 @@ open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRe
     }
 
     private
-    fun Project.pinDependencies()
-    {
+    fun Project.pinDependencies() {
         configurations.all { configuration ->
             configuration.resolutionStrategy.eachDependency { details ->
                 findEmbeddedModule(details.requested)?.let { module ->
