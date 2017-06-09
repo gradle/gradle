@@ -24,9 +24,9 @@ class CIConfigIntegrationTests {
             it.dependencies.items.forEach {
                 println("--> " + it.extId)
             }
-            var functionalTestCount = stage.functionalTests.size * CIBuildModel.testBucketCount
+            var functionalTestCount = stage.functionalTests.size * CIBuildModel.testBuckets.size
             if (stageNumber == 6) {
-                functionalTestCount -= 2 * (CIBuildModel.testBucketCount - 1) //Soak tests
+                functionalTestCount -= 2 * (CIBuildModel.testBuckets.size - 1) //Soak tests
             }
             assertEquals(
                     stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + hasPrevStage,

@@ -1,11 +1,14 @@
 package model
 
-import configurations.*
+import configurations.BuildDistributions
+import configurations.ColonyCompatibility
+import configurations.Gradleception
+import configurations.SanityCheck
+import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 object CIBuildModel {
     val projectPrefix = "Gradle_Check_"
-    val testBucketCount = 8
 
     val stages = listOf(
             Stage("Sanity Check and Distribution",
@@ -25,7 +28,7 @@ object CIBuildModel {
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
                     performanceTests = listOf(PerformanceTestType.regression)),
-            Stage("Test Parallel, Java9, IBM VM, Cross-Version, Smoke Tests, Colony, API Change Reporting",
+            Stage("Test Parallel, Java9, IBM VM, Cross-Version, Smoke Tests, Colony",
                     trigger = Trigger.eachCommit,
                     specificBuilds = listOf(
                             SmokeTests, ColonyCompatibility),
@@ -49,6 +52,91 @@ object CIBuildModel {
                     trigger = Trigger.weekly,
                     performanceTests = listOf(
                             PerformanceTestType.historical))
+    )
+
+    //TODO this is a copy of `gradle/buildSplits.gradle`, we should use a shared specification
+    val testBuckets = listOf(
+            listOf(
+                    ":platformPlay",
+                    ":runtimeApiInfo"),
+            listOf(
+                    ":toolingApi",
+                    ":compositeBuilds",
+                    ":resourcesS3",
+                    ":resources",
+                    ":jvmServices",
+                    ":docs",
+                    ":distributions",
+                    ":soak",
+                    ":smokeTest",
+                    ":buildCacheHttp",
+                    ":workers"),
+            listOf(
+                    ":launcher",
+                    ":buildComparison",
+                    ":buildInit",
+                    ":antlr",
+                    ":signing",
+                    ":testingBase",
+                    ":baseServicesGroovy",
+                    ":toolingApiBuilders"),
+            listOf(
+                    ":testKit",
+                    ":languageNative",
+                    ":ivy",
+                    ":wrapper",
+                    ":platformJvm",
+                    ":baseServices",
+                    ":announce",
+                    ":publish"
+            ),
+            listOf(
+                    ":integTest",
+                    ":plugins",
+                    ":idePlay",
+                    ":platformBase",
+                    ":diagnostics",
+                    ":ideNative",
+                    ":javascript",
+                    ":languageJvm",
+                    ":ear"
+            ),
+            listOf(
+                    ":pluginUse",
+                    ":dependencyManagement",
+                    ":languageJava",
+                    ":maven",
+                    ":reporting",
+                    ":languageGroovy",
+                    ":internalTesting",
+                    ":performance",
+                    ":buildScanPerformance",
+                    ":internalIntegTesting",
+                    ":internalPerformanceTesting",
+                    ":internalAndroidPerformanceTesting",
+                    ":processServices",
+                    ":installationBeacon"),
+            listOf(
+                    ":core",
+                    ":languageScala",
+                    ":scala",
+                    ":platformNative",
+                    ":modelCore",
+                    ":resourcesSftp",
+                    ":messaging",
+                    ":logging",
+                    ":resourcesHttp"),
+            listOf(
+                    ":pluginDevelopment",
+                    ":codeQuality",
+                    ":testingJvm",
+                    ":ide",
+                    ":testingNative",
+                    ":jacoco",
+                    ":modelGroovy",
+                    ":osgi",
+                    ":native",
+                    ":cli")
     )
 }
 

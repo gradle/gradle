@@ -2,7 +2,7 @@ package projects
 
 import configurations.FunctionalTest
 import jetbrains.buildServer.configs.kotlin.v10.Project
-import model.CIBuildModel
+import model.CIBuildModel.testBuckets
 import model.TestCoverage
 
 class FunctionalTestProject(testConfig : TestCoverage) : Project({
@@ -10,7 +10,7 @@ class FunctionalTestProject(testConfig : TestCoverage) : Project({
     this.extId = uuid
     this.name = testConfig.asName()
 
-    (1..CIBuildModel.testBucketCount).forEach { bucket ->
+    (1..testBuckets.size).forEach { bucket ->
         buildType(FunctionalTest(testConfig, bucket))
     }
 })

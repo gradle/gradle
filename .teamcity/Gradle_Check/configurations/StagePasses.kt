@@ -9,9 +9,8 @@ import jetbrains.buildServer.configs.kotlin.v10.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.v10.triggers.VcsTrigger
 import jetbrains.buildServer.configs.kotlin.v10.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v10.triggers.vcs
-
 import model.CIBuildModel
-import model.CIBuildModel.testBucketCount
+import model.CIBuildModel.testBuckets
 import model.Stage
 import model.TestType
 import model.Trigger
@@ -99,7 +98,7 @@ class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
         stage.functionalTests.forEach { testCoverage ->
             val isSplitIntoBuckets = testCoverage.testType != TestType.soak
             if (isSplitIntoBuckets) {
-                (1..testBucketCount).forEach { bucket ->
+                (1..testBuckets.size).forEach { bucket ->
                     dependency(testCoverage.asId() + "_" + bucket) {
                         snapshot {}
                     }

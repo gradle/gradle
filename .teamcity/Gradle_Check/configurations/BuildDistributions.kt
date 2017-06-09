@@ -11,8 +11,7 @@ object BuildDistributions : BuildType({
 
     applyDefaults(this, "packageBuild")
 
-    artifactRules = """
-        $artifactRules
+    artifactRules = """$artifactRules
         build/distributions/*.zip => distributions
         build/build-receipt.properties
     """.trimIndent()
