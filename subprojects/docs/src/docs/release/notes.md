@@ -57,6 +57,12 @@ Previous versions of Gradle would select the `runtimeElements` when both project
 
 This change makes the selection behaviour consistent so that the `runtimeElements` configuration is selected regardless of whether the consuming project uses the Java plugin or not. This is also consistent with the selection when the consuming project is using one of the Android plugins.
 
+### Changes to setTestNameIncludePatterns() of Test task
+
+`setTestNameIncludePatterns` method of `Test` task is designed to be used in command line, therefore it will override configurations of `include`/`exclude` in `build.gradle` according to [Test filtering](userguide/java_plugin.html#test_filtering).
+
+However, in previous versions of Gradle, this overriding mechanism is not implemented. Now, if `setTestNameIncludePatterns` is invoked directly, it will disable `include`/`exclude` defined in `build.gradle`. If you're affected by this change, use `filter.setIncludePatterns` instead.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Unroll
 
 abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrationSpec {
@@ -241,6 +242,94 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         "no options"     | ["test"]                                                 | ["Foo1Test", "Foo2Test", "BarTest", "OtherTest"] | ["bar", "pass1"]  | ["bar", "pass2"]  | ["bar"]          | ["bar", "pass3"]
         "pass and Ohter" | ["test", "--tests", "*.pass1", "--tests", "*OtherTest*"] | ["Foo1Test", "OtherTest"]                        | ["pass1"]         | []                | []               | ["bar", "pass3"]
         "pass and *ar"   | ["test", "--tests", "*.pass1", "--tests", "*arTest"]     | ["BarTest", "Foo1Test"]                          | ["pass1"]         | []                | ["bar"]          | []
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1571")
+    @Unroll
+    def "option --tests overrides #includeType"() {
+        given:
+        buildFile << """
+        test {
+            $includeConfig
+        }
+        """
+
+        when:
+        createTestABC()
+
+        then:
+        succeeds('test', '--tests', '*BTest*', '--tests', '*CTest*', '--info')
+
+        !output.contains('ATest!')
+        output.contains('BTest!')
+        output.contains('CTest!')
+
+        where:
+        includeType                   | includeConfig
+        "include and exclude"         | "include '*ATest*'; exclude '*BTest*'"
+        "filter.includeTestsMatching" | "filter { includeTestsMatching '*ATest*' }"
+    }
+
+    @Unroll
+    def "invoking testNameIncludePatterns() disable include/exclude filter"() {
+        given:
+        buildFile << """
+        test {
+            include '*ATest*', '*BTest*'
+            testNameIncludePatterns = [ '*BTest*', '*CTest*' ] //meant to be used from cmd line, but the user could do this
+
+        }
+        """
+
+        when:
+        createTestABC()
+
+        then:
+        succeeds('test', '--info')
+
+        !output.contains('ATest!')
+        output.contains('BTest!')
+        output.contains('CTest!')
+    }
+
+    @Unroll
+    def "invoking filter.includePatterns not disable include/exclude filter"() {
+        given:
+        buildFile << """
+        test {
+            include '*ATest*', '*BTest*'
+            filter.includePatterns = [ '*BTest*', '*CTest*' ] //meant to be used from cmd line, but the user could do this
+
+        }
+        """
+
+        when:
+        createTestABC()
+
+        then:
+        succeeds('test', '--info')
+
+        !output.contains('ATest!')
+        output.contains('BTest!')
+        !output.contains('CTest!')
+    }
+
+    def createTestABC(){
+        file('src/test/java/ATest.java') << """import $imports;
+            public class ATest {
+                @Test public void test() { System.out.println("ATest!"); }
+            }
+        """
+        file('src/test/java/BTest.java') << """import $imports;
+            public class BTest {
+                @Test public void test() { System.out.println("BTest!"); }
+            }
+        """
+        file('src/test/java/CTest.java') << """import $imports;
+            public class CTest {
+                @Test public void test() { System.out.println("CTest!"); }
+            }
+        """
     }
 
     def String[] stringArrayOf(List<String> strings) {
