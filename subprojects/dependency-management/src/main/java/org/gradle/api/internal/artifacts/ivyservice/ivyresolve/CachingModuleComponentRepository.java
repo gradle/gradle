@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
@@ -76,14 +77,15 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess;
     private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
-    private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
     public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                             ModuleArtifactsCache moduleArtifactsCache, CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                             CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
                                             ComponentMetadataProcessor metadataProcessor,
-                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                            CacheLockingManager cacheLockingManager) {
         this.delegate = delegate;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleVersionsCache = moduleVersionsCache;
@@ -93,6 +95,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.cachePolicy = cachePolicy;
         this.metadataProcessor = metadataProcessor;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess(cacheLockingManager);
     }
 
     public String getId() {
@@ -335,19 +338,30 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
+        private final CacheLockingManager cacheLockingManager;
+
+        ResolveAndCacheRepositoryAccess(CacheLockingManager cacheLockingManager) {
+            this.cacheLockingManager = cacheLockingManager;
+        }
+
         @Override
         public String toString() {
             return "cache > " + delegate.getRemoteAccess().toString();
         }
 
         @Override
-        public void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(final DependencyMetadata dependency, final BuildableModuleVersionListingResolveResult result) {
             delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:
-                    ModuleIdentifier moduleId = getCacheKey(dependency.getRequested());
-                    Set<String> versionList = result.getVersions();
-                    moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
+                    cacheLockingManager.useCache(new Runnable() {
+                        @Override
+                        public void run() {
+                            ModuleIdentifier moduleId = getCacheKey(dependency.getRequested());
+                            Set<String> versionList = result.getVersions();
+                            moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
+                        }
+                    });
                     break;
                 case Failed:
                     break;

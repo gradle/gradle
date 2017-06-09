@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
@@ -59,8 +60,9 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def cachePolicy = Stub(CachePolicy)
     def metadataProcessor = Stub(ComponentMetadataProcessor)
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
+    def cacheLockingManager = Mock(CacheLockingManager)
     def repo = new CachingModuleComponentRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache,
-            cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor, moduleIdentifierFactory)
+            cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor, moduleIdentifierFactory, cacheLockingManager)
 
     @Unroll
     def "artifact last modified date is cached - lastModified = #lastModified"() {
