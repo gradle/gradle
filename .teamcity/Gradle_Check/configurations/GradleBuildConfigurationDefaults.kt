@@ -73,7 +73,7 @@ fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistributio
             tasks = "clean $gradleTasks"
             var parameterString = gradleParameters.joinToString(separator = " ")
             if (runsOnWindows) {
-                parameterString = parameterString.replace("-Djava7.home=%linux.jdk.for.gradle.compile%", "${'"'}-Djava7.home=%linux.jdk.for.gradle.compile%${'"'}")
+                parameterString = parameterString.replace("-Djava7.home=%linux.jdk.for.gradle.compile%", "${'"'}-Djava7.home=%windows.java7.oracle.64bit%${'"'}")
             }
             gradleParams = parameterString + " " + gradleBuildCacheParameters.joinToString(separator = " ") + " " + extraParameters
             useGradleWrapper = true
