@@ -1,6 +1,10 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.*
+import jetbrains.buildServer.configs.kotlin.v10.BuildStep
+import jetbrains.buildServer.configs.kotlin.v10.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import jetbrains.buildServer.configs.kotlin.v10.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import model.CIBuildModel
@@ -110,7 +114,7 @@ fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistributio
     applyDefaultDependencies(buildType, requiresDistribution)
 }
 
-fun applyDefaultDependencies(buildType: BuildType, requiresDistribution: Boolean = false) {
+fun applyDefaultDependencies(buildType: BuildType, requiresDistribution: Boolean = false, distributionsArtifactRule: String = "distributions/*-all.zip => incoming-distributions") {
     if (requiresDistribution) {
         buildType.dependencies {
             dependency("${CIBuildModel.projectPrefix}Stage3_Passes") {
@@ -123,7 +127,7 @@ fun applyDefaultDependencies(buildType: BuildType, requiresDistribution: Boolean
                 id = "ARTIFACT_DEPENDENCY_${BuildDistributions.extId}"
                 cleanDestination = true
                 artifactRules = """
-                    distributions/*-all.zip => incoming-distributions
+                    $distributionsArtifactRule
                     build-receipt.properties => incoming-distributions
                 """.trimIndent()
             }

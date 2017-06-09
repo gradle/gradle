@@ -32,5 +32,5 @@ object ColonyCompatibility : BuildType({
         }
     }
 
-    applyDefaultDependencies(this, true)
+    applyDefaultDependencies(this, true, "distributions/*-bin.zip => gradle-test/incoming-distributions/release\n-:distributions/*-test-bin.zip")
 })
