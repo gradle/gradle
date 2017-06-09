@@ -39,7 +39,7 @@ tasks {
 }
 
 // --- Plugin declaration ----------------------------------------------
-val pluginId = "embedded-kotlin"
+val pluginId = "org.gradle.script.lang.kotlin.plugins.embedded-kotlin"
 
 gradlePlugin {
     (plugins) {
