@@ -1,6 +1,8 @@
 package Gradle_Check
 
-import jetbrains.buildServer.configs.kotlin.v10.*
+import jetbrains.buildServer.configs.kotlin.v10.project
+import jetbrains.buildServer.configs.kotlin.v10.version
+import projects.RootProject
 
 /*
 The settings script is an entry point for defining a single
@@ -23,4 +25,4 @@ calling the subProjects() method in this project.
 */
 
 version = "2017.1"
-project(Gradle_Check.Project)
+project(RootProject)

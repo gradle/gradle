@@ -35,7 +35,8 @@
   </pluginRepositories>
 
   <build>
-    <sourceDirectory>.</sourceDirectory>
+    <sourceDirectory>Gradle_Check</sourceDirectory>
+    <testSourceDirectory>Gradle_Check_Tests</testSourceDirectory>
     <plugins>
       <plugin>
         <artifactId>kotlin-maven-plugin</artifactId>
@@ -91,6 +92,11 @@
       <artifactId>kotlin-stdlib</artifactId>
       <version>${kotlin.version}</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
     </dependency>
   </dependencies>
 </project>
