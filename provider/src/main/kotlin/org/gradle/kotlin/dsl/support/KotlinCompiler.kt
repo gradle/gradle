@@ -170,7 +170,7 @@ private
 fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFiles: Iterable<File>): CompilerConfiguration =
     CompilerConfiguration().apply {
         addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
-        addJvmClasspathRoots(PathUtil.getJdkClassesRoots())
+        addJvmClasspathRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
@@ -203,10 +203,10 @@ fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it 
 
         override fun clear() { errors = 0 }
 
-        override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation) {
+        override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
 
             fun msg() =
-                location.run {
+                location?.run {
                     path?.let(pathTranslation)?.let { path ->
                         when {
                             line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
