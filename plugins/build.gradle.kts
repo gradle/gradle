@@ -38,26 +38,37 @@ tasks {
     }
 }
 
-// --- Plugin declaration ----------------------------------------------
-val pluginId = "org.gradle.script.lang.kotlin.plugins.embedded-kotlin"
 
-gradlePlugin {
-    (plugins) {
-        pluginId {
-            id = pluginId
-            implementationClass = "org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin"
+// --- Plugins declaration ----------------------------------------------
+
+data class GradlePlugin(val displayName: String, val id: String, val implementationClass: String)
+
+val plugins = listOf(
+    GradlePlugin("Embedded Kotlin Gradle Plugin",
+                 "org.gradle.script.lang.kotlin.plugins.embedded-kotlin",
+                 "org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin"))
+
+plugins.forEach { plugin ->
+
+    gradlePlugin {
+        (plugins) {
+            plugin.id {
+                id = plugin.id
+                implementationClass = plugin.implementationClass
+            }
+        }
+    }
+
+    pluginBundle {
+        (plugins) {
+            plugin.id {
+                id = plugin.id
+                displayName = plugin.displayName
+            }
         }
     }
 }
 
-pluginBundle {
-    (plugins) {
-        pluginId {
-            id = pluginId
-            displayName = "Embedded Kotlin Gradle Plugin"
-        }
-    }
-}
 
 // --- Utility functions -----------------------------------------------
 fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
