@@ -63,10 +63,10 @@ val embeddedRepositoryCacheKeyVersion = 1
 /**
  * The `embedded-kotlin` plugin.
  *
- * Applies the embedded `kotlin` plugin,
+ * Applies the `org.jetbrains.kotlin.jvm` plugin,
  * adds implementation dependencies on `kotlin-stdlib` and `kotlin-reflect,
  * configures an embedded repository that contains all embedded Kotlin libraries,
- * and pins .
+ * and pins them to the embedded Kotlin version.
  */
 open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRepository,
                                                     val moduleRegistry: ModuleRegistry) : Plugin<Project> {
@@ -85,9 +85,7 @@ open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRe
     private
     fun Project.applyKotlinPlugin() {
 
-        // `kotlin` and `org.jetbrains.kotlin.jvm` are equivalent
-        // the latter id is only available starting with 1.1.1 though
-        plugins.apply("kotlin")
+        plugins.apply("org.jetbrains.kotlin.jvm")
     }
 
     private
