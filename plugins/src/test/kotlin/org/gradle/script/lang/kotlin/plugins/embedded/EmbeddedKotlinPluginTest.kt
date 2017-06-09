@@ -17,7 +17,7 @@ class EmbeddedKotlinPluginTest : AbstractIntegrationTest() {
         withBuildScript("""
 
             plugins {
-                id("embedded-kotlin")
+                `embedded-kotlin`
             }
 
         """)
@@ -33,7 +33,7 @@ class EmbeddedKotlinPluginTest : AbstractIntegrationTest() {
         withBuildScript("""
 
             plugins {
-                id("embedded-kotlin")
+                `embedded-kotlin`
             }
 
             dependencies {
@@ -61,7 +61,7 @@ class EmbeddedKotlinPluginTest : AbstractIntegrationTest() {
             import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 
             plugins {
-                id("embedded-kotlin")
+                `embedded-kotlin`
             }
 
             repositories {
@@ -103,7 +103,7 @@ class EmbeddedKotlinPluginTest : AbstractIntegrationTest() {
         withBuildScript("""
 
             plugins {
-                id("embedded-kotlin")
+                `embedded-kotlin`
             }
 
             repositories {

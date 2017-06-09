@@ -51,6 +51,11 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
 /**
+ * The version of gradle-script-kotlin (currently _${project.version}_).
+ */
+val gradleScriptKotlinVersion = "${project.version}"
+
+/**
  * The version of the Kotlin compiler embedded in gradle-script-kotlin (currently _${embeddedKotlinVersion}_).
  */
 val embeddedKotlinVersion = "$embeddedKotlinVersion"
