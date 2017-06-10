@@ -11,7 +11,7 @@ class PerformanceTest(type: PerformanceTestType) : BuildType({
     extId = uuid
     name = "Performance ${type.name.capitalize()} Coordinator - Linux"
 
-    applyDefaultSettings(this, timeout = 240)
+    applyDefaultSettings(this, timeout = type.timeout)
     artifactRules = "subprojects/*/build/performance-tests/** => results"
     detectHangingBuilds = false
     maxRunningBuilds = 1
