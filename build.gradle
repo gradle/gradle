@@ -314,13 +314,10 @@ dependencies {
 import org.gradle.modules.PatchExternalModules
 
 task patchExternalModules(type: PatchExternalModules) {
-    // Include any dependency jars that are not available in the core runtime
-    externalModulesRuntime = configurations.externalModulesRuntime
-    coreRuntime = configurations.coreRuntime
-    externalModules = configurations.externalModules
+    allModules = configurations.externalModulesRuntime
+    coreModules = configurations.coreRuntime
+    modulesToPatch = configurations.externalModules
     destination = patchedExternalModulesDir
-
-    dependsOn configurations.externalModules
 }
 
 task verifyIsProductionBuildEnvironment {
