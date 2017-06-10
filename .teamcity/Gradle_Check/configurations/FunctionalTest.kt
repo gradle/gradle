@@ -13,9 +13,9 @@ class FunctionalTest(testCoverage : TestCoverage, bucket: Int = 0) : BuildType({
     if (bucket > 0) {
         description = CIBuildModel.testBuckets[bucket - 1].joinToString()
     }
-
+    val testTask = testCoverage.testType + "Test" + if (bucket > 0) bucket.toString() else ""
     val quickTest = testCoverage.testType == TestType.quick
-    applyDefaults(this, "${testCoverage.testType}Test$bucket", requiresDistribution = !quickTest,
+    applyDefaults(this, testTask, requiresDistribution = !quickTest,
             runsOnWindows = testCoverage.os == OS.windows, timeout = if (quickTest) 60 else 180)
 
     params {
