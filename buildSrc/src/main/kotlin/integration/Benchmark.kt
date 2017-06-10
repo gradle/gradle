@@ -29,6 +29,8 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.GradleConnector.newConnector
 import org.gradle.tooling.ProjectConnection
 
+import org.gradle.tooling.internal.consumer.ConnectorServices
+
 import java.io.ByteArrayOutputStream
 import java.io.File
 
@@ -172,11 +174,16 @@ class QuotientResult(observations: List<Double>) : Result<Double>(observations) 
 }
 
 fun connectorFor(projectDir: File) =
-    newConnector().forProjectDirectory(projectDir)
+    newConnector().forProjectDirectory(projectDir)!!
 
 inline
-fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =
-    connector.connect().use(block)
+fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T {
+    try {
+        return connector.connect().use(block)
+    } finally {
+        ConnectorServices.reset()
+    }
+}
 
 inline
 fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
