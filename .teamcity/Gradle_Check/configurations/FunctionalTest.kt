@@ -20,5 +20,6 @@ class FunctionalTest(testCoverage : TestCoverage, bucket: Int = 0) : BuildType({
 
     params {
         param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.version}.${testCoverage.vendor}.64bit%")
+        param("env.ANDROID_HOME", "/opt/android/sdk")
     }
 })
