@@ -17,7 +17,7 @@ class PerformanceTest(type: PerformanceTestType) : BuildType({
     maxRunningBuilds = 1
 
     params {
-        param("performance.baselines", type.defaultBaselines)
+        param("performance.baselines", type.defaultBaselinesBranches)
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.JAVA_HOME", "/opt/jdk/oracle-jdk-8-latest")
         param("performance.db.url", "jdbc:h2:ssl://dev61.gradle.org:9092")
@@ -32,8 +32,11 @@ class PerformanceTest(type: PerformanceTestType) : BuildType({
             scriptContent = """
                 branch="%teamcity.build.branch%"
                 baseline="%performance.baselines%"
-                if [ "${'$'}baseline" = "" ] && [ "${'$'}branch" != "master" ] && [ "${'$'}branch" != "release" ]; then
-                  echo "##teamcity[setParameter name='performance.baselines' value='${type.defaultBaselinesBranches}']"
+                if [ "${'$'}baseline" = "${type.defaultBaselinesBranches}" ] && [ "${'$'}branch" == "master" ]; then
+                  echo "##teamcity[setParameter name='performance.baselines' value='${type.defaultBaselines}']"
+                fi
+                if [ "${'$'}baseline" = "${type.defaultBaselinesBranches}" ] && [ "${'$'}branch" == "release" ]; then
+                  echo "##teamcity[setParameter name='performance.baselines' value='${type.defaultBaselines}']"
                 fi
             """.trimIndent()
         }

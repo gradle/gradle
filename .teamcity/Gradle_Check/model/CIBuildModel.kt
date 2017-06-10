@@ -170,7 +170,7 @@ enum class JvmVendor {
 enum class PerformanceTestType(val taskId: String, val defaultBaselines: String = "", val defaultBaselinesBranches: String = "", val extraParameters : String = "") {
     regression("PerformanceTest", "", "--baselines nightly"),
     experiment("PerformanceExperiment", "", "--baselines nightly"),
-    historical("FullPerformanceTest", "--baselines 2.9,2.12,2.14.1,last", "", "--checks none");
+    historical("FullPerformanceTest", "--baselines 2.9,2.12,2.14.1,last", "--baselines 2.9,2.12,2.14.1,last", "--checks none");
 
     fun asId(): String {
         return "${CIBuildModel.projectPrefix}Performance${name.capitalize()}Coordinator"
