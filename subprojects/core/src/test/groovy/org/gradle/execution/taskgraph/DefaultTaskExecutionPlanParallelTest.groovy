@@ -20,6 +20,7 @@ import com.google.common.collect.Queues
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.InputDirectory
@@ -61,6 +62,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     def coordinationService = new DefaultResourceLockCoordinationService()
     def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
     def parentWorkerLease = workerLeaseService.workerLease
+    def gradle = Mock(GradleInternal)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)

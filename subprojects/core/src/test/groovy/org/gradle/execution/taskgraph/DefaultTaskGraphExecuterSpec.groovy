@@ -22,6 +22,7 @@ import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.execution.TaskExecutionListener
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
@@ -54,6 +55,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
     def workerLeases = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
     def executorFactory = Mock(ExecutorFactory)
+    def gradleInternal = Mock(GradleInternal)
     def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService, gradleInternal)
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []

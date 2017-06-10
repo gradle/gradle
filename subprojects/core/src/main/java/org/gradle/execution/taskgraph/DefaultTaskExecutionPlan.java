@@ -57,6 +57,7 @@ import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.Path;
 import org.gradle.util.TextUtil;
 
 import java.io.File;
@@ -121,7 +122,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public String getDisplayName() {
-        return gradle.getIdentityPath().toString();
+        Path path = gradle.findIdentityPath();
+        if (path == null) {
+            return "gradle";
+        }
+        return path.toString();
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
