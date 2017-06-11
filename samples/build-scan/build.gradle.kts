@@ -1,5 +1,5 @@
 plugins {
-    id("com.gradle.build-scan") version "1.7.2"
+    id("com.gradle.build-scan") version "1.7.4"
 }
 
 buildScan {
