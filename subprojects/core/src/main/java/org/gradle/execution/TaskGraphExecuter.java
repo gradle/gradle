@@ -35,6 +35,11 @@ public interface TaskGraphExecuter extends TaskExecutionGraph {
     void addTasks(Iterable<? extends Task> tasks);
 
     /**
+     * Does the work to populate the task graph based on tasks that have been added. Does not fire events.
+     */
+    void populate();
+
+    /**
      * Executes the tasks in this graph. Discards the contents of this graph when completed.
      */
     void execute();

@@ -114,6 +114,11 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         LOGGER.debug("Timing: Creating the DAG took " + clock.getElapsed());
     }
 
+    @Override
+    public void populate() {
+        ensurePopulated();
+    }
+
     public void execute() {
         Timer clock = Timers.startTimer();
         ensurePopulated();

@@ -28,6 +28,8 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.TaskPathProjectEvaluator;
+import org.gradle.execution.TaskSelector;
 import org.gradle.includedbuild.internal.IncludedBuildControllers;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -101,11 +103,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         return gradle;
     }
 
-    @Override
-    public void scheduleTasks(final Iterable<String> tasks) {
-        gradle.getStartParameter().setTaskNames(tasks);
-    }
-
     public GradleInternal executeTasks() {
         doBuildStages(Stage.Build);
         return gradle;
@@ -177,6 +174,17 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
             stage = Stage.TaskGraph;
         }
+    }
+
+    @Override
+    public void scheduleTasks(final Iterable<String> taskPaths) {
+        GradleInternal gradle = getConfiguredBuild();
+        gradle.getStartParameter().setTaskNames(taskPaths);
+
+        // Force back to configure so that task graph will get reevaluated
+        stage = Stage.Configure;
+
+        doBuildStages(Stage.TaskGraph);
     }
 
     private void runTasks() {
@@ -254,6 +262,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
             }
 
             final TaskGraphExecuter taskGraph = gradle.getTaskGraph();
+            taskGraph.populate();
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
                 public List<String> getRequestedTaskPaths() {
@@ -284,12 +293,40 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
+    // TODO:DAZ Combine with CalculateTaskGraph
+    private class ScheduleTasks implements RunnableBuildOperation {
+        private final Iterable<String> taskPaths;
+
+        private ScheduleTasks(Iterable<String> taskPaths) {
+            this.taskPaths = taskPaths;
+        }
+
+        @Override
+        public void run(BuildOperationContext buildOperationContext) {
+            GradleInternal configuredBuild = getConfiguredBuild();
+            TaskSelector taskSelector = new TaskSelector(configuredBuild, new TaskPathProjectEvaluator(new DefaultBuildCancellationToken()));
+            TaskGraphExecuter taskGraph = configuredBuild.getTaskGraph();
+            for (String taskPath : taskPaths) {
+                Set<Task> tasks = taskSelector.getSelection(taskPath).getTasks();
+                taskGraph.addTasks(tasks);
+            }
+            taskGraph.populate();
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName(contextualize("Schedule tasks"))
+                .details(new CalculateTaskGraphBuildOperationType.Details() {
+                }).parent(getGradle().getBuildOperation());
+        }
+    }
+
     private class ExecuteTasks implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
             if (!isNestedBuild()) {
                 IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
-                buildControllers.startTaskExecution();
+                buildControllers.startTaskExecution(true);
             }
 
             buildExecuter.execute(gradle);

@@ -103,6 +103,10 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         getGradleLauncher().finishBuild();
     }
 
+    public void addTasks(Iterable<String> taskPaths) {
+        getGradleLauncher().scheduleTasks(taskPaths);
+    }
+
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
             gradleLauncher = gradleLauncherFactory.create();
@@ -113,8 +117,8 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     @Override
     public void execute(final Iterable<String> tasks, final Object listener) {
         final GradleLauncher launcher = getGradleLauncher();
-        launcher.scheduleTasks(tasks);
         launcher.addListener(listener);
+        launcher.scheduleTasks(tasks);
         try {
             // TODO:DAZ Should share the same worker lease as the main build
             // TODO:DAZ Really need to have a worker lease for all actions on the build thread
@@ -136,6 +140,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public String toString() {
-        return String.format("includedBuild[%s]", projectDir.getPath());
+        return String.format("includedBuild[%s]", projectDir.getName());
     }
 }
