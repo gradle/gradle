@@ -32,6 +32,9 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             gradle.buildFinished {
                 println 'gradle.buildFinished [' + gradle.identityPath + ']'
             }
+            gradle.taskGraph.whenReady {
+                println 'gradle.taskGraphReady [' + gradle.identityPath + ']'
+            }
             gradle.addBuildListener(new LoggingBuildListener())
             class LoggingBuildListener extends BuildAdapter {
                 void buildStarted(Gradle gradle) {
@@ -89,6 +92,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild('buildListener.settingsEvaluated')
         loggedOncePerBuild('buildListener.projectsLoaded')
         loggedOncePerBuild('buildListener.projectsEvaluated')
+        loggedOncePerBuild('gradle.taskGraphReady')
         loggedOncePerBuild('buildListener.buildFinished')
         loggedOncePerBuild('gradle.buildFinished')
 
