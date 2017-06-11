@@ -3,5 +3,5 @@ apply {
 }
 
 dependencies {
-    compile(kotlinModule("stdlib"))
+    compile(kotlin("stdlib"))
 }

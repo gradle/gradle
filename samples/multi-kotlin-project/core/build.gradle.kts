@@ -1,16 +1,7 @@
-buildscript {
-    repositories {
-        gradleScriptKotlin()
-    }
-    dependencies {
-        classpath(kotlinModule("gradle-plugin"))
-    }
-}
-
-apply {
-    plugin("kotlin")
+plugins {
+    kotlin("jvm")
 }
 
 dependencies {
-    compile(kotlinModule("stdlib"))
+    compile(kotlin("stdlib"))
 }

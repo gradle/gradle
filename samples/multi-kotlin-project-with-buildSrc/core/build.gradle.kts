@@ -3,7 +3,7 @@ buildscript {
         gradleScriptKotlin()
     }
     dependencies {
-        classpath(kotlinModule("gradle-plugin"))
+        classpath(kotlin("gradle-plugin"))
     }
 }
 

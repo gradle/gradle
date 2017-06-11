@@ -9,7 +9,7 @@ import org.gradle.script.lang.kotlin.*
 fun Project.kotlinProject() {
     apply { it.plugin("kotlin") }
     dependencies {
-        compile(kotlinModule("stdlib"))
+        compile(kotlin("stdlib"))
     }
 }
 

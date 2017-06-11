@@ -12,5 +12,5 @@ application {
 
 dependencies {
     compile(project(":core"))
-    compile(kotlinModule("stdlib"))
+    compile(kotlin("stdlib"))
 }

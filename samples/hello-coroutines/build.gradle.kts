@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.Coroutines
 
 plugins {
     application
-    id("nebula.kotlin") version embeddedKotlinVersion
+    kotlin("jvm")
 }
 
 application {
@@ -11,6 +11,10 @@ application {
 
 kotlin { // configure<org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension>
     experimental.coroutines = Coroutines.ENABLE
+}
+
+dependencies {
+    compile(kotlin("stdlib"))
 }
 
 repositories {
