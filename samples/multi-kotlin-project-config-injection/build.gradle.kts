@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
-    repositories { gradleScriptKotlin() }
     dependencies { classpath(kotlin("gradle-plugin")) }
+    repositories { gradleScriptKotlin() }
 }
 
 allprojects {

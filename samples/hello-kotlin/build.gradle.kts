@@ -7,10 +7,10 @@ application {
     mainClassName = "samples.HelloWorldKt"
 }
 
-repositories {
-    gradleScriptKotlin()
-}
-
 dependencies {
     compile(kotlin("stdlib"))
+}
+
+repositories {
+    gradleScriptKotlin()
 }
