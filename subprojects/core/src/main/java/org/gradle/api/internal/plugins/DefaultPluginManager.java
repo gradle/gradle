@@ -250,6 +250,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         @Override
         public void run(BuildOperationContext context) {
             addPlugin(adder, plugin, pluginId, pluginClass);
+            context.setResult(OPERATION_RESULT);
         }
 
         @Override
@@ -309,5 +310,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
+    private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
+    };
 }
 
