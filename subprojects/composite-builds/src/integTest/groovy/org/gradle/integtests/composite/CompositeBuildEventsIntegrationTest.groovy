@@ -103,6 +103,36 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         !result.output.contains('buildListener.buildStarted')
     }
 
+    def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
+        given:
+        // BuildB will be initially evaluated with a single dependency on 'b1'.
+        // Dependency on 'b2' is discovered while constructing the task graph for 'buildC'.
+        dependency 'org.test:b1:1.0'
+        dependency 'org.test:buildC:1.0'
+        buildC.buildFile << """
+            dependencies {
+                compileOnly 'org.test:b2:1.0'
+            }
+"""
+
+        when:
+        execute()
+
+        then:
+        loggedOncePerBuild('buildListener.settingsEvaluated')
+        loggedOncePerBuild('buildListener.projectsLoaded')
+        loggedOncePerBuild('buildListener.projectsEvaluated')
+        loggedOncePerBuild('gradle.taskGraphReady')
+        loggedOncePerBuild('buildListener.buildFinished')
+        loggedOncePerBuild('gradle.buildFinished')
+
+        and:
+        // buildStarted events should _not_ be logged, since the listeners are added too late
+        // If they are logged, it's likely due to duplicate events fired.
+        !result.output.contains('gradle.buildStarted')
+        !result.output.contains('buildListener.buildStarted')
+    }
+
     void loggedOncePerBuild(message) {
         loggedOnce(message + " [:]")
         loggedOnce(message + " [:buildB]")
