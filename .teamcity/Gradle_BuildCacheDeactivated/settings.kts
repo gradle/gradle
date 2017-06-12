@@ -8,6 +8,7 @@ import model.OS
 import model.Stage
 import model.TestCoverage
 import model.TestType
+import model.Trigger
 import projects.RootProject
 
 /*
@@ -44,6 +45,7 @@ val buildModel = CIBuildModel(
                         functionalTests = listOf(
                                 TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
                 Stage("Test Embedded Java7 Windows",
+                        trigger = Trigger.eachCommit,
                         functionalTests = listOf(
                                 TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
         )
