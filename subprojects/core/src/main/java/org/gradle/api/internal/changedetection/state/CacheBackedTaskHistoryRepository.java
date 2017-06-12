@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
@@ -40,11 +39,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
@@ -69,7 +66,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         currentExecution.snapshotRepository = snapshotRepository;
         currentExecution.setOutputPropertyNamesForCacheKey(getOutputPropertyNamesForCacheKey(task));
         currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
-        final LazyTaskExecution previousExecution = findBestMatchingPreviousExecution(currentExecution, previousExecutions.executions);
+        final LazyTaskExecution previousExecution = Iterables.getFirst(previousExecutions.executions, null);
         if (previousExecution != null) {
             previousExecution.snapshotRepository = snapshotRepository;
         }
@@ -162,30 +159,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             declaredOutputFilePaths.add(stringInterner.intern(file.getAbsolutePath()));
         }
         return declaredOutputFilePaths.build();
-    }
-
-    private LazyTaskExecution findBestMatchingPreviousExecution(TaskExecution currentExecution, Collection<LazyTaskExecution> previousExecutions) {
-        Set<String> declaredOutputFilePaths = currentExecution.getDeclaredOutputFilePaths();
-        LazyTaskExecution bestMatch = null;
-        int bestMatchOverlap = 0;
-        for (LazyTaskExecution previousExecution : previousExecutions) {
-            Set<String> previousDeclaredOutputFilePaths = previousExecution.getDeclaredOutputFilePaths();
-            if (declaredOutputFilePaths.isEmpty() && previousDeclaredOutputFilePaths.isEmpty()) {
-                bestMatch = previousExecution;
-                break;
-            }
-
-            Set<String> intersection = Sets.intersection(declaredOutputFilePaths, previousDeclaredOutputFilePaths);
-            int overlap = intersection.size();
-            if (overlap > bestMatchOverlap) {
-                bestMatch = previousExecution;
-                bestMatchOverlap = overlap;
-            }
-            if (bestMatchOverlap == declaredOutputFilePaths.size()) {
-                break;
-            }
-        }
-        return bestMatch;
     }
 
     private static class TaskExecutionListSerializer extends AbstractSerializer<ImmutableList<TaskExecutionSnapshot>> {
