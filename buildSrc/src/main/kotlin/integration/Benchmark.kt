@@ -23,6 +23,7 @@ import criterion.Result
 import criterion.benchmark
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.tooling.GradleConnector
@@ -51,11 +52,17 @@ open class Benchmark : DefaultTask() {
 
     var resultDir: File? = null
 
+    @Option(option = "exclude-sample", description = "Excludes a sample from the benchmark.")
+    var excludedSamplePatterns = mutableListOf("android")
+
     @Suppress("unused")
     @TaskAction
     fun run() {
+        val (excluded, included) = project.sampleDirs().partition { isExcluded(it.name) }
+        reportExcludedSamples(excluded)
+
         val config = BenchmarkConfig(warmUpRuns, observationRuns)
-        val quotients = sampleDirs().map {
+        val quotients = included.map {
             benchmark(it, config)
         }
         val result = QuotientResult(quotients)
@@ -67,14 +74,21 @@ open class Benchmark : DefaultTask() {
     }
 
     private
-    fun sampleDirs() =
-        project
-            .sampleDirs()
-            .filter {
-                !it.name.run {
-                    contains("android")
-                }
+    fun reportExcludedSamples(excluded: List<File>) {
+        if (excluded.isNotEmpty()) {
+            println("The following samples were excluded from the benchmark by the patterns $excludedSamplePatterns:")
+            excluded.forEach {
+                println("\t${it.name}")
             }
+            println()
+        }
+    }
+
+    private
+    fun isExcluded(sampleName: String) =
+        excludedSamplePatterns.any {
+            sampleName.contains(it, ignoreCase = true)
+        }
 
     private
     fun quotientToPercentage(quotient: Double) = (quotient - 1) * 100
