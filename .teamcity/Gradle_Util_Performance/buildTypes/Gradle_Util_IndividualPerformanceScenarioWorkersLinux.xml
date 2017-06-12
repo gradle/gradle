@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="b36ecd7b-93a4-4eaf-9535-fb89d3e4a0c7" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Individual Performance Scenario Workers - Linux</name>
+  <description />
+  <settings>
+    <options>
+      <option name="artifactRules" value="subprojects/*/build/test-results-*.zip =&gt; results&#xA;subprojects/*/build/tmp/**/log.txt =&gt; failure-logs" />
+      <option name="checkoutMode" value="ON_AGENT" />
+      <option name="executionTimeoutMin" value="420" />
+      <option name="shouldFailBuildOnOOMEOrCrash" value="false" />
+    </options>
+    <parameters>
+      <param name="baselines" value="defaults" />
+      <param name="channel" value="commits" />
+      <param name="checks" value="all" />
+      <param name="env.ANDROID_HOME" value="/opt/android/sdk" />
+      <param name="env.GRADLE_OPTS" value="-Xmx1536m -XX:MaxPermSize=384m" />
+      <param name="env.JAVA_HOME" value="/opt/jdk/oracle-jdk-8-latest" />
+      <param name="performance.db.url" value="jdbc:h2:ssl://dev61.gradle.org:9092" />
+      <param name="performance.db.username" value="tcagent" />
+      <param name="runs" value="defaults" />
+      <param name="scenario" value="" />
+      <param name="templates" value="" />
+      <param name="warmups" value="defaults" />
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_2823" name="GRADLE_RUNNER" type="gradle-runner">
+        <parameters>
+          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="cleanSamples cleanFullPerformanceTest %templates% fullPerformanceTests --scenarios &quot;%scenario%&quot; --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% -x prepareSamples -x performanceReport -PtimestampedVersion -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% -Djava7.home=%linux.jdk.for.gradle.compile%" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_2824" name="CHECK_CLEAN_M2" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[REPO=/home/%env.USER%/.m2/repository
+if [ -e $REPO ] ; then
+tree $REPO
+rm -rf $REPO
+echo "$REPO was polluted during the build"
+return 1
+else
+echo "$REPO does not exist"
+fi]]></param>
+          <param name="teamcity.step.mode" value="execute_always" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="Gradle_Branches_GradlePersonalBranches" />
+    </vcs-settings>
+    <requirements>
+      <contains id="RQ_1931" name="teamcity.agent.jvm.os.name" value="Linux" />
+    </requirements>
+    <build-triggers />
+    <artifact-dependencies>
+      <dependency id="ARTIFACT_DEPENDENCY_1359" sourceBuildTypeId="Gradle_Check_BuildDistributions" cleanDestination="true">
+        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
+        <artifact sourcePath="distributions/*-all.zip =&gt; incoming-distributions&#xD;&#xA;build-receipt.properties =&gt; incoming-distributions" />
+      </dependency>
+    </artifact-dependencies>
+    <dependencies>
+      <depend-on sourceBuildTypeId="Gradle_Check_Stage3_Passes">
+        <options>
+          <option name="run-build-if-dependency-failed" value="CANCEL" />
+          <option name="run-build-if-dependency-failed-to-start" value="CANCEL" />
+          <option name="take-started-build-with-same-revisions" value="true" />
+          <option name="take-successful-builds-only" value="true" />
+        </options>
+      </depend-on>
+    </dependencies>
+    <cleanup />
+  </settings>
+</build-type>
+
