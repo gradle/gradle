@@ -24,19 +24,21 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.typeconversion.NotationParser;
 
-public class DefaultVariant implements ConfigurationVariant {
+public class DefaultVariant implements ConfigurationVariantInternal {
     private final Describable parentDisplayName;
     private final String name;
-    private final AttributeContainerInternal attributes;
+    private AttributeContainerInternal attributes;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final PublishArtifactSet artifacts;
 
@@ -91,5 +93,15 @@ public class DefaultVariant implements ConfigurationVariant {
         ConfigurablePublishArtifact publishArtifact = artifactNotationParser.parseNotation(notation);
         artifacts.add(publishArtifact);
         configureAction.execute(publishArtifact);
+    }
+
+    @Override
+    public String toString() {
+        return getAsDescribable().getDisplayName();
+    }
+
+    @Override
+    public void preventFurtherMutation() {
+        attributes = new ImmutableAttributeContainerWithErrorMessage(attributes.asImmutable(), parentDisplayName);
     }
 }
