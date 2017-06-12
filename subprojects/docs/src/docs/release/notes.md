@@ -15,7 +15,7 @@ The console output now shows more detail about what exactly is in-progress, and 
 
 Speaking of parallel work-in-progress, **artifacts and metadata from remote repositories are now downloaded in parallel**! Gradle also avoids downloading the same dependency twice even if parallel tasks request the same one simultaneously.
  
-[Gradle Script Kotlin v0.9.1](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.9.1) (included in this release) brings very welcome improvements: auto-detection of Kotlin build scripts, default imports for the whole Gradle API, improved samples and docs with an [API reference](https://gradle.github.io/gradle-script-kotlin-docs/api/), better IntelliJ experience and more!
+[Gradle Script Kotlin v0.9.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.9.0) (included in this release) brings very welcome improvements: auto-detection of Kotlin build scripts, default imports for the whole Gradle API, improved samples and docs with an [API reference](https://gradle.github.io/gradle-script-kotlin-docs/api/), better IntelliJ experience and more!
 
 Finally, this release introduces a public type that represents lazily-evaluated properties (aka `ConventionMapping`). This is one of the most-requested features by plugin authors. You can learn more about `PropertyState`s [here](#public-type-for-representing-lazily-evaluated-properties). A good example of their usage can be found in the [gradle-site-plugin](https://github.com/gradle-guides/gradle-site-plugin).
 
