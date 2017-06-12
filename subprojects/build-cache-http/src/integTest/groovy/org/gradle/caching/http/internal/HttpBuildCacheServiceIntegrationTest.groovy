@@ -178,25 +178,25 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     def "credentials can be specified via URL"() {
-        httpBuildCache.withBasicAuth("user", "pass")
-        settingsFile.text = useHttpBuildCache(getUrlWithCredentials("user", "pass"))
+        httpBuildCache.withBasicAuth("user", 'pass%:-0]#')
+        settingsFile.text = useHttpBuildCache(getUrlWithCredentials("user", 'pass%:-0]#'))
 
         when:
         withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
-        httpBuildCache.authenticationAttempts == ['None', 'Basic'] as Set
+        httpBuildCache.authenticationAttempts == ['Basic'] as Set
 
         expect:
         withBuildCache().succeeds "clean"
 
         when:
         httpBuildCache.reset()
-        httpBuildCache.withBasicAuth("user", "pass")
+        httpBuildCache.withBasicAuth("user", "pass%:-0]#")
         withBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
-        httpBuildCache.authenticationAttempts == ['None', 'Basic'] as Set
+        httpBuildCache.authenticationAttempts == ['Basic'] as Set
     }
 
     def "credentials from DSL override credentials in URL"() {
