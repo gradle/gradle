@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 /**
  * Tests for resolving dependency cycles in a composite build.
@@ -80,6 +81,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         includedBuilds << buildC
     }
 
+    @NotYetImplemented
     def "fires build listener events on included builds"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -89,20 +91,10 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         execute()
 
         then:
-        loggedOncePerBuild('buildListener.settingsEvaluated')
-        loggedOncePerBuild('buildListener.projectsLoaded')
-        loggedOncePerBuild('buildListener.projectsEvaluated')
-        loggedOncePerBuild('gradle.taskGraphReady')
-        loggedOncePerBuild('buildListener.buildFinished')
-        loggedOncePerBuild('gradle.buildFinished')
-
-        and:
-        // buildStarted events should _not_ be logged, since the listeners are added too late
-        // If they are logged, it's likely due to duplicate events fired.
-        !result.output.contains('gradle.buildStarted')
-        !result.output.contains('buildListener.buildStarted')
+        verifyBuildEvents()
     }
 
+    @NotYetImplemented
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
         given:
         // BuildB will be initially evaluated with a single dependency on 'b1'.
@@ -119,6 +111,10 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         execute()
 
         then:
+        verifyBuildEvents()
+    }
+
+    void verifyBuildEvents() {
         loggedOncePerBuild('buildListener.settingsEvaluated')
         loggedOncePerBuild('buildListener.projectsLoaded')
         loggedOncePerBuild('buildListener.projectsEvaluated')
@@ -126,11 +122,10 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild('buildListener.buildFinished')
         loggedOncePerBuild('gradle.buildFinished')
 
-        and:
         // buildStarted events should _not_ be logged, since the listeners are added too late
-        // If they are logged, it's likely due to duplicate events fired.
-        !result.output.contains('gradle.buildStarted')
-        !result.output.contains('buildListener.buildStarted')
+        // If they are logged, it's due to duplicate events fired.
+        assert !result.output.contains('gradle.buildStarted')
+        assert !result.output.contains('buildListener.buildStarted')
     }
 
     void loggedOncePerBuild(message) {
