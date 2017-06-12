@@ -1,3 +1,5 @@
+package Gradle_Check
+
 import jetbrains.buildServer.configs.kotlin.v10.project
 import jetbrains.buildServer.configs.kotlin.v10.version
 import projects.RootProject

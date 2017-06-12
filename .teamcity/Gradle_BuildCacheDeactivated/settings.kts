@@ -1,3 +1,5 @@
+package Gradle_BuildCacheDeactivated
+
 import configurations.BuildDistributions
 import configurations.SanityCheck
 import jetbrains.buildServer.configs.kotlin.v10.project
