@@ -82,7 +82,7 @@ fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistributio
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            gradleParams = gradleParameterString + " " + gradleBuildCacheParameters.joinToString(separator = " ") + " " + extraParameters
+            gradleParams = gradleParameterString + " " + (if (CIBuildModel.buildCacheActive) gradleBuildCacheParameters.joinToString(separator = " ") else "") + " " + extraParameters
             useGradleWrapper = true
         }
     }

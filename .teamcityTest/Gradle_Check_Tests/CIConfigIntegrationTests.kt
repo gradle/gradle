@@ -1,6 +1,13 @@
 
+import configurations.BuildDistributions
+import configurations.SanityCheck
 import jetbrains.buildServer.configs.kotlin.v10.Project
 import model.CIBuildModel
+import model.JvmVersion
+import model.OS
+import model.Stage
+import model.TestCoverage
+import model.TestType
 import org.junit.Test
 import projects.RootProject
 import kotlin.test.assertEquals
@@ -32,6 +39,26 @@ class CIConfigIntegrationTests {
                     stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + hasPrevStage,
                     it.dependencies.items.size)
         }
+    }
+
+    @Test
+    fun canDeactivateBuildCacheAndAdjustCIModel() {
+        CIBuildModel.projectPrefix = "Gradle_BuildCacheDeactivated_"
+        CIBuildModel.buildCacheActive = false
+        CIBuildModel.stages = listOf(
+                Stage("Sanity Check and Distribution",
+                        specificBuilds = listOf(
+                                SanityCheck,
+                                BuildDistributions)),
+                Stage("Test Embedded Java8 Linux",
+                        functionalTests = listOf(
+                                TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
+                Stage("Test Embedded Java7 Windows",
+                        functionalTests = listOf(
+                                TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
+        )
+        printTree(RootProject)
+        assertTrue(RootProject.subProjects.size == 3)
     }
 
     private fun printTree(project: Project, indent: String = "") {

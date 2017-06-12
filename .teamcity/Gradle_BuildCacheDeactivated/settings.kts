@@ -1,5 +1,13 @@
+import configurations.BuildDistributions
+import configurations.SanityCheck
 import jetbrains.buildServer.configs.kotlin.v10.project
 import jetbrains.buildServer.configs.kotlin.v10.version
+import model.CIBuildModel
+import model.JvmVersion
+import model.OS
+import model.Stage
+import model.TestCoverage
+import model.TestType
 import projects.RootProject
 
 /*
@@ -23,4 +31,19 @@ calling the subProjects() method in this project.
 */
 
 version = "2017.1"
+CIBuildModel.projectPrefix = "Gradle_BuildCacheDeactivated"
+CIBuildModel.rootProjectName = "Build Cache Deactivated"
+CIBuildModel.buildCacheActive = false
+CIBuildModel.stages = listOf(
+        Stage("Sanity Check and Distribution",
+                specificBuilds = listOf(
+                        SanityCheck,
+                        BuildDistributions)),
+        Stage("Test Embedded Java8 Linux",
+                functionalTests = listOf(
+                        TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
+        Stage("Test Embedded Java7 Windows",
+                functionalTests = listOf(
+                        TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
+)
 project(RootProject)

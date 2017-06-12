@@ -8,9 +8,11 @@ import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 object CIBuildModel {
-    val projectPrefix = "Gradle_Check_"
+    var projectPrefix = "Gradle_Check_"
+    var rootProjectName = "Check"
+    var buildCacheActive = true
 
-    val stages = listOf(
+    var stages = listOf(
             Stage("Sanity Check and Distribution",
                     specificBuilds = listOf(
                             SanityCheck,

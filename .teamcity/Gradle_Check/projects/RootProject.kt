@@ -6,10 +6,10 @@ import jetbrains.buildServer.configs.kotlin.v10.projectFeatures.versionedSetting
 import model.CIBuildModel
 
 object RootProject : Project({
-    uuid = "Gradle_Check"
+    uuid = CIBuildModel.projectPrefix.removeSuffix("_")
     extId = uuid
     parentId = "Gradle"
-    name = "Check"
+    name = CIBuildModel.rootProjectName
 
     features {
         versionedSettings {
