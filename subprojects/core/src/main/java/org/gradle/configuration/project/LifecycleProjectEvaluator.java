@@ -102,6 +102,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         public void run(BuildOperationContext context) {
             doConfigure(project, state);
             state.rethrowFailure();
+            context.setResult(ConfigureProjectBuildOperationType.RESULT);
         }
 
         @Override
