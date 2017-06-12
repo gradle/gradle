@@ -140,6 +140,10 @@ buildTypes {
         tasks "java9Test", "java9IntegTest"
         projectProperties useIncomingDistributions: true
     }
+    java9SmokeTest {
+        tasks "java9IntegTest"
+        projectProperties useIncomingDistributions: true
+    }
 
     soakTest {
         tasks "soak:soakTest"
