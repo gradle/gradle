@@ -515,7 +515,31 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
     }
 
-    def "handles separate compile and compileOnly dependencies on different artifacts"() {
+    def "handles compileOnly dependencies for different subprojects from the same build included via separate dependency paths"() {
+        given:
+        dependency 'org.test:b1:1.0'
+        dependency 'org.test:buildC:1.0'
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                dependencies {
+                    compileOnly 'org.test:b2:1.0'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:jar"
+        executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
+    }
+
+    def "handles separate compile and compileOnly dependencies on different subprojects"() {
         given:
         dependency 'org.test:buildC:1.0'
 
