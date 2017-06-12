@@ -2,15 +2,15 @@ package projects
 
 import configurations.FunctionalTest
 import jetbrains.buildServer.configs.kotlin.v10.Project
-import model.CIBuildModel.testBuckets
+import model.CIBuildModel
 import model.TestCoverage
 
-class FunctionalTestProject(testConfig : TestCoverage) : Project({
-    this.uuid = testConfig.asId()
+class FunctionalTestProject(model: CIBuildModel, testConfig : TestCoverage) : Project({
+    this.uuid = testConfig.asId(model)
     this.extId = uuid
     this.name = testConfig.asName()
 
-    (1..testBuckets.size).forEach { bucket ->
-        buildType(FunctionalTest(testConfig, bucket))
+    (1..model.testBuckets.size).forEach { bucket ->
+        buildType(FunctionalTest(model, testConfig, bucket))
     }
 })

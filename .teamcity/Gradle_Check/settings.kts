@@ -2,6 +2,7 @@ package Gradle_Check
 
 import jetbrains.buildServer.configs.kotlin.v10.project
 import jetbrains.buildServer.configs.kotlin.v10.version
+import model.CIBuildModel
 import projects.RootProject
 
 /*
@@ -25,4 +26,4 @@ calling the subProjects() method in this project.
 */
 
 version = "2017.1"
-project(RootProject)
+project(RootProject(CIBuildModel()))

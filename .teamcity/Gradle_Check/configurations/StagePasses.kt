@@ -10,13 +10,13 @@ import jetbrains.buildServer.configs.kotlin.v10.triggers.VcsTrigger
 import jetbrains.buildServer.configs.kotlin.v10.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v10.triggers.vcs
 import model.CIBuildModel
-import model.CIBuildModel.testBuckets
 import model.Stage
 import model.TestType
 import model.Trigger
+import kotlin.reflect.primaryConstructor
 
-class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
-    uuid = "${CIBuildModel.projectPrefix}Stage${stageNumber}_Passes"
+class StagePasses(model: CIBuildModel, stageNumber: Int, stage: Stage) : BuildType({
+    uuid = "${model.projectPrefix}Stage${stageNumber}_Passes"
     extId = uuid
     name = "$stageNumber Stage Passes"
 
@@ -76,7 +76,7 @@ class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
 
     dependencies {
         if (stageNumber > 1) {
-            dependency("${CIBuildModel.projectPrefix}Stage${stageNumber - 1}_Passes") {
+            dependency("${model.projectPrefix}Stage${stageNumber - 1}_Passes") {
                 snapshot {
                     onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
@@ -84,13 +84,13 @@ class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
         }
 
         stage.specificBuilds.forEach {
-            dependency(it) {
+            dependency(it.primaryConstructor!!.call(model)) {
                 snapshot {}
             }
         }
 
         stage.performanceTests.forEach { performanceTest ->
-            dependency(performanceTest.asId()) {
+            dependency(performanceTest.asId(model)) {
                 snapshot {}
             }
         }
@@ -98,13 +98,13 @@ class StagePasses(stageNumber: Int, stage: Stage) : BuildType({
         stage.functionalTests.forEach { testCoverage ->
             val isSplitIntoBuckets = testCoverage.testType != TestType.soak
             if (isSplitIntoBuckets) {
-                (1..testBuckets.size).forEach { bucket ->
-                    dependency(testCoverage.asId() + "_" + bucket) {
+                (1..model.testBuckets.size).forEach { bucket ->
+                    dependency(testCoverage.asId(model) + "_" + bucket) {
                         snapshot {}
                     }
                 }
             } else {
-                dependency(testCoverage.asId() + "_0") {
+                dependency(testCoverage.asId(model) + "_0") {
                     snapshot {}
                 }
             }

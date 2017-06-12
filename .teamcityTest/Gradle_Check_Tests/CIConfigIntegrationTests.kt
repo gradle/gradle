@@ -16,24 +16,28 @@ import kotlin.test.assertTrue
 class CIConfigIntegrationTests {
     @Test
     fun configurationTreeCanBeGenerated() {
-        printTree(RootProject)
-        assertTrue(RootProject.subProjects.size == CIBuildModel.stages.size)
+        val m = CIBuildModel()
+        val p = RootProject(m)
+        printTree(p)
+        assertTrue(p.subProjects.size == m.stages.size)
     }
 
     @Test
     fun configurationsHaveDependencies() {
-        val stagePassConfigs = RootProject.subProjects.map { it.buildTypes[0] }
+        val m = CIBuildModel()
+        val p = RootProject(m)
+        val stagePassConfigs = p.subProjects.map { it.buildTypes[0] }
         stagePassConfigs.forEach {
             val stageNumber = stagePassConfigs.indexOf(it) + 1
             val hasPrevStage = if (stageNumber > 1) 1 else 0
-            val stage = CIBuildModel.stages[stageNumber - 1]
+            val stage = m.stages[stageNumber - 1]
             println(it.extId)
             it.dependencies.items.forEach {
                 println("--> " + it.extId)
             }
-            var functionalTestCount = stage.functionalTests.size * CIBuildModel.testBuckets.size
+            var functionalTestCount = stage.functionalTests.size * m.testBuckets.size
             if (stageNumber == 6) {
-                functionalTestCount -= 2 * (CIBuildModel.testBuckets.size - 1) //Soak tests
+                functionalTestCount -= 2 * (m.testBuckets.size - 1) //Soak tests
             }
             assertEquals(
                     stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + hasPrevStage,
@@ -43,22 +47,25 @@ class CIConfigIntegrationTests {
 
     @Test
     fun canDeactivateBuildCacheAndAdjustCIModel() {
-        CIBuildModel.projectPrefix = "Gradle_BuildCacheDeactivated_"
-        CIBuildModel.buildCacheActive = false
-        CIBuildModel.stages = listOf(
-                Stage("Sanity Check and Distribution",
-                        specificBuilds = listOf(
-                                SanityCheck,
-                                BuildDistributions)),
-                Stage("Test Embedded Java8 Linux",
-                        functionalTests = listOf(
-                                TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
-                Stage("Test Embedded Java7 Windows",
-                        functionalTests = listOf(
-                                TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
+        val m = CIBuildModel(
+                projectPrefix = "Gradle_BuildCacheDeactivated_",
+                buildCacheActive = false,
+                stages = listOf(
+                    Stage("Sanity Check and Distribution",
+                            specificBuilds = listOf(
+                                    SanityCheck::class,
+                                    BuildDistributions::class)),
+                    Stage("Test Embedded Java8 Linux",
+                            functionalTests = listOf(
+                                    TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
+                    Stage("Test Embedded Java7 Windows",
+                            functionalTests = listOf(
+                                    TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
+                )
         )
-        printTree(RootProject)
-        assertTrue(RootProject.subProjects.size == 3)
+        val p = RootProject(m)
+        printTree(p)
+        assertTrue(p.subProjects.size == 3)
     }
 
     private fun printTree(project: Project, indent: String = "") {

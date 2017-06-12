@@ -6,8 +6,8 @@ import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import model.CIBuildModel
 
-object ColonyCompatibility : BuildType({
-    uuid = "${CIBuildModel.projectPrefix}ColonyCompatibility"
+class ColonyCompatibility(model: CIBuildModel) : BuildType({
+    uuid = "${model.projectPrefix}ColonyCompatibility"
     extId = uuid
     name = "Colony Compatibility"
     description = "Check Gradle against latest development version of Colony"
@@ -32,5 +32,5 @@ object ColonyCompatibility : BuildType({
         }
     }
 
-    applyDefaultDependencies(this, true, "distributions/*-bin.zip => gradle-test/incoming-distributions/release\n-:distributions/*-test-bin.zip")
+    applyDefaultDependencies(model, this, true, "distributions/*-bin.zip => gradle-test/incoming-distributions/release\n-:distributions/*-test-bin.zip")
 })

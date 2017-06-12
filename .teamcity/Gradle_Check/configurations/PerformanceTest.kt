@@ -4,10 +4,11 @@ import jetbrains.buildServer.configs.kotlin.v10.BuildStep
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
+import model.CIBuildModel
 import model.PerformanceTestType
 
-class PerformanceTest(type: PerformanceTestType) : BuildType({
-    uuid = type.asId()
+class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildType({
+    uuid = type.asId(model)
     extId = uuid
     name = "Performance ${type.name.capitalize()} Coordinator - Linux"
 
@@ -61,5 +62,5 @@ class PerformanceTest(type: PerformanceTestType) : BuildType({
         }
     }
 
-    applyDefaultDependencies(this, true)
+    applyDefaultDependencies(model, this, true)
 })

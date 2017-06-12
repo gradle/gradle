@@ -5,11 +5,11 @@ import jetbrains.buildServer.configs.kotlin.v10.projectFeatures.VersionedSetting
 import jetbrains.buildServer.configs.kotlin.v10.projectFeatures.versionedSettings
 import model.CIBuildModel
 
-object RootProject : Project({
-    uuid = CIBuildModel.projectPrefix.removeSuffix("_")
+class RootProject(model: CIBuildModel) : Project({
+    uuid = model.projectPrefix.removeSuffix("_")
     extId = uuid
     parentId = "Gradle"
-    name = CIBuildModel.rootProjectName
+    name = model.rootProjectName
 
     features {
         versionedSettings {
@@ -23,7 +23,7 @@ object RootProject : Project({
         }
     }
 
-    CIBuildModel.stages.forEach { stage ->
-        subProject(StageProject(CIBuildModel.stages.indexOf(stage) + 1, stage))
+    model.stages.forEach { stage ->
+        subProject(StageProject(model, model.stages.indexOf(stage) + 1, stage))
     }
 })

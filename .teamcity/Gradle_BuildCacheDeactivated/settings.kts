@@ -33,19 +33,20 @@ calling the subProjects() method in this project.
 */
 
 version = "2017.1"
-CIBuildModel.projectPrefix = "Gradle_BuildCacheDeactivated"
-CIBuildModel.rootProjectName = "Build Cache Deactivated"
-CIBuildModel.buildCacheActive = false
-CIBuildModel.stages = listOf(
-        Stage("Sanity Check and Distribution",
-                specificBuilds = listOf(
-                        SanityCheck,
-                        BuildDistributions)),
-        Stage("Test Embedded Java8 Linux",
-                functionalTests = listOf(
-                        TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
-        Stage("Test Embedded Java7 Windows",
-                functionalTests = listOf(
-                        TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
+val model = CIBuildModel(
+        projectPrefix = "Gradle_BuildCacheDeactivated_",
+        buildCacheActive = false,
+        stages = listOf(
+                Stage("Sanity Check and Distribution",
+                        specificBuilds = listOf(
+                                SanityCheck::class,
+                                BuildDistributions::class)),
+                Stage("Test Embedded Java8 Linux",
+                        functionalTests = listOf(
+                                TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
+                Stage("Test Embedded Java7 Windows",
+                        functionalTests = listOf(
+                                TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
+        )
 )
-project(RootProject)
+project(RootProject(model))

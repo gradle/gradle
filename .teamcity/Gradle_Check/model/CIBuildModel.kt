@@ -6,17 +6,17 @@ import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import kotlin.reflect.KClass
 
-object CIBuildModel {
-    var projectPrefix = "Gradle_Check_"
-    var rootProjectName = "Check"
-    var buildCacheActive = true
-
-    var stages = listOf(
+data class CIBuildModel (
+        val projectPrefix: String = "Gradle_Check_",
+        val rootProjectName: String = "Check",
+        val buildCacheActive: Boolean = true,
+        val stages: List<Stage> = listOf(
             Stage("Sanity Check and Distribution",
                     specificBuilds = listOf(
-                            SanityCheck,
-                            BuildDistributions)),
+                            SanityCheck::class,
+                            BuildDistributions::class)),
             Stage("Test Embedded Java8 Linux",
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
@@ -25,7 +25,7 @@ object CIBuildModel {
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java7))),
             Stage("Test Forked Linux/Windows, Performance, Gradleception",
                     specificBuilds = listOf(
-                            Gradleception),
+                            Gradleception::class),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
@@ -33,7 +33,7 @@ object CIBuildModel {
             Stage("Test Parallel, Java9, IBM VM, Cross-Version, Smoke Tests, Colony",
                     trigger = Trigger.eachCommit,
                     specificBuilds = listOf(
-                            SmokeTests, ColonyCompatibility),
+                            SmokeTests::class, ColonyCompatibility::class),
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
@@ -53,8 +53,8 @@ object CIBuildModel {
             Stage("Performance Historical",
                     trigger = Trigger.weekly,
                     performanceTests = listOf(
-                            PerformanceTestType.historical))
-    )
+                            PerformanceTestType.historical)))
+    ) {
 
     //TODO this is a copy of `gradle/buildSplits.gradle`, we should use a shared specification
     val testBuckets = listOf(
@@ -142,11 +142,11 @@ object CIBuildModel {
     )
 }
 
-data class Stage(val description: String, val specificBuilds: List<BuildType> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
+data class Stage(val description: String, val specificBuilds: List<KClass<out BuildType>> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
 
 data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle) {
-    fun asId(): String {
-        return "${CIBuildModel.projectPrefix}Test_Coverage_${testType.name.capitalize()}_${version.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
+    fun asId(model : CIBuildModel): String {
+        return "${model.projectPrefix}Test_Coverage_${testType.name.capitalize()}_${version.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
     }
     fun asName(): String {
         return "Test Coverage - ${testType.name.capitalize()} ${version.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}"
@@ -174,8 +174,8 @@ enum class PerformanceTestType(val taskId: String, val timeout : Int, val defaul
     experiment("PerformanceExperiment", 420, "", "--baselines nightly"),
     historical("FullPerformanceTest", 2280, "--baselines 2.9,2.12,2.14.1,last", "--baselines 2.9,2.12,2.14.1,last", "--checks none");
 
-    fun asId(): String {
-        return "${CIBuildModel.projectPrefix}Performance${name.capitalize()}Coordinator"
+    fun asId(model : CIBuildModel): String {
+        return "${model.projectPrefix}Performance${name.capitalize()}Coordinator"
     }
 }
 

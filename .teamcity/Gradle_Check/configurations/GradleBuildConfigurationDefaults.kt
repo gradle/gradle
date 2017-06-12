@@ -72,7 +72,7 @@ fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, t
 }
 
 
-fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistribution: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
+fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String, requiresDistribution: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
     applyDefaultSettings(buildType, runsOnWindows, timeout)
 
     val java7HomeParameter = if (runsOnWindows) java7Windows else java7HomeLinux
@@ -82,7 +82,7 @@ fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistributio
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            gradleParams = gradleParameterString + " " + (if (CIBuildModel.buildCacheActive) gradleBuildCacheParameters.joinToString(separator = " ") else "") + " " + extraParameters
+            gradleParams = gradleParameterString + " " + (if (model.buildCacheActive) gradleBuildCacheParameters.joinToString(separator = " ") else "") + " " + extraParameters
             useGradleWrapper = true
         }
     }
@@ -111,20 +111,21 @@ fun applyDefaults(buildType: BuildType, gradleTasks: String, requiresDistributio
         }
     }
 
-    applyDefaultDependencies(buildType, requiresDistribution)
+    applyDefaultDependencies(model, buildType, requiresDistribution)
 }
 
-fun applyDefaultDependencies(buildType: BuildType, requiresDistribution: Boolean = false, distributionsArtifactRule: String = "distributions/*-all.zip => incoming-distributions") {
+fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, requiresDistribution: Boolean = false, distributionsArtifactRule: String = "distributions/*-all.zip => incoming-distributions") {
     if (requiresDistribution) {
+        val buildDistributions = BuildDistributions(model)
         buildType.dependencies {
-            dependency("${CIBuildModel.projectPrefix}Stage3_Passes") {
+            dependency("${model.projectPrefix}Stage3_Passes") {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL
                 }
             }
-            artifacts(BuildDistributions) {
-                id = "ARTIFACT_DEPENDENCY_${BuildDistributions.extId}"
+            artifacts(buildDistributions) {
+                id = "ARTIFACT_DEPENDENCY_${buildDistributions.extId}"
                 cleanDestination = true
                 artifactRules = """
                     $distributionsArtifactRule
@@ -132,9 +133,9 @@ fun applyDefaultDependencies(buildType: BuildType, requiresDistribution: Boolean
                 """.trimIndent()
             }
         }
-    } else if (SanityCheck != null) {
+    } else if (buildType !is SanityCheck) {
         buildType.dependencies {
-            dependency(SanityCheck) {
+            dependency(SanityCheck(model)) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL

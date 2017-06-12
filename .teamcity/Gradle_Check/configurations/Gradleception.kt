@@ -4,8 +4,8 @@ import jetbrains.buildServer.configs.kotlin.v10.BuildType
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import model.CIBuildModel
 
-object Gradleception : BuildType({
-    uuid = "${CIBuildModel.projectPrefix}Gradleception"
+class Gradleception(model: CIBuildModel) : BuildType({
+    uuid = "${model.projectPrefix}Gradleception"
     extId = uuid
     name = "Gradleception - Java8 Linux"
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
@@ -14,7 +14,7 @@ object Gradleception : BuildType({
         param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
     }
 
-    applyDefaults(this, ":install", extraParameters = "-Pgradle_installPath=dogfood-first", extraSteps = {
+    applyDefaults(model, this, ":install", extraParameters = "-Pgradle_installPath=dogfood-first", extraSteps = {
         gradle {
             name = "BUILD_WITH_BUILT_GRADLE"
             tasks = "clean :install"
