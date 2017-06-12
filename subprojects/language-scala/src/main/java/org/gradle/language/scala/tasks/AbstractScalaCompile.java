@@ -18,10 +18,13 @@ package org.gradle.language.scala.tasks;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
@@ -36,10 +39,7 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
@@ -92,6 +92,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(getOptions());
         spec.setScalaCompileOptions(scalaCompileOptions);
+        spec.setAnnotationProcessorPath(calculateAnnotationProcessorClasspath());
         return spec;
     }
 
@@ -129,7 +130,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         return analysisMap;
     }
 
-
     protected HashMap<File, File> filterForClasspath(Map<File, File> analysisMap, Iterable<File> classpath) {
         final Set<File> classpathLookup = Sets.newHashSet(classpath);
         return Maps.newHashMap(Maps.filterEntries(analysisMap, new Predicate<Map.Entry<File, File>>() {
@@ -137,5 +137,11 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
                 return classpathLookup.contains(entry.getKey());
             }
         }));
+    }
+
+    private List<File> calculateAnnotationProcessorClasspath() {
+        AnnotationProcessorDetector annotationProcessorDetector = getServices().get(AnnotationProcessorDetector.class);
+        FileCollection processorClasspath = annotationProcessorDetector.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+        return Lists.newArrayList(processorClasspath);
     }
 }
