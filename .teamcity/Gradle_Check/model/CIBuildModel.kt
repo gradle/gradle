@@ -36,7 +36,7 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
-                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java9),
+                            TestCoverage(TestType.java9Smoke, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
             Stage("Test Cross-version (All Versions), No-daemon, Soak Tests, Performance Experiments",
                     trigger = Trigger.daily,
@@ -157,11 +157,11 @@ enum class OS {
 }
 
 enum class JvmVersion {
-    java7, java8, java9,
+    java7, java8
 }
 
 enum class TestType {
-    quick, platform, parallel, noDaemon, crossVersion, quickFeedbackCrossVersion, soak
+    quick, platform, parallel, noDaemon, crossVersion, quickFeedbackCrossVersion, soak, java9Smoke
 }
 
 enum class JvmVendor {

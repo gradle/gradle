@@ -20,6 +20,9 @@ class FunctionalTest(model: CIBuildModel, testCoverage : TestCoverage, bucket: I
 
     params {
         param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.version}.${testCoverage.vendor}.64bit%")
-        param("env.ANDROID_HOME", "/opt/android/sdk")
+        if (testCoverage.os == OS.linux) {
+            param("env.JAVA_9", "%linux.java9.oracle.64bit%")
+            param("env.ANDROID_HOME", "/opt/android/sdk")
+        }
     }
 })
