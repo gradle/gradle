@@ -107,9 +107,6 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
 
             private CommandLineToolContext context(GccCommandLineToolConfigurationInternal toolConfiguration) {
                 MutableCommandLineToolContext baseInvocation = new DefaultMutableCommandLineToolContext();
-                // MinGW requires the path to be set
-//                    baseInvocation.addPath(toolSearchPath.getPath());
-//                baseInvocation.addEnvironmentVar("CYGWIN", "nodosfilewarning");
                 baseInvocation.setArgAction(toolConfiguration.getArgAction());
                 return baseInvocation;
             }

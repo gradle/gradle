@@ -36,7 +36,9 @@ import org.gradle.nativeplatform.toolchain.internal.swift.SwiftcToolChain;
 import org.gradle.process.internal.ExecActionFactory;
 
 /**
- * A {@link Plugin} which makes the <a href="http://clang.llvm.org">Clang</a> compiler available for compiling C/C++ code.
+ * A {@link Plugin} which makes the <a href="https://swift.org/compiler-stdlib/">Swiftc</a> compiler available for compiling Swift code.
+ *
+ * @since 4.1
  */
 @Incubating
 public class SwiftCompilerPlugin implements Plugin<Project> {

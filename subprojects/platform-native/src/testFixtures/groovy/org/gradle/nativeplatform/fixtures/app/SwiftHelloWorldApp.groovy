@@ -54,7 +54,7 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     }
 
     @Override
-    def SourceFile getCommonHeader() {
+    SourceFile getCommonHeader() {
         sourceFile("headers", "common.h", "")
     }
 
@@ -111,32 +111,13 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     TestNativeComponent getGoogleTestTests() {
         return new TestNativeComponent() {
             List<SourceFile> sourceFiles = [
-                sourceFile("cpp", "test.cpp", """
-#include "gtest/gtest.h"
-#include "hello.h"
-
-using namespace testing;
-
-TEST(HelloTest, test_sum) {
-  ASSERT_TRUE(sum(0, 2) == 2);
-#ifndef ONE_TEST
-  ASSERT_TRUE(sum(0, -2) == -2);
-  ASSERT_TRUE(sum(2, 2) == 4);
-#endif
-}
-
-int main(int argc, char **argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-                    """),
             ]
             List<SourceFile> headerFiles = [
             ]
         };
     }
 
-    public SourceFile getBrokenFile() {
+    SourceFile getBrokenFile() {
         return sourceFile("swift", "broken.swift", """'broken""")
     }
 
