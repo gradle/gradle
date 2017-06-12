@@ -33,6 +33,7 @@ calling the subProjects() method in this project.
 version = "2017.1"
 val buildModel = CIBuildModel(
         projectPrefix = "Gradle_BuildCacheDeactivated_",
+        rootProjectName = "Build Cache Deactivated",
         buildCacheActive = false,
         stages = listOf(
                 Stage("Sanity Check and Distribution",
