@@ -59,11 +59,11 @@ public class BuildCacheTaskServices {
         return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildInvocationScopeId);
     }
 
-    TaskBuildCacheCommandFactory createTaskBuildCacheCommandFactory(
+    TaskOutputCacheCommandFactory createTaskOutputCacheCommandFactory(
         TaskOutputPacker taskOutputPacker,
         TaskOutputOriginFactory taskOutputOriginFactory
     ) {
-        return new TaskBuildCacheCommandFactory(taskOutputPacker, taskOutputOriginFactory);
+        return new TaskOutputCacheCommandFactory(taskOutputPacker, taskOutputOriginFactory);
     }
 
     // TODO: Should live in BuildCacheServices
