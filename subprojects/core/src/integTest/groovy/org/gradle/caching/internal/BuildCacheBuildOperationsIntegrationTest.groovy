@@ -263,7 +263,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         disableOp.details.message == "a non-recoverable error was encountered"
         disableOp.details.reason == BuildCacheDisableServiceBuildOperationType.Details.DisabledReason.NON_RECOVERABLE_ERROR.name()
 
-        disableOp.result == null
+        disableOp.result == [:]
     }
 
 }
