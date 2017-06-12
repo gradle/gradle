@@ -16,6 +16,7 @@
 
 package org.gradle.caching.http.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.authentication.Authentication;
 import org.gradle.caching.BuildCacheService;
@@ -55,10 +56,8 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
         HttpBuildCacheCredentials credentials = configuration.getCredentials();
         if (!credentialsPresent(credentials) && url.getUserInfo() != null) {
-            credentials = extractCredentialsFromUserInfo(url, credentials);
+            credentials = extractCredentialsFromUserInfo(url);
         }
-
-        url = noUserInfoUrl;
 
         Collection<Authentication> authentications = Collections.emptyList();
         if (credentialsPresent(credentials)) {
@@ -74,16 +73,17 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             .config("authenticated", Boolean.toString(authenticated));
 
         HttpClientHelper httpClientHelper = new HttpClientHelper(new DefaultHttpSettings(authentications, sslContextFactory));
-        return new HttpBuildCacheService(httpClientHelper, url);
+        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl);
     }
 
-    private HttpBuildCacheCredentials extractCredentialsFromUserInfo(URI url, HttpBuildCacheCredentials credentials) {
+    @VisibleForTesting
+    static HttpBuildCacheCredentials extractCredentialsFromUserInfo(URI url) {
+        HttpBuildCacheCredentials credentials = new HttpBuildCacheCredentials();
         String userInfo = url.getUserInfo();
         int indexOfSeparator = userInfo.indexOf(':');
         if (indexOfSeparator > -1) {
             String username = userInfo.substring(0, indexOfSeparator);
             String password = userInfo.substring(indexOfSeparator + 1);
-            credentials = new HttpBuildCacheCredentials();
             credentials.setUsername(username);
             credentials.setPassword(password);
         }
