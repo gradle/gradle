@@ -20,17 +20,14 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.MavenModule
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
 class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
-    MavenModule publishedModuleB
     List arguments = []
 
     def setup() {
-        publishedModuleB = mavenRepo.module("org.test", "buildB", "1.0").publish()
         new ResolveTestFixture(buildA.buildFile).prepare()
 
         buildA.buildFile << """

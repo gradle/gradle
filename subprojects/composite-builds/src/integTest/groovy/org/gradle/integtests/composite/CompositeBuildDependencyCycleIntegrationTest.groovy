@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.Matchers
 
 /**
@@ -28,11 +27,9 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
     BuildTestFile buildB
     BuildTestFile buildC
     ResolveTestFixture resolve
-    MavenModule publishedModuleB
     List arguments = []
 
     def setup() {
-        publishedModuleB = mavenRepo.module("org.test", "buildB", "1.0").publish()
         resolve = new ResolveTestFixture(buildA.buildFile)
 
         buildA.buildFile << """
