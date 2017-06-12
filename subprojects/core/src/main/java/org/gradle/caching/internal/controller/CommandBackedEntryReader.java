@@ -22,24 +22,32 @@ import org.gradle.caching.BuildCacheEntryReader;
 import java.io.IOException;
 import java.io.InputStream;
 
-class CommandBackedEntryReader<T> implements BuildCacheEntryReader {
+public class CommandBackedEntryReader<T> implements BuildCacheEntryReader {
 
     private final BuildCacheLoadCommand<T> command;
 
-    long bytes;
-    BuildCacheLoadCommand.Result<T> result;
+    private long bytes;
+    private BuildCacheLoadCommand.Result<T> result;
 
-    CommandBackedEntryReader(BuildCacheLoadCommand<T> command) {
+    public CommandBackedEntryReader(BuildCacheLoadCommand<T> command) {
         this.command = command;
     }
 
     @Override
     public void readFrom(InputStream input) throws IOException {
-        if (result != null) {
+        if (getResult() != null) {
             throw new IllegalStateException("Build cache entry has already been read");
         }
         CountingInputStream countingInputStream = new CountingInputStream(input);
         result = command.load(countingInputStream);
         bytes = countingInputStream.getCount();
+    }
+
+    public long getBytes() {
+        return bytes;
+    }
+
+    public BuildCacheLoadCommand.Result<T> getResult() {
+        return result;
     }
 }
