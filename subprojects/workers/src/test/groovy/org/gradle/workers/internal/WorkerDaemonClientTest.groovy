@@ -16,9 +16,7 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.progress.BuildOperationState
 import spock.lang.Specification
 
@@ -47,9 +45,6 @@ class WorkerDaemonClientTest extends Specification {
         client.execute(Stub(WorkSpec), workerOperation, buildOperation)
 
         then:
-        1 * buildOperationExecutor.call(_ as CallableBuildOperation) >> { args -> args[0].call(Mock(BuildOperationContext)) }
-
-        and:
         1 * workerDaemonProcess.execute(_)
     }
 
@@ -62,46 +57,7 @@ class WorkerDaemonClientTest extends Specification {
         5.times { client.execute(Stub(WorkSpec), workerOperation, buildOperation) }
 
         then:
-        5 * buildOperationExecutor.call(_ as CallableBuildOperation) >> { args -> args[0].call(Mock(BuildOperationContext)) }
-
-        then:
         client.uses == 5
-    }
-
-    def "build operation is started and finished when client is executed"() {
-        def operation = Mock(WorkerLease)
-        def completion = Mock(WorkerLeaseCompletion)
-
-        given:
-        client = client()
-
-        when:
-        client.execute(Stub(WorkSpec), operation, buildOperation)
-
-        then:
-        1 * operation.startChild() >> completion
-        1 * completion.leaseFinish()
-    }
-
-    def "build worker operation is finished even if worker fails"() {
-        def operation = Mock(WorkerLease)
-        def completion = Mock(WorkerLeaseCompletion)
-        def workerDaemonProcess = Mock(WorkerDaemonProcess)
-
-        given:
-        client = client(workerDaemonProcess)
-
-        when:
-        client.execute(Stub(WorkSpec), operation, buildOperation)
-
-        then:
-        1 * operation.startChild() >> completion
-        1 * buildOperationExecutor.call(_ as CallableBuildOperation) >> { args -> args[0].call(Mock(BuildOperationContext)) }
-
-        then:
-        thrown(RuntimeException)
-        1 * workerDaemonProcess.execute(_) >> { throw new RuntimeException() }
-        1 * completion.leaseFinish()
     }
 
     WorkerDaemonClient client() {
@@ -111,6 +67,6 @@ class WorkerDaemonClientTest extends Specification {
     WorkerDaemonClient client(WorkerDaemonProcess workerDaemonProcess) {
         def daemonForkOptions = Mock(DaemonForkOptions)
         def workerProcess = workerDaemonProcess.start()
-        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, buildOperationExecutor, KeepAliveMode.SESSION)
+        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, KeepAliveMode.SESSION)
     }
 }

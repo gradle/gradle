@@ -32,16 +32,19 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
 
         when:
         args("--info")
-        succeeds("runInWorker")
+        def gradle = executer.withTasks("runInWorker").start()
 
         then:
-        output.contains("Starting process 'Gradle Worker Daemon 1'. Working directory: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
+        gradle.waitForFinish()
 
         and:
-        output.contains("Execution working dir: " + testDirectory.getAbsolutePath())
+        gradle.standardOutput.readLines().find { it.matches "Starting process 'Gradle Worker Daemon \\d'. Working directory: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath() + ".*" }
 
         and:
-        output.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
+        gradle.standardOutput.contains("Execution working dir: " + testDirectory.getAbsolutePath())
+
+        and:
+        gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
     }
 
     def "sets the working directory to the specified directory during worker execution"() {
@@ -61,16 +64,19 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
 
         when:
         args("--info")
-        succeeds("runInWorker")
+        def gradle = executer.withTasks("runInWorker").start()
 
         then:
-        output.contains("Starting process 'Gradle Worker Daemon 1'. Working directory: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
+        gradle.waitForFinish()
 
         and:
-        output.contains("Execution working dir: " + testDirectory.file("workerDir").getAbsolutePath())
+        gradle.standardOutput.readLines().find { it.matches "Starting process 'Gradle Worker Daemon \\d'. Working directory: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath() + ".*" }
 
         and:
-        output.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
+        gradle.standardOutput.contains("Execution working dir: " + testDirectory.file("workerDir").getAbsolutePath())
+
+        and:
+        gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
     }
 
     def getRunnableThatPrintsWorkingDirectory() {

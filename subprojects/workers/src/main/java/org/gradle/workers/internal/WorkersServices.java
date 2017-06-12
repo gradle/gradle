@@ -16,12 +16,12 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -36,17 +36,16 @@ import org.gradle.workers.WorkerExecutor;
 
 public class WorkersServices extends AbstractPluginServiceRegistry {
     @Override
+    public void registerGradleUserHomeServices(ServiceRegistration registration) {
+        registration.addProvider(new GradleUserHomeServices());
+    }
+
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new BuildSessionScopeServices());
     }
 
     private static class BuildSessionScopeServices {
-        WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
-                                                                    StartParameter startParameter,
-                                                                    BuildOperationExecutor buildOperationExecutor,
-                                                                    ListenerManager listenerManager) {
-            return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, startParameter, buildOperationExecutor), listenerManager);
-        }
 
         WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, WorkerDirectoryProvider workerDirectoryProvider) {
             return new WorkerDaemonFactory(workerDaemonClientsManager, memoryManager, workerLeaseRegistry, buildOperationExecutor, workerDirectoryProvider);
@@ -66,6 +65,14 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
 
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
+        }
+    }
+
+    private static class GradleUserHomeServices {
+        WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
+                                                                    LoggingManagerInternal loggingManager,
+                                                                    ListenerManager listenerManager) {
+            return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager), listenerManager, loggingManager);
         }
     }
 }

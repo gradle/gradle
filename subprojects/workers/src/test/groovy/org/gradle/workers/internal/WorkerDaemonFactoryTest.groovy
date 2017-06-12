@@ -25,23 +25,31 @@ import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static org.gradle.internal.work.WorkerLeaseRegistry.*
+
 class WorkerDaemonFactoryTest extends Specification {
 
     def clientsManager = Mock(WorkerDaemonClientsManager)
     def client = Mock(WorkerDaemonClient)
     def memoryManager = Mock(MemoryManager)
-    def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
+    def workerLeaseRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def workerOperation = Mock(WorkerLease)
     def buildOperation = Mock(BuildOperationState)
     def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
+    def completion = Mock(WorkerLeaseCompletion)
 
-    @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor, workerDirectoryProvider)
+    @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, workerLeaseRegistry, buildOperationExecutor, workerDirectoryProvider)
 
     def workingDir = new File("some-dir")
     def options = Stub(DaemonForkOptions)
     def spec = Stub(WorkSpec)
     def workerProtocolImplementation = Stub(WorkerProtocol)
+
+    def setup() {
+        _ * workerLeaseRegistry.getCurrentWorkerLease() >> workerOperation
+        _ * buildOperationExecutor.getCurrentOperation() >> buildOperation
+    }
 
     def "getting a worker daemon does not assume client use"() {
         when:
@@ -56,10 +64,6 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
-        1 * buildOperationWorkerRegistry.getCurrentWorkerLease() >> workerOperation
-        1 * buildOperationExecutor.getCurrentOperation() >> buildOperation
-
-        then:
         1 * clientsManager.reserveIdleClient(options) >> null
 
         then:
@@ -67,11 +71,12 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveNewClient(workerProtocolImplementation.class, _, options) >> client
 
         then:
-        1 * client.execute(spec, workerOperation, buildOperation)
+        1 * workerOperation.startChild() >> completion
+        1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
+        1 * client.execute(spec)
 
         then:
         1 * clientsManager.release(client)
-        0 * _._
     }
 
     def "idle client is reused when daemon is executed"() {
@@ -79,18 +84,15 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
-        1 * buildOperationWorkerRegistry.getCurrentWorkerLease() >> workerOperation
-        1 * buildOperationExecutor.getCurrentOperation() >> buildOperation
-
-        then:
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * client.execute(spec, workerOperation, buildOperation)
+        1 * workerOperation.startChild() >> completion
+        1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
+        1 * client.execute(spec)
 
         then:
         1 * clientsManager.release(client)
-        0 * _._
     }
 
     def "client is released even if execution fails"() {
@@ -98,26 +100,23 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
-        1 * buildOperationWorkerRegistry.getCurrentWorkerLease() >> workerOperation
-        1 * buildOperationExecutor.getCurrentOperation() >> buildOperation
-
-        then:
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * client.execute(spec, workerOperation, buildOperation) >> { throw new RuntimeException("Boo!") }
+        1 * workerOperation.startChild() >> completion
+        1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
+        1 * client.execute(spec) >> { throw new RuntimeException("Boo!") }
 
         then:
         thrown(RuntimeException)
         1 * clientsManager.release(client)
-        0 * _._
     }
 
     def "registers/deregisters a worker daemon expiration with the memory manager"() {
         WorkerDaemonExpiration workerDaemonExpiration
 
         when:
-        def factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor, workerDirectoryProvider)
+        def factory = new WorkerDaemonFactory(clientsManager, memoryManager, workerLeaseRegistry, buildOperationExecutor, workerDirectoryProvider)
 
         then:
         1 * memoryManager.addMemoryHolder(_) >> { args -> workerDaemonExpiration = args[0] }
@@ -127,6 +126,32 @@ class WorkerDaemonFactoryTest extends Specification {
 
         then:
         1 * memoryManager.removeMemoryHolder(_) >> { args -> assert args[0] == workerDaemonExpiration }
+    }
+
+    def "build operation is started and finished when client is executed"() {
+        when:
+        factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
+
+        then:
+        1 * clientsManager.reserveIdleClient(options) >> client
+        1 * workerOperation.startChild() >> completion
+        1 * buildOperationExecutor.call(_)
+        1 * completion.leaseFinish()
+    }
+
+    def "build worker operation is finished even if worker fails"() {
+        when:
+        factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
+
+        then:
+        1 * clientsManager.reserveIdleClient(options) >> client
+        1 * workerOperation.startChild() >> completion
+        1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
+        1 * client.execute(spec) >> { throw new RuntimeException("Boo!") }
+
+        then:
+        thrown(RuntimeException)
+        1 * completion.leaseFinish()
     }
 
     def "stops clients"() {

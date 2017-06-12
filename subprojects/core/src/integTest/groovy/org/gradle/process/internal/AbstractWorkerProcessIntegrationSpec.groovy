@@ -35,8 +35,11 @@ import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.services.DefaultLoggingManagerFactory
+import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -68,7 +71,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository))
     final JavaExecHandleFactory execHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
     final OutputEventListener outputEventListener = new TestOutputEventListener()
-    DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.DEBUG, server, classPathRegistry, new LongIdGenerator(), tmpDir.file("gradleUserHome"), new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)), outputEventListener, Stub(MemoryManager))
+    DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(loggingManager(LogLevel.DEBUG), server, classPathRegistry, new LongIdGenerator(), tmpDir.file("gradleUserHome"), new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)), outputEventListener, Stub(MemoryManager))
 
     def cleanup() {
         services.close()
@@ -113,5 +116,11 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
                 throw ex
             }
         }
+    }
+
+    static LoggingManagerInternal loggingManager(LogLevel logLevel) {
+        def loggingManager = LoggingServiceRegistry.newEmbeddableLogging().get(DefaultLoggingManagerFactory).create()
+        loggingManager.setLevelInternal(logLevel)
+        return loggingManager
     }
 }

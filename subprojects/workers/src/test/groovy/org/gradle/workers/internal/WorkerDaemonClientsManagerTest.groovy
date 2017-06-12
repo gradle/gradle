@@ -20,6 +20,7 @@ import org.gradle.api.Transformer
 import org.gradle.initialization.SessionLifecycleListener
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Subject
 
@@ -31,8 +32,9 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def starter = Stub(WorkerDaemonStarter)
     def serverImpl = Stub(WorkerProtocol)
     def listenerManager = Stub(ListenerManager)
+    def loggingManager = Stub(LoggingManagerInternal)
 
-    @Subject manager = new WorkerDaemonClientsManager(starter, listenerManager)
+    @Subject manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager)
 
     def "does not reserve idle client when no clients"() {
         expect:
@@ -86,7 +88,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def "can stop session-scoped clients"() {
         listenerManager = new DefaultListenerManager()
-        manager = new WorkerDaemonClientsManager(starter, listenerManager)
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager)
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
         starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2]
@@ -105,7 +107,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def "Stopping session-scoped clients does not stop other clients"() {
         listenerManager = new DefaultListenerManager()
-        manager = new WorkerDaemonClientsManager(starter, listenerManager)
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager)
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
         starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2]
