@@ -44,14 +44,19 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
         buildFile << """
             ${applyAndConfigure}
 
-            import org.gradle.workers.internal.WorkerDaemonFactory
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
             import org.gradle.workers.internal.DaemonForkOptions
 
             tasks.withType(${compileTaskType}) {
                 doLast { task ->
                     def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
-                    def workerDaemonFactory = services.get(WorkerDaemonFactory)
-                    compilerDaemonIdentityFile << workerDaemonFactory.clientsManager.allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
+                    compilerDaemonIdentityFile << services.get(WorkerDaemonClientsManager).allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
+                }
+            }
+            
+            task verifyNoDaemons {
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).allClients.size() == 0
                 }
             }
         """
@@ -73,5 +78,14 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
         compilerDaemonSets.size() == 2
         compilerDaemonSets[0].split(" ").size() > 0
         compilerDaemonSets[0] == compilerDaemonSets[1]
+
+        when:
+        sendEOT()
+
+        then:
+        cancelsAndExits()
+
+        and:
+        succeeds("verifyNoDaemons")
     }
 }
