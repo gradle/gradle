@@ -13,7 +13,6 @@ import model.CIBuildModel
 import model.Stage
 import model.TestType
 import model.Trigger
-import kotlin.reflect.primaryConstructor
 
 class StagePasses(model: CIBuildModel, stageNumber: Int, stage: Stage) : BuildType({
     uuid = "${model.projectPrefix}Stage${stageNumber}_Passes"
@@ -84,7 +83,7 @@ class StagePasses(model: CIBuildModel, stageNumber: Int, stage: Stage) : BuildTy
         }
 
         stage.specificBuilds.forEach {
-            dependency(it.primaryConstructor!!.call(model)) {
+            dependency(it.create(model)) {
                 snapshot {}
             }
         }

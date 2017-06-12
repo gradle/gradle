@@ -7,7 +7,6 @@ import jetbrains.buildServer.configs.kotlin.v10.Project
 import model.CIBuildModel
 import model.Stage
 import model.TestType
-import kotlin.reflect.primaryConstructor
 
 class StageProject(model: CIBuildModel, number: Int, stage: Stage) : Project({
     this.uuid = "${model.projectPrefix}Stage$number"
@@ -18,7 +17,7 @@ class StageProject(model: CIBuildModel, number: Int, stage: Stage) : Project({
     buildType(StagePasses(model, number, stage))
 
     stage.specificBuilds.forEach {
-        buildType(it.primaryConstructor!!.call(model))
+        buildType(it.create(model))
     }
 
     stage.performanceTests.forEach {

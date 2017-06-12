@@ -6,7 +6,6 @@ import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
-import kotlin.reflect.KClass
 
 data class CIBuildModel (
         val projectPrefix: String = "Gradle_Check_",
@@ -15,8 +14,8 @@ data class CIBuildModel (
         val stages: List<Stage> = listOf(
             Stage("Sanity Check and Distribution",
                     specificBuilds = listOf(
-                            SanityCheck::class,
-                            BuildDistributions::class)),
+                            SpecificBuild.SanityCheck,
+                            SpecificBuild.BuildDistributions)),
             Stage("Test Embedded Java8 Linux",
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
@@ -25,7 +24,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java7))),
             Stage("Test Forked Linux/Windows, Performance, Gradleception",
                     specificBuilds = listOf(
-                            Gradleception::class),
+                            SpecificBuild.Gradleception),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
@@ -33,7 +32,7 @@ data class CIBuildModel (
             Stage("Test Parallel, Java9, IBM VM, Cross-Version, Smoke Tests, Colony",
                     trigger = Trigger.eachCommit,
                     specificBuilds = listOf(
-                            SmokeTests::class, ColonyCompatibility::class),
+                            SpecificBuild.SmokeTests, SpecificBuild.ColonyCompatibility),
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
@@ -142,7 +141,7 @@ data class CIBuildModel (
     )
 }
 
-data class Stage(val description: String, val specificBuilds: List<KClass<out BuildType>> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
+data class Stage(val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
 
 data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {
@@ -181,4 +180,24 @@ enum class PerformanceTestType(val taskId: String, val timeout : Int, val defaul
 
 enum class Trigger {
     never, eachCommit, daily, weekly
+}
+
+enum class SpecificBuild {
+    SanityCheck, BuildDistributions, Gradleception, SmokeTests, ColonyCompatibility;
+
+    fun create(model: CIBuildModel): BuildType {
+        if (this == SanityCheck) {
+            return SanityCheck(model)
+        }
+        if (this == BuildDistributions) {
+            return BuildDistributions(model)
+        }
+        if (this == Gradleception) {
+            return Gradleception(model)
+        }
+        if (this == SmokeTests) {
+            return SmokeTests(model)
+        }
+        return ColonyCompatibility(model)
+    }
 }

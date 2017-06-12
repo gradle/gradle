@@ -1,10 +1,8 @@
-
-import configurations.BuildDistributions
-import configurations.SanityCheck
 import jetbrains.buildServer.configs.kotlin.v10.Project
 import model.CIBuildModel
 import model.JvmVersion
 import model.OS
+import model.SpecificBuild
 import model.Stage
 import model.TestCoverage
 import model.TestType
@@ -53,8 +51,8 @@ class CIConfigIntegrationTests {
                 stages = listOf(
                     Stage("Sanity Check and Distribution",
                             specificBuilds = listOf(
-                                    SanityCheck::class,
-                                    BuildDistributions::class)),
+                                    SpecificBuild.SanityCheck,
+                                    SpecificBuild.BuildDistributions)),
                     Stage("Test Embedded Java8 Linux",
                             functionalTests = listOf(
                                     TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),

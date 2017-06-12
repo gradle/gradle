@@ -1,7 +1,5 @@
 package Gradle_BuildCacheDeactivated
 
-import configurations.BuildDistributions
-import configurations.SanityCheck
 import jetbrains.buildServer.configs.kotlin.v10.project
 import jetbrains.buildServer.configs.kotlin.v10.version
 import model.CIBuildModel
@@ -33,14 +31,14 @@ calling the subProjects() method in this project.
 */
 
 version = "2017.1"
-val model = CIBuildModel(
+val buildModel = CIBuildModel(
         projectPrefix = "Gradle_BuildCacheDeactivated_",
         buildCacheActive = false,
         stages = listOf(
                 Stage("Sanity Check and Distribution",
                         specificBuilds = listOf(
-                                SanityCheck::class,
-                                BuildDistributions::class)),
+                                model.SpecificBuild.SanityCheck,
+                                model.SpecificBuild.BuildDistributions)),
                 Stage("Test Embedded Java8 Linux",
                         functionalTests = listOf(
                                 TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
@@ -49,4 +47,4 @@ val model = CIBuildModel(
                                 TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
         )
 )
-project(RootProject(model))
+project(RootProject(buildModel))
