@@ -26,6 +26,7 @@ import org.gradle.caching.internal.BuildCacheDisableServiceBuildOperationType.De
 import org.gradle.caching.internal.BuildCacheLoadBuildOperationType;
 import org.gradle.caching.internal.BuildCacheStoreBuildOperationType;
 import org.gradle.caching.internal.controller.operations.DisableOperationDetails;
+import org.gradle.caching.internal.controller.operations.DisableOperationResult;
 import org.gradle.caching.internal.controller.operations.LoadOperationDetails;
 import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
 import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
@@ -215,6 +216,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
                 @Override
                 public void run(BuildOperationContext context) {
                     LOGGER.warn("The {} build cache is now disabled because {}.", role.getDisplayName(), message);
+                    context.setResult(DisableOperationResult.INSTANCE);
                 }
 
                 @Override
