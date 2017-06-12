@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.tasks.TaskBuildCacheCommandFactory;
+import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.internal.time.Timer;
@@ -42,12 +42,12 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final BuildCacheController buildCache;
     private final TaskExecuter delegate;
     private final TaskOutputsGenerationListener taskOutputsGenerationListener;
-    private final TaskBuildCacheCommandFactory buildCacheCommandFactory;
+    private final TaskOutputCacheCommandFactory buildCacheCommandFactory;
 
     public SkipCachedTaskExecuter(
         BuildCacheController buildCache,
         TaskOutputsGenerationListener taskOutputsGenerationListener,
-        TaskBuildCacheCommandFactory buildCacheCommandFactory,
+        TaskOutputCacheCommandFactory buildCacheCommandFactory,
         TaskExecuter delegate
     ) {
         this.taskOutputsGenerationListener = taskOutputsGenerationListener;
@@ -78,7 +78,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
                     TaskOutputOriginMetadata originMetadata = buildCache.load(
-                        buildCacheCommandFactory.load(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock)
+                        buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock)
                     );
                     if (originMetadata != null) {
                         state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
@@ -98,7 +98,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         if (taskOutputCachingEnabled) {
             if (cacheKey.isValid()) {
                 if (state.getFailure() == null) {
-                    buildCache.store(buildCacheCommandFactory.store(cacheKey, outputProperties, task, clock));
+                    buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, task, clock));
                 } else {
                     LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
                 }

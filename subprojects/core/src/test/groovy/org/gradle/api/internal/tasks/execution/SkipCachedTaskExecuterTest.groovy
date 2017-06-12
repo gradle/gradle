@@ -29,7 +29,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
-import org.gradle.caching.internal.tasks.TaskBuildCacheCommandFactory
+import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
 import org.gradle.internal.id.UniqueId
@@ -52,7 +52,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def taskOutputGenerationListener = Mock(TaskOutputsGenerationListener)
     def loadCommand = Mock(BuildCacheLoadCommand)
     def storeCommand = Mock(BuildCacheStoreCommand)
-    def buildCacheCommandFactory = Mock(TaskBuildCacheCommandFactory)
+    def buildCacheCommandFactory = Mock(TaskOutputCacheCommandFactory)
 
     def executer = new SkipCachedTaskExecuter(buildCache, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
 
@@ -73,7 +73,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.load(cacheKey, _, task, taskOutputGenerationListener, _) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _) >> loadCommand
 
         then:
         1 * buildCache.load(loadCommand) >> new TaskOutputOriginMetadata(originId)
@@ -99,7 +99,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.load(cacheKey, _, task, taskOutputGenerationListener, _) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _) >> loadCommand
 
         then:
         1 * buildCache.load(loadCommand) >> null
@@ -110,7 +110,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.store(cacheKey, _, task, _) >> storeCommand
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, task, _) >> storeCommand
 
         then:
         1 * buildCache.store(storeCommand)
@@ -139,7 +139,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.store(cacheKey, _, task, _) >> storeCommand
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, task, _) >> storeCommand
 
         then:
         1 * buildCache.store(storeCommand)
@@ -161,7 +161,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.load(*_)
+        1 * buildCacheCommandFactory.createLoad(*_)
         1 * buildCache.load(_)
 
         then:
@@ -218,7 +218,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
 
         then:
-        1 * buildCacheCommandFactory.load(*_)
+        1 * buildCacheCommandFactory.createLoad(*_)
         1 * buildCache.load(_) >> { throw new RuntimeException("unknown error") }
 
         then:
@@ -243,7 +243,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheCommandFactory.load(*_)
+        1 * buildCacheCommandFactory.createLoad(*_)
         1 * buildCache.load(_)
 
         then:
@@ -252,7 +252,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * cacheKey.isValid() >> true
         1 * taskState.getFailure() >> null
-        1 * buildCacheCommandFactory.store(*_)
+        1 * buildCacheCommandFactory.createStore(*_)
         1 * buildCache.store(_) >> { throw new RuntimeException("unknown error") }
         0 * _
         then:
