@@ -46,31 +46,15 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
     private final Sleeper sleeper;
     private static final int MILLIS_PER_MINUTE = 60 * 1000;
 
-    /**
-     * A constructor using the default Sleeper.
-     *
-     * @param credentialSupplier the credential used to authenticate with a Google Cloud Platform project
-     */
     RetryHttpInitializerWrapper(Supplier<Credential> credentialSupplier) {
         this(credentialSupplier, Sleeper.DEFAULT);
     }
 
-    /**
-     * A constructor used only for testing.
-     *
-     * @param credentialSupplier the credential used to authenticate with a Google Cloud Platform project
-     * @param sleeper a user-supplied Sleeper
-     */
     RetryHttpInitializerWrapper(Supplier<Credential> credentialSupplier, Sleeper sleeper) {
         this.credentialSupplier = Preconditions.checkNotNull(credentialSupplier);
         this.sleeper = sleeper;
     }
 
-    /**
-     * Initialize an HttpRequest.
-     *
-     * @param request an HttpRequest that should be initialized
-     */
     @Override
     public void initialize(HttpRequest request) {
         // Turn off request logging, this can end up logging OAUTH
