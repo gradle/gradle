@@ -49,6 +49,9 @@ plugins.forEach { plugin ->
     }
 
     pluginBundle {
+        tags = listOf("Kotlin", "DSL")
+        website = "https://github.com/gradle/gradle-script-kotlin"
+        vcsUrl = "https://github.com/gradle/gradle-script-kotlin"
         (plugins) {
             plugin.id {
                 id = plugin.id
