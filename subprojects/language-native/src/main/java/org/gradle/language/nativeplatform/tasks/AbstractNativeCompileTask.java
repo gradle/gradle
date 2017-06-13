@@ -19,9 +19,10 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -60,7 +61,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private boolean positionIndependentCode;
-    private final PropertyState<File> objectFileDir;
+    private final DirectoryVar objectFileDir;
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection source;
     private Map<String, String> macros;
@@ -70,7 +71,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
-        objectFileDir = getProject().getProviders().property(File.class);
+        objectFileDir = getProject().getLayout().newDirectoryVar();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -166,14 +167,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      */
     @OutputDirectory
     public File getObjectFileDir() {
-        return objectFileDir.getOrNull();
+        return objectFileDir.getAsFile().getOrNull();
     }
 
     public void setObjectFileDir(File objectFileDir) {
         this.objectFileDir.set(objectFileDir);
     }
 
-    public void setObjectFileDir(Provider<File> objectFileDir) {
+    public void setObjectFileDir(Provider<? extends Directory> objectFileDir) {
         this.objectFileDir.set(objectFileDir);
     }
 

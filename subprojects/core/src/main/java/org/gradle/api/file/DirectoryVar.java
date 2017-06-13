@@ -17,22 +17,27 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 
 import java.io.File;
 
 /**
- * Represents a directory on the file system.
+ * Represents some configurable directory location, whose value is not necessarily currently known until later.
  *
  * @since 4.1
  */
 @Incubating
-public interface Directory extends Provider<File> {
+public interface DirectoryVar extends Provider<Directory>, PropertyState<Directory> {
     /**
-     * Returns the location of this directory, as a {@link File}.
+     * Views the location of this directory as a {@link File}.
      */
-    @Override
-    File get();
+    Provider<File> getAsFile();
+
+    /**
+     * Sets the location of this directory.
+     */
+    void set(File dir);
 
     /**
      * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.
@@ -40,7 +45,7 @@ public interface Directory extends Provider<File> {
      * @param path The path. Can be absolute.
      * @return The directory.
      */
-    Directory dir(String path);
+    Provider<Directory> dir(String path);
 
     /**
      * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.
@@ -56,7 +61,7 @@ public interface Directory extends Provider<File> {
      * @param path The path. Can be absolute.
      * @return The directory.
      */
-    RegularFile file(String path);
+    Provider<RegularFile> file(String path);
 
     /**
      * Returns a {@link RegularFile} whose value is the given path resolved relative to the value of this directory.

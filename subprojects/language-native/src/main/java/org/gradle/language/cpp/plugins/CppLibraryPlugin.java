@@ -24,7 +24,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -38,7 +39,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
@@ -57,7 +57,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         TaskContainerInternal tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
-        Directory buildDirectory = project.getLayout().getBuildDirectory();
+        DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
 
         // TODO - extract some common code to setup the compile task and conventions
@@ -95,7 +95,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - need to set basename and soname
         String linkFileName = platformToolChain.getSharedLibraryLinkFileName("build/lib/" + project.getName());
-        Provider<File> runtimeFile = buildDirectory.file(project.getProviders().provider(new Callable<String>() {
+        Provider<RegularFile> runtimeFile = buildDirectory.file(project.getProviders().provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 return platformToolChain.getSharedLibraryName("lib/" + project.getName());

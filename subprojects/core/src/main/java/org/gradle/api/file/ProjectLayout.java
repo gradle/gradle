@@ -17,6 +17,9 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
+
+import java.io.File;
 
 /**
  * Provides access to several important locations for a project.
@@ -35,5 +38,20 @@ public interface ProjectLayout {
     /**
      * Returns the build directory for the project.
      */
-    Directory getBuildDirectory();
+    DirectoryVar getBuildDirectory();
+
+    /**
+     * Creates a new {@link DirectoryVar} that uses the project directory to resolve paths, if required. The var has no initial value.
+     */
+    DirectoryVar newDirectoryVar();
+
+    /**
+     * Creates a new {@link RegularFileVar} that uses the project directory to resolve paths, if required. The var has no initial value.
+     */
+    RegularFileVar newFileVar();
+
+    /**
+     * Creates a {@link RegularFile} implementation whose location is calculated from the given {@link Provider}.
+     */
+    Provider<RegularFile> file(Provider<File> file);
 }

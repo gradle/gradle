@@ -693,7 +693,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public File getBuildDir() {
-        return getLayout().getBuildDirectory().get();
+        return getLayout().getBuildDirectory().getAsFile().get();
     }
 
     @Override

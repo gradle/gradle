@@ -73,42 +73,49 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("task build dir: " + testDirectory.file("output"))
     }
 
-    def "can attach a calculated directory to task property"() {
+    def "can define and resolve calculated directory relative to project and build directory"() {
         buildFile << """
-            class SomeTask extends DefaultTask {
-                final PropertyState<File> outputDir = project.providers.property(File)
-                
-                File getOutputDir() { return outputDir.getOrNull() }
-                
-                void setOutputDir(File f) { outputDir.set(f) }
-
-                void setOutputDir(Provider<File> f) { outputDir.set(f) }
-                
-                @TaskAction
-                void go() {
-                    println "task output dir: " + outputDir.get() 
-                }
-            }
-            
-            class SomePlugin implements Plugin<Project> {
-                void apply(Project p) {
-                    p.ext.childDirName = "child"
-                    def t = p.tasks.create("show", SomeTask)
-                    t.outputDir = p.layout.buildDir.dir("some-dir").dir(p.providers.provider { p.childDirName })
-                    println "plugin output dir: " + t.outputDir
-                }
-            }
-            
-            apply plugin: SomePlugin
-            buildDir = "output"
+            def childDirName = "child"
+            def srcDir = layout.projectDir.dir("src").dir(providers.provider { childDirName })
+            def outputDir = layout.buildDirectory.dir(providers.provider { childDirName })
+            println "src dir 1: " + srcDir.get()
+            println "output dir 1: " + outputDir.get()
+            buildDir = "output/some-dir"
             childDirName = "other-child"
+            println "src dir 2: " + srcDir.get()
+            println "output dir 2: " + outputDir.get()
 """
 
         when:
-        run("show")
+        run()
 
         then:
-        outputContains("plugin output dir: " + testDirectory.file("build/some-dir/child"))
-        outputContains("task output dir: " + testDirectory.file("output/some-dir/other-child"))
+        outputContains("src dir 1: " + testDirectory.file("src/child"))
+        outputContains("output dir 1: " + testDirectory.file("build/child"))
+        outputContains("src dir 2: " + testDirectory.file("src/other-child"))
+        outputContains("output dir 2: " + testDirectory.file("output/some-dir/other-child"))
+    }
+
+    def "can define and resolve calculated file relative to project and build directory"() {
+        buildFile << """
+            def childDirName = "child"
+            def srcFile = layout.projectDir.dir("src").file(providers.provider { childDirName })
+            def outputFile = layout.buildDirectory.file(providers.provider { childDirName })
+            println "src file 1: " + srcFile.get()
+            println "output file 1: " + outputFile.get()
+            buildDir = "output/some-dir"
+            childDirName = "other-child"
+            println "src file 2: " + srcFile.get()
+            println "output file 2: " + outputFile.get()
+"""
+
+        when:
+        run()
+
+        then:
+        outputContains("src file 1: " + testDirectory.file("src/child"))
+        outputContains("output file 1: " + testDirectory.file("build/child"))
+        outputContains("src file 2: " + testDirectory.file("src/other-child"))
+        outputContains("output file 2: " + testDirectory.file("output/some-dir/other-child"))
     }
 }

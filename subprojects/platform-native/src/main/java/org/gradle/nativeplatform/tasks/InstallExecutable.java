@@ -20,9 +20,12 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
@@ -45,17 +48,16 @@ import java.io.File;
  */
 @Incubating
 public class InstallExecutable extends DefaultTask {
-
     private ToolChain toolChain;
     private NativePlatform platform;
-    private final PropertyState<File> destinationDir;
-    private final PropertyState<File> executable;
+    private final DirectoryVar destinationDir;
+    private final RegularFileVar executable;
     private final ConfigurableFileCollection libs;
 
     public InstallExecutable() {
         this.libs = getProject().files();
-        destinationDir = getProject().getProviders().property(File.class);
-        executable = getProject().getProviders().property(File.class);
+        destinationDir = getProject().getLayout().newDirectoryVar();
+        executable = getProject().getLayout().newFileVar();
     }
 
     /**
@@ -87,14 +89,14 @@ public class InstallExecutable extends DefaultTask {
      */
     @OutputDirectory
     public File getDestinationDir() {
-        return destinationDir.getOrNull();
+        return destinationDir.getAsFile().getOrNull();
     }
 
     public void setDestinationDir(File destinationDir) {
         this.destinationDir.set(destinationDir);
     }
 
-    public void setDestinationDir(Provider<File> destinationDir) {
+    public void setDestinationDir(Provider<? extends Directory> destinationDir) {
         this.destinationDir.set(destinationDir);
     }
 
@@ -103,14 +105,14 @@ public class InstallExecutable extends DefaultTask {
      */
     @InputFile
     public File getExecutable() {
-        return executable.getOrNull();
+        return executable.getAsFile().getOrNull();
     }
 
     public void setExecutable(File executable) {
         this.executable.set(executable);
     }
 
-    public void setExecutable(Provider<File> executable) {
+    public void setExecutable(Provider<? extends RegularFile> executable) {
         this.executable.set(executable);
     }
 

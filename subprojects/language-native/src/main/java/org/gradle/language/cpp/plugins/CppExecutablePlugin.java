@@ -21,7 +21,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
@@ -54,7 +55,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
-        Directory buildDirectory = project.getLayout().getBuildDirectory();
+        DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainerInternal tasks = project.getTasks();
         ProviderFactory providers = project.getProviders();
@@ -89,7 +90,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
         final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        Provider<File> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+        Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 return toolProvider.getExecutableName("exe/" + project.getName());
@@ -105,12 +106,12 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         install.setPlatform(currentPlatform);
         install.setToolChain(toolChain);
         install.setDestinationDir(buildDirectory.dir("install/" + project.getName()));
-        install.setExecutable(providers.provider(new Callable<File>() {
+        install.setExecutable(project.getLayout().file(providers.provider(new Callable<File>() {
             @Override
             public File call() throws Exception {
                 return link.getOutputFile();
             }
-        }));
+        })));
         // TODO - infer this
         install.dependsOn(link);
         // TODO - and this
