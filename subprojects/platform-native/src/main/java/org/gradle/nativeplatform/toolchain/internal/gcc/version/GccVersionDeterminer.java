@@ -66,7 +66,26 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         allArgs.add("-");
         String output = transform(gccBinary, allArgs);
         if (output == null) {
-            return new BrokenResult(String.format("Could not determine %s version: failed to execute %s %s.", getDescription(), gccBinary.getName(), Joiner.on(' ').join(allArgs)));
+            return new BrokenResult(String.format(
+                "Could not determine %s version: failed to execute %s %s.",
+                getDescription(), gccBinary.getName(), Joiner.on(' ').join(allArgs)));
+        }
+
+        GccVersionResult result = transform(output, gccBinary);
+        if (result.isAvailable()) {
+            return result;
+        }
+
+        // Handle Gcc fork like ArmCC
+        List<String> allAltArgs = new ArrayList<String>(args);
+        allAltArgs.add("--list_macros");
+        allAltArgs.add("--gnu");
+        allAltArgs.add("-");
+        output = transform(gccBinary, allAltArgs);
+        if (output == null) {
+            return new BrokenResult(String.format(
+                "Could not determine %s version: failed to execute %s %s.",
+                getDescription(), gccBinary.getName(), Joiner.on(' ').join(allAltArgs)));
         }
         return transform(output, gccBinary);
     }
@@ -111,7 +130,7 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
             throw new UncheckedIOException(e);
         }
         if (!defines.containsKey("__GNUC__")) {
-            return new BrokenResult(String.format("Could not determine %s version: %s produced unexpected output.", getDescription(), gccBinary.getName()));
+            return new BrokenResult(String.format("Could not determine %s version: __GNUC__ missing from output for %s.", getDescription(), gccBinary.getName()));
         }
         int major;
         int minor;
@@ -138,11 +157,14 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
     private ArchitectureInternal determineArchitecture(Map<String, String> defines) {
         boolean i386 = defines.containsKey("__i386__");
         boolean amd64 = defines.containsKey("__amd64__");
+        boolean arm = defines.containsKey("__arm__");
         final ArchitectureInternal architecture;
         if (i386) {
             architecture = Architectures.forInput("i386");
         } else if (amd64) {
             architecture = Architectures.forInput("amd64");
+        } else if (arm) {
+            architecture = Architectures.forInput("arm");
         } else {
             architecture = DefaultNativePlatform.getCurrentArchitecture();
         }
