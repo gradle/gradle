@@ -2,11 +2,16 @@ package org.gradle.script.lang.kotlin.plugins.dsl
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+
 import org.gradle.api.internal.classpath.ModuleRegistry
+
 import org.gradle.script.lang.kotlin.gradleScriptKotlinApi
 import org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin
+
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 import javax.inject.Inject
+
 
 /**
  * The `kotlin-dsl` plugin.
@@ -22,18 +27,15 @@ open class KotlinDslPlugin @Inject constructor(val moduleRegistry: ModuleRegistr
         }
     }
 
-
     private
     fun Project.applyEmbeddedKotlinPlugin() {
         plugins.apply(EmbeddedKotlinPlugin::class.java)
     }
 
-
     private
     fun Project.addGradleKotlinDslDependency() {
         dependencies.add("compileOnly", gradleScriptKotlinApi())
     }
-
 
     private
     fun Project.configureCompilerPlugins() {
