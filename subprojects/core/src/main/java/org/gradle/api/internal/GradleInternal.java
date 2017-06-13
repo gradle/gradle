@@ -24,6 +24,7 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -45,6 +46,9 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     GradleInternal getParent();
 
     GradleInternal getRoot();
+
+    BuildOperationState getBuildOperation();
+    void setBuildOperation(BuildOperationState operation);
 
     /**
      * {@inheritDoc}

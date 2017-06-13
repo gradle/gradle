@@ -46,6 +46,12 @@ class BuildOperationsFixture {
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> roots() {
+        return operations.roots
+    }
+
+
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.records.values().find {

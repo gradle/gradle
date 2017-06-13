@@ -124,6 +124,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
                     doBuildStages(upTo);
                 } catch (Throwable t) {
                     failure = exceptionAnalyser.transform(t);
+                } finally {
+                    // TODO: Build operations for these composite related things?
+                    if (!isNestedBuild()) {
+                        IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
+                        buildControllers.stopTaskExecution();
+                    }
                 }
                 buildResult.set(new BuildResult(upTo.name(), gradle, failure));
                 buildListener.buildFinished(buildResult.get());
@@ -169,7 +175,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         buildOperationExecutor.run(new CalculateTaskGraph());
 
-        if (!gradle.getIncludedBuilds().isEmpty()) {
+        // TODO: Build operations for these composite related things?
+        if (!isNestedBuild()) {
             IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
             buildControllers.startTaskExecution();
         }
@@ -210,7 +217,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Configure build"));
+            return BuildOperationDescriptor.displayName(contextualize("Configure build")).
+                parent(getGradle().getBuildOperation());
         }
     }
 
@@ -250,7 +258,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(contextualize("Calculate task graph"))
                 .details(new CalculateTaskGraphBuildOperationType.Details() {
-                });
+                }).parent(getGradle().getBuildOperation());
         }
     }
 
@@ -262,7 +270,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Run tasks"));
+            return BuildOperationDescriptor.displayName(contextualize("Run tasks")).parent(getGradle().getBuildOperation());
         }
     }
 

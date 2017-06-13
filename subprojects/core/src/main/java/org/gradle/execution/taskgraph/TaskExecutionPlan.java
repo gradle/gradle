@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
@@ -26,7 +27,7 @@ import java.util.Set;
 /**
  * Represents a graph of dependent tasks, returned in execution order.
  */
-public interface TaskExecutionPlan {
+public interface TaskExecutionPlan extends Describable {
     /**
      * Signals to the plan that execution of this task has completed. Execution is complete if the task succeeds, fails, or an exception is thrown during execution.
      * @param task the completed task.

@@ -17,12 +17,14 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentCache;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,12 +34,14 @@ public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
     private final PersistentCache cache;
     private final GradleLauncher gradleLauncher;
     private BuildSrcBuildListenerFactory listenerFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
     private static final Logger LOGGER = Logging.getLogger(BuildSrcUpdateFactory.class);
 
-    public BuildSrcUpdateFactory(PersistentCache cache, GradleLauncher gradleLauncher, BuildSrcBuildListenerFactory listenerFactory) {
+    public BuildSrcUpdateFactory(PersistentCache cache, GradleLauncher gradleLauncher, BuildSrcBuildListenerFactory listenerFactory, BuildOperationExecutor buildOperationExecutor) {
         this.cache = cache;
         this.gradleLauncher = gradleLauncher;
         this.listenerFactory = listenerFactory;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public DefaultClassPath create() {
@@ -57,7 +61,13 @@ public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
     private Collection<File> build(boolean rebuild) {
         BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create(rebuild);
         gradleLauncher.addListener(listener);
-        gradleLauncher.run();
+        GradleInternal gradle = gradleLauncher.getGradle();
+        try {
+            gradle.setBuildOperation(buildOperationExecutor.getCurrentOperation());
+            gradleLauncher.run();
+        } finally {
+            gradle.setBuildOperation(null);
+        }
 
         return listener.getRuntimeClasspath();
     }

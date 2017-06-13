@@ -38,11 +38,13 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final Factory<GradleLauncher> gradleLauncherFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
+
     private DefaultDependencySubstitutions dependencySubstitutions;
 
     private GradleLauncher gradleLauncher;
     private SettingsInternal settings;
     private GradleInternal gradle;
+    private String name;
 
     public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.projectDir = projectDir;
@@ -61,8 +63,11 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     @Override
-    public synchronized String getName() {
-        return getLoadedSettings().getRootProject().getName();
+    public String getName() {
+        if (name == null) {
+            name = getLoadedSettings().getRootProject().getName();
+        }
+        return name;
     }
 
     @Override
@@ -119,9 +124,9 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     @Override
-    public BuildResult execute(Iterable<String> tasks, Object listener) {
-        GradleLauncher launcher = getGradleLauncher();
-        GradleInternal gradle = launcher.getGradle();
+    public BuildResult execute(final Iterable<String> tasks, final Object listener) {
+        final GradleLauncher launcher = getGradleLauncher();
+        final GradleInternal gradle = launcher.getGradle();
         gradle.getStartParameter().setTaskNames(tasks);
         gradle.addListener(listener);
         try {

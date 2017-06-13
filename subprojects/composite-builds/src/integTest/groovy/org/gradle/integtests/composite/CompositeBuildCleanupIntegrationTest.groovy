@@ -16,37 +16,26 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class CompositeBuildCleanupIntegrationTest extends AbstractIntegrationSpec {
+class CompositeBuildCleanupIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
     def "stale outputs are removed from composite builds"() {
         given:
-        multiProjectBuild("multi-project", ['sub1', 'sub2']) {
+        dependency("org.test:buildB:1.0")
+
+        def buildB = singleProjectBuild("buildB") {
             buildFile << """
-                subprojects {
-                    apply plugin: 'java'
-                    dependencies {
-                        compile 'org:included:1.0'
-                    }
-                }
-            """
-            settingsFile << "includeBuild 'included'"
-            file('included/build.gradle') << """
                 apply plugin: 'java'
-                group = 'org'
-                version = '1.0'
             """
-            file('included/settings.gradle').touch()
         }
+        includedBuilds << buildB
+
         def staleFiles = [
-            file("included/build/classes/java/main/stale"),
-            file("sub1/build/classes/java/main/stale"),
-            file("sub2/build/classes/java/main/stale") ]
+            file("buildA/build/classes/java/main/stale"),
+            file("buildB/build/classes/java/main/stale")]
         staleFiles*.touch()
 
         when:
-        succeeds 'build'
+        execute(buildA, 'build')
         then:
         staleFiles*.assertDoesNotExist()
     }

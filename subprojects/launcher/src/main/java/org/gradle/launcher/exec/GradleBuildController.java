@@ -18,6 +18,7 @@ package org.gradle.launcher.exec;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 public class GradleBuildController implements BuildController {
     private enum State {Created, Completed}
@@ -63,8 +64,12 @@ public class GradleBuildController implements BuildController {
 
     public GradleInternal run() {
         try {
+            BuildOperationExecutor buildOperationExecutor =
+                getGradle().getServices().get(BuildOperationExecutor.class);
+            getGradle().setBuildOperation(buildOperationExecutor.getCurrentOperation());
             return (GradleInternal) getLauncher().run().getGradle();
         } finally {
+            getGradle().setBuildOperation(null);
             state = State.Completed;
         }
     }
