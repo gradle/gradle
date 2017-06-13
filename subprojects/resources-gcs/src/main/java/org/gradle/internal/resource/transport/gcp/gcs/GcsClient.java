@@ -36,7 +36,6 @@ import org.gradle.internal.resource.ResourceExceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -46,13 +45,11 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonList;
 
 public class GcsClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GcsClient.class);
-    private static final String GOOGLE_CREDENTIALS_SYSTEM_PROPERTY = "GOOGLE_APPLICATION_CREDENTIALS";
 
     private final Storage storage;
 
@@ -183,21 +180,14 @@ public class GcsClient {
         return Suppliers.memoize(new Supplier<Credential>() {
             @Override
             public Credential get() {
-                // Get the users credential, or use a service account if explicitly provided
-                GoogleCredential googleCredential;
-                // Get from system property because gradle forks and can't read the host environment properly
-                String fileName = System.getProperty(GOOGLE_CREDENTIALS_SYSTEM_PROPERTY);
                 try {
-                    if (isNullOrEmpty(fileName)) {
-                        googleCredential = GoogleCredential.getApplicationDefault(transport, jsonFactory);
-                    } else {
-                        googleCredential = GoogleCredential.fromStream(new FileInputStream(fileName), transport, jsonFactory);
-                    }
+                    // Get the users credential, or use a service account if explicitly provided
+                    GoogleCredential googleCredential = GoogleCredential.getApplicationDefault(transport, jsonFactory);
+                    // Ensure we have a scope
+                    return googleCredential.createScoped(singletonList("https://www.googleapis.com/auth/devstorage.read_write"));
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to get Google credentials for GCS connection", e);
                 }
-                // Ensure we have a scope
-                return googleCredential.createScoped(singletonList("https://www.googleapis.com/auth/devstorage.read_write"));
             }
         });
     }
