@@ -6,7 +6,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 import org.gradle.api.plugins.BasePluginConvention
-import org.gradle.api.plugins.JavaPluginConvention
 
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -57,11 +56,6 @@ open class GskPublishedModule : Plugin<Project> {
     private
     val Project.base
         get() = convention.getPlugin(BasePluginConvention::class.java)
-
-    private
-    val Project.java
-        get() = convention.getPlugin(JavaPluginConvention::class.java)
-
 
     private
     fun Project.publishing(action: PublishingExtension.() -> Unit) =

@@ -46,12 +46,12 @@ open class GskModule : Plugin<Project> {
         }
     }
 
-
-    private
-    val Project.java get() = convention.getPlugin(JavaPluginConvention::class.java)
-
-
     private
     fun Project.kotlin(action: KotlinProjectExtension.() -> Unit) =
         extensions.configure(KotlinProjectExtension::class.java, action)
 }
+
+
+internal
+val Project.java
+    get() = convention.getPlugin(JavaPluginConvention::class.java)
