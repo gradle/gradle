@@ -69,6 +69,28 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("build/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
+    def "honors changes to buildDir"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppCompilerDetectingTestApp()
+
+        given:
+        app.writeSources(file('src/main'))
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+            buildDir = 'output'
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+
+        !file("build").exists()
+        executable("output/exe/app").assertExists()
+        installation("output/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+    }
+
     def "can compile and link against a library"() {
         settingsFile << "include 'app', 'hello'"
         def app = new CppHelloWorldApp()

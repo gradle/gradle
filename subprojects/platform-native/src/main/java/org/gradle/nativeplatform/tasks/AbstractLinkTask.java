@@ -19,6 +19,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -52,7 +54,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
-    private File outputFile;
+    private final PropertyState<File> outputFile;
     private List<String> linkerArgs;
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
@@ -60,6 +62,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     public AbstractLinkTask() {
         libs = getProject().files();
         source = getProject().files();
+        outputFile = getProject().getProviders().property(File.class);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -105,11 +108,15 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      */
     @OutputFile
     public File getOutputFile() {
-        return outputFile;
+        return outputFile.getOrNull();
     }
 
     public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
+        this.outputFile.set(outputFile);
+    }
+
+    public void setOutputFile(Provider<File> outputFile) {
+        this.outputFile.set(outputFile);
     }
 
     /**

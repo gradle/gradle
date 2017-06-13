@@ -21,6 +21,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -58,7 +60,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private boolean positionIndependentCode;
-    private File objectFileDir;
+    private final PropertyState<File> objectFileDir;
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection source;
     private Map<String, String> macros;
@@ -68,6 +70,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
+        objectFileDir = getProject().getProviders().property(File.class);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -163,11 +166,15 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      */
     @OutputDirectory
     public File getObjectFileDir() {
-        return objectFileDir;
+        return objectFileDir.getOrNull();
     }
 
     public void setObjectFileDir(File objectFileDir) {
-        this.objectFileDir = objectFileDir;
+        this.objectFileDir.set(objectFileDir);
+    }
+
+    public void setObjectFileDir(Provider<File> objectFileDir) {
+        this.objectFileDir.set(objectFileDir);
     }
 
     /**

@@ -17,6 +17,7 @@
 package org.gradle.language.cpp.plugins
 
 import org.gradle.language.cpp.tasks.CppCompile
+import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -29,16 +30,44 @@ class CppExecutablePluginTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.createDir("project"))
 
-    def "adds compile and link tasks"() {
-        when:
+    def "adds compile, link and install tasks"() {
+        given:
         project.pluginManager.apply(CppExecutablePlugin)
 
-        then:
+        expect:
         def compileCpp = project.tasks.compileCpp
         compileCpp instanceof CppCompile
         compileCpp.includes.files as List == [project.file("src/main/headers")]
 
         def link = project.tasks.linkMain
         link instanceof LinkExecutable
+
+        def install = project.tasks.installMain
+        install instanceof InstallExecutable
+    }
+
+    def "output locations reflects changes to buildDir"() {
+        given:
+        project.pluginManager.apply(CppExecutablePlugin)
+
+        expect:
+        def compileCpp = project.tasks.compileCpp
+        compileCpp.objectFileDir == project.file("build/main/objs")
+
+        def link = project.tasks.linkMain
+        link.outputFile.parentFile == project.file("build/exe")
+
+        def install = project.tasks.installMain
+        install.destinationDir == project.file("build/install/test")
+
+        project.setBuildDir("output")
+
+        compileCpp.objectFileDir == project.file("output/main/objs")
+        link.outputFile.parentFile == project.file("output/exe")
+        install.destinationDir == project.file("output/install/test")
+        install.executable == link.outputFile
+
+        link.setOutputFile(project.file("exe"))
+        install.executable == link.outputFile
     }
 }

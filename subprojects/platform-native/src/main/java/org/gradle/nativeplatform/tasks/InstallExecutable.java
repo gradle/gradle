@@ -22,6 +22,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -46,12 +48,14 @@ public class InstallExecutable extends DefaultTask {
 
     private ToolChain toolChain;
     private NativePlatform platform;
-    private File destinationDir;
-    private File executable;
+    private final PropertyState<File> destinationDir;
+    private final PropertyState<File> executable;
     private final ConfigurableFileCollection libs;
 
     public InstallExecutable() {
         this.libs = getProject().files();
+        destinationDir = getProject().getProviders().property(File.class);
+        executable = getProject().getProviders().property(File.class);
     }
 
     /**
@@ -83,11 +87,15 @@ public class InstallExecutable extends DefaultTask {
      */
     @OutputDirectory
     public File getDestinationDir() {
-        return destinationDir;
+        return destinationDir.getOrNull();
     }
 
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        this.destinationDir.set(destinationDir);
+    }
+
+    public void setDestinationDir(Provider<File> destinationDir) {
+        this.destinationDir.set(destinationDir);
     }
 
     /**
@@ -95,11 +103,15 @@ public class InstallExecutable extends DefaultTask {
      */
     @InputFile
     public File getExecutable() {
-        return executable;
+        return executable.getOrNull();
     }
 
     public void setExecutable(File executable) {
-        this.executable = executable;
+        this.executable.set(executable);
+    }
+
+    public void setExecutable(Provider<File> executable) {
+        this.executable.set(executable);
     }
 
     /**
