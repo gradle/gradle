@@ -56,6 +56,7 @@ plugins.forEach { plugin ->
             plugin.id {
                 id = plugin.id
                 displayName = plugin.displayName
+                description = plugin.displayName
             }
         }
     }
