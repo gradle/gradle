@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.internal.SystemProperties
 import org.junit.Ignore
 
+@Ignore("Flaky - either fails or locks up on Windows")
 class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
     private static final String EOL = SystemProperties.instance.lineSeparator
     private static final String PROJECT_A_NAME = 'projectA'
