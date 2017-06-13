@@ -75,24 +75,6 @@ class GcsClientTest extends Specification {
         }
     }
 
-    def "should include uri when meta-data not found"() {
-        def gcsStorageClient = Mock(Storage)
-        URI uri = new URI("https://somehost/file.txt")
-        GcsClient gcsClient = new GcsClient(gcsStorageClient)
-
-        gcsStorageClient.objects(*_) >> Mock(Storage.Objects) {
-            get(*_) >> Mock(Storage.Objects.Get) {
-                execute() >> { throw new IOException() }
-            }
-        }
-
-        when:
-        gcsClient.getMetaData(uri)
-        then:
-        def ex = thrown(ResourceException)
-        ex.message.startsWith("Could not get resource 'https://somehost/file.txt'")
-    }
-
     def "should include uri when file not found"() {
         def gcsStorageClient = Mock(Storage)
         URI uri = new URI("https://somehost/file.txt")

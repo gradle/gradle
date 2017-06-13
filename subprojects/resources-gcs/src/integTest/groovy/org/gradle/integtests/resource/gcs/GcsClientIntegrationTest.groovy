@@ -63,14 +63,6 @@ class GcsClientIntegrationTest extends Specification {
         gcsClient.put(stream, file.length(), uri)
 
         when:
-        server.stubMetaData(file, "/$bucketName/maven/release/$FILE_NAME")
-        StorageObject metaData = gcsClient.getMetaData(uri)
-
-        then:
-        metaData.getSize() == 0
-        metaData.getEtag() ==~ /\w{32}/
-
-        when:
         server.stubGetFile(file,"/$bucketName/maven/release/$FILE_NAME")
 
         then:

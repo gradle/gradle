@@ -74,7 +74,7 @@ public class GcsResourceConnector implements ExternalResourceConnector {
 
     @Override
     public void upload(ReadableContent resource, URI destination) throws IOException {
-        LOGGER.debug("Attempting to upload stream to : {}", destination);
+        LOGGER.debug("Attempting to upload stream to: {}", destination);
         InputStream inputStream = resource.open();
         try {
             gcsClient.put(inputStream, resource.getContentLength(), destination);

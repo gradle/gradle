@@ -97,19 +97,6 @@ public class GcsClient {
     }
 
     @Nullable
-    public StorageObject getMetaData(URI uri) throws ResourceException {
-        LOGGER.debug("Attempting to get gcs meta-data: [{}]", uri.toString());
-
-        String path = cleanResourcePath(uri);
-        try {
-            Storage.Objects.Get getRequest = storage.objects().get(uri.getHost(), path);
-            return getRequest.execute();
-        } catch (IOException e) {
-            throw ResourceExceptions.getFailed(uri, e);
-        }
-    }
-
-    @Nullable
     public StorageObject getResource(URI uri) throws ResourceException {
         LOGGER.debug("Attempting to get gcs resource: [{}]", uri.toString());
 
