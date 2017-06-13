@@ -28,6 +28,9 @@ allprojects {
     group = "org.gradle"
     version = "0.10.0-SNAPSHOT"
 }
+project(":plugins") {
+    version = "0.10.0"
+}
 
 // --- Configure publications ------------------------------------------
 val publishedProjects =
