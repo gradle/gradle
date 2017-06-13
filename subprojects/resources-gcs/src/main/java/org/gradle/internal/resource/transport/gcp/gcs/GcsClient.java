@@ -181,7 +181,6 @@ public class GcsClient {
             @Override
             public Credential get() {
                 try {
-                    // Get the users credential, or use a service account if explicitly provided
                     GoogleCredential googleCredential = GoogleCredential.getApplicationDefault(transport, jsonFactory);
                     // Ensure we have a scope
                     return googleCredential.createScoped(singletonList("https://www.googleapis.com/auth/devstorage.read_write"));
