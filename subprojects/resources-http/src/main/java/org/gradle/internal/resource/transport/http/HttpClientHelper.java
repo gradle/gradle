@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import com.google.common.collect.Maps;
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
@@ -41,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Locale;
-import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Provides some convenience and unified logging.
@@ -53,17 +52,18 @@ public class HttpClientHelper implements Closeable {
     private final HttpSettings settings;
 
     /**
-     * Maintains a map of Thread -> HttpContext in case authentication is activated.
-     * We don't use thread locals because we cannot clear them for an arbitrary thread
-     * when {@link #close()} is called. Instead, this is going to be a regular map (concurrent-safe)
-     * that we'll clear when we know the client is to be disconnected.
+     * Maintains a queue of contexts which are shared between threads when authentication
+     * is activated. When a request is performed, it will pick a context from the queue,
+     * and create a new one whenever it's not available (which either means it's the first request
+     * or that other requests are being performed concurrently). The queue will grow as big as
+     * the max number of concurrent requests executed.
      */
-    private final Map<Thread, HttpContext> sharedContext;
+    private final ConcurrentLinkedQueue<HttpContext> sharedContext;
 
     public HttpClientHelper(HttpSettings settings) {
         this.settings = settings;
         if (!settings.getAuthenticationSettings().isEmpty()) {
-            sharedContext = Maps.newConcurrentMap();
+            sharedContext = new ConcurrentLinkedQueue<HttpContext>();
         } else {
             sharedContext = null;
         }
@@ -126,20 +126,20 @@ public class HttpClientHelper implements Closeable {
             // There's no authentication involved, requests can be done concurrently
             return performHttpRequest(request, new BasicHttpContext());
         }
-        return performHttpRequest(request, threadLocalContext());
+        HttpContext httpContext = nextAvailableSharedContext();
+        try {
+            return performHttpRequest(request, httpContext);
+        } finally {
+            sharedContext.add(httpContext);
+        }
     }
 
-    private HttpContext threadLocalContext() {
-        HttpContext httpContext = sharedContext.get(Thread.currentThread());
-        if (httpContext != null) {
-            return httpContext;
+    private HttpContext nextAvailableSharedContext() {
+        HttpContext context = sharedContext.poll();
+        if (context == null) {
+            return new BasicHttpContext();
         }
-        httpContext = new BasicHttpContext();
-        try {
-            return httpContext;
-        } finally {
-            sharedContext.put(Thread.currentThread(), httpContext);
-        }
+        return context;
     }
 
     private CloseableHttpResponse performHttpRequest(HttpRequestBase request, HttpContext httpContext) throws IOException {
@@ -177,7 +177,9 @@ public class HttpClientHelper implements Closeable {
     public synchronized void close() throws IOException {
         if (client != null) {
             client.close();
-            sharedContext.clear();
+            if (sharedContext != null) {
+                sharedContext.clear();
+            }
         }
     }
 

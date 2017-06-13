@@ -15,6 +15,8 @@
  */
 package org.gradle.test.fixtures.server.http;
 
+import com.sun.net.httpserver.BasicAuthenticator;
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.rules.ExternalResource;
 
@@ -42,6 +44,7 @@ public class BlockingHttpServer extends ExternalResource {
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
     private final Lock lock = new ReentrantLock();
     private final HttpServer server;
+    private HttpContext context;
     private final ChainingHttpHandler handler;
     private final int timeoutMs;
     private final int serverId;
@@ -57,7 +60,7 @@ public class BlockingHttpServer extends ExternalResource {
         server.setExecutor(EXECUTOR_SERVICE);
         serverId = COUNTER.incrementAndGet();
         handler = new ChainingHttpHandler(lock, COUNTER, new MustBeRunning());
-        server.createContext("/", handler);
+        context = server.createContext("/", handler);
         this.timeoutMs = timeoutMs;
     }
 
@@ -97,6 +100,15 @@ public class BlockingHttpServer extends ExternalResource {
     public String callFromBuildUsingExpression(String expression) {
         String uriExpression = "\"" + getUri() + "/\" + " + expression;
         return "System.out.println(\"calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"response received\");";
+    }
+
+    public void withBasicAuthentication(final String username, final String password) {
+        context.setAuthenticator(new BasicAuthenticator("get") {
+            @Override
+            public boolean checkCredentials(String u, String pwd) {
+                return u.equals(username) && password.equals(pwd);
+            }
+        });
     }
 
     /**

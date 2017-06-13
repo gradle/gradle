@@ -29,6 +29,8 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         server.start()
     }
 
+    String getAuthConfig() { '' }
+
     @Unroll
     def "downloads artifacts in parallel from a Maven repo - #expression"() {
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
@@ -38,7 +40,10 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                maven { url = uri('$server.uri') }
+                maven { 
+                    url = uri('$server.uri')
+                    $authConfig
+                }
             }
             configurations { compile }
             dependencies {
@@ -88,7 +93,10 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                ivy { url = uri('$server.uri') }
+                ivy { 
+                    url = uri('$server.uri')
+                    $authConfig
+                }
             }
             configurations { compile }
             dependencies {
@@ -130,7 +138,10 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                maven { url = uri('$server.uri') }
+                maven { 
+                    url = uri('$server.uri')
+                    $authConfig
+                }
             }
             configurations { compile }
             dependencies {
@@ -186,7 +197,10 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                ivy { url = uri('$server.uri') }
+                ivy { 
+                    url = uri('$server.uri')
+                    $authConfig
+                }
             }
             
             configurations { compile }
