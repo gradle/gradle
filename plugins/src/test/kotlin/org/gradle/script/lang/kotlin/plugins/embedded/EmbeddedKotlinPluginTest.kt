@@ -26,6 +26,8 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 
+import java.io.File
+
 
 class EmbeddedKotlinPluginTest : AbstractIntegrationTest() {
 
@@ -67,7 +69,7 @@ class EmbeddedKotlinPluginTest : AbstractIntegrationTest() {
 
         assertThat(result.output, containsString("Embedded Kotlin Repository"))
         embeddedModules.forEach {
-            assertThat(result.output, containsString(it.jarRepoPath))
+            assertThat(result.output, containsString(it.jarRepoPath.replace('/', File.separatorChar)))
         }
     }
 
