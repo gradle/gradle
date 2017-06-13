@@ -17,11 +17,13 @@
 package codegen
 
 import org.gradle.api.DefaultTask
+
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
 import java.io.File
+
 
 open class GenerateKotlinDependencyExtensions : DefaultTask() {
 
@@ -50,21 +52,25 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
+
 /**
  * The version of gradle-script-kotlin (currently _${project.version}_).
  */
 val gradleScriptKotlinVersion = "${project.version}"
+
 
 /**
  * The version of the Kotlin compiler embedded in gradle-script-kotlin (currently _${embeddedKotlinVersion}_).
  */
 val embeddedKotlinVersion = "$embeddedKotlinVersion"
 
+
 /**
  * Adds the remote repository containing the Kotlin libraries embedded in gradle-script-kotlin.
  */
 fun RepositoryHandler.gradleScriptKotlin(): ArtifactRepository =
     maven { it.setUrl("$gradleScriptKotlinRepository") }
+
 
 /**
  * Builds the dependency notation for the named Kotlin [module] at the given [version].
@@ -75,9 +81,11 @@ fun RepositoryHandler.gradleScriptKotlin(): ArtifactRepository =
 fun DependencyHandler.kotlin(module: String, version: String? = null): Any =
     "org.jetbrains.kotlin:kotlin-${'$'}module:${'$'}{version ?: embeddedKotlinVersion}"
 
+
 @Deprecated("Will be removed in 0.10", ReplaceWith("kotlin(module, version)"))
 fun DependencyHandler.kotlinModule(module: String, version: String? = null): Any =
     kotlin(module, version)
+
 
 /**
  * Builds the plugin dependency specification for the named Kotlin Gradle plugin [module] at the given [version].
@@ -93,6 +101,7 @@ fun PluginDependenciesSpec.kotlin(module: String, version: String? = null): Plug
 """)
     }
 }
+
 
 internal
 val licenseHeader = """/*

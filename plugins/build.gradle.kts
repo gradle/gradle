@@ -29,10 +29,12 @@ test.dependsOn(customInstallation)
 
 data class GradlePlugin(val displayName: String, val id: String, val implementationClass: String)
 
-val plugins = listOf(
-    GradlePlugin("Embedded Kotlin Gradle Plugin",
-                 "org.gradle.kotlin.embedded-kotlin",
-                 "org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin"))
+val plugins =
+    listOf(
+        GradlePlugin(
+            "Embedded Kotlin Gradle Plugin",
+            "org.gradle.kotlin.embedded-kotlin",
+            "org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin"))
 
 plugins.forEach { plugin ->
 

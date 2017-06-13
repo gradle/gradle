@@ -2,22 +2,30 @@ package org.gradle.script.lang.kotlin.plugins.embedded
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleVersionSelector
+
 import org.gradle.api.internal.classpath.ModuleRegistry
+
 import org.gradle.cache.CacheRepository
+
 import org.gradle.script.lang.kotlin.embeddedKotlinVersion
+
 import java.io.File
+
 import java.net.URI
+
 import javax.inject.Inject
 
 
 internal
-data class EmbeddedModule(val group: String,
-                          val name: String,
-                          val version: String,
-                          val dependencies: List<EmbeddedModule>,
-                          val autoDependency: Boolean) {
+data class EmbeddedModule(
+    val group: String,
+    val name: String,
+    val version: String,
+    val dependencies: List<EmbeddedModule> = emptyList(),
+    val autoDependency: Boolean = false) {
 
     val notation: String = "$group:$name:$version"
     val jarRepoPath: String = "${group.replace(".", "/")}/$name/$version/$name-$version.jar"
@@ -49,8 +57,9 @@ val embeddedRepositoryCacheKeyVersion = 1
  * configures an embedded repository that contains all embedded Kotlin libraries,
  * and pins them to the embedded Kotlin version.
  */
-open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRepository,
-                                                    val moduleRegistry: ModuleRegistry) : Plugin<Project> {
+open class EmbeddedKotlinPlugin @Inject constructor(
+    val cacheRepository: CacheRepository,
+    val moduleRegistry: ModuleRegistry) : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.run {
@@ -123,6 +132,6 @@ open class EmbeddedKotlinPlugin @Inject constructor(val cacheRepository: CacheRe
     }
 
     private
-    fun findEmbeddedModule(requested: ModuleVersionSelector)
-        = embeddedModules.find { it.group == requested.group && it.name == requested.name }
+    fun findEmbeddedModule(requested: ModuleVersionSelector) =
+        embeddedModules.find { it.group == requested.group && it.name == requested.name }
 }
