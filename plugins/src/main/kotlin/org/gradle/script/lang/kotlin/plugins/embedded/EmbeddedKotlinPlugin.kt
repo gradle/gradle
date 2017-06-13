@@ -35,13 +35,16 @@ data class EmbeddedModule(
 internal
 val embeddedModules: List<EmbeddedModule> by lazy {
 
+    fun embeddedKotlin(name: String, dependencies: List<EmbeddedModule> = emptyList(), autoDependency: Boolean = false) =
+        EmbeddedModule("org.jetbrains.kotlin", "kotlin-$name", embeddedKotlinVersion, dependencies, autoDependency)
+
     // TODO:pm could be generated at build time
-    val annotations = EmbeddedModule("org.jetbrains", "annotations", "13.0", emptyList(), false)
+    val annotations = EmbeddedModule("org.jetbrains", "annotations", "13.0")
     listOf(
         annotations,
-        EmbeddedModule("org.jetbrains.kotlin", "kotlin-stdlib", embeddedKotlinVersion, listOf(annotations), true),
-        EmbeddedModule("org.jetbrains.kotlin", "kotlin-reflect", embeddedKotlinVersion, emptyList(), true),
-        EmbeddedModule("org.jetbrains.kotlin", "kotlin-compiler-embeddable", embeddedKotlinVersion, emptyList(), false))
+        embeddedKotlin("stdlib", listOf(annotations), autoDependency = true),
+        embeddedKotlin("reflect", autoDependency = true),
+        embeddedKotlin("compiler-embeddable"))
 }
 
 
