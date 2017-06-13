@@ -111,7 +111,7 @@ object UserGuideLink {
 
             "base" to "standard_plugins.html#sec:base_plugins",
 
-            // "binary-base" to "binary-base_plugin.html",
+            "binary-base" to "software_model_concepts.html",
 
             "build-announcements" to "build_announcements_plugin.html",
             "build-dashboard" to "buildDashboard_plugin.html",
@@ -127,9 +127,10 @@ object UserGuideLink {
 
             // "coffeescript-base" to "coffeescript_base_plugin.html",
 
-            // "compare-gradle-builds" to "compare_gradle_builds_plugin.html",
-            // "component-base" to "component_base_plugin.html",
-            // "component-model-base" to "component_model_base_plugin.html",
+            "compare-gradle-builds" to "comparing_builds.html",
+
+            "component-base" to "software_model_concepts.html",
+            "component-model-base" to "software_model_concepts.html",
 
             "cpp" to "native_software.html#cppPlugin",
             "cpp-executable" to "native_software.html#cppPlugin",
@@ -148,7 +149,7 @@ object UserGuideLink {
 
             "findbugs" to "findbugs_plugin.html",
 
-            // "gcc-compiler" to "gcc_compiler_plugin.html",
+            "gcc-compiler" to "native_software.html#native_binaries:tool_chain",
 
             "google-test" to "native_software.html#native_binaries:google_test",
             "google-test-test-suite" to "native_software.html#native_binaries:google_test",
@@ -156,7 +157,7 @@ object UserGuideLink {
             "groovy" to "groovy_plugin.html",
             "groovy-base" to "standard_plugins.html#sec:base_plugins",
 
-            // "help-tasks" to "help_tasks_plugin.html",
+            "help-tasks" to "tutorial_gradle_command_line.html#sec:obtaining_information_about_your_build",
 
             "idea" to "idea_plugin.html",
 
@@ -191,7 +192,7 @@ object UserGuideLink {
             "maven" to "maven_plugin.html",
             "maven-publish" to "publishing_maven.html",
 
-            // "microsoft-visual-cpp-compiler" to "microsoft_visual_cpp_compiler_plugin.html",
+            "microsoft-visual-cpp-compiler" to "native_software.html#native_binaries:tool_chain",
 
             "native-component" to "native_software.html#sec:native_software_model",
             "native-component-model" to "native_software.html#sec:native_software_model",
@@ -212,8 +213,9 @@ object UserGuideLink {
 
             "pmd" to "pmd_plugin.html",
 
-            // "project-report" to "project_report_plugin.html",
-            // "project-reports" to "project_reports_plugin.html",
+            "project-report" to "project_reports_plugin.html",
+            "project-reports" to "project_reports_plugin.html",
+
             // "publishing" to "publishing_plugin.html",
 
             "reporting-base" to "standard_plugins.html#sec:base_plugins",
@@ -227,7 +229,7 @@ object UserGuideLink {
 
             "signing" to "signing_plugin.html",
 
-            // "standard-tool-chains" to "standard_tool_chains_plugin.html",
+            "standard-tool-chains" to "native_software.html#native_binaries:tool_chain",
 
             "visual-studio" to "native_software.html#native_binaries:visual_studio",
 
