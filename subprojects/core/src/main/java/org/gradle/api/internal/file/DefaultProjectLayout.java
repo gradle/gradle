@@ -16,24 +16,23 @@
 
 package org.gradle.api.internal.file;
 
-import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.Factory;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 public class DefaultProjectLayout implements ProjectLayout {
     private final FixedDirectory projectDir;
-    private final ResolvingCallable buildDirState;
     private final ResolvingDirectory buildDir;
 
     public DefaultProjectLayout(File projectDir, FileResolver resolver) {
-        this.projectDir = new FixedDirectory(projectDir);
-        this.buildDirState = new ResolvingCallable(resolver, Project.DEFAULT_BUILD_DIR_NAME);
-        this.buildDir = new ResolvingDirectory(buildDirState);
+        this.projectDir = new FixedDirectory(projectDir, resolver);
+        this.buildDir = new ResolvingDirectory(resolver, Project.DEFAULT_BUILD_DIR_NAME);
     }
 
     @Override
@@ -47,42 +46,91 @@ public class DefaultProjectLayout implements ProjectLayout {
     }
 
     public void setBuildDirectory(Object value) {
-        buildDirState.set(value);
+        buildDir.set(value);
     }
 
-    private static class FixedDirectory extends DefaultProvider<File> implements Directory {
-        FixedDirectory(File value) {
-            super(Callables.returning(value));
-        }
-    }
+    private static class FixedDirectory extends AbstractProvider<File> implements Directory {
+        private final File value;
+        private final PathToFileResolver fileResolver;
 
-    private static class ResolvingCallable implements Callable<File> {
-        private final FileResolver resolver;
-        private File cachedValue;
-        private Object value;
-
-        ResolvingCallable(final FileResolver resolver, final Object value) {
-            this.resolver = resolver;
+        FixedDirectory(File value, PathToFileResolver fileResolver) {
             this.value = value;
-        }
-
-        public void set(Object value) {
-            this.value = value;
-            cachedValue = null;
+            this.fileResolver = fileResolver;
         }
 
         @Override
-        public File call() throws Exception {
-            if (cachedValue == null) {
-                cachedValue = resolver.resolve(value);
-            }
-            return cachedValue;
+        public File getOrNull() {
+            return value;
+        }
+
+        @Override
+        public Directory dir(String path) {
+            File newDir = fileResolver.resolve(path);
+            return new FixedDirectory(newDir, fileResolver.newResolver(newDir));
+        }
+
+        @Override
+        public Directory dir(Provider<? extends CharSequence> path) {
+            return new ResolvingDirectory(fileResolver, path);
+        }
+
+        @Override
+        public Provider<File> file(String path) {
+            // Good enough for now
+            return dir(path);
+        }
+
+        @Override
+        public Provider<File> file(Provider<? extends CharSequence> path) {
+            // Good enough for now
+            return dir(path);
         }
     }
 
-    private static class ResolvingDirectory extends DefaultProvider<File> implements Directory {
-        ResolvingDirectory(ResolvingCallable callable) {
-            super(callable);
+    private static class ResolvingDirectory extends AbstractProvider<File> implements Directory, Factory<File> {
+        private final PathToFileResolver resolver;
+        private Factory<File> value;
+
+        ResolvingDirectory(PathToFileResolver resolver, Object value) {
+            this.resolver = resolver;
+            this.value = resolver.resolveLater(value);
+        }
+
+        @Override
+        public File create() {
+            return get();
+        }
+
+        @Override
+        public File getOrNull() {
+            // Let the resolver decide whether the value should be cached or not
+            return value.create();
+        }
+
+        public void set(Object value) {
+            this.value = resolver.resolveLater(value);
+        }
+
+        @Override
+        public Directory dir(String path) {
+            return new ResolvingDirectory(resolver.newResolver(this), path);
+        }
+
+        @Override
+        public Directory dir(Provider<? extends CharSequence> path) {
+            return new ResolvingDirectory(resolver.newResolver(this), path);
+        }
+
+        @Override
+        public Provider<File> file(String path) {
+            // Good enough for now
+            return dir(path);
+        }
+
+        @Override
+        public Provider<File> file(Provider<? extends CharSequence> path) {
+            // Good enough for now
+            return dir(path);
         }
     }
 }

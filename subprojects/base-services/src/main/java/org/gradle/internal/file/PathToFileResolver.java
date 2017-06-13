@@ -24,7 +24,23 @@ import java.io.File;
  * Resolves some path object to a `File`. May or may not be able to resolve relative paths.
  */
 public interface PathToFileResolver {
+    /**
+     * Resolves the given path to a file.
+     */
     File resolve(Object path);
 
+    /**
+     * Returns a factory that resolves the given path to a file on each call to {@link Factory#create()}.
+     */
     Factory<File> resolveLater(Object path);
+
+    /**
+     * Returns a resolver that resolves paths relative to the given base dir.
+     */
+    PathToFileResolver newResolver(File baseDir);
+
+    /**
+     * Returns a resolver that resolves paths relative to the given base dir.
+     */
+    PathToFileResolver newResolver(Factory<File> baseDir);
 }

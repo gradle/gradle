@@ -72,4 +72,43 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("plugin build dir: " + testDirectory.file("build"))
         outputContains("task build dir: " + testDirectory.file("output"))
     }
+
+    def "can attach a calculated directory to task property"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                final PropertyState<File> outputDir = project.providers.property(File)
+                
+                File getOutputDir() { return outputDir.getOrNull() }
+                
+                void setOutputDir(File f) { outputDir.set(f) }
+
+                void setOutputDir(Provider<File> f) { outputDir.set(f) }
+                
+                @TaskAction
+                void go() {
+                    println "task output dir: " + outputDir.get() 
+                }
+            }
+            
+            class SomePlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    p.ext.childDirName = "child"
+                    def t = p.tasks.create("show", SomeTask)
+                    t.outputDir = p.layout.buildDir.dir("some-dir").dir(p.providers.provider { p.childDirName })
+                    println "plugin output dir: " + t.outputDir
+                }
+            }
+            
+            apply plugin: SomePlugin
+            buildDir = "output"
+            childDirName = "other-child"
+"""
+
+        when:
+        run("show")
+
+        then:
+        outputContains("plugin output dir: " + testDirectory.file("build/some-dir/child"))
+        outputContains("task output dir: " + testDirectory.file("output/some-dir/other-child"))
+    }
 }

@@ -16,23 +16,29 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.internal.UncheckedException;
+import org.gradle.api.provider.Provider;
 
-import java.util.concurrent.Callable;
+public abstract class AbstractProvider<T> implements Provider<T> {
+    static final String NON_NULL_VALUE_EXCEPTION_MESSAGE = "Needs to set a non-null value before it can be retrieved";
 
-public class DefaultProvider<T> extends AbstractProvider<T> {
-    private final Callable<T> value;
+    @Override
+    public T get() {
+        T evaluatedValue = getOrNull();
 
-    public DefaultProvider(Callable<T> value) {
-        this.value = value;
+        if (evaluatedValue == null) {
+            throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
+        }
+
+        return evaluatedValue;
     }
 
     @Override
-    public T getOrNull() {
-        try {
-            return value.call();
-        } catch (Exception e) {
-            throw new UncheckedException(e);
-        }
+    public boolean isPresent() {
+        return getOrNull() != null;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("value: %s", getOrNull());
     }
 }

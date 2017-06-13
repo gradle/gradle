@@ -22,10 +22,41 @@ import org.gradle.api.provider.Provider;
 import java.io.File;
 
 /**
- * Represents a directory.
+ * Represents a directory. The location of the directory is not mutable through this interface, but the underlying value may be mutable.
  *
  * @since 4.1
  */
 @Incubating
 public interface Directory extends Provider<File> {
+    /**
+     * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.
+     *
+     * @param path The path. Can be absolute.
+     * @return The directory.
+     */
+    Directory dir(String path);
+
+    /**
+     * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.
+     *
+     * @param path The path. Can be absolute.
+     * @return The directory.
+     */
+    Directory dir(Provider<? extends CharSequence> path);
+
+    /**
+     * Returns a {@link Provider} whose value is the given path resolved relative to the value of this directory.
+     *
+     * @param path The path. Can be absolute.
+     * @return The directory.
+     */
+    Provider<File> file(String path);
+
+    /**
+     * Returns a {@link Provider} whose value is the given path resolved relative to the value of this directory.
+     *
+     * @param path The path. Can be absolute.
+     * @return The directory.
+     */
+    Provider<File> file(Provider<? extends CharSequence> path);
 }

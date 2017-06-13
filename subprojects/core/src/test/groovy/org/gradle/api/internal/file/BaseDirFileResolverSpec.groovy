@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file
 
+import org.gradle.api.provider.Provider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -214,6 +215,19 @@ The following types/formats are supported:
         then:
         IllegalArgumentException e = thrown()
         e.message == "Cannot convert path to File. path='null returning Callable' basedir='${baseDir.absolutePath}'"
+    }
+
+    def "normalizes Provider value"() {
+        def baseDir = tmpDir.testDirectory.file("base")
+        def file = tmpDir.testDirectory.file("test")
+        def provider1 = Stub(Provider)
+        provider1.get() >> file
+        def provider2 = Stub(Provider)
+        provider2.get() >> "value"
+
+        expect:
+        normalize(provider1, baseDir) == file
+        normalize(provider2, baseDir) == baseDir.file("value")
     }
 
     def createLink(File link, File target) {
