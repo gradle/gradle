@@ -15,6 +15,7 @@
  */
 package org.gradle.script.lang.kotlin.plugins.embedded
 
+import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 import org.gradle.script.lang.kotlin.plugins.AbstractPluginTest
 
 import org.gradle.testkit.runner.TaskOutcome
@@ -24,8 +25,6 @@ import org.hamcrest.CoreMatchers.equalTo
 
 import org.junit.Assert.assertThat
 import org.junit.Test
-
-import java.io.File
 
 
 class EmbeddedKotlinPluginTest : AbstractPluginTest() {
@@ -47,6 +46,27 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    fun `adds stdlib and reflect as compile dependencies`() {
+        withBuildScript("""
+
+            plugins {
+                `embedded-kotlin`
+            }
+
+            println(repositories.map { it.name })
+            configurations["compileClasspath"].files.map { println(it) }
+
+        """)
+
+        val result = buildWithPlugin("dependencies")
+
+        assertThat(result.output, containsString("Embedded Kotlin Repository"))
+        listOf("stdlib", "reflect").forEach {
+            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
+        }
+    }
+
+    @Test
     fun `all embedded kotlin dependencies are resolvable without any added repository`() {
 
         withBuildScript("""
@@ -56,7 +76,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             }
 
             dependencies {
-                ${dependencyDeclarationsFor(embeddedModules.filter { !it.autoDependency })}
+                ${dependencyDeclarationsFor(listOf("compiler-embeddable"))}
             }
 
             println(repositories.map { it.name })
@@ -64,11 +84,11 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("help")
+        val result = buildWithPlugin("dependencies")
 
         assertThat(result.output, containsString("Embedded Kotlin Repository"))
-        embeddedModules.forEach {
-            assertThat(result.output, containsString(it.jarRepoPath.replace('/', File.separatorChar)))
+        listOf("stdlib", "reflect", "compiler-embeddable").forEach {
+            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
         }
     }
 
@@ -88,7 +108,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             }
 
             dependencies {
-                ${dependencyDeclarationsFor(embeddedModules.filter { !it.autoDependency })}
+                ${dependencyDeclarationsFor(listOf("stdlib", "reflect"))}
             }
 
             configurations["compileClasspath"].files.map { println(it) }
@@ -109,10 +129,10 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         val result = buildWithPlugin("help")
 
-        embeddedModules.forEach {
-            assertThat(result.output, containsString("${it.name}-${it.version}.jar"))
-            assertThat(result.output, containsString("${it.name}-${it.version}-sources.jar"))
-            assertThat(result.output, containsString("${it.name}-${it.version}-javadoc.jar"))
+        listOf("stdlib", "reflect").forEach {
+            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
+            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion-sources.jar"))
+            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion-javadoc.jar"))
         }
     }
 
@@ -130,7 +150,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             }
 
             dependencies {
-                ${dependencyDeclarationsFor(embeddedModules, "1.1.1")}
+                ${dependencyDeclarationsFor(listOf("stdlib", "reflect", "compiler-embeddable"), "1.1.1")}
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.15")
             }
 
@@ -140,19 +160,16 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         val result = buildWithPlugin("dependencies")
 
-        embeddedModules.forEach {
-            assertThat(result.output, containsString("${it.group}:${it.name}:1.1.1 -> ${it.version}"))
-            assertThat(result.output, containsString("${it.name}-${it.version}.jar"))
+        listOf("stdlib", "reflect", "compiler-embeddable").forEach {
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$it:1.1.1 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
         }
     }
 
     private
-    fun dependencyDeclarationsFor(modules: List<EmbeddedModule>, version: String? = null) =
+    fun dependencyDeclarationsFor(modules: List<String>, version: String? = null) =
         modules.map {
-            "implementation(\"${
-            if (version == null) it.notation
-            else "${it.group}:${it.name}:$version"
-            }\")"
+            "compile(\"org.jetbrains.kotlin:kotlin-$it:${version ?: embeddedKotlinVersion}\")"
         }.joinToString("\n")
 }
 
