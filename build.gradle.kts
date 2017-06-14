@@ -29,6 +29,7 @@ allprojects {
     version = "0.10.0-SNAPSHOT"
 }
 project(":plugins") {
+    group = "org.gradle.kotlin"
     version = "0.10.0"
 }
 

@@ -54,6 +54,7 @@ plugins.forEach { plugin ->
         tags = listOf("Kotlin", "DSL")
         website = "https://github.com/gradle/gradle-script-kotlin"
         vcsUrl = "https://github.com/gradle/gradle-script-kotlin"
+        mavenCoordinates.artifactId = base.archivesBaseName
         (plugins) {
             plugin.id {
                 id = plugin.id
