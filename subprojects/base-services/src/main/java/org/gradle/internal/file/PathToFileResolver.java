@@ -38,9 +38,4 @@ public interface PathToFileResolver {
      * Returns a resolver that resolves paths relative to the given base dir.
      */
     PathToFileResolver newResolver(File baseDir);
-
-    /**
-     * Returns a resolver that resolves paths relative to the given base dir.
-     */
-    PathToFileResolver newResolver(Factory<File> baseDir);
 }

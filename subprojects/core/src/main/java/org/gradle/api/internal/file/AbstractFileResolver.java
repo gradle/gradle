@@ -27,7 +27,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -61,18 +60,8 @@ public abstract class AbstractFileResolver implements FileResolver {
     }
 
     @Override
-    public PathToFileResolver newResolver(File baseDir) {
+    public FileResolver newResolver(File baseDir) {
         return new BaseDirFileResolver(fileSystem, baseDir, patternSetFactory);
-    }
-
-    @Override
-    public PathToFileResolver newResolver(final Factory<File> baseDir) {
-        return new AbstractBaseDirFileResolver(fileSystem, patternSetFactory) {
-            @Override
-            protected File getBaseDir() {
-                return baseDir.create();
-            }
-        };
     }
 
     public File resolve(Object path) {

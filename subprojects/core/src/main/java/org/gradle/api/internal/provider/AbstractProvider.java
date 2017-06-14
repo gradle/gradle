@@ -19,7 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.provider.Provider;
 
 public abstract class AbstractProvider<T> implements Provider<T> {
-    static final String NON_NULL_VALUE_EXCEPTION_MESSAGE = "Needs to set a non-null value before it can be retrieved";
+    static final String NON_NULL_VALUE_EXCEPTION_MESSAGE = "No value has been specified for this provider.";
 
     @Override
     public T get() {

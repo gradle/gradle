@@ -108,6 +108,21 @@ class DefaultProjectLayoutTest extends Specification {
         provider.getOrNull() == null
     }
 
+    def "can view directory as a file tree"() {
+        def dir1 = projectDir.createDir("dir1")
+        def file1 = dir1.createFile("sub-dir/file1")
+        def file2 = dir1.createFile("file2")
+        def dir2 = projectDir.createDir("dir2")
+        def file3 = dir2.createFile("other/file3")
+
+        expect:
+        def tree1 = layout.projectDirectory.dir("dir1").asFileTree
+        tree1.files == [file1, file2] as Set
+
+        def tree2 = layout.projectDirectory.dir("dir2").asFileTree
+        tree2.files == [file3] as Set
+    }
+
     def "can create directory var"() {
         def pathProvider = Stub(Provider)
         _ * pathProvider.get() >> { "../other-dir" }
@@ -140,7 +155,7 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.present
         fileProvider.get() == otherDir
 
-        dirVar.set((File)null)
+        dirVar.set((File) null)
         !dirVar.present
         dirVar.getOrNull() == null
         !fileProvider.present
@@ -292,6 +307,71 @@ class DefaultProjectLayoutTest extends Specification {
         calculated2.present
         calculated2.get().get() == dir1.file("c1")
         calculated2.get().get() == dir1.file("c2")
+    }
+
+    def "can view directory var as a file tree"() {
+        def dir1 = projectDir.createDir("dir1")
+        def file1 = dir1.createFile("sub-dir/file1")
+        def file2 = dir1.createFile("file2")
+        def dir2 = projectDir.createDir("dir2")
+        def file3 = dir2.createFile("other/file3")
+        def dir3 = projectDir.file("missing")
+
+        expect:
+        def dirVar = layout.newDirectoryVar()
+        def tree = dirVar.asFileTree
+
+        dirVar.set(dir1)
+        tree.files == [file1, file2] as Set
+
+        dirVar.set(dir2)
+        tree.files == [file3] as Set
+
+        dirVar.set(dir3)
+        tree.files == [] as Set
+    }
+
+    def "cannot query the views of a directory var when the var has no value"() {
+        def dirVar = layout.newDirectoryVar()
+        def tree = dirVar.asFileTree
+        def fileProvider = dirVar.asFile
+        def dir = dirVar.dir("dir")
+        def file = dirVar.file("dir")
+
+        when:
+        dirVar.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'No value has been specified for this provider.'
+
+        when:
+        fileProvider.get()
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'No value has been specified for this provider.'
+
+        when:
+        dir.get()
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'No value has been specified for this provider.'
+
+        when:
+        file.get()
+
+        then:
+        def e4 = thrown(IllegalStateException)
+        e4.message == 'No value has been specified for this provider.'
+
+        when:
+        tree.files
+
+        then:
+        def e5 = thrown(IllegalStateException)
+        e5.message == 'No value has been specified for this provider.'
     }
 
     def "can query and mutate the build directory using resolveable type"() {

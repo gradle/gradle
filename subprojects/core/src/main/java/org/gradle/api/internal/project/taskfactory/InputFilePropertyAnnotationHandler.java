@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -31,7 +32,7 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnn
 
     @Override
     protected void validate(String propertyName, Object value, Collection<String> messages) {
-        File fileValue = (File) value;
+        File fileValue = (File) GFileUtils.unpack(value);
         if (!fileValue.exists()) {
             messages.add(String.format("File '%s' specified for property '%s' does not exist.", fileValue, propertyName));
         } else if (!fileValue.isFile()) {

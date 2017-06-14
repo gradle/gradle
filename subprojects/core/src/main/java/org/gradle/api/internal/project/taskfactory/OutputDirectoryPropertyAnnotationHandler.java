@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -26,8 +27,6 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateDirectory;
-import static org.gradle.internal.Cast.uncheckedCast;
-import static org.gradle.util.GUtil.uncheckedCall;
 
 public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
 
@@ -39,7 +38,7 @@ public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputProp
     @Override
     protected void validate(String propertyName, Object value, Collection<String> messages) {
         if (value != null) {
-            validateDirectory(propertyName, (File) value, messages);
+            validateDirectory(propertyName, (File) GFileUtils.unpack(value), messages);
         }
     }
 
@@ -50,7 +49,7 @@ public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputProp
 
     @Override
     protected void beforeTask(final Callable<Object> futureValue) {
-        File directory = uncheckedCast(uncheckedCall(futureValue));
+        File directory = (File) GFileUtils.unpack(futureValue);
         if (directory != null) {
             ensureDirectoryExists(directory);
         }

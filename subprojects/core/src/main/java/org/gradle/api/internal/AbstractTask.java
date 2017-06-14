@@ -24,10 +24,14 @@ import groovy.util.ObservableList;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
@@ -912,5 +916,38 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public boolean isHasCustomActions() {
         return hasCustomActions;
+    }
+
+    /**
+     * Creates a new output directory property for this task.
+     *
+     * @return The property.
+     * @since 4.1
+     */
+    @Incubating
+    protected DirectoryVar newOutputDirectory() {
+        return getServices().get(TaskFileVarFactory.class).newOutputDirectory(this);
+    }
+
+    /**
+     * Creates a new output file property for this task.
+     *
+     * @return The property.
+     * @since 4.1
+     */
+    @Incubating
+    protected RegularFileVar newOutputFile() {
+        return getServices().get(TaskFileVarFactory.class).newOutputFile(this);
+    }
+
+    /**
+     * Creates a new input file property for this task.
+     *
+     * @return The property.
+     * @since 4.1
+     */
+    @Incubating
+    protected RegularFileVar newInputFile() {
+        return getServices().get(TaskFileVarFactory.class).newInputFile(this);
     }
 }

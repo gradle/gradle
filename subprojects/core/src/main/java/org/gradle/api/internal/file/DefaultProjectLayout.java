@@ -17,21 +17,26 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 
-public class DefaultProjectLayout implements ProjectLayout {
+public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final FixedDirectory projectDir;
     private final DefaultDirectoryVar buildDir;
 
@@ -61,6 +66,28 @@ public class DefaultProjectLayout implements ProjectLayout {
     }
 
     @Override
+    public DirectoryVar newOutputDirectory(Task producer) {
+        return new BuildableDirectoryVar(projectDir.fileResolver, producer);
+    }
+
+    @Override
+    public RegularFileVar newOutputFile(Task producer) {
+        return new BuildableRegularFileVar(projectDir.fileResolver, producer);
+    }
+
+    @Override
+    public RegularFileVar newInputFile(final Task consumer) {
+        final DefaultRegularFileVar fileVar = new DefaultRegularFileVar(projectDir.fileResolver);
+        consumer.dependsOn(new AbstractTaskDependency() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                fileVar.visitDependencies(context);
+            }
+        });
+        return fileVar;
+    }
+
+    @Override
     public Provider<RegularFile> file(Provider<File> provider) {
         return new AbstractMappingProvider<RegularFile, File>(provider) {
             @Override
@@ -79,9 +106,9 @@ public class DefaultProjectLayout implements ProjectLayout {
 
     private static class FixedDirectory extends AbstractProvider<File> implements Directory {
         private final File value;
-        private final PathToFileResolver fileResolver;
+        private final FileResolver fileResolver;
 
-        FixedDirectory(File value, PathToFileResolver fileResolver) {
+        FixedDirectory(File value, FileResolver fileResolver) {
             this.value = value;
             this.fileResolver = fileResolver;
         }
@@ -100,6 +127,11 @@ public class DefaultProjectLayout implements ProjectLayout {
         public Directory dir(String path) {
             File newDir = fileResolver.resolve(path);
             return new FixedDirectory(newDir, fileResolver.newResolver(newDir));
+        }
+
+        @Override
+        public FileTree getAsFileTree() {
+            return fileResolver.resolveFilesAsTree(this);
         }
 
         @Override
@@ -141,7 +173,7 @@ public class DefaultProjectLayout implements ProjectLayout {
         }
     }
 
-    private static class ResolvingFile extends AbstractMappingProvider<RegularFile, CharSequence> {
+    private static class ResolvingFile extends AbstractMappingProvider<RegularFile, CharSequence> implements TaskDependencyContainer {
         private final PathToFileResolver resolver;
 
         ResolvingFile(PathToFileResolver resolver, Provider<? extends CharSequence> path) {
@@ -150,18 +182,30 @@ public class DefaultProjectLayout implements ProjectLayout {
         }
 
         @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            // No dependencies
+        }
+
+        @Override
         protected RegularFile map(CharSequence path) {
             return new FixedFile(resolver.resolve(path));
         }
     }
 
-    private static class DefaultRegularFileVar extends AbstractProvider<RegularFile> implements RegularFileVar {
+    private static class DefaultRegularFileVar extends AbstractProvider<RegularFile> implements RegularFileVar, TaskDependencyContainer {
         private final PathToFileResolver fileResolver;
         private RegularFile value;
         private Provider<? extends RegularFile> valueProvider;
 
         DefaultRegularFileVar(PathToFileResolver fileResolver) {
             this.fileResolver = fileResolver;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            if (valueProvider != null) {
+                context.add(valueProvider);
+            }
         }
 
         @Override
@@ -204,15 +248,34 @@ public class DefaultProjectLayout implements ProjectLayout {
         }
     }
 
-    private static class ResolvingDirectory extends AbstractProvider<Directory> {
-        private final PathToFileResolver resolver;
+    private static class BuildableRegularFileVar extends DefaultRegularFileVar {
+        private final Task producer;
+
+        BuildableRegularFileVar(PathToFileResolver fileResolver, Task producer) {
+            super(fileResolver);
+            this.producer = producer;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(producer);
+        }
+    }
+
+    private static class ResolvingDirectory extends AbstractProvider<Directory> implements TaskDependencyContainer {
+        private final FileResolver resolver;
         private final Provider<?> valueProvider;
         private final Factory<File> valueFactory;
 
-        ResolvingDirectory(PathToFileResolver resolver, Object value, Provider<?> valueProvider) {
+        ResolvingDirectory(FileResolver resolver, Object value, Provider<?> valueProvider) {
             this.resolver = resolver;
             this.valueProvider = valueProvider;
             this.valueFactory = resolver.resolveLater(value);
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            // No dependencies
         }
 
         @Override
@@ -231,18 +294,30 @@ public class DefaultProjectLayout implements ProjectLayout {
         }
     }
 
-    private static class DefaultDirectoryVar extends AbstractProvider<Directory> implements DirectoryVar {
-        private final PathToFileResolver resolver;
+    private static class DefaultDirectoryVar extends AbstractProvider<Directory> implements DirectoryVar, TaskDependencyContainer {
+        private final FileResolver resolver;
         private Directory value;
         private Provider<? extends Directory> valueProvider;
 
-        DefaultDirectoryVar(PathToFileResolver resolver) {
+        DefaultDirectoryVar(FileResolver resolver) {
             this.resolver = resolver;
         }
 
-        DefaultDirectoryVar(PathToFileResolver resolver, Object value) {
+        DefaultDirectoryVar(FileResolver resolver, Object value) {
             this.resolver = resolver;
             this.valueProvider = new ResolvingDirectory(resolver, value, null);
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            if (valueProvider != null) {
+                context.add(valueProvider);
+            }
+        }
+
+        @Override
+        public FileTree getAsFileTree() {
+            return resolver.resolveFilesAsTree(this);
         }
 
         @Override
@@ -328,6 +403,20 @@ public class DefaultProjectLayout implements ProjectLayout {
                     return b.file(v.toString());
                 }
             };
+        }
+    }
+
+    private static class BuildableDirectoryVar extends DefaultDirectoryVar {
+        private final Task producer;
+
+        BuildableDirectoryVar(FileResolver resolver, Task producer) {
+            super(resolver);
+            this.producer = producer;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(producer);
         }
     }
 

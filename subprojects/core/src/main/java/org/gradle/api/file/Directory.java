@@ -38,6 +38,11 @@ public interface Directory extends Provider<File> {
     File get();
 
     /**
+     * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.
+     */
+    FileTree getAsFileTree();
+
+    /**
      * Returns a {@link Directory} whose location is the given path, resolved relative to this directory.
      *
      * @param path The path. Can be absolute.

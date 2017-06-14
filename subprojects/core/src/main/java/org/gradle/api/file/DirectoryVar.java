@@ -38,6 +38,11 @@ public interface DirectoryVar extends Provider<Directory>, PropertyState<Directo
     Provider<File> getAsFile();
 
     /**
+     * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.
+     */
+    FileTree getAsFileTree();
+
+    /**
      * Sets the location of this directory.
      */
     void set(File dir);

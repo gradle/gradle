@@ -80,4 +80,96 @@ class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
         outputContains("output file before: " + testDirectory.file("build/child"))
         outputContains("task output file: " + testDirectory.file("output/some-dir/other-child"))
     }
+
+    def "can wire the output of a task as input to another task"() {
+        buildFile << """
+            class DirOutputTask extends DefaultTask {
+                @InputFile
+                final RegularFileVar inputFile = newInputFile()
+                @OutputDirectory
+                final DirectoryVar outputDir = newOutputDirectory()
+                
+                @TaskAction
+                void go() {
+                    def dir = outputDir.asFile.get()
+                    new File(dir, "file.txt").text = inputFile.asFile.get().text
+                }
+            }
+            
+            class FileOutputTask extends DefaultTask {
+                @InputFile
+                final RegularFileVar inputFile = newInputFile()
+                @OutputFile
+                final RegularFileVar outputFile = newOutputFile()
+                
+                @TaskAction
+                void go() {
+                    def file = outputFile.asFile.get()
+                    file.text = inputFile.asFile.get().text
+                }
+            }
+
+            class MergeTask extends DefaultTask {
+                @InputFile
+                final RegularFileVar inputFile = newInputFile()
+                @InputFiles
+                final ConfigurableFileCollection inputFiles = project.files()
+                @OutputFile
+                final RegularFileVar outputFile = newOutputFile()
+                
+                @TaskAction
+                void go() {
+                    def file = outputFile.asFile.get()
+                    file.text = ""
+                    file << inputFile.asFile.get().text
+                    inputFiles.each { file << ',' + it.text }
+                }
+            }
+            
+            task createDir(type: DirOutputTask)
+            task createFile1(type: FileOutputTask)
+            task createFile2(type: FileOutputTask)
+            task merge(type: MergeTask) {
+                outputFile.set(layout.buildDirectory.file("merged.txt"))
+                inputFile.set(createFile1.outputFile)
+                inputFiles.from(createFile2.outputFile)
+                inputFiles.from(createDir.outputDir.asFileTree)
+            }
+            
+            // Set values lazily
+            createDir.inputFile.set(layout.projectDirectory.file("dir1-source.txt"))
+            createDir.outputDir.set(layout.buildDirectory.dir("dir1"))
+            createFile1.inputFile.set(layout.projectDirectory.file("file1-source.txt"))
+            createFile1.outputFile.set(layout.buildDirectory.file("file1.txt"))
+            createFile2.inputFile.set(layout.projectDirectory.file("file2-source.txt"))
+            createFile2.outputFile.set(layout.buildDirectory.file("file2.txt"))
+            
+            buildDir = "output"
+"""
+        file("dir1-source.txt").text = "dir1"
+        file("file1-source.txt").text = "file1"
+        file("file2-source.txt").text = "file2"
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createDir", ":createFile1", ":createFile2", ":merge")
+        file("output/merged.txt").text == 'file1,file2,dir1'
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped()
+
+        when:
+        file("file1-source.txt").text = "new-file1"
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped(":createFile1", ":merge")
+        file("output/merged.txt").text == 'new-file1,file2,dir1'
+    }
+
 }
