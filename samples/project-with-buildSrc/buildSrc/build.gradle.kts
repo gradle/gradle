@@ -1,8 +1,3 @@
 plugins {
-    kotlin("jvm")
+    `kotlin-dsl`
 }
-
-dependencies {
-    compile(gradleScriptKotlinApi())
-}
-

@@ -7,7 +7,7 @@ import org.gradle.script.lang.kotlin.*
  * plugin and adding the Kotlin `stdlib` as a dependency.
  */
 fun Project.kotlinProject() {
-    apply { it.plugin("kotlin") }
+    apply { plugin("kotlin") }
     dependencies {
         compile(kotlin("stdlib"))
     }
