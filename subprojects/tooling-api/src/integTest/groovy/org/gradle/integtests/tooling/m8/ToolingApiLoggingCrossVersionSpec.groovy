@@ -102,12 +102,9 @@ project.logger.debug("debug logging");
         def op = withBuild()
 
         then:
-        def out = op.result.output
+        def out = removeStartupWarnings(op.result.output)
         def err = op.result.error
-        def commandLineOutput = commandLineResult.output
-        if (commandLineOutput.startsWith('Starting a Gradle Daemon') || commandLineOutput.startsWith("Parallel execution is an incubating feature.")) {
-            commandLineOutput = commandLineOutput.substring(commandLineOutput.indexOf('\n') + 1)
-        }
+        def commandLineOutput = removeStartupWarnings(commandLineResult.output)
         normaliseOutput(out) == normaliseOutput(commandLineOutput)
         err == commandLineResult.error
 
@@ -121,6 +118,13 @@ project.logger.debug("debug logging");
         out.count("quiet logging") == 1
         out.count("info") == 0
         out.count("debug") == 0
+    }
+
+    private removeStartupWarnings(String output) {
+        if (output.startsWith('Starting a Gradle Daemon') || output.startsWith("Parallel execution is an incubating feature.")) {
+            output = output.substring(output.indexOf('\n') + 1)
+        }
+        output
     }
 
     private ExecutionResult runUsingCommandLine() {
