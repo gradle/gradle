@@ -14,8 +14,8 @@ base {
 dependencies {
     compileOnly(gradleScriptKotlinApi())
 
-    implementation(kotlin("stdlib"))
-    implementation(kotlin("gradle-plugin"))
+    compile(kotlin("stdlib"))
+    compile(kotlin("gradle-plugin"))
 
     testImplementation(project(":test-fixtures"))
 }
