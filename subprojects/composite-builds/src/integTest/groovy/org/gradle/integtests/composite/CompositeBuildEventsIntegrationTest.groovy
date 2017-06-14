@@ -81,7 +81,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         includedBuilds << buildC
     }
 
-    @NotYetImplemented
     def "fires build listener events on included builds"() {
         given:
         dependency 'org.test:buildB:1.0'

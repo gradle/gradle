@@ -42,8 +42,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private DefaultDependencySubstitutions dependencySubstitutions;
 
     private GradleLauncher gradleLauncher;
-    private SettingsInternal settings;
-    private GradleInternal gradle;
     private String name;
 
     public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -91,36 +89,19 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        if (settings == null) {
-            GradleLauncher gradleLauncher = getGradleLauncher();
-            gradleLauncher.load();
-            settings = gradleLauncher.getSettings();
-        }
-        return settings;
+        return getGradleLauncher().getLoadedSettings();
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        if (gradle == null) {
-            GradleLauncher gradleLauncher = getGradleLauncher();
-            gradleLauncher.getBuildAnalysis();
-            settings = gradleLauncher.getSettings();
-            gradle = gradleLauncher.getGradle();
-        }
-        return gradle;
+        return getGradleLauncher().getConfiguredBuild();
     }
 
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
             gradleLauncher = gradleLauncherFactory.create();
-            reset();
         }
         return gradleLauncher;
-    }
-
-    private void reset() {
-        gradle = null;
-        settings = null;
     }
 
     @Override

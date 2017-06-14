@@ -26,10 +26,28 @@ import org.gradle.internal.concurrent.Stoppable;
 public interface GradleLauncher extends Stoppable {
 
     GradleInternal getGradle();
-    SettingsInternal getSettings();
+
+    /**
+     * Evaluates the settings for this build.
+     *
+     * @return The loaded settings instance.
+     * @throws ReportedException On build failure. The failure will have been logged.
+     */
+    SettingsInternal getLoadedSettings();
+
+    /**
+     * Configures the build.
+     * This is different from {@link #getBuildAnalysis()} in that it is not considered a complete build execution,
+     * and the `buildFinished` event will not be fired automatically.
+     *
+     * @return The configured Gradle build instance.
+     * @throws ReportedException On build failure. The failure will have been logged.
+     */
+    GradleInternal getConfiguredBuild();
 
     /**
      * <p>Executes the build for this {@code GradleLauncher} instance and returns the result.</p>
+     * This method performs a complete build execution, firing the `buildFinished` event on completion.
      *
      * @return The result. Never returns null.
      * @throws ReportedException On build failure. The failure will have been logged.
@@ -37,15 +55,8 @@ public interface GradleLauncher extends Stoppable {
     BuildResult run() throws ReportedException;
 
     /**
-     * Evaluates the settings for this build. The information about available tasks and projects is accessible via the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
-     *
-     * @return The result. Never returns null.
-     * @throws ReportedException On build failure. The failure will have been logged.
-     */
-    BuildResult load() throws ReportedException;
-
-    /**
      * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
+     * This method performs a complete build execution, firing the `buildFinished` event on completion.
      *
      * @return The result. Never returns null.
      * @throws ReportedException On build failure. The failure will have been logged.
