@@ -68,7 +68,7 @@ class EmbeddedKotlinProvider constructor(
     private val cacheRepository: CacheRepository,
     private val moduleRegistry: ModuleRegistry) {
 
-    fun addRepository(repositories: RepositoryHandler) {
+    fun addRepositoryTo(repositories: RepositoryHandler) {
 
         repositories.maven { repo ->
             repo.name = "Embedded Kotlin Repository"
@@ -76,6 +76,13 @@ class EmbeddedKotlinProvider constructor(
         }
     }
 
+    @Deprecated(
+        message = "Use addRepositoryTo",
+        level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith("addRepositoryTo(repositories)"))
+    fun addRepository(repositories: RepositoryHandler) {
+        addRepositoryTo(repositories)
+    }
 
     fun addDependencies(
         dependencies: DependencyHandler,
@@ -87,9 +94,7 @@ class EmbeddedKotlinProvider constructor(
         }
     }
 
-
-    fun pinDependencies(configuration: Configuration, vararg kotlinModules: String) {
-
+    fun pinDependenciesOn(configuration: Configuration, vararg kotlinModules: String) {
         val dependenciesModules = kotlinModules.map { getEmbeddedKotlinModule(it) }
         configuration.resolutionStrategy.eachDependency { details ->
             findEmbeddedModule(details.requested, dependenciesModules)?.let { module ->
@@ -98,6 +103,13 @@ class EmbeddedKotlinProvider constructor(
         }
     }
 
+    @Deprecated(
+        message = "Use pinDependenciesOn",
+        level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith("pinDependenciesOn(configuration, kotlinModules)"))
+    fun pinDependencies(configuration: Configuration, vararg kotlinModules: String) {
+        pinDependenciesOn(configuration, *kotlinModules)
+    }
 
     private
     fun embeddedKotlinRepositoryURI(): URI =

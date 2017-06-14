@@ -30,7 +30,9 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.plugin.management.internal.PluginRequests
+
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
+import org.gradle.script.lang.kotlin.get
 
 import org.gradle.script.lang.kotlin.support.compilerMessageFor
 import org.gradle.script.lang.kotlin.support.EmbeddedKotlinProvider
@@ -127,15 +129,28 @@ class KotlinBuildScriptCompiler(
     fun executeBuildscriptBlockOn(target: Project) {
         setupEmbeddedKotlinForBuildscript()
         extractBuildscriptBlockFrom(script)?.let { buildscriptRange ->
-            val compiledScript = compileBuildscriptBlock(buildscriptRange)
-            executeCompiledScript(compiledScript, baseScope.createChild("buildscript"), target)
+            executeBuildscriptBlockOn(target, buildscriptRange)
         }
     }
 
     private
+    fun executeBuildscriptBlockOn(target: Project, buildscriptRange: IntRange) {
+        val compiledScript = compileBuildscriptBlock(buildscriptRange)
+        executeCompiledScript(compiledScript, buildscriptBlockClassLoaderScope(), target)
+    }
+
+    private
+    fun buildscriptBlockClassLoaderScope() =
+        baseScope.createChild("buildscript")
+
+    private
     fun setupEmbeddedKotlinForBuildscript() {
-        embeddedKotlinProvider.addRepository(scriptHandler.repositories)
-        embeddedKotlinProvider.pinDependencies(scriptHandler.configurations.getByName("classpath"), "stdlib", "reflect")
+        embeddedKotlinProvider.run {
+            addRepositoryTo(scriptHandler.repositories)
+            pinDependenciesOn(
+                scriptHandler.configurations["classpath"],
+                "stdlib", "reflect")
+        }
     }
 
     private
