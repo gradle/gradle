@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.invocation.GradleBuildController;
 
 import java.io.File;
 import java.util.Collection;
@@ -148,7 +149,7 @@ public class GradleBuild extends ConventionTask {
     void build() {
         GradleLauncher launcher = nestedBuildFactory.nestedInstanceWithNewSession(getStartParameter());
         try {
-            launcher.run();
+            new GradleBuildController(launcher).run();
         } finally {
             launcher.stop();
         }

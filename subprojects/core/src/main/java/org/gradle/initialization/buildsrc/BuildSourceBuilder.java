@@ -27,6 +27,8 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
@@ -96,7 +98,8 @@ public class BuildSourceBuilder {
         try {
             GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
             try {
-                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, buildSrcBuildListenerFactory, buildOperationExecutor));
+                BuildController buildController = new GradleBuildController(gradleLauncher);
+                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildSrcCache, buildController, buildSrcBuildListenerFactory));
             } finally {
                 gradleLauncher.stop();
             }
