@@ -38,7 +38,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
@@ -83,10 +82,10 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         compile.setToolChain(toolChain);
 
         // Add a link task
-        final LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
+        LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
         // TODO - need to set basename
         // TODO - include only object files from this dir
-        link.source(compile.getOutputs().getFiles().getAsFileTree());
+        link.source(compile.getObjectFileDirectory().getAsFileTree());
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
         final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
@@ -106,15 +105,8 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         install.setPlatform(currentPlatform);
         install.setToolChain(toolChain);
         install.setDestinationDir(buildDirectory.dir("install/" + project.getName()));
-        install.setExecutable(project.getLayout().file(providers.provider(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return link.getOutputFile();
-            }
-        })));
+        install.setExecutable(link.getBinaryFile());
         // TODO - infer this
-        install.dependsOn(link);
-        // TODO - and this
         install.onlyIf(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {

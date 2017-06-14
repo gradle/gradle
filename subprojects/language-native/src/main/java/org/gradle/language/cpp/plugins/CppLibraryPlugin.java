@@ -90,7 +90,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // Add a link task
         final LinkSharedLibrary link = tasks.create("linkMain", LinkSharedLibrary.class);
         // TODO - include only object files
-        link.source(compile.getOutputs().getFiles().getAsFileTree());
+        link.source(compile.getObjectFileDirectory().getAsFileTree());
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - need to set basename and soname

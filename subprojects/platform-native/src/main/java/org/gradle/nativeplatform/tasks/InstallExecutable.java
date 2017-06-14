@@ -56,8 +56,8 @@ public class InstallExecutable extends DefaultTask {
 
     public InstallExecutable() {
         this.libs = getProject().files();
-        destinationDir = getProject().getLayout().newDirectoryVar();
-        executable = getProject().getLayout().newFileVar();
+        destinationDir = newOutputDirectory();
+        executable = newInputFile();
     }
 
     /**
@@ -88,6 +88,11 @@ public class InstallExecutable extends DefaultTask {
      * The directory to install files into.
      */
     @OutputDirectory
+    public DirectoryVar getInstallDirectory() {
+        return destinationDir;
+    }
+
+    @Internal
     public File getDestinationDir() {
         return destinationDir.getAsFile().getOrNull();
     }
@@ -104,6 +109,11 @@ public class InstallExecutable extends DefaultTask {
      * The executable file to install.
      */
     @InputFile
+    public RegularFileVar getSourceFile() {
+        return executable;
+    }
+
+    @Internal
     public File getExecutable() {
         return executable.getAsFile().getOrNull();
     }

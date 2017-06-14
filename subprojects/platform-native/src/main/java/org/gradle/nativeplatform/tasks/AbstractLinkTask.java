@@ -52,7 +52,6 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
-
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private final RegularFileVar outputFile;
@@ -63,7 +62,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     public AbstractLinkTask() {
         libs = getProject().files();
         source = getProject().files();
-        outputFile = getProject().getLayout().newFileVar();
+        outputFile = newOutputFile();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -108,6 +107,11 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * The file where the linked binary will be located.
      */
     @OutputFile
+    public RegularFileVar getBinaryFile() {
+        return outputFile;
+    }
+
+    @Internal
     public File getOutputFile() {
         return outputFile.getAsFile().getOrNull();
     }

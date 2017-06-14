@@ -71,7 +71,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
-        objectFileDir = getProject().getLayout().newDirectoryVar();
+        objectFileDir = newOutputDirectory();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -166,6 +166,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * The directory where object files will be generated.
      */
     @OutputDirectory
+    public DirectoryVar getObjectFileDirectory() {
+        return objectFileDir;
+    }
+
+    @Internal
     public File getObjectFileDir() {
         return objectFileDir.getAsFile().getOrNull();
     }
