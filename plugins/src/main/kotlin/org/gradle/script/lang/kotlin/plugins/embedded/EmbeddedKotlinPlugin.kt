@@ -27,6 +27,8 @@ import org.gradle.cache.CacheRepository
 
 import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 
+import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
+
 import java.io.File
 
 import java.net.URI
@@ -93,7 +95,7 @@ open class EmbeddedKotlinPlugin @Inject constructor(
     private
     fun Project.applyKotlinPlugin() {
 
-        plugins.apply("org.jetbrains.kotlin.jvm")
+        plugins.apply(KotlinPluginWrapper::class.java)
     }
 
     private
