@@ -40,12 +40,18 @@ final class GcsConnectionProperties {
     private final boolean disableAuthentication;
 
     GcsConnectionProperties() {
-        this(configureEndpoint(getProperty(GCS_ENDPOINT_PROPERTY)),
-            configureServicePath(getProperty(GCS_SERVICE_PATH_PROPERTY)),
-            configureDisableAuthentication(getProperty(GCS_DISABLE_AUTH_PROPERTY)));
+        this(getProperty(GCS_ENDPOINT_PROPERTY),
+            getProperty(GCS_SERVICE_PATH_PROPERTY),
+            getProperty(GCS_DISABLE_AUTH_PROPERTY));
     }
 
-    GcsConnectionProperties(URI endpoint, String servicePath, boolean disableAuthentication) {
+    GcsConnectionProperties(String endpoint, String servicePath, String disableAuthentication) {
+        this(configureEndpoint(endpoint),
+            configureServicePath(servicePath),
+            configureDisableAuthentication(disableAuthentication));
+    }
+
+    private GcsConnectionProperties(URI endpoint, String servicePath, boolean disableAuthentication) {
         this.endpoint = endpoint;
         this.servicePath = servicePath;
         this.disableAuthentication = disableAuthentication;
