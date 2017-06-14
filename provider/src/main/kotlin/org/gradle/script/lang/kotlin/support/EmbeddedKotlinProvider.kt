@@ -65,7 +65,7 @@ class EmbeddedKotlinProvider constructor(
     private val cacheRepository: CacheRepository,
     private val moduleRegistry: ModuleRegistry) {
 
-    fun addRepository(repositories: RepositoryHandler): Unit {
+    fun addRepository(repositories: RepositoryHandler) {
 
         repositories.maven { repo ->
             repo.name = "Embedded Kotlin Repository"
@@ -77,7 +77,7 @@ class EmbeddedKotlinProvider constructor(
     fun addDependencies(
         dependencies: DependencyHandler,
         configuration: String,
-        vararg kotlinModules: String): Unit {
+        vararg kotlinModules: String) {
 
         kotlinModules.map { getEmbeddedKotlinModule(it) }.forEach { embeddedKotlinModule ->
             dependencies.add(configuration, clientModuleFor(dependencies, embeddedKotlinModule))
@@ -85,7 +85,7 @@ class EmbeddedKotlinProvider constructor(
     }
 
 
-    fun pinDependencies(configuration: Configuration, vararg kotlinModules: String): Unit {
+    fun pinDependencies(configuration: Configuration, vararg kotlinModules: String) {
 
         val dependenciesModules = kotlinModules.map { getEmbeddedKotlinModule(it) }
         configuration.resolutionStrategy.eachDependency { details ->

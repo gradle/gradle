@@ -26,24 +26,24 @@ fun <reified T : Any> loggerFor(): Logger =
 
 
 internal inline
-fun Logger.trace(msg: () -> String): Unit {
+fun Logger.trace(msg: () -> String) {
     if (isTraceEnabled) trace(msg())
 }
 
 
 internal inline
-fun Logger.debug(msg: () -> String): Unit {
+fun Logger.debug(msg: () -> String) {
     if (isDebugEnabled) debug(msg())
 }
 
 
 internal inline
-fun Logger.info(msg: () -> String): Unit {
+fun Logger.info(msg: () -> String) {
     if (isInfoEnabled) info(msg())
 }
 
 
 internal inline
-fun Logger.error(msg: () -> String): Unit {
+fun Logger.error(msg: () -> String) {
     if (isErrorEnabled) error(msg())
 }

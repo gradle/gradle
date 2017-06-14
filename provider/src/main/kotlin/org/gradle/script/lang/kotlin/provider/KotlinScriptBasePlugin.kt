@@ -34,7 +34,7 @@ class KotlinScriptBasePlugin : Plugin<Project> {
 
 
 class KotlinScriptRootPlugin : Plugin<Project> {
-    override fun apply(project: Project): Unit {
+    override fun apply(project: Project) {
         project.run {
             task<GenerateProjectSchema>("gskGenerateAccessors")
         }
