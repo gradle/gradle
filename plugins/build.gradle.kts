@@ -8,7 +8,7 @@ plugins {
 apply<plugins.GskModule>()
 
 base {
-    archivesBaseName = "gradle-script-kotlin-plugins"
+    archivesBaseName = "gradle-kotlin-dsl-plugins"
 }
 
 dependencies {
