@@ -42,6 +42,7 @@ public class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
+    public static final String WEB_APP_GROUP = "web application";
 
     private final ObjectFactory objectFactory;
 
