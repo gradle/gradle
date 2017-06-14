@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
@@ -84,8 +83,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                                             ModuleArtifactsCache moduleArtifactsCache, CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                             CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
                                             ComponentMetadataProcessor metadataProcessor,
-                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                            CacheLockingManager cacheLockingManager) {
+                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.delegate = delegate;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleVersionsCache = moduleVersionsCache;
@@ -95,7 +93,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.cachePolicy = cachePolicy;
         this.metadataProcessor = metadataProcessor;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess(cacheLockingManager);
+        resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
     }
 
     public String getId() {
@@ -338,12 +336,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
-        private final CacheLockingManager cacheLockingManager;
-
-        ResolveAndCacheRepositoryAccess(CacheLockingManager cacheLockingManager) {
-            this.cacheLockingManager = cacheLockingManager;
-        }
-
         @Override
         public String toString() {
             return "cache > " + delegate.getRemoteAccess().toString();
@@ -354,14 +346,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:
-                    cacheLockingManager.useCache(new Runnable() {
-                        @Override
-                        public void run() {
-                            ModuleIdentifier moduleId = getCacheKey(dependency.getRequested());
-                            Set<String> versionList = result.getVersions();
-                            moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
-                        }
-                    });
+                    ModuleIdentifier moduleId = getCacheKey(dependency.getRequested());
+                    Set<String> versionList = result.getVersions();
+                    moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
                     break;
                 case Failed:
                     break;

@@ -221,15 +221,23 @@ public class DependencyGraphBuilder {
         });
     }
 
-    private void resolveModuleRevisionIdsConcurrently(final List<EdgeState> dependencies) {
+    private void resolveModuleRevisionIdsConcurrently(List<EdgeState> dependencies) {
+        // If we have one dependency, we let it resolve during selection
         if (dependencies.size() <= 1) {
             return;
+        }
+        final List<SelectorState> selectors = new ArrayList<SelectorState>(dependencies.size());
+        for (EdgeState dependency: dependencies) {
+            SelectorState state = dependency.selector;
+            if (!state.isResolved()) {
+                selectors.add(state);
+            }
         }
         buildOperationExecutor.runAll(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
             @Override
             public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                for (final EdgeState dependency : dependencies) {
-                    buildOperationQueue.add(new ResolveComponentIdOperation(dependency.selector));
+                for (final SelectorState selector : selectors) {
+                    buildOperationQueue.add(new ResolveComponentIdOperation(selector));
                 }
             }
         });
@@ -1191,10 +1199,15 @@ public class DependencyGraphBuilder {
             return targetModule;
         }
 
+        public boolean isResolved() {
+            return idResolveResult != null;
+        }
+
         public void resolveComponentId() {
-            if (idResolveResult != null) {
+            if (isResolved()) {
                 return;
             }
+
             idResolveResult = new DefaultBuildableComponentIdResolveResult();
             resolver.resolve(dependencyMetadata, idResolveResult);
             if (idResolveResult.getFailure() != null) {
