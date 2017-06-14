@@ -102,7 +102,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         buildFile << """
             apply plugin: 'cpp-executable'
             compileCpp.objectFileDirectory.set(layout.buildDirectory.dir("object-files"))
-            linkMain.binaryFile.set(layout.buildDirectory.file("exe/some-app.bin"))
+            linkMain.binaryFile.set(layout.buildDirectory.file("exe/some-app.exe"))
             installMain.installDirectory.set(layout.buildDirectory.dir("some-app"))
          """
 
@@ -110,7 +110,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
 
-        file("build/exe/some-app.bin").assertExists()
+        file("build/exe/some-app.exe").assertExists()
         installation("build/some-app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
