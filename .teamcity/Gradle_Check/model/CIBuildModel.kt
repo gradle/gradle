@@ -10,6 +10,7 @@ import jetbrains.buildServer.configs.kotlin.v10.BuildType
 data class CIBuildModel (
         val projectPrefix: String = "Gradle_Check_",
         val rootProjectName: String = "Check",
+        val tagBuilds: Boolean = true,
         val buildCacheActive: Boolean = true,
         val stages: List<Stage> = listOf(
             Stage("Sanity Check and Distribution",

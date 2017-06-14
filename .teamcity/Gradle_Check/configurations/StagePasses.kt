@@ -71,13 +71,15 @@ class StagePasses(model: CIBuildModel, stageNumber: Int, stage: Stage) : BuildTy
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = m2CleanScriptLinux
         }
-        gradle {
-            name = "TAG_BUILD"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            tasks = "tagBuild"
-            buildFile = "gradle/buildTagging.gradle"
-            gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
-            useGradleWrapper = true
+        if (model.tagBuilds) {
+            gradle {
+                name = "TAG_BUILD"
+                executionMode = BuildStep.ExecutionMode.ALWAYS
+                tasks = "tagBuild"
+                buildFile = "gradle/buildTagging.gradle"
+                gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+                useGradleWrapper = true
+            }
         }
     }
 

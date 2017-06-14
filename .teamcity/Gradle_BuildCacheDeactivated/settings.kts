@@ -35,6 +35,7 @@ version = "2017.1"
 val buildModel = CIBuildModel(
         projectPrefix = "Gradle_BuildCacheDeactivated_",
         rootProjectName = "Build Cache Deactivated",
+        tagBuilds = false,
         buildCacheActive = false,
         stages = listOf(
                 Stage("Sanity Check and Distribution",

@@ -101,13 +101,15 @@ fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String
             gradleParams = gradleParameterString
             useGradleWrapper = true
         }
-        gradle {
-            name = "TAG_BUILD"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            tasks = "tagBuild"
-            buildFile = "gradle/buildTagging.gradle"
-            gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% $java7HomeParameter"
-            useGradleWrapper = true
+        if (model.tagBuilds) {
+            gradle {
+                name = "TAG_BUILD"
+                executionMode = BuildStep.ExecutionMode.ALWAYS
+                tasks = "tagBuild"
+                buildFile = "gradle/buildTagging.gradle"
+                gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% $java7HomeParameter"
+                useGradleWrapper = true
+            }
         }
     }
 
