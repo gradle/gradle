@@ -15,7 +15,6 @@
  */
 package org.gradle.script.lang.kotlin.plugins.embedded
 
-import org.gradle.script.lang.kotlin.fixtures.gradleRunnerFor
 import org.gradle.script.lang.kotlin.plugins.AbstractPluginTest
 
 import org.gradle.testkit.runner.TaskOutcome
