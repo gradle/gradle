@@ -15,17 +15,20 @@
  */
 package org.gradle.script.lang.kotlin.support
 
-import org.gradle.script.lang.kotlin.embeddedKotlinVersion
-
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.classpath.ModuleRegistry
+
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.PersistentCache
+
+import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 
 import java.io.File
+
 import java.net.URI
 
 
@@ -40,8 +43,8 @@ data class EmbeddedKotlinModule(
     val version: String,
     val dependencies: List<EmbeddedKotlinModule> = emptyList()) {
 
-    val notation: String = "$group:$name:$version"
-    val jarRepoPath: String = "${group.replace(".", "/")}/$name/$version/$name-$version.jar"
+    val notation = "$group:$name:$version"
+    val jarRepoPath = "${group.replace(".", "/")}/$name/$version/$name-$version.jar"
 }
 
 
@@ -97,34 +100,51 @@ class EmbeddedKotlinProvider constructor(
 
 
     private
-    fun embeddedKotlinRepositoryURI(): URI {
+    fun embeddedKotlinRepositoryURI(): URI =
+        embeddedKotlinRepositoryDir().toURI()
 
-        val cacheKey = "embedded-kotlin-repo-$embeddedKotlinVersion-$embeddedRepositoryCacheKeyVersion"
-        cacheRepository.cache(cacheKey).withInitializer { cache ->
-            embeddedKotlinModules.forEach { module ->
-                val fromDistro = moduleRegistry.getExternalModule(module.name).classpath.asFiles.first()
-                fromDistro.copyTo(File(File(cache.baseDir, "repo"), module.jarRepoPath))
-            }
+    private
+    fun embeddedKotlinRepositoryDir(): File =
+        cacheFor(repoDirCacheKey()).withInitializer { cache ->
+            copyEmbeddedKotlinModulesTo(cache)
         }.open().use { cache ->
-            return File(cache.baseDir, "repo").toURI()
+            repoDirFrom(cache)
+        }
+
+    private
+    fun cacheFor(cacheKey: String) =
+        cacheRepository.cache(cacheKey)
+
+    private
+    fun copyEmbeddedKotlinModulesTo(cache: PersistentCache) {
+        embeddedKotlinModules.forEach { module ->
+            fileFor(module).copyTo(File(repoDirFrom(cache), module.jarRepoPath))
         }
     }
 
+    private
+    fun fileFor(module: EmbeddedKotlinModule) =
+        moduleRegistry.getExternalModule(module.name).classpath.asFiles.first()
+
+    private
+    fun repoDirCacheKey() =
+        "embedded-kotlin-repo-$embeddedKotlinVersion-$embeddedRepositoryCacheKeyVersion"
+
+    private
+    fun repoDirFrom(cache: PersistentCache) =
+        File(cache.baseDir, "repo")
 
     private
     fun clientModuleFor(dependencies: DependencyHandler, embeddedModule: EmbeddedKotlinModule): ClientModule =
-        (dependencies.module(embeddedModule.notation) as ClientModule).run {
+        (dependencies.module(embeddedModule.notation) as ClientModule).apply {
             embeddedModule.dependencies.forEach { dependency ->
                 addDependency(clientModuleFor(dependencies, dependency))
             }
-            this
         }
-
 
     private
     fun getEmbeddedKotlinModule(kotlinModule: String) =
         embeddedKotlinModules.first { it.group == "org.jetbrains.kotlin" && it.name == "kotlin-$kotlinModule" }
-
 
     private
     fun findEmbeddedModule(requested: ModuleVersionSelector, embeddedModules: List<EmbeddedKotlinModule>) =
