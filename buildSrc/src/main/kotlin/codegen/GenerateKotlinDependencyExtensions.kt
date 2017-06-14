@@ -34,6 +34,9 @@ open class GenerateKotlinDependencyExtensions : DefaultTask() {
     var embeddedKotlinVersion: String? = null
 
     @get:Input
+    var kotlinDslPluginsVersion: String? = null
+
+    @get:Input
     var gradleScriptKotlinRepository: String? = null
 
     @Suppress("unused")
@@ -97,6 +100,37 @@ fun DependencyHandler.kotlinModule(module: String, version: String? = null): Any
  */
 fun PluginDependenciesSpec.kotlin(module: String, version: String? = null): PluginDependencySpec =
     id("org.jetbrains.kotlin.${'$'}module") version (version ?: embeddedKotlinVersion)
+
+
+/**
+ * The `embedded-kotlin` plugin.
+ *
+ * Equivalent to
+ * <code>id("org.gradle.kotlin.embedded-kotlin") version "$kotlinDslPluginsVersion"`</code>
+ *
+ * You can also use
+ * <code>`embedded-kotlin` version "$kotlinDslPluginsVersion"</code>
+ * if you want to use a different version.
+ *
+ * @see org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin
+ */
+val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
+    get() = id("org.gradle.kotlin.embedded-kotlin") version "$kotlinDslPluginsVersion"
+
+/**
+ * The `kotlin-dsl` plugin.
+ *
+ * Equivalent to
+ * <code>id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"`</code>
+ *
+ * You can also use
+ * <code>`kotlin-dsl` version "$kotlinDslPluginsVersion"</code>
+ * if you want to use a different version.
+ *
+ * @see org.gradle.script.lang.kotlin.plugins.dsl.KotlinDslPlugin
+ */
+val PluginDependenciesSpec.`kotlin-dsl`: PluginDependencySpec
+    get() = id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"
 
 """)
     }

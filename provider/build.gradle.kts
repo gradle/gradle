@@ -36,8 +36,10 @@ val generateConfigurationExtensions by task<GenerateConfigurationExtensions> {
 }
 
 val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtensions> {
+    val pluginsCurrentVersion: String by rootProject.extra
     outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/KotlinDependencyExtensions.kt")
     embeddedKotlinVersion = kotlinVersion
+    kotlinDslPluginsVersion = pluginsCurrentVersion
     gradleScriptKotlinRepository = kotlinRepo
 }
 

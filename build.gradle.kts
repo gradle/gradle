@@ -28,9 +28,13 @@ allprojects {
     group = "org.gradle"
     version = "0.10.0-SNAPSHOT"
 }
+
+var pluginsCurrentVersion: String by extra
+pluginsCurrentVersion = "0.10.1"
+val pluginsNextVersion = "0.10.2"
 project(":plugins") {
     group = "org.gradle.kotlin"
-    version = "0.10.1"
+    version = pluginsNextVersion
 }
 
 // --- Configure publications ------------------------------------------
