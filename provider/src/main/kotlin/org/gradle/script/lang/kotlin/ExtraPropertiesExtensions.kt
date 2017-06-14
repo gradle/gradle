@@ -50,6 +50,17 @@ operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KPr
 
 
 /**
+ * Returns a property delegate provider that will initialize the extra property to the value provided
+ * by [initialValueProvider].
+ *
+ * Usage: `val answer by extra { 42 }`
+ */
+inline
+operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): ExtraPropertyDelegateProvider<T> =
+    invoke(initialValueProvider())
+
+
+/**
  * Returns a property delegate provider that will initialize the extra property to the given [initialValue].
  *
  * Usage: `val answer by extra(42)`
