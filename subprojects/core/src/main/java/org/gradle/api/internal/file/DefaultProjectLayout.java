@@ -22,6 +22,8 @@ import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.internal.provider.AbstractCombiningProvider;
+import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
@@ -59,15 +61,10 @@ public class DefaultProjectLayout implements ProjectLayout {
     }
 
     @Override
-    public Provider<RegularFile> file(final Provider<File> file) {
-        return new AbstractProvider<RegularFile>() {
+    public Provider<RegularFile> file(Provider<File> provider) {
+        return new AbstractMappingProvider<RegularFile, File>(provider) {
             @Override
-            public boolean isPresent() {
-                return file.isPresent();
-            }
-
-            @Override
-            public RegularFile getOrNull() {
+            protected RegularFile map(File file) {
                 return new FixedFile(projectDir.fileResolver.resolve(file));
             }
         };
@@ -144,22 +141,16 @@ public class DefaultProjectLayout implements ProjectLayout {
         }
     }
 
-    private static class ResolvingFile extends AbstractProvider<RegularFile> {
+    private static class ResolvingFile extends AbstractMappingProvider<RegularFile, CharSequence> {
         private final PathToFileResolver resolver;
-        private final Provider<? extends CharSequence> path;
 
         ResolvingFile(PathToFileResolver resolver, Provider<? extends CharSequence> path) {
+            super(path);
             this.resolver = resolver;
-            this.path = path;
         }
 
         @Override
-        public boolean isPresent() {
-            return path.isPresent();
-        }
-
-        @Override
-        public RegularFile getOrNull() {
+        protected RegularFile map(CharSequence path) {
             return new FixedFile(resolver.resolve(path));
         }
     }
@@ -231,6 +222,9 @@ public class DefaultProjectLayout implements ProjectLayout {
 
         @Override
         public Directory getOrNull() {
+            if (!isPresent()) {
+                return null;
+            }
             // TODO - factory should cache, and use a FixedDirectory instance when the value is fixed
             File dir = valueFactory.create();
             return new FixedDirectory(dir, resolver.newResolver(dir));
@@ -266,7 +260,7 @@ public class DefaultProjectLayout implements ProjectLayout {
             if (value != null) {
                 return value;
             }
-            if (valueProvider != null) {
+            if (valueProvider != null && valueProvider.isPresent()) {
                 return valueProvider.get();
             }
             return null;
@@ -298,80 +292,53 @@ public class DefaultProjectLayout implements ProjectLayout {
 
         @Override
         public Provider<Directory> dir(final String path) {
-            return new AbstractProvider<Directory>() {
+            return new AbstractMappingProvider<Directory, Directory>(this) {
                 @Override
-                public boolean isPresent() {
-                    return DefaultDirectoryVar.this.isPresent();
-                }
-
-                @Override
-                public Directory getOrNull() {
-                    return DefaultDirectoryVar.this.get().dir(path);
+                protected Directory map(Directory dir) {
+                    return dir.dir(path);
                 }
             };
         }
 
         @Override
         public Provider<Directory> dir(final Provider<? extends CharSequence> path) {
-            return new AbstractProvider<Directory>() {
+            return new AbstractCombiningProvider<Directory, Directory, CharSequence>(this, path) {
                 @Override
-                public boolean isPresent() {
-                    return DefaultDirectoryVar.this.isPresent() && path.isPresent();
-                }
-
-                @Override
-                public Directory getOrNull() {
-                    return DefaultDirectoryVar.this.get().dir(path).get();
+                protected Directory map(Directory b, CharSequence v) {
+                    return b.dir(v.toString());
                 }
             };
         }
 
         @Override
         public Provider<RegularFile> file(final String path) {
-            return new AbstractProvider<RegularFile>() {
+            return new AbstractMappingProvider<RegularFile, Directory>(this) {
                 @Override
-                public boolean isPresent() {
-                    return DefaultDirectoryVar.this.isPresent();
-                }
-
-                @Override
-                public RegularFile getOrNull() {
-                    return DefaultDirectoryVar.this.get().file(path);
+                protected RegularFile map(Directory dir) {
+                    return dir.file(path);
                 }
             };
         }
 
         @Override
         public Provider<RegularFile> file(final Provider<? extends CharSequence> path) {
-            return new AbstractProvider<RegularFile>() {
+            return new AbstractCombiningProvider<RegularFile, Directory, CharSequence>(this, path) {
                 @Override
-                public boolean isPresent() {
-                    return DefaultDirectoryVar.this.isPresent() && path.isPresent();
-                }
-
-                @Override
-                public RegularFile getOrNull() {
-                    return DefaultDirectoryVar.this.get().file(path).get();
+                protected RegularFile map(Directory b, CharSequence v) {
+                    return b.file(v.toString());
                 }
             };
         }
     }
 
-    private static class ToFileProvider extends AbstractProvider<File> {
-        private final Provider<? extends Provider<File>> provider;
-
+    private static class ToFileProvider extends AbstractMappingProvider<File, Provider<File>> {
         ToFileProvider(Provider<? extends Provider<File>> provider) {
-            this.provider = provider;
+            super(provider);
         }
 
         @Override
-        public boolean isPresent() {
-            return provider.isPresent();
-        }
-
-        @Override
-        public File getOrNull() {
-            return provider.get().get();
+        protected File map(Provider<File> provider) {
+            return provider.get();
         }
     }
 }

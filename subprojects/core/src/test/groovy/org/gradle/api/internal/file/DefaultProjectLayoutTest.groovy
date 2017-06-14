@@ -95,6 +95,7 @@ class DefaultProjectLayoutTest extends Specification {
         expect:
         def provider = layout.projectDirectory.dir(pathProvider)
         !provider.present
+        provider.getOrNull() == null
     }
 
     def "regular file is not present when path provider is not present"() {
@@ -104,18 +105,22 @@ class DefaultProjectLayoutTest extends Specification {
         expect:
         def provider = layout.projectDirectory.file(pathProvider)
         !provider.present
+        provider.getOrNull() == null
     }
 
     def "can create directory var"() {
         def pathProvider = Stub(Provider)
         _ * pathProvider.get() >> { "../other-dir" }
+        _ * pathProvider.present >> true
         def otherDir = tmpDir.file("other-dir")
 
         expect:
         def dirVar = layout.newDirectoryVar()
         def fileProvider = dirVar.asFile
         !dirVar.present
+        dirVar.getOrNull() == null
         !fileProvider.present
+        fileProvider.getOrNull() == null
 
         dirVar.set(otherDir)
         dirVar.present
@@ -137,19 +142,24 @@ class DefaultProjectLayoutTest extends Specification {
 
         dirVar.set((File)null)
         !dirVar.present
+        dirVar.getOrNull() == null
         !fileProvider.present
+        fileProvider.getOrNull() == null
     }
 
     def "can create regular file var"() {
         def pathProvider = Stub(Provider)
         _ * pathProvider.get() >> { "../some-file" }
+        _ * pathProvider.present >> true
         def otherFile = tmpDir.file("some-file")
 
         expect:
         def fileVar = layout.newFileVar()
         def fileProvider = fileVar.asFile
         !fileVar.present
+        fileVar.getOrNull() == null
         !fileProvider.present
+        fileProvider.getOrNull() == null
 
         fileVar.set(otherFile)
         fileVar.present
@@ -171,7 +181,9 @@ class DefaultProjectLayoutTest extends Specification {
 
         fileVar.set((File) null)
         !fileVar.present
+        fileVar.getOrNull() == null
         !fileProvider.present
+        fileProvider.getOrNull() == null
     }
 
     def "can set directory var using a relative File"() {
@@ -208,6 +220,7 @@ class DefaultProjectLayoutTest extends Specification {
         def dir1 = projectDir.file("dir1")
 
         _ * dirProvider.get() >>> [layout.projectDirectory.dir("d1"), layout.projectDirectory.dir("d2")]
+        _ * dirProvider.present >> true
         _ * pathProvider.get() >>> ["c1", "c2"]
         _ * pathProvider.present >> true
 
@@ -216,6 +229,7 @@ class DefaultProjectLayoutTest extends Specification {
         def calculated1 = dirVar.dir("c1")
 
         !calculated1.present
+        calculated1.getOrNull() == null
 
         dirVar.set(dir1)
         calculated1.present
@@ -228,9 +242,11 @@ class DefaultProjectLayoutTest extends Specification {
 
         dirVar.set((File) null)
         !calculated1.present
+        calculated1.getOrNull() == null
 
         def calculated2 = dirVar.dir(pathProvider)
         !calculated2.present
+        calculated2.getOrNull() == null
 
         dirVar.set(dir1)
         calculated2.present
@@ -244,6 +260,7 @@ class DefaultProjectLayoutTest extends Specification {
         def dir1 = projectDir.file("dir1")
 
         _ * dirProvider.get() >>> [layout.projectDirectory.dir("d1"), layout.projectDirectory.dir("d2")]
+        _ * dirProvider.present >> true
         _ * pathProvider.get() >>> ["c1", "c2"]
         _ * pathProvider.present >> true
 
@@ -252,6 +269,7 @@ class DefaultProjectLayoutTest extends Specification {
         def calculated1 = dirVar.file("c1")
 
         !calculated1.present
+        calculated1.getOrNull() == null
 
         dirVar.set(dir1)
         calculated1.present
@@ -264,9 +282,11 @@ class DefaultProjectLayoutTest extends Specification {
 
         dirVar.set((File) null)
         !calculated1.present
+        calculated1.getOrNull() == null
 
         def calculated2 = dirVar.file(pathProvider)
         !calculated2.present
+        calculated2.getOrNull() == null
 
         dirVar.set(dir1)
         calculated2.present
@@ -275,9 +295,6 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can query and mutate the build directory using resolveable type"() {
-        def projectDir = tmpDir.createDir("dir/project")
-        def layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir))
-
         expect:
         def buildDirectory = layout.buildDirectory
         def fileProvider = buildDirectory.asFile
@@ -300,22 +317,40 @@ class DefaultProjectLayoutTest extends Specification {
         layout.setBuildDirectory("../target")
         buildDirectory.present
         fileProvider.present
-        fileProvider.get() == tmpDir.file("dir/target")
+        fileProvider.get() == tmpDir.file("target")
 
         def dir3 = buildDirectory.get()
-        dir3.get() == tmpDir.file("dir/target")
+        dir3.get() == tmpDir.file("target")
 
         dir1.get() == projectDir.file("build")
         dir2.get() == projectDir.file("other")
-        dir3.get() == tmpDir.file("dir/target")
+        dir3.get() == tmpDir.file("target")
     }
 
     def "can set the build directory location using an absolute File"() {
+        def dir = tmpDir.createDir("dir")
 
+        expect:
+        def buildDirectory = layout.buildDirectory
+        def fileProvider = buildDirectory.asFile
+
+        buildDirectory.set(dir)
+        buildDirectory.present
+        fileProvider.present
+        buildDirectory.get().get() == dir
+        fileProvider.get() == dir
     }
 
     def "can set the build directory location using a relative File"() {
+        expect:
+        def buildDirectory = layout.buildDirectory
+        def fileProvider = buildDirectory.asFile
 
+        buildDirectory.set(new File("other"))
+        buildDirectory.present
+        fileProvider.present
+        buildDirectory.get().get() == projectDir.file("other")
+        fileProvider.get() == projectDir.file("other")
     }
 
     def "can set the build directory location using a directory instance"() {
