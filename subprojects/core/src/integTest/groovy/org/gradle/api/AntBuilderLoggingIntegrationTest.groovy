@@ -17,12 +17,10 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.daemon })
 class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
+        executer.requireIsolatedDaemons()
         buildFile << """
             ant.saveStreams = false
             task antTest {
