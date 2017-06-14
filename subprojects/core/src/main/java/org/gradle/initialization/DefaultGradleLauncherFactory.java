@@ -37,6 +37,8 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -186,16 +188,17 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         @Override
-        public GradleLauncher nestedInstanceWithNewSession(StartParameter startParameter) {
+        public BuildController nestedBuildController(StartParameter startParameter) {
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
             BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY);
             BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
-            return createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
+            GradleLauncher childInstance = createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
                 @Override
                 public void stop() {
                     userHomeDirServiceRegistry.release(userHomeServices);
                 }
             }));
+            return new GradleBuildController(childInstance);
         }
 
         public void setParent(DefaultGradleLauncher parent) {

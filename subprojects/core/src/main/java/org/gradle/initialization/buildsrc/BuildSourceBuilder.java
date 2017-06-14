@@ -96,12 +96,11 @@ public class BuildSourceBuilder {
         // Otherwise, just to a regular build
         final PersistentCache buildSrcCache = createCache(startParameter);
         try {
-            GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
+            BuildController buildController = createBuildController(startParameter);
             try {
-                BuildController buildController = new GradleBuildController(gradleLauncher);
                 return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildSrcCache, buildController, buildSrcBuildListenerFactory));
             } finally {
-                gradleLauncher.stop();
+                buildController.stop();
             }
         } finally {
             // This isn't quite right. We should not unlock the classes until we're finished with them, and the classes may be used across multiple builds
@@ -117,6 +116,11 @@ public class BuildSourceBuilder {
                 .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
                 .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
                 .open();
+    }
+
+    private BuildController createBuildController(StartParameter startParameter) {
+        GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
+        return new GradleBuildController(gradleLauncher);
     }
 
     private GradleLauncher buildGradleLauncher(StartParameter startParameter) {

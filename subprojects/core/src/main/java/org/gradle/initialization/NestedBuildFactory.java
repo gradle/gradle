@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.internal.invocation.BuildController;
 
 public interface NestedBuildFactory {
     /**
@@ -24,9 +25,9 @@ public interface NestedBuildFactory {
      */
     GradleLauncher nestedInstance(StartParameter startParameter);
 
-    // TODO:DAZ Return a BuildController for this
     /**
-     * Creates a nested {@link GradleLauncher} instance with the provided parameters, with a new session.
+     * Creates a {@link BuildController} for nested build instance with the provided parameters.
+     * The nested build will be created with a new session.
      */
-    GradleLauncher nestedInstanceWithNewSession(StartParameter startParameter);
+    BuildController nestedBuildController(StartParameter startParameter);
 }

@@ -80,4 +80,9 @@ public class GradleBuildController implements BuildController {
             state = State.Completed;
         }
     }
+
+    @Override
+    public void stop() {
+        gradleLauncher.stop();
+    }
 }
