@@ -102,7 +102,7 @@ project.logger.debug("debug logging");
         def op = withBuild()
 
         then:
-        def out = removeStartupWarnings(op.result.output)
+        def out = op.result.output
         def err = op.result.error
         def commandLineOutput = removeStartupWarnings(commandLineResult.output)
         normaliseOutput(out) == normaliseOutput(commandLineOutput)
@@ -121,7 +121,10 @@ project.logger.debug("debug logging");
     }
 
     private removeStartupWarnings(String output) {
-        if (output.startsWith('Starting a Gradle Daemon') || output.startsWith("Parallel execution is an incubating feature.")) {
+        if (output.startsWith('Starting a Gradle Daemon')) {
+            output = output.substring(output.indexOf('\n') + 1)
+        }
+        if (output.startsWith('Parallel execution is an incubating feature.')) {
             output = output.substring(output.indexOf('\n') + 1)
         }
         output
