@@ -185,6 +185,8 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
                 context.next(2);
                 context.reset();
                 context.setState(START_LINE_STATE);
+            } else if (context.isCurrentCharEquals('\r')) {
+                context.next();
             } else {
                 context.seenCharsFromEol = 0;
                 context.next(2);
