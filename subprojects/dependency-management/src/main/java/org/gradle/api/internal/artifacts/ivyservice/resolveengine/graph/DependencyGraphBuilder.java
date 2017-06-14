@@ -222,16 +222,15 @@ public class DependencyGraphBuilder {
     }
 
     private void resolveModuleRevisionIdsConcurrently(List<EdgeState> dependencies) {
-        // If we have one dependency, we let it resolve during selection
-        if (dependencies.size() <= 1) {
-            return;
-        }
         final List<SelectorState> selectors = new ArrayList<SelectorState>(dependencies.size());
         for (EdgeState dependency: dependencies) {
             SelectorState state = dependency.selector;
             if (!state.isResolved()) {
                 selectors.add(state);
             }
+        }
+        if (selectors.size() <= 1) {
+            return;
         }
         buildOperationExecutor.runAll(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
             @Override
