@@ -10,6 +10,14 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### APIs to define calculated task input and output locations
+
+TBD - This release builds on the `Provider` concept added in Gradle 4.0 to add conveniences that allow plugins and build scripts to define task input and output locations that are calculated lazily. For example, a common problem when implementing a plugin is how to define task output locations relative to the project's build directory in a way that deals with changes to the build directory location later during project configuration.
+
+- Added `Directory` and `RegularFile` abstractions and providers to represent locations that are calculated lazily.
+- Added a `ProjectLayout` service that allows input and output locations to be defined relative to the project's project directory and build directory. 
+- `Project.file()` and `Project.files()` can resolve `Provider` instances to `File` and `FileCollection` instances.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
