@@ -47,3 +47,37 @@ operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KPr
         else get(property.name))
     */
     uncheckedCast(get(property.name))
+
+
+/**
+ * Returns a property delegate provider that will initialize the extra property to the given [initialValue].
+ *
+ * Usage: `val answer by extra(42)`
+ */
+operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): ExtraPropertyDelegateProvider<T> =
+    ExtraPropertyDelegateProvider(this, initialValue)
+
+
+class ExtraPropertyDelegateProvider<T>(
+    val extra: ExtraPropertiesExtension,
+    val initialValue: T) {
+
+    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): ExtraPropertyDelegate<T> {
+        extra.set(property.name, initialValue)
+        return ExtraPropertyDelegate(extra)
+    }
+}
+
+
+/**
+ * Enables typed access to extra properties.
+ */
+class ExtraPropertyDelegate<T>(val extra: ExtraPropertiesExtension) {
+
+    operator fun setValue(receiver: Any?, property: kotlin.reflect.KProperty<*>, value: T) =
+        extra.set(property.name, value)
+
+    @Suppress("unchecked_cast")
+    operator fun getValue(receiver: Any?, property: kotlin.reflect.KProperty<*>): T =
+        uncheckedCast(extra.get(property.name))
+}
