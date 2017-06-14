@@ -33,6 +33,7 @@ import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
 
 import org.gradle.script.lang.kotlin.support.compilerMessageFor
+import org.gradle.script.lang.kotlin.support.EmbeddedKotlinProvider
 import org.gradle.script.lang.kotlin.support.userHome
 
 import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
@@ -55,7 +56,8 @@ class KotlinBuildScriptCompiler(
     val pluginRequestApplicator: PluginRequestApplicator,
     val baseScope: ClassLoaderScope,
     val targetScope: ClassLoaderScope,
-    val classPathProvider: KotlinScriptClassPathProvider) {
+    val classPathProvider: KotlinScriptClassPathProvider,
+    val embeddedKotlinProvider: EmbeddedKotlinProvider) {
 
     val scriptResource = scriptSource.resource!!
     val scriptPath = scriptSource.fileName!!
@@ -125,10 +127,17 @@ class KotlinBuildScriptCompiler(
 
     private
     fun executeBuildscriptBlockOn(target: Project) {
+        setupEmbeddedKotlinForBuildscript()
         extractBuildscriptBlockFrom(script)?.let { buildscriptRange ->
             val compiledScript = compileBuildscriptBlock(buildscriptRange)
             executeCompiledScript(compiledScript, baseScope.createChild("buildscript"), target)
         }
+    }
+
+    private
+    fun setupEmbeddedKotlinForBuildscript() {
+        embeddedKotlinProvider.addRepository(scriptHandler.repositories)
+        embeddedKotlinProvider.pinDependencies(scriptHandler.configurations.getByName("classpath"), "stdlib", "reflect")
     }
 
     private

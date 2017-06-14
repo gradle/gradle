@@ -27,6 +27,7 @@ import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.plugin.use.internal.PluginRequestApplicator
+import org.gradle.script.lang.kotlin.support.EmbeddedKotlinProvider
 
 import javax.inject.Inject
 
@@ -34,7 +35,8 @@ import javax.inject.Inject
 class KotlinScriptPluginFactory @Inject internal constructor(
     val classPathProvider: KotlinScriptClassPathProvider,
     val kotlinCompiler: CachingKotlinCompiler,
-    val pluginRequestApplicator: PluginRequestApplicator) : ScriptPluginFactory {
+    val pluginRequestApplicator: PluginRequestApplicator,
+    val embeddedKotlinProvider: EmbeddedKotlinProvider) : ScriptPluginFactory {
 
     override fun create(
         scriptSource: ScriptSource, scriptHandler: ScriptHandler,
@@ -70,7 +72,8 @@ class KotlinScriptPluginFactory @Inject internal constructor(
             scriptHandler as ScriptHandlerInternal,
             pluginRequestApplicator,
             baseScope, targetScope,
-            classPathProvider)
+            classPathProvider,
+            embeddedKotlinProvider)
 
     private
     fun inClassPathMode() =

@@ -30,5 +30,9 @@ class KotlinScriptServiceRegistry : AbstractPluginServiceRegistry() {
     override fun registerGlobalServices(registration: ServiceRegistration) {
         registration.addProvider(org.gradle.script.lang.kotlin.support.GlobalServices)
     }
+
+    override fun registerGradleUserHomeServices(registration: ServiceRegistration) {
+        registration.addProvider(org.gradle.script.lang.kotlin.support.GradleUserHomeServices)
+    }
 }
 
