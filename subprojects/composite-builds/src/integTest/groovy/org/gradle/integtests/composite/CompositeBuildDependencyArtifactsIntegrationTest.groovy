@@ -271,6 +271,32 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), moduleC.artifactFile
     }
 
+    def "builds substituted dependency with non-default artifactType"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile 'org.test:buildB:1.0@zip'
+            }
+"""
+
+        buildB.buildFile << """
+            task myZip(type: Zip) {
+                extension 'zip'
+                from 'src'
+            }
+            artifacts {
+                compile myZip
+            }
+"""
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:myZip"
+        assertResolved buildB.file('build/distributions/buildB-1.0.zip')
+    }
+
     def "builds substituted dependency with defined artifacts"() {
         given:
         buildA.buildFile << """
