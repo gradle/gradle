@@ -55,10 +55,13 @@ open class Benchmark : DefaultTask() {
     @Option(option = "exclude-sample", description = "Excludes a sample from the benchmark.")
     var excludedSamplePatterns = mutableListOf("android")
 
+    @Option(option = "include-sample", description = "Includes a sample in the benchmark (disables automatic inclusion).")
+    var includedSamplePatterns = mutableListOf<String>()
+
     @Suppress("unused")
     @TaskAction
     fun run() {
-        val (excluded, included) = project.sampleDirs().partition { isExcluded(it.name) }
+        val (included, excluded) = project.sampleDirs().partition { isIncludedAndNotExcluded(it.name) }
         reportExcludedSamples(excluded)
 
         val config = BenchmarkConfig(warmUpRuns, observationRuns)
@@ -76,7 +79,7 @@ open class Benchmark : DefaultTask() {
     private
     fun reportExcludedSamples(excluded: List<File>) {
         if (excluded.isNotEmpty()) {
-            println("The following samples were excluded from the benchmark by the patterns $excludedSamplePatterns:")
+            println("The following samples were excluded from the benchmark by the patterns {include = $includedSamplePatterns, exclude = $excludedSamplePatterns}:")
             excluded.forEach {
                 println("\t${it.name}")
             }
@@ -85,10 +88,23 @@ open class Benchmark : DefaultTask() {
     }
 
     private
+    fun isIncludedAndNotExcluded(sampleName: String) =
+        isIncluded(sampleName) && !isExcluded(sampleName)
+
+    private
+    fun isIncluded(sampleName: String) =
+        includedSamplePatterns
+            .takeIf { it.isNotEmpty() }
+            ?.let { matchesAnyOf(it, sampleName) }
+            ?: true
+
+    private
     fun isExcluded(sampleName: String) =
-        excludedSamplePatterns.any {
-            sampleName.contains(it, ignoreCase = true)
-        }
+        matchesAnyOf(excludedSamplePatterns, sampleName)
+
+    private
+    fun matchesAnyOf(patterns: List<String>, sampleName: String) =
+        patterns.any { sampleName.contains(it, ignoreCase = true) }
 
     private
     fun quotientToPercentage(quotient: Double) = (quotient - 1) * 100
