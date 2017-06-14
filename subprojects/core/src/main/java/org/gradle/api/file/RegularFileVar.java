@@ -23,7 +23,10 @@ import org.gradle.api.provider.Provider;
 import java.io.File;
 
 /**
- * Represents some configurable regular file location, whose value is not necessarily currently known until later.
+ * Represents some configurable regular file location, whose value is mutable and not necessarily currently known until later.
+ * <p>
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created
+ * using the {@link ProjectLayout#newFileVar()} method.
  *
  * @since 4.1
  */

@@ -22,7 +22,10 @@ import org.gradle.api.provider.Provider;
 import java.io.File;
 
 /**
- * Represents a directory on the file system.
+ * Represents a directory at some fixed location on the file system.
+ * <p>
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created
+ * using the {@link #dir(String)} method or using various methods on {@link ProjectLayout} such as {@link ProjectLayout#getProjectDirectory()}.
  *
  * @since 4.1
  */
@@ -35,7 +38,7 @@ public interface Directory extends Provider<File> {
     File get();
 
     /**
-     * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.
+     * Returns a {@link Directory} whose location is the given path, resolved relative to this directory.
      *
      * @param path The path. Can be absolute.
      * @return The directory.
@@ -43,26 +46,30 @@ public interface Directory extends Provider<File> {
     Directory dir(String path);
 
     /**
-     * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.
+     * Returns a {@link Provider} whose value is a {@link Directory} whose location is the given path resolved relative to this directory.
      *
-     * @param path The path. Can be absolute.
-     * @return The directory.
+     * <p>The return value is live and the provided {@code path} is queried each time the return value is queried.
+     *
+     * @param path The path provider. Can have value that is an absolute path.
+     * @return The provider.
      */
     Provider<Directory> dir(Provider<? extends CharSequence> path);
 
     /**
-     * Returns a {@link RegularFile} whose value is the given path resolved relative to the value of this directory.
+     * Returns a {@link RegularFile} whose location is the given path, resolved relative to this directory.
      *
      * @param path The path. Can be absolute.
-     * @return The directory.
+     * @return The file.
      */
     RegularFile file(String path);
 
     /**
-     * Returns a {@link RegularFile} whose value is the given path resolved relative to the value of this directory.
+     * Returns a {@link Provider} whose value is a {@link RegularFile} whose location is the given path resolved relative to this directory.
      *
-     * @param path The path. Can be absolute.
-     * @return The directory.
+     * <p>The return value is live and the provided {@code path} is queried each time the return value is queried.
+     *
+     * @param path The path provider. Can have value that is an absolute path.
+     * @return The file.
      */
     Provider<RegularFile> file(Provider<? extends CharSequence> path);
 }
