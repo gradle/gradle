@@ -254,6 +254,20 @@ class ProgressEvents implements ProgressListener {
     }
 
     /**
+     * Returns the first operation with a display name matching the given regex. Fails when an operation is not found.
+     *
+     * @param regex candidate display names (may be different depending on the Gradle version under test)
+     */
+    Operation operationMatches(String regex) {
+        assertHasZeroOrMoreTrees()
+        def operation = operations.find { it.descriptor.displayName.matches(regex) }
+        if (operation == null) {
+            throw new AssertionFailedError("No operation matching regex '${regex}' found in:\n${describeList(operations)}")
+        }
+        return operation
+    }
+
+    /**
      * Returns the operation with the given display name. Fails when there is not exactly one such operation.
      *
      * @param displayNames candidate display names (may be different depending on the Gradle version under test)

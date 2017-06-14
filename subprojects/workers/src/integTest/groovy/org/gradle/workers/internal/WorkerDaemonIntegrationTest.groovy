@@ -16,6 +16,10 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     def "sets the working directory to the project directory by default during worker execution"() {
         withRunnableClassInBuildScript()
@@ -38,13 +42,13 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         gradle.waitForFinish()
 
         and:
-        gradle.standardOutput.readLines().find { it.matches "Starting process 'Gradle Worker Daemon \\d'. Working directory: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath() + ".*" }
+        gradle.standardOutput.readLines().find { normaliseFileSeparators(it).matches "Starting process 'Gradle Worker Daemon \\d+'. Working directory: " + normaliseFileSeparators(executer.gradleUserHomeDir.file("workers").getAbsolutePath()) + ".*" }
 
         and:
         gradle.standardOutput.contains("Execution working dir: " + testDirectory.getAbsolutePath())
 
         and:
-        gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
+        GradleContextualExecuter.daemon || gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
     }
 
     def "sets the working directory to the specified directory during worker execution"() {
@@ -70,13 +74,13 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         gradle.waitForFinish()
 
         and:
-        gradle.standardOutput.readLines().find { it.matches "Starting process 'Gradle Worker Daemon \\d'. Working directory: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath() + ".*" }
+        gradle.standardOutput.readLines().find { normaliseFileSeparators(it).matches "Starting process 'Gradle Worker Daemon \\d+'. Working directory: " + normaliseFileSeparators(executer.gradleUserHomeDir.file("workers").getAbsolutePath()) + ".*" }
 
         and:
         gradle.standardOutput.contains("Execution working dir: " + testDirectory.file("workerDir").getAbsolutePath())
 
         and:
-        gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
+        GradleContextualExecuter.daemon || gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
     }
 
     def getRunnableThatPrintsWorkingDirectory() {
