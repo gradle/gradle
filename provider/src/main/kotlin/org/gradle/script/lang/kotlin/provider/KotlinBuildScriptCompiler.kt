@@ -40,8 +40,6 @@ import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertL
 
 import java.io.File
 
-import java.lang.Error
-import java.lang.Exception
 import java.lang.reflect.InvocationTargetException
 
 import java.util.*
