@@ -129,7 +129,7 @@ open class Benchmark : DefaultTask() {
 
     private
     fun benchmarkWith(connector: GradleConnector, config: BenchmarkConfig): BenchmarkResult =
-        withUniqueDaemonRegistry {
+        withUniqueDaemonRegistry(temporaryDir) {
             withConnectionFrom(connector) {
                 benchmark(config) {
                     newBuild().forTasks("help").run()
@@ -228,8 +228,8 @@ fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
  * Forces a new daemon process to be started by basing the registry on an unique temp dir.
  */
 inline
-fun <T> withUniqueDaemonRegistry(block: () -> T) =
-    withDaemonRegistry(createTempDir("gradle-script-kotlin-benchmark"), block)
+fun <T> withUniqueDaemonRegistry(baseDir: File, block: () -> T) =
+    withDaemonRegistry(createTempDir("daemon-registry-", directory = baseDir), block)
 
 inline
 fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
