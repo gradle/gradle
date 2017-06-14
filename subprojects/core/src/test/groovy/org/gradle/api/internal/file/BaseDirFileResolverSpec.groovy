@@ -214,7 +214,7 @@ The following types/formats are supported:
         }, baseDir)
         then:
         IllegalArgumentException e = thrown()
-        e.message == "Cannot convert path to File. path='null returning Callable' basedir='${baseDir.absolutePath}'"
+        e.message == "Cannot convert path to File. path='null returning Callable'"
     }
 
     def "normalizes Provider value"() {

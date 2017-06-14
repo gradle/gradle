@@ -645,12 +645,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <li>A {@link java.nio.file.Path}. The path must be associated with the default provider and is treated the
      * same way as an instance of {@code File}.</li>
      *
-     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
-     * {@code file:} URLs are supported.</li>
+     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Only {@code file:} URLs are supported.</li>
      *
-     * <li>A {@link Closure}. The closure's return value is resolved recursively.</li>
+     * <li>A {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile}.</li>
      *
-     * <li>A {@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
+     * <li>A {@link Provider} of any supported type. The provider's value is resolved recursively.</li>
+     *
+     * <li>A {@link Closure} that returns any supported type. The closure's return value is resolved recursively.</li>
+     *
+     * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The callable's return value is resolved recursively.</li>
      *
      * </ul>
      *
@@ -693,28 +696,25 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
      * types to this method:</p>
      *
-     * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as per {@link #file(Object)}. A string
-     * that starts with {@code file:} is treated as a file URL.</li>
+     * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as per {@link #file(Object)}. A string that starts with {@code file:} is treated as a file URL.</li>
      *
      * <li>A {@link File}. Interpreted relative to the project directory, as per {@link #file(Object)}.</li>
      *
      * <li>A {@link java.nio.file.Path} as defined by {@link #file(Object)}.</li>
      *
-     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
-     * {@code file:} URLs are supported.</li>
+     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Only {@code file:} URLs are supported.</li>
      *
-     * <li>A {@link java.util.Collection}, {@link Iterable}, or an array. May contain any of the types listed here. The elements of the collection
-     * are recursively converted to files.</li>
+     * <li>A {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile}.</li>
      *
-     * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned
-     * collection.</li>
+     * <li>A {@link java.util.Collection}, {@link Iterable}, or an array that contains objects of any supported type. The elements of the collection are recursively converted to files.</li>
      *
-     * <li>A {@link java.util.concurrent.Callable}. The {@code call()} method may return any of the types listed here.
-     * The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is
-     * treated as an empty collection.</li>
+     * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned collection.</li>
      *
-     * <li>A Closure. May return any of the types listed here. The return value of the closure is recursively converted
-     * to files. A {@code null} return value is treated as an empty collection.</li>
+     * <li>A {@link Provider} of any supported type. The provider's value is recursively converted to files.
+     *
+     * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
+     *
+     * <li>A {@link Closure} that returns any of the types listed here. The return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
      *
      * <li>A {@link Task}. Converted to the task's output files.</li>
      *

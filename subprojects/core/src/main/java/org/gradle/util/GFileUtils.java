@@ -181,7 +181,7 @@ public class GFileUtils {
             if (current instanceof Callable) {
                 current = uncheckedCall((Callable) current);
             } else if (current instanceof Provider) {
-                return ((Provider<?>) current).get();
+                current = ((Provider<?>) current).get();
             } else if (current instanceof Factory) {
                 return ((Factory) current).create();
             } else {

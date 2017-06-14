@@ -118,4 +118,51 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("src file 2: " + testDirectory.file("src/other-child"))
         outputContains("output file 2: " + testDirectory.file("output/some-dir/other-child"))
     }
+
+    def "can use file() method to resolve locations created relative to the project dir and build dir"() {
+        buildFile << """
+            def location = $expression
+            println "location: " + file(location)
+"""
+
+        when:
+        run()
+
+        then:
+        outputContains("location: " + testDirectory.file(resolvesTo))
+
+        where:
+        expression                                                             | resolvesTo
+        "layout.projectDirectory.dir('src/main/java')"                         | "src/main/java"
+        "layout.projectDirectory.dir(providers.provider { 'src/main/java' })"  | "src/main/java"
+        "layout.projectDirectory.file('src/main/java')"                        | "src/main/java"
+        "layout.projectDirectory.file(providers.provider { 'src/main/java' })" | "src/main/java"
+        "layout.buildDirectory.dir('classes/main')"                            | "build/classes/main"
+        "layout.buildDirectory.dir(providers.provider { 'classes/main' })"     | "build/classes/main"
+        "layout.buildDirectory.file('classes/main')"                           | "build/classes/main"
+        "layout.buildDirectory.file(providers.provider { 'classes/main' })"    | "build/classes/main"
+    }
+
+    def "can construct file collection containing locations created relative to the project dir and build dir"() {
+        buildFile << """
+            def l = $expression
+            def c = files(l)
+            println "files 1: " + c.files
+            buildDir = 'output'
+            println "files 2: " + c.files
+"""
+
+        when:
+        run()
+
+        then:
+        outputContains("files 1: [" + testDirectory.file(resolvesTo1) + "]")
+        outputContains("files 2: [" + testDirectory.file(resolvesTo2) + "]")
+
+        where:
+        expression                                   | resolvesTo1          | resolvesTo2
+        "layout.buildDirectory.dir('classes/main')"  | "build/classes/main" | "output/classes/main"
+        "layout.buildDirectory.file('exe/main.exe')" | "build/exe/main.exe" | "output/exe/main.exe"
+    }
+
 }
