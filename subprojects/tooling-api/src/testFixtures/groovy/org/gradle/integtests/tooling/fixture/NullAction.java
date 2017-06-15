@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r18;
+package org.gradle.integtests.tooling.fixture;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
