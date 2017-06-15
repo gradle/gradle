@@ -5,7 +5,7 @@ plugins {
 }
 
 base {
-    archivesBaseName = "gradle-script-kotlin-compiler-plugin"
+    archivesBaseName = "gradle-kotlin-dsl-compiler-plugin"
 }
 
 dependencies {

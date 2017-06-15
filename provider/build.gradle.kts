@@ -8,7 +8,7 @@ plugins {
 }
 
 base {
-    archivesBaseName = "gradle-script-kotlin"
+    archivesBaseName = "gradle-kotlin-dsl"
 }
 
 dependencies {

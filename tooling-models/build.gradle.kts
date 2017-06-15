@@ -3,5 +3,5 @@ plugins {
 }
 
 base {
-    archivesBaseName = "gradle-script-kotlin-tooling-models"
+    archivesBaseName = "gradle-kotlin-dsl-tooling-models"
 }

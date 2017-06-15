@@ -5,7 +5,7 @@ plugins {
 }
 
 base {
-    archivesBaseName = "gradle-script-kotlin-tooling-builders"
+    archivesBaseName = "gradle-kotlin-dsl-tooling-builders"
 }
 
 dependencies {
