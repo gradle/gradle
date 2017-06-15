@@ -187,7 +187,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         def workerBuildId = response.data.@id
         def scheduledChangeId = findLastChangeIdInXml(response.data)
         if (lastChangeId && scheduledChangeId != lastChangeId) {
-            logger.info("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $coordinatorBuildId , actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: ${xmlToString(response.data)}")
+            throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $coordinatorBuildId , actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: ${xmlToString(response.data)}")
         }
         scheduledBuilds += workerBuildId
     }
