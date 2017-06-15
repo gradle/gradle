@@ -1,7 +1,6 @@
 val myTask = task("myTask") {
 
-    var foo: Int by extra
-    foo = 42
+    val foo by extra { 42 }
 
     doLast {
         println("Extra property value: $foo")
