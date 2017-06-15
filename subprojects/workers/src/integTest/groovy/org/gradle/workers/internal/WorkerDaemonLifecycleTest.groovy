@@ -86,6 +86,36 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         sinceSnapshot().contains("Stopped 1 worker daemon(s).")
     }
 
+    def "worker daemons are stopped and not reused when log level is changed"() {
+        withRunnableClassInBuildScript()
+        buildFile << """
+            task runInWorker1(type: WorkerTask) {
+                isolationMode = IsolationMode.PROCESS
+            }
+            
+            task runInWorker2(type: WorkerTask) {
+                isolationMode = IsolationMode.PROCESS
+            }
+        """
+
+        when:
+        args("--warn")
+        succeeds "runInWorker1"
+
+        then:
+        newSnapshot()
+
+        when:
+        args("--info")
+        succeeds "runInWorker2"
+
+        then:
+        sinceSnapshot().contains("Log level has changed, stopping idle worker daemon with out-of-date log level.")
+
+        and:
+        assertDifferentDaemonsWereUsed("runInWorker1", "runInWorker2")
+    }
+
     def "worker daemons are not reused when classpath changes"() {
         withRunnableClassInBuildScript()
         buildFile << """

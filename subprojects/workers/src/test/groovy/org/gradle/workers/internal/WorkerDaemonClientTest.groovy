@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.logging.LogLevel
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.progress.BuildOperationState
 import spock.lang.Specification
@@ -67,6 +68,6 @@ class WorkerDaemonClientTest extends Specification {
     WorkerDaemonClient client(WorkerDaemonProcess workerDaemonProcess) {
         def daemonForkOptions = Mock(DaemonForkOptions)
         def workerProcess = workerDaemonProcess.start()
-        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, KeepAliveMode.SESSION)
+        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, LogLevel.INFO)
     }
 }

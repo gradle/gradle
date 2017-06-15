@@ -17,10 +17,13 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.Transformer
+import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.SessionLifecycleListener
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.logging.events.LogLevelChangeEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Subject
 
@@ -125,7 +128,10 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     }
 
     def "clients can be released for further use"() {
-        def client = Mock(WorkerDaemonClient) { isCompatibleWith(_) >> true }
+        def client = Mock(WorkerDaemonClient) {
+            isCompatibleWith(_) >> true
+            getLogLevel() >> LogLevel.DEBUG
+        }
         starter.startDaemon(serverImpl.class, workingDir, options) >> client
 
         when:
@@ -139,6 +145,37 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
         then:
         manager.reserveIdleClient(options) == client
+    }
+
+    def "clients are discarded when log level changes"() {
+        OutputEventListener listener
+        def client = Mock(WorkerDaemonClient) {
+            isCompatibleWith(_) >> true
+            getLogLevel() >> LogLevel.INFO
+        }
+        starter.startDaemon(serverImpl.class, workingDir, options) >> client
+        loggingManager.addOutputEventListener(_) >> { args  -> listener = args[0] }
+        loggingManager.getLevel() >> LogLevel.INFO
+
+        when:
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager)
+
+        then:
+        listener != null
+
+        when:
+        manager.reserveNewClient(serverImpl.class, workingDir, options)
+
+        then:
+        manager.release(client)
+
+        when:
+        listener.onOutput(Stub(LogLevelChangeEvent) { getNewLogLevel() >> LogLevel.QUIET })
+        def shouldBeNull = manager.reserveIdleClient(options)
+
+        then:
+        1 * client.stop()
+        shouldBeNull == null
     }
 
     def "prefers to stop less frequently used idle clients when releasing memory"() {

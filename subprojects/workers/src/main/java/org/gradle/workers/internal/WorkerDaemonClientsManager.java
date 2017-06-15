@@ -75,7 +75,13 @@ public class WorkerDaemonClientsManager implements Stoppable {
                 WorkerDaemonClient candidate = it.next();
                 if (candidate.isCompatibleWith(forkOptions)) {
                     it.remove();
-                    return candidate;
+                    if (candidate.getLogLevel() != currentLogLevel) {
+                        // TODO: Send a message to workers to change their log level rather than stopping
+                        LOGGER.info("Log level has changed, stopping idle worker daemon with out-of-date log level.");
+                        candidate.stop();
+                    } else {
+                        return candidate;
+                    }
                 }
             }
             return null;
@@ -162,10 +168,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
             if (event instanceof LogLevelChangeEvent) {
                 LogLevelChangeEvent logLevelChangeEvent = (LogLevelChangeEvent) event;
                 if (currentLogLevel != logLevelChangeEvent.getNewLogLevel()) {
-                    // TODO: Send a message to workers to change their log level rather than stopping
                     synchronized (lock) {
-                        LOGGER.info("Log level change has occurred.  Stopping all worker daemons.");
-                        stopWorkers(allClients);
                         currentLogLevel = logLevelChangeEvent.getNewLogLevel();
                     }
                 }

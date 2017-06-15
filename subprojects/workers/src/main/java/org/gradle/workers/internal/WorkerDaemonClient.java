@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
@@ -26,14 +27,14 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
     private final DaemonForkOptions forkOptions;
     private final WorkerDaemonProcess<T> workerDaemonProcess;
     private final WorkerProcess workerProcess;
-    private final KeepAliveMode keepAliveMode;
+    private final LogLevel logLevel;
     private int uses;
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<T> workerDaemonProcess, WorkerProcess workerProcess, KeepAliveMode keepAliveMode) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<T> workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
         this.forkOptions = forkOptions;
         this.workerDaemonProcess = workerDaemonProcess;
         this.workerProcess = workerProcess;
-        this.keepAliveMode = keepAliveMode;
+        this.logLevel = logLevel;
     }
 
     @Override
@@ -69,6 +70,10 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
     }
 
     public KeepAliveMode getKeepAliveMode() {
-        return keepAliveMode;
+        return forkOptions.getKeepAliveMode();
+    }
+
+    public LogLevel getLogLevel() {
+        return logLevel;
     }
 }
