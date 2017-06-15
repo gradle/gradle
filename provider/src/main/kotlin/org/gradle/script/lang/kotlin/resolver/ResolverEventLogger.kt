@@ -93,9 +93,9 @@ object ResolverEventLogger {
     fun logDirForOperatingSystem() =
         OperatingSystem.current().run {
             when {
-                isMacOsX  -> "Library/Logs/gradle-script-kotlin"
-                isWindows -> "Application Data/gradle-script-kotlin/log"
-                else      -> ".gradle-script-kotlin/log"
+                isMacOsX  -> "Library/Logs/gradle-kotlin-dsl"
+                isWindows -> "Application Data/gradle-kotlin-dsl/log"
+                else      -> ".gradle-kotlin-dsl/log"
             }
         }
 

@@ -89,7 +89,7 @@ class KotlinScriptClassPathProvider(
     }
 
     /**
-     * gradle-script-kotlin.jar plus kotlin libraries.
+     * gradle-kotlin-dsl.jar plus kotlin libraries.
      */
     val gradleScriptKotlinJars: ClassPath by lazy {
         DefaultClassPath.of(gradleScriptKotlinJars())
@@ -100,7 +100,7 @@ class KotlinScriptClassPathProvider(
 
     private
     fun gradleScriptKotlinExtensions(): File =
-        produceFrom("script-kotlin-extensions") { outputFile, onProgress ->
+        produceFrom("kotlin-dsl-extensions") { outputFile, onProgress ->
             generateApiExtensionsJar(outputFile, gradleJars, onProgress)
         }
 
@@ -133,7 +133,7 @@ class KotlinScriptClassPathProvider(
     private
     fun gradleScriptKotlinJars(): List<File> =
         gradleJars.filter {
-            it.name.let { isKotlinJar(it) || it.startsWith("gradle-script-kotlin-") }
+            it.name.let { isKotlinJar(it) || it.startsWith("gradle-kotlin-dsl-") }
         }
 
     private

@@ -201,9 +201,9 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         assertThat(
             classPath.map { it.name },
             hasItems(
-                matching("gradle-script-kotlin-$version\\.jar"),
+                matching("gradle-kotlin-dsl-$version\\.jar"),
                 matching("gradle-api-$version\\.jar"),
-                matching("gradle-script-kotlin-extensions-$version\\.jar")))
+                matching("gradle-kotlin-dsl-extensions-$version\\.jar")))
     }
 
     private

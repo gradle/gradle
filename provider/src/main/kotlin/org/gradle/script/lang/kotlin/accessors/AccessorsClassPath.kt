@@ -102,7 +102,7 @@ fun accessorsSourceDir(baseDir: File) = File(baseDir, "src")
 
 
 private
-fun accessorsJar(baseDir: File) = File(baseDir, "gradle-script-kotlin-accessors.jar")
+fun accessorsJar(baseDir: File) = File(baseDir, "gradle-kotlin-dsl-accessors.jar")
 
 
 private
@@ -132,7 +132,7 @@ fun classLoaderScopeOf(project: Project) =
 
 private
 fun cacheKeyFor(projectSchema: ProjectSchema<String>): CacheKeySpec =
-    CacheKeySpec.withPrefix("gradle-script-kotlin-accessors") + projectSchema.toCacheKeyString()
+    CacheKeySpec.withPrefix("gradle-kotlin-dsl-accessors") + projectSchema.toCacheKeyString()
 
 
 private
@@ -179,4 +179,4 @@ fun writeAccessorsFor(projectSchema: ProjectSchema<String>, writer: BufferedWrit
  * @see org.gradle.script.lang.kotlin.accessors.tasks.GenerateProjectSchema
  */
 internal
-const val PROJECT_SCHEMA_RESOURCE_PATH = "buildSrc/src/gradle-script-kotlin/resources/project-schema.json"
+const val PROJECT_SCHEMA_RESOURCE_PATH = "buildSrc/src/gradle-kotlin-dsl/resources/project-schema.json"

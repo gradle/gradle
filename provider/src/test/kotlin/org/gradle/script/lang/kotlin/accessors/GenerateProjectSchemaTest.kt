@@ -19,7 +19,7 @@ class GenerateProjectSchemaTest : AbstractIntegrationTest() {
 
         val generatedSchema =
             loadMultiProjectSchemaFrom(
-                existing("buildSrc/src/gradle-script-kotlin/resources/project-schema.json"))
+                existing("buildSrc/src/gradle-kotlin-dsl/resources/project-schema.json"))
 
         val expectedSchema =
             mapOf(

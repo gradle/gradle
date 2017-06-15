@@ -36,7 +36,7 @@ class CompilerPluginIntegrationTest : AbstractIntegrationTest() {
             dependencies { compileOnly(gradleApi()) }
 
             val compilerPluginVersion = KotlinBuildScript::class.java.`package`.implementationVersion
-            val compilerPluginFileName = "lib/gradle-script-kotlin-compiler-plugin-" + compilerPluginVersion + ".jar"
+            val compilerPluginFileName = "lib/gradle-kotlin-dsl-compiler-plugin-" + compilerPluginVersion + ".jar"
             val compilerPlugin = File(gradle.gradleHomeDir, compilerPluginFileName)
             tasks.withType<KotlinCompile> {
                 require(compilerPlugin.exists()) { "Compiler plugin could not be found! " + compilerPlugin }

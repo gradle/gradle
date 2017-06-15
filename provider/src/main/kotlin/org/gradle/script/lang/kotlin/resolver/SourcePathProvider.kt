@@ -30,7 +30,7 @@ object SourcePathProvider {
         projectDir: File,
         gradleHome: File?): ClassPath {
 
-        val gradleScriptKotlinJar = classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
+        val gradleScriptKotlinJar = classPath.filter { it.name.startsWith("gradle-kotlin-dsl-") }
         val projectBuildSrcRoots = buildSrcRootsOf(projectDir)
         val gradleSourceRoots = gradleHome?.let { sourceRootsOf(it) } ?: emptyList()
 

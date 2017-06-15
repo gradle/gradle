@@ -52,7 +52,7 @@ class CachingKotlinCompiler(
     val logger = loggerFor<KotlinScriptPluginFactory>()
 
     private
-    val cacheKeyPrefix = CacheKeySpec.withPrefix("gradle-script-kotlin")
+    val cacheKeyPrefix = CacheKeySpec.withPrefix("gradle-kotlin-dsl")
 
     private
     val cacheProperties = mapOf("version" to "6")

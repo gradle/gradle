@@ -54,7 +54,7 @@ open class KotlinDslPlugin @Inject constructor(val moduleRegistry: ModuleRegistr
 
     private
     fun Project.configureCompilerPlugins() {
-        val compilerPluginModule = moduleRegistry.getExternalModule("gradle-script-kotlin-compiler-plugin")
+        val compilerPluginModule = moduleRegistry.getExternalModule("gradle-kotlin-dsl-compiler-plugin")
         val compilerPlugin = compilerPluginModule.classpath.asFiles.first()
         require(compilerPlugin.exists()) { "Gradle Kotlin DSL Compiler plugin could not be found! " + compilerPlugin }
         tasks.withType(KotlinCompile::class.java) {

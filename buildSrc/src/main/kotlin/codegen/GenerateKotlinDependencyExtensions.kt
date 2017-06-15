@@ -57,19 +57,19 @@ import org.gradle.plugin.use.PluginDependencySpec
 
 
 /**
- * The version of gradle-script-kotlin (currently _${project.version}_).
+ * The version of gradle-kotlin-dsl (currently _${project.version}_).
  */
 val gradleScriptKotlinVersion = "${project.version}"
 
 
 /**
- * The version of the Kotlin compiler embedded in gradle-script-kotlin (currently _${embeddedKotlinVersion}_).
+ * The version of the Kotlin compiler embedded in gradle-kotlin-dsl (currently _${embeddedKotlinVersion}_).
  */
 val embeddedKotlinVersion = "$embeddedKotlinVersion"
 
 
 /**
- * Adds the remote repository containing the Kotlin libraries embedded in gradle-script-kotlin.
+ * Adds the remote repository containing the Kotlin libraries embedded in gradle-kotlin-dsl.
  */
 @Deprecated("Will be removed in 1.0")
 fun RepositoryHandler.gradleScriptKotlin(): ArtifactRepository =
