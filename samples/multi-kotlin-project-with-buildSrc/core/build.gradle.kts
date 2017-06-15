@@ -1,10 +1,5 @@
-buildscript {
-    dependencies {
-        classpath(kotlin("gradle-plugin"))
-    }
-    repositories {
-        jcenter()
-    }
+plugins {
+    kotlin("jvm")
 }
 
 kotlinProject()
