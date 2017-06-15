@@ -21,8 +21,8 @@ import org.gradle.util.VersionNumber;
 
 class BuildScanPluginCompatibilityEnforcer {
 
-    private static final VersionNumber MAX_UNSUPPORTED_VERSION = VersionNumber.parse("1.7.4");
-    private static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("1.8");
+    private static final VersionNumber MAX_UNSUPPORTED_VERSION = VersionNumber.parse("1.7.3");
+    private static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("1.7.4");
 
     private static final String HELP_LINK = "https://gradle.com/scans/help/gradle-incompatible-plugin-version";
 
