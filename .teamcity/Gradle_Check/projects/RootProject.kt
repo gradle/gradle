@@ -28,6 +28,6 @@ class RootProject(model: CIBuildModel) : Project({
     }
 
     if (model.stages.map { stage -> stage.performanceTests }.flatten().isNotEmpty()) {
-        subProject(PerformanceSupportProject(model))
+        subProject(WorkersProject(model))
     }
 })

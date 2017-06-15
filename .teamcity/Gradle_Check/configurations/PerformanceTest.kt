@@ -6,7 +6,6 @@ import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import model.CIBuildModel
 import model.PerformanceTestType
-import projects.PerformanceSupportProject
 
 class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildType({
     uuid = type.asId(model)

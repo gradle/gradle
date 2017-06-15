@@ -4,10 +4,10 @@ import configurations.IndividualPerformanceScenarioWorkers
 import jetbrains.buildServer.configs.kotlin.v10.Project
 import model.CIBuildModel
 
-class PerformanceSupportProject(model: CIBuildModel) : Project({
-    this.uuid = model.projectPrefix + "SupportPerformance"
+class WorkersProject(model: CIBuildModel) : Project({
+    this.uuid = model.projectPrefix + "Workers"
     this.extId = uuid
-    this.name = "Support Performance"
+    this.name = "Workers"
 
     buildType(IndividualPerformanceScenarioWorkers(model))
 })
