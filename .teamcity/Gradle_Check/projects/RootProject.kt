@@ -26,4 +26,8 @@ class RootProject(model: CIBuildModel) : Project({
     model.stages.forEach { stage ->
         subProject(StageProject(model, model.stages.indexOf(stage) + 1, stage))
     }
+
+    if (model.stages.map { stage -> stage.performanceTests }.flatten().isNotEmpty()) {
+        subProject(PerformanceSupportProject(model))
+    }
 })

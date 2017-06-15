@@ -17,7 +17,7 @@ class CIConfigIntegrationTests {
         val m = CIBuildModel()
         val p = RootProject(m)
         printTree(p)
-        assertTrue(p.subProjects.size == m.stages.size)
+        assertEquals(p.subProjects.size, m.stages.size + 1)
     }
 
     @Test
@@ -28,18 +28,22 @@ class CIConfigIntegrationTests {
         stagePassConfigs.forEach {
             val stageNumber = stagePassConfigs.indexOf(it) + 1
             val hasPrevStage = if (stageNumber > 1) 1 else 0
-            val stage = m.stages[stageNumber - 1]
             println(it.extId)
             it.dependencies.items.forEach {
                 println("--> " + it.extId)
             }
-            var functionalTestCount = stage.functionalTests.size * m.testBuckets.size
-            if (stageNumber == 6) {
-                functionalTestCount -= 2 * (m.testBuckets.size - 1) //Soak tests
+            if (stageNumber <= m.stages.size) {
+                val stage = m.stages[stageNumber - 1]
+                var functionalTestCount = stage.functionalTests.size * m.testBuckets.size
+                if (stageNumber == 6) {
+                    functionalTestCount -= 2 * (m.testBuckets.size - 1) //Soak tests
+                }
+                assertEquals(
+                        stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + hasPrevStage,
+                        it.dependencies.items.size)
+            } else {
+                assertEquals(2, it.dependencies.items.size) //Individual Performance Worker
             }
-            assertEquals(
-                    stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + hasPrevStage,
-                    it.dependencies.items.size)
         }
     }
 
