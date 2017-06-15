@@ -51,9 +51,9 @@ class ModuleMetadataCacheEntry {
         return type == TYPE_MISSING;
     }
 
-    protected ModuleComponentResolveMetadata configure(MutableModuleComponentResolveMetadata input) {
+    protected MutableModuleComponentResolveMetadata configure(MutableModuleComponentResolveMetadata input) {
         input.setChanging(isChanging);
         input.setSource(moduleSource);
-        return input.asImmutable();
+        return input;
     }
 }

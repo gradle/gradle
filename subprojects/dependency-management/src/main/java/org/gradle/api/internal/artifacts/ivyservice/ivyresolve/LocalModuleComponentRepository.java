@@ -71,7 +71,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
             }
 
             if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-                result.setMetadata(metadataProcessor.processMetadata(result.getMetaData()));
+                result.setMetadata(metadataProcessor.processMetadata(result.getMetaData().asMutable()).asImmutable());
             }
         }
 

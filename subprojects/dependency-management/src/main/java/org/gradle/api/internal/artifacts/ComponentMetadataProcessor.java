@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 
 public interface ComponentMetadataProcessor {
     ComponentMetadataProcessor NO_OP = new ComponentMetadataProcessor() {
         @Override
-        public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
+        public MutableModuleComponentResolveMetadata processMetadata(MutableModuleComponentResolveMetadata metadata) {
             return metadata;
         }
     };
 
-    ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata);
+    MutableModuleComponentResolveMetadata processMetadata(MutableModuleComponentResolveMetadata metadata);
 }

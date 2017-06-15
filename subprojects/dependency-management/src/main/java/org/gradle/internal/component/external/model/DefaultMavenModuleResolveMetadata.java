@@ -30,7 +30,11 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final String snapshotTimestamp;
 
     DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
-        super(metadata);
+        this(metadata, null);
+    }
+
+    DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata, @Nullable ModuleSource source) {
+        super(metadata, source);
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();

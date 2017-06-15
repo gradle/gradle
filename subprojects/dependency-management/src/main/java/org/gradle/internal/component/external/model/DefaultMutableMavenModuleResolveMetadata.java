@@ -25,6 +25,7 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Collection;
 import java.util.Set;
@@ -64,6 +65,11 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     @Override
     public MavenModuleResolveMetadata asImmutable() {
         return new DefaultMavenModuleResolveMetadata(this);
+    }
+
+    @Override
+    public ModuleComponentResolveMetadata asImmutableWithSource(ModuleSource source) {
+        return new DefaultMavenModuleResolveMetadata(this, source);
     }
 
     @Nullable
