@@ -43,7 +43,7 @@ open class EmbeddedKotlinPlugin @Inject constructor(
 
             embeddedKotlin.addRepositoryTo(repositories)
 
-            embeddedKotlin.addDependencies(dependencies, "compile", "stdlib", "reflect")
+            embeddedKotlin.addDependenciesTo(dependencies, "compile", "stdlib", "reflect")
 
             configurations.all {
                 embeddedKotlin.pinDependenciesOn(it, "stdlib", "reflect", "compiler-embeddable")
