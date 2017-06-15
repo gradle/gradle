@@ -192,9 +192,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     protected ExecutionResult doRun() {
-        ExecutionResult result = startHandle().waitForFinish();
-        finished();
-        return result;
+        return startHandle().waitForFinish();
     }
 
     protected ExecutionFailure doRunWithFailure() {
