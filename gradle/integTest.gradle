@@ -31,8 +31,10 @@ ext.integTestTasks = tasks.withType(IntegrationTest)
 
 integTestTasks.all { IntegrationTest task ->
     group = "verification"
-    testClassesDirs = sourceSets.integTest.output.classesDirs
-    classpath = sourceSets.integTest.runtimeClasspath
+    if(task.name == "integTest" || task.name.endsWith("IntegTest")) {
+        testClassesDirs = sourceSets.integTest.output.classesDirs
+        classpath = sourceSets.integTest.runtimeClasspath
+    }
 }
 
 task integTest(type: IntegrationTest) {

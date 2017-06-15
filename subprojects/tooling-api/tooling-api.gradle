@@ -1,3 +1,5 @@
+apply from: "$rootDir/gradle/tapiTest.gradle"
+
 // GradleConnector entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
@@ -16,26 +18,22 @@ dependencies {
     testFixturesCompile project(':baseServicesGroovy')
     testFixturesCompile project(':internalIntegTesting')
 
+    integTestRuntime project(":toolingApiBuilders")
+
     // Need these to be loaded into the integTestRuntime, so that the modules are available on the classpath and the services can be registered
     // I think this is only really required for the TAPI tests in embedded mode, where we use `GradleConnector.useClasspathDistribution()`.
-    integTestRuntime project(':ide')
-    integTestRuntime project(':buildInit')
-    integTestRuntime project(':buildComparison')
-    integTestRuntime project(":ivy")
-    integTestRuntime project(":maven")
-    integTestRuntime project(":compositeBuilds")
-
-    integTestRuntime project(":toolingApiBuilders")
+    tapiTestRuntime project(':ide')
+    tapiTestRuntime project(':buildInit')
+    tapiTestRuntime project(':buildComparison')
+    tapiTestRuntime project(":ivy")
+    tapiTestRuntime project(":maven")
+    tapiTestRuntime project(":compositeBuilds")
 }
 
 useTestFixtures()
 useTestFixtures(project: ":logging")
 useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':ide')
-
-forkingIntegTest {
-    maxParallelForks = Math.min(2, rootProject.maxParallelForks)
-}
 
 task shadedJarWithoutVersion(type: ShadedJar) {
     ext.outputDir = file("$buildDir/shaded-jar-without-version")

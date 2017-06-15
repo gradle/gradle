@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/tapiTest.gradle"
+
 sourceSets.main.java.srcDirs = []
 sourceSets.main.groovy.srcDirs = ['src/main/java', 'src/main/groovy']
 
@@ -32,21 +34,10 @@ dependencies {
     testCompile libraries.xmlunit
     testCompile libraries.equalsVerifier
     testCompile project(':dependencyManagement')
-
-    integTestRuntime project(":toolingApiBuilders")
 }
 
 useTestFixtures()
 useTestFixtures(project: ":dependencyManagement")
 useTestFixtures(project: ":toolingApi")
-
-forkingIntegTest {
-    maxParallelForks = Math.min(2, rootProject.maxParallelForks)
-}
-
-integTestTasks.all {
-    requiresBinZip = true
-    requiresLibsRepo = true
-}
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

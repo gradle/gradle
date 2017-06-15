@@ -1,0 +1,110 @@
+import org.gradle.testing.IntegrationTest
+
+apply plugin: 'java'
+
+sourceSets {
+    tapiTest {
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
+}
+
+configurations {
+    tapiTestCompile.extendsFrom testCompile
+    tapiTestImplementation.extendsFrom testImplementation
+    tapiTestRuntime.extendsFrom testRuntime
+}
+
+dependencies {
+    tapiTestCompile project(":internalIntegTesting")
+
+    //so that implicit help tasks are available:
+    tapiTestRuntime project(':diagnostics')
+
+    //So that the wrapper and init task are added when tapiTests are run via commandline
+    tapiTestRuntime project(':buildInit')
+    //above can be removed when we implement the auto-apply plugins
+
+    tapiTestRuntime project(":toolingApiBuilders")
+}
+
+integTestTasks.all { IntegrationTest task ->
+    if(task.name == "tapiTest" || task.name.endsWith("TapiTest")) {
+        testClassesDirs = sourceSets.tapiTest.output.classesDirs
+        classpath = sourceSets.tapiTest.runtimeClasspath
+        requiresBinZip = true
+        requiresLibsRepo = true
+    }
+}
+
+task tapiTest(type: IntegrationTest) {
+    def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
+    description "Runs tapiTests with '${defaultExecuter}' executer"
+    systemProperties['org.gradle.integtest.executer'] = defaultExecuter
+    if (project.hasProperty('org.gradle.integtest.debug')) {
+        systemProperties['org.gradle.integtest.debug'] = 'true'
+        testLogging.showStandardStreams = true
+    }
+    if (project.hasProperty('org.gradle.integtest.verbose')) {
+        testLogging.showStandardStreams = true
+    }
+    if(project.hasProperty('org.gradle.integtest.launcher.debug')) {
+        systemProperties['org.gradle.integtest.launcher.debug'] = 'true'
+    }
+}
+check.dependsOn(tapiTest)
+
+['embedded', 'forking', 'noDaemon', 'parallel'].each { mode ->
+    def taskName = "${mode}TapiTest"
+    tasks.create(taskName, IntegrationTest).configure {
+        description "Runs tapiTests with '${mode}' executer"
+        systemProperties['org.gradle.integtest.executer'] = mode
+        if(mode == 'forking') {
+            maxParallelForks = Math.min(2, rootProject.maxParallelForks)
+        }
+    }
+}
+
+task crossVersionTapiTest {
+    description "Runs the cross version TAPI tests against all Gradle versions"
+}
+
+task quickFeedbackCrossVersionTapiTest {
+    description "Runs the cross version TAPI tests against a subset of selected Gradle versions for quick feedback"
+}
+
+releasedVersions.testedVersions.each { targetVersion ->
+    tasks.create("gradle${targetVersion}TapiTest", IntegrationTest).configure {
+        crossVersionIntegTest.dependsOn it
+        description "Runs the TAPI tests against Gradle ${targetVersion}"
+        systemProperties['org.gradle.integtest.versions'] = targetVersion
+        systemProperties['org.gradle.integtest.executer'] = 'forking'
+        include '**/*CrossVersion*'
+    }
+}
+
+releasedVersions.getTestedVersions(true).each { targetVersion ->
+    tasks.getByName("gradle${targetVersion}TapiTest").configure {
+        quickFeedbackCrossVersionTapiTest.dependsOn it
+    }
+}
+
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
+    idea {
+        module {
+            testSourceDirs += sourceSets.tapiTest.groovy.srcDirs
+            testSourceDirs += sourceSets.tapiTest.resources.srcDirs
+            scopes.TEST.plus.add(configurations.tapiTestCompile)
+            scopes.TEST.plus.add(configurations.tapiTestRuntime)
+        }
+    }
+}
+
+plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plugin not applied yet
+    eclipse {
+        classpath {
+            plusConfigurations.add(configurations.tapiTestCompile)
+            plusConfigurations.add(configurations.tapiTestRuntime)
+        }
+    }
+}
