@@ -85,7 +85,7 @@ fun DependencyHandler.kotlin(module: String, version: String? = null): Any =
     "org.jetbrains.kotlin:kotlin-${'$'}module:${'$'}{version ?: embeddedKotlinVersion}"
 
 
-@Deprecated("Will be removed in 0.10", ReplaceWith("kotlin(module, version)"))
+@Deprecated("Will be removed in 1.0", ReplaceWith("kotlin(module, version)"))
 fun DependencyHandler.kotlinModule(module: String, version: String? = null): Any =
     kotlin(module, version)
 
