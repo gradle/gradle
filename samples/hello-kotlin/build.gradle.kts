@@ -12,5 +12,5 @@ dependencies {
 }
 
 repositories {
-    gradleScriptKotlin()
+    jcenter()
 }

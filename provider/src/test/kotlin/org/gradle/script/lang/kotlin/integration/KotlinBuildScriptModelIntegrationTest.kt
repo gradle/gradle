@@ -166,14 +166,14 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         assertSourcePathIncludesKotlinStdlibSourcesGiven(
             rootProjectScript = "",
-            subProjectScript = "buildscript { repositories { gradleScriptKotlin() } }")
+            subProjectScript = "buildscript { repositories { jcenter() } }")
     }
 
     @Test
     fun `sourcePath includes kotlin-stdlib sources resolved against project hierarchy`() {
 
         assertSourcePathIncludesKotlinStdlibSourcesGiven(
-            rootProjectScript = "buildscript { repositories { gradleScriptKotlin() } }",
+            rootProjectScript = "buildscript { repositories { jcenter() } }",
             subProjectScript = "")
     }
 

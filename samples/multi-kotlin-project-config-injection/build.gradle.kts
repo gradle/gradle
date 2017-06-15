@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
     dependencies { classpath(kotlin("gradle-plugin")) }
-    repositories { gradleScriptKotlin() }
+    repositories { jcenter() }
 }
 
 allprojects {
@@ -12,7 +12,7 @@ allprojects {
     version = "1.0"
 
     repositories {
-        gradleScriptKotlin()
+        jcenter()
     }
 }
 

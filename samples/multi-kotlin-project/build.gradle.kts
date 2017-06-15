@@ -5,7 +5,7 @@ allprojects {
     version = "1.0"
 
     repositories {
-        gradleScriptKotlin()
+        jcenter()
     }
 }
 

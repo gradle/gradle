@@ -3,7 +3,7 @@ buildscript {
         classpath(kotlin("gradle-plugin"))
     }
     repositories {
-        gradleScriptKotlin()
+        jcenter()
     }
 }
 
