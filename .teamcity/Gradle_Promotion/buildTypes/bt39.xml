@@ -59,7 +59,7 @@ git config user.name "Gradleware Git Bot"]]></param>
     </build-triggers>
     <artifact-dependencies>
       <dependency id="ARTIFACT_DEPENDENCY_110" sourceBuildTypeId="Gradle_Check_Stage2_Passes" cleanDestination="false">
-        <revisionRule name="buildTag" revision="master.tcbuildtag" />
+        <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" branch="master" />
         <artifact sourcePath="build-receipt.properties =&gt; incoming-build-receipt/" />
       </dependency>
     </artifact-dependencies>
