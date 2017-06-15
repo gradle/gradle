@@ -85,18 +85,18 @@ class EmbeddedKotlinProvider constructor(
     }
 
     @Deprecated(
-        message = "Use addDependenciesOn",
+        message = "Use addDependenciesTo",
         level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("addDependenciesOn(repositories)"))
+        replaceWith = ReplaceWith("addDependenciesTo(repositories)"))
     fun addDependencies(
         dependencies: DependencyHandler,
         configuration: String,
         vararg kotlinModules: String) {
 
-        addDependenciesOn(dependencies, configuration, *kotlinModules)
+        addDependenciesTo(dependencies, configuration, *kotlinModules)
     }
 
-    fun addDependenciesOn(
+    fun addDependenciesTo(
         dependencies: DependencyHandler,
         configuration: String,
         vararg kotlinModules: String) {
