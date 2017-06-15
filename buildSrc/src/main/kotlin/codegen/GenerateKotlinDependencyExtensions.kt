@@ -71,6 +71,7 @@ val embeddedKotlinVersion = "$embeddedKotlinVersion"
 /**
  * Adds the remote repository containing the Kotlin libraries embedded in gradle-script-kotlin.
  */
+@Deprecated("Will be removed in 1.0")
 fun RepositoryHandler.gradleScriptKotlin(): ArtifactRepository =
     maven { it.setUrl("$gradleScriptKotlinRepository") }
 
