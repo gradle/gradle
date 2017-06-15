@@ -24,7 +24,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BuildType({
         param("runs", "defaults")
         param("warmups", "defaults")
         param("templates", "")
-        param("scenarios", "")
+        param("scenario", "")
         
         param("performance.db.url", "jdbc:h2:ssl://dev61.gradle.org:9092")
         param("performance.db.username", "tcagent")
