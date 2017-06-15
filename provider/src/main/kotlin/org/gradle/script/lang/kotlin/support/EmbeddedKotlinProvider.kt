@@ -76,26 +76,6 @@ class EmbeddedKotlinProvider constructor(
         }
     }
 
-    @Deprecated(
-        message = "Use addRepositoryTo",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("addRepositoryTo(repositories)"))
-    fun addRepository(repositories: RepositoryHandler) {
-        addRepositoryTo(repositories)
-    }
-
-    @Deprecated(
-        message = "Use addDependenciesTo",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("addDependenciesTo(repositories)"))
-    fun addDependencies(
-        dependencies: DependencyHandler,
-        configuration: String,
-        vararg kotlinModules: String) {
-
-        addDependenciesTo(dependencies, configuration, *kotlinModules)
-    }
-
     fun addDependenciesTo(
         dependencies: DependencyHandler,
         configuration: String,
@@ -113,14 +93,6 @@ class EmbeddedKotlinProvider constructor(
                 details.useTarget(module.notation)
             }
         }
-    }
-
-    @Deprecated(
-        message = "Use pinDependenciesOn",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("pinDependenciesOn(configuration, kotlinModules)"))
-    fun pinDependencies(configuration: Configuration, vararg kotlinModules: String) {
-        pinDependenciesOn(configuration, *kotlinModules)
     }
 
     private
