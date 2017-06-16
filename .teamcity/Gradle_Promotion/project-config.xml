@@ -25,5 +25,6 @@
     </extension>
   </project-extensions>
   <cleanup />
+  <buildTypesOrder order="bt39,Gradle_Promotion_StartReleaseCycle,bt61,Gradle_Promotion_MilestoneMaster,bt60,Gradle_Promotion_FinalRelease,Gradle_Promotion_RunJDiff" />
 </project>
 
