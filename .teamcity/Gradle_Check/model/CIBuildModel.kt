@@ -12,7 +12,7 @@ data class CIBuildModel (
         val rootProjectName: String = "Check",
         val tagBuilds: Boolean = true,
         val buildCacheActive: Boolean = true,
-        val useReleasePerformanceBaselineForAllBranches: Boolean = false,
+        val masterAndReleaseBranches: List<String> = listOf("master", "release"),
         val stages: List<Stage> = listOf(
             Stage("Sanity Check and Distribution",
                     specificBuilds = listOf(

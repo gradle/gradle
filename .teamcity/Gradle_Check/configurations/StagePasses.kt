@@ -26,9 +26,7 @@ class StagePasses(model: CIBuildModel, stageNumber: Int, stage: Stage) : BuildTy
         -:design-docs
         -:subprojects/docs/src/docs/release
     """.trimIndent()
-    val masterReleaseFiler = """
-        +:master
-    """.trimIndent() //TODO add +:release
+    val masterReleaseFiler = model.masterAndReleaseBranches.joinToString(prefix = "+:", separator = "\n+:")
 
     if (stage.trigger == Trigger.eachCommit) {
         triggers.vcs {

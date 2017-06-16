@@ -18,7 +18,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildTyp
     maxRunningBuilds = 1
 
     params {
-        param("performance.baselines", if (model.useReleasePerformanceBaselineForAllBranches) type.defaultBaselines else type.defaultBaselinesBranches)
+        param("performance.baselines", type.defaultBaselinesBranches)
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.JAVA_HOME", "/opt/jdk/oracle-jdk-8-latest")
         param("performance.db.url", "jdbc:h2:ssl://dev61.gradle.org:9092")
@@ -27,21 +27,18 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildTyp
     }
 
     steps {
-        if (!model.useReleasePerformanceBaselineForAllBranches) {
-            script {
-                name = "SELECT_BASELINE"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                scriptContent = """
-                    branch="%teamcity.build.branch%"
-                    baseline="%performance.baselines%"
-                    if [ "${'$'}baseline" = "${type.defaultBaselinesBranches}" ] && [ "${'$'}branch" == "master" ]; then
-                      echo "##teamcity[setParameter name='performance.baselines' value='${type.defaultBaselines}']"
+        script {
+            name = "SELECT_BASELINE"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = """
+                branch="%teamcity.build.branch%"
+                baseline="%performance.baselines%"
+                ${model.masterAndReleaseBranches.map { branch -> """
+                    if [ "${'$'}baseline" = "${type.defaultBaselinesBranches}" ] && [ "${'$'}branch" == "$branch" ]; then
+                        echo "##teamcity[setParameter name='performance.baselines' value='${type.defaultBaselines}']"
                     fi
-                    if [ "${'$'}baseline" = "${type.defaultBaselinesBranches}" ] && [ "${'$'}branch" == "release" ]; then
-                      echo "##teamcity[setParameter name='performance.baselines' value='${type.defaultBaselines}']"
-                    fi
-                """.trimIndent()
-            }
+                """ }}
+            """.trimIndent()
         }
         gradle {
             name = "GRADLE_RUNNER"

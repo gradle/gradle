@@ -38,7 +38,7 @@ version = "2017.1"
 val buildModel = CIBuildModel(
         projectPrefix = "Gradle_HotfixReleases_",
         rootProjectName = "Hotfix Releases",
-        useReleasePerformanceBaselineForAllBranches = true,
+        masterAndReleaseBranches = listOf("release_3.5.1", "release_4.0.1"),
         stages = listOf(
                 Stage("Sanity Check and Distribution",
                         specificBuilds = listOf(
