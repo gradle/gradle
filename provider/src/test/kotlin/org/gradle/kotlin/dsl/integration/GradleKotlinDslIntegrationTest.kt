@@ -132,7 +132,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                     jcenter()
                 }
                 dependencies {
-                    classpath("org.gradle.script.lang.kotlin.fixtures:plugin-compiled-against-kotlin-1.0:1.0")
+                    classpath("org.gradle.kotlin.dsl.fixtures:plugin-compiled-against-kotlin-1.0:1.0")
                 }
             }
 

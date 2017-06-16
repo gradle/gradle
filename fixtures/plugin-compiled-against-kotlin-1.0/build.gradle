@@ -2,7 +2,7 @@ plugins {
     id 'nebula.kotlin' version '1.0.6'
 }
 
-group 'org.gradle.script.lang.kotlin.fixtures'
+group 'org.gradle.kotlin.dsl.fixtures'
 
 version '1.0'
 
