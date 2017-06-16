@@ -20,7 +20,7 @@ import org.gradle.api.Project
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 
-import org.gradle.script.lang.kotlin.support.EmbeddedKotlinProvider
+import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 
 import javax.inject.Inject
 

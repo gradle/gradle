@@ -164,7 +164,6 @@ fun writeAccessorsFor(projectSchema: ProjectSchema<String>, writer: BufferedWrit
         write(fileHeader)
         newLine()
         appendln("import org.gradle.api.Project")
-        appendln("import org.gradle.script.lang.kotlin.*") // TODO:pm REMOVE
         appendln("import org.gradle.kotlin.dsl.*")
         newLine()
         projectSchema.forEachAccessor {

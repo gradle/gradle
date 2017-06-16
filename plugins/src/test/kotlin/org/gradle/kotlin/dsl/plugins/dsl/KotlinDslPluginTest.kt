@@ -29,7 +29,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             import org.gradle.kotlin.dsl.GradleDsl
 
             // src/generated
-            import org.gradle.script.lang.kotlin.embeddedKotlinVersion
+            import org.gradle.kotlin.dsl.embeddedKotlinVersion
 
         """)
 

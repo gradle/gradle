@@ -20,7 +20,7 @@ import org.gradle.api.Project
 
 import org.gradle.api.internal.classpath.ModuleRegistry
 
-import org.gradle.script.lang.kotlin.gradleKotlinDsl
+import org.gradle.kotlin.dsl.gradleKotlinDsl
 import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile

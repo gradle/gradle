@@ -34,8 +34,6 @@ open class GenerateConfigurationExtensions : DefaultTask() {
 
 package org.gradle.kotlin.dsl
 
-// import org.gradle.script.lang.kotlin.* // TODO:pm REMOVE ME
-
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency

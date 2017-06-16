@@ -47,8 +47,6 @@ open class GenerateKotlinDependencyExtensions : DefaultTask() {
 
 package org.gradle.kotlin.dsl
 
-// import org.gradle.script.lang.kotlin.* // TODO:pm REMOVE ME
-
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 

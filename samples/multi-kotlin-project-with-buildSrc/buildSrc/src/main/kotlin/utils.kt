@@ -1,6 +1,5 @@
 import org.gradle.api.Project
 
-import org.gradle.script.lang.kotlin.*
 import org.gradle.kotlin.dsl.*
 
 /**
