@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="dbd6214d-18eb-41dc-b2ee-f651594971b6" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
-  <name>Run Release JDiff</name>
+  <name>Release - JDiff Report</name>
   <description>Runs JDiff with customizable old/new versions</description>
   <settings>
     <options>
