@@ -32,8 +32,8 @@
     <requirements />
     <build-triggers />
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_559" sourceBuildTypeId="Gradle_Check_Stage2_Passes" cleanDestination="true">
-        <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" branch="release" />
+      <dependency id="ARTIFACT_DEPENDENCY_559" sourceBuildTypeId="Gradle_HotfixReleases_Stage2_Passes" cleanDestination="true">
+        <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" branch="release_3.5.1" />
         <artifact sourcePath="build-receipt.properties =&gt; incoming-build-receipt/" />
       </dependency>
     </artifact-dependencies>
