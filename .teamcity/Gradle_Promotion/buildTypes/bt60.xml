@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="5ed504bb-5ec3-46dc-a28a-e42a63ebbb31" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
-  <name>Release Candidate</name>
+  <name>Release - Release Candidate</name>
   <description>Promotes the latest successful change on 'release' as a new release candidate</description>
   <settings>
     <options>
