@@ -9,7 +9,7 @@
     </options>
     <parameters />
     <build-runners>
-      <runner id="RUNNER_18" name="RUNNER_18" type="gradle-runner">
+      <runner id="RUNNER_18" name="Promote" type="gradle-runner">
         <parameters>
           <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="teamcity.coverage.emma.include.source" value="true" />
