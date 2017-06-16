@@ -53,7 +53,7 @@ open class Benchmark : DefaultTask() {
     var resultDir: File? = null
 
     @Option(option = "exclude-sample", description = "Excludes a sample from the benchmark.")
-    var excludedSamplePatterns = mutableListOf("android", "buildSrc") // TODO:pm remove buildSrc
+    var excludedSamplePatterns = mutableListOf("android")
 
     @Option(option = "include-sample", description = "Includes a sample in the benchmark (disables automatic inclusion).")
     var includedSamplePatterns = mutableListOf<String>()
