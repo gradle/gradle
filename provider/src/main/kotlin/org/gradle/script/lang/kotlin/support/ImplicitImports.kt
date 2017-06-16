@@ -37,5 +37,6 @@ class ImplicitImports(private val importsReader: ImportsReader) {
             "org.gradle.script.lang.kotlin.*",
             // TODO: infer list of types below at build time by inspecting the Gradle API
             "java.util.concurrent.TimeUnit",
+            "java.math.BigDecimal",
             "java.io.File")
 }
