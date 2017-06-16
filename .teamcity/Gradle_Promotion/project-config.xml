@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle" uuid="16c9f3e3-36a9-4596-a35c-70a3c7a2c5c8" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
   <name>Promotion</name>
-  <description>Promotion configurations</description>
   <parameters>
     <param name="env.DOTCOM_DEV_DOCS_AWS_ACCESS_KEY" value="AKIAJFJBF5BXLBNI3E5A" />
     <param name="env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY" value="credentialsJSON:ed0db35e-2034-444c-a9b1-d966b9abe89b" spec="password display='normal'" />
