@@ -12,6 +12,7 @@ data class CIBuildModel (
         val rootProjectName: String = "Check",
         val tagBuilds: Boolean = true,
         val buildCacheActive: Boolean = true,
+        val useReleasePerformanceBaselineForAllBranches: Boolean = false,
         val stages: List<Stage> = listOf(
             Stage("Sanity Check and Distribution",
                     specificBuilds = listOf(
@@ -163,7 +164,8 @@ enum class JvmVersion {
 }
 
 enum class TestType {
-    quick, platform, parallel, noDaemon, crossVersion, quickFeedbackCrossVersion, soak, java9Smoke
+    quick, platform, parallel, noDaemon, crossVersion, quickFeedbackCrossVersion, soak, java9Smoke,
+    daemon /* only for <4.1 Gradle versions*/
 }
 
 enum class JvmVendor {
