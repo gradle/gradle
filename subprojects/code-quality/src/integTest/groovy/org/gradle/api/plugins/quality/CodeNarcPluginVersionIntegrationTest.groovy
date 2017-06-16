@@ -152,6 +152,22 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         expect:
         succeeds("check")
     }
+    
+    def "output should be printed in stdout if console type is specified"() {
+        when:
+        buildFile << '''
+            codenarc {
+                configFile == file('config/codenarc/codenarc.xml')
+                reportFormat = 'console' 
+            }
+        '''
+        file('src/main/groovy/a/A.groovy') << 'package a;class A{}'
+
+        then:
+        succeeds('check')
+        output.contains('CodeNarc Report')
+        output.contains('CodeNarc completed: (p1=0; p2=0; p3=0)')
+    }
 
     private goodCode() {
         file("src/main/groovy/org/gradle/class1.java") << "package org.gradle; class class1 { }"

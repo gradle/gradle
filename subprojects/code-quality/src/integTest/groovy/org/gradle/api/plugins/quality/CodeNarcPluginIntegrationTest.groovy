@@ -203,22 +203,6 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         'toolVersion'  | "codenarc { toolVersion '0.17' } "
     }
 
-    def "output should be printed in stdout if console type is specified"() {
-        when:
-        buildFile << '''
-            codenarc {
-                configFile == file('config/codenarc/codenarc.xml')
-                reportFormat = 'console' 
-            }
-        '''
-        file('src/main/groovy/a/A.groovy') << 'package a;class A{}'
-
-        then:
-        succeeds('check')
-        output.contains('CodeNarc Report')
-        output.contains('CodeNarc completed: (p1=0; p2=0; p3=0)')
-    }
-
     private void writeBuildFile() {
         file("build.gradle") << """
             apply plugin: "groovy"
