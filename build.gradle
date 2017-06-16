@@ -62,12 +62,6 @@ buildTypes {
         projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
     }
 
-    // Tests not using the daemon mode (we will remove this build type once the TC build configs are updated)
-    daemonTest {
-        tasks "runtimeNoDaemonIntegTests"
-        projectProperties useIncomingDistributions: true
-    }
-
     // Tests not using the daemon mode
     noDaemonTest {
         tasks "runtimeNoDaemonIntegTests"
