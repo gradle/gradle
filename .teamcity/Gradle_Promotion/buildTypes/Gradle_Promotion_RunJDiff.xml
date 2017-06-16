@@ -31,7 +31,7 @@
     <requirements />
     <build-triggers />
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_9" sourceBuildTypeId="bt42" cleanDestination="true">
+      <dependency id="ARTIFACT_DEPENDENCY_9" sourceBuildTypeId="Gradle_Check_Stage2_Passes" cleanDestination="true">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
         <artifact sourcePath="build-receipt.properties =&gt; incoming-build-receipt/" />
       </dependency>
