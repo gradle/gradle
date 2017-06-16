@@ -46,6 +46,12 @@ public interface GradleLauncher extends Stoppable {
     GradleInternal getConfiguredBuild();
 
     /**
+     * Schedules the specified tasks for this build.
+     * @throws ReportedException On build failure. The failure will have been logged.
+     */
+    void scheduleTasks(final Iterable<String> tasks);
+
+    /**
      * <p>Executes the build for this {@code GradleLauncher} instance and returns the result.</p>
      * This method performs a complete build execution, firing the `buildFinished` event on completion.
      *

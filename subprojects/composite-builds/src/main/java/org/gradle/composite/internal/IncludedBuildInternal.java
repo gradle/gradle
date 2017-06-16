@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
@@ -26,5 +25,5 @@ public interface IncludedBuildInternal extends ConfigurableIncludedBuild {
     DependencySubstitutionsInternal resolveDependencySubstitutions();
     SettingsInternal getLoadedSettings();
     GradleInternal getConfiguredBuild();
-    BuildResult execute(Iterable<String> tasks, Object listener);
+    void execute(Iterable<String> tasks, Object listener);
 }

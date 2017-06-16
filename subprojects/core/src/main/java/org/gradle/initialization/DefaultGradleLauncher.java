@@ -104,6 +104,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     @Override
+    public void scheduleTasks(final Iterable<String> tasks) {
+        gradle.getStartParameter().setTaskNames(tasks);
+    }
+
+    @Override
     public BuildResult run() {
         return doBuild(Stage.Build);
     }
