@@ -48,7 +48,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         when:
         buildFile << """
             plugins {
-                id 'nebula.plugin-plugin' version '4.15.0'
+                id 'nebula.plugin-plugin' version '5.6.0'
             }
         """
 
