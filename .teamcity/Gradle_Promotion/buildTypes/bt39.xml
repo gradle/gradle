@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="01432c63-861f-4d08-ae0a-7d127f63096e" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
-  <name>Nightly Master Snapshot</name>
+  <name>Master - Nightly Snapshot</name>
   <description>Promotes the latest successful change on 'master' as the new nightly</description>
   <settings>
     <options>
