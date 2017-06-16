@@ -19,7 +19,7 @@ package org.gradle.process.internal.worker;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -33,7 +33,7 @@ import java.io.File;
 
 public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
-    private final LogLevel workerLogLevel;
+    private final LoggingManager loggingManager;
     private final MessagingServer server;
     private final IdGenerator<?> idGenerator;
     private final File gradleUserHomeDir;
@@ -43,10 +43,10 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final MemoryManager memoryManager;
     private int connectTimeoutSeconds = 120;
 
-    public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
+    public DefaultWorkerProcessFactory(LoggingManager loggingManager, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
                                        File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory,
                                        JvmVersionDetector jvmVersionDetector, OutputEventListener outputEventListener, MemoryManager memoryManager) {
-        this.workerLogLevel = workerLogLevel;
+        this.loggingManager = loggingManager;
         this.server = server;
         this.idGenerator = idGenerator;
         this.gradleUserHomeDir = gradleUserHomeDir;
@@ -80,7 +80,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
     private DefaultWorkerProcessBuilder newWorkerProcessBuilder() {
         DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerImplementationFactory, outputEventListener, memoryManager);
-        builder.setLogLevel(workerLogLevel);
+        builder.setLogLevel(loggingManager.getLevel());
         builder.setGradleUserHomeDir(gradleUserHomeDir);
         builder.setConnectTimeoutSeconds(connectTimeoutSeconds);
         return builder;

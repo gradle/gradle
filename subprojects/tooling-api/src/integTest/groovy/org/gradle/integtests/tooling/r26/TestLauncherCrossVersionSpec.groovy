@@ -58,9 +58,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         events.operation("Task :test").successful
         events.operation("Task :secondTest").successful
         events.operation("Gradle Test Run :test").successful
-        events.operation("Gradle Test Executor 1").successful
         events.operation("Gradle Test Run :secondTest").successful
-        events.operation("Gradle Test Executor 2").successful
+        def testExecutorEvents = events.operations.findAll { it.descriptor.displayName.matches "Gradle Test Executor \\d+" }
+        testExecutorEvents.size() == 2
+        testExecutorEvents.every { it.successful }
         events.tests.findAll { it.descriptor.displayName == "Test class example.MyTest" }.size() == 2
         events.tests.findAll { it.descriptor.displayName == "Test foo(example.MyTest)" }.size() == 2
         events.tests.findAll { it.descriptor.displayName == "Test foo2(example.MyTest)" }.size() == 2

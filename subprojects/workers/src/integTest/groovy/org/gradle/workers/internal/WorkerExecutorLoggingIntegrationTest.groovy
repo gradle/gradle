@@ -22,16 +22,9 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
 
     @Unroll
     def "worker lifecycle is logged in #isolationMode"() {
-        def runnableJarName = "runnable.jar"
-        withRunnableClassInExternalJar(file(runnableJarName))
+        withRunnableClassInBuildSrc()
 
         buildFile << """
-            buildscript {
-                dependencies {
-                    classpath files("$runnableJarName")
-                }
-            }
-
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
             }

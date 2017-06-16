@@ -122,8 +122,8 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.output.contains "START [Gradle Test Run :test] [Gradle Test Run :test]\n"
         result.output.contains "FINISH [Gradle Test Run :test] [Gradle Test Run :test]\n"
-        result.output.contains "START [Gradle Test Executor 1] [Gradle Test Executor 1]\n"
-        result.output.contains "FINISH [Gradle Test Executor 1] [Gradle Test Executor 1]\n"
+        result.output.readLines().find { it.matches "START \\[Gradle Test Executor \\d+] \\[Gradle Test Executor \\d+]" }
+        result.output.readLines().find { it.matches "FINISH \\[Gradle Test Executor \\d+] \\[Gradle Test Executor \\d+]" }
         result.output.contains "START [Test suite 'Gradle suite'] [Gradle suite]\n"
         result.output.contains "FINISH [Test suite 'Gradle suite'] [Gradle suite]\n"
         result.output.contains "START [Test suite 'Gradle test'] [Gradle test]\n"
