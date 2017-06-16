@@ -37,7 +37,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildTyp
                     if [ "${'$'}baseline" = "${type.defaultBaselinesBranches}" ] && [ "${'$'}branch" == "$branch" ]; then
                         echo "##teamcity[setParameter name='performance.baselines' value='${type.defaultBaselines}']"
                     fi
-                """ }}
+                """ }.joinToString(separator = "")}
             """.trimIndent()
         }
         gradle {
