@@ -1,5 +1,3 @@
-import java.math.BigDecimal
-
 plugins {
     checkstyle
     findbugs
