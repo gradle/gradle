@@ -29,7 +29,15 @@
       <vcs-entry-ref root-id="Gradle_Promotion__master_" />
     </vcs-settings>
     <requirements />
-    <build-triggers />
+    <build-triggers>
+      <build-trigger id="TRIGGER_112" type="buildDependencyTrigger">
+        <parameters>
+          <param name="afterSuccessfulBuildOnly" value="true" />
+          <param name="branchFilter" value="+:release" />
+          <param name="dependsOn" value="Gradle_Check_Stage2_Passes" />
+        </parameters>
+      </build-trigger>
+    </build-triggers>
     <artifact-dependencies>
       <dependency id="ARTIFACT_DEPENDENCY_9" sourceBuildTypeId="Gradle_Check_Stage2_Passes" cleanDestination="true">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
