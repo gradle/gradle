@@ -29,8 +29,8 @@ allprojects {
     version = "0.10.0-SNAPSHOT"
 }
 
-val pluginsCurrentVersion by extra { "0.10.3" }
-val pluginsNextVersion = "0.10.4"
+val pluginsCurrentVersion by extra { "0.10.4" }
+val pluginsNextVersion = "0.10.5"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = pluginsNextVersion
