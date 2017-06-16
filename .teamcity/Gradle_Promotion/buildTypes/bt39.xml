@@ -8,20 +8,8 @@
       <option name="checkoutMode" value="ON_SERVER" />
       <option name="showDependenciesChanges" value="true" />
     </options>
-    <disabled-settings>
-      <setting-ref ref="RUNNER_1735" />
-    </disabled-settings>
     <parameters />
     <build-runners>
-      <runner id="RUNNER_1735" name="Configure Git" type="simpleRunner">
-        <parameters>
-          <param name="script.content"><![CDATA[mkdir -p .git
-git config user.email "gradlewaregitbot@gradleware.com"
-git config user.name "Gradleware Git Bot"]]></param>
-          <param name="teamcity.step.mode" value="default" />
-          <param name="use.custom.script" value="true" />
-        </parameters>
-      </runner>
       <runner id="RUNNER_9" name="Promote" type="gradle-runner">
         <parameters>
           <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
