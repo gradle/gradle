@@ -23,6 +23,10 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
 
+    def setup() {
+        runner.minimumVersion = '4.0'
+    }
+
     def "merge exclude rules"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
