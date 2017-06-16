@@ -33,11 +33,11 @@ val plugins = listOf(
     GradlePlugin(
         "Embedded Kotlin Gradle Plugin",
         "org.gradle.kotlin.embedded-kotlin",
-        "org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin"),
+        "org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin"),
     GradlePlugin(
         "Gradle Kotlin DSL Plugin",
         "org.gradle.kotlin.kotlin-dsl",
-        "org.gradle.script.lang.kotlin.plugins.dsl.KotlinDslPlugin"))
+        "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin"))
 
 plugins.forEach { plugin ->
 

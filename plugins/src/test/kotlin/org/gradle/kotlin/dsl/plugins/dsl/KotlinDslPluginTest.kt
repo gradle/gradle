@@ -1,6 +1,6 @@
-package org.gradle.script.lang.kotlin.plugins.dsl
+package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.script.lang.kotlin.plugins.AbstractPluginTest
+import org.gradle.kotlin.dsl.plugins.AbstractPluginTest
 
 import org.gradle.testkit.runner.TaskOutcome
 

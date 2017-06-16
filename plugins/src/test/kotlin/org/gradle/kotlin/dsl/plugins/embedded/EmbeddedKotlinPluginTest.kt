@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.script.lang.kotlin.plugins.embedded
+package org.gradle.kotlin.dsl.plugins.embedded
 
 import org.gradle.script.lang.kotlin.embeddedKotlinVersion
-import org.gradle.script.lang.kotlin.plugins.AbstractPluginTest
+import org.gradle.kotlin.dsl.plugins.AbstractPluginTest
 
 import org.gradle.testkit.runner.TaskOutcome
 
@@ -62,7 +62,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         assertThat(result.output, containsString("Embedded Kotlin Repository"))
         listOf("stdlib", "reflect").forEach {
-            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
+            assertThat(result.output, containsString("kotlin-$it-${embeddedKotlinVersion}.jar"))
         }
     }
 
@@ -88,7 +88,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         assertThat(result.output, containsString("Embedded Kotlin Repository"))
         listOf("stdlib", "reflect", "compiler-embeddable").forEach {
-            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
+            assertThat(result.output, containsString("kotlin-$it-${embeddedKotlinVersion}.jar"))
         }
     }
 
@@ -130,9 +130,9 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
         val result = buildWithPlugin("help")
 
         listOf("stdlib", "reflect").forEach {
-            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
-            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion-sources.jar"))
-            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion-javadoc.jar"))
+            assertThat(result.output, containsString("kotlin-$it-${embeddedKotlinVersion}.jar"))
+            assertThat(result.output, containsString("kotlin-$it-${embeddedKotlinVersion}-sources.jar"))
+            assertThat(result.output, containsString("kotlin-$it-${embeddedKotlinVersion}-javadoc.jar"))
         }
     }
 
@@ -161,8 +161,8 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
         val result = buildWithPlugin("dependencies")
 
         listOf("stdlib", "reflect", "compiler-embeddable").forEach {
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$it:1.1.1 -> $embeddedKotlinVersion"))
-            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$it:1.1.1 -> ${embeddedKotlinVersion}"))
+            assertThat(result.output, containsString("kotlin-$it-${embeddedKotlinVersion}.jar"))
         }
     }
 

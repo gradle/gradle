@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.script.lang.kotlin.plugins.dsl
+package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -21,7 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.classpath.ModuleRegistry
 
 import org.gradle.script.lang.kotlin.gradleKotlinDsl
-import org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin
+import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 

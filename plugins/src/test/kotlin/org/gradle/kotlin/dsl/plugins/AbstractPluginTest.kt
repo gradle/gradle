@@ -1,4 +1,4 @@
-package org.gradle.script.lang.kotlin.plugins
+package org.gradle.kotlin.dsl.plugins
 
 import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
 import org.gradle.script.lang.kotlin.fixtures.gradleRunnerFor
