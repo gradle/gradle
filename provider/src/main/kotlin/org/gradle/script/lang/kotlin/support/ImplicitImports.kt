@@ -32,5 +32,10 @@ class ImplicitImports(private val importsReader: ImportsReader) {
     fun gradleImports() = importsReader.importPackages.map { "$it.*" }
 
     private
-    fun gradleScriptKotlinImports() = listOf("org.gradle.script.lang.kotlin.*", "java.io.File")
+    fun gradleScriptKotlinImports() =
+        listOf(
+            "org.gradle.script.lang.kotlin.*",
+            // TODO: infer list of types below at build time by inspecting the Gradle API
+            "java.util.concurrent.TimeUnit",
+            "java.io.File")
 }
