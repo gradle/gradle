@@ -12,7 +12,7 @@ base {
 }
 
 dependencies {
-    compileOnly(gradleScriptKotlinApi())
+    compileOnly(gradleKotlinDsl())
 
     compile(kotlin("stdlib"))
     compile(kotlin("gradle-plugin"))

@@ -20,7 +20,7 @@ import org.gradle.api.Project
 
 import org.gradle.api.internal.classpath.ModuleRegistry
 
-import org.gradle.script.lang.kotlin.gradleScriptKotlinApi
+import org.gradle.script.lang.kotlin.gradleKotlinDsl
 import org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -49,7 +49,7 @@ open class KotlinDslPlugin @Inject constructor(val moduleRegistry: ModuleRegistr
 
     private
     fun Project.addGradleKotlinDslDependency() {
-        dependencies.add("compileOnly", gradleScriptKotlinApi())
+        dependencies.add("compileOnly", gradleKotlinDsl())
     }
 
     private
