@@ -34,7 +34,8 @@ class ImplicitImports(private val importsReader: ImportsReader) {
     private
     fun gradleScriptKotlinImports() =
         listOf(
-            "org.gradle.script.lang.kotlin.*",
+            "org.gradle.kotlin.dsl.*",
+            "org.gradle.script.lang.kotlin.*", // TODO:pm REMOVE ME
             // TODO: infer list of types below at build time by inspecting the Gradle API
             "java.util.concurrent.TimeUnit",
             "java.math.BigDecimal",
