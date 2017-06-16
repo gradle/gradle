@@ -41,7 +41,7 @@ import org.gradle.api.provider.PropertyState
 
 import org.gradle.api.tasks.TaskContainer
 
-import org.gradle.script.lang.kotlin.provider.gradleScriptKotlinApiOf
+import org.gradle.script.lang.kotlin.provider.gradleKotlinDslOf
 
 import java.io.File
 
@@ -203,17 +203,22 @@ fun <reified T> Project.property(): PropertyState<T> =
 
 
 /**
- * Creates a dependency on the API of the current version of Gradle Script Kotlin.
+ * Creates a dependency on the API of the current version of the Gradle Kotlin DSL.
  *
  * Includes the Kotlin and Gradle APIs.
  *
  * @return The dependency.
  */
-fun Project.gradleScriptKotlinApi(): Dependency =
+fun Project.gradleKotlinDsl(): Dependency =
     DefaultSelfResolvingDependency(
         fileCollectionOf(
-            gradleScriptKotlinApiOf(project),
-            "gradleScriptKotlinApi") as FileCollectionInternal)
+            gradleKotlinDslOf(project),
+            "gradleKotlinDsl") as FileCollectionInternal)
+
+
+@Deprecated("Will be removed in 1.0", ReplaceWith("gradleKotlinDsl()"))
+fun Project.gradleScriptKotlinApi(): Dependency =
+    gradleKotlinDsl()
 
 
 private

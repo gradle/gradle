@@ -38,9 +38,9 @@ import org.gradle.util.GFileUtils.moveFile
 import java.io.File
 
 
-fun gradleScriptKotlinApiOf(project: Project): List<File> =
+fun gradleKotlinDslOf(project: Project): List<File> =
     kotlinScriptClassPathProviderOf(project).run {
-        gradleScriptKotlinApi.asFiles
+        gradleKotlinDsl.asFiles
     }
 
 
@@ -73,7 +73,7 @@ class KotlinScriptClassPathProvider(
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
      */
-    val gradleScriptKotlinApi: ClassPath by lazy {
+    val gradleKotlinDsl: ClassPath by lazy {
         gradleApi + gradleApiExtensions + gradleScriptKotlinJars
     }
 
@@ -96,7 +96,7 @@ class KotlinScriptClassPathProvider(
     }
 
     fun compilationClassPathOf(scope: ClassLoaderScope): ClassPath =
-        gradleScriptKotlinApi + exportClassPathFromHierarchyOf(scope)
+        gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)
 
     private
     fun gradleScriptKotlinExtensions(): File =

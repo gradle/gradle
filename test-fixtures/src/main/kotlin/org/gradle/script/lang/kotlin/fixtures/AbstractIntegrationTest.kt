@@ -57,7 +57,7 @@ open class AbstractIntegrationTest {
                 kotlin("jvm")
             }
             dependencies {
-                compile(gradleScriptKotlinApi())
+                compile(gradleKotlinDsl())
             }
         """)
 

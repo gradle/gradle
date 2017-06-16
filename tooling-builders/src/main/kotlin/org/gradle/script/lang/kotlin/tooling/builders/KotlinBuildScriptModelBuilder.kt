@@ -24,7 +24,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
-import org.gradle.script.lang.kotlin.provider.gradleScriptKotlinApiOf
+import org.gradle.script.lang.kotlin.provider.gradleKotlinDslOf
 import org.gradle.script.lang.kotlin.provider.kotlinScriptClassPathProviderOf
 import org.gradle.script.lang.kotlin.resolver.SourcePathProvider
 import org.gradle.script.lang.kotlin.resolver.kotlinBuildScriptModelTarget
@@ -100,7 +100,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun scriptPluginClassPathOf(project: Project) =
         ScriptClassPath(
-            DefaultClassPath.of(buildSrcClassPathOf(project) + gradleScriptKotlinApiOf(project)),
+            DefaultClassPath.of(buildSrcClassPathOf(project) + gradleKotlinDslOf(project)),
             ClassPath.EMPTY)
 
     private
