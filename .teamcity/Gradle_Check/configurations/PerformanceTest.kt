@@ -34,7 +34,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildTyp
                 branch="%teamcity.build.branch%"
                 baseline="%performance.baselines%"
                 ${model.masterAndReleaseBranches.map { branch -> """
-                    if [ "${'$'}baseline" = "${type.defaultBaselinesBranches}" ] && [ "${'$'}branch" == "$branch" ]; then
+                    if [ "${'$'}baseline" = "${type.defaultBaselinesBranches}" ] && [ "${'$'}branch" = "$branch" ]; then
                         echo "##teamcity[setParameter name='performance.baselines' value='${type.defaultBaselines}']"
                     fi
                 """ }.joinToString(separator = "")}
