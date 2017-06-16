@@ -223,12 +223,15 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun hasAccessorsJar() =
-        hasItem(fileByName("gradle-kotlin-dsl-accessors.jar"))
+        hasItem(fileByName(accessorsJarFileName))
 
     private
     fun accessorsJarFor(buildFile: File) =
         classPathFor(buildFile)
-            .find { it.isFile && it.name == "gradle-kotlin-dsl-accessors.jar" }
+            .find { it.isFile && it.name == accessorsJarFileName }
+
+    private
+    val accessorsJarFileName = "gradle-kotlin-dsl-accessors.jar"
 
     private
     fun classPathFor(buildFile: File) =
