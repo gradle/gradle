@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="1f5ca7f8-b0f5-41f9-9ba7-6d518b2822f0" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
-  <name>Release Branch Snapshot</name>
+  <name>Release - Snapshot</name>
   <description>Deploys the latest successful change on 'release' as a new snapshot</description>
   <settings>
     <options>
