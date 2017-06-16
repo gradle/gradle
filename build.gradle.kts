@@ -119,7 +119,7 @@ val copyCurrentDistro by task<Copy> {
 }
 
 val customInstallation by task<Copy> {
-    description = "Copies latest gradle-script-kotlin snapshot over the custom installation."
+    description = "Copies latest gradle-kotlin-dsl snapshot over the custom installation."
     dependsOn(copyCurrentDistro)
     from(distribution)
     into("$customInstallationDir/lib")

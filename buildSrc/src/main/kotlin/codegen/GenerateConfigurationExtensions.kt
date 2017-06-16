@@ -32,7 +32,9 @@ open class GenerateConfigurationExtensions : DefaultTask() {
         outputFile!!.writeText(
             """$licenseHeader
 
-package org.gradle.script.lang.kotlin
+package org.gradle.kotlin.dsl
+
+// import org.gradle.script.lang.kotlin.* // TODO:pm REMOVE ME
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer

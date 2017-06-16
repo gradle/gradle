@@ -26,7 +26,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         withFile("src/main/kotlin/code.kt", """
 
             // src/main/kotlin
-            import org.gradle.script.lang.kotlin.GradleDsl
+            import org.gradle.kotlin.dsl.GradleDsl
 
             // src/generated
             import org.gradle.script.lang.kotlin.embeddedKotlinVersion

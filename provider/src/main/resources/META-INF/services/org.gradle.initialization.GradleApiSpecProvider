@@ -1,1 +1,1 @@
-org.gradle.script.lang.kotlin.provider.KotlinGradleApiSpecProvider
+org.gradle.kotlin.dsl.provider.KotlinGradleApiSpecProvider

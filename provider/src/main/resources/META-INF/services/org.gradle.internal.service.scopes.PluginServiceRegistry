@@ -1,1 +1,1 @@
-org.gradle.script.lang.kotlin.services.KotlinScriptServiceRegistry
+org.gradle.kotlin.dsl.services.KotlinScriptServiceRegistry

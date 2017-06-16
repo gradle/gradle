@@ -1,7 +1,7 @@
 package org.gradle.kotlin.dsl.plugins
 
-import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
-import org.gradle.script.lang.kotlin.fixtures.gradleRunnerFor
+import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.gradleRunnerFor
 
 
 open class AbstractPluginTest : AbstractIntegrationTest() {

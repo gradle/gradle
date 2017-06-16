@@ -45,7 +45,9 @@ open class GenerateKotlinDependencyExtensions : DefaultTask() {
         outputFile!!.writeText(
             """$licenseHeader
 
-package org.gradle.script.lang.kotlin
+package org.gradle.kotlin.dsl
+
+// import org.gradle.script.lang.kotlin.* // TODO:pm REMOVE ME
 
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -113,7 +115,7 @@ fun PluginDependenciesSpec.kotlin(module: String, version: String? = null): Plug
  * <code>`embedded-kotlin` version "$kotlinDslPluginsVersion"</code>
  * if you want to use a different version.
  *
- * @see org.gradle.script.lang.kotlin.plugins.embedded.EmbeddedKotlinPlugin
+ * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  */
 val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
     get() = id("org.gradle.kotlin.embedded-kotlin") version "$kotlinDslPluginsVersion"
@@ -128,7 +130,7 @@ val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
  * <code>`kotlin-dsl` version "$kotlinDslPluginsVersion"</code>
  * if you want to use a different version.
  *
- * @see org.gradle.script.lang.kotlin.plugins.dsl.KotlinDslPlugin
+ * @see org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
  */
 val PluginDependenciesSpec.`kotlin-dsl`: PluginDependencySpec
     get() = id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"

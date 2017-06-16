@@ -1,1 +1,1 @@
-org.gradle.script.lang.kotlin.compiler.GradleScriptKotlinComponentRegistrar
+org.gradle.kotlin.dsl.compiler.GradleScriptKotlinComponentRegistrar

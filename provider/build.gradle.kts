@@ -32,12 +32,12 @@ java.sourceSets["main"].kotlin {
 }
 
 val generateConfigurationExtensions by task<GenerateConfigurationExtensions> {
-    outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/ConfigurationsExtensions.kt")
+    outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/ConfigurationsExtensions.kt")
 }
 
 val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtensions> {
     val pluginsCurrentVersion: String by rootProject.extra
-    outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/KotlinDependencyExtensions.kt")
+    outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
     embeddedKotlinVersion = kotlinVersion
     kotlinDslPluginsVersion = pluginsCurrentVersion
     gradleScriptKotlinRepository = kotlinRepo

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.script.lang.kotlin
 
 import org.gradle.api.Project
 
-import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 
-import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.GradleDsl
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateDefinition
@@ -34,22 +33,4 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = ".*\\.gradle\\.kts")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-abstract class KotlinBuildScript(project: Project) : Project by project {
-
-    /**
-     * Configures the build script classpath for this project.
-     *
-     * @see [Project.buildscript]
-     */
-    @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
-
-    /**
-     * Configures the plugin dependencies for this project.
-     *
-     * @see [PluginDependenciesSpec]
-     */
-    @Suppress("unused")
-    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit) = Unit
-}
-
+abstract class KotlinBuildScript(project: Project) : org.gradle.kotlin.dsl.KotlinBuildScript(project)
