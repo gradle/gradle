@@ -88,7 +88,7 @@ val modelSpecificJvmOptions =
     listOf("-D${KotlinScriptPluginFactory.Companion.modeSystemPropertyName}=${KotlinScriptPluginFactory.Companion.classPathMode}")
 
 
-val kotlinBuildScriptModelTarget = "org.gradle.script.lang.kotlin.provider.script"
+val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
 
 
 internal

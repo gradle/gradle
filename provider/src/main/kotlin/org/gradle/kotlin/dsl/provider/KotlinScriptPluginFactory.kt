@@ -80,7 +80,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         System.getProperty(modeSystemPropertyName) == classPathMode
 
     companion object {
-        val modeSystemPropertyName = "org.gradle.script.lang.kotlin.provider.mode"
+        val modeSystemPropertyName = "org.gradle.kotlin.dsl.provider.mode"
         val classPathMode = "classpath"
     }
 }
