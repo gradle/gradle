@@ -57,7 +57,7 @@ object HasImplicitReceiverPlugin {
 }
 
 
-class GradleScriptKotlinComponentRegistrar : ComponentRegistrar {
+class GradleKotlinDslComponentRegistrar : ComponentRegistrar {
 
     override fun registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) {
         HasImplicitReceiverPlugin.apply(project)
