@@ -125,7 +125,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 if (callableResult != null) {
                     queue.add(0, callableResult);
                 }
-            } else if (element instanceof Iterable) {
+            } else if (element instanceof Iterable && !(element instanceof java.nio.file.Path)) {
                 Iterable<?> iterable = (Iterable) element;
                 GUtil.addToCollection(queue.subList(0, 0), iterable);
             } else if (element instanceof Object[]) {
