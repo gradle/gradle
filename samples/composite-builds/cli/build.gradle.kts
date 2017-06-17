@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "org.gradle.script.kotlin.samples.composite-builds"
+group = "org.gradle.kotlin.dsl.samples.composite-builds"
 version = "1.0"
 
 application {
@@ -11,5 +11,5 @@ application {
 }
 
 dependencies {
-    compile("org.gradle.script.kotlin.samples.composite-builds:core:1.0")
+    compile("org.gradle.kotlin.dsl.samples.composite-builds:core:1.0")
 }

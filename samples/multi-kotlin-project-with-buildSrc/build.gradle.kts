@@ -1,6 +1,6 @@
 allprojects {
 
-    group = "org.gradle.script.kotlin.samples.multiproject"
+    group = "org.gradle.kotlin.dsl.samples.multiproject"
 
     version = "1.0"
 

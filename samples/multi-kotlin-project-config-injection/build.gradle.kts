@@ -7,7 +7,7 @@ buildscript {
 
 allprojects {
 
-    group = "org.gradle.script.kotlin.samples.multiprojectci"
+    group = "org.gradle.kotlin.dsl.samples.multiprojectci"
 
     version = "1.0"
 

@@ -3,6 +3,6 @@ plugins {
     java
 }
 
-group = "org.gradle.script.kotlin.samples.composite-builds"
+group = "org.gradle.kotlin.dsl.samples.composite-builds"
 version = "1.0"
 

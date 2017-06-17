@@ -3,7 +3,7 @@ Sample Kotlin-based Gradle build scripts
 
 _See instructions below in order to [set up your dev environment](#set-up-dev-environment) to benefit from [the available IDE support](#explore-available-ide-support)._
 
-The Gradle projects in this directory demonstrate typical use cases with and features available in Gradle Script Kotlin. They include:
+The Gradle projects in this directory demonstrate typical use cases with and features available in the Gradle Kotlin DSL. They include:
 
  - [`build-scan`](./build-scan): demonstrates how to apply and configure the `org.gradle.build-scan` plugin
  - [`composite-builds`](./composite-builds): demonstrates how to use Composite Builds
@@ -42,7 +42,7 @@ All the samples should work against the latest Kotlin plugin, _1.1.2_ at the tim
 Set up a sample project
 -----------------------
 
-### Clone the Gradle Script Kotlin repository
+### Clone the Gradle Kotlin DSL repository
 
 If you have not already done so, clone the gradle-script-kotlin repository:
 
@@ -60,7 +60,7 @@ The project should import without errors.
 
 ### Explore available IDE support
 
-You're now ready to explore what's possible with Gradle Script Kotlin in IDEA. Generally speaking, things should "just work", as they would in the context of any other Java or Kotlin code you would write in IDEA.
+You're now ready to explore what's possible with the Gradle Kotlin DSL in IDEA. Generally speaking, things should "just work", as they would in the context of any other Java or Kotlin code you would write in IDEA.
 
 Start by opening `build.gradle.kts`.
 
