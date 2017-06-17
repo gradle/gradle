@@ -37,7 +37,7 @@ open class GenerateKotlinDependencyExtensions : DefaultTask() {
     var kotlinDslPluginsVersion: String? = null
 
     @get:Input
-    var gradleScriptKotlinRepository: String? = null
+    var kotlinDslRepository: String? = null
 
     @Suppress("unused")
     @TaskAction
@@ -67,7 +67,7 @@ val embeddedKotlinVersion = "$embeddedKotlinVersion"
  */
 @Deprecated("Will be removed in 1.0")
 fun RepositoryHandler.gradleScriptKotlin(): ArtifactRepository =
-    maven { it.setUrl("$gradleScriptKotlinRepository") }
+    maven { it.setUrl("$kotlinDslRepository") }
 
 
 /**
