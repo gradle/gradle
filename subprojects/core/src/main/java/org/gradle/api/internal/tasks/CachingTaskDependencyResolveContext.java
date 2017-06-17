@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
@@ -77,6 +78,7 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
     }
 
     public void add(Object dependency) {
+        Preconditions.checkNotNull(dependency);
         queue.add(dependency);
     }
 

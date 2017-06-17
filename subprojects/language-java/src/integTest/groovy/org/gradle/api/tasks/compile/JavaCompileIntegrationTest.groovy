@@ -30,27 +30,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Resources resources = new Resources()
 
-    @Issue("GRADLE-3152")
-    def "can use the task without applying java-base plugin"() {
-        buildFile << """
-            task compile(type: JavaCompile) {
-                classpath = files()
-                sourceCompatibility = JavaVersion.current()
-                targetCompatibility = JavaVersion.current()
-                destinationDir = file("build/classes")
-                source "src/main/java"
-            }
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        run("compile")
-
-        then:
-        file("build/classes/Foo.class").exists()
-    }
-
     def "uses default platform settings when applying java plugin"() {
         buildFile << """
             apply plugin:"java"
@@ -225,7 +204,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         javaClassFile("com/example/Foo.class").assertIsFile()
     }
 
-    def "implementation dependencies should not leak into compile classpath of consuner"() {
+    def "implementation dependencies should not leak into compile classpath of consumer"() {
         mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'other', '1.0').publish()
 
@@ -280,7 +259,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
-                testCompile 'junit:junit:4.12' // not using testImplementation intentionaly, that's not what we want to test
+                testCompile 'junit:junit:4.12' // not using testImplementation intentionally, that's not what we want to test
             }
         '''
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
