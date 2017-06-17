@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 
 
 /**
- * Configures a Gradle Script Kotlin module.
+ * Configures a Gradle Kotlin DSL module.
  *
  * The assembled jar will:
  *  - be named after `base.archivesBaseName`
@@ -37,7 +37,7 @@ open class GskModule : Plugin<Project> {
                     (it as Jar).run {
                         from(mainSourceSet.allSource)
                         manifest.attributes.apply {
-                            put("Implementation-Title", "Gradle Script Kotlin (${project.name})")
+                            put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
                             put("Implementation-Version", version)
                         }
                     }

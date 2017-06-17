@@ -12,7 +12,7 @@ import org.gradle.api.publish.maven.MavenPublication
 
 
 /**
- * Configures a Gradle Script Kotlin module for publication to artifactory.
+ * Configures a Gradle Kotlin DSL module for publication to artifactory.
  *
  * The published jar will:
  *  - be named after `base.archivesBaseName`
