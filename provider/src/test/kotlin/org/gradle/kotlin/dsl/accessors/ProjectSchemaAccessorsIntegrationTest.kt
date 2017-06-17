@@ -81,7 +81,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
 
         println(
-            build("gskGenerateAccessors").output)
+            build("kotlinDslAccessorsSnapshot").output)
 
 
         buildFile.appendText("""
@@ -131,7 +131,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         """)
 
         println(
-            build("gskGenerateAccessors").output)
+            build("kotlinDslAccessorsSnapshot").output)
 
         assertAccessorsInClassPathOf(buildFile)
     }
@@ -184,11 +184,11 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         withFile("a/build.gradle.kts")
 
         val aTasks = build(":a:tasks").output
-        assertThat(aTasks, containsString("gskProjectAccessors"))
-        assertThat(aTasks, not(containsString("gskGenerateAccessors")))
+        assertThat(aTasks, containsString("kotlinDslAccessorsReport"))
+        assertThat(aTasks, not(containsString("kotlinDslAccessorsSnapshot")))
 
         val rootTasks = build(":tasks").output
-        assertThat(rootTasks, allOf(containsString("gskProjectAccessors"), containsString("gskGenerateAccessors")))
+        assertThat(rootTasks, allOf(containsString("kotlinDslAccessorsReport"), containsString("kotlinDslAccessorsSnapshot")))
     }
 
     private

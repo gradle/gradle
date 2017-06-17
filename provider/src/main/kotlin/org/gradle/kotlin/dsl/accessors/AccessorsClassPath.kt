@@ -176,9 +176,9 @@ fun writeAccessorsFor(projectSchema: ProjectSchema<String>, writer: BufferedWrit
 
 
 /**
- * Location of the project schema snapshot taken by the _gskGenerateAccessors_ task relative to the root project.
+ * Location of the project schema snapshot taken by the _kotlinDslAccessorsSnapshot_ task relative to the root project.
  *
- * @see org.gradle.kotlin.dsl.accessors.tasks.GenerateProjectSchema
+ * @see org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema
  */
 internal
 const val PROJECT_SCHEMA_RESOURCE_PATH = "buildSrc/src/gradle-kotlin-dsl/resources/project-schema.json"

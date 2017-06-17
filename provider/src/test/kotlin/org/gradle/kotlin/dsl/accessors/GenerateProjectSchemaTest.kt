@@ -15,7 +15,7 @@ class GenerateProjectSchemaTest : AbstractIntegrationTest() {
             plugins { java }
         """)
 
-        build("gskGenerateAccessors")
+        build("kotlinDslAccessorsSnapshot")
 
         val generatedSchema =
             loadMultiProjectSchemaFrom(

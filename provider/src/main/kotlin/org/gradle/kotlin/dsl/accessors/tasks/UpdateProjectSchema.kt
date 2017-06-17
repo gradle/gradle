@@ -28,13 +28,13 @@ import org.gradle.kotlin.dsl.accessors.*
 import java.io.File
 
 
-open class GenerateProjectSchema : DefaultTask() {
+open class UpdateProjectSchema : DefaultTask() {
 
     override fun getGroup() =
         "Build Setup"
 
     override fun getDescription() =
-        "Generates Kotlin code for accessing and configuring the currently available project extensions and conventions."
+        "Generates Kotlin accessors for accessing and configuring the currently available project extensions and conventions."
 
     @Suppress("unused")
     @Input

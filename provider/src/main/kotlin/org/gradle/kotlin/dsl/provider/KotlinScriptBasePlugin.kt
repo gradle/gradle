@@ -18,8 +18,8 @@ package org.gradle.kotlin.dsl.provider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.kotlin.dsl.accessors.tasks.DisplayAccessors
-import org.gradle.kotlin.dsl.accessors.tasks.GenerateProjectSchema
+import org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors
+import org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema
 
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.task
@@ -29,7 +29,7 @@ class KotlinScriptBasePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit =
         project.run {
             rootProject.apply<KotlinScriptRootPlugin>()
-            task<DisplayAccessors>("gskProjectAccessors")
+            task<PrintAccessors>("kotlinDslAccessorsReport")
         }
 }
 
@@ -37,7 +37,7 @@ class KotlinScriptBasePlugin : Plugin<Project> {
 class KotlinScriptRootPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.run {
-            task<GenerateProjectSchema>("gskGenerateAccessors")
+            task<UpdateProjectSchema>("kotlinDslAccessorsSnapshot")
         }
     }
 }
