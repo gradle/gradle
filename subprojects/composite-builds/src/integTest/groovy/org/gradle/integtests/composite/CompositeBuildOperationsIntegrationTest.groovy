@@ -71,13 +71,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     void assertHasChild(BuildOperationRecord root, String displayName) {
-        assert root.children.any {
-            named(it, displayName)
-        }
-    }
-
-    boolean named(BuildOperationRecord operation, String displayName) {
-        operation.displayName == displayName
+        assert root.children.collect { it.displayName }.contains(displayName)
     }
 
     def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {
