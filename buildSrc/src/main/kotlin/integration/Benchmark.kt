@@ -34,6 +34,7 @@ import org.gradle.tooling.internal.consumer.ConnectorServices
 
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 
 import java.lang.IllegalStateException
 
@@ -111,42 +112,48 @@ open class Benchmark : DefaultTask() {
 
     private
     fun benchmark(sampleDir: File, config: BenchmarkConfig): Double {
-        val relativeSampleDir = sampleDir.relativeTo(project.projectDir)
-        println(relativeSampleDir)
+        val sampleName = sampleDir.name
+        println("samples/$sampleName")
 
-        val baseline = benchmarkWith(connectorFor(sampleDir), config)
+        val baselineConfig = BenchmarkRunConfig("baseline", sampleName, sampleDir, config)
+        val baseline = benchmarkWith(
+            connectorFor(temporaryCopyFor(baselineConfig)),
+            baselineConfig)
         println("\tbaseline: ${format(baseline)}")
 
-        val latest = benchmarkWith(connectorFor(sampleDir).useInstallation(latestInstallation!!), config)
+        val latestConfig = BenchmarkRunConfig("latest", sampleName, sampleDir, config)
+        val latest = benchmarkWith(
+            connectorFor(temporaryCopyFor(latestConfig)).useInstallation(latestInstallation!!),
+            latestConfig)
         println("\tlatest:   ${format(latest)}")
 
         val quotient = latest.median.ms / baseline.median.ms
         println("\tlatest / baseline: %.2f".format(quotient))
 
-        appendToSampleResultFile(latest, sampleDir)
+        appendToSampleResultFile(latest, sampleName)
         return quotient
     }
 
     private
-    fun benchmarkWith(connector: GradleConnector, config: BenchmarkConfig): BenchmarkResult =
-        withUniqueDaemonRegistry(temporaryDir) {
+    fun benchmarkWith(connector: GradleConnector, runConfig: BenchmarkRunConfig): BenchmarkResult =
+        withUniqueDaemonRegistry(temporaryDirFor(runConfig.sampleName, runConfig.name)) {
             withConnectionFrom(connector) {
-                benchmark(config) {
+                benchmark(runConfig.benchmarkConfig) {
                     newBuild().forTasks("help").run()
                 }
             }
         }
 
     private
-    fun appendToSampleResultFile(result: BenchmarkResult, sampleDir: File) {
-        resultFileFor(sampleDir)
+    fun appendToSampleResultFile(result: BenchmarkResult, sampleName: String) {
+        resultFileFor(sampleName)
             .apply { parentFile.mkdirs() }
             .appendText(toJsonLine(result))
     }
 
     private
-    fun resultFileFor(sampleDir: File) =
-        File(effectiveResultDir, "${sampleDir.name}.jsonl")
+    fun resultFileFor(sampleName: String) =
+        File(effectiveResultDir, "$sampleName.jsonl")
 
     private
     val effectiveResultDir by lazy {
@@ -192,7 +199,34 @@ open class Benchmark : DefaultTask() {
             }
         }
     }
+
+    private
+    fun temporaryCopyFor(config: BenchmarkRunConfig) =
+        emptyTemporaryDirFor(config.sampleName, "${config.name}/${config.sampleName}").apply {
+            if (!config.sampleDir.copyRecursively(this)) {
+                throw IOException("Unable to copy ${config.sampleDir} to $this")
+            }
+        }
+
+    private
+    fun emptyTemporaryDirFor(sampleName: String, temporaryDirName: String) =
+        temporaryDirFor(sampleName, temporaryDirName).apply {
+            if (exists() && !deleteRecursively()) {
+                throw IOException("Unable to delete existing $this")
+            }
+        }
+
+    private
+    fun temporaryDirFor(sampleName: String, temporaryDirName: String) =
+        File(temporaryDir, "$sampleName/$temporaryDirName")
 }
+
+private
+data class BenchmarkRunConfig(
+    val name: String,
+    val sampleName: String,
+    val sampleDir: File,
+    val benchmarkConfig: BenchmarkConfig)
 
 class QuotientResult(observations: List<Double>) : Result<Double>(observations) {
 
