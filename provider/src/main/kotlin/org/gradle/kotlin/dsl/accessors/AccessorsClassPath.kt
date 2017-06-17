@@ -145,7 +145,9 @@ fun ProjectSchema<String>.toCacheKeyString(): String =
 
 private
 fun enabledJitAccessors(project: Project) =
-    project.findProperty("org.gradle.script.lang.kotlin.accessors.auto") == "true"
+    project.findProperty("org.gradle.kotlin.dsl.accessors")?.let {
+        it != "false" && it != "off"
+    } ?: true
 
 
 private

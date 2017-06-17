@@ -44,8 +44,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
         """)
 
-        withAutomaticAccessors()
-
         build("generatePom")
 
         val pom = existing("build/publications/mavenJavaLibrary/pom-default.xml").readText()
@@ -108,7 +106,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `can access extensions registered by declared plugins via automatic accessor`() {
+    fun `can access extensions registered by declared plugins via jit accessor`() {
 
         withBuildScript("""
             plugins { application }
@@ -120,7 +118,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             }
         """)
 
-        withAutomaticAccessors()
         assertThat(
             build("mainClassName").output,
             containsString("*App*"))
@@ -140,22 +137,23 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `classpath model includes automatic accessors`() {
+    fun `classpath model includes jit accessors by default`() {
 
         val buildFile = withBuildScript("""
             plugins { java }
         """)
 
-        withAutomaticAccessors()
         assertAccessorsInClassPathOf(buildFile)
     }
 
     @Test
-    fun `classpath model does not include automatic accessors by default`() {
+    fun `jit accessors can be turned off`() {
 
         val buildFile = withBuildScript("""
             plugins { java }
         """)
+
+        withFile("gradle.properties", "org.gradle.kotlin.dsl.accessors=off")
 
         assertThat(
             classPathFor(buildFile),
@@ -163,9 +161,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `the set of automatic accessors is a function of the set of applied plugins`() {
-
-        withAutomaticAccessors()
+    fun `the set of jit accessors is a function of the set of applied plugins`() {
 
         val s1 = setOfAutomaticAccessorsFor(setOf("application"))
         val s2 = setOfAutomaticAccessorsFor(setOf("java"))
@@ -193,11 +189,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
         val rootTasks = build(":tasks").output
         assertThat(rootTasks, allOf(containsString("gskProjectAccessors"), containsString("gskGenerateAccessors")))
-    }
-
-    private
-    fun withAutomaticAccessors() {
-        withFile("gradle.properties", "org.gradle.script.lang.kotlin.accessors.auto=true")
     }
 
     private
