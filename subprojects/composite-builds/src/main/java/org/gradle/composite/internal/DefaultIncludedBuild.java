@@ -28,8 +28,10 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
@@ -109,7 +111,15 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         launcher.scheduleTasks(tasks);
         launcher.addListener(listener);
         try {
-            launcher.run();
+            // TODO:DAZ Should share the same worker lease as the main build
+            // TODO:DAZ Really need to have a worker lease for all actions on the build thread
+            WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
+            workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Runnable() {
+                @Override
+                public void run() {
+                    launcher.executeTasks();
+                }
+            });
         } finally {
             markAsNotReusable();
         }

@@ -18,6 +18,10 @@ package org.gradle.internal.invocation;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.work.WorkerLeaseService;
+
+import java.util.Collections;
+import java.util.concurrent.Callable;
 
 public class GradleBuildController implements BuildController {
     private enum State {Created, Completed}
@@ -26,9 +30,15 @@ public class GradleBuildController implements BuildController {
     private boolean hasResult;
     private Object result;
     private final GradleLauncher gradleLauncher;
+    private final WorkerLeaseService workerLeaseService;
+
+    public GradleBuildController(GradleLauncher gradleLauncher, WorkerLeaseService workerLeaseService) {
+        this.gradleLauncher = gradleLauncher;
+        this.workerLeaseService = workerLeaseService;
+    }
 
     public GradleBuildController(GradleLauncher gradleLauncher) {
-        this.gradleLauncher = gradleLauncher;
+        this(gradleLauncher, gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class));
     }
 
     public GradleLauncher getLauncher() {
@@ -62,21 +72,34 @@ public class GradleBuildController implements BuildController {
     }
 
     public GradleInternal run() {
-        try {
-            BuildOperationExecutor buildOperationExecutor =
-                getGradle().getServices().get(BuildOperationExecutor.class);
-            getGradle().setBuildOperation(buildOperationExecutor.getCurrentOperation());
-            return (GradleInternal) getLauncher().run().getGradle();
-        } finally {
-            getGradle().setBuildOperation(null);
-            state = State.Completed;
-        }
+        return doBuild(new Callable<GradleInternal>() {
+            @Override
+            public GradleInternal call() throws Exception {
+                return getLauncher().executeTasks();
+            }
+        });
     }
 
     public GradleInternal configure() {
+        return doBuild(new Callable<GradleInternal>() {
+            @Override
+            public GradleInternal call() throws Exception {
+                GradleInternal gradle = getLauncher().getConfiguredBuild();
+                getLauncher().finishBuild();
+                return gradle;
+            }
+        });
+    }
+
+    private GradleInternal doBuild(final Callable<GradleInternal> build) {
+        GradleInternal gradle = getGradle();
+        BuildOperationExecutor buildOperationExecutor = gradle.getServices().get(BuildOperationExecutor.class);
+        gradle.setBuildOperation(buildOperationExecutor.getCurrentOperation());
         try {
-            return (GradleInternal) getLauncher().getBuildAnalysis().getGradle();
+            // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
+            return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), build);
         } finally {
+            gradle.setBuildOperation(null);
             state = State.Completed;
         }
     }
