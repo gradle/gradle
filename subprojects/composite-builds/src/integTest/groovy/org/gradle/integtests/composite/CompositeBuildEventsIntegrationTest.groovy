@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import spock.lang.Ignore
 /**
  * Tests for resolving dependency cycles in a composite build.
  */
@@ -93,7 +93,8 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         verifyBuildEvents()
     }
 
-    @NotYetImplemented
+    // Can't use `@NotYetImplemented`: will pass in the rare case where buildC task graph is fully configured before starting on buildB
+    @Ignore
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
         given:
         // BuildB will be initially evaluated with a single dependency on 'b1'.
