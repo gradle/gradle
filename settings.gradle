@@ -1,4 +1,4 @@
-rootProject.name = 'gradle-script-kotlin'
+rootProject.name = 'gradle-kotlin-dsl'
 
 include 'provider',
         'tooling-models',
