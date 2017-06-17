@@ -30,11 +30,10 @@ import java.io.File
 
 open class UpdateProjectSchema : DefaultTask() {
 
-    override fun getGroup() =
-        "Build Setup"
-
-    override fun getDescription() =
-        "Generates Kotlin accessors for accessing and configuring the currently available project extensions and conventions."
+    init {
+        group = "Build Setup"
+        description = "Generates Kotlin accessors for accessing and configuring the currently available project extensions and conventions."
+    }
 
     @Suppress("unused")
     @Input

@@ -24,11 +24,10 @@ import org.gradle.kotlin.dsl.accessors.*
 
 open class PrintAccessors : DefaultTask() {
 
-    override fun getGroup() =
-        "help"
-
-    override fun getDescription() =
-        "Prints the Kotlin code for accessing the currently available project extensions and conventions."
+    init {
+        group = "help"
+        description = "Prints the Kotlin code for accessing the currently available project extensions and conventions."
+    }
 
     @Suppress("unused")
     @TaskAction

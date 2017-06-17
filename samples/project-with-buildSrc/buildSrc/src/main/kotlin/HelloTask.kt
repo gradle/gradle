@@ -4,8 +4,9 @@ import org.gradle.kotlin.dsl.*
 
 open class HelloTask : DefaultTask() {
 
-    override fun getDescription() =
-        "Prints a description of ${project.name}."
+    init {
+        description = "Prints a description of ${project.name}."
+    }
 
     @TaskAction
     fun run() {
