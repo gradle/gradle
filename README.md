@@ -21,7 +21,7 @@ Issue Tracking
 
 Found a bug? Have an idea for an improvement? Feel free to [add an issue](../../issues).
 
-If you're dealing with what you believe to be an issue with Kotlin itself or the Kotlin Plugin for IDEA, you may want to search JetBrains' [YouTrack](https://youtrack.jetbrains.com/issues/KT) first to see if it is a known issue. In any case, feel free to add an issue here for it as well. We'd like to know and track what our users are experiencing regardless whether the issue is with Gradle Script Kotlin or with Kotlin itself.
+If you're dealing with what you believe to be an issue with Kotlin itself or the Kotlin Plugin for IDEA, you may want to search JetBrains' [YouTrack](https://youtrack.jetbrains.com/issues/KT) first to see if it is a known issue. In any case, feel free to add an issue here for it as well. We'd like to know and track what our users are experiencing regardless whether the issue is with the Gradle Kotlin DSL or with Kotlin itself.
 
 
 Staying in Touch
