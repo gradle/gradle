@@ -24,6 +24,7 @@ import spock.lang.Ignore
 class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
     BuildTestFile buildC
+    BuildTestFile buildD
 
     def setup() {
         file('gradle-user-home/init.gradle') << """
@@ -93,6 +94,45 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         verifyBuildEvents()
     }
 
+    def "fires build listener events for unused included builds"() {
+        when:
+        execute()
+
+        then:
+        loggedOncePerBuild('buildListener.settingsEvaluated')
+        loggedOncePerBuild('buildListener.projectsLoaded')
+        loggedOncePerBuild('buildListener.projectsEvaluated')
+        loggedOncePerBuild('gradle.taskGraphReady', [':'])
+        loggedOncePerBuild('buildListener.buildFinished')
+        loggedOncePerBuild('gradle.buildFinished')
+    }
+
+    def "fires build listener events for included build that provides buildscript and compile dependencies"() {
+        given:
+        def pluginBuild = pluginProjectBuild("pluginD")
+        applyPlugin(buildA, "pluginD")
+        includeBuild pluginBuild
+
+        dependency 'org.test:b1:1.0'
+        dependency(pluginBuild, 'org.test:b2:1.0')
+
+        when:
+        execute()
+
+        then:
+        loggedOncePerBuild('buildListener.settingsEvaluated', [':', ':buildC', ':pluginD'])
+        loggedOncePerBuild('buildListener.projectsLoaded', [':', ':buildC', ':pluginD'])
+        loggedOncePerBuild('buildListener.projectsEvaluated', [':', ':buildC', ':pluginD'])
+        loggedOncePerBuild('gradle.taskGraphReady', [':', ':pluginD'])
+        loggedOncePerBuild('buildListener.buildFinished', [':', ':buildC', ':pluginD'])
+        loggedOncePerBuild('gradle.buildFinished', [':', ':buildC', ':pluginD'])
+
+        // `:buildB` is executed twice
+        logged('buildListener.settingsEvaluated [:buildB]', 2)
+        logged('buildListener.projectsEvaluated [:buildB]', 2)
+        logged('buildListener.buildFinished [:buildB]',2)
+    }
+
     // Can't use `@NotYetImplemented`: will pass in the rare case where buildC task graph is fully configured before starting on buildB
     @Ignore
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
@@ -128,15 +168,19 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         assert !result.output.contains('buildListener.buildStarted')
     }
 
-    void loggedOncePerBuild(message) {
-        loggedOnce(message + " [:]")
-        loggedOnce(message + " [:buildB]")
-        loggedOnce(message + " [:buildC]")
+    void loggedOncePerBuild(message, def builds = [':', ':buildB', ':buildC']) {
+        builds.each { build ->
+            loggedOnce("$message [$build]")
+        }
     }
 
-    void loggedOnce(message) {
+    void loggedOnce(String message) {
+        logged(message)
+    }
+
+    void logged(String message, int count = 1) {
         result.assertOutputContains(message)
-        assert result.output.count(message) == 1
+        assert result.output.count(message) == count
     }
 
     protected void execute() {

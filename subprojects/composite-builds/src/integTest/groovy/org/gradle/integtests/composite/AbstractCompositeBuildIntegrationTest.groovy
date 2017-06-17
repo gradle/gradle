@@ -135,4 +135,49 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     TestFile getRootDir() {
         temporaryFolder.testDirectory
     }
+
+
+    def applyPlugin(BuildTestFile build, String name = "pluginC") {
+        build.buildFile << """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:$name:1.0'
+                }
+            }
+            apply plugin: 'org.test.plugin.$name'
+"""
+    }
+
+    def pluginProjectBuild(String name) {
+        def className = name.capitalize()
+        singleProjectBuild(name) {
+            buildFile << """
+apply plugin: 'java-gradle-plugin'
+
+gradlePlugin {
+    plugins {
+        ${name} {
+            id = "org.test.plugin.$name"
+            implementationClass = "org.test.$className"
+        }
+    }
+}
+"""
+            file("src/main/java/org/test/${className}.java") << """
+package org.test;
+
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+
+public class ${className} implements Plugin<Project> {
+    public void apply(Project project) {
+        Task task = project.task("taskFrom${className}");
+        task.setGroup("Plugin");
+    }
+}
+"""
+        }
+
+    }
 }

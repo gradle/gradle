@@ -25,5 +25,6 @@ public interface IncludedBuildInternal extends ConfigurableIncludedBuild {
     DependencySubstitutionsInternal resolveDependencySubstitutions();
     SettingsInternal getLoadedSettings();
     GradleInternal getConfiguredBuild();
+    void finishBuild();
     void execute(Iterable<String> tasks, Object listener);
 }

@@ -98,6 +98,11 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         return getGradleLauncher().getConfiguredBuild();
     }
 
+    @Override
+    public void finishBuild() {
+        getGradleLauncher().finishBuild();
+    }
+
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
             gradleLauncher = gradleLauncherFactory.create();

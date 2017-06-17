@@ -65,6 +65,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         executed ":buildB:jar"
         and:
         def root = CollectionUtils.single(operations.roots())
+        assertHasChild(root, "Load build (buildB)")
         assertHasChild(root, "Configure build (:buildB)")
         assertHasChild(root, "Calculate task graph (:buildB)")
         assertHasChild(root, "Run tasks (:buildB)")

@@ -73,6 +73,10 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             buildController.stopTaskExecution();
         }
         buildControllers.clear();
+        // TODO:DAZ More more logic into IncludedBuildController, and have a controller for _every_ included build.
+        for (IncludedBuild includedBuild : includedBuilds.getBuilds()) {
+            ((IncludedBuildInternal) includedBuild).finishBuild();
+        }
     }
 
     @Override

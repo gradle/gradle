@@ -36,6 +36,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.util.Path;
 
 import java.util.List;
 import java.util.Set;
@@ -112,7 +113,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     @Override
     public void finishBuild() {
-        finishBuild(new BuildResult(stage.name(), gradle, null));
+        if (stage != null) {
+            finishBuild(new BuildResult(stage.name(), gradle, null));
+        }
     }
 
     private void doBuildStages(Stage upTo) {
@@ -154,11 +157,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         if (stage == null) {
             buildListener.buildStarted(gradle);
 
-            // Evaluate init scripts
-            initScriptHandler.executeScripts(gradle);
-
-            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-            settings = settingsLoader.findAndLoadSettings(gradle);
+            buildOperationExecutor.run(new LoadBuild());
 
             stage = Stage.Load;
         }
@@ -206,6 +205,23 @@ public class DefaultGradleLauncher implements GradleLauncher {
             CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();
         } finally {
             buildCompletionListener.completed();
+        }
+    }
+
+    private class LoadBuild implements RunnableBuildOperation {
+        @Override
+        public void run(BuildOperationContext context) {
+            // Evaluate init scripts
+            initScriptHandler.executeScripts(gradle);
+
+            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
+            settings = settingsLoader.findAndLoadSettings(gradle);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName(contextualize("Load build")).
+                parent(getGradle().getBuildOperation());
         }
     }
 
@@ -296,7 +312,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private String contextualize(String descriptor) {
         if (isNestedBuild()) {
-            return descriptor + " (" + gradle.getIdentityPath() + ")";
+            Path contextPath = gradle.findIdentityPath();
+            String context = contextPath == null ? gradle.getStartParameter().getCurrentDir().getName() : contextPath.getPath();
+            return descriptor + " (" + context + ")";
         }
         return descriptor;
     }
