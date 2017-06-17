@@ -30,8 +30,15 @@ import javax.inject.Inject
 
 /**
  * The `kotlin-dsl` plugin.
+ *
+ * Applies the `embedded-kotlin` plugin,
+ * adds the `gradleKotlinDsl()` dependency
+ * and configures the Kotlin DSL compiler plugins.
+ *
+ * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  */
-open class KotlinDslPlugin @Inject constructor(val moduleRegistry: ModuleRegistry) : Plugin<Project> {
+open class KotlinDslPlugin @Inject protected constructor(
+    private val moduleRegistry: ModuleRegistry) : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.run {

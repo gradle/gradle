@@ -29,11 +29,11 @@ import javax.inject.Inject
  * The `embedded-kotlin` plugin.
  *
  * Applies the `org.jetbrains.kotlin.jvm` plugin,
- * adds compile dependencies on `kotlin-stdlib` and `kotlin-reflect,
+ * adds compile dependencies on `kotlin-stdlib` and `kotlin-reflect`,
  * configures an embedded repository that contains all embedded Kotlin libraries,
  * and pins them to the embedded Kotlin version.
  */
-open class EmbeddedKotlinPlugin @Inject constructor(
+open class EmbeddedKotlinPlugin @Inject protected constructor(
     private val embeddedKotlin: EmbeddedKotlinProvider) : Plugin<Project> {
 
     override fun apply(project: Project) {
