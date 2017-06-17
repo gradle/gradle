@@ -72,8 +72,7 @@ fun kotlinComponent(module: String): ComponentIdentifier =
 
 private
 fun moduleId(group: String, module: String, version: String) =
-    object : ModuleComponentIdentifier
-    {
+    object : ModuleComponentIdentifier {
         override fun getGroup() = group
         override fun getModule() = module
         override fun getVersion() = version
@@ -86,8 +85,7 @@ val org.gradle.api.Project.hierarchy: Sequence<Project>
     get() = buildSequence {
         var project = this@hierarchy
         yield(project)
-        while (project != project.rootProject)
-        {
+        while (project != project.rootProject) {
             project = project.parent
             yield(project)
         }
