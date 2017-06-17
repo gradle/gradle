@@ -5,6 +5,7 @@ import org.gradle.kotlin.dsl.*
 open class HelloTask : DefaultTask() {
 
     init {
+        group = "My"
         description = "Prints a description of ${project.name}."
     }
 
