@@ -24,6 +24,7 @@ import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.util.GFileUtils;
 
@@ -77,8 +78,13 @@ public class BuildOperationTrace implements Stoppable {
 
     private final String basePath;
     private final OutputStream logOutputStream;
+    private final BuildOperationListenerManager listenerManager;
+
+    private BuildOperationListener listener;
 
     public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager listenerManager) {
+        this.listenerManager = listenerManager;
+
         Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
         String basePath = sysProps.get(SYSPROP);
         if (basePath == null) {
@@ -105,12 +111,17 @@ public class BuildOperationTrace implements Stoppable {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        listenerManager.addListener(new SerializingBuildOperationListener(logOutputStream));
+        listener = new SerializingBuildOperationListener(logOutputStream);
+        listenerManager.addListener(listener);
     }
 
 
     @Override
     public void stop() {
+        if (listener != null) {
+            listenerManager.removeListener(listener);
+        }
+
         if (logOutputStream != null) {
             try {
                 logOutputStream.close();

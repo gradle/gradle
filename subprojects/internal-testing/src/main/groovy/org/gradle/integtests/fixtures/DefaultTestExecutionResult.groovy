@@ -46,6 +46,10 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         new DefaultTestClassExecutionResult(results.collect {it.testClass(testClass)});
     }
 
+    TestClassExecutionResult testClassStartsWith(String testClass) {
+        new DefaultTestClassExecutionResult(results.collect { it.testClassStartsWith(testClass) })
+    }
+
     private class DefaultTestClassExecutionResult implements TestClassExecutionResult {
         def testClassResults
 

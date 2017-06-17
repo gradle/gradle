@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.process.internal.health.memory.JvmMemoryStatus
 import org.gradle.process.internal.health.memory.MaximumHeapHelper
 import org.gradle.process.internal.health.memory.MemoryAmount
@@ -51,7 +52,7 @@ class WorkerDaemonExpirationTest extends Specification {
             }
         }
     }
-    def clientsManager = new WorkerDaemonClientsManager(daemonStarter, Mock(ListenerManager))
+    def clientsManager = new WorkerDaemonClientsManager(daemonStarter, Mock(ListenerManager), Mock(LoggingManagerInternal))
     def expiration = new WorkerDaemonExpiration(clientsManager, MemoryAmount.ofGigaBytes(OS_MEMORY_GB).bytes)
 
     def "expires least recently used idle worker daemon to free system memory when requested to release some memory"() {

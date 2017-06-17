@@ -76,6 +76,7 @@ import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.progress.BuildOperationListenerManager;
@@ -333,5 +334,9 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     PatternSpecFactory createPatternSpecFactory() {
         return new CachingPatternSpecFactory();
+    }
+
+    LoggingManagerInternal createLoggingManager(Factory<LoggingManagerInternal> loggingManagerFactory) {
+        return loggingManagerFactory.create();
     }
 }

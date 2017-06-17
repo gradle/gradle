@@ -120,7 +120,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
     }
 
     private String missingProjectDirError(File nonExistentWorkingDir) {
-        if (gradleVersion <= GradleVersion.version("3.5")) {
+        if (gradleVersion < GradleVersion.version("4.0")) {
             return "Project directory '$nonExistentWorkingDir.absolutePath' does not exist."
         }
         return "The specified project directory '$nonExistentWorkingDir.absolutePath' does not exist."

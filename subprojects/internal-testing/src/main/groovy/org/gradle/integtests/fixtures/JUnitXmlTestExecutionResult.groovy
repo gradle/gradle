@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.hamcrest.Matchers.*
+import static org.hamcrest.core.StringStartsWith.startsWith
 import static org.junit.Assert.assertThat
 
 class JUnitXmlTestExecutionResult implements TestExecutionResult {
@@ -54,12 +55,26 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         return new JUnitTestClassExecutionResult(findTestClass(testClass), testClass, outputAssociation)
     }
 
+    TestClassExecutionResult testClassStartsWith(String testClass) {
+        def matching = findTestClassStartsWith(testClass)
+        return new JUnitTestClassExecutionResult(matching[1], matching[0], outputAssociation)
+    }
+
     private def findTestClass(String testClass) {
         def classes = findClasses()
         assertThat(classes.keySet(), hasItem(testClass))
         def classFile = classes.get(testClass)
         assertThat(classFile, notNullValue())
         return new XmlSlurper().parse(classFile)
+    }
+
+    private def findTestClassStartsWith(String testClass) {
+        def classes = findClasses()
+        assertThat(classes.keySet(), hasItem(startsWith(testClass)))
+        def classEntry = classes.find { it.key.startsWith(testClass) }
+        def classFile = classEntry.value
+        assertThat(classFile, notNullValue())
+        return [classEntry.key, new XmlSlurper().parse(classFile)]
     }
 
     private def findClasses() {

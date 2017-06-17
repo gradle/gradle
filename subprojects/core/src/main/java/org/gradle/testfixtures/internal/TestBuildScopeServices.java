@@ -24,6 +24,7 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -57,7 +58,7 @@ public class TestBuildScopeServices extends BuildScopeServices {
             }
 
             @Override
-            public GradleLauncher nestedInstanceWithNewSession(StartParameter startParameter) {
+            public BuildController nestedBuildController(StartParameter startParameter) {
                 throw new UnsupportedOperationException();
             }
         };

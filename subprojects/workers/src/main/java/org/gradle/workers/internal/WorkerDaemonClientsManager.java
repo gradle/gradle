@@ -17,12 +17,18 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.events.LogLevelChangeEvent;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -31,9 +37,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-public class WorkerDaemonClientsManager {
+public class WorkerDaemonClientsManager implements Stoppable {
 
-    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonFactory.class);
+    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonClientsManager.class);
 
     private final Object lock = new Object();
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
@@ -41,13 +47,20 @@ public class WorkerDaemonClientsManager {
 
     private final WorkerDaemonStarter workerDaemonStarter;
     private final ListenerManager listenerManager;
+    private final LoggingManagerInternal loggingManager;
     private final SessionLifecycleListener stopSessionScopeWorkers;
+    private final OutputEventListener logLevelChangeEventListener;
+    private LogLevel currentLogLevel;
 
-    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager) {
+    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager) {
         this.workerDaemonStarter = workerDaemonStarter;
         this.listenerManager = listenerManager;
+        this.loggingManager = loggingManager;
         this.stopSessionScopeWorkers = new StopSessionScopedWorkers();
         listenerManager.addListener(stopSessionScopeWorkers);
+        this.logLevelChangeEventListener = new LogLevelChangeEventListener();
+        loggingManager.addOutputEventListener(logLevelChangeEventListener);
+        this.currentLogLevel = loggingManager.getLevel();
     }
 
     // TODO - should supply and check for the same parameters as passed to reserveNewClient()
@@ -62,7 +75,13 @@ public class WorkerDaemonClientsManager {
                 WorkerDaemonClient candidate = it.next();
                 if (candidate.isCompatibleWith(forkOptions)) {
                     it.remove();
-                    return candidate;
+                    if (candidate.getLogLevel() != currentLogLevel) {
+                        // TODO: Send a message to workers to change their log level rather than stopping
+                        LOGGER.info("Log level has changed, stopping idle worker daemon with out-of-date log level.");
+                        candidate.stop();
+                    } else {
+                        return candidate;
+                    }
                 }
             }
             return null;
@@ -84,11 +103,14 @@ public class WorkerDaemonClientsManager {
         }
     }
 
+    @Override
     public void stop() {
         synchronized (lock) {
             stopWorkers(allClients);
             allClients.clear();
+            idleClients.clear();
             listenerManager.removeListener(stopSessionScopeWorkers);
+            loggingManager.removeOutputEventListener(logLevelChangeEventListener);
         }
     }
 
@@ -107,17 +129,19 @@ public class WorkerDaemonClientsManager {
             });
             List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<WorkerDaemonClient>(sortedClients));
             if (!clientsToStop.isEmpty()) {
-                idleClients.removeAll(clientsToStop);
-                allClients.removeAll(clientsToStop);
                 stopWorkers(clientsToStop);
             }
         }
     }
 
     private void stopWorkers(List<WorkerDaemonClient> clientsToStop) {
-        LOGGER.debug("Stopping {} worker daemon(s).", clientsToStop.size());
-        CompositeStoppable.stoppable(clientsToStop).stop();
-        LOGGER.info("Stopped {} worker daemon(s).", clientsToStop.size());
+        if (clientsToStop.size() > 0) {
+            LOGGER.debug("Stopping {} worker daemon(s).", clientsToStop.size());
+            CompositeStoppable.stoppable(clientsToStop).stop();
+            LOGGER.info("Stopped {} worker daemon(s).", clientsToStop.size());
+            idleClients.removeAll(clientsToStop);
+            allClients.removeAll(clientsToStop);
+        }
     }
 
     private class StopSessionScopedWorkers implements SessionLifecycleListener {
@@ -134,6 +158,20 @@ public class WorkerDaemonClientsManager {
                     }
                 });
                 stopWorkers(sessionScopedClients);
+            }
+        }
+    }
+
+    private class LogLevelChangeEventListener implements OutputEventListener {
+        @Override
+        public void onOutput(OutputEvent event) {
+            if (event instanceof LogLevelChangeEvent) {
+                LogLevelChangeEvent logLevelChangeEvent = (LogLevelChangeEvent) event;
+                if (currentLogLevel != logLevelChangeEvent.getNewLogLevel()) {
+                    synchronized (lock) {
+                        currentLogLevel = logLevelChangeEvent.getNewLogLevel();
+                    }
+                }
             }
         }
     }

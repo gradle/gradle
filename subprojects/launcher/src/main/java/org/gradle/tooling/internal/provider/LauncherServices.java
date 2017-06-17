@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelExecutionManager;
@@ -65,7 +64,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                           TaskInputsListener inputsListener,
                                           StyledTextOutputFactory styledTextOutputFactory,
                                           ExecutorFactory executorFactory,
-                                          Factory<LoggingManagerInternal> loggingManagerFactory,
+                                          LoggingManagerInternal loggingManager,
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
                                           ParallelExecutionManager parallelExecutionManager) {
             return new SetupLoggingActionExecuter(
@@ -89,7 +88,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                     userHomeServiceRegistry)),
                         parallelExecutionManager)),
                     styledTextOutputFactory),
-                loggingManagerFactory.create(), parallelExecutionManager);
+                loggingManager, parallelExecutionManager);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
