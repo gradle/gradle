@@ -1,4 +1,4 @@
-# Groovy Closures in Gradle Script Kotlin
+# Groovy Closures in the Gradle Kotlin DSL
 
 Most third party plugins are written in groovy with the expectation that closures will 
 be passed as arguments. In order to provide a way to construct closures while preserving kotlin's

@@ -1,4 +1,4 @@
-# Configuring Plugins in Gradle Script Kotlin
+# Configuring Plugins in the Gradle Kotlin DSL
 
 When writing your build logic in groovy you will often see code like this:
 ```groovy
@@ -33,7 +33,7 @@ greeting {
 
 You can read more about this part of the gradle API [here](https://docs.gradle.org/current/userguide/custom_plugins.html).
 
-In order to configure plugins using gradle script kotlin you must know the type of the extension
+In order to configure plugins using the Gradle Kotlin DSL you must know the type of the extension
 that the plugin adds in order to configure it.
 
 The above groovy block of code would now become:
