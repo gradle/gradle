@@ -37,7 +37,7 @@ import javax.inject.Inject
  *
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  */
-open class KotlinDslPlugin @Inject protected constructor(
+open class KotlinDslPlugin @Inject internal constructor(
     private val moduleRegistry: ModuleRegistry) : Plugin<Project> {
 
     override fun apply(project: Project) {

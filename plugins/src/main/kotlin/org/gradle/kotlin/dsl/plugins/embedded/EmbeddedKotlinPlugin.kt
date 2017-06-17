@@ -33,7 +33,7 @@ import javax.inject.Inject
  * configures an embedded repository that contains all embedded Kotlin libraries,
  * and pins them to the embedded Kotlin version.
  */
-open class EmbeddedKotlinPlugin @Inject protected constructor(
+open class EmbeddedKotlinPlugin @Inject internal constructor(
     private val embeddedKotlin: EmbeddedKotlinProvider) : Plugin<Project> {
 
     override fun apply(project: Project) {
