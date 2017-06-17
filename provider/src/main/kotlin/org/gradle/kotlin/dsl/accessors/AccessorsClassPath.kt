@@ -181,4 +181,4 @@ fun writeAccessorsFor(projectSchema: ProjectSchema<String>, writer: BufferedWrit
  * @see org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema
  */
 internal
-const val PROJECT_SCHEMA_RESOURCE_PATH = "buildSrc/src/gradle-kotlin-dsl/resources/project-schema.json"
+const val PROJECT_SCHEMA_RESOURCE_PATH = "gradle/project-schema.json"
