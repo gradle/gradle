@@ -1,6 +1,5 @@
 [.]
-checkout = git clone git@github.com:gradle/gradle-script-kotlin.git
+checkout = git clone git@github.com:gradle/kotlin-dsl.git
 
 [wiki]
-checkout = git clone git@github.com:gradle/gradle-script-kotlin.wiki.git
-
+checkout = git clone git@github.com:gradle/kotlin-dsl.wiki.git
