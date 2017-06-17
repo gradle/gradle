@@ -16,9 +16,8 @@
 
 package org.gradle.initialization.buildsrc
 
-import org.gradle.initialization.GradleLauncher
 import org.gradle.cache.PersistentCache
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.invocation.BuildController
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -28,11 +27,10 @@ class BuildSrcUpdateFactoryTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
     def cache = Stub(PersistentCache)
-    def launcher = Stub(GradleLauncher)
+    def launcher = Stub(BuildController)
     def listener = Stub(BuildSrcBuildListenerFactory.Listener)
     def listenerFactory = Mock(BuildSrcBuildListenerFactory)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
-    def factory = new BuildSrcUpdateFactory(cache, launcher, listenerFactory, buildOperationExecutor)
+    def factory = new BuildSrcUpdateFactory(cache, launcher, listenerFactory)
 
     def "creates classpath"() {
         cache.getBaseDir() >> temp.testDirectory

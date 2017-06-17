@@ -18,7 +18,6 @@ package org.gradle.composite.internal;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.GradleInternal;
@@ -42,8 +41,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private DefaultDependencySubstitutions dependencySubstitutions;
 
     private GradleLauncher gradleLauncher;
-    private SettingsInternal settings;
-    private GradleInternal gradle;
     private String name;
 
     public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -91,46 +88,28 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        if (settings == null) {
-            GradleLauncher gradleLauncher = getGradleLauncher();
-            gradleLauncher.load();
-            settings = gradleLauncher.getSettings();
-        }
-        return settings;
+        return getGradleLauncher().getLoadedSettings();
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        if (gradle == null) {
-            GradleLauncher gradleLauncher = getGradleLauncher();
-            gradleLauncher.getBuildAnalysis();
-            settings = gradleLauncher.getSettings();
-            gradle = gradleLauncher.getGradle();
-        }
-        return gradle;
+        return getGradleLauncher().getConfiguredBuild();
     }
 
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
             gradleLauncher = gradleLauncherFactory.create();
-            reset();
         }
         return gradleLauncher;
     }
 
-    private void reset() {
-        gradle = null;
-        settings = null;
-    }
-
     @Override
-    public BuildResult execute(final Iterable<String> tasks, final Object listener) {
+    public void execute(final Iterable<String> tasks, final Object listener) {
         final GradleLauncher launcher = getGradleLauncher();
-        final GradleInternal gradle = launcher.getGradle();
-        gradle.getStartParameter().setTaskNames(tasks);
-        gradle.addListener(listener);
+        launcher.scheduleTasks(tasks);
+        launcher.addListener(listener);
         try {
-            return launcher.run();
+            launcher.run();
         } finally {
             markAsNotReusable();
         }
