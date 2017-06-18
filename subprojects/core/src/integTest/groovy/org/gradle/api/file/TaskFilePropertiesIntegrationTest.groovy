@@ -39,7 +39,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 def go() {
                     outputFile.text = inputFile.text
-                    Files.list(inputDir).each { f -> outputDir.resolve(f.fileName).text = f.text }
+                    inputDir.toFile().listFiles().each { f -> outputDir.resolve(f.name).text = f.text }
                 }
             }
             
@@ -105,7 +105,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
                     Files.createDirectories(outputFile.parent)
                     Files.createDirectories(outputDir)
                     outputFile.text = inputFile.text
-                    Files.list(inputDir).each { f -> outputDir.resolve(f.fileName).text = f.text }
+                    inputDir.toFile().listFiles().each { f -> outputDir.resolve(f.name).text = f.text }
                 }
             }
 """
