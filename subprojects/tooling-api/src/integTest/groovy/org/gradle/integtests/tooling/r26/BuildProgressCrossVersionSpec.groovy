@@ -53,8 +53,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         events.assertIsABuild()
 
-        def initScripts = events.operation("Run init scripts")
-        initScripts.parent == events.operation("Run build")
+        def root = events.operation("Run build")
+        root.descendant("Run init scripts")
     }
 
     def "generates buildSrc operation when there is a nested buildSrc build"() {
@@ -83,7 +83,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         events.assertIsABuild()
 
-        def buildSrc = events.operation("Build buildSrc")
-        buildSrc.parent == events.operation("Run build")
+        def root = events.operation("Run build")
+        root.descendant("Build buildSrc")
     }
 }
