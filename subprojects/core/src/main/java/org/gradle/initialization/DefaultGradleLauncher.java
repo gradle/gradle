@@ -18,6 +18,8 @@ package org.gradle.initialization;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
@@ -179,7 +181,14 @@ public class DefaultGradleLauncher implements GradleLauncher {
     @Override
     public void scheduleTasks(final Iterable<String> taskPaths) {
         GradleInternal gradle = getConfiguredBuild();
-        gradle.getStartParameter().setTaskNames(taskPaths);
+        Set<String> allTasks = Sets.newLinkedHashSet(gradle.getStartParameter().getTaskNames());
+        boolean added = allTasks.addAll(Lists.newArrayList(taskPaths));
+
+        if (!added) {
+            return;
+        }
+
+        gradle.getStartParameter().setTaskNames(allTasks);
 
         // Force back to configure so that task graph will get reevaluated
         stage = Stage.Configure;
