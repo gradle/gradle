@@ -22,6 +22,7 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
@@ -38,7 +39,7 @@ public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputProp
     @Override
     protected void validate(String propertyName, Object value, Collection<String> messages) {
         if (value != null) {
-            validateDirectory(propertyName, (File) GFileUtils.unpack(value), messages);
+            validateDirectory(propertyName, toFile(value), messages);
         }
     }
 
@@ -49,9 +50,17 @@ public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputProp
 
     @Override
     protected void beforeTask(final Callable<Object> futureValue) {
-        File directory = (File) GFileUtils.unpack(futureValue);
+        File directory = toFile(futureValue);
         if (directory != null) {
             ensureDirectoryExists(directory);
         }
+    }
+
+    private File toFile(Object value) {
+        Object unpacked = GFileUtils.unpack(value);
+        if (unpacked instanceof Path) {
+            return ((Path) unpacked).toFile();
+        }
+        return (File) unpacked;
     }
 }
