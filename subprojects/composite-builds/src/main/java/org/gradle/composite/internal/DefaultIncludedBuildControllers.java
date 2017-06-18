@@ -72,7 +72,6 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     private void populateTaskGraphs() {
-        // TODO:DAZ Need to repeat until no tasks discovered.
         boolean tasksDiscovered = true;
         while (tasksDiscovered) {
             tasksDiscovered = false;
@@ -90,7 +89,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             buildController.stopTaskExecution();
         }
         buildControllers.clear();
-        // TODO:DAZ More more logic into IncludedBuildController, and have a controller for _every_ included build.
+        // TODO:DAZ Move this logic into IncludedBuildController, and register a controller for _every_ included build.
         for (IncludedBuild includedBuild : includedBuilds.getBuilds()) {
             ((IncludedBuildInternal) includedBuild).finishBuild();
         }

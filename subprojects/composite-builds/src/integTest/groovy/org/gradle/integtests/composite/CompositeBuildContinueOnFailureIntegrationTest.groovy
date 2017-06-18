@@ -69,7 +69,6 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         assertTaskNotExecuted(":buildB", ":succeeds")
     }
 
-    // TODO:DAZ Fix this
     @Ignore("Currently if 'buildB' completes before 'buildC' starts, we don't continue: we don't yet handle --continue correctly with references. gradle/composite-builds#117")
     def "attempts all dependencies when run with --continue when one delegated task dependency fails"() {
         when:
