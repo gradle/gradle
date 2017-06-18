@@ -137,7 +137,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     }
 
 
-    def applyPlugin(BuildTestFile build, String name = "pluginC") {
+    def applyPlugin(BuildTestFile build, String name = "pluginBuild") {
         build.buildFile << """
             buildscript {
                 dependencies {
