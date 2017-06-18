@@ -33,6 +33,7 @@ abstract class CodeNarcInvoker {
         def codenarcClasspath = codenarcTask.codenarcClasspath
         def antBuilder = codenarcTask.antBuilder
         def classpath = new DefaultClassPath(codenarcClasspath)
+        def compilationClasspath = codenarcTask.compilationClasspath
         def configFile = codenarcTask.configFile
         def maxPriority1Violations = codenarcTask.maxPriority1Violations
         def maxPriority2Violations = codenarcTask.maxPriority2Violations
@@ -63,6 +64,10 @@ abstract class CodeNarcInvoker {
                     }
 
                     source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+
+                    if (!compilationClasspath.empty) {
+                        compilationClasspath.addToAntBuilder(ant, 'classpath')
+                    }
                 }
             } catch (Exception e) {
                 if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
@@ -76,6 +81,10 @@ abstract class CodeNarcInvoker {
                         logger.warn(message)
                         return
                     }
+                    throw new GradleException(message, e)
+                }
+                if (e.message == /codenarc doesn't support the nested "classpath" element./) {
+                    def message = "The compilationClasspath property of CodeNarc task can only be non-empty when using CodeNarc 0.27.0 or newer."
                     throw new GradleException(message, e)
                 }
                 throw e
