@@ -25,13 +25,21 @@ import java.util.regex.Pattern;
 
 public class TestSelectionMatcher {
 
-    private final List<Pattern> includePatterns;
+    private final List<Pattern> buildScriptIncludePatterns;
+    private final List<Pattern> commandLineIncludePatterns;
 
-    public TestSelectionMatcher(Collection<String> includedTests) {
-        includePatterns = new ArrayList<Pattern>(includedTests.size());
+    public TestSelectionMatcher(Collection<String> includedTests, Collection<String> includedTestsCommandLine) {
+        buildScriptIncludePatterns = preparePatternList(includedTests);
+        commandLineIncludePatterns = preparePatternList(includedTestsCommandLine);
+    }
+
+    private List<Pattern> preparePatternList(Collection<String> includedTests) {
+        List<Pattern> buildScriptIncludePatterns;
+        buildScriptIncludePatterns = new ArrayList<Pattern>(includedTests.size());
         for (String includedTest : includedTests) {
-            includePatterns.add(preparePattern(includedTest));
+            buildScriptIncludePatterns.add(preparePattern(includedTest));
         }
+        return buildScriptIncludePatterns;
     }
 
     private Pattern preparePattern(String input) {
@@ -51,6 +59,14 @@ public class TestSelectionMatcher {
     }
 
     public boolean matchesTest(String className, String methodName) {
+        return matchesPattern(buildScriptIncludePatterns, className, methodName)
+            && matchesPattern(commandLineIncludePatterns, className, methodName);
+    }
+
+    private boolean matchesPattern(List<Pattern> includePatterns, String className, String methodName) {
+        if (includePatterns.isEmpty()) {
+            return true;
+        }
         String fullName = className + "." + methodName;
         for (Pattern pattern : includePatterns) {
             if (methodName != null && pattern.matcher(fullName).matches()) {
