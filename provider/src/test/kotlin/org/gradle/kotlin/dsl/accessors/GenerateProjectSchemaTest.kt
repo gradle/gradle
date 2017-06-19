@@ -9,7 +9,7 @@ import org.junit.Test
 class GenerateProjectSchemaTest : AbstractIntegrationTest() {
 
     @Test
-    fun `writes multi-project schema to buildSrc`() {
+    fun `writes multi-project schema to gradle slash project dash schema dot json`() {
 
         withBuildScript("""
             plugins { java }
