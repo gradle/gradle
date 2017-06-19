@@ -172,10 +172,10 @@ enum class JvmVendor {
     oracle, ibm
 }
 
-enum class PerformanceTestType(val taskId: String, val timeout : Int, val defaultBaselines: String = "", val defaultBaselinesBranches: String = "", val extraParameters : String = "") {
-    test("PerformanceTest", 420, "", "--baselines nightly"),
-    experiment("PerformanceExperiment", 420, "", "--baselines nightly"),
-    historical("FullPerformanceTest", 2280, "--baselines 2.9,2.12,2.14.1,last", "--baselines 2.9,2.12,2.14.1,last", "--checks none");
+enum class PerformanceTestType(val taskId: String, val timeout : Int, val defaultBaselines: String = "", val extraParameters : String = "") {
+    test("PerformanceTest", 420, "defaults"),
+    experiment("PerformanceExperiment", 420, "defaults"),
+    historical("FullPerformanceTest", 2280, "--baselines 2.9,2.12,2.14.1,last", "--checks none");
 
     fun asId(model : CIBuildModel): String {
         return "${model.projectPrefix}Performance${name.capitalize()}Coordinator"

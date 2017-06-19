@@ -18,7 +18,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildTyp
     maxRunningBuilds = 1
 
     params {
-        param("performance.baselines", type.defaultBaselinesBranches)
+        param("performance.baselines", type.defaultBaselines)
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.JAVA_HOME", "/opt/jdk/oracle-jdk-8-latest")
         param("performance.db.url", "jdbc:h2:ssl://dev61.gradle.org:9092")
@@ -27,23 +27,10 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildTyp
     }
 
     steps {
-        script {
-            name = "SELECT_BASELINE"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """
-                branch="%teamcity.build.branch%"
-                baseline="%performance.baselines%"
-                ${model.masterAndReleaseBranches.map { branch -> """
-                    if [ "${'$'}baseline" = "${type.defaultBaselinesBranches}" ] && [ "${'$'}branch" = "$branch" ]; then
-                        echo "##teamcity[setParameter name='performance.baselines' value='${type.defaultBaselines}']"
-                    fi
-                """ }.joinToString(separator = "")}
-            """.trimIndent()
-        }
         gradle {
             name = "GRADLE_RUNNER"
             tasks = ""
-            gradleParams = "cleanDistributed${type.taskId} distributed${type.taskId}s -x prepareSamples %performance.baselines% ${type.extraParameters} -PtimestampedVersion -Porg.gradle.performance.branchName=%teamcity.build.branch% -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -PteamCityUsername=%TC_USERNAME% -PteamCityPassword=%teamcity.password.restbot% -Porg.gradle.performance.buildTypeId=${IndividualPerformanceScenarioWorkers(model).extId} -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% " + gradleParameters.joinToString(separator = " ")
+            gradleParams = "cleanDistributed${type.taskId} distributed${type.taskId}s -x prepareSamples --baselines %performance.baselines% ${type.extraParameters} -PtimestampedVersion -Porg.gradle.performance.branchName=%teamcity.build.branch% -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -PteamCityUsername=%TC_USERNAME% -PteamCityPassword=%teamcity.password.restbot% -Porg.gradle.performance.buildTypeId=${IndividualPerformanceScenarioWorkers(model).extId} -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% " + gradleParameters.joinToString(separator = " ")
             useGradleWrapper = true
         }
         script {
