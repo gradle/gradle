@@ -51,6 +51,9 @@ val generateExtensions by tasks.creating {
 val compileKotlin by tasks
 compileKotlin.dependsOn(generateExtensions)
 
+val clean: Delete by tasks
+clean.delete(apiExtensionsOutputDir)
+
 
 // -- Testing ----------------------------------------------------------
 val prepareIntegrationTestFixtures by rootProject.tasks
