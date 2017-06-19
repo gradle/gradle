@@ -9,5 +9,5 @@ class SanityCheck(model: CIBuildModel) : BuildType({
     name = "Sanity Check"
     description = "Static code analysis, checkstyle, release notes verification, etc."
 
-    applyDefaults(model, this, "compileAll sanityCheck", extraParameters = "-DenableCodeQuality=true")
+    applyDefaults(model, this, "compileAll sanityCheck", extraParameters = "-DenableCodeQuality=true --parallel")
 })
