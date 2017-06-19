@@ -62,6 +62,10 @@ Previous versions of Gradle would select the `runtimeElements` when both project
 
 This change makes the selection behaviour consistent so that the `runtimeElements` configuration is selected regardless of whether the consuming project uses the Java plugin or not. This is also consistent with the selection when the consuming project is using one of the Android plugins.
 
+### Filters defined via command line option --tests never override filters from build script
+
+The `--tests` filters are now always applied on top of the filtering defined in build scripts. In previous Gradle versions, filters defined through `filter.includeTestsMatching` or `filter.includePatterns` were overridden, while other filters were not. The [Test filtering](userguide/java_plugin.html#test_filtering) documentation was adjusted to reflect the new behavior.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -73,6 +77,7 @@ We would like to thank the following community members for making contributions 
  - [Jörn Huxhorn](https://github.com/huxi) - Replace uses of `Stack` with `ArrayDeque` (#771)
  - [Björn Kautler](https://github.com/Vampire) - Fix WTP component version (#2076)
  - [Bo Zhang](https://github.com/blindpirate) - Add support for 'console' output type of CodeNarc plugin (#2170)
+ - [Bo Zhang](https://github.com/blindpirate) - Contributions to consistent --tests option handling (#2172)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
