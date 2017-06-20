@@ -29,6 +29,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import java.util.Map;
  */
 public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
+    private static final String SOURCEPATH_DEPRECATION_MESSAGE = "Specify all the sources needed for compilation in the \"source\" FileCollection.";
 
     private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
             ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "incremental");
@@ -383,6 +385,7 @@ public class CompileOptions extends AbstractOptions {
     @Deprecated
     @Incubating
     public FileCollection getSourcepath() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("sourcepath", SOURCEPATH_DEPRECATION_MESSAGE);
         return sourcepath;
     }
 
@@ -398,6 +401,7 @@ public class CompileOptions extends AbstractOptions {
     @Deprecated
     @Incubating
     public void setSourcepath(FileCollection sourcepath) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("sourcepath", SOURCEPATH_DEPRECATION_MESSAGE);
         this.sourcepath = sourcepath;
     }
 
