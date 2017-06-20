@@ -43,4 +43,9 @@ public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec im
     public void setGroovyClasspath(List<File> groovyClasspath) {
         this.groovyClasspath = groovyClasspath;
     }
+
+    @Override
+    public boolean respectsSourcepath() {
+        return true;
+    }
 }
