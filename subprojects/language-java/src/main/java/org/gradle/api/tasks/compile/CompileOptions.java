@@ -373,12 +373,14 @@ public class CompileOptions extends AbstractOptions {
      * Note that this is different to the default value for the {@code -sourcepath} option for {@code javac}, which is to use the value specified by {@code -classpath}.
      * If you wish to use any source path, it must be explicitly set.
      *
+     * @deprecated See: #setSourcePath(FileCollection) for deprecation reason.
      * @return the source path
      * @see #setSourcepath(FileCollection)
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @Optional
+    @Deprecated
     @Incubating
     public FileCollection getSourcepath() {
         return sourcepath;
@@ -387,8 +389,13 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Sets the source path to use for the compilation.
      *
+     * @deprecated you can still set sourcepath using #setCompilerArgs(), but some compile tasks
+     *     (e.g. {@link JavaCompile}) will throw an exception if a sourcepath argument is set.
+     *     Given the rich semantics of the {@link JavaCompile#setSource(Object)} method, users
+     *     really shouldn't need to set the sourcepath.
      * @param sourcepath the source path
      */
+    @Deprecated
     @Incubating
     public void setSourcepath(FileCollection sourcepath) {
         this.sourcepath = sourcepath;
