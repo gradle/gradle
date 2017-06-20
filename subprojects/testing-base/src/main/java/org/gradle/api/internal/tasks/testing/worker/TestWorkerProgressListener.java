@@ -110,4 +110,8 @@ public class TestWorkerProgressListener implements TestListenerInternal {
 
         return findDescriptorParent(testDescriptor.getParent(), descriptorClass);
     }
+
+    Map<String, ProgressLogger> getTestWorkerProgressLoggers() {
+        return testWorkerProgressLoggers;
+    }
 }
