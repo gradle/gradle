@@ -155,7 +155,7 @@ public class JavaCompilerArgumentsBuilder {
         }
 
         FileCollection sourcepath = compileOptions.getSourcepath();
-        if (!noEmptySourcePath || sourcepath != null && sourcepath.isEmpty()) {
+        if (!noEmptySourcePath || sourcepath != null && !sourcepath.isEmpty()) {
             args.add("-sourcepath");
             args.add(sourcepath == null ? "" : sourcepath.getAsPath());
         }
