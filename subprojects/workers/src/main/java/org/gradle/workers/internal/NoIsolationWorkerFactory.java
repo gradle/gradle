@@ -23,8 +23,7 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.work.WorkerLeaseRegistry;
-
-import java.io.File;
+import org.gradle.workers.IsolationMode;
 
 public class NoIsolationWorkerFactory implements WorkerFactory {
     private final WorkerLeaseRegistry workerLeaseRegistry;
@@ -36,7 +35,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, File workingDir, final DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
         return new Worker<T>() {
             @Override
             public DefaultWorkResult execute(T spec) {
@@ -64,5 +63,10 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                 }
             }
         };
+    }
+
+    @Override
+    public IsolationMode getIsolationMode() {
+        return IsolationMode.NONE;
     }
 }

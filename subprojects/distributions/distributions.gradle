@@ -34,8 +34,6 @@ configurations {
     dists
 }
 
-daemonIntegTest.enabled = false
-
 evaluationDependsOn ":docs"
 
 ext {

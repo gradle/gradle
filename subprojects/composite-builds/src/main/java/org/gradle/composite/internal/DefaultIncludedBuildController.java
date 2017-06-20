@@ -28,6 +28,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.includedbuild.internal.IncludedBuildController;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
@@ -38,7 +39,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -55,13 +55,13 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private final Condition taskQueued = lock.newCondition();
     private final Condition taskCompleted = lock.newCondition();
 
-    public DefaultIncludedBuildController(IncludedBuild includedBuild) {
-        this.includedBuild = (IncludedBuildInternal) includedBuild;
-    }
-
     private final CountDownLatch started = new CountDownLatch(1);
     private final AtomicBoolean stopRequested = new AtomicBoolean();
     private final CountDownLatch stopped = new CountDownLatch(1);
+
+    public DefaultIncludedBuildController(IncludedBuild includedBuild) {
+        this.includedBuild = (IncludedBuildInternal) includedBuild;
+    }
 
     @Override
     public void run() {
@@ -74,15 +74,21 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
             Set<String> tasksToExecute = getQueuedTasks();
             try {
                 doBuild(tasksToExecute);
-            } catch (Throwable e) {
+            } catch (ReportedException e) {
                 // Ignore: we record failure in the BuildListener during the build
             }
         }
         stopped.countDown();
     }
 
+    @Override
     public void startTaskExecution() {
         started.countDown();
+    }
+
+    @Override
+    public void stopTaskExecution() {
+        stop();
     }
 
     public void stop() {
@@ -97,10 +103,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
 
         try {
-            boolean didStop = stopped.await(10, TimeUnit.SECONDS);
-            if (!didStop) {
-                throw new RuntimeException("Timeout waiting to stop controller for " + includedBuild.getName());
-            }
+            stopped.await();
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

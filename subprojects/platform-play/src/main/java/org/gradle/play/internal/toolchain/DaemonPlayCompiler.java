@@ -21,6 +21,7 @@ import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 import org.gradle.workers.internal.DaemonForkOptions;
+import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
@@ -39,6 +40,6 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
     @Override
     protected DaemonForkOptions toDaemonOptions(PlayCompileSpec spec) {
         BaseForkOptions forkOptions = spec.getForkOptions();
-        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), Collections.<String>emptyList(), compilerClasspath, classLoaderPackages);
+        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), Collections.<String>emptyList(), compilerClasspath, classLoaderPackages, KeepAliveMode.SESSION);
     }
 }

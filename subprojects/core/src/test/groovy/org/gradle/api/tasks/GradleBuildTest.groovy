@@ -15,9 +15,12 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.BuildResult
-import org.gradle.initialization.GradleLauncher
+import org.gradle.api.internal.GradleInternal
 import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.progress.BuildOperationState
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -26,8 +29,20 @@ import spock.lang.Specification
 class GradleBuildTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    NestedBuildFactory buildFactory = Mock()
+    def buildFactory = Mock(NestedBuildFactory)
+    def buildController = Mock(BuildController)
+    def gradle = Mock(GradleInternal)
+    def services = Mock(ServiceRegistry)
+    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def buildOperation = Mock(BuildOperationState)
     GradleBuild task = TestUtil.create(temporaryFolder).task(GradleBuild, [nestedBuildFactory: buildFactory])
+
+    def setup() {
+        _ * buildController.getGradle() >> gradle
+        _ * gradle.getServices() >> services
+        _ * services.get(BuildOperationExecutor) >> buildOperationExecutor
+        _ * buildOperationExecutor.currentOperation >> buildOperation
+    }
 
     void usesCopyOfCurrentBuildsStartParams() {
         def expectedStartParameter = task.project.gradle.startParameter.newBuild()
@@ -45,21 +60,17 @@ class GradleBuildTest extends Specification {
     }
 
     void executesBuild() {
-        GradleLauncher launcher = Mock()
-        BuildResult resultMock = Mock()
-
         when:
         task.build()
 
         then:
-        1 * buildFactory.nestedInstanceWithNewSession(task.startParameter) >> launcher
-        1 * launcher.run() >> resultMock
-        1 * launcher.stop()
-        0 * _._
+
+        1 * buildFactory.nestedBuildController(task.startParameter) >> buildController
+        1 * buildController.run() >> gradle
+        1 * buildController.stop()
     }
 
     void cleansUpOnBuildFailure() {
-        GradleLauncher launcher = Mock()
         def failure = new RuntimeException()
 
         when:
@@ -68,9 +79,8 @@ class GradleBuildTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * buildFactory.nestedInstanceWithNewSession(task.startParameter) >> launcher
-        1 * launcher.run() >> { throw failure }
-        1 * launcher.stop()
-        0 * _._
+        1 * buildFactory.nestedBuildController(task.startParameter) >> buildController
+        1 * buildController.run() >> { throw failure }
+        1 * buildController.stop()
     }
 }

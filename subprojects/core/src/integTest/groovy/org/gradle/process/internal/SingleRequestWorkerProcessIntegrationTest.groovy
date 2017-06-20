@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal
 
+import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.process.internal.worker.WorkerProcessException
 import org.gradle.util.TextUtil
 import spock.lang.Ignore
@@ -134,7 +135,7 @@ class CustomTestWorker implements TestProtocol {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof InstantiationException
+        e.cause instanceof ObjectInstantiationException
     }
 
     def "propagates failure to start worker process"() {

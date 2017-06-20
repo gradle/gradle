@@ -21,7 +21,7 @@ import org.gradle.internal.operations.BuildOperationType;
 /**
  * Emitted when a build cache service is disabled during the build.
  */
-public class BuildCacheDisableServiceBuildOperationType implements BuildOperationType<BuildCacheDisableServiceBuildOperationType.Details, Void> {
+public class BuildCacheDisableServiceBuildOperationType implements BuildOperationType<BuildCacheDisableServiceBuildOperationType.Details, BuildCacheDisableServiceBuildOperationType.Result> {
 
     public interface Details {
 
@@ -43,6 +43,8 @@ public class BuildCacheDisableServiceBuildOperationType implements BuildOperatio
         DisabledReason getReason();
 
     }
+
+    public interface Result {}
 
     private BuildCacheDisableServiceBuildOperationType() {
     }

@@ -29,7 +29,7 @@ import java.util.SortedSet;
 public class TaskCacheKeyCalculator {
 
     public TaskOutputCachingBuildCacheKey calculate(TaskExecution execution) {
-        DefaultTaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder();
+        TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder();
         builder.appendTaskImplementation(execution.getTaskImplementation());
         builder.appendTaskActionImplementations(execution.getTaskActionImplementations());
 

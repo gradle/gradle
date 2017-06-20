@@ -1220,4 +1220,34 @@ task generate(type: TransformerTask) {
         then:
         failure.assertHasDescription("A deadlock was detected while resolving the task outputs for :foobar.  This can be caused, for instance, by a task output causing dependency resolution.")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/2180")
+    def "fileTrees can be used as output files"() {
+        given:
+        buildScript """
+            task myTask {
+                inputs.file file('input.txt')
+                outputs.files fileTree(dir: 'build', include: 'output.txt')
+                doLast {
+                    file('build').mkdirs()
+                    file('build/output.txt').text = new File('input.txt').text
+                }
+            }
+        """.stripIndent()
+
+        file('input.txt').text = 'input file'
+
+        when:
+        succeeds 'myTask'
+
+        then:
+        nonSkippedTasks.contains(':myTask')
+
+        when:
+        succeeds('myTask')
+
+        then:
+        skippedTasks.contains(':myTask')
+    }
+
 }

@@ -35,19 +35,19 @@ class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
             test.useTestNG()
         """
         file("src/test/java/FooTest.java") << """
-import org.testng.annotations.*;
-
-public class FooTest {
-    public FooTest() { throw new NullPointerException(); }
-    @Test public void foo() {}
-}
-"""
+            import org.testng.annotations.*;
+            
+            public class FooTest {
+                public FooTest() { throw new NullPointerException(); }
+                @Test public void foo() {}
+            }
+        """
 
         expect:
         fails("test")
 
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("Gradle Test Executor 1").assertTestFailed("execution failure",
+        result.testClassStartsWith("Gradle Test Executor").assertTestFailed("execution failure",
                 startsWith("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"))
     }
 }

@@ -22,14 +22,14 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 
-class CommandBackedEntryWriter implements BuildCacheEntryWriter {
+public class CommandBackedEntryWriter implements BuildCacheEntryWriter {
 
     private final BuildCacheStoreCommand command;
 
-    BuildCacheStoreCommand.Result result;
-    long bytes;
+    private BuildCacheStoreCommand.Result result;
+    private long bytes;
 
-    CommandBackedEntryWriter(BuildCacheStoreCommand command) {
+    public CommandBackedEntryWriter(BuildCacheStoreCommand command) {
         this.command = command;
     }
 
@@ -45,4 +45,11 @@ class CommandBackedEntryWriter implements BuildCacheEntryWriter {
         bytes = countingOutputStream.getCount();
     }
 
+    public BuildCacheStoreCommand.Result getResult() {
+        return result;
+    }
+
+    public long getBytes() {
+        return bytes;
+    }
 }

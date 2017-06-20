@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.exec;
+package org.gradle.internal.invocation;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 public class GradleBuildController implements BuildController {
     private enum State {Created, Completed}
@@ -63,8 +63,12 @@ public class GradleBuildController implements BuildController {
 
     public GradleInternal run() {
         try {
+            BuildOperationExecutor buildOperationExecutor =
+                getGradle().getServices().get(BuildOperationExecutor.class);
+            getGradle().setBuildOperation(buildOperationExecutor.getCurrentOperation());
             return (GradleInternal) getLauncher().run().getGradle();
         } finally {
+            getGradle().setBuildOperation(null);
             state = State.Completed;
         }
     }
@@ -75,5 +79,10 @@ public class GradleBuildController implements BuildController {
         } finally {
             state = State.Completed;
         }
+    }
+
+    @Override
+    public void stop() {
+        gradleLauncher.stop();
     }
 }

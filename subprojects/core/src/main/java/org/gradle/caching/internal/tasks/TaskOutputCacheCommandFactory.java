@@ -33,23 +33,23 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.SortedSet;
 
-public class TaskBuildCacheCommandFactory {
+public class TaskOutputCacheCommandFactory {
 
-    private static final Logger LOGGER = Logging.getLogger(TaskBuildCacheCommandFactory.class);
+    private static final Logger LOGGER = Logging.getLogger(TaskOutputCacheCommandFactory.class);
 
     private final TaskOutputPacker packer;
     private final TaskOutputOriginFactory taskOutputOriginFactory;
 
-    public TaskBuildCacheCommandFactory(TaskOutputPacker packer, TaskOutputOriginFactory taskOutputOriginFactory) {
+    public TaskOutputCacheCommandFactory(TaskOutputPacker packer, TaskOutputOriginFactory taskOutputOriginFactory) {
         this.packer = packer;
         this.taskOutputOriginFactory = taskOutputOriginFactory;
     }
 
-    public BuildCacheLoadCommand<TaskOutputOriginMetadata> load(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, Timer clock) {
+    public BuildCacheLoadCommand<TaskOutputOriginMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, Timer clock) {
         return new LoadCommand(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock);
     }
 
-    public BuildCacheStoreCommand store(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
+    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
         return new StoreCommand(cacheKey, outputProperties, task, clock);
     }
 

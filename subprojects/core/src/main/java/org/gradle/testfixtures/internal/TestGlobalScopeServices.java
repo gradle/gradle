@@ -17,9 +17,11 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelExecutionManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
@@ -42,6 +44,10 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
 
     BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, WorkerLeaseService workerLeaseService, ProgressLoggerFactory progressLoggerFactory, ExecutorFactory executorFactory, ResourceLockCoordinationService resourceLockCoordinationService, ParallelExecutionManager parallelExecutionManager) {
         return new ProjectBuilderBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, resourceLockCoordinationService, parallelExecutionManager);
+    }
+
+    LoggingManagerInternal createLoggingManager(Factory<LoggingManagerInternal> loggingManagerFactory) {
+        return loggingManagerFactory.create();
     }
 
     private static class ProjectBuilderBuildOperationExecutor extends DefaultBuildOperationExecutor {

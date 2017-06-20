@@ -27,6 +27,8 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
@@ -94,11 +96,11 @@ public class BuildSourceBuilder {
         // Otherwise, just to a regular build
         final PersistentCache buildSrcCache = createCache(startParameter);
         try {
-            GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
+            BuildController buildController = createBuildController(startParameter);
             try {
-                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, buildSrcBuildListenerFactory));
+                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildSrcCache, buildController, buildSrcBuildListenerFactory));
             } finally {
-                gradleLauncher.stop();
+                buildController.stop();
             }
         } finally {
             // This isn't quite right. We should not unlock the classes until we're finished with them, and the classes may be used across multiple builds
@@ -114,6 +116,11 @@ public class BuildSourceBuilder {
                 .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
                 .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
                 .open();
+    }
+
+    private BuildController createBuildController(StartParameter startParameter) {
+        GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
+        return new GradleBuildController(gradleLauncher);
     }
 
     private GradleLauncher buildGradleLauncher(StartParameter startParameter) {

@@ -50,7 +50,11 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     }
 
     TestClassExecutionResult testClass(String testClass) {
-        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html"));
+        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html"))
+    }
+
+    TestClassExecutionResult testClassStartsWith(String testClass) {
+        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes").listFiles().find { it.name.startsWith(FileUtils.toSafeFileName(testClass)) })
     }
 
     private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {

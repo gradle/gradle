@@ -59,7 +59,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
                 @Override
                 public void run(BuildOperationContext context) {
                     decorated.apply(target);
-
+                    context.setResult(OPERATION_RESULT);
                 }
 
                 @Override
@@ -122,4 +122,8 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             return identifier == null ? null : identifier.getBuildPath();
         }
     }
+
+
+    private static final ApplyScriptPluginBuildOperationType.Result OPERATION_RESULT = new ApplyScriptPluginBuildOperationType.Result() {
+    };
 }

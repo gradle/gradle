@@ -28,7 +28,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.containsAny;
 
-public class DaemonGradleExecuter extends ForkingGradleExecuter {
+public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
 
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {

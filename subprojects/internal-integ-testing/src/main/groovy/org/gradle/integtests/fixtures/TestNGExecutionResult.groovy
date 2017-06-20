@@ -61,6 +61,12 @@ class TestNGExecutionResult implements TestExecutionResult {
         return new TestNgTestClassExecutionResult(testClass, findTestClass(testClass))
     }
 
+    @Override
+    TestClassExecutionResult testClassStartsWith(String testClass) {
+        def matching = findTestClassStartsWith(testClass)
+        return new TestNgTestClassExecutionResult(matching.key, matching.value)
+    }
+
     private void parseResults() {
         resultsXml = new XmlSlurper().parse(xmlReportFile().assertIsFile())
     }
@@ -75,6 +81,15 @@ class TestNGExecutionResult implements TestExecutionResult {
             throw new AssertionError("Could not find test class ${testClass}. Found ${testClasses.keySet()}")
         }
         testClasses[testClass]
+    }
+
+    private def findTestClassStartsWith(String testClass) {
+        def testClasses = findTestClasses()
+        def matching = testClasses.find { it.key.startsWith(testClass) }
+        if (!matching) {
+            throw new AssertionError("Could not find test class matching ${testClass}. Found ${testClasses.keySet()}")
+        }
+        matching
     }
 
     private def findTestClasses() {

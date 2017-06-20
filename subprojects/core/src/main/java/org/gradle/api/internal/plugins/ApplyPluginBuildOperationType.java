@@ -25,7 +25,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.0
  */
-public final class ApplyPluginBuildOperationType implements BuildOperationType<ApplyPluginBuildOperationType.Details, Void> {
+public final class ApplyPluginBuildOperationType implements BuildOperationType<ApplyPluginBuildOperationType.Details, ApplyPluginBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -59,6 +59,10 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
         String getBuildPath();
 
     }
+
+    public interface Result {
+    }
+
 
     private ApplyPluginBuildOperationType() {
     }

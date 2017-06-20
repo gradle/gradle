@@ -1,3 +1,7 @@
+The Gradle team is pleased to announce a first milestone release of Gradle 4.1.
+
+This release now supports running Gradle on the most recent JDK 9 release (b170+). It also optimizes startup speed, positively affecting the execution time of every build.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -6,16 +10,34 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+
+### Faster Gradle command line client
+
+The Gradle command line client now starts up ~200ms faster, speeding up every build.
+
 ### Continuous build now works with composite builds
 
 Gradle's [continuous build feature](userguide/continuous_build.html) now works with [composite builds](userguide/composite_builds.html). Gradle will automatically detect changes to any input from any build and rebuild the appropriate pieces.
+
+### CodeNarc plugin supports report format 'console'
+
+The CodeNarc plugin now supports outputting reports directly to the console through the `console` report format.
+```
+codenarc {
+    reportFormat = 'console'
+}
+```
 
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
+There are no promoted features in this release.
+
+<!--
 The following are the features that have been promoted in this Gradle release.
+-->
 
 <!--
 ### Example promoted
@@ -25,10 +47,14 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Deprecations
 
+There are no new deprecations in this release.
+
+<!--
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 4.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+in the next major Gradle version (Gradle 5.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
+-->
 
 <!--
 ### Example deprecation
@@ -36,7 +62,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Changes to handling of project dependencies from project that does not use the Java plugin to a project that does
+### Changes to handling of project dependencies from a project that does not use the Java plugin to a project that does
 
 When a project that does not use the Java plugin has a project dependency on a project that uses the Java plugin, either directly or indirectly via another plugin, then the `runtimeElements` configuration of the target project will be selected. Previous versions of Gradle would select the `default` configuration in this case.
 
@@ -53,7 +79,8 @@ We would like to thank the following community members for making contributions 
 -->
 
  - [Jörn Huxhorn](https://github.com/huxi) - Replace uses of `Stack` with `ArrayDeque` (#771)
- - [Björn Kautler](https://github.com/Vampire) - Fix WTP component version (#2076).
+ - [Björn Kautler](https://github.com/Vampire) - Fix WTP component version (#2076)
+ - [Bo Zhang](https://github.com/blindpirate) - Add support for 'console' output type of CodeNarc plugin (#2170)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

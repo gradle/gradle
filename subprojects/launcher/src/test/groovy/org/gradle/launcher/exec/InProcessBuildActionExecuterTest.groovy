@@ -28,6 +28,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
@@ -42,6 +43,7 @@ class InProcessBuildActionExecuterTest extends Specification {
     final BuildActionRunner actionRunner = Mock()
     final StartParameter startParameter = Mock()
     final ListenerManager listenerManager = Mock()
+    final BuildOperationExecutor buildOperationExecutor = Mock()
     final RootBuildLifecycleListener lifecycleListener = Mock()
     BuildAction action = Mock() {
         getStartParameter() >> startParameter
@@ -53,7 +55,10 @@ class InProcessBuildActionExecuterTest extends Specification {
         _ * param.buildRequestMetaData >> metaData
         _ * param.envVariables >> [:]
         _ * sessionServices.get(ListenerManager) >> listenerManager
+        _ * sessionServices.get(BuildOperationExecutor) >> buildOperationExecutor
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
+        _ * launcher.getGradle() >> gradle
+        _ * gradle.services >> sessionServices
     }
 
     def "creates launcher and forwards action to action runner after notifying listeners"() {

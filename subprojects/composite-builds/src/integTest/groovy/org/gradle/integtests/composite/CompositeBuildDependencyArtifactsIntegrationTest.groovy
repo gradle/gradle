@@ -20,17 +20,14 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.MavenModule
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
 class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
-    MavenModule publishedModuleB
     List arguments = []
 
     def setup() {
-        publishedModuleB = mavenRepo.module("org.test", "buildB", "1.0").publish()
         new ResolveTestFixture(buildA.buildFile).prepare()
 
         buildA.buildFile << """
@@ -272,6 +269,32 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         then:
         executed ":buildB:myJar"
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), moduleC.artifactFile
+    }
+
+    def "builds substituted dependency with non-default artifactType"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile 'org.test:buildB:1.0@zip'
+            }
+"""
+
+        buildB.buildFile << """
+            task myZip(type: Zip) {
+                extension 'zip'
+                from 'src'
+            }
+            artifacts {
+                compile myZip
+            }
+"""
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:myZip"
+        assertResolved buildB.file('build/distributions/buildB-1.0.zip')
     }
 
     def "builds substituted dependency with defined artifacts"() {
@@ -518,7 +541,31 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
     }
 
-    def "handles separate compile and compileOnly dependencies on different artifacts"() {
+    def "handles compileOnly dependencies for different subprojects from the same build included via separate dependency paths"() {
+        given:
+        dependency 'org.test:b1:1.0'
+        dependency 'org.test:buildC:1.0'
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                dependencies {
+                    compileOnly 'org.test:b2:1.0'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:jar"
+        executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
+    }
+
+    def "handles separate compile and compileOnly dependencies on different subprojects"() {
         given:
         dependency 'org.test:buildC:1.0'
 

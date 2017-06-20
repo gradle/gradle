@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner.fixtures
 
-import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -78,7 +78,7 @@ class PluginUnderTest {
     PluginUnderTest build() {
         writeSourceFiles()
         writeBuildScript()
-        new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
+        new NoDaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
             .usingProjectDirectory(projectDir)
             .withArguments('classes', '--no-daemon')
             .run()

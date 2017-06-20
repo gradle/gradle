@@ -26,6 +26,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.execution.internal.ExecuteTaskBuildOperationResult;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -77,13 +78,13 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final Set<Task> requestedTasks = Sets.newTreeSet();
     private Spec<? super Task> filter = Specs.SATISFIES_ALL;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService) {
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal) {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuter = taskExecuter;
         this.buildOperationExecutor = buildOperationExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
-        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, coordinationService, workerLeaseService);
+        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, coordinationService, workerLeaseService, gradleInternal);
     }
 
     public void useFailureHandler(TaskFailureHandler handler) {

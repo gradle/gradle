@@ -319,6 +319,15 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
         expect:
         builder.build() == ["-g", "-sourcepath", fc.asPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        builder.noEmptySourcePath().build() == ["-g", "-sourcepath", fc.asPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+    }
+
+    def "strips user-supplied -sourcepath args"() {
+        given:
+        spec.compileOptions.compilerArgs = ["-d", "some/other/directory", "-sourcepath", "some/source/path", "--source-path", "and/another", "-sourcepath"]
+
+        expect:
+        builder.build() == ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "-d", "some/other/directory"]
     }
 
     String defaultEmptySourcePathRefFolder() {

@@ -53,7 +53,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
 
     @Override
     public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
-        ManagedExecutor executor = executorFactory.create("Task worker");
+        ManagedExecutor executor = executorFactory.create("Task worker for '" + taskExecutionPlan.getDisplayName() + "'");
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);

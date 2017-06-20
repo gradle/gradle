@@ -22,6 +22,7 @@ import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.execution.TaskExecutionListener
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
@@ -34,8 +35,8 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.Factories
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -54,7 +55,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
     def workerLeases = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
     def executorFactory = Mock(ExecutorFactory)
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService)
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []
 
@@ -354,7 +355,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
 
     def "notifies graph listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService)
+        def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
         Task a = task("a")
 
@@ -372,7 +373,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
 
     def "executes whenReady listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService)
+        def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
         def closure = Mock(Closure)
         def action = Mock(Action)
         Task a = task("a")

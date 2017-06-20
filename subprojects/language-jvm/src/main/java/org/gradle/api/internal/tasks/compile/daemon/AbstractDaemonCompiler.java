@@ -19,22 +19,26 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.workers.internal.ActionExecutionSpec;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
-import org.gradle.workers.internal.WorkSpec;
+import org.gradle.workers.internal.SimpleActionExecutionSpec;
 import org.gradle.workers.internal.Worker;
+import org.gradle.workers.internal.WorkerDaemonServer;
 import org.gradle.workers.internal.WorkerFactory;
 import org.gradle.workers.internal.WorkerProtocol;
+import org.gradle.workers.internal.WorkerServer;
 
+import javax.inject.Inject;
 import java.io.File;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
     private final Compiler<T> delegate;
     private final WorkerFactory workerFactory;
-    private final File daemonWorkingDir;
+    private final File executionWorkingDir;
 
-    public AbstractDaemonCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerFactory workerFactory) {
-        this.daemonWorkingDir = daemonWorkingDir;
+    public AbstractDaemonCompiler(File executionWorkingDir, Compiler<T> delegate, WorkerFactory workerFactory) {
+        this.executionWorkingDir = executionWorkingDir;
         this.delegate = delegate;
         this.workerFactory = workerFactory;
     }
@@ -46,43 +50,42 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     @Override
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
-        Worker<WorkerCompileSpec<?>> worker = workerFactory.getWorker(CompilerDaemonServer.class, daemonWorkingDir, daemonForkOptions);
-        DefaultWorkResult result = worker.execute(new WorkerCompileSpec<T>(delegate, spec));
+        Worker<ActionExecutionSpec> worker = workerFactory.getWorker(getServerImplementation(), daemonForkOptions);
+        DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerRunnable.class, "compiler daemon", executionWorkingDir, new Object[] {delegate, spec}));
         if (result.isSuccess()) {
             return result;
+        } else {
+            throw UncheckedException.throwAsUncheckedException(result.getException());
         }
-        throw UncheckedException.throwAsUncheckedException(result.getException());
     }
 
     protected abstract DaemonForkOptions toDaemonOptions(T spec);
 
-    private static class WorkerCompileSpec<T extends CompileSpec> implements WorkSpec {
-        private final Compiler<T> compiler;
-        private final T spec;
-
-        WorkerCompileSpec(Compiler<T> compiler, T spec) {
-            this.compiler = compiler;
-            this.spec = spec;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return compiler.getClass().getName();
-        }
-
-        public DefaultWorkResult compile() {
-            return new DefaultWorkResult(compiler.execute(spec).getDidWork(), null);
+    private Class<? extends WorkerProtocol<ActionExecutionSpec>> getServerImplementation() {
+        switch(workerFactory.getIsolationMode()) {
+            case NONE:
+            case CLASSLOADER:
+                return WorkerServer.class;
+            case PROCESS:
+                return WorkerDaemonServer.class;
+            default:
+                throw new IllegalArgumentException("Unknown isolation mode: " + workerFactory.getIsolationMode());
         }
     }
 
-    public static class CompilerDaemonServer implements WorkerProtocol<WorkerCompileSpec<?>> {
+    private static class CompilerRunnable<T extends CompileSpec> implements Runnable {
+        private final Compiler<T> compiler;
+        private final T compileSpec;
+
+        @Inject
+        public CompilerRunnable(Compiler<T> compiler, T compileSpec) {
+            this.compiler = compiler;
+            this.compileSpec = compileSpec;
+        }
+
         @Override
-        public DefaultWorkResult execute(WorkerCompileSpec<?> spec) {
-            try {
-                return spec.compile();
-            } catch (Throwable t) {
-                return new DefaultWorkResult(true, t);
-            }
+        public void run() {
+            compiler.execute(compileSpec);
         }
     }
 }

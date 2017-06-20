@@ -26,6 +26,7 @@ import org.gradle.caching.internal.BuildCacheDisableServiceBuildOperationType.De
 import org.gradle.caching.internal.BuildCacheLoadBuildOperationType;
 import org.gradle.caching.internal.BuildCacheStoreBuildOperationType;
 import org.gradle.caching.internal.controller.operations.DisableOperationDetails;
+import org.gradle.caching.internal.controller.operations.DisableOperationResult;
 import org.gradle.caching.internal.controller.operations.LoadOperationDetails;
 import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
 import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
@@ -86,15 +87,15 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
                     LOGGER.debug(description);
                     CommandBackedEntryReader<T> entryReader = new CommandBackedEntryReader<T>(command);
                     service.load(command.getKey(), entryReader);
-                    BuildCacheLoadBuildOperationType.Result operationResult = entryReader.result == null
+                    BuildCacheLoadBuildOperationType.Result operationResult = entryReader.getResult() == null
                         ? LoadOperationMissResult.INSTANCE
-                        : new LoadOperationHitResult(entryReader.bytes, entryReader.result.getArtifactEntryCount());
+                        : new LoadOperationHitResult(entryReader.getBytes(), entryReader.getResult().getArtifactEntryCount());
                     context.setResult(operationResult);
 
-                    if (entryReader.result == null) {
+                    if (entryReader.getResult() == null) {
                         return null;
                     } else {
-                        T metadata = entryReader.result.getMetadata();
+                        T metadata = entryReader.getResult().getMetadata();
                         if (metadata == null) {
                             throw new IllegalStateException("Build cache load command " + command + " returned null metadata");
                         }
@@ -134,10 +135,10 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
             public BuildCacheStoreBuildOperationType.Result create() {
                 CommandBackedEntryWriter entryWriter = new CommandBackedEntryWriter(command);
                 service.store(command.getKey(), entryWriter);
-                if (entryWriter.result == null) {
+                if (entryWriter.getResult() == null) {
                     throw noStoreException();
                 } else {
-                    return new StoreOperationResult(entryWriter.bytes, entryWriter.result.getArtifactEntryCount());
+                    return new StoreOperationResult(entryWriter.getBytes(), entryWriter.getResult().getArtifactEntryCount());
                 }
             }
         });
@@ -215,6 +216,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
                 @Override
                 public void run(BuildOperationContext context) {
                     LOGGER.warn("The {} build cache is now disabled because {}.", role.getDisplayName(), message);
+                    context.setResult(DisableOperationResult.INSTANCE);
                 }
 
                 @Override

@@ -17,8 +17,6 @@
 package org.gradle.launcher.cli
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
@@ -52,9 +50,11 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         'debug'     | ''          | ['-Dorg.gradle.logging.level=debug']
     }
 
-    @IgnoreIf({ GradleContextualExecuter.daemon })
     @Unroll
     def "Set log level using org.gradle.logging.level in GRADLE_OPTS to #logLevel"() {
+        setup:
+        executer.requireIsolatedDaemons()
+
         def message = 'Expected message in the output'
         buildFile << """
             task assertLogging {
@@ -84,9 +84,11 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
     }
 
 
-    @IgnoreIf({ GradleContextualExecuter.daemon })
     @Unroll
     def "Command line switches override properly: #flags #options"() {
+        setup:
+        executer.requireIsolatedDaemons()
+
         def message = 'Expected message in the output'
         buildFile << """
             task assertLogging {

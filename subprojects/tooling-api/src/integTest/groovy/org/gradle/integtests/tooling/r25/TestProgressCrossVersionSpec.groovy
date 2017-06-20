@@ -176,11 +176,11 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         rootSuite.descriptor.methodName == null
         rootSuite.descriptor.parent == null
 
-        def workerSuite = events.operation("Gradle Test Executor 2")
+        def workerSuite = events.operationMatches("Gradle Test Executor \\d+")
         workerSuite.descriptor.jvmTestKind == JvmTestKind.SUITE
-        workerSuite.descriptor.name == 'Gradle Test Executor 2'
-        workerSuite.descriptor.displayName == 'Gradle Test Executor 2'
-        workerSuite.descriptor.suiteName == 'Gradle Test Executor 2'
+        workerSuite.descriptor.name.matches 'Gradle Test Executor \\d+'
+        workerSuite.descriptor.displayName.matches 'Gradle Test Executor \\d+'
+        workerSuite.descriptor.suiteName.matches 'Gradle Test Executor \\d+'
         workerSuite.descriptor.className == null
         workerSuite.descriptor.methodName == null
         workerSuite.descriptor.parent == rootSuite.descriptor
@@ -247,11 +247,11 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         rootSuite.result instanceof TestFailureResult
         rootSuite.result.failures.size() == 0
 
-        def workerSuite = events.operation("Gradle Test Executor 2")
+        def workerSuite = events.operationMatches("Gradle Test Executor \\d+")
         workerSuite.descriptor.jvmTestKind == JvmTestKind.SUITE
-        workerSuite.descriptor.name == 'Gradle Test Executor 2'
-        workerSuite.descriptor.displayName == 'Gradle Test Executor 2'
-        workerSuite.descriptor.suiteName == 'Gradle Test Executor 2'
+        workerSuite.descriptor.name.matches 'Gradle Test Executor \\d+'
+        workerSuite.descriptor.displayName.matches 'Gradle Test Executor \\d+'
+        workerSuite.descriptor.suiteName.matches 'Gradle Test Executor \\d+'
         workerSuite.descriptor.className == null
         workerSuite.descriptor.methodName == null
         workerSuite.descriptor.parent == rootSuite.descriptor

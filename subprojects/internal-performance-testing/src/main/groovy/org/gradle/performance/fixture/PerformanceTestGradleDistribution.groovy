@@ -17,7 +17,7 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -53,7 +53,7 @@ class PerformanceTestGradleDistribution implements GradleDistribution {
     }
 
     GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
-        return new ForkingGradleExecuter(this, testDirectoryProvider, version, buildContext);
+        return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext);
     }
 
 }
