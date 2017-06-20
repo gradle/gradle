@@ -70,7 +70,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         // This makes sure the test above is correct AND you can get back javac's default behavior if needed
         when:
         buildFile << "project(':b').compileJava { options.sourcepath = classpath }"
-        run("compileJava")
+        executer.noDeprecationChecks().withTasks("compileJava").run()
         then:
         file("b/build/classes/java/main/Bar.class").exists()
         file("b/build/classes/java/main/Foo.class").exists()
