@@ -51,6 +51,9 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
             assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Gradle Test Executor [0-9]+ > Executing test org\\.gradle\\.Test1.*")
             assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Gradle Test Executor [0-9]+ > Executing test org\\.gradle\\.Test2.*")
         }
+
+        cleanup:
+        testExecution.releaseAll()
     }
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
@@ -75,6 +78,9 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
             assert matchesOutput(gradleHandle.standardOutput, ".*> :project1:test > Gradle Test Executor [0-9]+ > Executing test org\\.gradle\\.Test1.*")
             assert matchesOutput(gradleHandle.standardOutput, ".*> :project2:test > Gradle Test Executor [0-9]+ > Executing test org\\.gradle\\.Test2.*")
         }
+
+        cleanup:
+        testExecution.releaseAll()
     }
 
     private String junitTest(String testClassName, String serverResource) {
