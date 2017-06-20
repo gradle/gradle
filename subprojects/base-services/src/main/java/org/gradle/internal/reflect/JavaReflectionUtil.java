@@ -122,11 +122,18 @@ public class JavaReflectionUtil {
      */
     public static PropertyMutator writeablePropertyIfExists(Class<?> target, String property) throws NoSuchPropertyException {
         String setterName = toMethodName("set", property);
+        Method typedSetter = null;
         for (final Method method : target.getMethods()) {
             if (!method.getName().equals(setterName) || PropertyAccessorType.of(method) != PropertyAccessorType.SETTER) {
                 continue;
             }
-            return new MethodBackedPropertyMutator(property, method);
+            if (PropertyAccessorType.takesParameterOfTypeObject(method)) {
+                return new MethodBackedPropertyMutator(property, method);
+            }
+            typedSetter = method;
+        }
+        if (typedSetter != null) {
+            return new MethodBackedPropertyMutator(property, typedSetter);
         }
         return null;
     }

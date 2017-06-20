@@ -68,6 +68,14 @@ class JavaReflectionUtilTest extends Specification {
         readableProperty(JavaTestSubject, String, "myProperty").getValue(myProperties) == "otherValue"
     }
 
+    def "picks the generic object setter over the typed setter if two setters are available"() {
+        when:
+        def property = writeableProperty(JavaTestSubject, "myProperty")
+
+        then:
+        property.type == Object.class
+    }
+
     def "read boolean property"() {
         expect:
         readableProperty(JavaTestSubject, Boolean, "myBooleanProperty").getValue(myProperties) == true

@@ -40,6 +40,10 @@ public class JavaTestSubject {
         myProp = value;
     }
 
+    public void setMyProperty(Object value) {
+        myProp = value.toString();
+    }
+
     public boolean isMyBooleanProperty() {
         return myBooleanProp;
     }
