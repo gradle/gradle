@@ -147,6 +147,38 @@ class TestWorkerProgressListenerTest extends Specification {
         testWorkerProgressListener.testWorkerProgressLoggers.isEmpty()
     }
 
+    def "can complete all registered progress loggers"() {
+        def testWorkerProgressLogger1 = Mock(ProgressLogger)
+        def testWorkerProgressLogger2 = Mock(ProgressLogger)
+
+        given:
+        def testEvent1 = new TestEvent('org.gradle.TestSuite', 'Gradle Test Executor 1', 'org.gradle.Test1')
+        def testEvent2 = new TestEvent('org.gradle.TestSuite', 'Gradle Test Executor 2', 'org.gradle.Test2')
+        def testDescriptor1 = createTestDescriptor(testEvent1)
+        def testDescriptor2 = createTestDescriptor(testEvent2)
+
+        when:
+        testWorkerProgressListener.started(testDescriptor1, createTestStartEvent())
+        testWorkerProgressListener.started(testDescriptor2, createTestStartEvent())
+
+        then:
+        1 * progressLoggerFactory.newOperation(TestWorkerProgressListener.class, parentProgressLogger) >> testWorkerProgressLogger1
+        1 * progressLoggerFactory.newOperation(TestWorkerProgressListener.class, parentProgressLogger) >> testWorkerProgressLogger2
+        1 * testWorkerProgressLogger1.start(testEvent1.progressLoggerDescription, testEvent1.progressLoggerDescription)
+        1 * testWorkerProgressLogger2.start(testEvent2.progressLoggerDescription, testEvent2.progressLoggerDescription)
+        testWorkerProgressListener.testWorkerProgressLoggers.size() == 2
+        testWorkerProgressListener.testWorkerProgressLoggers.get(testEvent1.progressLoggerDescription) == testWorkerProgressLogger1
+        testWorkerProgressListener.testWorkerProgressLoggers.get(testEvent2.progressLoggerDescription) == testWorkerProgressLogger2
+
+        when:
+        testWorkerProgressListener.completeAll()
+
+        then:
+        1 * testWorkerProgressLogger1.completed()
+        1 * testWorkerProgressLogger2.completed()
+        testWorkerProgressListener.testWorkerProgressLoggers.isEmpty()
+    }
+
     static TestStartEvent createTestStartEvent() {
         new TestStartEvent(new Date().time)
     }

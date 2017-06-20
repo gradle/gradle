@@ -68,6 +68,17 @@ public class TestWorkerProgressListener implements TestListenerInternal {
     public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
     }
 
+    /**
+     * Completes and clears registered progress loggers even if test worker crashed.
+     */
+    public void completeAll() {
+        for (ProgressLogger progressLogger : testWorkerProgressLoggers.values()) {
+            progressLogger.completed();
+        }
+
+        testWorkerProgressLoggers.clear();
+    }
+
     private String determineTestWorkerDescription(TestDescriptorInternal testDescriptor) {
         WorkerTestClassProcessor.WorkerTestSuiteDescriptor workerTestSuiteDescriptor = findParentWorkerTestSuiteDescriptor(testDescriptor);
 

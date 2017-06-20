@@ -35,7 +35,6 @@ import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.worker.TestWorkerProgressListener;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -60,6 +59,7 @@ import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProc
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
+import org.gradle.api.internal.tasks.testing.worker.TestWorkerProgressListener;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
@@ -649,7 +649,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
         parentProgressLogger.setDescription("Test Execution");
         parentProgressLogger.started();
-        testListenerInternalBroadcaster.add(new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger));
+        TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
+        testListenerInternalBroadcaster.add(testWorkerProgressListener);
 
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
 
@@ -670,6 +671,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         } finally {
             parentProgressLogger.completed();
             testExecuter = null;
+            testWorkerProgressListener.completeAll();
             testListenerBroadcaster.removeAll();
             testOutputListenerBroadcaster.removeAll();
             testListenerInternalBroadcaster.removeAll();
