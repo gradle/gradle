@@ -92,8 +92,6 @@ class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements M
     public void setFixedPoolSize(int numThreads) {
         if (executor instanceof ThreadPoolExecutor) {
             ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) executor;
-            // we do this because in jdk9 these methods throw an exception if you
-            // try to set one such that maximumPoolSize < corePoolSize
             if (numThreads < threadPoolExecutor.getCorePoolSize()) {
                 threadPoolExecutor.setCorePoolSize(numThreads);
                 threadPoolExecutor.setMaximumPoolSize(numThreads);
