@@ -1,6 +1,6 @@
 The Gradle team is pleased to announce a first milestone release of Gradle 4.1.
 
-This release now supports running Gradle on the most recent JDK 9 release (b170+) and includes performance improvements that positively affect the execution time of every build.
+This release now supports running Gradle on the most recent JDK 9 release (b170+). It also optimizes startup speed, positively affecting the execution time of every build.
 
 ## New and noteworthy
 
