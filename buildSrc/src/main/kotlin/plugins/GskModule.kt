@@ -1,5 +1,7 @@
 package plugins
 
+import build.kotlinDslDebugPropertyName
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -46,10 +48,12 @@ open class GskModule : Plugin<Project> {
             }
 
             // sets the Gradle Test Kit user home into custom installation build dir
-            tasks.withType(Test::class.java) { testTask ->
-                testTask.systemProperty(
-                    "org.gradle.testkit.dir",
-                    "${rootProject.buildDir}/custom/test-kit-user-home")
+            if (hasProperty(kotlinDslDebugPropertyName) && findProperty(kotlinDslDebugPropertyName) != "false") {
+                tasks.withType(Test::class.java) { testTask ->
+                    testTask.systemProperty(
+                        "org.gradle.testkit.dir",
+                        "${rootProject.buildDir}/custom/test-kit-user-home")
+                }
             }
         }
     }
