@@ -204,6 +204,14 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             subProjectScript = "")
     }
 
+    @Test
+    fun `sourcePath includes plugins classpath sources resolved against project`() {
+
+        assertSourcePathIncludesKotlinPluginSourcesGiven(
+            rootProjectScript = "",
+            subProjectScript = """ plugins { kotlin("jvm") } """)
+    }
+
     private
     fun assertSourcePathIncludesKotlinStdlibSourcesGiven(rootProjectScript: String, subProjectScript: String) {
 
