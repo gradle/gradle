@@ -11,7 +11,7 @@ matrix:
             - oracle-java8-installer
             - oracle-java8-set-default
 
-script: ./gradlew check --info --stacktrace --console=plain -Dkotlin.colors.enabled=false -Porg.gradle.jvmargs="-Xmx2G -Xms512M -XX:+UseG1GC"
+script: ./gradlew check --info --stacktrace --console=plain -Dkotlin.colors.enabled=false -Porg.gradle.jvmargs="-Xmx2G -Xms512M -XX:+UseG1GC" --max-workers=1
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
