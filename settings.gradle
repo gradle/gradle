@@ -6,4 +6,5 @@ include 'provider',
         'compiler-plugin',
         'plugins',
         'test-fixtures',
-        'samples-tests'
+        'samples-tests',
+        'backwards-compatibility-for-idea'
