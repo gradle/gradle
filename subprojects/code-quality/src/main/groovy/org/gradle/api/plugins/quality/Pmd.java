@@ -341,7 +341,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * This is only supported for PMD 5.6.0 or better.
      *
-     * @since 4.0
+     * @since 4.1
      */
     @Internal
     @Optional
@@ -357,7 +357,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * This is only supported for PMD 5.6.0 or better.
      *
-     * @since 4.0
+     * @since 4.1
      */
     @Incubating
     public void setCache(File cache) {
