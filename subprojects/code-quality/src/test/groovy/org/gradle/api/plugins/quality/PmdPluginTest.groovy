@@ -107,115 +107,115 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert reports.html.destination == project.file("build/reports/pmd/${sourceSet.name}.html")
             assert ignoreFailures == false
             assert rulePriority == 5
-	    assert cache == project.file("build/pmd-cache/${taskName}.cache")
+            assert cache == project.file("build/pmd-cache/${taskName}.cache")
 	}
     }
 
     def "configures any additional PMD tasks"() {
-	    def task = project.tasks.create("pmdCustom", Pmd)
+        def task = project.tasks.create("pmdCustom", Pmd)
 
-		    expect:
-		    task.description == null
-		    task.source.empty
-		    task.pmdClasspath == project.configurations.pmd
-		    task.ruleSets == ["java-basic"]
-		    task.ruleSetConfig == null
-		    task.ruleSetFiles.empty
-		    task.reports.xml.destination == project.file("build/reports/pmd/custom.xml")
-		    task.reports.html.destination == project.file("build/reports/pmd/custom.html")
-		    task.ignoreFailures == false
-		    task.rulePriority == 5
-	            task.cache == project.file("build/pmd-cache/pmdCustom.cache")
+        expect:
+        task.description == null
+        task.source.empty
+        task.pmdClasspath == project.configurations.pmd
+        task.ruleSets == ["java-basic"]
+        task.ruleSetConfig == null
+        task.ruleSetFiles.empty
+        task.reports.xml.destination == project.file("build/reports/pmd/custom.xml")
+        task.reports.html.destination == project.file("build/reports/pmd/custom.html")
+        task.ignoreFailures == false
+        task.rulePriority == 5
+        task.cache == project.file("build/pmd-cache/pmdCustom.cache")
     }
 
     def "adds pmd tasks to check lifecycle task"() {
-	    project.pluginManager.apply(JavaBasePlugin)
-		    project.sourceSets {
-			    main
-				    test
-				    other
-		    }
+        project.pluginManager.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+            test
+            other
+        }
 
-expect:
-	    that(project.tasks['check'], dependsOn(hasItems("pmdMain", "pmdTest", "pmdOther")))
+        expect:
+        that(project.tasks['check'], dependsOn(hasItems("pmdMain", "pmdTest", "pmdOther")))
     }
 
     def "can customize settings via extension"() {
-	    project.pluginManager.apply(JavaBasePlugin)
-		    project.sourceSets {
-			    main
-				    test
-				    other
-		    }
+        project.pluginManager.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+            test
+            other
+        }
 
-	    project.pmd {
-		    sourceSets = [project.sourceSets.main]
-			    ruleSets = ["java-braces", "java-unusedcode"]
-			    ruleSetConfig = project.resources.text.fromString("ruleset contents")
-			    ruleSetFiles = project.files("my-ruleset.xml")
-			    reportsDir = project.file("pmd-reports")
-			    ignoreFailures = true
-			    rulePriority = 3
-	    }
+        project.pmd {
+            sourceSets = [project.sourceSets.main]
+            ruleSets = ["java-braces", "java-unusedcode"]
+            ruleSetConfig = project.resources.text.fromString("ruleset contents")
+            ruleSetFiles = project.files("my-ruleset.xml")
+            reportsDir = project.file("pmd-reports")
+            ignoreFailures = true
+            rulePriority = 3
+        }
 
-expect:
-	    hasCustomizedSettings("pmdMain", project.sourceSets.main)
-		    hasCustomizedSettings("pmdTest", project.sourceSets.test)
-		    hasCustomizedSettings("pmdOther", project.sourceSets.other)
-		    that(project.check, dependsOn(hasItem('pmdMain')))
-		    that(project.check, dependsOn(not(hasItems('pmdTest', 'pmdOther'))))
+        expect:
+        hasCustomizedSettings("pmdMain", project.sourceSets.main)
+        hasCustomizedSettings("pmdTest", project.sourceSets.test)
+        hasCustomizedSettings("pmdOther", project.sourceSets.other)
+        that(project.check, dependsOn(hasItem('pmdMain')))
+        that(project.check, dependsOn(not(hasItems('pmdTest', 'pmdOther'))))
     }
 
     private void hasCustomizedSettings(String taskName, SourceSet sourceSet) {
-	    def task = project.tasks.findByName(taskName)
-		    assert task instanceof Pmd
-		    task.with {
-			    assert description == "Run PMD analysis for ${sourceSet.name} classes"
-				    source as List == sourceSet.allJava as List
-				    assert pmdClasspath == project.configurations.pmd
-				    assert ruleSets == ["java-braces", "java-unusedcode"]
-				    assert ruleSetConfig.asString() == "ruleset contents"
-				    assert ruleSetFiles.singleFile == project.file("my-ruleset.xml")
-				    assert reports.xml.destination == project.file("pmd-reports/${sourceSet.name}.xml")
-				    assert reports.html.destination == project.file("pmd-reports/${sourceSet.name}.html")
-				    assert ignoreFailures == true
-				    assert rulePriority == 3
-		    }
+        def task = project.tasks.findByName(taskName)
+        assert task instanceof Pmd
+        task.with {
+            assert description == "Run PMD analysis for ${sourceSet.name} classes"
+            source as List == sourceSet.allJava as List
+            assert pmdClasspath == project.configurations.pmd
+            assert ruleSets == ["java-braces", "java-unusedcode"]
+            assert ruleSetConfig.asString() == "ruleset contents"
+            assert ruleSetFiles.singleFile == project.file("my-ruleset.xml")
+            assert reports.xml.destination == project.file("pmd-reports/${sourceSet.name}.xml")
+            assert reports.html.destination == project.file("pmd-reports/${sourceSet.name}.html")
+            assert ignoreFailures == true
+            assert rulePriority == 3
+        }
     }
 
     def "can customize any additional PMD tasks via extension"() {
-	    def task = project.tasks.create("pmdCustom", Pmd)
-		    project.pmd {
-			    ruleSets = ["java-braces", "java-unusedcode"]
-				    ruleSetConfig = project.resources.text.fromString("ruleset contents")
-				    ruleSetFiles = project.files("my-ruleset.xml")
-				    reportsDir = project.file("pmd-reports")
-				    ignoreFailures = true
-				    rulePriority = 3
-		    }
+        def task = project.tasks.create("pmdCustom", Pmd)
+        project.pmd {
+            ruleSets = ["java-braces", "java-unusedcode"]
+            ruleSetConfig = project.resources.text.fromString("ruleset contents")
+            ruleSetFiles = project.files("my-ruleset.xml")
+            reportsDir = project.file("pmd-reports")
+            ignoreFailures = true
+            rulePriority = 3
+        }
 
-expect:
-	    task.description == null
-		    task.source.empty
-		    task.pmdClasspath == project.configurations.pmd
-		    task.ruleSets == ["java-braces", "java-unusedcode"]
-		    task.ruleSetConfig.asString() == "ruleset contents"
-		    task.ruleSetFiles.singleFile == project.file("my-ruleset.xml")
-		    task.reports.xml.destination == project.file("pmd-reports/custom.xml")
-		    task.reports.html.destination == project.file("pmd-reports/custom.html")
-		    task.outputs.files.files == task.reports.enabled*.destination as Set
-		    task.ignoreFailures == true
-		    task.rulePriority == 3
+        expect:
+        task.description == null
+        task.source.empty
+        task.pmdClasspath == project.configurations.pmd
+        task.ruleSets == ["java-braces", "java-unusedcode"]
+        task.ruleSetConfig.asString() == "ruleset contents"
+        task.ruleSetFiles.singleFile == project.file("my-ruleset.xml")
+        task.reports.xml.destination == project.file("pmd-reports/custom.xml")
+        task.reports.html.destination == project.file("pmd-reports/custom.html")
+        task.outputs.files.files == task.reports.enabled*.destination as Set
+        task.ignoreFailures == true
+        task.rulePriority == 3
     }
 
     def "configures pmd classpath based on sourcesets"() {
-	    project.pluginManager.apply(JavaBasePlugin)
-		    project.sourceSets {
-			    main
-		    }
-	    def mainSourceSet = project.sourceSets.main
-		    def pmdTask = project.tasks.getByName("pmdMain")
-		    expect:
-		    pmdTask.classpath.files == (mainSourceSet.output + mainSourceSet.compileClasspath).files
+        project.pluginManager.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+        }
+        def mainSourceSet = project.sourceSets.main
+        def pmdTask = project.tasks.getByName("pmdMain")
+        expect:
+        pmdTask.classpath.files == (mainSourceSet.output + mainSourceSet.compileClasspath).files
     }
 }
