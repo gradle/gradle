@@ -57,12 +57,12 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             }
 
         val gradleSources = gradleSourcesFor(scriptClassPath.bin, targetProject)
-        val kotlinLibSources = kotlinLibSourcesFor(targetProject)
+        val classpathSources = sourcePathFor(targetProject)
         val implicitImports = implicitImportsOf(targetProject)
 
         return StandardKotlinBuildScriptModel(
             scriptClassPath.bin.asFiles,
-            (scriptClassPath.src + gradleSources + kotlinLibSources).asFiles,
+            (scriptClassPath.src + gradleSources + classpathSources).asFiles,
             implicitImports)
     }
 
