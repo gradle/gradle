@@ -21,7 +21,7 @@ open class AbstractIntegrationTest {
     @Rule val testName = TestName()
 
     @JvmField
-    @Rule val temporaryFolder = TemporaryFolder(integrationTestTemporaryRoot())
+    @Rule val temporaryFolder = TemporaryFolder()
 
     protected
     val projectRoot: File
@@ -171,7 +171,3 @@ fun setOrClearProperty(key: String, value: String?) {
         else -> System.setProperty(key, value)
     }
 }
-
-private
-fun integrationTestTemporaryRoot() =
-    File("build/tmp/integ test").apply { mkdirs() }
