@@ -6,6 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginConvention
 
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.testing.Test
 
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
@@ -42,6 +43,13 @@ open class GskModule : Plugin<Project> {
                         }
                     }
                 }
+            }
+
+            // sets the Gradle Test Kit user home into custom installation build dir
+            tasks.withType(Test::class.java) { testTask ->
+                testTask.systemProperty(
+                    "org.gradle.testkit.dir",
+                    "${rootProject.buildDir}/custom/test-kit-user-home")
             }
         }
     }
