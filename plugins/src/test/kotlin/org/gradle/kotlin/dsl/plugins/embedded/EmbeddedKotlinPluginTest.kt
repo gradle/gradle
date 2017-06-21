@@ -76,7 +76,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             }
 
             dependencies {
-                ${dependencyDeclarationsFor(listOf("compiler-embeddable"))}
+                ${dependencyDeclarationsFor("compile", listOf("compiler-embeddable"))}
             }
 
             println(repositories.map { it.name })
@@ -108,7 +108,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             }
 
             dependencies {
-                ${dependencyDeclarationsFor(listOf("stdlib", "reflect"))}
+                ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect"))}
             }
 
             configurations["compileClasspath"].files.map { println(it) }
@@ -150,8 +150,8 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             }
 
             dependencies {
-                ${dependencyDeclarationsFor(listOf("stdlib", "reflect", "compiler-embeddable"), "1.1.1")}
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.15")
+                ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect", "compiler-embeddable"), "1.1.1")}
+                compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.15")
             }
 
             configurations["compileClasspath"].files.map { println(it) }
@@ -166,10 +166,64 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
         }
     }
 
+    @Test
+    fun `can add embedded dependencies to custom configuration`() {
+
+        withBuildScript("""
+
+            plugins {
+                `embedded-kotlin`
+            }
+
+            val customConfiguration by configurations.creating
+            customConfiguration.extendsFrom(configurations["embeddedKotlin"])
+
+            configurations["customConfiguration"].files.map { println(it) }
+        """)
+
+        val result = buildWithPlugin("dependencies", "--configuration", "customConfiguration")
+
+        listOf("stdlib", "reflect").forEach {
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$it:$embeddedKotlinVersion"))
+            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
+        }
+    }
+
+    @Test
+    fun `embedded kotlin dependencies are pinned on custom configurations too`() {
+        withBuildScript("""
+
+            plugins {
+                `embedded-kotlin`
+            }
+
+            val customConfiguration by configurations.creating
+            customConfiguration.extendsFrom(configurations["embeddedKotlin"])
+
+            dependencies {
+                ${dependencyDeclarationsFor("customConfiguration", listOf("stdlib", "reflect", "compiler-embeddable"), "1.1.1")}
+                customConfiguration("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.15")
+            }
+
+            repositories {
+                jcenter()
+            }
+
+            configurations["customConfiguration"].files.map { println(it) }
+        """)
+
+        val result = buildWithPlugin("dependencies", "--configuration", "customConfiguration")
+
+        listOf("stdlib", "reflect", "compiler-embeddable").forEach {
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$it:1.1.1 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
+        }
+    }
+
     private
-    fun dependencyDeclarationsFor(modules: List<String>, version: String? = null) =
+    fun dependencyDeclarationsFor(configuration: String, modules: List<String>, version: String? = null) =
         modules.map {
-            "compile(\"org.jetbrains.kotlin:kotlin-$it:${version ?: embeddedKotlinVersion}\")"
+            "$configuration(\"org.jetbrains.kotlin:kotlin-$it:${version ?: embeddedKotlinVersion}\")"
         }.joinToString("\n")
 }
 

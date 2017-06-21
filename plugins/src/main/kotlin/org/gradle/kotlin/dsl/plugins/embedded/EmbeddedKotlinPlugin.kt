@@ -43,7 +43,12 @@ open class EmbeddedKotlinPlugin @Inject internal constructor(
 
             embeddedKotlin.addRepositoryTo(repositories)
 
-            embeddedKotlin.addDependenciesTo(dependencies, "compile", "stdlib", "reflect")
+            val embeddedKotlinConfiguration = configurations.create("embeddedKotlin")
+            embeddedKotlin.addDependenciesTo(
+                dependencies,
+                embeddedKotlinConfiguration.name,
+                "stdlib", "reflect")
+            configurations.getByName("compile").extendsFrom(embeddedKotlinConfiguration)
 
             configurations.all {
                 embeddedKotlin.pinDependenciesOn(it, "stdlib", "reflect", "compiler-embeddable")
