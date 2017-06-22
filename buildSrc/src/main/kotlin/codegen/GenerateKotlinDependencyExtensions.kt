@@ -86,7 +86,9 @@ fun DependencyHandler.kotlinModule(module: String, version: String? = null): Any
 
 
 /**
- * Builds the plugin dependency specification for the named Kotlin Gradle plugin [module] at the given [version].
+ * Applies the given Kotlin plugin [module] at the (optional) given [version] ([embeddedKotlinVersion] by default).
+ *
+ * For example: `plugins { kotlin("jvm") }`
  *
  * Visit the [plugin portal](https://plugins.gradle.org/search?term=org.jetbrains.kotlin) to see the list of available plugins.
  *
