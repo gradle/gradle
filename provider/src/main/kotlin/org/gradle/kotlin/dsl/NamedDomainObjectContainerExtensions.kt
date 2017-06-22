@@ -24,6 +24,16 @@ import kotlin.reflect.KProperty
 
 
 /**
+ * Idiomatic way of referring to an existing element in a collection
+ * via a delegate property.
+ *
+ * `tasks { val jar by getting }`
+ */
+inline
+val <T : Any, U : NamedDomainObjectContainer<out T>> U.getting get() = this
+
+
+/**
  * Allows the container to be configured, creating missing objects as they are referenced.
  *
  * @param configuration The expression to configure this container with
@@ -42,6 +52,14 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
  */
 class NamedDomainObjectContainerScope<T : Any>(
     private val container: NamedDomainObjectContainer<T>) : NamedDomainObjectContainer<T> by container {
+
+    /**
+     * Idiomatic way of referring to an existing element in this container
+     * via a delegate property.
+     *
+     * `tasks { val jar by getting }`
+     */
+    val getting get() = container
 
     /**
      * @see NamedDomainObjectContainer.maybeCreate

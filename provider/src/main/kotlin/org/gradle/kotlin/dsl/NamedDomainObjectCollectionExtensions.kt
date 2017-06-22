@@ -21,6 +21,16 @@ import org.gradle.api.UnknownDomainObjectException
 
 import kotlin.reflect.KProperty
 
+/**
+ * Idiomatic way of referring to an existing element in a collection
+ * via a delegate property.
+ *
+ * `tasks { val jar by getting }`
+ */
+inline
+val <T : Any, U : NamedDomainObjectCollection<out T>> U.getting get() = this
+
+
 
 /**
  * Locates an object by name, failing if there is no such object.

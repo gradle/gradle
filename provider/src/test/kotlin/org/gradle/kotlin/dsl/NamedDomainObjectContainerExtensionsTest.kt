@@ -8,6 +8,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskContainer
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -189,6 +190,20 @@ class NamedDomainObjectContainerExtensionsTest {
             val hello by creating
         }
         verify(tasks).create("hello")
+    }
+
+    @Test
+    fun `can get element of specific type within configuration block via delegated property`() {
+        val tasks = mock<TaskContainer> {
+            on { getByName("hello") } doReturn mock<JavaExec>()
+        }
+
+        @Suppress("unused_variable")
+        tasks {
+            val hello: JavaExec by getting
+            val ref = hello // forces the element to be accessed
+        }
+        verify(tasks).getByName("hello")
     }
 
     @Test

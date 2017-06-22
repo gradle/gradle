@@ -4,6 +4,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 
 import org.gradle.api.NamedDomainObjectCollection
+
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.matches
 
@@ -47,6 +48,23 @@ class NamedDomainObjectCollectionExtensionsTest {
         assertThat(
             domainObject,
             sameInstance(element))
+    }
+
+    @Test
+    fun `can access existing element by getting`() {
+
+        val element = DomainObject()
+        val container = mock<NamedDomainObjectCollection<DomainObject>> {
+            on { getByName("domainObject") } doReturn element
+        }
+
+        container.apply {
+            val domainObject by getting
+
+            assertThat(
+                domainObject,
+                sameInstance(element))
+        }
     }
 
     @Test
