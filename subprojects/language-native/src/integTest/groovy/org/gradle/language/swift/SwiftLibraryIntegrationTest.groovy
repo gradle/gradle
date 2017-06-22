@@ -80,31 +80,29 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "can compile and link against another library"() {
-        settingsFile << "include 'lib1', 'lib2'"
+        settingsFile << "include 'Hello', 'Greeting'"
         def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
 
         given:
         buildFile << """
-            project(':lib1') {
+            project(':Hello') {
                 apply plugin: 'swift-library'
                 dependencies {
-                    implementation project(':lib2')
+                    implementation project(':Greeting')
                 }
-                tasks.withType(SwiftCompile)*.moduleName = 'Hello'
             }
-            project(':lib2') {
+            project(':Greeting') {
                 apply plugin: 'swift-library'
-                tasks.withType(SwiftCompile)*.moduleName = 'Greeting'
             }
 """
-        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/swift/$it.name")) }
-        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/swift/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("Hello/src/main/swift/$it.name")) }
+        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("Greeting/src/main/swift/$it.name")) }
 
         expect:
-        succeeds ":lib1:assemble"
-        result.assertTasksExecuted(":lib2:compileSwift", ":lib1:compileSwift", ":lib1:assemble")
-        sharedLibrary("lib1/build/lib/lib1").assertExists()
-        sharedLibrary("lib2/build/lib/lib2").assertExists()
+        succeeds ":Hello:assemble"
+        result.assertTasksExecuted(":Greeting:compileSwift", ":Hello:compileSwift", ":Hello:assemble")
+        sharedLibrary("Hello/build/lib/Hello").assertExists()
+        sharedLibrary("Greeting/build/lib/Greeting").assertExists()
     }
 
 }
