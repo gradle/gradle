@@ -110,11 +110,20 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         }
 
         void flushLineText() {
+            // Left over data from previous append is only possible when a multi-chars new line is
+            // been processed and split across multiple append calls.
             if (start < pos) {
-                if (start < 0) {
-                    doLineText(eol.substring(0, AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol) + text.substring(0, seenCharsFromEol - AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol));
-                } else {
-                    doLineText(text.substring(start, pos));
+                String data = "";
+                // Flushing data split across previous and current appending
+                if (start < 0 && pos >= 0) {
+                    data = eol.substring(0, Math.abs(start)) + text.substring(0, pos);
+                // Flushing data coming only from current appending
+                } else if (start >= 0) {
+                    data = text.substring(start, pos);
+                }
+
+                if (!data.isEmpty()) {
+                    doLineText(data);
                 }
             }
         }
@@ -188,8 +197,8 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
             } else if (context.isCurrentCharEquals('\r')) {
                 context.next();
             } else {
+                context.next();
                 context.seenCharsFromEol = 0;
-                context.next(2);
                 context.setState(INITIAL_STATE);
             }
         }

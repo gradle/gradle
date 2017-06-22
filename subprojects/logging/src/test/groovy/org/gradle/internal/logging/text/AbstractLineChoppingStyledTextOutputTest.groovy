@@ -161,6 +161,30 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "[\r]{eol}{start}[a]"
     }
 
+    def "can append data after a carriage return on Windows"() {
+        System.setProperty("line.separator", "\r\n")
+        def output = output()
+
+        when:
+        output.text('\r')
+        output.text('a')
+
+        then:
+        result.toString() == "[\ra]"
+    }
+
+    def "can append new line after multiple carriage return followed by data on Windows"() {
+        System.setProperty("line.separator", "\r\n")
+        def output = output()
+
+        when:
+        output.text('\r\r\r')
+        output.text('\r\r\r\na')
+
+        then:
+        result.toString() == "[\r\r][\r\r\r]{eol}{start}[a]"
+    }
+
     def "can split eol across style changes"() {
         System.setProperty("line.separator", "----")
         def output = output()
