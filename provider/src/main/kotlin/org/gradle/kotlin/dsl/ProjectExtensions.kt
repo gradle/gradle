@@ -50,6 +50,16 @@ import kotlin.reflect.KProperty
 
 
 /**
+ * Sets the the default tasks of this project. These are used when no tasks names are provided when
+ * starting the build.
+ */
+inline
+fun Project.defaultTasks(vararg tasks: Task) {
+    defaultTasks(*tasks.map { it.name }.toTypedArray())
+}
+
+
+/**
  * Applies zero or more plugins or scripts.
  *
  * @param block code to configure an [ObjectConfigurationAction] before executing it
