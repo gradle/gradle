@@ -256,7 +256,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.delete()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withRemovedFile(inputFile)
     }
 
     def artifactsAreNotUpToDateWhenAnyInputFileDidNotExistAndNowDoes() {
@@ -268,7 +268,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.createNewFile()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withAddedFile(inputFile)
     }
 
     def artifactsAreNotUpToDateWhenAnyFileCreatedInInputDir() {
