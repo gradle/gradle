@@ -33,7 +33,7 @@ import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.includedbuild.internal.IncludedBuildControllers
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -330,8 +330,8 @@ class DefaultGradleLauncherSpec extends Specification {
         1 * buildExecuter.execute(gradleMock) >> { throw failure }
     }
 
-    ParallelExecutionManager parallelExecutionManager() {
-        return Stub(ParallelExecutionManager) {
+    ParallelismConfigurationManager parallelExecutionManager() {
+        return Stub(ParallelismConfigurationManager) {
             getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
         }
     }

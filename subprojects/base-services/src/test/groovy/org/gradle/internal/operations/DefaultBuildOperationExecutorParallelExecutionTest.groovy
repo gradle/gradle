@@ -21,7 +21,7 @@ import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.progress.BuildOperationDescriptor
@@ -47,7 +47,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     ExecutorFactory executorFactory = new DefaultExecutorFactory()
 
     def setupBuildOperationExecutor(int maxThreads) {
-        ParallelExecutionManager parallelExecutionManager = parallelism(maxThreads)
+        ParallelismConfigurationManager parallelExecutionManager = parallelism(maxThreads)
         workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), parallelExecutionManager)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
@@ -62,7 +62,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     }
 
     def parallelism(int maxThreads) {
-        return Mock(ParallelExecutionManager) {
+        return Mock(ParallelismConfigurationManager) {
             _ * getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, maxThreads)
         }
     }

@@ -18,7 +18,7 @@ package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
 import org.gradle.initialization.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -67,8 +67,8 @@ class DefaultBuildOperationQueueTest extends Specification {
         operationQueue = new DefaultBuildOperationQueue(workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())
     }
 
-    ParallelExecutionManager parallelism(int maxWorkers) {
-        return Stub(ParallelExecutionManager) {
+    ParallelismConfigurationManager parallelism(int maxWorkers) {
+        return Stub(ParallelismConfigurationManager) {
             getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, maxWorkers)
         }
     }

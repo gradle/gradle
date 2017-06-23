@@ -19,7 +19,7 @@ package org.gradle.execution.taskgraph
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
@@ -42,8 +42,8 @@ public class TaskPlanExecutorFactoryTest extends Specification {
         factory.create().class == DefaultTaskPlanExecutor
     }
 
-    ParallelExecutionManager parallelism(boolean parallelEnabled, int maxWorkers) {
-        return Stub(ParallelExecutionManager) {
+    ParallelismConfigurationManager parallelism(boolean parallelEnabled, int maxWorkers) {
+        return Stub(ParallelismConfigurationManager) {
             getParallelismConfiguration() >> new DefaultParallelismConfiguration(parallelEnabled, maxWorkers)
         }
     }

@@ -17,7 +17,7 @@
 package org.gradle.internal.work
 
 import org.gradle.initialization.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.progress.BuildOperationState
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -348,8 +348,8 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         }
     }
 
-    ParallelExecutionManager parallelExecutionManager() {
-        return Stub(ParallelExecutionManager) {
+    ParallelismConfigurationManager parallelExecutionManager() {
+        return Stub(ParallelismConfigurationManager) {
             getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
         }
     }

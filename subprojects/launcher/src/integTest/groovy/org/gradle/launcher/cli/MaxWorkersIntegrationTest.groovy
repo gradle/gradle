@@ -17,7 +17,7 @@
 package org.gradle.launcher.cli
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
@@ -28,7 +28,7 @@ import org.gradle.internal.work.WorkerLeaseService
 class MaxWorkersIntegrationTest extends AbstractIntegrationSpec {
     def "max workers is honored when it changes between invocations"() {
         buildFile << """
-            import ${ParallelExecutionManager.class.name}
+            import ${ParallelismConfigurationManager.class.name}
             import ${WorkerLeaseService.class.name}
             import ${BuildOperationExecutor.class.name}
             import ${RunnableBuildOperation.class.name}
@@ -43,7 +43,7 @@ class MaxWorkersIntegrationTest extends AbstractIntegrationSpec {
                         doLast {
                             def count = (taskName - "verifyMaxWorkers") as int
                             def latch = new CountDownLatch(count)
-                            assert task.services.get(ParallelExecutionManager).parallelismConfiguration.maxWorkerCount == count
+                            assert task.services.get(ParallelismConfigurationManager).parallelismConfiguration.maxWorkerCount == count
                             assert task.services.get(WorkerLeaseService).maxWorkerCount == count
                             task.services.get(BuildOperationExecutor).runAll { queue ->
                                 count.times { i ->

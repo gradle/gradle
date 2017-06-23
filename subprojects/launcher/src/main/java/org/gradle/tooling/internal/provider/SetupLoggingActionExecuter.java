@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
 import org.gradle.internal.invocation.BuildAction;
@@ -33,12 +33,12 @@ import org.gradle.launcher.exec.BuildExecuter;
 public class SetupLoggingActionExecuter implements BuildExecuter {
     private final BuildExecuter delegate;
     private final LoggingManagerInternal loggingManager;
-    private final ParallelExecutionManager parallelExecutionManager;
+    private final ParallelismConfigurationManager parallelismConfigurationManager;
 
-    public SetupLoggingActionExecuter(BuildExecuter delegate, LoggingManagerInternal loggingManager, ParallelExecutionManager parallelExecutionManager) {
+    public SetupLoggingActionExecuter(BuildExecuter delegate, LoggingManagerInternal loggingManager, ParallelismConfigurationManager parallelismConfigurationManager) {
         this.delegate = delegate;
         this.loggingManager = loggingManager;
-        this.parallelExecutionManager = parallelExecutionManager;
+        this.parallelismConfigurationManager = parallelismConfigurationManager;
     }
 
     @Override
@@ -52,13 +52,13 @@ public class SetupLoggingActionExecuter implements BuildExecuter {
                 setupLogging(parallelismConfiguration);
             }
         };
-        parallelExecutionManager.addListener(listener);
+        parallelismConfigurationManager.addListener(listener);
         loggingManager.start();
         try {
             return delegate.execute(action, requestContext, actionParameters, contextServices);
         } finally {
             loggingManager.stop();
-            parallelExecutionManager.removeListener(listener);
+            parallelismConfigurationManager.removeListener(listener);
         }
     }
 

@@ -18,7 +18,7 @@ package org.gradle.internal.operations
 
 import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
@@ -157,8 +157,8 @@ class MaxWorkersTest extends ConcurrentSpec {
         return new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), parallelism(maxWorkers))
     }
 
-    ParallelExecutionManager parallelism(int maxWorkers) {
-        return Stub(ParallelExecutionManager) {
+    ParallelismConfigurationManager parallelism(int maxWorkers) {
+        return Stub(ParallelismConfigurationManager) {
             getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, maxWorkers)
         }
     }

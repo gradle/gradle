@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultParallelismConfiguration;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
@@ -28,21 +28,21 @@ import org.gradle.launcher.exec.BuildExecuter;
 
 public class ParallelismConfigurationBuildActionExecuter implements BuildExecuter {
     private final BuildActionExecuter<BuildActionParameters> delegate;
-    private final ParallelExecutionManager parallelExecutionManager;
+    private final ParallelismConfigurationManager parallelismConfigurationManager;
 
-    public ParallelismConfigurationBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ParallelExecutionManager parallelExecutionManager) {
+    public ParallelismConfigurationBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ParallelismConfigurationManager parallelismConfigurationManager) {
         this.delegate = delegate;
-        this.parallelExecutionManager = parallelExecutionManager;
+        this.parallelismConfigurationManager = parallelismConfigurationManager;
     }
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
-        parallelExecutionManager.setParallelismConfiguration(new DefaultParallelismConfiguration(startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount()));
+        parallelismConfigurationManager.setParallelismConfiguration(new DefaultParallelismConfiguration(startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount()));
         try {
             return delegate.execute(action, requestContext, actionParameters, contextServices);
         } finally {
-            parallelExecutionManager.setParallelismConfiguration(DefaultParallelismConfiguration.DEFAULT);
+            parallelismConfigurationManager.setParallelismConfiguration(DefaultParallelismConfiguration.DEFAULT);
         }
     }
 }

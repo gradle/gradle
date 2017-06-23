@@ -63,7 +63,7 @@ import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
@@ -179,8 +179,8 @@ public class TaskExecutionServices {
     }
 
 
-    TaskPlanExecutor createTaskExecutorFactory(ParallelExecutionManager parallelExecutionManager, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
-        return new TaskPlanExecutorFactory(parallelExecutionManager, executorFactory, workerLeaseService).create();
+    TaskPlanExecutor createTaskExecutorFactory(ParallelismConfigurationManager parallelismConfigurationManager, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+        return new TaskPlanExecutorFactory(parallelismConfigurationManager, executorFactory, workerLeaseService).create();
     }
 
 }

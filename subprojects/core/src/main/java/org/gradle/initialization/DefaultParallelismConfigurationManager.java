@@ -16,17 +16,17 @@
 
 package org.gradle.initialization;
 
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
 import org.gradle.internal.event.ListenerManager;
 
-public class DefaultParallelExecutionManager implements ParallelExecutionManager {
+public class DefaultParallelismConfigurationManager implements ParallelismConfigurationManager {
     private final ListenerManager listenerManager;
     private final ParallelismConfigurationListener broadcaster;
     private ParallelismConfiguration parallelismConfiguration = DefaultParallelismConfiguration.DEFAULT;
 
-    public DefaultParallelExecutionManager(ListenerManager listenerManager) {
+    public DefaultParallelismConfigurationManager(ListenerManager listenerManager) {
         this.listenerManager = listenerManager;
         this.broadcaster = listenerManager.getBroadcaster(ParallelismConfigurationListener.class);
     }
