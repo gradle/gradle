@@ -121,8 +121,12 @@ public enum PropertyAccessorType {
         return method.getParameterTypes().length == 1;
     }
 
-    public static boolean takesParameterOfTypeObject(Method method) {
-        return method.getParameterTypes()[0] == Object.class;
+    public static boolean takesParameterOfTypeObjectOrIterable(Method method) {
+        if (method.getParameterTypes().length == 1) {
+            Class<?> parameterType = method.getParameterTypes()[0];
+            return parameterType == Object.class || parameterType == Iterable.class;
+        }
+        return false;
     }
 
     private static boolean isGetGetterName(String methodName) {

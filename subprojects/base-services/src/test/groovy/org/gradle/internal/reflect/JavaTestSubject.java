@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import java.util.Set;
+
 @SuppressWarnings("UnusedDeclaration")
 public class JavaTestSubject {
 
@@ -119,4 +121,8 @@ public class JavaTestSubject {
 
     private void setPrivateProperty(String value) {
     }
+
+    public void setMultiValue(Set<String> values) { }
+
+    public void setMultiValue(Iterable<?> values) { }
 }

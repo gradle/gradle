@@ -31,10 +31,10 @@ class JavaReflectionUtilTest extends Specification {
 
     def "property names"() {
         expect:
-        propertyNames(new JavaTestSubject()) == ['myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'protectedProperty', 'writeOnly'] as Set
+        propertyNames(new JavaTestSubject()) == ['myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'protectedProperty', 'writeOnly', 'multiValue'] as Set
 
         and:
-        propertyNames(new JavaTestSubjectSubclass()) == ['myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'protectedProperty', 'writeOnly', 'subclassBoolean'] as Set
+        propertyNames(new JavaTestSubjectSubclass()) == ['myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'protectedProperty', 'writeOnly', 'multiValue', 'subclassBoolean'] as Set
 
         and:
         propertyNames(new WithProperties()) == ['metaClass', 'prop1', 'prop2', 'something', 'somethingElse', 'writeOnly'] as Set
@@ -74,6 +74,14 @@ class JavaReflectionUtilTest extends Specification {
 
         then:
         property.type == Object.class
+    }
+
+    def "picks the generic iterable setter over the typed setter if two setters are available"() {
+        when:
+        def property = writeableProperty(JavaTestSubject, "multiValue")
+
+        then:
+        property.type == Iterable.class
     }
 
     def "read boolean property"() {

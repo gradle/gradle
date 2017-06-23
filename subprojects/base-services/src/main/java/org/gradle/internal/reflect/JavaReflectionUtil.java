@@ -127,7 +127,7 @@ public class JavaReflectionUtil {
             if (!method.getName().equals(setterName) || PropertyAccessorType.of(method) != PropertyAccessorType.SETTER) {
                 continue;
             }
-            if (PropertyAccessorType.takesParameterOfTypeObject(method)) {
+            if (PropertyAccessorType.takesParameterOfTypeObjectOrIterable(method)) {
                 return new MethodBackedPropertyMutator(property, method);
             }
             typedSetter = method;
