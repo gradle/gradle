@@ -428,13 +428,13 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         1 * executorFactory.create(_, 2) >> managedExecutor
 
         when:
-        buildOperationExecutor.onConfigurationChange(new DefaultParallelismConfiguration(true, 3))
+        buildOperationExecutor.onParallelismConfigurationChange(new DefaultParallelismConfiguration(true, 3))
 
         then:
         1 * managedExecutor.setFixedPoolSize(3)
 
         when:
-        buildOperationExecutor.onConfigurationChange(new DefaultParallelismConfiguration(false, 1))
+        buildOperationExecutor.onParallelismConfigurationChange(new DefaultParallelismConfiguration(false, 1))
 
         then:
         1 * managedExecutor.setFixedPoolSize(1)

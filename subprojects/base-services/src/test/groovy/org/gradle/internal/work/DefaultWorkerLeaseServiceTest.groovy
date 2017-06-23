@@ -174,13 +174,13 @@ class DefaultWorkerLeaseServiceTest extends Specification {
 
     def "adjusts max worker count on parallelism configuration change"() {
         when:
-        workerLeaseService.onConfigurationChange(new DefaultParallelismConfiguration(true, 2))
+        workerLeaseService.onParallelismConfigurationChange(new DefaultParallelismConfiguration(true, 2))
 
         then:
         workerLeaseService.getMaxWorkerCount() == 2
 
         when:
-        workerLeaseService.onConfigurationChange(new DefaultParallelismConfiguration(false, 4))
+        workerLeaseService.onParallelismConfigurationChange(new DefaultParallelismConfiguration(false, 4))
 
         then:
         workerLeaseService.getMaxWorkerCount() == 4

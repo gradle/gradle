@@ -34,7 +34,7 @@ class DefaultParallelismConfigurationManagerTest extends Specification {
         parallelExecutionManager.setParallelismConfiguration(configuration)
 
         then:
-        1 * broadcaster.onConfigurationChange(configuration)
+        1 * broadcaster.onParallelismConfigurationChange(configuration)
     }
 
     def "registers/deregisters listeners with listener manager"() {

@@ -48,7 +48,7 @@ public class SetupLoggingActionExecuter implements BuildExecuter {
         setupLogging(startParameter);
         ParallelismConfigurationListener listener = new ParallelismConfigurationListener() {
             @Override
-            public void onConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
+            public void onParallelismConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
                 setupLogging(parallelismConfiguration);
             }
         };

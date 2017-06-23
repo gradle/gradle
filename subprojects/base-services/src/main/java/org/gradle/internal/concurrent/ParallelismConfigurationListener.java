@@ -25,5 +25,5 @@ public interface ParallelismConfigurationListener {
      *
      * @param parallelismConfiguration - the new parallelism configuration
      */
-    void onConfigurationChange(ParallelismConfiguration parallelismConfiguration);
+    void onParallelismConfigurationChange(ParallelismConfiguration parallelismConfiguration);
 }

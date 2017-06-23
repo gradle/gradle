@@ -88,7 +88,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     @Override
-    public void onConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
+    public void onParallelismConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
         fixedSizePool.setFixedPoolSize(parallelismConfiguration.getMaxWorkerCount());
     }
 

@@ -39,7 +39,7 @@ public class DefaultParallelismConfigurationManager implements ParallelismConfig
     @Override
     public void setParallelismConfiguration(ParallelismConfiguration parallelismConfiguration) {
         this.parallelismConfiguration = parallelismConfiguration;
-        broadcaster.onConfigurationChange(parallelismConfiguration);
+        broadcaster.onParallelismConfigurationChange(parallelismConfiguration);
     }
 
     @Override
