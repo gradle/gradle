@@ -23,7 +23,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
@@ -55,15 +55,15 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     private final ResourceLockCoordinationService coordinationService;
     private final ProjectLockRegistry projectLockRegistry;
     private final WorkerLeaseLockRegistry workerLeaseLockRegistry;
-    private final ParallelExecutionManager parallelExecutionManager;
+    private final ParallelismConfigurationManager parallelismConfigurationManager;
 
-    public DefaultWorkerLeaseService(ResourceLockCoordinationService coordinationService, ParallelExecutionManager parallelExecutionManager) {
-        this.maxWorkerCount = parallelExecutionManager.getParallelismConfiguration().getMaxWorkerCount();
+    public DefaultWorkerLeaseService(ResourceLockCoordinationService coordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
+        this.maxWorkerCount = parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount();
         this.coordinationService = coordinationService;
-        this.projectLockRegistry = new ProjectLockRegistry(coordinationService, parallelExecutionManager.getParallelismConfiguration().isParallelProjectExecutionEnabled());
+        this.projectLockRegistry = new ProjectLockRegistry(coordinationService, parallelismConfigurationManager.getParallelismConfiguration().isParallelProjectExecutionEnabled());
         this.workerLeaseLockRegistry = new WorkerLeaseLockRegistry(coordinationService);
-        this.parallelExecutionManager = parallelExecutionManager;
-        parallelExecutionManager.addListener(this);
+        this.parallelismConfigurationManager = parallelismConfigurationManager;
+        parallelismConfigurationManager.addListener(this);
         LOGGER.info("Using {} worker leases.", maxWorkerCount);
     }
 
@@ -102,7 +102,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
 
     @Override
     public void stop() {
-        parallelExecutionManager.removeListener(this);
+        parallelismConfigurationManager.removeListener(this);
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {

@@ -36,7 +36,7 @@ import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.Factories
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -606,8 +606,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         return mock
     }
 
-    ParallelExecutionManager parallelExecutionManager() {
-        return Stub(ParallelExecutionManager) {
+    ParallelismConfigurationManager parallelExecutionManager() {
+        return Stub(ParallelismConfigurationManager) {
             getParallelismConfiguration() >> parallelismConfiguration
         }
     }

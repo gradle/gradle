@@ -20,7 +20,7 @@ import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.api.Action
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.GradleThread
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationQueueFactory
 import org.gradle.internal.operations.CallableBuildOperation
@@ -671,8 +671,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         void run(BuildOperationContext buildOperationContext) {}
     }
 
-    ParallelExecutionManager parallelExecutionManager() {
-        return Stub(ParallelExecutionManager) {
+    ParallelismConfigurationManager parallelExecutionManager() {
+        return Stub(ParallelismConfigurationManager) {
             getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
         }
     }

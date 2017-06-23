@@ -18,7 +18,7 @@ package org.gradle.internal.work
 
 import org.gradle.api.Transformer
 import org.gradle.initialization.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
@@ -304,17 +304,17 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         return held.get()
     }
 
-    ParallelExecutionManager parallel(boolean parallelEnabled) {
-        return Stub(ParallelExecutionManager) {
+    ParallelismConfigurationManager parallel(boolean parallelEnabled) {
+        return Stub(ParallelismConfigurationManager) {
             getParallelismConfiguration() >> new DefaultParallelismConfiguration(parallelEnabled, 1)
         }
     }
 
-    ParallelExecutionManager notParallel() {
+    ParallelismConfigurationManager notParallel() {
         return parallel(false)
     }
 
-    ParallelExecutionManager parallel() {
+    ParallelismConfigurationManager parallel() {
         return parallel(true)
     }
 }

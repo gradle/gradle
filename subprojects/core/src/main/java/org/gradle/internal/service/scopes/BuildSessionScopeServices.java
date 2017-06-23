@@ -57,7 +57,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
@@ -135,7 +135,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         WorkerLeaseService workerLeaseService,
         ExecutorFactory executorFactory,
         ResourceLockCoordinationService resourceLockCoordinationService,
-        ParallelExecutionManager parallelExecutionManager,
+        ParallelismConfigurationManager parallelismConfigurationManager,
         @SuppressWarnings("unused") BuildOperationTrace buildOperationTrace // required in order to init this
     ) {
         return new DefaultBuildOperationExecutor(
@@ -144,7 +144,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
             resourceLockCoordinationService,
-            parallelExecutionManager
+            parallelismConfigurationManager
         );
     }
 
@@ -212,8 +212,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultAsyncWorkTracker(projectLeaseRegistry);
     }
 
-    WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService coordinationService, ParallelExecutionManager parallelExecutionManager) {
-        return new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager);
+    WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService coordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
+        return new DefaultWorkerLeaseService(coordinationService, parallelismConfigurationManager);
     }
 
     UserScopeId createUserScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {
