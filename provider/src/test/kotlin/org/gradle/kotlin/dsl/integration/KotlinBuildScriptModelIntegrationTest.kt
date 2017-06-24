@@ -227,7 +227,9 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         assertSourcePathGiven(
             rootProjectScript,
             subProjectScript,
-            hasItems("kotlin-gradle-plugin-$embeddedKotlinVersion-sources.jar"))
+            hasItems(
+                equalTo("kotlin-gradle-plugin-$embeddedKotlinVersion-sources.jar"),
+                matching("commons-io-[0-9.]+-sources\\.jar")))
     }
 
     private
