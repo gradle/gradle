@@ -90,7 +90,9 @@ private
 fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassPath, outputDir: File) {
     val sourceFile = File(accessorsSourceDir(outputDir), "org/gradle/kotlin/dsl/accessors.kt")
     writeAccessorsTo(sourceFile, projectSchema)
-    compileToJar(accessorsJar(outputDir), listOf(sourceFile), logger, classPath.asFiles)
+    require(compileToJar(accessorsJar(outputDir), listOf(sourceFile), logger, classPath.asFiles), {
+        "Failed to compile accessors\n\tprojectSchema: $projectSchema\n\tclassPath: $classPath"
+    })
 }
 
 private
