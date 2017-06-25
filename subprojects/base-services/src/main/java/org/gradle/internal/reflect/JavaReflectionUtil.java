@@ -19,7 +19,6 @@ package org.gradle.internal.reflect;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 
@@ -321,10 +320,6 @@ public class JavaReflectionUtil {
         }
     }
 
-    public static <T> Factory<T> factory(final Instantiator instantiator, final Class<? extends T> type, final Object... args) {
-        return new InstantiatingFactory<T>(instantiator, type, args);
-    }
-
     public static boolean hasDefaultToString(Object object) {
         try {
             return object.getClass().getMethod("toString").getDeclaringClass() == Object.class;
@@ -338,7 +333,7 @@ public class JavaReflectionUtil {
         private final Method method;
         private final Class<F> returnType;
 
-        public GetterMethodBackedPropertyAccessor(String property, Class<F> returnType, Method method) {
+        GetterMethodBackedPropertyAccessor(String property, Class<F> returnType, Method method) {
             this.property = property;
             this.method = method;
             this.returnType = returnType;
@@ -373,7 +368,7 @@ public class JavaReflectionUtil {
         private final Field field;
         private final Class<F> fieldType;
 
-        public FieldBackedPropertyAccessor(String property, Class<F> fieldType, Field field) {
+        FieldBackedPropertyAccessor(String property, Class<F> fieldType, Field field) {
             this.property = property;
             this.field = field;
             this.fieldType = fieldType;
@@ -403,7 +398,7 @@ public class JavaReflectionUtil {
         private final String property;
         private final Method method;
 
-        public MethodBackedPropertyMutator(String property, Method method) {
+        MethodBackedPropertyMutator(String property, Method method) {
             this.property = property;
             this.method = method;
         }
@@ -436,7 +431,7 @@ public class JavaReflectionUtil {
         private final String name;
         private final Field field;
 
-        public FieldBackedPropertyMutator(String name, Field field) {
+        FieldBackedPropertyMutator(String name, Field field) {
             this.name = name;
             this.field = field;
         }
@@ -460,22 +455,6 @@ public class JavaReflectionUtil {
             } catch (IllegalAccessException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-        }
-    }
-
-    private static class InstantiatingFactory<T> implements Factory<T> {
-        private final Instantiator instantiator;
-        private final Class<? extends T> type;
-        private final Object[] args;
-
-        public InstantiatingFactory(Instantiator instantiator, Class<? extends T> type, Object... args) {
-            this.instantiator = instantiator;
-            this.type = type;
-            this.args = args;
-        }
-
-        public T create() {
-            return instantiator.newInstance(type, args);
         }
     }
 
