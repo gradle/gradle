@@ -18,6 +18,7 @@ package org.gradle.api.model;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.internal.reflect.ObjectInstantiationException;
 
 /**
  * A factory for creating various kinds of model objects.
@@ -44,4 +45,13 @@ public interface ObjectFactory {
      * <p>Objects created using this method are not decorated or extensible.</p>
      */
     <T extends Named> T named(Class<T> type, String name);
+
+    /**
+     * Create a new instance of T, using {@code parameters} as the construction parameters.
+     *
+     * @throws ObjectInstantiationException On failure to create the new instance.
+     * @since 4.1
+     * @see org.gradle.internal.reflect.Instantiator
+     */
+    <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException;
 }

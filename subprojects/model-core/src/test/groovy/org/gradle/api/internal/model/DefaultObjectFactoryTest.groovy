@@ -237,6 +237,15 @@ class DefaultObjectFactoryTest extends ConcurrentSpec {
 - Field b is not valid: A Named implementation class must not define any instance fields."""
     }
 
+    def "creates instance with constructor parameters"() {
+        CharSequence param = Mock()
+
+        expect:
+        def result = factory.newInstance(SomeType, param)
+        result instanceof SomeType
+        result.result == param
+    }
+
     @Ignore
     def "interface may not have additional methods"() {
         expect: false
@@ -252,4 +261,12 @@ class DummyGroovyNamed implements Named {
     String getName() { null }
 
     String getCalculatedValue() { "[$name]" }
+}
+
+class SomeType {
+    final Object result
+
+    SomeType(CharSequence result) {
+        this.result = result
+    }
 }

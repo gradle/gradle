@@ -25,6 +25,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.inspect.ValidationProblemCollector;
@@ -51,7 +54,10 @@ public class DefaultObjectFactory implements ObjectFactory {
     private static final String CONSTRUCTOR_NAME = "<init>";
     private static final String RETURN_VOID = Type.getMethodDescriptor(Type.VOID_TYPE);
 
+    private final Instantiator instantiator;
+
     private DefaultObjectFactory() {
+        instantiator = DirectInstantiator.INSTANCE;
     }
 
     // Currently retains strong references
@@ -69,6 +75,11 @@ public class DefaultObjectFactory implements ObjectFactory {
         } catch (UncheckedExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
+    }
+
+    @Override
+    public <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
+        return instantiator.newInstance(type, parameters);
     }
 
     private ClassGeneratingLoader loaderFor(Class<?> publicClass) {
