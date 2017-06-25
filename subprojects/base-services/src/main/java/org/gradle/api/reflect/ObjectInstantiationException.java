@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect;
+package org.gradle.api.reflect;
 
 import org.gradle.internal.exceptions.Contextual;
 

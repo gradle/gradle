@@ -629,7 +629,7 @@ org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':compile
 	at org.gradle.execution.taskgraph.AbstractTaskPlanExecutor$TaskExecutorWorker.run(AbstractTaskPlanExecutor.java:50)
 	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:54)
 	at org.gradle.internal.concurrent.StoppableExecutorImpl$1.run(StoppableExecutorImpl.java:40)
-Caused by: org.gradle.internal.reflect.ObjectInstantiationException: Could not create an instance of type com.sun.tools.javac.api.JavacTool.
+Caused by: org.gradle.api.reflect.ObjectInstantiationException: Could not create an instance of type com.sun.tools.javac.api.JavacTool.
 	at org.gradle.internal.reflect.DirectInstantiator.newInstance(DirectInstantiator.java:53)
 	at org.gradle.internal.reflect.DirectInstantiator.instantiate(DirectInstantiator.java:29)
 	at org.gradle.internal.jvm.JdkTools.getSystemJavaCompiler(JdkTools.java:74)

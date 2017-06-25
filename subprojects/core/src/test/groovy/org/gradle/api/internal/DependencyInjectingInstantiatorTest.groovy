@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal
 
-import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.UnknownServiceException
 import spock.lang.Specification

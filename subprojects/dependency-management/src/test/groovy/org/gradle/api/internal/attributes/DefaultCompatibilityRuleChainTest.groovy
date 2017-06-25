@@ -18,7 +18,7 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

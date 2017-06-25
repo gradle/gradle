@@ -65,4 +65,23 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Thing(thing1): Thing(thing1)")
         outputContains("Thing(thing2): Thing(thing2)")
     }
+
+    def "plugin application fails with ObjectInstantiationException given invalid factory constructor"() {
+        given:
+        buildFile << """
+        class Thing {}
+        
+        task fail {
+            doLast {
+                project.objects.newInstance(Thing, 'bogus') 
+            }
+        }
+"""
+
+        when:
+        fails "fail"
+
+        then:
+        failure.assertHasCause('Could not create an instance of type Thing')
+    }
 }
