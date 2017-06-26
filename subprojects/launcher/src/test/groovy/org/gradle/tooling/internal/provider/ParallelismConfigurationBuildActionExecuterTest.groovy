@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.StartParameter
 import org.gradle.initialization.BuildRequestContext
-import org.gradle.initialization.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.service.ServiceRegistry

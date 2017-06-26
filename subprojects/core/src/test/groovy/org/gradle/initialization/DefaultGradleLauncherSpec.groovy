@@ -33,7 +33,7 @@ import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.includedbuild.internal.IncludedBuildControllers
-import org.gradle.internal.concurrent.ParallelismConfigurationManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -73,7 +73,7 @@ class DefaultGradleLauncherSpec extends Specification {
     private BuildCompletionListener buildCompletionListener = Mock(BuildCompletionListener.class)
     private TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     private ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
-    private WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
+    private WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class)
     private Stoppable otherService = Mock(Stoppable)
     private IncludedBuildControllers includedBuildControllers = Mock()
@@ -328,11 +328,5 @@ class DefaultGradleLauncherSpec extends Specification {
 
     private void expectTasksRunWithFailure(final Throwable failure) {
         1 * buildExecuter.execute(gradleMock) >> { throw failure }
-    }
-
-    ParallelismConfigurationManager parallelExecutionManager() {
-        return Stub(ParallelismConfigurationManager) {
-            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
-        }
     }
 }

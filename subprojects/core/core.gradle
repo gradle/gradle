@@ -78,6 +78,7 @@ useTestFixtures()
 useTestFixtures(project: ":messaging")
 useTestFixtures(project: ":modelCore")
 useTestFixtures(project: ":logging")
+useTestFixtures(project: ":baseServices")
 
 test {
     forkEvery = 200

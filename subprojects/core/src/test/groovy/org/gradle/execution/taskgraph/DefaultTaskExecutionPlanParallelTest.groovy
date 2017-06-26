@@ -28,8 +28,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ParallelismConfigurationManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -60,7 +59,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     ProjectInternal root
     def cancellationHandler = Mock(BuildCancellationToken)
     def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
+    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
     def parentWorkerLease = workerLeaseService.workerLease
     def gradle = Mock(GradleInternal)
 
@@ -739,11 +738,5 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     static class AsyncWithInputDirectory extends Async {
         @InputDirectory
         File inputDirectory
-    }
-
-    ParallelismConfigurationManager parallelExecutionManager() {
-        return Stub(ParallelismConfigurationManager) {
-            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 3)
-        }
     }
 }

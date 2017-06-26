@@ -31,8 +31,9 @@ import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -78,7 +79,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(ResourceLockCoordinationService) >> Stub(ResourceLockCoordinationService)
         parent.get(Instantiator) >> Stub(Instantiator)
         parent.get(WorkerLeaseRegistry) >> Stub(WorkerLeaseRegistry)
-        parent.get(ParallelismConfigurationManager) >> Stub(ParallelismConfigurationManager) { _ * getParallelismConfiguration() >> DefaultParallelismConfiguration.DEFAULT }
+        parent.get(ParallelismConfigurationManager) >> new ParallelismConfigurationManagerFixture(DefaultParallelismConfiguration.DEFAULT)
         parent.get(StyledTextOutputFactory) >> new TestStyledTextOutputFactory()
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild

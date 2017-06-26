@@ -21,7 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.invocation.Gradle
-import org.gradle.initialization.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.work.WorkerLeaseService
