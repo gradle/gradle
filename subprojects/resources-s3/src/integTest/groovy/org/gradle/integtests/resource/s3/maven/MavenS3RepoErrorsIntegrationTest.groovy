@@ -96,7 +96,7 @@ repositories {
         fails 'retrieve'
         then:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("S3 resource should either specify AwsIamAutentication or provide some AwsCredentials.")
+                .assertHasCause("S3 resource should either specify AwsImAuthentication or provide some AwsCredentials.")
 
     }
 
