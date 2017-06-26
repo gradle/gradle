@@ -101,7 +101,8 @@
         <xi:include href='webTutorial.xml'/>
         <xi:include href='warPlugin.xml'/>
         <xi:include href='earPlugin.xml'/>
-        <xi:include href='applicationPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/applicationPlugin.xml'/>
         <xi:include href='javaLibraryDistributionPlugin.xml'/>
         <xi:include href='groovyTutorial.xml'/>
         <!-- this is generated from Asciidoc -->
