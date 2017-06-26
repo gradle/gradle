@@ -27,7 +27,7 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.DefaultParallelismConfiguration;
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.internal.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.ParallelismConfigurationCommandLineConverter;

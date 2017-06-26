@@ -16,8 +16,7 @@
 
 package org.gradle.internal.work
 
-import org.gradle.initialization.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ParallelismConfigurationManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.progress.BuildOperationState
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -27,7 +26,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
     ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
-    WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
+    WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
     AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(workerLeaseService)
 
     def "can wait for async work to complete"() {
@@ -345,12 +344,6 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
             boolean isComplete() {
                 return true
             }
-        }
-    }
-
-    ParallelismConfigurationManager parallelExecutionManager() {
-        return Stub(ParallelismConfigurationManager) {
-            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
         }
     }
 }

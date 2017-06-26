@@ -17,8 +17,9 @@
 package org.gradle.internal.work
 
 import org.gradle.api.Action
-import org.gradle.initialization.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.resources.TestTrackedResourceLock
@@ -29,7 +30,7 @@ import java.util.concurrent.Callable
 
 class DefaultWorkerLeaseServiceTest extends Specification {
     def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
+    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
 
     def "can use withLocks to execute a runnable with resources locked"() {
         boolean executed = false
@@ -157,19 +158,19 @@ class DefaultWorkerLeaseServiceTest extends Specification {
     }
 
     def "registers/deregisters a listener for parallelism configuration changes"() {
-        ParallelismConfigurationManager parallelExecutionManager = parallelExecutionManager()
+        ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(true, 1)
 
         when:
         workerLeaseService = new DefaultWorkerLeaseService(Mock(ResourceLockCoordinationService), parallelExecutionManager)
 
         then:
-        1 * parallelExecutionManager.addListener(_)
+        parallelExecutionManager.listeners.size() == 1
 
         when:
         workerLeaseService.stop()
 
         then:
-        1 * parallelExecutionManager.removeListener(_)
+        parallelExecutionManager.listeners.size() == 0
     }
 
     def "adjusts max worker count on parallelism configuration change"() {
@@ -209,12 +210,6 @@ class DefaultWorkerLeaseServiceTest extends Specification {
             Object call() throws Exception {
                 return closure.call()
             }
-        }
-    }
-
-    ParallelismConfigurationManager parallelExecutionManager() {
-        return Mock(ParallelismConfigurationManager) {
-            _ * getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
         }
     }
 }

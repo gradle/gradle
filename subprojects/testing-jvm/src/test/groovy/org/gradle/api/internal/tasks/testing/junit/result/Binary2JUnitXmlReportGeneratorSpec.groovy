@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
-import org.gradle.initialization.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -44,7 +44,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     final WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
 
     def generatorWithMaxThreads(int numThreads) {
-        ParallelismConfigurationManager parallelExecutionManager = Mock(ParallelismConfigurationManager) { _ * getParallelismConfiguration() >> new DefaultParallelismConfiguration(false, numThreads)}
+        ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(false, numThreads)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), parallelExecutionManager)

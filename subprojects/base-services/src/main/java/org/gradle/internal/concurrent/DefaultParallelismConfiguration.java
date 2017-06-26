@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.concurrent;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
-import org.gradle.internal.concurrent.ParallelismConfiguration;
 
 import java.io.Serializable;
 
