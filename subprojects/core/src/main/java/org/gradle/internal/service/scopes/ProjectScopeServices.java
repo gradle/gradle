@@ -18,7 +18,6 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
-import org.gradle.api.Named;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DomainObjectContext;
@@ -43,6 +42,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -56,7 +56,6 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
@@ -253,18 +252,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ObjectFactory createObjectFactory(final InstantiatorFactory instantiatorFactory) {
-        return new ObjectFactory() {
-            private final Instantiator instantiator = instantiatorFactory.injectAndDecorate(ProjectScopeServices.this);
-            @Override
-            public <T extends Named> T named(Class<T> type, String name) {
-                return DefaultObjectFactory.INSTANCE.named(type, name);
-            }
-
-            @Override
-            public <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
-                return instantiator.newInstance(type, parameters);
-            }
-        };
+        Instantiator instantiator = instantiatorFactory.injectAndDecorate(ProjectScopeServices.this);
+        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE);
     }
 
 }

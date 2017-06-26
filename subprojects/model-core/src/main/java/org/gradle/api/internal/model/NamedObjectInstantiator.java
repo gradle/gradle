@@ -39,6 +39,7 @@ import java.lang.reflect.Modifier;
 import static org.objectweb.asm.Opcodes.*;
 
 public class NamedObjectInstantiator {
+    public static final NamedObjectInstantiator INSTANCE = new NamedObjectInstantiator();
     private static final Type OBJECT = Type.getType(Object.class);
     private static final Type STRING = Type.getType(String.class);
     private static final String RETURN_STRING = Type.getMethodDescriptor(STRING);
