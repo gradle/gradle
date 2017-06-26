@@ -78,7 +78,8 @@
         <xi:include href='publishingIvy.xml'/>
         <xi:include href='publishingMaven.xml'/>
         <xi:include href='distributionPlugin.xml'/>
-        <xi:include href='announcePlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/announcePlugin.xml'/>
         <xi:include href='buildAnnouncementsPlugin.xml'/>
     </part>
     <part>
