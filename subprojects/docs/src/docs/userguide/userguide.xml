@@ -74,7 +74,8 @@
         <xi:include href='buildDashboardPlugin.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/comparingBuilds.xml'/>
-        <xi:include href='artifactMngmt.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/artifactMngmt.xml'/>
         <xi:include href='mavenPlugin.xml'/>
         <xi:include href='signingPlugin.xml'/>
         <xi:include href='publishingIvy.xml'/>
