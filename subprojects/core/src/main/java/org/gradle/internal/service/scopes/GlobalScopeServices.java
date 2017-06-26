@@ -42,6 +42,7 @@ import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -308,8 +309,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
-    ObjectFactory createObjectFactory() {
-        return DefaultObjectFactory.INSTANCE;
+    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
+        return new DefaultObjectFactory(instantiatorFactory.injectAndDecorate(services), NamedObjectInstantiator.INSTANCE);
     }
 
     ProviderFactory createProviderFactory() {

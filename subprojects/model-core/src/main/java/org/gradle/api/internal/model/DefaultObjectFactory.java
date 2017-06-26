@@ -19,12 +19,9 @@ package org.gradle.api.internal.model;
 import org.gradle.api.Named;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultObjectFactory implements ObjectFactory {
-    public static final DefaultObjectFactory INSTANCE = new DefaultObjectFactory(DirectInstantiator.INSTANCE, NamedObjectInstantiator.INSTANCE);
-
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
 
@@ -32,7 +29,6 @@ public class DefaultObjectFactory implements ObjectFactory {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
     }
-
 
     @Override
     public <T extends Named> T named(final Class<T> type, final String name) {

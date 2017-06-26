@@ -248,4 +248,18 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
     }
 }
 
+class DummyGroovyNamed implements Named {
+    String getName() { null }
+
+    String getCalculatedValue() { "[$name]" }
+}
+
+class SomeType {
+    final Object result
+
+    SomeType(CharSequence result) {
+        this.result = result
+    }
+}
+
 
