@@ -23,15 +23,16 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultObjectFactory implements ObjectFactory {
-    public static final DefaultObjectFactory INSTANCE = new DefaultObjectFactory();
+    public static final DefaultObjectFactory INSTANCE = new DefaultObjectFactory(DirectInstantiator.INSTANCE, new NamedObjectInstantiator());
 
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
 
-    private DefaultObjectFactory() {
-        instantiator = DirectInstantiator.INSTANCE;
-        namedObjectInstantiator = new NamedObjectInstantiator();
+    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator) {
+        this.instantiator = instantiator;
+        this.namedObjectInstantiator = namedObjectInstantiator;
     }
+
 
     @Override
     public <T extends Named> T named(final Class<T> type, final String name) {
