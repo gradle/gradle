@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import groovy.lang.GroovyObject;
 import org.gradle.api.GradleException;
 import org.gradle.api.Named;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
@@ -57,11 +58,11 @@ public class NamedObjectInstantiator {
         }
     });
 
-    public <T extends Named> T named(final Class<T> type, final String name) {
+    public <T extends Named> T named(final Class<T> type, final String name) throws ObjectInstantiationException {
         try {
             return type.cast(values.getUnchecked(type).getUnchecked(name));
         } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            throw new ObjectInstantiationException(type, e.getCause());
         }
     }
 
