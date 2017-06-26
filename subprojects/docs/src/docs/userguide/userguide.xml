@@ -71,7 +71,8 @@
         <xi:include href='standardPlugins.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/projectReports.xml'/>
-        <xi:include href='buildDashboardPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/buildDashboardPlugin.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/comparingBuilds.xml'/>
         <!-- this is generated from Asciidoc -->
