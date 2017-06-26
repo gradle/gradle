@@ -203,6 +203,5 @@ test {
 
         then:
         result.output.contains('output from foo')
-        result.output.contains('error from foo')
     }
 }

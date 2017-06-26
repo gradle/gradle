@@ -21,12 +21,16 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 
+import java.util.List;
+
 class DefaultMethodArgsSerializer implements MethodArgsSerializer {
     private static final Object[] ZERO_ARGS = new Object[0];
-    private final SerializerRegistry serializers;
+    private final List<SerializerRegistry> serializerRegistries;
+    private final MethodArgsSerializer defaultArgsSerializer;
 
-    public DefaultMethodArgsSerializer(SerializerRegistry serializers) {
-        this.serializers = serializers;
+    public DefaultMethodArgsSerializer(List<SerializerRegistry> serializerRegistries, MethodArgsSerializer defaultArgsSerializer) {
+        this.serializerRegistries = serializerRegistries;
+        this.defaultArgsSerializer = defaultArgsSerializer;
     }
 
     @Override
@@ -34,10 +38,21 @@ class DefaultMethodArgsSerializer implements MethodArgsSerializer {
         if (types.length == 0) {
             return new EmptyArraySerializer();
         }
+        SerializerRegistry selected = null;
+        for (SerializerRegistry serializerRegistry : serializerRegistries) {
+            if (serializerRegistry.canSerialize(types[0])) {
+                selected = serializerRegistry;
+                break;
+            }
+        }
+        if (selected == null) {
+            return defaultArgsSerializer.forTypes(types);
+        }
+
         final Serializer<Object>[] serializers = new Serializer[types.length];
         for (int i = 0; i < types.length; i++) {
             Class<?> type = types[i];
-            serializers[i] = (Serializer<Object>) this.serializers.build(type);
+            serializers[i] = (Serializer<Object>) selected.build(type);
         }
         return new ArraySerializer(serializers);
     }

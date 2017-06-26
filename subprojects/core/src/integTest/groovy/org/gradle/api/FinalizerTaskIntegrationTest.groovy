@@ -20,8 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
+
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
     void 'finalizer tasks are scheduled as expected'() {
         setupProject()
 
@@ -29,13 +30,10 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds(*requestedTasks)
 
         then:
-        executedTasks == expectedExecutedTasks
+        result.assertTasksExecutedInOrder any(':d', exact(':c', ':a')), ':b'
 
         where:
-        requestedTasks | expectedExecutedTasks
-        ['a']          | [':c', ':a', ':d', ':b']
-        ['a', 'b']     | [':c', ':a', ':d', ':b']
-        ['d', 'a']     | [':d', ':c', ':a', ':b']
+        requestedTasks << [ ['a'], ['a', 'b'], ['d', 'a'] ]
     }
 
     @Unroll
@@ -55,7 +53,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'a'
 
         then:
-        executedTasks == expectedExecutedTasks
+        result.assertTasksExecutedInOrder(expectedExecutedTasks as Object[])
 
         where:
         excludedTask | expectedExecutedTasks
@@ -80,12 +78,12 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         fails(*requestedTasks)
 
         then:
-        executedTasks == expectedExecutedTasks
+        result.assertTasksExecutedInOrder(expectedExecutedTasks as Object[])
 
         where:
         requestedTasks | failingTask | expectedExecutedTasks
         ['a']          | 'c'         | [':c']
-        ['a', 'b']     | 'a'         | [':c', ':a', ':d', ':b']
+        ['a', 'b']     | 'a'         | [any(':d', exact(':c', ':a')), ':b']
         ['a', 'b']     | 'c'         | [':c', ':d', ':b']
     }
 
@@ -127,7 +125,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'a'
 
         then:
-        executedTasks == [':a:c', ':a:a', ':b:d', ':b:b']
+        result.assertTasksExecutedInOrder(any(':b:d', exact(':a:c', ':a:a')), ':b:b')
     }
 
     void 'finalizers for finalizers are executed when finalized is executed'() {
@@ -145,7 +143,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'a'
 
         then:
-        executedTasks == [':a', ':b', ':c']
+        result.assertTasksExecutedInOrder ':a', ':b', ':c'
     }
 
     void 'finalizer tasks are executed after their dependencies'() {
@@ -163,7 +161,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'a'
 
         then:
-        executedTasks == [':c', ':b', ':a']
+        result.assertTasksExecutedInOrder ':c', ':b', ':a'
     }
 
     void 'circular dependency errors are detected for finalizer tasks'() {
@@ -207,7 +205,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'b'
 
         then:
-        executedTasks == [':a', ':b', ':c']
+        result.assertTasksExecutedInOrder ':a', ':b', ':c'
     }
 
     private void setupProject() {

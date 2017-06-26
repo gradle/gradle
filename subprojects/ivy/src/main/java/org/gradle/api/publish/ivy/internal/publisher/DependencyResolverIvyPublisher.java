@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
@@ -27,8 +26,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.io.IOException;
-
 public class DependencyResolverIvyPublisher implements IvyPublisher {
 
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
@@ -38,21 +35,17 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         // This indicates the IvyPublishMetaData should probably not be responsible for creating a ModuleDescriptor...
         BuildableIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(moduleVersionIdentifier, "");
 
-        try {
-            for (IvyArtifact publishArtifact : publication.getArtifacts()) {
-                publishMetaData.addArtifact(createIvyArtifact(publishArtifact), publishArtifact.getFile());
-            }
-
-            IvyArtifactName artifact = DefaultIvyArtifactName.of("ivy", "ivy", "xml");
-            publishMetaData.addArtifact(artifact, publication.getDescriptorFile());
-
-            publisher.publish(publishMetaData);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        for (IvyArtifact publishArtifact : publication.getArtifacts()) {
+            publishMetaData.addArtifact(createIvyArtifact(publishArtifact), publishArtifact.getFile());
         }
+
+        IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
+        publishMetaData.addArtifact(artifact, publication.getDescriptorFile());
+
+        publisher.publish(publishMetaData);
     }
 
     private IvyArtifactName createIvyArtifact(IvyArtifact ivyArtifact) {
-        return DefaultIvyArtifactName.of(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExtension(), ivyArtifact.getClassifier());
+        return new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExtension(), ivyArtifact.getClassifier());
     }
 }

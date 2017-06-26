@@ -26,7 +26,6 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +38,9 @@ class ProviderStartParameterConverter {
         List<TaskExecutionRequest> requests = new ArrayList<TaskExecutionRequest>(launchables.size());
         for (InternalLaunchable launchable : launchables) {
             if (launchable instanceof TaskExecutionRequest) {
-                File rootDir = getRootDirOrNull(launchable);
-                if (rootDir != null && !rootDir.equals(projectDir)) {
-                    throw new InternalUnsupportedBuildArgumentException("Tasks from included builds can't be launched");
-                }
 
                 TaskExecutionRequest originalLaunchable = (TaskExecutionRequest) launchable;
-                TaskExecutionRequest launchableImpl = new DefaultTaskExecutionRequest(originalLaunchable.getArgs(), originalLaunchable.getProjectPath());
+                TaskExecutionRequest launchableImpl = new DefaultTaskExecutionRequest(originalLaunchable.getArgs(), originalLaunchable.getProjectPath(), originalLaunchable.getRootDir());
                 requests.add(launchableImpl);
             } else {
                 throw new InternalUnsupportedBuildArgumentException(
@@ -55,16 +50,6 @@ class ProviderStartParameterConverter {
             }
         }
         return requests;
-    }
-
-    private File getRootDirOrNull(InternalLaunchable launchable) {
-        // Calling InternalLaunchable.getRootDir() throws NoSuchMethodException if older Gradle distribution is used
-        try {
-            Method rootDirMethod = InternalLaunchable.class.getMethod("getRootDir");
-            return (File)rootDirMethod.invoke(launchable);
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     public StartParameter toStartParameter(ProviderOperationParameters parameters, Map<String, String> properties) {

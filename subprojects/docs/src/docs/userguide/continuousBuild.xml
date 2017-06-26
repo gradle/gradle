@@ -24,7 +24,7 @@
     <title>Continuous build</title>
     <para>
         Typically, you ask Gradle to perform a single build by way of specifying tasks that Gradle should execute.
-        Gradle will determine the the actual set of tasks that need to be executed to satisfy the request, execute them all, and then stop doing work until the next request.
+        Gradle will determine the actual set of tasks that need to be executed to satisfy the request, execute them all, and then stop doing work until the next request.
         A continuous build differs in that Gradle will keep satisfying the initial build request (until instructed to stop)
         by executing the build when it is detected that the result of the previous build is now out of date.
         For example, if your build compiles Java source files to Java class files, a continuous build would automatically initiate a compile when the source files change.

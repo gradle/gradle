@@ -17,8 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -29,10 +31,12 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 public class RepositoryChainDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
     private final VersionSelectorScheme versionSelectorScheme;
     private final DynamicVersionResolver dynamicRevisionResolver;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory) {
+    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, CacheLockingManager cacheLockingManager) {
         this.versionSelectorScheme = versionSelectorScheme;
-        this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory, cacheLockingManager);
     }
 
     public void add(ModuleComponentRepository repository) {
@@ -44,8 +48,8 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         if (versionSelectorScheme.parseSelector(requested.getVersion()).isDynamic()) {
             dynamicRevisionResolver.resolve(dependency, result);
         } else {
-            DefaultModuleComponentIdentifier id = DefaultModuleComponentIdentifier.of(requested.getGroup(), requested.getName(), requested.getVersion());
-            DefaultModuleVersionIdentifier mvId = DefaultModuleVersionIdentifier.of(requested.getGroup(), requested.getName(), requested.getVersion());
+            DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
+            ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(requested.getGroup(), requested.getName(), requested.getVersion());
             result.resolved(id, mvId);
         }
     }

@@ -22,6 +22,9 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class UnsupportedFilePermissionsTest extends Specification {
+    private static final String WARN_MESSAGE = '[[WARN] [org.gradle.internal.nativeintegration.filesystem.services.UnsupportedFilePermissions] ' +
+                                   'Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
+
     def outputEventListener = new TestOutputEventListener()
     @Rule ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -33,7 +36,7 @@ class UnsupportedFilePermissionsTest extends Specification {
         permissions.getUnixMode(tmpDir.createDir("dir"))
 
         then:
-        outputEventListener.toString() == '[WARN Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
+        outputEventListener.toString() == WARN_MESSAGE
     }
 
     def "warns on first attempt to chmod a file"() {
@@ -42,7 +45,7 @@ class UnsupportedFilePermissionsTest extends Specification {
         permissions.chmod(tmpDir.createDir("dir"), 0644)
 
         then:
-        outputEventListener.toString() == '[WARN Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
+        outputEventListener.toString() == WARN_MESSAGE
     }
 
     def "warns at most once"() {
@@ -52,6 +55,6 @@ class UnsupportedFilePermissionsTest extends Specification {
         permissions.getUnixMode(tmpDir.createFile("file"))
 
         then:
-        outputEventListener.toString() == '[WARN Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
+        outputEventListener.toString() == WARN_MESSAGE
     }
 }

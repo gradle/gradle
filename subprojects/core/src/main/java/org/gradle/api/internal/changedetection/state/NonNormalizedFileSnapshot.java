@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 public class NonNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
     private final String absolutePath;
 
-    public NonNormalizedFileSnapshot(String absolutePath, IncrementalFileSnapshot snapshot) {
+    public NonNormalizedFileSnapshot(String absolutePath, FileContentSnapshot snapshot) {
         super(snapshot);
         this.absolutePath = absolutePath;
     }

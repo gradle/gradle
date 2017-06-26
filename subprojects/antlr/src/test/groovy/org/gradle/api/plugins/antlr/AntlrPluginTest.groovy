@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.antlr
 
+import org.gradle.api.Action
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class AntlrPluginTest extends AbstractProjectBuilderSpec {
@@ -37,6 +38,27 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         then:
         def custom = project.sourceSets.custom
         custom.antlr.srcDirs == [project.file('src/custom/antlr')] as Set
+    }
+
+    def "allows configuration of antlr directories on source sets"() {
+        when:
+        project.pluginManager.apply(AntlrPlugin)
+
+        and: 'using Closure'
+        def main = project.sourceSets.main
+        main.antlr { sourceSet ->
+            sourceSet.srcDirs = [project.file('src/main/antlr-custom')]
+        }
+
+        and: 'using Action'
+        def test = project.sourceSets.test
+        test.antlr({ sourceSet ->
+            sourceSet.srcDirs = [project.file('src/test/antlr-custom')]
+        } as Action)
+
+        then:
+        main.antlr.srcDirs == [project.file('src/main/antlr-custom')] as Set
+        test.antlr.srcDirs == [project.file('src/test/antlr-custom')] as Set
     }
 
     def addsTaskForEachSourceSet() {

@@ -55,6 +55,10 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
         return this;
     }
 
+    public void setCommandLine(List<String> args) {
+        commandLine(args);
+    }
+
     public void setCommandLine(Object... args) {
         commandLine(args);
     }
@@ -73,6 +77,12 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     public DefaultExecHandleBuilder args(Iterable<?> args) {
         GUtil.addToCollection(arguments, args);
+        return this;
+    }
+
+    public DefaultExecHandleBuilder setArgs(List<String> arguments) {
+        this.arguments.clear();
+        this.arguments.addAll(arguments);
         return this;
     }
 

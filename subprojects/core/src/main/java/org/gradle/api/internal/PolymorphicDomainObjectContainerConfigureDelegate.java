@@ -18,8 +18,7 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.internal.metaobject.ConfigureDelegate;
-import org.gradle.internal.metaobject.GetPropertyResult;
-import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.util.ConfigureUtil;
 
 public class PolymorphicDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
@@ -31,18 +30,19 @@ public class PolymorphicDomainObjectContainerConfigureDelegate extends Configure
     }
 
     @Override
-    protected void _configure(String name, GetPropertyResult result) {
-        result.result(_container.create(name));
+    protected DynamicInvokeResult _configure(String name) {
+        return DynamicInvokeResult.found(_container.create(name));
     }
 
     @Override
-    protected void _configure(String name, Object[] params, InvokeMethodResult result) {
+    protected DynamicInvokeResult _configure(String name, Object[] params) {
         if (params.length == 1 && params[0] instanceof Closure) {
-            result.result(_container.create(name, (Closure) params[0]));
+            return DynamicInvokeResult.found(_container.create(name, (Closure) params[0]));
         } else if (params.length == 1 && params[0] instanceof Class) {
-            result.result(_container.create(name, (Class) params[0]));
+            return DynamicInvokeResult.found(_container.create(name, (Class) params[0]));
         } else if (params.length == 2 && params[0] instanceof Class && params[1] instanceof Closure){
-            result.result(_container.create(name, (Class) params[0], ConfigureUtil.configureUsing((Closure) params[1])));
+            return DynamicInvokeResult.found(_container.create(name, (Class) params[0], ConfigureUtil.configureUsing((Closure) params[1])));
         }
+        return DynamicInvokeResult.notFound();
     }
 }

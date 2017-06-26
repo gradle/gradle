@@ -32,7 +32,7 @@ import java.util.Map;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
-    static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
+    public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> DEFAULT_JVM_9_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
@@ -45,6 +45,7 @@ public class DaemonParameters {
 
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
     private final DaemonJvmOptions jvmOptions = new DaemonJvmOptions(new IdentityFileResolver());
+    private Map<String, String> envVariables;
     private boolean enabled = true;
     private boolean hasJvmArgs;
     private boolean foreground;
@@ -61,6 +62,7 @@ public class DaemonParameters {
         jvmOptions.systemProperties(extraSystemProperties);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
+        envVariables = new HashMap<String, String>(System.getenv());
     }
 
     public boolean isInteractive() {
@@ -147,6 +149,10 @@ public class DaemonParameters {
         jvmOptions.setAllJvmArgs(jvmArgs);
     }
 
+    public void setEnvironmentVariables(Map<String, String> envVariables) {
+        this.envVariables = envVariables == null ? new HashMap<String, String>(System.getenv()) : envVariables;
+    }
+
     public void setDebug(boolean debug) {
         jvmOptions.setDebug(debug);
     }
@@ -182,5 +188,9 @@ public class DaemonParameters {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public Map<String, String> getEnvironmentVariables() {
+        return envVariables;
     }
 }

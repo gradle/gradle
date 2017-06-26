@@ -20,4 +20,5 @@ import org.apache.maven.settings.building.SettingsBuildingException;
 
 public interface MavenSettingsProvider {
     Settings buildSettings() throws SettingsBuildingException;
+    String getLocalRepository();
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal
 
+import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.process.internal.worker.WorkerProcessException
 import org.gradle.util.TextUtil
 import spock.lang.Ignore
@@ -73,7 +74,7 @@ class CustomResult implements Serializable {
         worker.doSomething()
 
         then:
-        stdout.stdOut == TextUtil.toPlatformLineSeparators("Ok, did it\n")
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[[QUIET] [system.out] <Normal>Ok, did it\n</Normal>"))
     }
 
     def "propagates failure thrown by method in worker process"() {
@@ -134,7 +135,7 @@ class CustomTestWorker implements TestProtocol {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof InstantiationException
+        e.cause instanceof ObjectInstantiationException
     }
 
     def "propagates failure to start worker process"() {

@@ -212,7 +212,11 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         @Override
         protected void after() {
-            socket?.close()
+            try {
+                socket?.close()
+            } catch (IOException ex) {
+                ex.printStackTrace()
+            }
             acceptor?.join()
         }
     }

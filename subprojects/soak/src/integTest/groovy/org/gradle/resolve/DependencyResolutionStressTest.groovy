@@ -23,6 +23,8 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.ExternalResource
@@ -38,6 +40,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 @Category(SoakTest)
+@Requires(TestPrecondition.NOT_WINDOWS) // This test is really flaky on Windows.
 class DependencyResolutionStressTest extends Specification {
     @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider()
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()

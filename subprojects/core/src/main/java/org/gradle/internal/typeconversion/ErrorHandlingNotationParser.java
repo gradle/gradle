@@ -20,12 +20,12 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.exceptions.FormattingDiagnosticsVisitor;
 
 class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
-    private final String targetTypeDisplayName;
+    private final Object targetTypeDisplayName;
     private final String invalidNotationMessage;
     private final boolean allowNullInput;
     private final NotationParser<N, T> delegate;
 
-    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, boolean allowNullInput, NotationParser<N, T> delegate) {
+    public ErrorHandlingNotationParser(Object targetTypeDisplayName, String invalidNotationMessage, boolean allowNullInput, NotationParser<N, T> delegate) {
         this.targetTypeDisplayName = targetTypeDisplayName;
         this.invalidNotationMessage = invalidNotationMessage;
         this.allowNullInput = allowNullInput;

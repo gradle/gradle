@@ -21,4 +21,5 @@ import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 public interface PluginRepositoryInternal extends PluginRepository {
     PluginResolver asResolver();
+    void lock(String reason);
 }

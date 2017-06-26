@@ -22,12 +22,9 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
-import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.GetPropertyResult;
-import org.gradle.internal.metaobject.InvokeMethodResult;
-import org.gradle.internal.metaobject.MixInClosurePropertiesAsMethodsDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -37,11 +34,9 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainerInternal<T> {
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
-    private final DynamicObject dynamicObject;
 
     protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
-        this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), getConvention());
     }
 
     protected abstract <U extends T> U doCreate(String name, Class<U> type);
@@ -74,24 +69,8 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     @Override
-    public DynamicObject getAsDynamicObject() {
-        return dynamicObject;
-    }
-
-    @Override
     protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
         return new PolymorphicDomainObjectContainerConfigureDelegate(configureClosure, this);
-    }
-
-    private class ContainerDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject {
-        private ContainerDynamicObject(ContainerElementsDynamicObject elementsDynamicObject) {
-            setObjects(new BeanDynamicObject(AbstractPolymorphicDomainObjectContainer.this), elementsDynamicObject, getConvention().getExtensionsAsDynamicObject());
-        }
-
-        @Override
-        public String getDisplayName() {
-            return AbstractPolymorphicDomainObjectContainer.this.getDisplayName();
-        }
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
@@ -106,11 +85,9 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
-        public void getProperty(String name, GetPropertyResult result) {
+        public DynamicInvokeResult tryGetProperty(String name) {
             Object object = findByName(name);
-            if (object != null) {
-                result.result(object);
-            }
+            return object == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(object);
         }
 
         @Override
@@ -124,15 +101,16 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
-        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
                 T element = getByName(name);
                 Object lastArgument = arguments[arguments.length - 1];
                 if (lastArgument instanceof Closure) {
                     ConfigureUtil.configure((Closure) lastArgument, element);
                 }
-                result.result(element);
+                return DynamicInvokeResult.found(element);
             }
+            return DynamicInvokeResult.notFound();
         }
 
         private boolean isConfigureMethod(String name, Object... arguments) {
@@ -144,7 +122,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     public <U extends T> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
-        return getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this, getInstantiator());
+        return getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this);
     }
 
 }

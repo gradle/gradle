@@ -3,7 +3,6 @@ dependencies {
     compile project(':toolingApi')
     compile libraries.commons_io
     runtime project(':native')
-    testCompile libraries.groovy
 }
 
 task testKitVersionCompatibilityIntegTest(type: org.gradle.testing.IntegrationTest) {

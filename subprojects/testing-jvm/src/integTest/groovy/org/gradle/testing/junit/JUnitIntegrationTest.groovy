@@ -28,10 +28,11 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
+import static org.gradle.util.Matchers.matchesRegexp
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-public class JUnitIntegrationTest extends AbstractIntegrationSpec {
+class JUnitIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -365,8 +366,8 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         assert containsLine(result.getOutput(), "START [Gradle Test Run :test] [Gradle Test Run :test]")
         assert containsLine(result.getOutput(), "FINISH [Gradle Test Run :test] [Gradle Test Run :test] [FAILURE] [4]")
 
-        assert containsLine(result.getOutput(), "START [Gradle Test Executor 1] [Gradle Test Executor 1]")
-        assert containsLine(result.getOutput(), "FINISH [Gradle Test Executor 1] [Gradle Test Executor 1] [FAILURE] [4]")
+        assert containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
+        assert containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[FAILURE\\] \\[4\\]"))
 
         assert containsLine(result.getOutput(), "START [Test class SomeOtherTest] [SomeOtherTest]")
         assert containsLine(result.getOutput(), "FINISH [Test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]")
@@ -454,6 +455,4 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
     }
-
-
 }

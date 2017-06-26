@@ -56,9 +56,6 @@ public class ArtifactFile {
             extension = StringUtils.substringAfterLast(name, ".");
             name = StringUtils.substringBeforeLast(name, ".");
         }
-        if (extension.length() == 0) {
-            extension = null;
-        }
         if (classifier.length() == 0) {
             classifier = null;
         }

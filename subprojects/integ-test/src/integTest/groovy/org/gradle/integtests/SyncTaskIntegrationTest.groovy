@@ -299,6 +299,193 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/nonPreservedDir').isDirectory()
     }
 
+    def "sync action"() {
+        given:
+        defaultSourceFileTree()
+        file('dest').create {
+            file 'extra1.txt'
+            extraDir { file 'extra2.txt' }
+        }
+        buildScript '''
+            task syncIt() {
+                doLast {
+                    project.sync {
+                        from 'source'
+                        into 'dest'
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'syncIt'
+
+        then:
+        file('dest').assertHasDescendants(
+            'dir1/file1.txt',
+            'dir2/subdir/file2.txt',
+            'dir2/file3.txt'
+        )
+        file('dest/emptyDir').exists()
+        !file('dest/extra1.txt').exists()
+        !file('dest/extraDir/extra2.txt').exists()
+    }
+
+    def "sync single files"() {
+        given:
+        file('source').create {
+            file 'file1.txt'
+            file 'file2.txt'
+        }
+        file('dest').create {
+            file 'extra.txt'
+        }
+        buildScript '''
+            task syncIt {
+                doLast {
+                    project.sync {
+                        from 'source'
+                        into 'dest'
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'syncIt'
+
+        then:
+        file('dest').assertHasDescendants(
+            'file1.txt',
+            'file2.txt',
+        )
+        !file('dest/extra.txt').exists()
+    }
+
+    def "sync from file tree"() {
+        given:
+        file('source').create {
+            file 'file1.txt'
+            dir1 { file 'file2.txt' }
+            ignore { file 'file3.txt' } // to be ignored
+        }
+        file('dest').create {
+            file 'extra1.txt'
+            dir1 { file 'extra2.txt' }
+            dir2 { file 'extra3.txt' }
+        }
+        buildScript '''
+        task syncIt {
+            doLast {
+                project.sync {
+                    from fileTree(dir: 'source', excludes: ['**/ignore/**'], includes: ['*', '*/*'])
+                    into 'dest'
+                }
+            }
+        }
+        '''.stripIndent()
+
+        when:
+        run 'syncIt'
+
+        then:
+        file('dest').assertHasDescendants(
+            'file1.txt',
+            'dir1/file2.txt',
+        )
+        !file('ignore/file3.txt').exists()
+        !file('dest/extra1.txt').exists()
+        !file('dest/dir1/extra2.txt').exists()
+        !file('dest/dir2/extra3.txt').exists()
+    }
+
+    def "sync from file collection"() {
+        given:
+        file('source').create {
+            file 'file1.txt'
+            dir1 { file 'file2.txt' }
+            ignore { file 'file3.txt' } // to be ignored
+        }
+        file('dest').create {
+            file 'extra1.txt'
+            dir1 { file 'extra2.txt' }
+            dir2 { file 'extra3.txt' }
+        }
+        buildScript '''
+            task syncIt {
+                doLast {
+                    project.sync {
+                        from files('source')
+                        into 'dest'
+                        exclude '**/ignore/**'
+                        exclude '*/*/*/**'
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'syncIt'
+
+        then:
+        file('dest').assertHasDescendants(
+            'file1.txt',
+            'dir1/file2.txt',
+        )
+        !file('ignore/file3.txt').exists()
+        !file('dest/extra1.txt').exists()
+        !file('dest/dir1/extra2.txt').exists()
+        !file('dest/dir2/extra3.txt').exists()
+    }
+
+    def "sync from composite file collection"() {
+        given:
+        file('source').create {
+            file 'file1.txt'
+            dir1 { file 'file2.txt' }
+        }
+        file('source2').create {
+            file 'file3.txt'
+            dir1 { file 'file4.txt' }
+            ignore { file 'file5.txt' } // to be ignored
+        }
+        file('dest').create {
+            file 'extra1.txt'
+            dir1 { file 'extra2.txt' }
+        }
+        file('f.jar').touch()
+        buildScript '''
+            configurations { compile }
+            dependencies { compile files('f.jar') }
+            task syncIt {
+                doLast {
+                    project.sync {
+                        from files('source')
+                        from fileTree('source2') { exclude '**/ignore/**' } 
+                        from configurations.compile
+                        into 'dest'
+                        include { fte -> fte.relativePath.segments.length < 3 && (fte.file.directory || fte.file.name.contains('f')) }
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'syncIt'
+
+        then:
+        file('dest').assertHasDescendants(
+            'file1.txt',
+            'f.jar',
+            'file3.txt',
+            'dir1/file2.txt',
+            'dir1/file4.txt',
+        )
+        !file('ignore/file5.txt').exists()
+        !file('dest/extra1.txt').exists()
+        !file('dest/dir1/extra2.txt').exists()
+    }
+
     def defaultSourceFileTree() {
         file('source').create {
             dir1 { file 'file1.txt' }

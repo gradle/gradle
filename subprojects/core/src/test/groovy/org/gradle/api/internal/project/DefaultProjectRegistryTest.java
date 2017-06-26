@@ -57,6 +57,11 @@ public class DefaultProjectRegistryTest {
     }
 
     @Test
+    public void rootProject() {
+        assertSame(rootMock, projectRegistry.getRootProject());
+    }
+
+    @Test
     public void addProject() {
         checkAccessMethods(rootMock, toSortedSet(rootMock, childMock, childChildMock), toSortedSet(childMock,
                 childChildMock), rootMock);

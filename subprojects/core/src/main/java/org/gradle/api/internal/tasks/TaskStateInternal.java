@@ -16,21 +16,17 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskState;
 
 public class TaskStateInternal implements TaskState {
     private boolean executing;
+    private boolean actionable = true;
     private boolean didWork;
     private Throwable failure;
-    private String description;
-    private boolean cacheable;
+    private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
-
-    public TaskStateInternal(String description) {
-        this.description = description;
-    }
 
     public boolean getDidWork() {
         return didWork;
@@ -44,7 +40,7 @@ public class TaskStateInternal implements TaskState {
         return outcome != null;
     }
 
-    public boolean isConfigurable(){
+    public boolean isConfigurable() {
         return !getExecuted() && !executing;
     }
 
@@ -74,12 +70,12 @@ public class TaskStateInternal implements TaskState {
         this.executing = executing;
     }
 
-    public void setCacheable(boolean cacheable) {
-        this.cacheable = cacheable;
+    public void setTaskOutputCaching(TaskOutputCachingState taskOutputCaching) {
+        this.taskOutputCaching = taskOutputCaching;
     }
 
-    public boolean isCacheable() {
-        return cacheable;
+    public TaskOutputCachingState getTaskOutputCaching() {
+        return taskOutputCaching;
     }
 
     public Throwable getFailure() {
@@ -96,7 +92,7 @@ public class TaskStateInternal implements TaskState {
         if (failure instanceof Error) {
             throw (Error) failure;
         }
-        throw new GradleException(String.format("%s failed with an exception.", StringUtils.capitalize(description)), failure);
+        throw new GradleException("Task failed with an exception.", failure);
     }
 
     public boolean getSkipped() {
@@ -111,7 +107,21 @@ public class TaskStateInternal implements TaskState {
         return outcome != null && outcome.isUpToDate();
     }
 
+    @Override
+    public boolean getNoSource() {
+        return outcome == TaskExecutionOutcome.NO_SOURCE;
+    }
+
     public boolean isFromCache() {
         return outcome == TaskExecutionOutcome.FROM_CACHE;
     }
+
+    public boolean isActionable() {
+        return actionable;
+    }
+
+    public void setActionable(boolean actionable) {
+        this.actionable = actionable;
+    }
+
 }

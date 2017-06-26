@@ -15,15 +15,15 @@
  */
 package org.gradle.testing.jacoco.plugins;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.Cast;
@@ -31,7 +31,6 @@ import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -42,12 +41,12 @@ public class JacocoPluginExtension {
 
     public static final String TASK_EXTENSION_NAME = "jacoco";
 
-    private Logger logger = Logging.getLogger(getClass());
+    private static final Logger LOGGER = Logging.getLogger(JacocoPluginExtension.class);
     protected final Project project;
     private final JacocoAgentJar agent;
 
-    private String toolVersion = "0.7.7.201606060606";
-    private File reportsDir;
+    private String toolVersion;
+    private final PropertyState<File> reportsDir;
 
     /**
      * Creates a Jacoco plugin extension.
@@ -58,6 +57,7 @@ public class JacocoPluginExtension {
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
         this.project = project;
         this.agent = agent;
+        reportsDir = project.property(File.class);
     }
 
     /**
@@ -75,13 +75,22 @@ public class JacocoPluginExtension {
      * The directory where reports will be generated.
      */
     public File getReportsDir() {
-        return reportsDir;
+        return reportsDir.get();
+    }
+
+    /**
+     * Set the provider for calculating the report directory.
+     *
+     * @param reportsDir Reports directory provider
+     * @since 4.0
+     */
+    public void setReportsDir(Provider<File> reportsDir) {
+        this.reportsDir.set(reportsDir);
     }
 
     public void setReportsDir(File reportsDir) {
-        this.reportsDir = reportsDir;
+        this.reportsDir.set(reportsDir);
     }
-
 
     /**
      * Applies Jacoco to the given task.
@@ -93,51 +102,53 @@ public class JacocoPluginExtension {
      */
     public <T extends Task & JavaForkOptions> void applyTo(final T task) {
         final String taskName = task.getName();
-        logger.debug("Applying Jacoco to " + taskName);
-        final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, agent, task);
-        ((IConventionAware) extension).getConventionMapping().map("destinationFile", new Callable<File>() {
+        LOGGER.debug("Applying Jacoco to " + taskName);
+        final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, project, agent, task);
+        extension.setDestinationFile(project.provider(new Callable<File>() {
             @Override
-            public File call() {
+            public File call() throws Exception {
                 return project.file(String.valueOf(project.getBuildDir()) + "/jacoco/" + taskName + ".exec");
             }
-        });
-        task.getInputs().property("jacoco.enabled", new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                return extension.isEnabled();
-            }
-        });
-        task.getInputs().property("jacoco.jvmArgs", new Callable<String>() {
+        }));
+
+        // Capture some of the JaCoCo contributed inputs to the task
+        task.getInputs().property("jacoco.jvmArg", new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return extension.getAsJvmArg();
+                return extension.isEnabled() ? extension.getAsJvmArg() : null;
             }
         });
-        TaskInternal taskInternal = (TaskInternal) task;
-        taskInternal.getOutputs().doNotCacheIf(new Spec<Task>() {
+        task.getOutputs().file(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return extension.isEnabled() ? extension.getDestinationFile() : null;
+            }
+        }).optional().withPropertyName("jacoco.destinationFile");
+        task.getOutputs().dir(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return extension.isEnabled() ? extension.getClassDumpDir() : null;
+            }
+        }).optional().withPropertyName("jacoco.classDumpDir");
+
+        // Do not cache the task if we are not writing execution data to a file
+        task.getOutputs().doNotCacheIf("JaCoCo configured to not produce its output as a file", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
                 // Do not cache Test task if Jacoco doesn't produce its output as files
                 return extension.isEnabled() && extension.getOutput() != JacocoTaskExtension.Output.FILE;
             }
         });
-        taskInternal.getOutputs().namedFiles(new Callable<Map<?, ?>>() {
+
+        // Do not cache the Test task if we are appending to the Jacoco output
+        task.getOutputs().doNotCacheIf("JaCoCo agent configured with `append = true`", new Spec<Task>() {
             @Override
-            public Map<?, ?> call() throws Exception {
-                ImmutableMap.Builder<String, File> builder = ImmutableMap.builder();
-                if (extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE) {
-                    File destinationFile = extension.getDestinationFile();
-                    if (destinationFile != null) {
-                        builder.put("jacoco.destinationFile", destinationFile);
-                    }
-                    File classDumpFile = extension.getClassDumpFile();
-                    if (classDumpFile != null) {
-                        builder.put("jacoco.classDumpFile", classDumpFile);
-                    }
-                }
-                return builder.build();
+            public boolean isSatisfiedBy(Task element) {
+                return extension.isEnabled() && extension.isAppend();
             }
         });
+
+        TaskInternal taskInternal = (TaskInternal) task;
         taskInternal.prependParallelSafeAction(new Action<Task>() {
             @Override
             public void execute(Task input) {
@@ -160,23 +171,5 @@ public class JacocoPluginExtension {
                 applyTo(Cast.<T>uncheckedCast(task));
             }
         });
-    }
-
-    /**
-     * Logger
-     * @deprecated logger should be considered final.
-     */
-    @Deprecated
-    public Logger getLogger() {
-        return logger;
-    }
-
-    /**
-     * Logger
-     * @deprecated logger should be considered final.
-     */
-    @Deprecated
-    public void setLogger(Logger logger) {
-        this.logger = logger;
     }
 }

@@ -17,22 +17,39 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
+import groovy.transform.stc.ClosureParams;
+import groovy.transform.stc.SimpleType;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.internal.ReturnType;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.plugins.*;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.HasInternalProtocol;
+import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -42,6 +59,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * <p>This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>,
@@ -204,25 +222,25 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * The default project build file name.
      */
-    public static final String DEFAULT_BUILD_FILE = "build.gradle";
+    String DEFAULT_BUILD_FILE = "build.gradle";
 
     /**
      * The hierarchy separator for project and task path names.
      */
-    public static final String PATH_SEPARATOR = ":";
+    String PATH_SEPARATOR = ":";
 
     /**
      * The default build directory name.
      */
-    public static final String DEFAULT_BUILD_DIR_NAME = "build";
+    String DEFAULT_BUILD_DIR_NAME = "build";
 
-    public static final String GRADLE_PROPERTIES = "gradle.properties";
+    String GRADLE_PROPERTIES = "gradle.properties";
 
-    public static final String SYSTEM_PROP_PREFIX = "systemProp";
+    String SYSTEM_PROP_PREFIX = "systemProp";
 
-    public static final String DEFAULT_VERSION = "unspecified";
+    String DEFAULT_VERSION = "unspecified";
 
-    public static final String DEFAULT_STATUS = "release";
+    String DEFAULT_STATUS = "release";
 
     /**
      * <p>Returns the root project for the hierarchy that this project belongs to.  In the case of a single-project
@@ -247,6 +265,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The build directory. Never returns null.
      */
     File getBuildDir();
+
+    /**
+     * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
+     * generated into.</p>
+     *
+     * @param path The build directory
+     * @since 4.0
+     */
+    void setBuildDir(File path);
 
     /**
      * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
@@ -281,7 +308,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     String getName();
 
     /**
-     * Returns the description of this project.
+     * Returns a human-consumable display name for this project.
+     */
+    String getDisplayName();
+
+    /**
+     * Returns the description of this project, if any.
      *
      * @return the description. May return null.
      */
@@ -470,7 +502,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
-    Task task(Map<String, ?> args, String name, Closure configureClosure);
+    Task task(Map<String, ?> args, String name, @DelegatesTo(value = Task.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(ReturnType.class) Closure configureClosure);
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
@@ -483,7 +515,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
-    Task task(String name, Closure configureClosure);
+    Task task(String name, @DelegatesTo(value = Task.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(ReturnType.class) Closure configureClosure);
 
     /**
      * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
@@ -557,7 +589,20 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
      */
-    Project project(String path, Closure configureClosure);
+    Project project(String path, @DelegatesTo(value = Project.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(ReturnType.class) Closure configureClosure);
+
+    /**
+     * <p>Locates a project by path and configures it using the given action. If the path is relative, it is
+     * interpreted relative to this project.</p>
+     *
+     * @param path The path.
+     * @param configureAction The action to use to configure the project.
+     * @return The project with the given path. Never returns null.
+     * @throws UnknownProjectException If no project with the given path exists.
+     *
+     * @since 3.4
+     */
+    Project project(String path, Action<? super Project> configureAction);
 
     /**
      * <p>Returns a map of the tasks contained in this project, and optionally its subprojects.</p>
@@ -597,12 +642,18 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <li>A {@link File}. If the file is an absolute file, it is returned as is. Otherwise, the file's path is
      * interpreted relative to the project directory.</li>
      *
-     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
-     * {@code file:} URLs are supported.
+     * <li>A {@link java.nio.file.Path}. The path must be associated with the default provider and is treated the
+     * same way as an instance of {@code File}.</li>
      *
-     * <li>A {@link Closure}. The closure's return value is resolved recursively.</li>
+     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Only {@code file:} URLs are supported.</li>
      *
-     * <li>A {@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
+     * <li>A {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile}.</li>
+     *
+     * <li>A {@link Provider} of any supported type. The provider's value is resolved recursively.</li>
+     *
+     * <li>A {@link Closure} that returns any supported type. The closure's return value is resolved recursively.</li>
+     *
+     * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The callable's return value is resolved recursively.</li>
      *
      * </ul>
      *
@@ -645,26 +696,25 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
      * types to this method:</p>
      *
-     * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as per {@link #file(Object)}. A string
-     * that starts with {@code file:} is treated as a file URL.</li>
+     * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as per {@link #file(Object)}. A string that starts with {@code file:} is treated as a file URL.</li>
      *
      * <li>A {@link File}. Interpreted relative to the project directory, as per {@link #file(Object)}.</li>
      *
-     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
-     * {@code file:} URLs are supported.
+     * <li>A {@link java.nio.file.Path} as defined by {@link #file(Object)}.</li>
      *
-     * <li>A {@link java.util.Collection}, {@link Iterable}, or an array. May contain any of the types listed here. The elements of the collection
-     * are recursively converted to files.</li>
+     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Only {@code file:} URLs are supported.</li>
      *
-     * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned
-     * collection.</li>
+     * <li>A {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile}.</li>
      *
-     * <li>A {@link java.util.concurrent.Callable}. The {@code call()} method may return any of the types listed here.
-     * The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is
-     * treated as an empty collection.</li>
+     * <li>A {@link java.util.Collection}, {@link Iterable}, or an array that contains objects of any supported type. The elements of the collection are recursively converted to files.</li>
      *
-     * <li>A Closure. May return any of the types listed here. The return value of the closure is recursively converted
-     * to files. A {@code null} return value is treated as an empty collection.</li>
+     * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned collection.</li>
+     *
+     * <li>A {@link Provider} of any supported type. The provider's value is recursively converted to files.
+     *
+     * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
+     *
+     * <li>A {@link Closure} that returns any of the types listed here. The return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
      *
      * <li>A {@link Task}. Converted to the task's output files.</li>
      *
@@ -702,7 +752,26 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
      */
-    ConfigurableFileCollection files(Object paths, Closure configureClosure);
+    ConfigurableFileCollection files(Object paths, @DelegatesTo(value = ConfigurableFileCollection.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(ReturnType.class) Closure configureClosure);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
+     * #files(Object...)}. The file collection is configured using the given action. Example:</p>
+     * <pre>
+     * files "$buildDir/classes" {
+     *     builtBy 'compile'
+     * }
+     * </pre>
+     * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
+     * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
+     * of the collection is queried.</p>
+     *
+     * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
+     * @param configureAction The action to use to configure the file collection.
+     * @return the configured file tree. Never returns null.
+     * @since 3.5
+     */
+    ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
@@ -751,7 +820,33 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
      * @return the configured file tree. Never returns null.
      */
-    ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
+    ConfigurableFileTree fileTree(Object baseDir, @DelegatesTo(value = ConfigurableFileTree.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(ReturnType.class) Closure configureClosure);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
+     * as per {@link #file(Object)}. The action will be used to configure the new file tree. Example:</p>
+     *
+     * <pre autoTested=''>
+     * def myTree = fileTree('src') {
+     *    exclude '**&#47;.data/**'
+     *    builtBy 'someTask'
+     * }
+     *
+     * task copy(type: Copy) {
+     *    from myTree
+     * }
+     * </pre>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
+     * @param configureAction Action to configure the {@code ConfigurableFileTree} object.
+     * @return the configured file tree. Never returns null.
+     * @since 3.5
+     */
+    ConfigurableFileTree fileTree(Object baseDir, Action<? super ConfigurableFileTree> configureAction);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
@@ -826,6 +921,54 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
+     * Creates a {@code Provider} implementation based on the provided value.
+     *
+     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
+     * @since 4.0
+     */
+    @Incubating
+    <T> Provider<T> provider(Callable<T> value);
+
+    /**
+     * Creates a {@code PropertyState} implementation based on the provided class.
+     *
+     * @param clazz The class to be used for property state.
+     * @return The property state. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
+     * @see org.gradle.api.provider.ProviderFactory#property(Class)
+     * @since 4.0
+     */
+    @Incubating
+    <T> PropertyState<T> property(Class<T> clazz);
+
+    /**
+     * Provides access to methods to create various kinds of {@link Provider} instances.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    ProviderFactory getProviders();
+
+    /**
+     * Provides access to methods to create various kinds of model objects.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    ObjectFactory getObjects();
+
+    /**
+     * Provides access to various important directories for this project.
+     *
+     * @since 4.1
+     */
+    @Incubating
+    ProjectLayout getLayout();
+
+    /**
      * Creates a directory and returns a file pointing to it.
      *
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.
@@ -866,7 +1009,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
-    ExecResult javaexec(Closure closure);
+    ExecResult javaexec(@DelegatesTo(value = JavaExecSpec.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.process.JavaExecSpec"}) Closure closure);
 
     /**
      * Executes an external Java process.
@@ -885,7 +1028,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
-    ExecResult exec(Closure closure);
+    ExecResult exec(@DelegatesTo(value = ExecSpec.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.process.ExecSpec"}) Closure closure);
 
     /**
      * Executes an external command.
@@ -977,13 +1120,23 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Executes the given closure against the <code>AntBuilder</code> for this project. You can use this in your
-     * build file to execute ant tasks. The <code>AntBuild</code> is passed to the closure as the closure's
+     * build file to execute ant tasks. The <code>AntBuilder</code> is passed to the closure as the closure's
      * delegate. See example in javadoc for {@link #getAnt()}</p>
      *
      * @param configureClosure The closure to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
      */
-    AntBuilder ant(Closure configureClosure);
+    AntBuilder ant(@DelegatesTo(value = AntBuilder.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(ReturnType.class) Closure configureClosure);
+
+    /**
+     * <p>Executes the given action against the <code>AntBuilder</code> for this project. You can use this in your
+     * build file to execute ant tasks. See example in javadoc for {@link #getAnt()}</p>
+     *
+     * @param configureAction The action to execute against the <code>AntBuilder</code>.
+     * @return The <code>AntBuilder</code>. Never returns null.
+     * @since 3.5
+     */
+    AntBuilder ant(Action<? super AntBuilder> configureAction);
 
     /**
      * Returns the configurations of this project.
@@ -1004,7 +1157,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure the closure to use to configure the dependency configurations.
      */
-    void configurations(Closure configureClosure);
+    void configurations(@DelegatesTo(value = ConfigurationContainer.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.api.artifacts.ConfigurationContainer"}) Closure configureClosure);
 
     /**
      * Returns a handler for assigning artifacts produced by the project to configurations.
@@ -1038,7 +1191,35 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure the closure to use to configure the published artifacts.
      */
-    void artifacts(Closure configureClosure);
+    void artifacts(@DelegatesTo(value = ArtifactHandler.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.api.artifacts.dsl.ArtifactHandler"}) Closure configureClosure);
+
+    /**
+     * <p>Configures the published artifacts for this project.
+     *
+     * <p>This method executes the given action against the {@link ArtifactHandler} for this project.
+     *
+     * <p>Example:
+     * <pre autoTested=''>
+     * configurations {
+     *   //declaring new configuration that will be used to associate with artifacts
+     *   schema
+     * }
+     *
+     * task schemaJar(type: Jar) {
+     *   //some imaginary task that creates a jar artifact with the schema
+     * }
+     *
+     * //associating the task that produces the artifact with the configuration
+     * artifacts {
+     *   //configuration name and the task:
+     *   schema schemaJar
+     * }
+     * </pre>
+     *
+     * @param configureAction the action to use to configure the published artifacts.
+     * @since 3.5
+     */
+    void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
      * <p>Returns the {@link Convention} for this project.</p> <p/> <p>You can access this property in your build file
@@ -1089,7 +1270,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure The closure to execute.
      */
-    void subprojects(Closure configureClosure);
+    void subprojects(@DelegatesTo(value = Project.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.api.Project"}) Closure configureClosure);
 
     /**
      * <p>Configures this project and each of its sub-projects.</p>
@@ -1108,7 +1289,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure The closure to execute.
      */
-    void allprojects(Closure configureClosure);
+    void allprojects(@DelegatesTo(value = Project.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.api.Project"}) Closure configureClosure);
 
     /**
      * Adds an action to execute immediately before this project is evaluated.
@@ -1130,7 +1311,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure The closure to call.
      */
-    void beforeEvaluate(Closure closure);
+    void beforeEvaluate(@ClosureParams(value = SimpleType.class, options = {"org.gradle.api.Project"}) Closure closure);
 
     /**
      * <p>Adds a closure to be called immediately after this project has been evaluated. The project is passed to the
@@ -1141,7 +1322,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure The closure to call.
      */
-    void afterEvaluate(Closure closure);
+    void afterEvaluate(@ClosureParams(value = SimpleType.class, options = {"org.gradle.api.Project"}) Closure closure);
 
     /**
      * <p>Determines if this project has the given property. See <a href="#properties">here</a> for details of the
@@ -1218,7 +1399,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The value of the property, possibly null or null if not found.
      * @see Project#property(String)
      */
-    @Incubating
+    @Incubating @Nullable
     Object findProperty(String propertyName);
 
     /**
@@ -1236,7 +1417,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Gradle getGradle();
 
     /**
-     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to control the logging level and
+     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
      * standard output/error capture for this project's build script. By default, System.out is redirected to the Gradle
      * logging system at the QUIET log level, and System.err is redirected at the ERROR log level.
      *
@@ -1307,7 +1488,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure the closure to use to configure the repositories.
      */
-    void repositories(Closure configureClosure);
+    void repositories(@DelegatesTo(value = RepositoryHandler.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.api.artifacts.dsl.RepositoryHandler"}) Closure configureClosure);
 
     /**
      * Returns the dependency handler of this project. The returned dependency handler instance can be used for adding
@@ -1332,7 +1513,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure the closure to use to configure the dependencies.
      */
-    void dependencies(Closure configureClosure);
+    void dependencies(@DelegatesTo(value = DependencyHandler.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.api.artifacts.dsl.DependencyHandler"}) Closure configureClosure);
 
     /**
      * Returns the build script handler for this project. You can use this handler to query details about the build
@@ -1350,7 +1531,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure the closure to use to configure the build script classpath.
      */
-    void buildscript(Closure configureClosure);
+    void buildscript(@DelegatesTo(value = ScriptHandler.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.api.initialization.dsl.ScriptHandler"}) Closure configureClosure);
 
     /**
      * Copies the specified files.  The given closure is used to configure a {@link CopySpec}, which is then used to
@@ -1379,7 +1560,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure Closure to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
      */
-    WorkResult copy(Closure closure);
+    WorkResult copy(@DelegatesTo(value = CopySpec.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.api.file.CopySpec"}) Closure closure);
+
+    /**
+     * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
+     * copy the files.
+     * @see #copy(Closure)
+     * @param action Action to configure the CopySpec
+     * @return {@link WorkResult} that can be used to check if the copy did any work.
+     */
+    WorkResult copy(Action<? super CopySpec> action);
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given closure is used
@@ -1400,16 +1590,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure Closure to configure the CopySpec
      * @return The CopySpec
      */
-    CopySpec copySpec(Closure closure);
-
-    /**
-     * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
-     * copy the files.
-     * @see #copy(Closure)
-     * @param action Action to configure the CopySpec
-     * @return {@link WorkResult} that can be used to check if the copy did any work.
-     */
-    WorkResult copy(Action<? super CopySpec> action);
+    CopySpec copySpec(@DelegatesTo(value = CopySpec.class, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType.class, options = {"org.gradle.api.file.CopySpec"}) Closure closure);
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used
@@ -1427,6 +1608,42 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return a newly created copy spec
      */
     CopySpec copySpec();
+
+    /**
+     * Synchronizes the contents of a destination directory with some source directories and files.
+     * The given action is used to configure a {@link CopySpec}, which is then used to synchronize the files.
+     *
+     * <p>
+     * This method is like the {@link #copy(Action)} task, except the destination directory will only contain the files copied.
+     * All files that exist in the destination directory will be deleted before copying files, unless a preserve option is specified.
+     *
+     * <p>
+     * Example:
+     *
+     * <pre>
+     * project.sync {
+     *    from 'my/shared/dependencyDir'
+     *    into 'build/deps/compile'
+     * }
+     * </pre>
+     * Note that you can preserve output that already exists in the destination directory:
+     * <pre>
+     * project.sync {
+     *     from 'source'
+     *     into 'dest'
+     *     preserve {
+     *         include 'extraDir/**'
+     *         include 'dir1/**'
+     *         exclude 'dir1/extra.txt'
+     *     }
+     * }
+     * </pre>
+     *
+     * @param action Action to configure the CopySpec.
+     * @since 4.0
+     * @return {@link WorkResult} that can be used to check if the sync did any work.
+     */
+    WorkResult sync(Action<? super CopySpec> action);
 
     /**
      * Returns the evaluation state of this project. You can use this to access information about the evaluation of this
@@ -1470,7 +1687,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param <T> The type of objects for the container to contain.
      * @return The container.
      */
-    <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure);
+    <T> NamedDomainObjectContainer<T> container(Class<T> type, @ClosureParams(value = SimpleType.class, options = {"java.lang.String"}) Closure factoryClosure);
 
     /**
      * Allows adding DSL extensions to the project. Useful for plugin authors.
@@ -1493,4 +1710,20 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     SoftwareComponentContainer getComponents();
+
+    /**
+     * Provides access to configuring input normalization.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    InputNormalizationHandler getNormalization();
+
+    /**
+     * Configures input normalization.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    void normalization(Action<? super InputNormalizationHandler> configuration);
 }

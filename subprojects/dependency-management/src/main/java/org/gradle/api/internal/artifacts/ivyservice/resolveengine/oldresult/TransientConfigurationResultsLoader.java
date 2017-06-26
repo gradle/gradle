@@ -16,38 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 
-import java.util.Set;
-
-public class TransientConfigurationResultsLoader implements Factory<TransientConfigurationResults> {
+public class TransientConfigurationResultsLoader {
     private final TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
-    private final ResolvedArtifactResults artifactResults;
     private final ResolvedGraphResults graphResults;
 
-    public TransientConfigurationResultsLoader(TransientConfigurationResultsBuilder transientConfigurationResultsBuilder, ResolvedGraphResults graphResults, ResolvedArtifactResults artifactResults) {
+    public TransientConfigurationResultsLoader(TransientConfigurationResultsBuilder transientConfigurationResultsBuilder, ResolvedGraphResults graphResults) {
         this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
-        this.artifactResults = artifactResults;
         this.graphResults = graphResults;
     }
 
-    @Override
-    public TransientConfigurationResults create() {
-        return transientConfigurationResultsBuilder.load(new ContentMapping());
-    }
-
-    private class ContentMapping implements ResolvedContentsMapping {
-        @Override
-        public Set<ResolvedArtifact> getArtifacts(long artifactSetId) {
-            return artifactResults.getArtifacts(artifactSetId);
-        }
-
-        @Override
-        public ModuleDependency getModuleDependency(long nodeId) {
-            return graphResults.getModuleDependency(nodeId);
-        }
+    /**
+     * Creates the result given the selected artifacts.
+     */
+    public TransientConfigurationResults create(SelectedArtifactResults artifactResults) {
+        return transientConfigurationResultsBuilder.load(graphResults, artifactResults);
     }
 }

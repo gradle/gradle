@@ -19,29 +19,27 @@ package org.gradle.plugin.devel.tasks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -65,7 +63,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -104,13 +101,14 @@ import java.util.Map;
  *         </ul>
  *     </li>
  * </ul>
+ *
+ * @since 3.0
  */
 @Incubating
-@ParallelizableTask
 @CacheableTask
 @SuppressWarnings("WeakerAccess")
-public class ValidateTaskProperties extends DefaultTask implements VerificationTask {
-    private File classesDir;
+public class ValidateTaskProperties extends ConventionTask implements VerificationTask {
+    private FileCollection classes;
     private FileCollection classpath;
     private Object outputFile;
     private boolean ignoreFailures;
@@ -119,7 +117,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     @TaskAction
     public void validateTaskClasses() throws IOException {
         ClassLoader previousContextClassLoader = Thread.currentThread().getContextClassLoader();
-        ClassPath classPath = new DefaultClassPath(Iterables.concat(Collections.singleton(getClassesDir()), getClasspath()));
+        ClassPath classPath = new DefaultClassPath(Iterables.concat(getClasses(), getClasspath()));
         ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader(classPath);
         Thread.currentThread().setContextClassLoader(classLoader);
         try {
@@ -139,16 +137,12 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
             Class<?> validatorClass = classLoader.loadClass("org.gradle.api.internal.project.taskfactory.TaskPropertyValidationAccess");
             validatorMethod = validatorClass.getMethod("collectTaskValidationProblems", Class.class, Map.class);
         } catch (ClassNotFoundException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
         } catch (NoSuchMethodException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
         }
 
-        getServices().get(DirectoryFileTreeFactory.class).create(getClassesDir()).visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-            }
-
+        getClasses().getAsFileTree().visit(new EmptyFileVisitor() {
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 if (!fileDetails.getPath().endsWith(".class")) {
@@ -158,7 +152,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
                 try {
                     reader = new Java9ClassReader(Files.asByteSource(fileDetails.getFile()).read());
                 } catch (IOException e) {
-                    throw Throwables.propagate(e);
+                    throw new UncheckedIOException(e);
                 }
                 List<String> classNames = Lists.newArrayList();
                 reader.accept(new TaskNameCollectorVisitor(classNames), ClassReader.SKIP_CODE);
@@ -186,9 +180,9 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
                     try {
                         validatorMethod.invoke(null, taskClass, taskValidationProblems);
                     } catch (IllegalAccessException e) {
-                        throw Throwables.propagate(e);
+                        throw new RuntimeException(e);
                     } catch (InvocationTargetException e) {
-                        throw Throwables.propagate(e);
+                        throw new RuntimeException(e);
                     }
                 }
             }
@@ -270,20 +264,24 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     }
 
     /**
-     * The directory containing the classes to validate.
+     * The classes to validate.
+     *
+     * @since 4.0
      */
     @PathSensitive(PathSensitivity.RELATIVE)
-    @InputDirectory
+    @InputFiles
     @SkipWhenEmpty
-    public File getClassesDir() {
-        return classesDir;
+    public FileCollection getClasses() {
+        return classes;
     }
 
     /**
-     * Sets the directory containing the classes to validate.
+     * Sets the classes to validate.
+     *
+     * @since 4.0
      */
-    public void setClassesDir(File classesDir) {
-        this.classesDir = classesDir;
+    public void setClasses(FileCollection classes) {
+        this.classes = classes;
     }
 
     /**
@@ -315,6 +313,15 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     @Optional @OutputFile
     public File getOutputFile() {
         return outputFile == null ? null : getProject().file(outputFile);
+    }
+
+    /**
+     * Sets the output file to store the report in.
+     *
+     * @since 4.0
+     */
+    public void setOutputFile(File outputFile) {
+        setOutputFile((Object) outputFile);
     }
 
     /**

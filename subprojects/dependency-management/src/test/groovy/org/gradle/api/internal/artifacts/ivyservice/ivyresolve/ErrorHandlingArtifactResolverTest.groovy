@@ -26,7 +26,6 @@ import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import spock.lang.Specification
 
 class ErrorHandlingArtifactResolverTest extends Specification {
@@ -64,32 +63,18 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def component = Stub(ComponentResolveMetadata) {
             getComponentId() >> componentId
         }
-        def result1 = Mock(BuildableArtifactSetResolveResult)
-        def result2 = Mock(BuildableComponentArtifactsResolveResult)
+        def result = Mock(BuildableArtifactSetResolveResult)
         def failure = new RuntimeException("foo")
 
         when:
         def artifactType = ArtifactType.JAVADOC
-        delegate.resolveArtifactsWithType(component, artifactType, result1) >> { throw failure }
+        delegate.resolveArtifactsWithType(component, artifactType, result) >> { throw failure }
 
         and:
-        artifactResolver.resolveArtifactsWithType(component, artifactType, result1)
+        artifactResolver.resolveArtifactsWithType(component, artifactType, result)
 
         then:
-        1 * result1.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
-            assert e.message == "Could not determine artifacts for <component>"
-            assert e.cause == failure
-        }
-        0 * _._
-
-        when:
-        delegate.resolveArtifacts(component, result2) >> { throw failure }
-
-        and:
-        artifactResolver.resolveArtifacts(component, result2)
-
-        then:
-        1 * result2.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
+        1 * result.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
             assert e.message == "Could not determine artifacts for <component>"
             assert e.cause == failure
         }

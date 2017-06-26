@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
+import org.gradle.util.GUtil;
 import org.gradle.util.Path;
 
 import java.util.ArrayList;
@@ -28,9 +29,11 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     private List<TaskReportModel> projects = new ArrayList<TaskReportModel>();
     private SetMultimap<String, TaskDetails> groups;
     private final boolean mergeTasksWithSameName;
+    private final boolean detail;
 
-    public AggregateMultiProjectTaskReportModel(boolean mergeTasksWithSameName) {
+    public AggregateMultiProjectTaskReportModel(boolean mergeTasksWithSameName, boolean detail) {
         this.mergeTasksWithSameName = mergeTasksWithSameName;
+        this.detail = detail;
     }
 
     public void add(TaskReportModel project) {
@@ -49,11 +52,17 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
         });
         for (TaskReportModel project : projects) {
             for (String group : project.getGroups()) {
-                for (final TaskDetails task : project.getTasksForGroup(group)) {
-                    groups.put(group, mergeTasksWithSameName ? new MergedTaskDetails(task) : task);
+                if (isVisible(group)) {
+                    for (final TaskDetails task : project.getTasksForGroup(group)) {
+                        groups.put(group, mergeTasksWithSameName ? new MergedTaskDetails(task) : task);
+                    }
                 }
             }
         }
+    }
+
+    private boolean isVisible(String group) {
+        return detail || GUtil.isTrue(group);
     }
 
     @Override
@@ -79,18 +88,8 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
         }
 
         @Override
-        public Set<TaskDetails> getChildren() {
-            return task.getChildren();
-        }
-
-        @Override
         public String getDescription() {
             return task.getDescription();
-        }
-
-        @Override
-        public Set<TaskDetails> getDependencies() {
-            return task.getDependencies();
         }
     }
 }

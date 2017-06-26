@@ -5,13 +5,14 @@ apply from: "${rootDir}/gradle/distributionTesting.gradle"
 
 sourceSets {
     integTest {
-        compileClasspath += main.output + test.output
-        runtimeClasspath += main.output + test.output
+        compileClasspath += main.output
+        runtimeClasspath += main.output
     }
 }
 
 configurations {
     integTestCompile.extendsFrom testCompile
+    integTestImplementation.extendsFrom testImplementation
     integTestRuntime.extendsFrom testRuntime
 }
 
@@ -29,12 +30,14 @@ dependencies {
 ext.integTestTasks = tasks.withType(IntegrationTest)
 
 integTestTasks.all { IntegrationTest task ->
-    testClassesDir = sourceSets.integTest.output.classesDir
+    group = "verification"
+    testClassesDirs = sourceSets.integTest.output.classesDirs
     classpath = sourceSets.integTest.runtimeClasspath
 }
 
 task integTest(type: IntegrationTest) {
     def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
+    description "Runs integTests with '${defaultExecuter}' executer"
     systemProperties['org.gradle.integtest.executer'] = defaultExecuter
     if (project.hasProperty('org.gradle.integtest.debug')) {
         systemProperties['org.gradle.integtest.debug'] = 'true'
@@ -43,12 +46,16 @@ task integTest(type: IntegrationTest) {
     if (project.hasProperty('org.gradle.integtest.verbose')) {
         testLogging.showStandardStreams = true
     }
+    if(project.hasProperty('org.gradle.integtest.launcher.debug')) {
+        systemProperties['org.gradle.integtest.launcher.debug'] = 'true'
+    }
 }
 check.dependsOn(integTest)
 
-['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
+['embedded', 'forking', 'noDaemon', 'parallel'].each { mode ->
     def taskName = "${mode}IntegTest"
     tasks.create(taskName, IntegrationTest).configure {
+        description "Runs integTests with '${mode}' executer"
         systemProperties['org.gradle.integtest.executer'] = mode
     }
 }
@@ -57,13 +64,23 @@ task crossVersionIntegTest {
     description "Runs the cross version tests against all Gradle versions"
 }
 
+task quickFeedbackCrossVersionIntegTest {
+    description "Runs the cross version tests against a subset of selected Gradle versions for quick feedback"
+}
+
 releasedVersions.testedVersions.each { targetVersion ->
     tasks.create("gradle${targetVersion}IntegTest", IntegrationTest).configure {
-        crossVersionIntegTest.dependsOn path
+        crossVersionIntegTest.dependsOn it
         description "Runs the cross version tests against Gradle ${targetVersion}"
         systemProperties['org.gradle.integtest.versions'] = targetVersion
         systemProperties['org.gradle.integtest.executer'] = 'forking'
         include '**/*CrossVersion*'
+    }
+}
+
+releasedVersions.getTestedVersions(true).each { targetVersion ->
+    tasks.getByName("gradle${targetVersion}IntegTest").configure {
+        quickFeedbackCrossVersionIntegTest.dependsOn it
     }
 }
 

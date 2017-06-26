@@ -15,17 +15,18 @@
  */
 
 package org.gradle.play.internal.toolchain
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
+
 import org.gradle.api.tasks.compile.BaseForkOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.play.internal.spec.PlayCompileSpec
+import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 
 class DaemonPlayCompilerTest extends Specification {
 
     def workingDirectory = Mock(File)
     def delegate = Mock(Compiler)
-    def compilerDaemonFactory = Mock(CompilerDaemonFactory)
+    def workerDaemonFactory = Mock(WorkerDaemonFactory)
     def spec = Mock(PlayCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
 
@@ -37,7 +38,7 @@ class DaemonPlayCompilerTest extends Specification {
         given:
         def classpath = someClasspath()
         def packages = ["foo", "bar"]
-        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, compilerDaemonFactory, classpath, packages)
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, workerDaemonFactory, classpath, packages)
         when:
         def options = compiler.toDaemonOptions(spec);
         then:
@@ -47,7 +48,7 @@ class DaemonPlayCompilerTest extends Specification {
 
     def "applies fork settings to daemon options"(){
         given:
-        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, compilerDaemonFactory, someClasspath(), [])
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, workerDaemonFactory, someClasspath(), [])
         when:
         1 * forkOptions.getMemoryInitialSize() >> "256m"
         1 * forkOptions.getMemoryMaximumSize() >> "512m"

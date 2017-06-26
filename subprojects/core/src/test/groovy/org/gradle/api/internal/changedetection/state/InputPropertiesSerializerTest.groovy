@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.GradleException
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
+import com.google.common.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
-import org.gradle.internal.serialize.MapSerializer
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 import spock.lang.Subject
@@ -28,7 +29,7 @@ class InputPropertiesSerializerTest extends Specification {
     def output = new ByteArrayOutputStream()
     def encoder = new OutputStreamBackedEncoder(output)
 
-    @Subject serializer = new InputPropertiesSerializer(this.class.getClassLoader())
+    @Subject serializer = new InputPropertiesSerializer()
 
     def "serializes empty properties"() {
         write [:]
@@ -37,38 +38,154 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes properties"() {
-        write([a: "x", b: "y"])
+        def original = [a: snapshot("x".bytes), b: snapshot("y".bytes)]
+        write(original)
+
         expect:
-        [a: "x", b: "y"] == written
+        original == written
     }
 
-    def "serializes properties with custom classes"() {
-        write([a: new SomeSerializableObject(x:10)])
+    def "serializes string properties"() {
+        def original = [a: string("x"), b: string("y")]
+        write(original)
+
         expect:
-        written["a"].x == 10
+        original == written
     }
 
-    def "informs which properties are not serializable"() {
-        when: write([a: 'x', b: new SomeNotSerializableObject()])
-        then:
-        def ex = thrown(GradleException)
-        ex.message == "Unable to store task input properties. Property 'b' with value 'I'm not serializable' cannot be serialized."
-        ex.cause.class == MapSerializer.EntrySerializationException
+    def "serializes number properties"() {
+        def original = [a: a, b: b]
+        write(original)
+
+        expect:
+        original == written
+
+        where:
+        a                                       | b
+        integer(123)                            | integer(-123)
+        integer(Integer.MAX_VALUE)              | integer(Integer.MIN_VALUE)
+        new LongValueSnapshot(123L)             | new LongValueSnapshot(0L)
+        new LongValueSnapshot(Long.MAX_VALUE)   | new LongValueSnapshot(Long.MIN_VALUE)
+        new ShortValueSnapshot(123 as short)    | new ShortValueSnapshot(0 as short)
+        new ShortValueSnapshot(Short.MAX_VALUE) | new ShortValueSnapshot(Short.MIN_VALUE)
     }
 
-    static class SomeSerializableObject implements Serializable {
-        int x
+    enum Thing {
+        THING_1, THING_2
     }
 
-    static class SomeNotSerializableObject {
-        public String toString() { "I'm not serializable" }
+    def "serializes enum properties"() {
+        def original = [a: new EnumValueSnapshot(Thing.THING_1), b: new EnumValueSnapshot(Thing.THING_2)]
+        write(original)
+
+        expect:
+        original == written
     }
 
-    private Map<String, Object> getWritten() {
+    def "serializes file properties"() {
+        def original = [a: new FileValueSnapshot(new File("abc")), b: new FileValueSnapshot(new File("123").getAbsoluteFile())]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes null properties"() {
+        def original = [a: NullValueSnapshot.INSTANCE, b: NullValueSnapshot.INSTANCE]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes boolean properties"() {
+        def original = [a: BooleanValueSnapshot.TRUE, b: BooleanValueSnapshot.FALSE]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes array properties"() {
+        def original = [a: array(string("123"), string("456")), b: array(array(string("123")))]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes empty array properties"() {
+        def original = [a: array(), b: array()]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes list properties"() {
+        def original = [a: list(string("123"), string("456")), b: list(list(string("123")))]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes empty list properties"() {
+        def original = [a: list(), b: list()]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes set properties"() {
+        def original = [a: set(string("123"), string("456")), b: set(set(string("123"))), c: set()]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes map properties"() {
+        def builder = ImmutableMap.builder()
+        def empty = builder.build()
+        builder.put(string("123"), integer(123))
+        def original = [a: new MapValueSnapshot(builder.build()), b: new MapValueSnapshot(empty)]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    private ArrayValueSnapshot array(ValueSnapshot... elements) {
+        return new ArrayValueSnapshot(elements)
+    }
+
+    private ListValueSnapshot list(ValueSnapshot... elements) {
+        return new ListValueSnapshot(elements)
+    }
+
+    private SetValueSnapshot set(ValueSnapshot... elements) {
+        return new SetValueSnapshot(ImmutableSet.copyOf(elements))
+    }
+
+    private IntegerValueSnapshot integer(int value) {
+        return new IntegerValueSnapshot(value)
+    }
+
+    private StringValueSnapshot string(String value) {
+        return new StringValueSnapshot(value)
+    }
+
+    private SerializedValueSnapshot snapshot(byte[] value) {
+        return new SerializedValueSnapshot(HashCode.fromInt(123), value)
+    }
+
+    private Map<String, ValueSnapshot> getWritten() {
         serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(output.toByteArray())))
     }
 
-    private void write(Map map) {
-        serializer.write(encoder, map)
+    private void write(Map<String, ValueSnapshot> map) {
+        serializer.write(encoder, ImmutableMap.copyOf(map))
     }
 }

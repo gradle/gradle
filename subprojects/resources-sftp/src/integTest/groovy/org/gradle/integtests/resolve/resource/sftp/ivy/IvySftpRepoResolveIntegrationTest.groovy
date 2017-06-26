@@ -30,5 +30,12 @@ class IvySftpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
     RepositoryServer getServer() {
         return server
     }
+
+    def setup() {
+        // SFTP test fixture does not handle parallel resolution requests
+        executer.beforeExecute {
+            it.withArgument("--max-workers=1")
+        }
+    }
 }
 

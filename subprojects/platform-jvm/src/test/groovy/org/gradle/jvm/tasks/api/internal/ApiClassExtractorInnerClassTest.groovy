@@ -25,7 +25,6 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
     private final static int ACC_PUBLICSTATIC = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
     private final static int ACC_PROTECTEDSTATIC = Opcodes.ACC_PROTECTED | Opcodes.ACC_STATIC
-    private final static int ACC_PRIVATESTATIC = Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC
 
     @Unroll
     def "should not remove #modifier inner class if no API is declared"() {
@@ -52,7 +51,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         hasMethod(extractedInner, 'foo').modifiers == Modifier.PUBLIC
 
         when:
-        def o = !(modifier =~ /static/) ? extractedInner.newInstance(null) : extractedInner.newInstance()
+        def o = !(modifier =~ /static/) ? extractedInner.newInstance(extractedOuter.newInstance()) : extractedInner.newInstance()
         o.foo()
 
         then:
@@ -62,17 +61,41 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         modifier           | access
         'public'           | Opcodes.ACC_PUBLIC
         'protected'        | Opcodes.ACC_PROTECTED
-        'private'          | Opcodes.ACC_PRIVATE
         ''                 | 0
         'public static'    | ACC_PUBLICSTATIC
         'protected static' | ACC_PROTECTEDSTATIC
-        'private static'   | ACC_PRIVATESTATIC
         'static'           | Opcodes.ACC_STATIC
-
     }
 
     @Unroll
-    def "should remove #modifier inner class if API is declared"() {
+    def "should not keep private #modifier inner class"() {
+        given:
+        def api = toApi 'A': """
+            public class A {
+               private $modifier class Inner {
+                  public void foo() {}
+               }
+            }
+        """
+
+        when:
+        def outer = api.classes.A
+        def inner = api.classes['A$Inner']
+        def extractedOuter = api.extractAndLoadApiClassFrom(outer)
+
+        then:
+        api.shouldExtractApiClassFrom(outer)
+        !api.extractApiClassFrom(inner)
+        extractedOuter.classes.length == 0
+
+        where:
+        modifier | _
+        ''       | _
+        'static' | _
+    }
+
+    @Unroll
+    def "should not keep #modifier inner class if API is declared"() {
         given:
         def api = toApi ([''], [ 'A': """
             public class A {
@@ -98,7 +121,6 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         modifier           | access
         ''                 | 0
         'static'           | Opcodes.ACC_STATIC
-
     }
 
     def "should not keep anonymous inner classes"() {

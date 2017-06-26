@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
 import java.io.File;
 
@@ -25,5 +26,5 @@ public interface Distribution {
     String getDisplayName();
 
     ClassPath getToolingImplementationClasspath(
-            ProgressLoggerFactory progressLoggerFactory, File userHomeDir, BuildCancellationToken cancellationToken);
+        ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken);
 }

@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+apply from: new File(settingsDir, 'gradle/remoteHttpCacheSettings.gradle')
+
 include 'distributions'
 include 'baseServices'
 include 'baseServicesGroovy'
@@ -37,11 +40,8 @@ include 'idePlay'
 include 'osgi'
 include 'maven'
 include 'announce'
-include 'jetty'
 include 'codeQuality'
 include 'antlr'
-include 'ui'
-include 'openApi'
 include 'toolingApi'
 include 'toolingApiBuilders'
 include 'docs'
@@ -75,7 +75,7 @@ include 'pluginUse'
 include 'pluginDevelopment'
 include 'modelCore'
 include 'modelGroovy'
-include 'taskCacheHttp'
+include 'buildCacheHttp'
 include 'testingBase'
 include 'testingNative'
 include 'testingJvm'
@@ -85,6 +85,8 @@ include 'installationBeacon'
 include 'soak'
 include 'smokeTest'
 include 'compositeBuilds'
+include 'workers'
+include 'runtimeApiInfo'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

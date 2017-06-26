@@ -16,14 +16,18 @@
 
 package org.gradle.jvm.tasks
 
+import org.gradle.api.Action
+import org.gradle.api.file.CopySpec
+import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
+import org.gradle.test.fixtures.archive.JarTestFixture
 
 class JarTest extends AbstractArchiveTaskTest {
     Jar jar
 
-    def setup()  {
+    def setup() {
         jar = createTask(Jar)
         configure(jar)
     }
@@ -60,5 +64,28 @@ class JarTest extends AbstractArchiveTaskTest {
 
         then:
         jar.manifest.attributes.key == 'value'
+    }
+
+    def "can configure manifest using an Action"() {
+        when:
+        jar.manifest({ Manifest manifest ->
+            manifest.attributes(key: 'value')
+        } as Action<Manifest>)
+
+        then:
+        jar.manifest.attributes.key == 'value'
+    }
+
+    def "can configure META-INF CopySpec using an Action"() {
+        given:
+        jar.metaInf({ CopySpec spec ->
+            spec.from temporaryFolder.createFile('file.txt')
+        } as Action<CopySpec>)
+
+        when:
+        jar.execute()
+
+        then:
+        new JarTestFixture(jar.archivePath).assertContainsFile('META-INF/file.txt')
     }
 }

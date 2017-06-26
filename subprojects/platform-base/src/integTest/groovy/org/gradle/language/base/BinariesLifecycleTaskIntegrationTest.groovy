@@ -102,7 +102,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         run "assemble"
 
         then:
-        result.assertTasksExecuted(":someOtherTask", ":assemble")
+        result.assertTasksExecutedInOrder(":someOtherTask", ":assemble")
     }
 
     def "does not do anything when the project is empty" () {

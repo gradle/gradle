@@ -112,6 +112,22 @@ public abstract class ModelType<T> {
         return wrapper instanceof ParameterizedTypeWrapper;
     }
 
+    public ModelType<?> getRawType() {
+        return Simple.typed(((ParameterizedTypeWrapper) wrapper).getRawType());
+    }
+
+    public ModelType<?> withArguments(List<ModelType<?>> types) {
+        return Simple.typed(((ParameterizedTypeWrapper) wrapper).substituteAll(toWrappers(types)));
+    }
+
+    public boolean isGenericArray() {
+        return wrapper instanceof GenericArrayTypeWrapper;
+    }
+
+    public ModelType<?> getComponentType() {
+        return Simple.typed(((GenericArrayTypeWrapper) wrapper).getComponentType());
+    }
+
     public List<ModelType<?>> getTypeVariables() {
         if (isParameterized()) {
             TypeWrapper[] typeArguments = ((ParameterizedTypeWrapper) wrapper).getActualTypeArguments();
@@ -266,7 +282,7 @@ public abstract class ModelType<T> {
         }
 
         public ModelType<T> build() {
-            return Simple.typed((TypeWrapper) wrapper);
+            return Simple.typed(wrapper);
         }
     }
 
@@ -330,6 +346,19 @@ public abstract class ModelType<T> {
             int i = 0;
             for (Type type : types) {
                 wrappers[i++] = wrap(type);
+            }
+            return wrappers;
+        }
+    }
+
+    static TypeWrapper[] toWrappers(List<ModelType<?>> types) {
+        if (types.isEmpty()) {
+            return EMPTY_TYPE_WRAPPER_ARRAY;
+        } else {
+            TypeWrapper[] wrappers = new TypeWrapper[types.size()];
+            int i = 0;
+            for (ModelType<?> type : types) {
+                wrappers[i++] = type.wrapper;
             }
             return wrappers;
         }

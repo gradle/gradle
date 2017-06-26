@@ -113,15 +113,6 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term>
-                <option>--gui</option>
-            </term>
-            <listitem>
-                <para>Launches the Gradle GUI. See <xref linkend="tutorial_gradle_gui"/>.
-                </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
             <term><option>--include-build</option>
             </term>
             <listitem>
@@ -274,6 +265,23 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>--scan (incubating)</option>
+            </term>
+            <listitem>
+                <para>Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. For more information about build scans, please visit <ulink
+                    url="https://gradle.com/build-scans">https://gradle.com/build-scans</ulink>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>--no-scan (incubating)</option>
+            </term>
+            <listitem>
+                <para>Disables the creation of a build scan. For more information about build scans, please visit <ulink url="https://gradle.com/build-scans">https://gradle.com/build-scans</ulink>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term>
                 <option>-t</option>, <option>--continuous (incubating)</option>
             </term>
@@ -282,7 +290,7 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-u</option>, <option>--no-search-upwards</option>
+            <term><option>-u</option>, <option>--no-search-upward</option>
             </term>
             <listitem>
                 <para>Don't search in parent directories for a
@@ -297,6 +305,14 @@
             <listitem>
                 <para>Prints version info.
                 </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <option>-w</option>, <option>--warn</option>
+            </term>
+            <listitem>
+                <para>Set log level to warn. See <xref linkend="logging"/></para>
             </listitem>
         </varlistentry>
         <varlistentry>
@@ -352,6 +368,16 @@
                 <listitem>
                     <para>Do not use the Gradle daemon to run the build.
                         Useful occasionally if you have configured Gradle to always run with the daemon by default.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <option>--status</option>
+                </term>
+                <listitem>
+                    <para>List running and recently stopped Gradle daemons.
+                        Only displays daemons of the same Gradle version.
                     </para>
                 </listitem>
             </varlistentry>

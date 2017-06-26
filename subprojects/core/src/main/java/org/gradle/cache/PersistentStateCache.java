@@ -31,17 +31,28 @@ public interface PersistentStateCache<T> {
     void set(T newValue);
 
     /**
-     * Replaces the value for this cache. An exclusive lock is held while the update action is executing.
+     * Replaces the value for this cache.
+     *
+     * An exclusive lock is held while the update action is executing.
+     * The result of the update is returned.
      */
-    void update(UpdateAction<T> updateAction);
+    T update(UpdateAction<T> updateAction);
 
-    static interface UpdateAction<T> {
-        /**
-         * should return the new value
-         *
-         * @param oldValue, null means there wasn't any value before
-         * @return new value
-         */
+    interface UpdateAction<T> {
         T update(T oldValue);
     }
+
+    /**
+     * Potentially replaces the value for this cache
+     *
+     * An exclusive lock is held while the update action is executing.
+     * The result of the update is returned.
+     *
+     * If the action returns the existing value, based on referential integrity,
+     * it is not written back to the store.
+     * That is, it is assumed that values are immutable.
+     * To force a write back to the store, ensure that you return a new object.
+     */
+    T maybeUpdate(UpdateAction<T> updateAction);
+
 }

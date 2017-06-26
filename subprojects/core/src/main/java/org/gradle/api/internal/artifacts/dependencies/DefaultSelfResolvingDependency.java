@@ -15,23 +15,29 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 import java.util.Set;
 
-public class DefaultSelfResolvingDependency extends AbstractDependency implements SelfResolvingDependency,
-    FileCollectionDependency {
+public class DefaultSelfResolvingDependency extends AbstractDependency implements SelfResolvingDependencyInternal, FileCollectionDependency {
+    private final ComponentIdentifier targetComponentId;
     private final FileCollectionInternal source;
 
     public DefaultSelfResolvingDependency(FileCollectionInternal source) {
+        this.targetComponentId = null;
+        this.source = source;
+    }
+
+    public DefaultSelfResolvingDependency(ComponentIdentifier targetComponentId, FileCollectionInternal source) {
+        this.targetComponentId = targetComponentId;
         this.source = source;
     }
 
@@ -45,8 +51,14 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
     }
 
     @Override
-    public SelfResolvingDependency copy() {
-        return new DefaultSelfResolvingDependency(source);
+    public DefaultSelfResolvingDependency copy() {
+        return new DefaultSelfResolvingDependency(targetComponentId, source);
+    }
+
+    @Nullable
+    @Override
+    public ComponentIdentifier getTargetComponentId() {
+        return targetComponentId;
     }
 
     @Override
@@ -87,10 +99,5 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
     @Override
     public FileCollection getFiles() {
         return source;
-    }
-
-    @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        source.registerWatchPoints(builder);
     }
 }

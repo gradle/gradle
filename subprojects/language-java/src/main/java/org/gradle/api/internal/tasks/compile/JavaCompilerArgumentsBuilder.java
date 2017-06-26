@@ -17,15 +17,27 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class JavaCompilerArgumentsBuilder {
+    private static final Pattern SOURCEPATH_ARGUMENT = Pattern.compile("-{1,2}source-?path");
+    private static final String SOURCEPATH_WARNING = "Gradle does not support passing a custom sourcepath to javac. Removing:";
+
+    public static final Logger LOGGER = Logging.getLogger(JavaCompilerArgumentsBuilder.class);
     public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
     public static final String EMPTY_SOURCE_PATH_REF_DIR = "emptySourcePathRef";
 
@@ -35,7 +47,7 @@ public class JavaCompilerArgumentsBuilder {
     private boolean includeMainOptions = true;
     private boolean includeClasspath = true;
     private boolean includeSourceFiles;
-    private boolean includeCustomizations = true;
+    private boolean noEmptySourcePath;
 
     private List<String> args;
 
@@ -63,8 +75,8 @@ public class JavaCompilerArgumentsBuilder {
         return this;
     }
 
-    public JavaCompilerArgumentsBuilder includeCustomizations(boolean flag) {
-        includeCustomizations = flag;
+    public JavaCompilerArgumentsBuilder noEmptySourcePath() {
+        noEmptySourcePath = true;
         return this;
     }
 
@@ -74,24 +86,10 @@ public class JavaCompilerArgumentsBuilder {
         addLauncherOptions();
         addMainOptions();
         addClasspath();
+        addUserProvidedArgs();
         addSourceFiles();
-        addCustomizations();
 
         return args;
-    }
-
-    private void addCustomizations() {
-        if (includeCustomizations) {
-            /*This is an internal option, it's used in com.sun.tools.javac.util.Names#createTable(Options options). The -XD backdoor switch is used to set it, as described in a comment
-            in com.sun.tools.javac.main.RecognizedOptions#getAll(OptionHelper helper). This option was introduced in JDK 7 and controls if compiler's name tables should be reused.
-            Without this option being set they are stored in a static list using soft references which can lead to memory pressure and performance deterioration
-            when using the daemon, especially when using small heap and building a large project.
-            Due to a bug (https://builds.gradle.org/viewLog.html?buildId=284033&tab=buildResultsDiv&buildTypeId=Gradle_Master_Performance_PerformanceExperimentsLinux) no instances of
-            SharedNameTable are actually ever reused. It has been fixed for JDK9 and we should consider not using this option with JDK9 as not using it  will quite probably improve the
-            performance of compilation.
-            Using this option leads to significant performance improvements when using daemon and compiling java sources with JDK7 and JDK8.*/
-            args.add(USE_UNSHARED_COMPILER_TABLE_OPTION);
-        }
     }
 
     private void addLauncherOptions() {
@@ -116,7 +114,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        CompileOptions compileOptions = spec.getCompileOptions();
+        final CompileOptions compileOptions = spec.getCompileOptions();
         List<String> compilerArgs = compileOptions.getCompilerArgs();
         if (!releaseOptionIsSet(compilerArgs)) {
             String sourceCompatibility = spec.getSourceCompatibility();
@@ -144,15 +142,6 @@ public class JavaCompilerArgumentsBuilder {
         if (!compileOptions.isWarnings()) {
             args.add("-nowarn");
         }
-        if (compileOptions.isDebug()) {
-            if (compileOptions.getDebugOptions().getDebugLevel() != null) {
-                args.add("-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
-            } else {
-                args.add("-g");
-            }
-        } else {
-            args.add("-g:none");
-        }
         if (compileOptions.getEncoding() != null) {
             args.add("-encoding");
             args.add(compileOptions.getEncoding());
@@ -165,13 +154,63 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-extdirs");
             args.add(compileOptions.getExtensionDirs());
         }
-        FileCollection sourcepath = compileOptions.getSourcepath();
-        Iterable<File> classpath = spec.getClasspath();
-        if ((sourcepath != null && !sourcepath.isEmpty()) || (includeClasspath && (classpath != null && classpath.iterator().hasNext()))) {
-            args.add("-sourcepath");
-            args.add(sourcepath == null ? emptyFolder(spec.getTempDir()) : sourcepath.getAsPath());
+
+        if (compileOptions.isDebug()) {
+            if (compileOptions.getDebugOptions().getDebugLevel() != null) {
+                args.add("-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
+            } else {
+                args.add("-g");
+            }
+        } else {
+            args.add("-g:none");
         }
+
+        FileCollection sourcepath = DeprecationLogger.whileDisabled(new Factory<FileCollection>() {
+            @Override
+            @SuppressWarnings("deprecation")
+            public FileCollection create() {
+                return compileOptions.getSourcepath();
+            }
+        });
+        if (Jvm.current().getJavaVersion().isJava9Compatible() && containsModuleDescriptor(spec.getSource())) {
+            noEmptySourcePath();
+        }
+        if (!noEmptySourcePath || sourcepath != null && !sourcepath.isEmpty()) {
+            args.add("-sourcepath");
+            args.add(sourcepath == null ? "" : sourcepath.getAsPath());
+        }
+
+        if (spec.getSourceCompatibility() == null || JavaVersion.toVersion(spec.getSourceCompatibility()).compareTo(JavaVersion.VERSION_1_6) >= 0) {
+            List<File> annotationProcessorPath = spec.getAnnotationProcessorPath();
+            if (annotationProcessorPath == null || annotationProcessorPath.isEmpty()) {
+                args.add("-proc:none");
+            } else {
+                args.add("-processorpath");
+                args.add(Joiner.on(File.pathSeparator).join(annotationProcessorPath));
+            }
+        }
+
+        /*This is an internal option, it's used in com.sun.tools.javac.util.Names#createTable(Options options). The -XD backdoor switch is used to set it, as described in a comment
+        in com.sun.tools.javac.main.RecognizedOptions#getAll(OptionHelper helper). This option was introduced in JDK 7 and controls if compiler's name tables should be reused.
+        Without this option being set they are stored in a static list using soft references which can lead to memory pressure and performance deterioration
+        when using the daemon, especially when using small heap and building a large project.
+        Due to a bug (https://builds.gradle.org/viewLog.html?buildId=284033&tab=buildResultsDiv&buildTypeId=Gradle_Master_Performance_PerformanceExperimentsLinux) no instances of
+        SharedNameTable are actually ever reused. It has been fixed for JDK9 and we should consider not using this option with JDK9 as not using it  will quite probably improve the
+        performance of compilation.
+        Using this option leads to significant performance improvements when using daemon and compiling java sources with JDK7 and JDK8.*/
+        args.add(USE_UNSHARED_COMPILER_TABLE_OPTION);
+    }
+
+    private void addUserProvidedArgs() {
+        if (!includeMainOptions) {
+            return;
+        }
+
+        List<String> compilerArgs = spec.getCompileOptions().getCompilerArgs();
         if (compilerArgs != null) {
+            if (!spec.respectsSourcepath()) {
+                stripSourcePath(compilerArgs);
+            }
             args.addAll(compilerArgs);
         }
     }
@@ -180,22 +219,14 @@ public class JavaCompilerArgumentsBuilder {
         return compilerArgs != null && compilerArgs.contains("-release");
     }
 
-    private String emptyFolder(File parent) {
-        File emptySourcePath = new File(parent, EMPTY_SOURCE_PATH_REF_DIR);
-        emptySourcePath.mkdirs();
-        return emptySourcePath.getAbsolutePath();
-    }
-
     private void addClasspath() {
         if (!includeClasspath) {
             return;
         }
 
-        Iterable<File> classpath = spec.getClasspath();
-        if (classpath != null && classpath.iterator().hasNext()) {
-            args.add("-classpath");
-            args.add(Joiner.on(File.pathSeparatorChar).join(classpath));
-        }
+        List<File> classpath = spec.getCompileClasspath();
+        args.add("-classpath");
+        args.add(classpath == null ? "" : Joiner.on(File.pathSeparatorChar).join(classpath));
     }
 
     private void addSourceFiles() {
@@ -206,5 +237,31 @@ public class JavaCompilerArgumentsBuilder {
         for (File file : spec.getSource()) {
             args.add(file.getPath());
         }
+    }
+
+    private static void stripSourcePath(List<String> args) {
+        Iterator<String> i = args.iterator();
+        while(i.hasNext()) {
+            String arg = i.next();
+            if (SOURCEPATH_ARGUMENT.matcher(arg).matches()) {
+                i.remove();
+                if (i.hasNext()) {
+                    String next = i.next();
+                    LOGGER.warn("{} {} {}.", SOURCEPATH_WARNING, arg, next);
+                    i.remove();
+                } else {
+                    LOGGER.warn("{} {}.", SOURCEPATH_WARNING, arg);
+                }
+            }
+        }
+    }
+
+    private boolean containsModuleDescriptor(FileCollection source) {
+        for (File f : source) {
+            if (f.getName().equals("module-info.java")) {
+                return true;
+            }
+        }
+        return false;
     }
 }

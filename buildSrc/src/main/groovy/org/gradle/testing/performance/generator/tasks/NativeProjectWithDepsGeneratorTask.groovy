@@ -23,7 +23,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
-import org.gradle.jvm.tasks.Jar
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 /**
@@ -106,24 +105,6 @@ class NativeProjectWithDepsGeneratorTask extends ProjectGeneratorTask {
         resolveTemplate(projectTemplateName)
     }
 
-    /**
-     * Template directory with measurement-plugin build file
-     * @return
-     */
-    @InputDirectory
-    public File getMeasurementPluginTemplate() {
-        resolveTemplate("measurement-plugin")
-    }
-
-    /**
-     * Binary/Jar of measurement plugin
-     * @return
-     */
-    @InputFiles
-    Jar getMeasurementPlugin() {
-        (Jar)project.tasks.findByPath(':internalPerformanceTesting:measurementPluginJar')
-    }
-
     @TaskAction
     void generate() {
         copyResources()
@@ -132,14 +113,6 @@ class NativeProjectWithDepsGeneratorTask extends ProjectGeneratorTask {
     }
 
     void generateRootProject() {
-        // TODO: This is hacky. AbstractProjectGeneratorTask does a lot more and is more flexible.
-        // For this build, we don't need anything in our root build.gradle, so we can just copy the measurement-plugin
-        // build file.
-        generateBuildFile("", measurementPluginTemplate, [
-                measurementPluginJarFile: measurementPlugin.archivePath,
-                original: "",
-                beforePlugins: '',
-                afterPlugins: ''])
         generateSettings()
     }
 

@@ -27,9 +27,11 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -124,6 +126,8 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 if (callableResult != null) {
                     queue.add(0, callableResult);
                 }
+            } else if (element instanceof Path) {
+                queue.add(0, ((Path) element).toFile());
             } else if (element instanceof Iterable) {
                 Iterable<?> iterable = (Iterable) element;
                 GUtil.addToCollection(queue.subList(0, 0), iterable);
@@ -214,7 +218,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
 
         private void convertFileToFileTree(File file, Collection<? super FileTreeInternal> result) {
             if (file.isDirectory()) {
-                result.add(new FileTreeAdapter(new DirectoryFileTree(file, patternSetFactory.create())));
+                result.add(new FileTreeAdapter(new DirectoryFileTree(file, patternSetFactory.create(), FileSystems.getDefault())));
             } else if (file.isFile()) {
                 result.add(new FileTreeAdapter(new SingletonFileTree(file)));
             }

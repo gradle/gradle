@@ -57,10 +57,10 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, Action<? super PersistentCache> cleanup) throws CacheOpenException {
         lock.lock();
         try {
-            return doOpen(cacheDir, displayName, cacheValidator, properties, lockTarget, lockOptions, initializer);
+            return doOpen(cacheDir, displayName, cacheValidator, properties, lockTarget, lockOptions, initializer, cleanup);
         } finally {
             lock.unlock();
         }
@@ -76,13 +76,13 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
     }
 
-    private PersistentCache doOpen(File cacheDir, String displayName, @Nullable CacheValidator validator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer) {
+    private PersistentCache doOpen(File cacheDir, String displayName, @Nullable CacheValidator validator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable Action<? super PersistentCache> cleanup) {
         File canonicalDir = FileUtils.canonicalize(cacheDir);
         DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
-            if (!properties.isEmpty() || validator != null || initializer != null) {
-                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, validator, properties, lockTarget, lockOptions, initializer, lockManager, executorFactory);
+            if (!properties.isEmpty() || validator != null || initializer != null || cleanup != null) {
+                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, validator, properties, lockTarget, lockOptions, initializer, cleanup, lockManager, executorFactory);
             } else {
                 cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockTarget, lockOptions, lockManager, executorFactory);
             }
@@ -154,41 +154,39 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
             return reference.cache.toString();
         }
 
+        @Override
         public void close() {
             reference.release(this);
         }
 
+        @Override
         public File getBaseDir() {
             return reference.cache.getBaseDir();
         }
 
+        @Override
         public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
             return reference.cache.createCache(parameters);
         }
 
+        @Override
         public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
             return reference.cache.createCache(name, keyType, valueSerializer);
         }
 
         @Override
-        public void flush() {
-            reference.cache.flush();
+        public <T> T withFileLock(Factory<? extends T> action) {
+            return reference.cache.withFileLock(action);
         }
 
-        public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-            return reference.cache.longRunningOperation(operationDisplayName, action);
+        @Override
+        public <T> T useCache(Factory<? extends T> action) {
+            return reference.cache.useCache(action);
         }
 
-        public void longRunningOperation(String operationDisplayName, Runnable action) {
-            reference.cache.longRunningOperation(operationDisplayName, action);
-        }
-
-        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-            return reference.cache.useCache(operationDisplayName, action);
-        }
-
-        public void useCache(String operationDisplayName, Runnable action) {
-            reference.cache.useCache(operationDisplayName, action);
+        @Override
+        public void useCache(Runnable action) {
+            reference.cache.useCache(action);
         }
     }
 }

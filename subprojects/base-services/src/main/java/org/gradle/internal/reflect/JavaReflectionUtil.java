@@ -16,48 +16,30 @@
 
 package org.gradle.internal.reflect;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class JavaReflectionUtil {
-    private static final WeakHashMap<Class<?>, ConcurrentMap<String, Boolean>> PROPERTY_CACHE = new WeakHashMap<Class<?>, ConcurrentMap<String, Boolean>>();
 
-    /**
-     * Locates the readable properties of the given type. Searches only public properties.
-     */
-    public static <T> Map<String, PropertyAccessor> readableProperties(Class<T> target) {
-        HashMap<String, PropertyAccessor> properties = new HashMap<String, PropertyAccessor>();
-        for (Method method : target.getMethods()) {
-            if (method.getName().startsWith("get") && isGetter(method)) {
-                String propertyName = method.getName().substring(3);
-                propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
-                properties.put(propertyName, new GetterMethodBackedPropertyAccessor<T, Object>(propertyName, Object.class, method));
-            } else if (method.getName().startsWith("is") && isBooleanGetter(method)) {
-                String propertyName = method.getName().substring(2);
-                propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
-                properties.put(propertyName, new GetterMethodBackedPropertyAccessor<T, Object>(propertyName, Object.class, method));
-            }
-        }
-        return properties;
-    }
+    private static final WeakHashMap<Class<?>, Set<String>> PROPERTY_CACHE = new WeakHashMap<Class<?>, Set<String>>();
 
     /**
      * Locates the property with the given name as a readable property. Searches only public properties.
@@ -85,8 +67,6 @@ public class JavaReflectionUtil {
 
     /**
      * Locates the field with the given name as a readable property.  Searches only public fields.
-     *
-     * @throws NoSuchPropertyException
      */
     public static <T, F> PropertyAccessor<T, F> readableField(Class<T> target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
         Field field = findField(target, fieldName);
@@ -99,8 +79,6 @@ public class JavaReflectionUtil {
 
     /**
      * Locates the field with the given name as a readable property.  Searches only public fields.
-     *
-     * @throws NoSuchPropertyException
      */
     public static <T, F> PropertyAccessor<T, F> readableField(T target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
         @SuppressWarnings("unchecked")
@@ -114,23 +92,14 @@ public class JavaReflectionUtil {
         String iser = toMethodName("is", property);
         for (Method method : methods) {
             String methodName = method.getName();
-            if (getter.equals(methodName) && isGetter(method)) {
+            if (getter.equals(methodName) && PropertyAccessorType.of(method) == PropertyAccessorType.GET_GETTER) {
                 return method;
             }
-            if (iser.equals(methodName) && isBooleanGetter(method)) {
+            if (iser.equals(methodName) && PropertyAccessorType.of(method) == PropertyAccessorType.IS_GETTER) {
                 return method;
             }
         }
         return null;
-    }
-
-    private static boolean isGetter(Method method) {
-        return method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers()) && !method.getReturnType().equals(Void.TYPE);
-    }
-
-    private static boolean isBooleanGetter(Method method) {
-        Class<?> returnType = method.getReturnType();
-        return method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers()) && (returnType.equals(Boolean.TYPE) || returnType.equals(Boolean.class));
     }
 
     /**
@@ -154,13 +123,7 @@ public class JavaReflectionUtil {
     public static PropertyMutator writeablePropertyIfExists(Class<?> target, String property) throws NoSuchPropertyException {
         String setterName = toMethodName("set", property);
         for (final Method method : target.getMethods()) {
-            if (!method.getName().equals(setterName)) {
-                continue;
-            }
-            if (method.getParameterTypes().length != 1) {
-                continue;
-            }
-            if (Modifier.isStatic(method.getModifiers())) {
+            if (!method.getName().equals(setterName) || PropertyAccessorType.of(method) != PropertyAccessorType.SETTER) {
                 continue;
             }
             return new MethodBackedPropertyMutator(property, method);
@@ -255,30 +218,36 @@ public class JavaReflectionUtil {
         return findAllMethodsInternal(target, predicate, new MultiMap<String, Method>(), new ArrayList<Method>(), false);
     }
 
-    // Not hasProperty() because that's awkward with Groovy objects implementing it
-    public static boolean propertyExists(Object target, String propertyName) {
+    public static Set<String> propertyNames(Object target) {
         Class<?> targetType = target.getClass();
-        ConcurrentMap<String, Boolean> cached;
         synchronized (PROPERTY_CACHE) {
-            cached = PROPERTY_CACHE.get(targetType);
+            Set<String> cached = PROPERTY_CACHE.get(targetType);
             if (cached == null) {
-                cached = new ConcurrentHashMap<String, Boolean>();
+                cached = ClassInspector.inspect(targetType).getPropertyNames();
                 PROPERTY_CACHE.put(targetType, cached);
             }
+            return cached;
         }
-        Boolean res = cached.get(propertyName);
-        if (res != null) {
-            return res;
-        }
-        Method getterMethod = findGetterMethod(target.getClass(), propertyName);
-        if (getterMethod == null) {
-            if (findField(targetType, propertyName) == null) {
-                cached.putIfAbsent(propertyName, false);
-                return false;
+    }
+
+    public static <T> T newInstanceOrFallback(String jdk7Type, ClassLoader loader, Class<? extends T> fallbackType) {
+        // Use java 7 APIs, if available
+        Class<?> handlerClass = null;
+        if (JavaVersion.current().isJava7Compatible()) {
+            try {
+                handlerClass = loader.loadClass(jdk7Type);
+            } catch (ClassNotFoundException e) {
+                // Ignore
             }
         }
-        cached.putIfAbsent(propertyName, true);
-        return true;
+        if (handlerClass == null) {
+            handlerClass = fallbackType;
+        }
+        try {
+            return Cast.uncheckedCast(handlerClass.newInstance());
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private static class MultiMap<K, V> extends HashMap<K, List<V>> {
@@ -299,7 +268,7 @@ public class JavaReflectionUtil {
             Method override = CollectionUtils.findFirst(seenWithName, new Spec<Method>() {
                 public boolean isSatisfiedBy(Method potentionOverride) {
                     return potentionOverride.getName().equals(method.getName())
-                            && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes());
+                        && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes());
                 }
             });
 
@@ -507,6 +476,12 @@ public class JavaReflectionUtil {
 
         public T create() {
             return instantiator.newInstance(type, args);
+        }
+    }
+
+    public static class CachedConstructor extends ReflectionCache.CachedInvokable<Constructor<?>> {
+        public CachedConstructor(Constructor<?> ctor) {
+            super(ctor);
         }
     }
 }

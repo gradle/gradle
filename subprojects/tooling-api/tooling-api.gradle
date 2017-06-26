@@ -1,7 +1,9 @@
-import org.gradle.build.*
-
 // GradleConnector entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
+configurations {
+    testPublishRuntime
+}
 
 dependencies {
     compile project(':core')
@@ -9,10 +11,10 @@ dependencies {
     compile project(':wrapper')
     compile project(':baseServices')
     publishCompile libraries.slf4j_api
+    compile libraries.jcip
 
     testFixturesCompile project(':baseServicesGroovy')
     testFixturesCompile project(':internalIntegTesting')
-    testCompile libraries.groovy
 
     // Need these to be loaded into the integTestRuntime, so that the modules are available on the classpath and the services can be registered
     // I think this is only really required for the TAPI tests in embedded mode, where we use `GradleConnector.useClasspathDistribution()`.
@@ -31,34 +33,34 @@ useTestFixtures(project: ":logging")
 useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':ide')
 
-integTestTasks.all {
-    dependsOn(publishLocalArchives, ':distributions:binZip')
-}
-
 forkingIntegTest {
-    if (isCiServer) {
-        maxParallelForks = Math.min(2, rootProject.maxParallelForks)
-    }
+    maxParallelForks = Math.min(2, rootProject.maxParallelForks)
 }
 
-parallelIntegTest {
-    enabled = false //tooling integ tests use parallel settings, don't run
-}
-
-daemonIntegTest {
-    enabled = false //tooling integ tests use daemon anyway, don't rerun
-}
-
-task shadedJar(type: ShadedJar) {
-    ext.outputDir = file("$buildDir/shaded-jar")
-    sourceFiles = jar.inputs.files + files {(configurations.runtime - configurations.publishCompile).collect { zipTree(it) } }
+task shadedJarWithoutVersion(type: ShadedJar) {
+    ext.outputDir = file("$buildDir/shaded-jar-without-version")
+    sourceFiles = jar.outputs.files +
+        files { configurations.runtime - configurations.publishCompile }
     analysisFile = file("$outputDir/analysis.txt")
     classesDir = file("$outputDir/classes")
     jarFile = file("$outputDir/gradle-tooling-api-shaded-${baseVersion}.jar")
     keepPackages = ["org.gradle.tooling"]
-    unshadedPackages = ["org.gradle", "org.slf4j"]
+    unshadedPackages = ["org.gradle", "org.slf4j", "sun.misc"]
     ignorePackages = ["org.gradle.tooling.provider.model"]
     shadowPackage = "org.gradle.internal.impldep"
+}
+
+task toolingApiShadedJar(type: Zip) {
+    ext.buildReceipt = tasks.getByPath(':createBuildReceipt')
+    destinationDir file("$buildDir/shaded-jar")
+    dependsOn shadedJarWithoutVersion, buildReceipt
+    from zipTree(shadedJarWithoutVersion.jarFile)
+    baseName = 'gradle-tooling-api-shaded'
+    from(buildReceipt) {
+        into '/org/gradle'
+    }
+    extension 'jar'
+    version baseVersion
 }
 
 apply from: 'buildship.gradle'
@@ -70,10 +72,6 @@ sourceJar {
     }
 }
 
-artifacts {
-    publishRuntime file: shadedJar.jarFile, name: archivesBaseName, type: 'jar', builtBy: shadedJar
-}
-
 eclipse {
     classpath {
         file.whenMerged { classpath ->
@@ -82,6 +80,33 @@ eclipse {
             classpath.entries.removeAll { it.path.contains('src/integTest/groovy') }
         }
     }
+}
+
+artifacts {
+    publishRuntime file: toolingApiShadedJar.archivePath, name: archivesBaseName, type: 'jar', builtBy: toolingApiShadedJar
+}
+
+task publishLocalArchives(type: Upload) {
+    ext.repoBaseDir = rootProject.file('build/repo')
+    configuration = configurations.publishRuntime
+    uploadDescriptor = false
+    repositories {
+        ivy {
+            artifactPattern "${repoBaseDir}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+        }
+    }
+
+    doFirst {
+        if (repoBaseDir.exists()) {
+            // Make sure tooling API artifacts do not pile up
+            GFileUtils.forceDelete(repoBaseDir)
+        }
+    }
+}
+
+integTestTasks.all {
+    requiresBinZip = true
+    requiresLibsRepo = true
 }
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

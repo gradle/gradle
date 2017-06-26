@@ -28,7 +28,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.ExternalResourceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +77,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             result.attempted(location);
             LOGGER.debug("Loading {}", location);
             try {
-                if (repository.getResourceMetaData(location.getUri(), true) != null) {
+                if (repository.resource(location, true).getMetaData() != null) {
                     return true;
                 }
             } catch (Exception e) {
@@ -94,7 +94,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             LOGGER.debug("Loading {}", location);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
             try {
-                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location.getUri(), new CacheAwareExternalResourceAccessor.ResourceFileStore() {
+                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                     public LocallyAvailableResource moveIntoCache(File downloadedResource) {
                         return fileStore.move(artifact.getId(), downloadedResource);
                     }

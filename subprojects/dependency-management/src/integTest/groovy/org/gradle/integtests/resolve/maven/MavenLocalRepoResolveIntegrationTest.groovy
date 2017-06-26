@@ -19,8 +19,6 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Issue
 
-import static org.hamcrest.Matchers.containsString
-
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
@@ -129,7 +127,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         runAndFail 'retrieve'
 
         then:
-        failure.assertThatCause(containsString(String.format("Non-parseable settings %s:", m2.userSettingsFile.absolutePath)));
+        failure.assertHasCause("Unable to parse local Maven settings: " + m2.userSettingsFile.absolutePath)
     }
 
     def "mavenLocal is ignored if no local maven repository exists"() {

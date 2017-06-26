@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import java.util.Set;
 
 public class DependencyToAll implements DependentsSet {
+    public static final DependencyToAll INSTANCE = new DependencyToAll();
 
     private final String reason;
 

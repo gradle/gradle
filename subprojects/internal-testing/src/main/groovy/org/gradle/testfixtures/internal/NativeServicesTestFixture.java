@@ -26,6 +26,7 @@ public class NativeServicesTestFixture {
 
     public static synchronized void initialize() {
         if (!initialized) {
+            System.setProperty("org.gradle.native", "true");
             File nativeDir = getNativeServicesDir();
             NativeServices.initialize(nativeDir);
             initialized = true;

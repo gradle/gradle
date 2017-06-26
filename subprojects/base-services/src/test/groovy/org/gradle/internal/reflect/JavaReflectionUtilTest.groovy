@@ -29,36 +29,15 @@ import static org.gradle.internal.reflect.JavaReflectionUtil.*
 class JavaReflectionUtilTest extends Specification {
     JavaTestSubject myProperties = new JavaTestSubject()
 
-    def "property exists"() {
+    def "property names"() {
         expect:
-        propertyExists(new JavaTestSubject(), "myBooleanProperty")
-        propertyExists(new JavaTestSubject(), "myProperty")
-        propertyExists(new JavaTestSubject(), "publicField")
-        !propertyExists(new JavaTestSubject(), "myBooleanProp")
-        !propertyExists(new JavaTestSubject(), "protectedProperty")
-        !propertyExists(new JavaTestSubject(), "privateProperty")
+        propertyNames(new JavaTestSubject()) == ['myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'protectedProperty', 'writeOnly'] as Set
 
         and:
-        propertyExists(new JavaTestSubjectSubclass(), "myBooleanProperty")
-        propertyExists(new JavaTestSubjectSubclass(), "myProperty")
-        propertyExists(new JavaTestSubjectSubclass(), "publicField")
-        !propertyExists(new JavaTestSubjectSubclass(), "myBooleanProp")
-        !propertyExists(new JavaTestSubjectSubclass(), "protectedProperty")
-        !propertyExists(new JavaTestSubjectSubclass(), "privateProperty")
+        propertyNames(new JavaTestSubjectSubclass()) == ['myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'protectedProperty', 'writeOnly', 'subclassBoolean'] as Set
 
         and:
-        propertyExists(new JavaTestSubjectSubclass(), "subclassBoolean")
-    }
-
-    def "readable properties"() {
-        expect:
-        def properties = readableProperties(JavaTestSubjectSubclass)
-        properties.size() == 5
-        properties.class
-        properties.myProperty
-        properties.myBooleanProperty
-        properties.myOtherBooleanProperty
-        properties.subclassBoolean
+        propertyNames(new WithProperties()) == ['metaClass', 'prop1', 'prop2', 'something', 'somethingElse', 'writeOnly'] as Set
     }
 
     def "read property"() {
@@ -357,4 +336,19 @@ class ClassWithToString {
     public String toString() {
         return "ClassWithToString{}";
     }
+}
+
+class WithProperties {
+    String prop1
+    boolean prop2
+
+    void setWriteOnly(String s1) { }
+
+    Boolean isSomething() { return null }
+
+    boolean isSomethingElse() { return true }
+
+    String isNotAThing() { "no" }
+
+    private String getPrivateThing() { null }
 }

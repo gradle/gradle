@@ -4,6 +4,8 @@ dependencies {
     compile libraries.groovy
     compile project(':core')
     compile project(':dependencyManagement')
+    compile project(':workers')
+    compile libraries.commons_collections
     testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
 }
 

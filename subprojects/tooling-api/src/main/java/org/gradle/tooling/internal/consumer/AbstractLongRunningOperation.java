@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>> implements LongRunningOperation {
@@ -110,6 +111,12 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     @Override
     public T setJvmArguments(Iterable<String> jvmArguments) {
         operationParamsBuilder.setJvmArguments(rationalizeInput(jvmArguments));
+        return getThis();
+    }
+
+    @Override
+    public T setEnvironmentVariables(Map<String, String> envVariables) {
+        operationParamsBuilder.setEnvironmentVariables(envVariables);
         return getThis();
     }
 

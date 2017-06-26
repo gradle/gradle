@@ -19,7 +19,7 @@ package org.gradle.plugin.use.resolve.service
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashUtil
-import org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
+import org.gradle.plugin.internal.PluginUsePluginServiceRegistry
 import org.gradle.plugin.use.resolve.service.internal.PersistentCachingPluginResolutionServiceClient
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder

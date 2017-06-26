@@ -203,7 +203,6 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         'toolVersion'  | "codenarc { toolVersion '0.17' } "
     }
 
-
     private void writeBuildFile() {
         file("build.gradle") << """
             apply plugin: "groovy"

@@ -33,6 +33,14 @@ public interface TestLogging {
      * Sets the events to be logged.
      *
      * @param events the events to be logged
+     * @since 4.0
+     */
+    void setEvents(Set<TestLogEvent> events);
+
+    /**
+     * Sets the events to be logged.
+     *
+     * @param events the events to be logged
      */
     void setEvents(Iterable<?> events);
 
@@ -149,6 +157,14 @@ public interface TestLogging {
      * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.
      *
      * @param exceptionFormat the format to be used for logging test exceptions
+     * @since 4.0
+     */
+    void setExceptionFormat(TestExceptionFormat exceptionFormat);
+
+    /**
+     * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.
+     *
+     * @param exceptionFormat the format to be used for logging test exceptions
      */
     void setExceptionFormat(Object exceptionFormat);
 
@@ -158,6 +174,14 @@ public interface TestLogging {
      * @return the set of filters to be used for sanitizing test stack traces
      */
     Set<TestStackTraceFilter> getStackTraceFilters();
+
+    /**
+     * Sets the set of filters to be used for sanitizing test stack traces.
+     *
+     * @param stackTraces the set of filters to be used for sanitizing test stack traces
+     * @since 4.0
+     */
+    void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces);
 
     /**
      * Sets the set of filters to be used for sanitizing test stack traces.

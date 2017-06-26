@@ -45,22 +45,20 @@
 
     <section id="sec:running_your_web_application">
         <title>Running your web application</title>
-        <para>To run your web application, you apply the Jetty plugin to your project:</para>
-        <sample id="webQuickstart" dir="webApplication/quickstart" title="Running web application with Jetty plugin">
-            <sourcefile file="build.gradle" snippet="use-jetty-plugin"/>
+        <para>To run your web application, you apply the Gretty plugin to your project:</para>
+        <sample id="webQuickstart" dir="webApplication/quickstart" title="Running web application with Gretty plugin">
+            <sourcefile file="build.gradle" snippet="use-gretty-plugin"/>
         </sample>
-        <para>This also applies the War plugin to your project. Running <userinput>gradle jettyRun</userinput> will
-            run your web application in an embedded Jetty web container. Running <userinput>gradle jettyRunWar</userinput>
+        <para>This also applies the War plugin to your project. Running <userinput>gradle appRun</userinput> will
+            run your web application in an embedded servlet container. Running <userinput>gradle appRunWar</userinput>
             will build the WAR file, and then run it in an embedded web container.
         </para>
-        <para>TODO: which url, configure port, uses source files in place and can edit your files and reload.</para>
     </section>
 
     <section id="sec:web_tutorial_summary">
         <title>Summary</title>
-        <para>You can find out more about the War plugin in <xref linkend="war_plugin"/> and the Jetty plugin in
-            <xref linkend="jetty_plugin"/>. You can find more sample Java projects in the
-            <filename>samples/webApplication</filename> directory in the Gradle distribution.
+        <para>You can find out more about the War plugin in <xref linkend="war_plugin"/>.
+            You can find more sample Java projects in the <filename>samples/webApplication</filename> directory in the Gradle distribution.
         </para>
     </section>
 </chapter>

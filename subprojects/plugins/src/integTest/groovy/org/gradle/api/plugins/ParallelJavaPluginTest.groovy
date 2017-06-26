@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -36,7 +35,6 @@ class ParallelJavaPluginTest extends AbstractIntegrationSpec {
     def setup() {
         executer.withArgument("--parallel")
                 .withArgument("--max-workers=4")
-                .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
     }
 
     def "can execute a java build that runs tasks in parallel"() {

@@ -16,9 +16,12 @@
 
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+
+import java.io.File;
 
 /**
  * Fork options for Java compilation. Only take effect if {@code CompileOptions.fork} is {@code true}.
@@ -30,10 +33,14 @@ public class ForkOptions extends BaseForkOptions {
 
     private String tempDir;
 
+    private File javaHome;
+
     /**
      * Returns the compiler executable to be used. If set,
      * a new compiler process will be forked for every compile task.
      * Defaults to {@code null}.
+     *
+     * <p>Setting the executable disables task output caching.</p>
      */
     @Input
     @Optional
@@ -45,9 +52,36 @@ public class ForkOptions extends BaseForkOptions {
      * Sets the compiler executable to be used. If set,
      * a new compiler process will be forked for every compile task.
      * Defaults to {@code null}.
+     *
+     * <p>Setting the executable disables task output caching.</p>
      */
     public void setExecutable(String executable) {
         this.executable = executable;
+    }
+
+    /**
+     * Returns the Java home which contains the compiler to use.
+     * If set, a new compiler process will be forked for every compile task.
+     * Defaults to {@code null}.
+     *
+     * @since 3.5
+     */
+    @Internal
+    @Incubating
+    public File getJavaHome() {
+        return javaHome;
+    }
+
+    /**
+     * Sets the Java home which contains the compiler to use.
+     * If set, a new compiler process will be forked for every compile task.
+     * Defaults to {@code null}.
+     *
+     * @since 3.5
+     */
+    @Incubating
+    public void setJavaHome(File javaHome) {
+        this.javaHome = javaHome;
     }
 
     /**

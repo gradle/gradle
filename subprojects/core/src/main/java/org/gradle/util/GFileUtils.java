@@ -17,21 +17,28 @@ package org.gradle.util;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.LimitedDescription;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.zip.Checksum;
 
-import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class GFileUtils {
@@ -123,11 +130,7 @@ public class GFileUtils {
         }
     }
 
-    public static Collection listFiles(File directory, IOFileFilter fileFilter, IOFileFilter dirFilter) {
-        return FileUtils.listFiles(directory, fileFilter, dirFilter);
-    }
-
-    public static Collection listFiles(File directory, String[] extensions, boolean recursive) {
+    public static Collection<File> listFiles(File directory, String[] extensions, boolean recursive) {
         return FileUtils.listFiles(directory, extensions, recursive);
     }
 
@@ -167,10 +170,6 @@ public class GFileUtils {
         return FileUtils.deleteQuietly(file);
     }
 
-    public static void closeInputStream(InputStream input) {
-        stoppable(input).stop();
-    }
-
     /**
      * Successively unpacks a path that may be deferred by a Callable or Factory
      * until it's resolved to null or something other than a Callable or Factory.
@@ -181,6 +180,8 @@ public class GFileUtils {
         while (current != null) {
             if (current instanceof Callable) {
                 current = uncheckedCall((Callable) current);
+            } else if (current instanceof Provider) {
+                current = ((Provider<?>) current).get();
             } else if (current instanceof Factory) {
                 return ((Factory) current).create();
             } else {

@@ -26,24 +26,35 @@ public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
         this.visitors = Arrays.asList(visitors);
     }
 
+    @Override
     public void start(DependencyGraphNode root) {
         for (DependencyGraphVisitor visitor : visitors) {
             visitor.start(root);
         }
     }
 
-    public void visitNode(DependencyGraphNode resolvedConfiguration) {
+    @Override
+    public void visitNode(DependencyGraphNode node) {
         for (DependencyGraphVisitor visitor : visitors) {
-            visitor.visitNode(resolvedConfiguration);
+            visitor.visitNode(node);
         }
     }
 
-    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+    @Override
+    public void visitSelector(DependencyGraphSelector selector) {
         for (DependencyGraphVisitor visitor : visitors) {
-            visitor.visitEdge(resolvedConfiguration);
+            visitor.visitSelector(selector);
         }
     }
 
+    @Override
+    public void visitEdges(DependencyGraphNode node) {
+        for (DependencyGraphVisitor visitor : visitors) {
+            visitor.visitEdges(node);
+        }
+    }
+
+    @Override
     public void finish(DependencyGraphNode root) {
         for (DependencyGraphVisitor visitor : visitors) {
             visitor.finish(root);

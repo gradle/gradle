@@ -20,26 +20,31 @@ import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
+
+    def setup() {
+        server.start()
+    }
 
     def "tears down the daemon process when the client disconnects and build does not cancel in a timely manner"() {
         buildFile << """
             task block {
                 doLast {
-                    new URL("$server.uri").text
+                    ${server.callFromBuild("block")}
                 }
             }
         """
 
         when:
+        def block = server.expectAndBlock("block")
         def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
-        server.waitFor()
+        block.waitForAllPendingCalls()
         daemons.daemon.assertBusy()
         client.kill()
 
@@ -54,14 +59,15 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         buildFile << """
             task block {
                 doLast {
-                    new URL("$server.uri").text
+                    ${server.callFromBuild("block")}
                 }
             }
         """
 
         when:
+        def block = server.expectAndBlock("block")
         def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
-        server.waitFor()
+        block.waitForAllPendingCalls()
         daemons.daemon.assertBusy()
         client.kill()
 
@@ -69,7 +75,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.becomesCanceled()
 
         when:
-        server.release()
+        block.releaseAll()
 
         then:
         daemons.daemon.becomesIdle()
@@ -92,14 +98,15 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         buildFile << """
             task block {
                 doLast {
-                    new URL("$server.uri").text
+                    ${server.callFromBuild("block")}
                 }
             }
         """
 
         when:
+        def block = server.expectAndBlock("block")
         DaemonClientFixture client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
-        server.waitFor()
+        block.waitForAllPendingCalls()
         daemons.daemon.assertBusy()
 
         then:
@@ -108,7 +115,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         clientSid != daemonSid
 
         cleanup:
-        server.release()
+        block.releaseAll()
     }
 
     /**
@@ -128,36 +135,38 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         buildFile << """
             task block {
                 doLast {
-                    new URL("$server.uri").text
+                    ${server.callFromBuild("block")}
                 }
             }
         """
 
         when:
+        def block = server.expectAndBlock("block")
         executer.withTasks("block").start()
-        server.waitFor()
+        block.waitForAllPendingCalls()
         daemons.daemon.assertBusy()
 
         then:
         getConsole(daemons.daemon.context.pid) == "none"
 
         cleanup:
-        server.release()
+        block.releaseAll()
     }
 
     def "client logs useful information when daemon crashes"() {
         buildFile << """
             task block {
                 doLast {
-                    new URL("$server.uri").text
+                    ${server.callFromBuild("block")}
                 }
             }
         """
 
         when:
         executer.withStackTraceChecksDisabled() // daemon log may contain stack traces
+        def block = server.expectAndBlock("block")
         def build = executer.withTasks("block").start()
-        server.waitFor()
+        block.waitForAllPendingCalls()
         daemons.daemon.kill()
         def failure = build.waitForFailure()
 

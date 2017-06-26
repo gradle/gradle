@@ -165,20 +165,6 @@ int main(int argc, char **argv) {
             ]
             List<SourceFile> headerFiles = [
             ]
-
-            String testOutput = """
-Running main() from gtest_main.cc
-[==========] Running 1 test from 1 test case.
-[----------] Global test environment set-up.
-[----------] 1 test from MathSuite
-[ RUN      ] MathSuite.sum
-[       OK ] MathSuite.sum (0 ms)
-[----------] 1 test from MathSuite (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test case ran. (1 ms total)
-[  PASSED  ] 1 test.
-"""
         };
     }
 

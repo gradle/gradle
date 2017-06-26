@@ -21,7 +21,6 @@ import org.gradle.cache.CacheValidator
 import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -34,60 +33,59 @@ class DefaultCacheRepositoryTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TestFile homeDir = tmpDir.createDir("home")
     private final TestFile sharedCacheDir = homeDir.file("caches")
-    private final String version = GradleVersion.current().version
     private final Map<String, ?> properties = [a: "value", b: "value2"]
     private final CacheFactory cacheFactory = Mock()
     private final PersistentCache cache = Mock()
     private final CacheScopeMapping scopeMapping = Mock()
     private final DefaultCacheRepository repository = new DefaultCacheRepository(scopeMapping, cacheFactory)
 
-    public void createsGlobalDirectoryBackedCache() {
+    void createsGlobalDirectoryBackedCache() {
         when:
         def result = repository.cache("a/b/c").open()
 
         then:
         result == cache
         1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null) >> cache
         0 * cacheFactory._
     }
 
-    public void createsGlobalCacheWithProperties() {
+    void createsGlobalCacheWithProperties() {
         when:
         repository.cache("a/b/c").withProperties(properties).open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, null, properties, CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, null, properties, CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null) >> cache
     }
 
-    public void createsScopedCache() {
+    void createsScopedCache() {
         when:
         repository.cache("scope", "a/b/c").open()
 
         then:
         1 * scopeMapping.getBaseDirectory("scope", "a/b/c", VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null) >> cache
     }
 
-    public void createsCacheWithBaseDirectory() {
+    void createsCacheWithBaseDirectory() {
         when:
         repository.cache(sharedCacheDir).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null) >> cache
     }
 
-    public void createsCrossVersionCache() {
+    void createsCrossVersionCache() {
         when:
         repository.cache("scope", "a/b/c").withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile).open()
 
         then:
         1 * scopeMapping.getBaseDirectory("scope", "a/b/c", VersionStrategy.SharedCache) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.CachePropertiesFile, mode(Shared), null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.CachePropertiesFile, mode(Shared), null, null) >> cache
     }
 
-    public void canSpecifyInitializerActionForDirectoryCache() {
+    void canSpecifyInitializerActionForDirectoryCache() {
         Action<?> action = Mock()
 
         when:
@@ -95,34 +93,34 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), action) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), action, null) >> cache
     }
 
-    public void canSpecifyLockModeForDirectoryCache() {
+    void canSpecifyLockModeForDirectoryCache() {
         when:
         repository.cache("a").withLockOptions(mode(None)).open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(None), null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(None), null, null) >> cache
     }
 
-    public void canSpecifyDisplayNameForDirectoryCache() {
+    void canSpecifyDisplayNameForDirectoryCache() {
         when:
         repository.cache("a").withDisplayName("<cache>").open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, "<cache>", null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, "<cache>", null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null) >> cache
     }
 
-    public void canSpecifyCacheValidatorForDirectoryCache() {
-        CacheValidator validator = Mock();
+    void canSpecifyCacheValidatorForDirectoryCache() {
+        CacheValidator validator = Mock()
         when:
         repository.cache("a").withValidator(validator).open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, validator, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, validator, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null) >> cache
     }
 }

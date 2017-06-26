@@ -40,9 +40,9 @@ class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiS
         }
 
         then:
-        def e = thrown(GradleConnectionException)
-        e.message.startsWith("Could not execute build using")
-        e.cause.message == "Continuous build requires Tooling API client version 2.1 or later."
+        caughtGradleConnectionException = thrown(GradleConnectionException)
+        caughtGradleConnectionException.message.startsWith("Could not execute build using")
+        caughtGradleConnectionException.cause.message == "Continuous build requires Tooling API client version 2.1 or later."
     }
 
     @Timeout(120)

@@ -20,7 +20,7 @@ model {
                 dependsOn binary.tasks.link
                 doFirst {
                     if (binary.toolChain in Gcc) {
-                        ["strip", binary.tasks.link.outputFile].execute()
+                        ["strip", binary.tasks.link.outputFile].execute().waitForOrKill(1000)
                     }
                 }
             }

@@ -16,12 +16,14 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
@@ -69,9 +71,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         public boolean isUpToDate(Collection<String> messages) {
-            if (messages != null) {
-                messages.add(reason);
-            }
+            messages.add(reason);
             return false;
         }
 
@@ -85,12 +85,18 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public TaskCacheKey calculateCacheKey() {
+        public TaskOutputCachingBuildCacheKey calculateCacheKey() {
             return delegate.calculateCacheKey();
         }
 
         public TaskExecutionHistory getExecutionHistory() {
             return delegate.getExecutionHistory();
+        }
+
+        @Nullable
+        @Override
+        public UniqueId getOriginBuildInvocationId() {
+            return null;
         }
 
         public void beforeTask() {

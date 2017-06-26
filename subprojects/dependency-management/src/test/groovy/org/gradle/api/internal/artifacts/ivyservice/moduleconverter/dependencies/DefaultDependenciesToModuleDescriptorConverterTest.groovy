@@ -16,11 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.model.Exclude
@@ -33,17 +34,18 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
 
     def descriptor = Mock(DefaultModuleDescriptor)
     def metaData = Mock(BuildableLocalComponentMetadata)
-    def configuration = Mock(Configuration)
+    def configuration = Mock(ConfigurationInternal)
     def dependencySet = Mock(DependencySet)
 
     def "ignores configuration with no dependencies or exclude rules"() {
         when:
-        converter.addDependencyDescriptors(metaData, [configuration])
+        converter.addDependencyDescriptors(metaData, configuration)
 
         then:
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [].iterator()
         1 * configuration.excludeRules >> ([] as Set)
+        1 * configuration.attributes >> Stub(AttributeContainerInternal)
         0 * _
     }
 
@@ -54,15 +56,15 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         def dependency2 = Mock(ModuleDependency)
 
         when:
-        converter.addDependencyDescriptors(metaData, [configuration])
+        converter.addDependencyDescriptors(metaData, configuration)
 
         then:
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
         _ * configuration.name >> "config"
-        _ * configuration.attributes
-        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", null, dependency1) >> dependencyDescriptor1
-        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", null, dependency2) >> dependencyDescriptor2
+        _ * configuration.attributes >> Stub(AttributeContainerInternal)
+        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", _, dependency1) >> dependencyDescriptor1
+        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", _, dependency2) >> dependencyDescriptor2
         1 * metaData.addDependency(dependencyDescriptor1)
         1 * metaData.addDependency(dependencyDescriptor2)
         1 * configuration.excludeRules >> ([] as Set)
@@ -74,12 +76,13 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         def dependency2 = Mock(FileCollectionDependency)
 
         when:
-        converter.addDependencyDescriptors(metaData, [configuration])
+        converter.addDependencyDescriptors(metaData, configuration)
 
         then:
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
         _ * configuration.name >> "config"
+        _ * configuration.attributes >> Stub(AttributeContainerInternal)
         1 * metaData.addFiles("config", {it.source == dependency1})
         1 * metaData.addFiles("config", {it.source == dependency2})
         1 * configuration.excludeRules >> ([] as Set)
@@ -91,7 +94,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         def ivyExcludeRule = Mock(Exclude)
 
         when:
-        converter.addDependencyDescriptors(metaData, [configuration])
+        converter.addDependencyDescriptors(metaData, configuration)
 
         then:
         1 * configuration.dependencies >> dependencySet
@@ -99,6 +102,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
 
         1 * configuration.excludeRules >> ([excludeRule] as Set)
         1 * configuration.getName() >> "config"
+        _ * configuration.attributes >> Stub(AttributeContainerInternal)
         1 * excludeRuleConverter.convertExcludeRule("config", excludeRule) >> ivyExcludeRule
         1 * metaData.addExclude(ivyExcludeRule)
         0 * _

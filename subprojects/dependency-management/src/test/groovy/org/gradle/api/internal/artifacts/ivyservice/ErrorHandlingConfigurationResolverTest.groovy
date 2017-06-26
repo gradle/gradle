@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
@@ -34,7 +34,7 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private resolutionResult = Mock(ResolutionResult)
     private projectConfigResult = Mock(ResolvedLocalComponentsResult)
-    private fileDependenciesResult = Mock(FileDependencyResults)
+    private visitedArtifactSet = Mock(VisitedArtifactSet)
     private context = Mock(ConfigurationInternal.class)
     private results = new DefaultResolverResults()
     private resolver = new ErrorHandlingConfigurationResolver(delegate);
@@ -49,7 +49,7 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
 
         then:
         1 * delegate.resolveBuildDependencies(context, results) >> {
-            results.resolved(resolutionResult, projectConfigResult, fileDependenciesResult)
+            results.graphResolved(resolutionResult, projectConfigResult, visitedArtifactSet)
         }
     }
 
@@ -59,7 +59,7 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
 
         then:
         1 * delegate.resolveGraph(context, results) >> {
-            results.resolved(resolutionResult, projectConfigResult, fileDependenciesResult)
+            results.graphResolved(resolutionResult, projectConfigResult, visitedArtifactSet)
         }
     }
 
@@ -69,7 +69,7 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
 
         then:
         1 * delegate.resolveArtifacts(context, results) >> {
-            results.withResolvedConfiguration(Stub(ResolvedConfiguration))
+            results.artifactsResolved(Stub(ResolvedConfiguration), Stub(VisitedArtifactSet))
         }
     }
 
@@ -138,8 +138,8 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         resolvedConfiguration.getResolvedArtifacts() >> { throw failure }
         resolvedConfiguration.getLenientConfiguration() >> { throw failure }
 
-        delegate.resolveGraph(context, results) >> { results.resolved(resolutionResult, projectConfigResult, fileDependenciesResult) }
-        delegate.resolveArtifacts(context, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
+        delegate.resolveGraph(context, results) >> { results.graphResolved(resolutionResult, projectConfigResult, visitedArtifactSet) }
+        delegate.resolveArtifacts(context, results) >> { results.artifactsResolved(resolvedConfiguration, visitedArtifactSet) }
 
         when:
         resolver.resolveGraph(context, results)
@@ -167,8 +167,8 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         lenientConfiguration.getArtifacts(_) >> { throw failure }
         lenientConfiguration.getUnresolvedModuleDependencies() >> { throw failure }
 
-        delegate.resolveGraph(context, results) >> { results.resolved(resolutionResult, projectConfigResult, fileDependenciesResult) }
-        delegate.resolveArtifacts(context, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
+        delegate.resolveGraph(context, results) >> { results.graphResolved(resolutionResult, projectConfigResult, visitedArtifactSet) }
+        delegate.resolveArtifacts(context, results) >> { results.artifactsResolved(resolvedConfiguration, visitedArtifactSet) }
 
         when:
         resolver.resolveGraph(context, results)
@@ -189,8 +189,8 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
 
         resolutionResult.root >> { throw failure }
 
-        delegate.resolveGraph(context, results) >> { results.resolved(resolutionResult, projectConfigResult, fileDependenciesResult) }
-        delegate.resolveArtifacts(context, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
+        delegate.resolveGraph(context, results) >> { results.graphResolved(resolutionResult, projectConfigResult, visitedArtifactSet) }
+        delegate.resolveArtifacts(context, results) >> { results.artifactsResolved(resolvedConfiguration, visitedArtifactSet) }
 
         when:
         resolver.resolveGraph(context, results)

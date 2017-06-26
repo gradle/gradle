@@ -22,10 +22,8 @@ import org.gradle.internal.UncheckedException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -65,16 +63,10 @@ public class GradleVersion implements Comparable<GradleVersion> {
             properties.load(inputStream);
 
             String version = properties.get("versionNumber").toString();
-            String buildTimestamp = properties.get("buildTimestamp").toString();
+            String buildTimestamp = properties.get("buildTimestampIso").toString();
             String commitId = properties.get("commitId").toString();
-            Date buildTime;
-            if ("unknown".equals(buildTimestamp)) {
-                buildTime = null;
-            } else {
-                buildTime = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(buildTimestamp);
-            }
 
-            CURRENT = new GradleVersion(version, buildTime, commitId);
+            CURRENT = new GradleVersion(version, "unknown".equals(buildTimestamp) ? null : buildTimestamp, commitId);
         } catch (Exception e) {
             throw new GradleException(format("Could not load version details from resource '%s'.", resource), e);
         } finally {
@@ -97,10 +89,10 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return new GradleVersion(version, null, null);
     }
 
-    private GradleVersion(String version, Date buildTime, String commitId) {
+    private GradleVersion(String version, String buildTime, String commitId) {
         this.version = version;
         this.commitId = commitId;
-        this.buildTime = buildTime == null ? null : formatBuildTime(buildTime);
+        this.buildTime = buildTime;
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
             throw new IllegalArgumentException(format("'%s' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')", version));
@@ -145,12 +137,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
-    }
-
-    private String formatBuildTime(Date buildTime) {
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return format.format(buildTime);
     }
 
     @Override

@@ -20,8 +20,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
-* Provides meaningful names to threads created in a thread pool
-*/
+ * Provides meaningful names to threads created in a thread pool.
+ * And mark them as managed by Gradle.
+ */
 public class ThreadFactoryImpl implements ThreadFactory {
     private final AtomicLong counter = new AtomicLong();
     private final String displayName;
@@ -31,7 +32,7 @@ public class ThreadFactoryImpl implements ThreadFactory {
     }
 
     public Thread newThread(Runnable r) {
-        Thread thread = new Thread(r);
+        Thread thread = new Thread(new ManagedThreadRunnable(r));
         long count = counter.incrementAndGet();
         if (count == 1) {
             thread.setName(displayName);
@@ -39,5 +40,19 @@ public class ThreadFactoryImpl implements ThreadFactory {
             thread.setName(displayName + " Thread " + count);
         }
         return thread;
+    }
+
+    private static class ManagedThreadRunnable implements Runnable {
+        private final Runnable delegate;
+
+        private ManagedThreadRunnable(Runnable delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void run() {
+            GradleThread.setManaged();
+            delegate.run();
+        }
     }
 }

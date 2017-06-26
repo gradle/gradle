@@ -16,15 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 import java.util.Iterator;
@@ -70,8 +72,8 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public void appendToCacheKey(TaskCacheKeyBuilder builder) {
-        compareStrategy.appendToCacheKey(builder, snapshots);
+    public void appendToHasher(BuildCacheHasher hasher) {
+        compareStrategy.appendToHasher(hasher, snapshots.values());
     }
 
     @Override
@@ -95,14 +97,14 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     private List<File> doGetFiles() {
         List<File> files = Lists.newArrayList();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : snapshots.entrySet()) {
-            if (entry.getValue().getSnapshot() instanceof FileHashSnapshot) {
+            if (entry.getValue().getSnapshot().getType() == FileType.RegularFile) {
                 files.add(new File(entry.getKey()));
             }
         }
         return files;
     }
 
-    public static class SerializerImpl implements Serializer<DefaultFileCollectionSnapshot> {
+    public static class SerializerImpl extends AbstractSerializer<DefaultFileCollectionSnapshot> {
         private final SnapshotMapSerializer snapshotMapSerializer;
 
         public SerializerImpl(StringInterner stringInterner) {
@@ -120,6 +122,21 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
             encoder.writeSmallInt(value.compareStrategy.ordinal());
             snapshotMapSerializer.write(encoder, value.snapshots);
             encoder.writeBoolean(value.pathIsAbsolute);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            SerializerImpl rhs = (SerializerImpl) obj;
+            return Objects.equal(snapshotMapSerializer, rhs.snapshotMapSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), snapshotMapSerializer);
         }
     }
 }

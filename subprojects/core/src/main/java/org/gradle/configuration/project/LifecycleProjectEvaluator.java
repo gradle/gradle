@@ -19,29 +19,37 @@ import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationCategory;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Manages lifecycle concerns while delegating actual evaluation to another evaluator
- *
- * @see org.gradle.internal.service.scopes.BuildScopeServices#createProjectEvaluator()
  */
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private static final Logger LOGGER = LoggerFactory.getLogger(LifecycleProjectEvaluator.class);
 
+    private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectEvaluator delegate;
 
-    public LifecycleProjectEvaluator(ProjectEvaluator delegate) {
+    public LifecycleProjectEvaluator(BuildOperationExecutor buildOperationExecutor, ProjectEvaluator delegate) {
+        this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
     }
 
-    public void evaluate(ProjectInternal project, ProjectStateInternal state) {
-        //TODO this is one of the places to look into thread safety when we implement parallel configuration
+    public void evaluate(final ProjectInternal project, final ProjectStateInternal state) {
         if (state.getExecuted() || state.getExecuting()) {
             return;
         }
 
+        buildOperationExecutor.run(new ConfigureProject(project, state));
+    }
+
+    private void doConfigure(ProjectInternal project, ProjectStateInternal state) {
         ProjectEvaluationListener listener = project.getProjectEvaluationBroadcaster();
         try {
             listener.beforeEvaluate(project);
@@ -76,7 +84,34 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
     }
 
     private void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e) {
-        ProjectConfigurationException failure = new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
+        ProjectConfigurationException failure = new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project.getDisplayName()), e);
         state.executed(failure);
+    }
+
+    private class ConfigureProject implements RunnableBuildOperation {
+
+        private ProjectInternal project;
+        private ProjectStateInternal state;
+
+        private ConfigureProject(ProjectInternal project, ProjectStateInternal state) {
+            this.project = project;
+            this.state = state;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            doConfigure(project, state);
+            state.rethrowFailure();
+            context.setResult(ConfigureProjectBuildOperationType.RESULT);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            String name = "Configure project " + project.getIdentityPath();
+            return BuildOperationDescriptor.displayName(name)
+                .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
+                .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
+        }
+
     }
 }

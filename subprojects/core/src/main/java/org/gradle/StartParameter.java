@@ -27,13 +27,16 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
+import org.gradle.initialization.DefaultParallelismConfiguration;
 import org.gradle.initialization.DistributionInitScriptFinder;
+import org.gradle.internal.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.io.Serializable;
@@ -52,7 +55,7 @@ import java.util.Set;
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  */
-public class StartParameter implements LoggingConfiguration, Serializable {
+public class StartParameter implements LoggingConfiguration, ParallelismConfiguration, Serializable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY;
 
     /**
@@ -61,6 +64,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
     private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
+    private final DefaultParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
     private List<TaskExecutionRequest> taskRequests = new ArrayList<TaskExecutionRequest>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
@@ -83,12 +87,12 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private File projectCacheDir;
     private boolean refreshDependencies;
     private boolean recompileScripts;
-    private boolean parallelProjectExecution;
-    private boolean taskOutputCacheEnabled;
+    private boolean buildCacheEnabled;
     private boolean configureOnDemand;
-    private int maxWorkerCount;
     private boolean continuous;
     private List<File> includedBuilds = new ArrayList<File>();
+    private boolean buildScan;
+    private boolean noBuildScan;
 
     /**
      * {@inheritDoc}
@@ -170,7 +174,6 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         currentDir = layoutParameters.getCurrentDir();
         projectDir = layoutParameters.getProjectDir();
         gradleUserHomeDir = layoutParameters.getGradleUserHomeDir();
-        maxWorkerCount = Runtime.getRuntime().availableProcessors();
     }
 
     /**
@@ -224,10 +227,10 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         p.rerunTasks = rerunTasks;
         p.recompileScripts = recompileScripts;
         p.refreshDependencies = refreshDependencies;
-        p.parallelProjectExecution = parallelProjectExecution;
-        p.taskOutputCacheEnabled = taskOutputCacheEnabled;
+        p.setParallelProjectExecutionEnabled(isParallelProjectExecutionEnabled());
+        p.buildCacheEnabled = buildCacheEnabled;
         p.configureOnDemand = configureOnDemand;
-        p.maxWorkerCount = maxWorkerCount;
+        p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         return p;
     }
@@ -630,75 +633,82 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     }
 
     /**
-     * Returns true if parallel project execution is enabled.
-     *
-     * @see #getMaxWorkerCount()
+     * {@inheritDoc}
      */
     @Incubating
+    @Override
     public boolean isParallelProjectExecutionEnabled() {
-        return parallelProjectExecution;
+        return parallelismConfiguration.isParallelProjectExecutionEnabled();
     }
 
     /**
-     * Enables/disables parallel project execution.
-     *
-     * @see #isParallelProjectExecutionEnabled()
+     * {@inheritDoc}
      */
     @Incubating
+    @Override
     public void setParallelProjectExecutionEnabled(boolean parallelProjectExecution) {
-        this.parallelProjectExecution = parallelProjectExecution;
+        parallelismConfiguration.setParallelProjectExecutionEnabled(parallelProjectExecution);
+    }
+
+    /**
+     * Returns true if the build cache is enabled.
+     *
+     * @since 3.5
+     */
+    @Incubating
+    public boolean isBuildCacheEnabled() {
+        return buildCacheEnabled;
+    }
+
+    /**
+     * Enables/disables the build cache.
+     *
+     * @since 3.5
+     */
+    @Incubating
+    public void setBuildCacheEnabled(boolean buildCacheEnabled) {
+        this.buildCacheEnabled = buildCacheEnabled;
     }
 
     /**
      * Returns true if task output caching is enabled.
+     *
+     * @deprecated Use {@link #isBuildCacheEnabled()}
      */
     @Incubating
+    @Deprecated
     public boolean isTaskOutputCacheEnabled() {
-        return taskOutputCacheEnabled;
+        return isBuildCacheEnabled();
     }
 
     /**
      * Enables/disables task output caching.
+     *
+     * @deprecated Use {@link #setBuildCacheEnabled(boolean)}
      */
     @Incubating
-    public void setTaskOutputCacheEnabled(boolean taskOutputCacheEnabled) {
-        this.taskOutputCacheEnabled = taskOutputCacheEnabled;
+    @Deprecated
+    public void setTaskOutputCacheEnabled(boolean buildCacheEnabled) {
+        SingleMessageLogger.nagUserOfReplacedMethod("StartParameter.setTaskOutputCacheEnabled", "StartParameter.setBuildCacheEnabled");
+        setBuildCacheEnabled(buildCacheEnabled);
     }
 
     /**
-     * Returns the maximum number of concurrent workers used for underlying build operations.
-     *
-     * Workers can be threads, processes or whatever Gradle considers a "worker". Some examples:
-     *
-     * <ul>
-     *     <li>A thread running a task</li>
-     *     <li>A test process</li>
-     *     <li>A language compiler in a forked process</li>
-     * </ul>
-     *
-     * Defaults to the number of processors available to the Java virtual machine.
-     *
-     * @return maximum number of concurrent workers, always >= 1.
-     * @see java.lang.Runtime#availableProcessors()
+     * {@inheritDoc}
      */
     @Incubating
+    @Override
     public int getMaxWorkerCount() {
-        return maxWorkerCount;
+        return parallelismConfiguration.getMaxWorkerCount();
     }
 
     /**
-     * Specifies the maximum number of concurrent workers used for underlying build operations.
-     *
-     * @throws IllegalArgumentException if {@code maxWorkerCount} is &lt; 1
-     * @see #getMaxWorkerCount()
+     * {@inheritDoc}
      */
     @Incubating
+    @Override
     public void setMaxWorkerCount(int maxWorkerCount) {
-        if (maxWorkerCount < 1) {
-            throw new IllegalArgumentException("Max worker count must be > 0");
-        } else {
-            this.maxWorkerCount = maxWorkerCount;
-        }
+        parallelismConfiguration.setMaxWorkerCount(maxWorkerCount);
     }
 
     /**
@@ -729,10 +739,10 @@ public class StartParameter implements LoggingConfiguration, Serializable {
             + ", recompileScripts=" + recompileScripts
             + ", offline=" + offline
             + ", refreshDependencies=" + refreshDependencies
-            + ", parallelProjectExecution=" + parallelProjectExecution
+            + ", parallelProjectExecution=" + isParallelProjectExecutionEnabled()
             + ", configureOnDemand=" + configureOnDemand
-            + ", maxWorkerCount=" + maxWorkerCount
-            + ", taskOutputCacheEnabled=" + taskOutputCacheEnabled
+            + ", maxWorkerCount=" + getMaxWorkerCount()
+            + ", buildCacheEnabled=" + buildCacheEnabled
             + '}';
     }
 
@@ -771,6 +781,46 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     @Incubating
     public List<File> getIncludedBuilds() {
         return Collections.unmodifiableList(includedBuilds);
+    }
+
+    /**
+     * Returns true if build scan should be created.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    public boolean isBuildScan() {
+        return buildScan;
+    }
+
+    /**
+     * Specifies whether a build scan should be created.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    public void setBuildScan(boolean buildScan) {
+        this.buildScan = buildScan;
+    }
+
+    /**
+     * Returns true when build scan creation is explicitly disabled.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    public boolean isNoBuildScan() {
+        return noBuildScan;
+    }
+
+    /**
+     * Specifies whether build scan creation is explicitly disabled.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    public void setNoBuildScan(boolean noBuildScan) {
+        this.noBuildScan = noBuildScan;
     }
 
 }

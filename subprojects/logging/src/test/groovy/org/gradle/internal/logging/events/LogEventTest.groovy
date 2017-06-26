@@ -20,26 +20,34 @@ import org.gradle.internal.logging.text.StyledTextOutput
 import spock.lang.Specification
 
 class LogEventTest extends Specification {
+    public static final long TIMESTAMP = 0L
+    public static final String CATEGORY = 'category'
+    public static final String MESSAGE = 'message'
     private final StyledTextOutput output = Mock()
 
     def renderWritesMessageToTextOutput() {
+        given:
+        def logEvent = new LogEvent(TIMESTAMP, CATEGORY, LogLevel.INFO, MESSAGE, null)
+
         when:
-        new LogEvent(0, 'category', LogLevel.INFO, 'message', null).render(output)
+        logEvent.render(output)
 
         then:
-        1 * output.text('message')
+        1 * output.text(MESSAGE)
         1 * output.println()
-        0 * output._
+        TIMESTAMP * output._
     }
-    
+
     def renderWritesMessageAndExceptionToTextOutput() {
+        given:
         def failure = new RuntimeException()
+        def logEvent = new LogEvent(TIMESTAMP, CATEGORY, LogLevel.INFO, MESSAGE, failure)
 
         when:
-        new LogEvent(0, 'category', LogLevel.INFO, 'message', failure).render(output)
+        logEvent.render(output)
 
         then:
-        1 * output.text('message')
+        1 * output.text(MESSAGE)
         1 * output.println()
         1 * output.exception(failure)
         0 * output._

@@ -61,20 +61,6 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputFilePropertyBuilder optional(boolean optional);
 
     /**
-     * Sets the order of the files to be relevant when observing this property.
-     *
-     * @since 3.1
-     */
-    TaskInputFilePropertyBuilder orderSensitive();
-
-    /**
-     * Sets whether the order of the files is relevant when observing this property.
-     *
-     * @since 3.1
-     */
-    TaskInputFilePropertyBuilder orderSensitive(boolean orderSensitive);
-
-    /**
      * {@inheritDoc}
      *
      * @since 3.1
@@ -83,7 +69,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#getHasInputs()} directly instead.
      */
@@ -92,7 +78,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     boolean getHasInputs();
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#getFiles()} directly instead.
      */
@@ -101,7 +87,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     FileCollection getFiles();
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#files(Object...)} directly instead.
      */
@@ -110,7 +96,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputFilePropertyBuilder files(Object... paths);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#file(Object)} directly instead.
      */
@@ -119,7 +105,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputFilePropertyBuilder file(Object path);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#dir(Object)} directly instead.
      */
@@ -128,7 +114,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputFilePropertyBuilder dir(Object dirPath);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#getProperties()} directly instead.
      */
@@ -137,7 +123,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     Map<String, Object> getProperties();
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#property(String, Object)} directly instead.
      */
@@ -146,7 +132,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputs property(String name, Object value);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#properties(Map)} directly instead.
      */
@@ -155,7 +141,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputs properties(Map<String, ?> properties);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#getHasSourceFiles()} directly instead.
      */
@@ -164,38 +150,11 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     boolean getHasSourceFiles();
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#getSourceFiles()} directly instead.
      */
     @Deprecated
     @Override
     FileCollection getSourceFiles();
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskInputs#source(Object...)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputs source(Object... paths);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskInputs#source(Object)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputs source(Object path);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskInputs#sourceDir(Object)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputs sourceDir(Object path);
 }

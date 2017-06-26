@@ -18,10 +18,10 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.io.Serializable;
-
-public class TestCompleteEvent implements Serializable {
+@UsedByScanPlugin
+public class TestCompleteEvent {
     private final long endTime;
     private final TestResult.ResultType resultType;
 

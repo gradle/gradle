@@ -75,7 +75,7 @@ class GeneratedGradleJarCacheTest extends Specification {
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
-        1 * cache.useCache("Generating $jarFile.name", _)
+        1 * cache.useCache(_)
         jarFile == resolvedFile
 
         where:
@@ -98,7 +98,7 @@ class GeneratedGradleJarCacheTest extends Specification {
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
-        1 * cache.useCache("Generating $jarFile.name", _)
+        1 * cache.useCache(_)
         jarFile == resolvedFile
 
         when:
@@ -111,7 +111,7 @@ class GeneratedGradleJarCacheTest extends Specification {
         0 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         0 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
-        0 * cache.useCache("Generating $jarFile.name", _)
+        0 * cache.useCache(_)
         jarFile == resolvedFile
     }
 }

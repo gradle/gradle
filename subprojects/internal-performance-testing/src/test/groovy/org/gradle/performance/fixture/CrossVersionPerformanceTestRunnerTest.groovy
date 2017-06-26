@@ -18,7 +18,6 @@ package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.executer.PerformanceTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.measure.DataAmount
@@ -96,9 +95,9 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.versionUnderTest
         results.jvm
         results.operatingSystem
+        results.host
         results.current.size() == 4
         results.current.totalTime.average == Duration.seconds(10)
-        results.current.totalMemoryUsed.average == DataAmount.kbytes(10)
         results.baselineVersions*.version == ['1.0', '1.1', MOST_RECENT_RELEASE]
         results.baseline('1.0').results.size() == 4
         results.baseline('1.1').results.size() == 4
@@ -106,10 +105,10 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         and:
         4 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
         1 * reporter.report(_)
         0 * reporter._
@@ -128,7 +127,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         and:
         3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
     }
 
@@ -144,7 +143,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         !results.baselineVersions
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             assert result.name == 'Current Gradle'
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
         1 * reporter.report(_)
         1 * experimentRunner.getHonestProfiler()
@@ -164,7 +163,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         !results.baselineVersions
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             assert result.name == 'Current Gradle'
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
         1 * reporter.report(_)
         1 * experimentRunner.getHonestProfiler()
@@ -200,7 +199,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         and:
         2 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
     }
 
@@ -217,7 +216,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         and:
         3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
     }
 
@@ -234,7 +233,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         and:
         3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
     }
 
@@ -247,7 +246,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         when:
         System.setProperty('org.gradle.performance.baselines', override.join(','))
         experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
         def results = runner.run()
 
@@ -270,7 +269,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         when:
         experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
         def results = runner.run()
 
@@ -285,36 +284,16 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         when:
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(5), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(5)))
         }
         def results = runner.run()
         results.assertCurrentVersionHasNotRegressed()
 
         then: "without overrides, test fails"
         thrown(AssertionError)
-    }
-
-    def "a performance regression is identified in speed but we only check for memory"() {
-        given:
-        def runner = runner()
-        runner.targetVersions = ['last']
-
-        when:
-        System.setProperty('org.gradle.performance.execution.checks', 'memory')
-        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
-        }
-        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(5), totalMemoryUsed: DataAmount.kbytes(10)))
-        }
-        def results = runner.run()
-        results.assertCurrentVersionHasNotRegressed()
-
-        then: "test passes"
-        noExceptionThrown()
     }
 
     def "a performance regression is identified in speed but we check for nothing"() {
@@ -325,10 +304,10 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         when:
         System.setProperty('org.gradle.performance.execution.checks', 'none')
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(5), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(5)))
         }
         def results = runner.run()
         results.assertCurrentVersionHasNotRegressed()
@@ -345,7 +324,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         when:
         System.setProperty('org.gradle.performance.execution.checks', 'speed')
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(5)))
@@ -365,7 +344,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         when:
         System.setProperty('org.gradle.performance.execution.checks', 'none')
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(5)))
@@ -377,38 +356,17 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         noExceptionThrown()
     }
 
-    def "a performance regression is identified in memory and we explicitly check for all"() {
+    def "fails when build under test fails"() {
         given:
         def runner = runner()
         runner.targetVersions = ['last']
 
         when:
-        System.setProperty('org.gradle.performance.execution.checks', 'all')
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(failure: new RuntimeException()))
         }
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(5)))
-        }
-        def results = runner.run()
-        results.assertCurrentVersionHasNotRegressed()
-
-        then: "test fails"
-        thrown(AssertionError)
-    }
-
-    def "a performance regression is identified in speed and memory and we explicitly check for all"() {
-        given:
-        def runner = runner()
-        runner.targetVersions = ['last']
-
-        when:
-        System.setProperty('org.gradle.performance.execution.checks', 'all')
-        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
-        }
-        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(5), totalMemoryUsed: DataAmount.kbytes(5)))
+            result.add(operation(totalTime: Duration.seconds(10)))
         }
         def results = runner.run()
         results.assertCurrentVersionHasNotRegressed()
@@ -417,8 +375,48 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         thrown(AssertionError)
     }
 
+    def "fails when baseline fails"() {
+        given:
+        def runner = runner()
+        runner.targetVersions = ['last']
+
+        when:
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10)))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(failure: new RuntimeException()))
+        }
+        def results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then:
+        thrown(AssertionError)
+    }
+
+    //current behavior, not necessarily desired
+    def "does not fail if build under test has exceptions and checks=none"() {
+        given:
+        def runner = runner()
+        runner.targetVersions = ['last']
+
+        when:
+        System.setProperty('org.gradle.performance.execution.checks', 'none')
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(failure: new RuntimeException()))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(failure: new RuntimeException()))
+        }
+        def results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then:
+        noExceptionThrown()
+    }
+
     def runner() {
-        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases, new PerformanceTestBuildContext())
+        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases, new IntegrationTestBuildContext())
         runner.testId = 'some-test'
         runner.testProject = 'some-project'
         runner.workingDir = tmpDir.testDirectory

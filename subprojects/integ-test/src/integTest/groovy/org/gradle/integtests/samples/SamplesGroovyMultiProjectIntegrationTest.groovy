@@ -16,59 +16,67 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
-import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
 
-class SamplesGroovyMultiProjectIntegrationTest extends AbstractIntegrationTest {
-    static final String TEST_PROJECT_NAME = 'testproject'
+class SamplesGroovyMultiProjectIntegrationTest extends AbstractIntegrationSpec {
+    @Rule public final Sample sample = new Sample(temporaryFolder)
+    private final static String TEST_PROJECT_NAME = "testproject"
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'groovy/multiproject')
-
-    private List mainFiles = ['JavaPerson', 'GroovyPerson', 'GroovyJavaPerson']
-    private List excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']
-    private List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
-
-    @Test
+    @UsesSample("groovy/multiproject")
     @LeaksFileHandles
-    public void groovyProjectSamples() {
-        String packagePrefix = 'build/classes/main/org/gradle'
-        String testPackagePrefix = 'build/classes/test/org/gradle'
+    void groovyProjectSamples() {
+        def groovySources = ["GroovyPerson", "GroovyJavaPerson"]
+        def javaSources = ["JavaPerson"]
+        def excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']
 
+        def testProjectDir = sample.dir.file(TEST_PROJECT_NAME)
+        executer.inDirectory(testProjectDir)
 
-        TestFile groovyProjectDir = sample.dir
-        TestFile testProjectDir = groovyProjectDir.file(TEST_PROJECT_NAME)
+        when:
+        succeeds("clean", "build")
 
-        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
-
+        then:
         // Check compilation
-        mainFiles.each { testProjectDir.file(packagePrefix, it + ".class").assertIsFile() }
-        excludedFiles.each { testProjectDir.file(packagePrefix, it + ".class").assertDoesNotExist() }
-        testFiles.each { testProjectDir.file(testPackagePrefix, it + ".class").assertIsFile() }
-
-        // The test produce marker files with the name of the test class
-        testFiles.each { testProjectDir.file('build', it).assertIsFile() }
-
+        groovySources.each {
+            testProjectDir.file("build/classes/groovy/main/org/gradle/${it}.class").assertIsFile()
+            testProjectDir.file("build/classes/groovy/test/org/gradle/${it}Test.class").assertIsFile()
+            testProjectDir.file("build/${it}Test").assertIsFile()
+        }
+        javaSources.each {
+            testProjectDir.file("build/classes/java/main/org/gradle/${it}.class").assertIsFile()
+            testProjectDir.file("build/classes/java/test/org/gradle/${it}Test.class").assertIsFile()
+            testProjectDir.file("build/${it}Test").assertIsFile()
+        }
+        excludedFiles.each {
+            testProjectDir.file("build/classes/java/main/org/gradle/${it}.class").assertDoesNotExist()
+            testProjectDir.file("build/classes/groovy/main/org/gradle/${it}.class").assertDoesNotExist()
+        }
+        and:
         // Check contents of jar
-        TestFile tmpDir = file('jarContents')
-        testProjectDir.file("build/libs/$TEST_PROJECT_NAME-1.0.jar").unzipTo(tmpDir)
-        tmpDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
+        def jarFile = testProjectDir.file("build/libs/${TEST_PROJECT_NAME}-1.0.jar")
+        jarFile.assertIsFile()
+        def jarTestFixture = new JarTestFixture(jarFile)
+        jarTestFixture.hasDescendants(
                 'META-INF/myfile',
                 'org/gradle/main.properties',
                 'org/gradle/JavaPerson.class',
                 'org/gradle/GroovyPerson.class',
                 'org/gradle/GroovyJavaPerson.class'
         )
-        tmpDir.file('META-INF/MANIFEST.MF').assertContents(containsString('myprop: myvalue'))
+        jarTestFixture.assertFileContent('META-INF/MANIFEST.MF', containsString('myprop: myvalue'))
 
+        when:
         // Build docs
-        executer.inDirectory(groovyProjectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
+        executer.inDirectory(testProjectDir)
+        succeeds("javadoc", "groovydoc")
+        then:
         testProjectDir.file('build/docs/javadoc/index.html').assertIsFile()
         testProjectDir.file('build/docs/groovydoc/index.html').assertIsFile()
         testProjectDir.file('build/docs/groovydoc/org/gradle/GroovyPerson.html').assertIsFile()

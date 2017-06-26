@@ -34,7 +34,7 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
 
     def "can create project component identifier"() {
         given:
-        BuildIdentifier buildId = Mock(BuildIdentifier)
+        BuildIdentifier buildId = new DefaultBuildIdentifier("build")
         Project project = Mock(ProjectInternal)
         Module module = new ProjectBackedModule(project)
 
@@ -46,7 +46,7 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
         buildIdentity.getCurrentBuild() >> buildId
 
         and:
-        componentIdentifier == DefaultProjectComponentIdentifier.of(buildId, ':a')
+        componentIdentifier == new DefaultProjectComponentIdentifier(buildId, ':a')
     }
 
     def "can create module component identifier"() {
@@ -57,6 +57,6 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
 
         then:
-        componentIdentifier == DefaultModuleComponentIdentifier.of('some-group', 'some-name', '1.0')
+        componentIdentifier == new DefaultModuleComponentIdentifier('some-group', 'some-name', '1.0')
     }
 }

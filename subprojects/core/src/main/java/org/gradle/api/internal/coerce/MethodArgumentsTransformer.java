@@ -30,4 +30,10 @@ public interface MethodArgumentsTransformer {
      */
     Object[] transform(CachedClass[] types, Object[] args);
 
+    /*
+     * Returns Whether the transformer can transform
+     * these arguments at all.
+     */
+    boolean canTransform(Object[] args);
+
 }

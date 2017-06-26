@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -57,6 +58,22 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         }
 
         resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata, result);
+    }
+
+    @Override
+    public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
+        if (identifier instanceof ModuleComponentIdentifier) {
+            for (ModuleComponentRepository repository : repositories) {
+                ModuleComponentRepositoryAccess localAccess = repository.getLocalAccess();
+                MetadataFetchingCost fetchingCost = localAccess.estimateMetadataFetchingCost((ModuleComponentIdentifier) identifier);
+                if (fetchingCost.isFast()) {
+                    return true;
+                } else if (fetchingCost.isExpensive()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private void resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {

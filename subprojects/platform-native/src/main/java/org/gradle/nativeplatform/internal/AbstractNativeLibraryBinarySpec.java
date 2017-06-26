@@ -19,6 +19,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
@@ -72,7 +73,7 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
             if (hasOutputs()) {
                 return AbstractNativeLibraryBinarySpec.this.getBuildDependencies();
             }
-            return new DefaultTaskDependency();
+            return TaskDependencies.EMPTY;
         }
 
         protected abstract boolean hasOutputs();

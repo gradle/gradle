@@ -54,7 +54,7 @@ task retrieve(type: Sync) {
         then:
         fails 'retrieve'
         and:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
                 .assertHasCause("Could not get resource '${module.pom.uri}'.")
                 .assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
@@ -96,7 +96,7 @@ repositories {
         fails 'retrieve'
         then:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("AwsCredentials must be set for S3 backed repository.")
+                .assertHasCause("S3 resource should either specify AwsIamAutentication or provide some AwsCredentials.")
 
     }
 
@@ -110,7 +110,7 @@ repositories {
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause(
                 """Could not find org.gradle:test:1.85.
 Searched in the following locations:

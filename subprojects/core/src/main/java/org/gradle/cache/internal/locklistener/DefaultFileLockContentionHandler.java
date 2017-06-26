@@ -22,7 +22,7 @@ import org.gradle.cache.internal.FileLockCommunicator;
 import org.gradle.cache.internal.GracefullyStoppedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 
 import java.util.HashMap;
@@ -38,7 +38,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private final InetAddressFactory addressFactory;
 
     private FileLockCommunicator communicator;
-    private StoppableExecutor executor;
+    private ManagedExecutor executor;
     private boolean stopped;
 
     public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory addressFactory) {

@@ -15,13 +15,14 @@
  */
 package org.gradle.internal.serialize;
 
+import com.google.common.base.Objects;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
 
-public class DefaultSerializer<T> implements Serializer<T> {
+public class DefaultSerializer<T> extends AbstractSerializer<T> {
     private ClassLoader classLoader;
 
     public DefaultSerializer() {
@@ -52,5 +53,20 @@ public class DefaultSerializer<T> implements Serializer<T> {
         ObjectOutputStream objectStr = new ObjectOutputStream(encoder.getOutputStream());
         objectStr.writeObject(value);
         objectStr.flush();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        DefaultSerializer rhs = (DefaultSerializer) obj;
+        return Objects.equal(classLoader, rhs.classLoader);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), classLoader);
     }
 }

@@ -17,17 +17,26 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 
 public interface CacheAwareExternalResourceAccessor {
+    /**
+     * Fetches for a resource located at some URI.
+     * @param source the URI of the resource to be fetched
+     * @param fileStore used whenever the resource is effectively downloaded, to move it into a cache
+     * @param additionalCandidates a list of candidates, found in a different place than the cache. When null, will only look into the cache. When not null, the checksum of the
+     * resource is going to be checked
+     * @return a locally available resource, if found
+     * @throws IOException whenever an error occurs when downloading of fetching from the cache
+     */
     @Nullable
-    LocallyAvailableExternalResource getResource(URI source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException;
+    LocallyAvailableExternalResource getResource(ExternalResourceName source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException;
 
     interface ResourceFileStore {
         /**

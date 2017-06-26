@@ -27,7 +27,11 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.test.*
+import org.gradle.tooling.events.test.JvmTestKind
+import org.gradle.tooling.events.test.TestFailureResult
+import org.gradle.tooling.events.test.TestOperationDescriptor
+import org.gradle.tooling.events.test.TestProgressEvent
+import org.gradle.tooling.events.test.TestSkippedResult
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -58,7 +62,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "asking for a model and specifying some test task(s) to run first"
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.model(BuildInvocations.class).forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).get()
@@ -76,7 +80,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -153,7 +157,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -172,11 +176,11 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         rootSuite.descriptor.methodName == null
         rootSuite.descriptor.parent == null
 
-        def workerSuite = events.operation("Gradle Test Executor 2")
+        def workerSuite = events.operationMatches("Gradle Test Executor \\d+")
         workerSuite.descriptor.jvmTestKind == JvmTestKind.SUITE
-        workerSuite.descriptor.name == 'Gradle Test Executor 2'
-        workerSuite.descriptor.displayName == 'Gradle Test Executor 2'
-        workerSuite.descriptor.suiteName == 'Gradle Test Executor 2'
+        workerSuite.descriptor.name.matches 'Gradle Test Executor \\d+'
+        workerSuite.descriptor.displayName.matches 'Gradle Test Executor \\d+'
+        workerSuite.descriptor.suiteName.matches 'Gradle Test Executor \\d+'
         workerSuite.descriptor.className == null
         workerSuite.descriptor.methodName == null
         workerSuite.descriptor.parent == rootSuite.descriptor
@@ -223,7 +227,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -243,11 +247,11 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         rootSuite.result instanceof TestFailureResult
         rootSuite.result.failures.size() == 0
 
-        def workerSuite = events.operation("Gradle Test Executor 2")
+        def workerSuite = events.operationMatches("Gradle Test Executor \\d+")
         workerSuite.descriptor.jvmTestKind == JvmTestKind.SUITE
-        workerSuite.descriptor.name == 'Gradle Test Executor 2'
-        workerSuite.descriptor.displayName == 'Gradle Test Executor 2'
-        workerSuite.descriptor.suiteName == 'Gradle Test Executor 2'
+        workerSuite.descriptor.name.matches 'Gradle Test Executor \\d+'
+        workerSuite.descriptor.displayName.matches 'Gradle Test Executor \\d+'
+        workerSuite.descriptor.suiteName.matches 'Gradle Test Executor \\d+'
         workerSuite.descriptor.className == null
         workerSuite.descriptor.methodName == null
         workerSuite.descriptor.parent == rootSuite.descriptor
@@ -305,7 +309,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -373,7 +377,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -446,7 +450,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).withArguments('--parallel').run()
@@ -468,7 +472,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: 'listening to test progress events and task listener is attached'
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TASK, OperationType.TEST)).run()

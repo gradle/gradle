@@ -16,18 +16,23 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
-    public DefaultGenericFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        super(hasher, stringInterner, fileSystem, directoryFileTreeFactory);
+    public DefaultGenericFileCollectionSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+        super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 
     @Override
     public Class<? extends FileCollectionSnapshotter> getRegisteredType() {
         return GenericFileCollectionSnapshotter.class;
+    }
+
+    @Override
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, InputNormalizationStrategy normalizationStrategy) {
+        return super.snapshot(files, new FileCollectionSnapshotBuilder(compareStrategy, snapshotNormalizationStrategy, getStringInterner()));
     }
 }

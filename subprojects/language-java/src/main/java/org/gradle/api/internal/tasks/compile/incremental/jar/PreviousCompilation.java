@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,8 +38,12 @@ public class PreviousCompilation {
         this.jarSnapshotCache = jarSnapshotCache;
     }
 
-    public DependentsSet getDependents(Set<String> allClasses) {
-        return analysis.getRelevantDependents(allClasses);
+    public DependentsSet getDependents(Set<String> allClasses, Set<Integer> constants) {
+        return analysis.getRelevantDependents(allClasses, constants);
+    }
+
+    public String getClassName(String path) {
+        return analysis.getData().getClassNameForFile(path);
     }
 
     public JarSnapshot getJarSnapshot(File file) {
@@ -48,7 +54,16 @@ public class PreviousCompilation {
         return jarSnapshots.get(file);
     }
 
-    public DependentsSet getDependents(String className) {
-        return analysis.getRelevantDependents(className);
+    public DependentsSet getDependents(String className, Set<Integer> newConstants) {
+        Set<Integer> constants = Sets.difference(analysis.getData().getConstants(className), newConstants);
+        return analysis.getRelevantDependents(className, constants);
+    }
+
+    public Map<File, JarSnapshot> getJarSnapshots() {
+        if (jarSnapshots == null) {
+            JarClasspathSnapshotData data = classpathSnapshotStore.get();
+            jarSnapshots = jarSnapshotCache.getJarSnapshots(data.getJarHashes());
+        }
+        return Collections.unmodifiableMap(jarSnapshots);
     }
 }

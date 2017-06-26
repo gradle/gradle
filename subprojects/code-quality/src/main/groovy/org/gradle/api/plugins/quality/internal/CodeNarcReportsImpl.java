@@ -30,6 +30,7 @@ public class CodeNarcReportsImpl extends TaskReportContainer<SingleFileReport> i
         add(TaskGeneratedSingleFileReport.class, "xml", task);
         add(TaskGeneratedSingleFileReport.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "text", task);
+        add(TaskGeneratedSingleFileReport.class, "console", task);
     }
 
     public SingleFileReport getXml() {

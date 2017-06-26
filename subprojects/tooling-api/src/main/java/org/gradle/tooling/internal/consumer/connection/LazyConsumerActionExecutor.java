@@ -17,10 +17,13 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -74,15 +77,17 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
 
     public <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         try {
-            BuildCancellationToken cancellationToken = action.getParameters().getCancellationToken();
-            ConsumerConnection connection = onStartAction(cancellationToken);
+            ConsumerOperationParameters parameters = action.getParameters();
+            BuildCancellationToken cancellationToken = parameters.getCancellationToken();
+            InternalBuildProgressListener buildProgressListener = parameters.getBuildProgressListener();
+            ConsumerConnection connection = onStartAction(cancellationToken, buildProgressListener);
             return action.run(connection);
         } finally {
             onEndAction();
         }
     }
 
-    private ConsumerConnection onStartAction(BuildCancellationToken cancellationToken) {
+    private ConsumerConnection onStartAction(BuildCancellationToken cancellationToken, InternalBuildProgressListener buildProgressListener) {
         lock.lock();
         try {
             if (stopped) {
@@ -92,7 +97,8 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
             if (connection == null) {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
-                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory(), connectionParameters, cancellationToken);
+                ProgressLoggerFactory progressLoggerFactory = loggingProvider.getProgressLoggerFactory();
+                connection = implementationLoader.create(distribution, progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken);
             }
             return connection;
         } finally {

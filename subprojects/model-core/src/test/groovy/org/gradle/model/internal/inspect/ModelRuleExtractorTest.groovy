@@ -29,6 +29,8 @@ import spock.lang.Unroll
 
 import java.beans.Introspector
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
+
 class ModelRuleExtractorTest extends ProjectRegistrySpec {
     def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY, SCHEMA_STORE, STRUCT_BINDINGS_STORE)
     ModelRegistry registry = new DefaultModelRegistry(extractor, null)
@@ -156,7 +158,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type $type.name is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(type)} is not a valid rule source:
 - Rule source classes must directly extend org.gradle.model.RuleSource"""
 
         where:
@@ -169,7 +171,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type $AbstractMethodsRules.name is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(AbstractMethodsRules)} is not a valid rule source:
 - Method thing(java.lang.String) is not a valid rule method: A rule method cannot be abstract"""
     }
 
@@ -179,7 +181,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type $WithGroovyMeta.name is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(WithGroovyMeta)} is not a valid rule source:
 - Method methodMissing(java.lang.String, java.lang.Object) is not a valid rule method: A method that is not annotated as a rule must be private
 - Method propertyMissing(java.lang.String) is not a valid rule method: A method that is not annotated as a rule must be private
 - Method propertyMissing(java.lang.String, java.lang.Object) is not a valid rule method: A method that is not annotated as a rule must be private"""
@@ -262,7 +264,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type $HasGenericModelRule.name is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(HasGenericModelRule)} is not a valid rule source:
 - Method thing() is not a valid rule method: Cannot have type variables (i.e. cannot be a generic method)"""
     }
 
@@ -280,7 +282,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type ${HasMultipleRuleAnnotations.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(HasMultipleRuleAnnotations)} is not a valid rule source:
 - Method thing() is not a valid rule method: Can only be one of [annotated with @Model and returning a model element, annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate, annotated with @Rules]"""
     }
 
@@ -331,7 +333,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type ${GenericMutationRule.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(GenericMutationRule)} is not a valid rule source:
 - Method mutate(T) is not a valid rule method: Cannot have type variables (i.e. cannot be a generic method)"""
     }
 
@@ -346,7 +348,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type $NonVoidMutationRule.name is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(NonVoidMutationRule)} is not a valid rule source:
 - Method mutate(java.lang.String) is not a valid rule method: A method annotated with @Mutate must have void return type."""
     }
 
@@ -361,7 +363,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type $NoSubjectMutationRule.name is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(NoSubjectMutationRule)} is not a valid rule source:
 - Method mutate() is not a valid rule method: A method annotated with @Mutate must have at least one parameter"""
     }
 
@@ -376,7 +378,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type ${RuleWithEmptyInputPath.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(RuleWithEmptyInputPath)} is not a valid rule source:
 - Method create(java.lang.String) is not a valid rule method: The declared model element path '' used for parameter 1 is not a valid path: Cannot use an empty string as a model path."""
     }
 
@@ -391,7 +393,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type ${RuleWithInvalidInputPath.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(RuleWithInvalidInputPath)} is not a valid rule source:
 - Method create(java.lang.String) is not a valid rule method: The declared model element path '!!!!' used for parameter 1 is not a valid path: Model element name '!!!!' has illegal first character '!' (names must start with an ASCII letter or underscore)."""
     }
 
@@ -483,7 +485,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type ${InvalidModelNameViaAnnotation.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(InvalidModelNameViaAnnotation)} is not a valid rule source:
 - Method foo() is not a valid rule method: The declared model element path ' ' is not a valid path: Model element name ' ' has illegal first character ' ' (names must start with an ASCII letter or underscore)."""
     }
 
@@ -499,7 +501,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == """Type $RuleSourceCreatingARawModelMap.name is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(RuleSourceCreatingARawModelMap)} is not a valid rule source:
 - Method bar(org.gradle.model.ModelMap) is not a valid rule method: Raw type org.gradle.model.ModelMap used for parameter 1 (all type parameters must be specified of parameterized type)"""
     }
 
@@ -515,7 +517,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == """Type ${RuleSourceWithAVoidReturningNoArgumentMethod.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(RuleSourceWithAVoidReturningNoArgumentMethod)} is not a valid rule source:
 - Method bar() is not a valid rule method: A method annotated with @Model must either take at least one parameter or have a non-void return type"""
     }
 
@@ -544,8 +546,8 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 - type parameter of org.gradle.model.ModelMap cannot be a wildcard.
 
 The type was analyzed due to the following dependencies:
-${managedType.name}
-  \\--- property 'managedWithNestedInvalidManagedType' (${nestedManagedType.name})
+${fullyQualifiedNameOf(managedType)}
+  \\--- property 'managedWithNestedInvalidManagedType' (${fullyQualifiedNameOf(nestedManagedType)})
     \\--- property 'invalidManaged' ($ModelMap.name<?>)"""
 
         where:
@@ -572,8 +574,8 @@ ${managedType.name}
 - type parameter of org.gradle.model.ModelMap cannot be a wildcard.
 
 The type was analyzed due to the following dependencies:
-${ManagedWithNonManageableParents.name}
-  \\--- property 'invalidManaged' declared by ${AnotherManagedWithPropertyOfInvalidManagedType.name}, ${ManagedWithPropertyOfInvalidManagedType.name} ($ModelMap.name<?>)"""
+${fullyQualifiedNameOf(ManagedWithNonManageableParents)}
+  \\--- property 'invalidManaged' declared by ${fullyQualifiedNameOf(AnotherManagedWithPropertyOfInvalidManagedType)}, ${fullyQualifiedNameOf(ManagedWithPropertyOfInvalidManagedType)} ($ModelMap.name<?>)"""
 
         where:
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"
@@ -592,7 +594,7 @@ ${ManagedWithNonManageableParents.name}
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == """Type $HasRuleWithUncheckedModelMap.name is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(HasRuleWithUncheckedModelMap)} is not a valid rule source:
 - Method modelPath(org.gradle.model.ModelMap) is not a valid rule method: Raw type org.gradle.model.ModelMap used for parameter 1 (all type parameters must be specified of parameterized type)"""
     }
 
@@ -608,7 +610,7 @@ ${ManagedWithNonManageableParents.name}
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type ${NotEverythingAnnotated.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(NotEverythingAnnotated)} is not a valid rule source:
 - Method mutate(java.lang.String) is not a valid rule method: A method that is not annotated as a rule must be private"""
     }
 
@@ -623,7 +625,7 @@ ${ManagedWithNonManageableParents.name}
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type ${PrivateAnnotated.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(PrivateAnnotated)} is not a valid rule source:
 - Method notOk(java.lang.String) is not a valid rule method: A rule method cannot be private"""
     }
 
@@ -653,7 +655,7 @@ ${ManagedWithNonManageableParents.name}
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == '''Type org.gradle.model.internal.inspect.ModelRuleExtractorTest$SeveralProblems is not a valid rule source:
+        e.message == '''Type org.gradle.model.internal.inspect.ModelRuleExtractorTest.SeveralProblems is not a valid rule source:
 - Rule source classes must directly extend org.gradle.model.RuleSource
 - Field field1 is not valid: Fields must be static final.
 - Field field2 is not valid: Fields must be static final.
@@ -785,7 +787,7 @@ ${ManagedWithNonManageableParents.name}
 
         then:
         def e = thrown InvalidModelRuleDeclarationException
-        e.message == """Type ${InvalidEachAnnotation.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(InvalidEachAnnotation)} is not a valid rule source:
 - Method mutate(java.lang.String, java.lang.Integer) is not a valid rule method: Rule parameter #2 should not be annotated with @Each."""
     }
 
@@ -803,7 +805,7 @@ ${ManagedWithNonManageableParents.name}
 
         then:
         def e = thrown InvalidModelRuleDeclarationException
-        e.message == """Type ${InvalidEachAndPathAnnotation.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(InvalidEachAndPathAnnotation)} is not a valid rule source:
 - Method invalid(java.lang.String, java.lang.Integer) is not a valid rule method: Rule subject must not be annotated with both @Path and @Each."""
     }
 

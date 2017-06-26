@@ -25,10 +25,20 @@ import java.lang.annotation.Target;
 /**
  * <p>Marks a property as specifying one or more output directories for a task.</p>
  *
- * <p>This annotation should be attached to the getter method or the field for the property.</p>
+ * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
+ * Annotations on setters or just the field in Java are ignored.</p>
  *
  * <p>This will cause the task to be considered out-of-date when the directory paths or task
  * output to those directories have been modified since the task was last run.</p>
+ *
+ * <p>When the annotated property is a {@link java.util.Map}, then each output directory
+ * will be associated with an identity. For cacheable tasks this is a requirement.
+ * The keys of the map must be <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>.
+ * The values of the map will be evaluated to individual directories as per
+ * {@link org.gradle.api.Project#file(Object)}.</p>
+ *
+ * <p>Otherwise the given directories will be evaluated as per {@link org.gradle.api.Project#files(Object...)},
+ * and task output caching will be disabled for the task.</p>
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

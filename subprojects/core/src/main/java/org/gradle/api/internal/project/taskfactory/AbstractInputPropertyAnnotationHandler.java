@@ -17,14 +17,13 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.tasks.OrderSensitive;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
 
 abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
@@ -35,17 +34,30 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
                 AbstractInputPropertyAnnotationHandler.this.validate(propertyName, value, messages);
             }
         });
+
+        PathSensitive pathSensitive = context.getAnnotation(PathSensitive.class);
+        final PathSensitivity pathSensitivity;
+        if (pathSensitive == null) {
+            if (context.isCacheable()) {
+                context.validationMessage("is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE");
+            }
+            pathSensitivity = PathSensitivity.ABSOLUTE;
+        } else {
+            pathSensitivity = pathSensitive.value();
+        }
+
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                createPropertyBuilder(context, task, futureValue)
+                final TaskInputFilePropertyBuilder propertyBuilder = createPropertyBuilder(context, task, futureValue);
+                propertyBuilder
                     .withPropertyName(context.getName())
-                    .withPathSensitivity(getPathSensitivity(context))
+                    .withPathSensitivity(pathSensitivity)
                     .skipWhenEmpty(context.isAnnotationPresent(SkipWhenEmpty.class))
-                    .orderSensitive(context.isAnnotationPresent(OrderSensitive.class))
                     .optional(context.isOptional());
             }
         });
     }
+
     protected abstract TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);
     protected abstract void validate(String propertyName, Object value, Collection<String> messages);
 }

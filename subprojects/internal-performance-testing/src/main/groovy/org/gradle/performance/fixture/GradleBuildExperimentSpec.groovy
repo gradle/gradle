@@ -21,8 +21,8 @@ import org.gradle.performance.results.BuildDisplayInfo
 class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final GradleInvocationSpec invocation
 
-    GradleBuildExperimentSpec(String displayName, String projectName, File workingDirectory, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
-        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener, invocationCustomizer)
+    GradleBuildExperimentSpec(String displayName, String projectName, File workingDirectory, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
+        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer)
         this.invocation = invocation
     }
 
@@ -42,8 +42,6 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         GradleInvocationSpec.InvocationBuilder invocation = GradleInvocationSpec.builder()
         Integer warmUpCount
         Integer invocationCount
-        Long sleepAfterWarmUpMillis = 5000L
-        Long sleepAfterTestRoundMillis = 1000L
         BuildExperimentListener listener
         InvocationCustomizer invocationCustomizer
 
@@ -72,16 +70,6 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             this
         }
 
-        GradleBuilder sleepAfterWarmUpMillis(Long sleepAfterWarmUpMillis) {
-            this.sleepAfterWarmUpMillis = sleepAfterWarmUpMillis
-            this
-        }
-
-        GradleBuilder sleepAfterTestRoundMillis(Long sleepAfterTestRoundMillis) {
-            this.sleepAfterTestRoundMillis = sleepAfterTestRoundMillis
-            this
-        }
-
         GradleBuilder listener(BuildExperimentListener listener) {
             this.listener = listener
             this
@@ -97,7 +85,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             assert displayName != null
             assert invocation != null
 
-            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener, invocationCustomizer)
+            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount, listener, invocationCustomizer)
         }
     }
 }

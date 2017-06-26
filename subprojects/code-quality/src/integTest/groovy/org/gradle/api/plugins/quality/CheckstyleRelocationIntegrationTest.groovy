@@ -73,10 +73,10 @@ class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
     protected void moveFilesAround() {
         file("src").renameTo(file("other-src"))
         buildFile.text = buildFileWithSourceDir("other-src/main/java")
-        def movedConfigPath = "config/checkstyle-config.xml"
-        configFile.renameTo(file(movedConfigPath))
+        def movedConfigPath = "config-2/checkstyle-config.xml"
+        configFile.copyTo(file(movedConfigPath))
         buildFile << """
-            checkstyle.configFile = file("$movedConfigPath")
+           checkstyle.configFile = file("$movedConfigPath")
         """
     }
 

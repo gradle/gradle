@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.plugin.use.internal.PluginRequest;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class CompositePluginResolver implements PluginResolver {
         this.repositories = repositories;
     }
 
-    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) {
+    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
         for (PluginResolver repository : repositories) {
             repository.resolve(pluginRequest, result);
             if (result.isFound()) {

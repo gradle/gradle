@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,59 +32,82 @@ import java.util.List;
 
 class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskTypeTaskStateChanges.class);
-    private static final HashCode NO_ACTION_LOADERS = Hashing.md5().hashString("no-action-loaders", Charsets.UTF_8);
     private final String taskPath;
-    private final String taskClass;
-    private final HashCode taskClassLoaderHash;
-    private final HashCode taskActionsClassLoaderHash;
+    private final ImplementationSnapshot taskImplementation;
+    private final ImmutableList<ImplementationSnapshot> taskActionImplementations;
     private final TaskExecution previousExecution;
 
-    public TaskTypeTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, String taskPath, Class<? extends TaskInternal> taskClass, Collection<ClassLoader> taskActionClassLoaders, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        String taskClassName = taskClass.getName();
-        currentExecution.setTaskClass(taskClassName);
-        HashCode taskClassLoaderHash = classLoaderHierarchyHasher.getStrictHash(taskClass.getClassLoader());
-        currentExecution.setTaskClassLoaderHash(taskClassLoaderHash);
-        HashCode taskActionsClassLoaderHash = calculateActionClassLoaderHash(taskActionClassLoaders, classLoaderHierarchyHasher);
-        currentExecution.setTaskActionsClassLoaderHash(taskActionsClassLoaderHash);
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Task {} class loader hash: {}", taskPath, taskClassLoaderHash);
-            LOGGER.info("Task {} actions class loader hash: {}", taskPath, taskActionsClassLoaderHash);
+    public TaskTypeTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, String taskPath, Class<? extends TaskInternal> taskClass, Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
+        ImmutableList<ImplementationSnapshot> taskActionImplementations = collectActionImplementations(taskActions, classLoaderHierarchyHasher);
+
+        currentExecution.setTaskImplementation(taskImplementation);
+        currentExecution.setTaskActionImplementations(taskActionImplementations);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Task {} implementation: {}", taskPath, taskImplementation);
+            LOGGER.debug("Task {} action implementations: {}", taskPath, taskActionImplementations);
         }
+
         this.taskPath = taskPath;
-        this.taskClass = taskClassName;
-        this.taskClassLoaderHash = taskClassLoaderHash;
-        this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
+        this.taskImplementation = taskImplementation;
+        this.taskActionImplementations = taskActionImplementations;
         this.previousExecution = previousExecution;
     }
 
-    private static HashCode calculateActionClassLoaderHash(Collection<ClassLoader> taskActionClassLoaders, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        if (taskActionClassLoaders.isEmpty()) {
-            return NO_ACTION_LOADERS;
+    private ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        if (taskActions.isEmpty()) {
+            return ImmutableList.of();
         }
-        Hasher hasher = Hashing.md5().newHasher();
-        for (ClassLoader taskActionClassLoader : taskActionClassLoaders) {
-            HashCode actionLoaderHash = classLoaderHierarchyHasher.getStrictHash(taskActionClassLoader);
-            if (actionLoaderHash == null) {
-                return null;
-            }
-            hasher.putBytes(actionLoaderHash.asBytes());
+        ImmutableList.Builder<ImplementationSnapshot> actionImpls = ImmutableList.builder();
+        for (ContextAwareTaskAction taskAction : taskActions) {
+            String typeName = taskAction.getActionClassName();
+            HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskAction.getClassLoader());
+            actionImpls.add(new ImplementationSnapshot(typeName, classLoaderHash));
         }
-        return hasher.hash();
+        return actionImpls.build();
     }
 
     @Override
     protected void addAllChanges(List<TaskStateChange> changes) {
-        if (!taskClass.equals(previousExecution.getTaskClass())) {
+        ImplementationSnapshot prevImplementation = previousExecution.getTaskImplementation();
+        if (!taskImplementation.getTypeName().equals(prevImplementation.getTypeName())) {
             changes.add(new DescriptiveChange("Task '%s' has changed type from '%s' to '%s'.",
-                    taskPath, previousExecution.getTaskClass(), taskClass));
+                    taskPath, prevImplementation.getTypeName(), taskImplementation.getTypeName()));
             return;
         }
-        if (!Objects.equal(taskClassLoaderHash, previousExecution.getTaskClassLoaderHash())) {
-            changes.add(new DescriptiveChange("Task '%s' class path has changed from %s to %s.", taskPath, previousExecution.getTaskClassLoaderHash(), taskClassLoaderHash));
+        if (taskImplementation.hasUnknownClassLoader()) {
+            changes.add(new DescriptiveChange("Task '%s' was loaded with an unknown classloader", taskPath));
             return;
         }
-        if (!Objects.equal(taskActionsClassLoaderHash, previousExecution.getTaskActionsClassLoaderHash())) {
-            changes.add(new DescriptiveChange("Task '%s' additional action class path has changed from %s to %s.", taskPath, previousExecution.getTaskActionsClassLoaderHash(), taskActionsClassLoaderHash));
+        if (prevImplementation.hasUnknownClassLoader()) {
+            changes.add(new DescriptiveChange("Task '%s' was loaded with an unknown classloader during the previous execution", taskPath));
+            return;
         }
+        if (!taskImplementation.getClassLoaderHash().equals(prevImplementation.getClassLoaderHash())) {
+            changes.add(new DescriptiveChange("Task '%s' class path has changed from %s to %s.", taskPath, prevImplementation.getClassLoaderHash(), taskImplementation.getClassLoaderHash()));
+            return;
+        }
+
+        if (hasAnyUnknownClassLoader(taskActionImplementations)) {
+            changes.add(new DescriptiveChange("Task '%s' has an additional action that was loaded with an unknown classloader", taskPath));
+            return;
+        }
+        if (hasAnyUnknownClassLoader(previousExecution.getTaskActionImplementations())) {
+            changes.add(new DescriptiveChange("Task '%s' had an additional action that was loaded with an unknown classloader during the previous execution", taskPath));
+            return;
+        }
+        if (!taskActionImplementations.equals(previousExecution.getTaskActionImplementations())) {
+            changes.add(new DescriptiveChange("Task '%s' has additional actions that have changed", taskPath));
+        }
+    }
+
+    private static boolean hasAnyUnknownClassLoader(Iterable<ImplementationSnapshot> implementations) {
+        for (ImplementationSnapshot implementation : implementations) {
+            if (implementation.hasUnknownClassLoader()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

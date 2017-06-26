@@ -21,16 +21,22 @@ import java.lang.reflect.Method;
 import java.net.*;
 
 public class Download implements IDownload {
-    private static final int PROGRESS_CHUNK = 20000;
-    private static final int BUFFER_SIZE = 10000;
+    private static final int PROGRESS_CHUNK = 1024 * 1024;
+    private static final int BUFFER_SIZE = 10 * 1024;
     private final Logger logger;
     private final String appName;
     private final String appVersion;
+    private final DownloadProgressListener progressListener;
 
     public Download(Logger logger, String appName, String appVersion) {
+        this(logger, null, appName, appVersion);
+    }
+
+    public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion) {
         this.logger = logger;
         this.appName = appName;
         this.appVersion = appVersion;
+        this.progressListener = progressListener;
         configureProxyAuthentication();
     }
 
@@ -60,16 +66,22 @@ public class Download implements IDownload {
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
+            int contentLength = conn.getContentLength();
             long progressCounter = 0;
+            long numDownloaded = 0;
             while ((numRead = in.read(buffer)) != -1) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.out.print("interrupted");
                     throw new IOException("Download was interrupted.");
                 }
+                numDownloaded += numRead;
                 progressCounter += numRead;
                 if (progressCounter / PROGRESS_CHUNK > 0) {
                     logger.append(".");
                     progressCounter = progressCounter - PROGRESS_CHUNK;
+                    if (progressListener != null) {
+                        progressListener.downloadStatusChanged(address, contentLength, numDownloaded);
+                    }
                 }
                 out.write(buffer, 0, numRead);
             }

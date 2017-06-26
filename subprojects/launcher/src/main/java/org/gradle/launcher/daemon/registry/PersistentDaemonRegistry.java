@@ -52,15 +52,15 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager, Chmod chmod) {
         this.registryFile = registryFile;
         cache = new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<DaemonRegistryContent>(
-                new SimpleStateCache<DaemonRegistryContent>(
-                        registryFile,
-                        new OnDemandFileAccess(
-                                registryFile,
-                                "daemon addresses registry",
-                                fileLockManager),
-                        DaemonRegistryContent.SERIALIZER,
-                        chmod
-                ));
+            new SimpleStateCache<DaemonRegistryContent>(
+                registryFile,
+                new OnDemandFileAccess(
+                    registryFile,
+                    "daemon addresses registry",
+                    fileLockManager),
+                DaemonRegistryContent.SERIALIZER,
+                chmod
+            ));
     }
 
     public List<DaemonInfo> getAll() {

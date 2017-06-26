@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.api;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 /**
@@ -28,22 +28,22 @@ import org.gradle.util.ConfigureUtil;
  */
 public class FileContentMerger {
 
-    private ActionBroadcast whenMerged = new ActionBroadcast();
-    private ActionBroadcast beforeMerged = new ActionBroadcast();
+    private MutableActionSet whenMerged = new MutableActionSet();
+    private MutableActionSet beforeMerged = new MutableActionSet();
 
-    public ActionBroadcast getWhenMerged() {
+    public MutableActionSet getWhenMerged() {
         return whenMerged;
     }
 
-    public void setWhenMerged(ActionBroadcast whenMerged) {
+    public void setWhenMerged(MutableActionSet whenMerged) {
         this.whenMerged = whenMerged;
     }
 
-    public ActionBroadcast getBeforeMerged() {
+    public MutableActionSet getBeforeMerged() {
         return beforeMerged;
     }
 
-    public void setBeforeMerged(ActionBroadcast beforeMerged) {
+    public void setBeforeMerged(MutableActionSet beforeMerged) {
         this.beforeMerged = beforeMerged;
     }
 

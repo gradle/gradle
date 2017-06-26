@@ -19,10 +19,6 @@ package org.gradle.external.javadoc.internal;
 import java.io.IOException;
 
 public class StringJavadocOptionFileOption extends AbstractJavadocOptionFileOption<String> {
-    public StringJavadocOptionFileOption(String option) {
-        super(option);
-    }
-
     public StringJavadocOptionFileOption(String option, String value) {
         super(option, value);
     }
@@ -32,5 +28,10 @@ public class StringJavadocOptionFileOption extends AbstractJavadocOptionFileOpti
         if (value != null) {
             writerContext.writeValueOption(option, value);
         }
+    }
+
+    @Override
+    public StringJavadocOptionFileOption duplicate() {
+        return new StringJavadocOptionFileOption(option, value);
     }
 }

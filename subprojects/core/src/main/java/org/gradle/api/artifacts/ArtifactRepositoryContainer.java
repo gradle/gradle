@@ -50,6 +50,7 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String MAVEN_CENTRAL_URL = "https://repo1.maven.org/maven2/";
+    String GOOGLE_URL = "https://dl.google.com/dl/android/maven2/";
 
     /**
      * Adds a repository to this container, at the end of the repository sequence.

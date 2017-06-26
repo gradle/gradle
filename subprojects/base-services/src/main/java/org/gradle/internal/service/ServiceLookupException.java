@@ -16,9 +16,12 @@
 
 package org.gradle.internal.service;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 /**
  * Thrown when there is some failure locating a service.
  */
+@UsedByScanPlugin
 public class ServiceLookupException extends RuntimeException {
     public ServiceLookupException(String message) {
         super(message);

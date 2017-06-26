@@ -241,7 +241,7 @@ public abstract class AstUtils {
     }
 
     /**
-     * Returns true if the the given statement may have some effect as part of a script body.
+     * Returns true if the given statement may have some effect as part of a script body.
      * Returns false when the given statement may be ignored, provided all other statements in the script body may also be ignored.
      */
     public static boolean mayHaveAnEffect(Statement statement) {

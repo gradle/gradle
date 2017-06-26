@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
 
 public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> {
 

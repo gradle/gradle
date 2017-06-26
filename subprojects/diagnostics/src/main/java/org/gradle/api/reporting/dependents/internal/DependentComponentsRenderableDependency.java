@@ -107,8 +107,8 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
     }
 
     @Override
-    public boolean isResolvable() {
-        return true;
+    public ResolutionState getResolutionState() {
+        return ResolutionState.RESOLVED;
     }
 
     @Override

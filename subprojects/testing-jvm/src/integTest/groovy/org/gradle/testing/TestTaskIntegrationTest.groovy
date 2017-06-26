@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.testing;
+package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import org.gradle.util.Requires;
+import spock.lang.Unroll
 
-public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
+class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2702")
     def "should not resolve configuration results when there are no tests"() {
         buildFile << """
             apply plugin: 'java'
 
-            configure([configurations.testRuntime, configurations.testCompile]) { configuration ->
-                incoming.afterResolve {
-                    assert configuration.resolvedState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED : "should not be resolved"
-                }
-            }
+            configurations.all { incoming.beforeResolve { throw new RuntimeException() } }
         """
 
         when:
@@ -67,7 +65,7 @@ public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         and:
-        classFormat('build/classes/test/MyTest.class') == 53
+        classFormat(classFile('java', 'test', 'MyTest.class')) == 53
 
     }
 
@@ -91,24 +89,164 @@ public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         and:
-        classFormat('build/classes/main/module-info.class') == 53
-        classFormat('build/classes/test/MyTest.class') == 53
-
+        classFormat(javaClassFile('module-info.class')) == 53
+        classFormat(classFile('java', 'test', 'MyTest.class')) == 53
     }
 
-    private static String standaloneTestClass() {
-        '''
+    @Unroll
+    def "test task does not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
+        given:
+        def maxParallelForks = maxWorkers + 1
+
+        and:
+        2000.times { num ->
+            file("src/test/java/SomeTest${num}.java") << testClass("SomeTest${num}")
+        }
+
+        and:
+        buildFile << """
+            apply plugin: 'java'
+            repositories { jcenter() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            test {
+                maxParallelForks = $maxParallelForks
+            }
+        """.stripIndent()
+
+        when:
+        executer.withArguments("--max-workers=${maxWorkers}", "-i")
+        succeeds 'test'
+
+        then:
+        output.contains("test.maxParallelForks ($maxParallelForks) is larger than max-workers ($maxWorkers), forcing it to $maxWorkers")
+
+        where:
+        maxWorkers                                | _
+        Runtime.runtime.availableProcessors()     | _
+        Runtime.runtime.availableProcessors() - 1 | _
+        Runtime.runtime.availableProcessors() + 1 | _
+    }
+
+    @Requires(TestPrecondition.ONLINE)
+    def "re-runs tests when resources are renamed in a jar"() {
+        buildFile << """
+            allprojects {
+                apply plugin: 'java'
+                repositories { jcenter() }
+            }
+            dependencies { 
+                testCompile 'junit:junit:4.12'
+                testCompile project(":dependency") 
+            }
+        """
+        settingsFile << """
+            include 'dependency'
+        """
+        file("src/test/java/MyTest.java") << """
             import org.junit.*;
 
             public class MyTest {
+               @Test
+               public void test() {
+                  Assert.assertNotNull(getClass().getResource("dependency/foo.properties"));
+               }
+            }
+        """.stripIndent()
+
+        def resourceFile = file("dependency/src/main/resources/dependency/foo.properties")
+        resourceFile << """
+            someProperty = true
+        """
+
+        when:
+        succeeds 'test'
+        then:
+        noExceptionThrown()
+
+        when:
+        resourceFile.renameTo(file("dependency/src/main/resources/dependency/bar.properties"))
+        then:
+        fails 'test'
+    }
+
+    @Requires(TestPrecondition.ONLINE)
+    def "re-runs tests when resources are renamed"() {
+        buildFile << """
+            apply plugin: 'java'
+            repositories { jcenter() }
+
+            dependencies { 
+                testCompile 'junit:junit:4.12' 
+            }
+        """
+        file("src/test/java/MyTest.java") << """
+            import org.junit.*;
+
+            public class MyTest {
+               @Test
+               public void test() {
+                  Assert.assertNotNull(getClass().getResource("dependency/foo.properties"));
+               }
+            }
+        """.stripIndent()
+
+        def resourceFile = file("src/main/resources/dependency/foo.properties")
+        resourceFile << """
+            someProperty = true
+        """
+
+        when:
+        succeeds 'test'
+        then:
+        noExceptionThrown()
+
+        when:
+        resourceFile.renameTo(file("src/main/resources/dependency/bar.properties"))
+        then:
+        fails 'test'
+    }
+
+    @Requires(TestPrecondition.ONLINE)
+    def "emits deprecation warning when using testClassesDir"() {
+        buildFile << """
+            apply plugin: 'java'
+            repositories { jcenter() }
+
+            dependencies { 
+                testCompile 'junit:junit:4.12' 
+            }
+            compileTestJava {
+                destinationDir = file("build/non-standard")
+            }
+            test {
+                testClassesDir = compileTestJava.destinationDir
+                classpath = sourceSets.test.runtimeClasspath + files(compileTestJava.destinationDir)
+            }
+        """
+        file('src/test/java/MyTest.java') << standaloneTestClass()
+        when:
+        executer.expectDeprecationWarning()
+        succeeds("test")
+        then:
+        result.assertOutputContains("The setTestClassesDir(File) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the setTestClassesDirs(FileCollection) method instead.")
+    }
+
+    private static String standaloneTestClass() {
+        return testClass('MyTest')
+    }
+
+    private static String testClass(String className) {
+        return """
+            import org.junit.*;
+
+            public class $className {
                @Test
                public void test() {
                   System.out.println(System.getProperty("java.version"));
                   Assert.assertEquals(1,1);
                }
             }
-
-        '''
+        """.stripIndent()
     }
 
     private static String java9Build() {
@@ -128,7 +266,7 @@ public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         '''
     }
 
-    private int classFormat(String path) {
-        file(path).bytes[7] & 0xFF
+    private int classFormat(TestFile path) {
+        path.bytes[7] & 0xFF
     }
 }

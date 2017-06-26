@@ -39,8 +39,8 @@ class SamplesScalaZincIntegrationTest extends AbstractIntegrationSpec {
         projectDir.file("build/libs/zinc.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
-                'org/gradle/sample/api/Person.class',
-                'org/gradle/sample/impl/PersonImpl.class'
+                'org/gradle/sample/Named.class',
+                'org/gradle/sample/Person.class'
         )
     }
 }

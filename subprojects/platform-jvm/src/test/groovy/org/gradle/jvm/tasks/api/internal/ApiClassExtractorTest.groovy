@@ -391,6 +391,35 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     }
 
+    def "should not remove package private members that have additional modifiers if no API is declared"() {
+        given:
+        def api = toApi 'A': '''
+            public abstract class A {
+                volatile int foo = 0;
+                final int bar = 0;
+
+                abstract int getFoo();
+                synchronized void doBar() { }
+            }
+        '''
+
+        when:
+        def clazz = api.classes.A
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
+
+        then:
+        api.shouldExtractApiClassFrom(clazz)
+        hasField(clazz.clazz, 'foo', int).modifiers == Modifier.VOLATILE
+        hasField(extracted, 'foo', int).modifiers == Modifier.VOLATILE
+        hasField(clazz.clazz, 'bar', int).modifiers == Modifier.FINAL
+        hasField(extracted, 'bar', int).modifiers == Modifier.FINAL
+        hasMethod(clazz.clazz, 'getFoo').modifiers == Modifier.ABSTRACT
+        hasMethod(extracted, 'getFoo').modifiers == Modifier.ABSTRACT
+        hasMethod(clazz.clazz, 'doBar').modifiers == Modifier.SYNCHRONIZED
+        hasMethod(extracted, 'doBar').modifiers == Modifier.SYNCHRONIZED
+
+    }
+
     def "should remove package private field if API is declared"() {
         given:
         def api = toApi([''], ['A': '''

@@ -22,6 +22,12 @@ public interface RenderableDependency {
     Object getId();
     String getName();
     String getDescription();
-    boolean isResolvable();
+    ResolutionState getResolutionState();
     Set<? extends RenderableDependency> getChildren();
+
+    enum ResolutionState {
+        FAILED,
+        RESOLVED,
+        UNRESOLVED
+    }
 }

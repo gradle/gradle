@@ -23,7 +23,9 @@ import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
@@ -132,38 +134,39 @@ import java.util.Set;
  *
  * <h4>Parallel Execution</h4>
  * <p>
- * By default, tasks are not executed in parallel.
+ * By default, tasks are not executed in parallel unless a task is waiting on asynchronous work and another task (which
+ * is not dependent) is ready to execute.
+ *
  * Parallel execution can be enabled by the <code>--parallel</code> flag when the build is initiated.
  * In parallel mode, the tasks of different projects (i.e. in a multi project build) are able to be executed in parallel.
- * If a task is annotated with {@link org.gradle.api.tasks.ParallelizableTask}, it may also be executed in parallel with other tasks of the same project.
- * See {@link org.gradle.api.tasks.ParallelizableTask} for more details on writing parallelizable tasks.
  */
 public interface Task extends Comparable<Task>, ExtensionAware {
-    public static final String TASK_NAME = "name";
+    String TASK_NAME = "name";
 
-    public static final String TASK_DESCRIPTION = "description";
+    String TASK_DESCRIPTION = "description";
 
-    public static final String TASK_GROUP = "group";
+    String TASK_GROUP = "group";
 
-    public static final String TASK_TYPE = "type";
+    String TASK_TYPE = "type";
 
-    public static final String TASK_DEPENDS_ON = "dependsOn";
+    String TASK_DEPENDS_ON = "dependsOn";
 
-    public static final String TASK_OVERWRITE = "overwrite";
+    String TASK_OVERWRITE = "overwrite";
 
-    public static final String TASK_ACTION = "action";
+    String TASK_ACTION = "action";
 
     /**
      * <p>Returns the name of this task. The name uniquely identifies the task within its {@link Project}.</p>
      *
      * @return The name of the task. Never returns null.
      */
+    @Internal
     String getName();
 
     /**
      * A {@link org.gradle.api.Namer} namer for tasks that returns {@link #getName()}.
      */
-    static class Namer implements org.gradle.api.Namer<Task> {
+    class Namer implements org.gradle.api.Namer<Task> {
         public String determineName(Task c) {
             return c.getName();
         }
@@ -174,6 +177,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The project this task belongs to. Never returns null.
      */
+    @Internal
     Project getProject();
 
     /**
@@ -182,6 +186,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The task actions in the order they are executed. Returns an empty list if this task has no actions.
      */
+    @Internal
     List<Action<? super Task>> getActions();
 
     /**
@@ -196,6 +201,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The dependencies of this task. Never returns null.
      */
+    @Internal
     TaskDependency getTaskDependencies();
 
     /**
@@ -203,6 +209,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The dependencies of this task. Returns an empty set if this task has no dependencies.
      */
+    @Internal
     Set<Object> getDependsOn();
 
     /**
@@ -302,6 +309,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The execution state of this task. Never returns null.
      */
+    @Internal
     TaskState getState();
 
     /**
@@ -319,6 +327,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return true if this task did any work
      */
+    @Internal
     boolean getDidWork();
 
     /**
@@ -327,6 +336,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return the path of the task, which is equal to the path of the project plus the name of the task.
      */
+    @Internal
     String getPath();
 
     /**
@@ -387,6 +397,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @see #setEnabled(boolean)
      */
+    @Internal
     boolean getEnabled();
 
     /**
@@ -412,6 +423,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The <code>AntBuilder</code>
      */
+    @Internal
     AntBuilder getAnt();
 
     /**
@@ -419,15 +431,17 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The logger. Never returns null.
      */
+    @Internal
     Logger getLogger();
 
     /**
-     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to control the logging level and
+     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
      * standard output/error capture for this task. By default, System.out is redirected to the Gradle logging system at
      * the QUIET log level, and System.err is redirected at the ERROR log level.
      *
      * @return the LoggingManager. Never returns null.
      */
+    @Internal
     LoggingManager getLogging();
 
     /**
@@ -489,6 +503,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The convention object. Never returns null.
      */
+    @Internal
     Convention getConvention();
 
     /**
@@ -496,6 +511,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return the description. May return null.
      */
+    @Internal
     String getDescription();
 
     /**
@@ -512,6 +528,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The task group for this task. Might be null.
      */
+    @Internal
     String getGroup();
 
     /**
@@ -534,6 +551,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The inputs. Never returns null.
      */
+    @Internal
     TaskInputs getInputs();
 
     /**
@@ -541,7 +559,18 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The outputs. Never returns null.
      */
+    @Internal
     TaskOutputs getOutputs();
+
+    /**
+     * <p>Returns the destroyables of this task.</p>
+     * @return The destroyables.  Never returns null.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    @Internal
+    TaskDestroyables getDestroyables();
 
     /**
      * <p>Returns a directory which this task can use to write temporary files to. Each task instance is provided with a
@@ -550,6 +579,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The directory. Never returns null. The directory will already exist.
      */
+    @Internal
     File getTemporaryDir();
 
     /**
@@ -600,6 +630,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return The tasks that this task must run after. Returns an empty set if this task has no tasks it must run after.
      */
     @Incubating
+    @Internal
     TaskDependency getMustRunAfter();
 
     /**
@@ -644,6 +675,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return The tasks that finalize this task. Returns an empty set if there are no finalising tasks for this task.
      */
     @Incubating
+    @Internal
     TaskDependency getFinalizedBy();
 
     /**
@@ -694,6 +726,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return The tasks that this task should run after. Returns an empty set if this task has no tasks it must run after.
      */
     @Incubating
+    @Internal
     TaskDependency getShouldRunAfter();
 }
-

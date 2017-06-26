@@ -24,6 +24,12 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.IOException;
 
 public class ModuleVersionIdentifierSerializer implements Serializer<ModuleVersionIdentifier> {
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
+    public ModuleVersionIdentifierSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+    }
+
     public void write(Encoder encoder, ModuleVersionIdentifier value) throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getName());
@@ -34,6 +40,6 @@ public class ModuleVersionIdentifierSerializer implements Serializer<ModuleVersi
         String group = decoder.readString();
         String module = decoder.readString();
         String version = decoder.readString();
-        return DefaultModuleVersionIdentifier.newId(group, module, version);
+        return moduleIdentifierFactory.moduleWithVersion(group, module, version);
     }
 }

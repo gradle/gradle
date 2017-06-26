@@ -23,6 +23,10 @@ import java.util.Collection;
 abstract class AbstractModuleExclusion implements ModuleExclusion {
     private static final String WILDCARD = "*";
 
+    private int hashCode = -1;
+    private ModuleExclusion lastCheck;
+    private boolean lastCheckResult;
+
     protected static boolean isWildcard(String attribute) {
         return WILDCARD.equals(attribute);
     }
@@ -51,7 +55,17 @@ abstract class AbstractModuleExclusion implements ModuleExclusion {
         if (!other.getClass().equals(getClass())) {
             return false;
         }
-        return doExcludesSameModulesAs(other);
+        synchronized (this) {
+            // This is an optimization, based on the fact that in a large amount of times
+            // a specific exclusion is checked against the same filter the next time so
+            // we don't need to recompute the result: we can cache the last query
+            if (filter == lastCheck) {
+                return lastCheckResult;
+            }
+            lastCheck = other;
+            lastCheckResult = doExcludesSameModulesAs(other);
+            return lastCheckResult;
+        }
     }
 
     /**
@@ -94,7 +108,11 @@ abstract class AbstractModuleExclusion implements ModuleExclusion {
 
     @Override
     public final int hashCode() {
-        return doHashCode();
+        if (hashCode != -1) {
+            return hashCode;
+        }
+        hashCode = doHashCode();
+        return hashCode;
     }
 
     protected abstract int doHashCode();

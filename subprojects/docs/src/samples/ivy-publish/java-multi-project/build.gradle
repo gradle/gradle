@@ -48,7 +48,7 @@ subprojects {
                 from components.java
                 artifact(sourceJar) {
                     type "source"
-                    conf "runtime"
+                    conf "compile"
                 }
 // END SNIPPET publish-custom-artifact
                 descriptor.withXml {

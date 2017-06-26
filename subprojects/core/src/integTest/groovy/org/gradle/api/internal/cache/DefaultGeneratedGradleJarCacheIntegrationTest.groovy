@@ -48,7 +48,7 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     RedirectStdOutAndErr stdout = new RedirectStdOutAndErr()
 
     @Rule
-    ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
+    ConcurrentTestUtil concurrent = new ConcurrentTestUtil(8000)
 
     def DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
             .parent(NativeServicesTestFixture.getInstance())

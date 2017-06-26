@@ -80,7 +80,7 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
         module.assertPublished()
         module.assertArtifactsPublished("javaProject-1.0.jar", "javaProject-1.0-sources.jar", "javaProject-1.0.pom")
         module.parsedPom.packaging == null
-        module.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.2")
+        module.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2")
     }
 
     def pomCustomization() {
@@ -126,11 +126,11 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private void verifyPomFile(MavenFileModule module, String outputFileName) {
-        def actualIvyXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
-        assert actualIvyXmlText == getExpectedIvyOutput(multiPublish.dir.file(outputFileName))
+        def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
+        assert actualPomXmlText == getExpectedPomOutput(multiPublish.dir.file(outputFileName))
     }
 
-    String getExpectedIvyOutput(File outputFile) {
+    String getExpectedPomOutput(File outputFile) {
         assert outputFile.file
         outputFile.readLines()[1..-1].join(TextUtil.getPlatformLineSeparator()).trim()
     }

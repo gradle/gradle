@@ -58,6 +58,11 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
     }
 
+    @Override
+    public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
+        return resolver.isFetchingMetadataCheap(identifier);
+    }
+
     private void addClientModuleDependencies(ClientModule clientModule, MutableModuleComponentResolveMetadata clientModuleMetaData) {
         List<DependencyMetadata> dependencies = Lists.newArrayList();
         for (ModuleDependency moduleDependency : clientModule.getDependencies()) {

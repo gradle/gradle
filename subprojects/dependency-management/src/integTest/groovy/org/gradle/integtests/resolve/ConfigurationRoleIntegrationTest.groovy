@@ -157,7 +157,46 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         fails 'a:check'
 
         then:
-        failure.assertHasCause "Configuration 'internal' cannot be used in a project dependency"
+        failure.assertHasCause "Selected configuration 'internal' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+
+        where:
+        role                    | code
+        'query or resolve only' | 'canBeConsumed = false'
+        'bucket'                | 'canBeResolved = false; canBeConsumed = false'
+    }
+
+    @Unroll("cannot depend on default configuration if it's not consumable (#role)")
+    def "cannot depend on default configuration if it's not consumable"() {
+        given:
+        file('settings.gradle') << 'include "a", "b"'
+        buildFile << """
+        project(':a') {
+            configurations {
+                compile
+            }
+            dependencies {
+                compile project(path: ':b')
+            }
+
+            task check {
+                doLast { configurations.compile.resolve() }
+            }
+        }
+        project(':b') {
+            configurations {
+                'default' {
+                    $code
+                }
+            }
+        }
+
+        """
+
+        when:
+        fails 'a:check'
+
+        then:
+        failure.assertHasCause "Selected configuration 'default' but it can't be used as a project dependency because it isn't intended for consumption by other components."
 
         where:
         role                    | code

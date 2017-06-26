@@ -14,7 +14,7 @@
             </tr>
             <tr>
                 <td>destinationDir</td>
-                <td><literal><replaceable>sourceSet</replaceable>.output.classesDir</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>.<replaceable>sourceDirectorySet</replaceable>.outputDir</literal></td>
             </tr>
             <tr>
                 <td>sourceCompatibility</td>

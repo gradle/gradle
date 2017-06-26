@@ -85,6 +85,10 @@ class RunningPlayApp {
         output = { distHandle.standardOutput }
     }
 
+    boolean isInitialized() {
+        output != null
+    }
+
     void waitForStarted(int occurrence = 0) {
         int timeout = 60
         ConcurrentTestUtil.poll(timeout) {

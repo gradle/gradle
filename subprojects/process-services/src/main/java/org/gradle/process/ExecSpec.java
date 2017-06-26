@@ -25,6 +25,14 @@ public interface ExecSpec extends BaseExecSpec {
      * Sets the full command line, including the executable to be executed plus its arguments.
      *
      * @param args the command plus the args to be executed
+     * @since 4.0
+     */
+    void setCommandLine(List<String> args);
+
+    /**
+     * Sets the full command line, including the executable to be executed plus its arguments.
+     *
+     * @param args the command plus the args to be executed
      */
     void setCommandLine(Object... args);
 
@@ -66,6 +74,15 @@ public interface ExecSpec extends BaseExecSpec {
      * @return this
      */
     ExecSpec args(Iterable<?> args);
+
+    /**
+     * Sets the arguments for the command to be executed.
+     *
+     * @param args args for the command
+     * @return this
+     * @since 4.0
+     */
+    ExecSpec setArgs(List<String> args);
 
     /**
      * Sets the arguments for the command to be executed.

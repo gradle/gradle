@@ -15,12 +15,11 @@
  */
 package org.gradle.util
 
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.Task
+import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.DefaultInstantiatorFactory
+import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.groovy.scripts.DefaultScript
@@ -40,6 +39,11 @@ class TestUtil {
     private TestUtil(File rootDir) {
         NativeServicesTestFixture.initialize()
         this.rootDir = rootDir;
+    }
+
+    static InstantiatorFactory instantiatorFactory() {
+        def generator = new AsmBackedClassGenerator()
+        return new DefaultInstantiatorFactory(generator)
     }
 
     static TestUtil create(File rootDir) {
@@ -107,12 +111,6 @@ class TestUtil {
             .withParent(parent)
             .withProjectDir(projectDir)
             .build();
-    }
-
-    static DefaultModuleDescriptor createModuleDescriptor(Set confs) {
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId('org', 'name'), 'rev'), "status", null)
-        confs.each { moduleDescriptor.addConfiguration(new Configuration(it)) }
-        return moduleDescriptor;
     }
 
     static groovy.lang.Script createScript(String code) {

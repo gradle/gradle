@@ -18,10 +18,12 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.Action;
 
 import java.io.File;
 import java.util.Map;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * DSL-friendly model of the Eclipse project information.
@@ -121,7 +123,19 @@ public class EclipseModel {
      * @param closure
      */
     public void project(Closure closure) {
-        ConfigureUtil.configure(closure, project);
+        configure(closure, project);
+    }
+
+    /**
+     * Configures eclipse project information
+     * <p>
+     * For examples see docs for {@link EclipseProject}
+     *
+     * @param action
+     * @since 3.5
+     */
+    public void project(Action<? super EclipseProject> action) {
+        action.execute(project);
     }
 
     /**
@@ -132,7 +146,19 @@ public class EclipseModel {
      * @param closure
      */
     public void classpath(Closure closure) {
-        ConfigureUtil.configure(closure, classpath);
+        configure(closure, classpath);
+    }
+
+    /**
+     * Configures eclipse classpath information
+     * <p>
+     * For examples see docs for {@link EclipseClasspath}
+     *
+     * @param action
+     * @since 3.5
+     */
+    public void classpath(Action<? super EclipseClasspath> action) {
+        action.execute(classpath);
     }
 
     /**
@@ -143,7 +169,19 @@ public class EclipseModel {
      * @param closure
      */
     public void wtp(Closure closure) {
-        ConfigureUtil.configure(closure, wtp);
+        configure(closure, wtp);
+    }
+
+    /**
+     * Configures eclipse wtp information
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     *
+     * @param action
+     * @since 3.5
+     */
+    public void wtp(Action<? super EclipseWtp> action) {
+        action.execute(wtp);
     }
 
     /**
@@ -154,7 +192,19 @@ public class EclipseModel {
      * @param closure
      */
     public void jdt(Closure closure) {
-        ConfigureUtil.configure(closure, jdt);
+        configure(closure, jdt);
+    }
+
+    /**
+     * Configures eclipse java compatibility information (jdt)
+     * <p>
+     * For examples see docs for {@link EclipseProject}
+     *
+     * @param action
+     * @since 3.5
+     */
+    public void jdt(Action<? super EclipseJdt> action) {
+        action.execute(jdt);
     }
 
     /**

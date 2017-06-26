@@ -21,20 +21,27 @@ import com.google.common.collect.Lists;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Nullable;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
 public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serializable {
     private final List<String> args;
     private final String projectPath;
+    private final File rootDir;
 
     public DefaultTaskExecutionRequest(Iterable<String> args) {
-        this(args, null);
+        this(args, null, null);
     }
 
     public DefaultTaskExecutionRequest(Iterable<String> args, @Nullable String projectPath) {
+        this(args, projectPath, null);
+    }
+
+    public DefaultTaskExecutionRequest(Iterable<String> args, @Nullable String projectPath, @Nullable File rootDir) {
         this.args = Lists.newArrayList(args);
         this.projectPath = projectPath;
+        this.rootDir = rootDir;
     }
 
     public List<String> getArgs() {
@@ -43,6 +50,10 @@ public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serial
 
     public String getProjectPath() {
         return projectPath;
+    }
+
+    public File getRootDir() {
+        return rootDir;
     }
 
     @Override

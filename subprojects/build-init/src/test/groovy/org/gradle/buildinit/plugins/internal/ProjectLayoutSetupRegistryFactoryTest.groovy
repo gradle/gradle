@@ -45,6 +45,6 @@ class ProjectLayoutSetupRegistryFactoryTest extends Specification {
         then:
         descriptor != null
         where:
-        type << [BuildInitTypeIds.POM, BuildInitTypeIds.BASIC, BuildInitTypeIds.JAVA_LIBRARY, BuildInitTypeIds.SCALA_LIBRARY, BuildInitTypeIds.GROOVY_LIBRARY]
+        type << [BuildInitTypeIds.POM, BuildInitTypeIds.BASIC, BuildInitTypeIds.JAVA_LIBRARY, BuildInitTypeIds.SCALA_LIBRARY, BuildInitTypeIds.GROOVY_LIBRARY, BuildInitTypeIds.GROOVY_APPLICATION]
     }
 }

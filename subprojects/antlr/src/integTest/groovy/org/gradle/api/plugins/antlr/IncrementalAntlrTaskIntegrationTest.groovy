@@ -19,17 +19,15 @@ package org.gradle.api.plugins.antlr
 class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
     String antlrDependency = "org.antlr:antlr:3.5.2"
 
-    def test1TokenFile = file("build/generated-src/antlr/main/Test1.tokens")
-    def test1LexerFile = file("build/generated-src/antlr/main/Test1Lexer.java")
-    def test1ParserFile = file("build/generated-src/antlr/main/Test1Parser.java")
+    def test1TokenFile = file("grammar-builder/build/generated-src/antlr/main/Test1.tokens")
+    def test1LexerFile = file("grammar-builder/build/generated-src/antlr/main/Test1Lexer.java")
+    def test1ParserFile = file("grammar-builder/build/generated-src/antlr/main/Test1Parser.java")
 
-    def test2TokenFile = file("build/generated-src/antlr/main/Test2.tokens")
-    def test2LexerFile = file("build/generated-src/antlr/main/Test2Lexer.java")
-    def test2ParserFile = file("build/generated-src/antlr/main/Test2Parser.java")
+    def test2TokenFile = file("grammar-builder/build/generated-src/antlr/main/Test2.tokens")
+    def test2LexerFile = file("grammar-builder/build/generated-src/antlr/main/Test2Lexer.java")
+    def test2ParserFile = file("grammar-builder/build/generated-src/antlr/main/Test2Parser.java")
 
-    @Override
-    protected void writeBuildFile() {
-        super.writeBuildFile()
+    def setup() {
         buildFile << """
             def startAt = System.nanoTime()
             gradle.buildFinished {
@@ -110,9 +108,11 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
         def test1ParserFileSnapshot = test1ParserFile.snapshot()
 
         buildFile << """
-        generateGrammarSource {
-            arguments << '-dfa'
-        }
+            project(":grammar-builder") {
+                generateGrammarSource {
+                    arguments << '-dfa'
+                }
+            }
         """
 
         then:
@@ -148,7 +148,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
     def grammar(String... ids) {
         ids.each { id ->
-            file("src/main/antlr/${id}.g") << """grammar ${id};
+            file("grammar-builder/src/main/antlr/${id}.g") << """grammar ${id};
             list    :   item (item)*
                     ;
 
@@ -168,7 +168,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
     def changedGrammar(String... ids) {
         ids.each { id ->
-            file("src/main/antlr/${id}.g").text = """
+            file("grammar-builder/src/main/antlr/${id}.g").text = """
 /** Comment to ensure the file length is changed */
 grammar ${id};
              list    :   item (item)*
@@ -190,7 +190,7 @@ grammar ${id};
 
     def removedGrammar(String... ids) {
         ids.each { id ->
-            file("src/main/antlr/${id}.g").delete()
+            file("grammar-builder/src/main/antlr/${id}.g").delete()
         }
     }
 }

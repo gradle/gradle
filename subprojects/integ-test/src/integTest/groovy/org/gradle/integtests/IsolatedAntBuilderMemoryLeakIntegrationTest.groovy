@@ -96,6 +96,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         where:
         groovyVersion << (TestPrecondition.JDK9_OR_LATER.fulfilled ? [
             'localGroovy()',
+            // Leave this at 2.4.7 even if Groovy is upgraded
             "'org.codehaus.groovy:groovy-all:2.4.7'"
         ] : [
             'localGroovy()',

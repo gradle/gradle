@@ -20,7 +20,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
 import org.gradle.launcher.daemon.server.api.StdinHandler;
@@ -40,7 +40,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultDaemonConnection implements DaemonConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDaemonConnection.class);
     private final RemoteConnection<Message> connection;
-    private final StoppableExecutor executor;
+    private final ManagedExecutor executor;
     private final StdinQueue stdinQueue;
     private final DisconnectQueue disconnectQueue;
     private final CancelQueue cancelQueue;
@@ -145,12 +145,17 @@ public class DefaultDaemonConnection implements DaemonConnection {
         CompositeStoppable.stoppable(disconnectQueue, connection, executor, receiveQueue, stdinQueue, cancelQueue).stop();
     }
 
+    @Override
+    public String toString() {
+        return "DefaultDaemonConnection: " + connection;
+    }
+
     private static abstract class CommandQueue<C extends Message, H> implements Stoppable {
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();
         protected final LinkedList<C> queue = new LinkedList<C>();
         private final String name;
-        private StoppableExecutor executor;
+        private ManagedExecutor executor;
         private boolean removed;
         private final ExecutorFactory executorFactory;
 
@@ -160,7 +165,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
         }
 
         public void stop() {
-            StoppableExecutor executor;
+            ManagedExecutor executor;
             lock.lock();
             try {
                 executor = this.executor;
@@ -191,7 +196,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
         }
 
         protected void stopConsuming() {
-            StoppableExecutor executor;
+            ManagedExecutor executor;
             lock.lock();
             try {
                 queue.clear();

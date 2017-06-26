@@ -208,9 +208,6 @@ class WatchPointsRegistryTest extends Specification {
                 assert !registry.shouldFire(new File(it.getParentFile(), "sibling_file"))
             }
         }
-
-        and: 'should not watch a parent of an existing watchpoint'
-        !delta.shouldWatch(rootDir)
     }
 
     def "non-existing directories get watched when events arrive later"() {

@@ -16,16 +16,18 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import org.gradle.authentication.Authentication;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.gradle.api.credentials.AwsCredentials;
+import org.gradle.authentication.Authentication;
+import org.gradle.authentication.aws.AwsImAuthentication;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 public class S3ConnectorFactory implements ResourceConnectorFactory {
     @Override
@@ -36,16 +38,32 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
     @Override
     public Set<Class<? extends Authentication>> getSupportedAuthentication() {
         Set<Class<? extends Authentication>> supported = new HashSet<Class<? extends Authentication>>();
+        supported.add(AwsImAuthentication.class);
         supported.add(AllSchemesAuthentication.class);
         return supported;
     }
 
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
-        AwsCredentials awsCredentials = connectionDetails.getCredentials(AwsCredentials.class);
-        if(awsCredentials == null) {
-            throw new IllegalArgumentException("AwsCredentials must be set for S3 backed repository.");
+        Collection<? extends Authentication> authentications = connectionDetails.getAuthentications();
+        // Since s3 transport supports only one type of credentials at a time, let's use the first one found.
+        for (Authentication authentication : authentications) {
+            // We get only the first element here, nothing else. But Collection
+            // forces us to use an iterator.
+            if (authentication instanceof AllSchemesAuthentication) {
+                // First things first, retro compatibility
+                AwsCredentials awsCredentials = connectionDetails.getCredentials(AwsCredentials.class);
+                if(awsCredentials == null) {
+                    throw new IllegalArgumentException("AwsCredentials must be set for S3 backed repository.");
+                }
+                return new S3ResourceConnector(new S3Client(awsCredentials, new S3ConnectionProperties()));
+            }
+
+            if (authentication instanceof AwsImAuthentication) {
+                return new S3ResourceConnector(new S3Client(new S3ConnectionProperties()));
+            }
         }
-        return new S3ResourceConnector(new S3Client(awsCredentials, new S3ConnectionProperties()));
+
+        throw new IllegalArgumentException("S3 resource should either specify AwsIamAutentication or provide some AwsCredentials.");
     }
 }

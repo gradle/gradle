@@ -55,11 +55,7 @@ public class DependencyInjectingServiceLoader {
         return new DefaultServiceLocator(classLoader).implementationsOf(serviceType);
     }
 
-    private DependencyInjectingInstantiator dependencyInjectingInstantiator() {
-        return new DependencyInjectingInstantiator(serviceRegistry, constructorCache());
-    }
-
-    private DependencyInjectingInstantiator.ConstructorCache constructorCache() {
-        return serviceRegistry.get(DependencyInjectingInstantiator.ConstructorCache.class);
+    private Instantiator dependencyInjectingInstantiator() {
+        return serviceRegistry.get(InstantiatorFactory.class).inject(serviceRegistry);
     }
 }

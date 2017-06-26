@@ -16,21 +16,24 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.concurrent.ParallelExecutionManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.launcher.exec.BuildTreeScopeBuildActionExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.launcher.exec.RunAsBuildOperationBuildActionRunner;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DaemonSidePayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
@@ -41,7 +44,7 @@ import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRe
 
 import java.util.List;
 
-public class LauncherServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
+public class LauncherServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new ToolingGlobalScopeServices());
@@ -52,34 +55,40 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
         registration.addProvider(new ToolingBuildSessionScopeServices());
     }
 
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-    }
-
     static class ToolingGlobalScopeServices {
-        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry globalServices, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
-            List<BuildActionRunner> buildActionRunners = globalServices.getAll(BuildActionRunner.class);
-            return new ServicesSetupBuildActionExecuter(
-                new ContinuousBuildActionExecuter(
-                    new InProcessBuildActionExecuter(gradleLauncherFactory,
-                        new ChainingBuildActionRunner(buildActionRunners)),
-                    fileWatcherFactory,
-                    listenerManager,
-                    styledTextOutputFactory,
-                    executorFactory),
-                userHomeServiceRegistry);
+        BuildExecuter createBuildExecuter(List<BuildActionRunner> buildActionRunners,
+                                          List<SubscribableBuildActionRunnerRegistration> registrations,
+                                          GradleLauncherFactory gradleLauncherFactory,
+                                          BuildOperationListenerManager buildOperationListenerManager,
+                                          FileWatcherFactory fileWatcherFactory,
+                                          TaskInputsListener inputsListener,
+                                          StyledTextOutputFactory styledTextOutputFactory,
+                                          ExecutorFactory executorFactory,
+                                          LoggingManagerInternal loggingManager,
+                                          GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
+                                          ParallelExecutionManager parallelExecutionManager) {
+            return new SetupLoggingActionExecuter(
+                new SessionFailureReportingActionExecuter(
+                    new StartParamsValidatingActionExecuter(
+                        new ParallelismConfigurationBuildActionExecuter(
+                            new GradleThreadBuildActionExecuter(
+                                new ServicesSetupBuildActionExecuter(
+                                    new ContinuousBuildActionExecuter(
+                                        new BuildTreeScopeBuildActionExecuter(
+                                            new InProcessBuildActionExecuter(gradleLauncherFactory,
+                                                new SubscribableBuildActionRunner(
+                                                    new RunAsBuildOperationBuildActionRunner(
+                                                        new ValidatingBuildActionRunner(
+                                                            new ChainingBuildActionRunner(buildActionRunners))),
+                                                    buildOperationListenerManager, registrations))),
+                                        fileWatcherFactory,
+                                        inputsListener,
+                                        styledTextOutputFactory,
+                                        executorFactory),
+                                    userHomeServiceRegistry)),
+                        parallelExecutionManager)),
+                    styledTextOutputFactory),
+                loggingManager, parallelExecutionManager);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

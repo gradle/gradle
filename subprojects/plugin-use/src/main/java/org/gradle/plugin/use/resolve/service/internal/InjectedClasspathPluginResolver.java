@@ -25,9 +25,9 @@ import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.plugin.internal.PluginId;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.PluginRequest;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.management.internal.InvalidPluginRequestException;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
@@ -49,7 +49,7 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
         );
     }
 
-    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginRequest.getId());
         if (plugin == null) {
             String classpathStr = Joiner.on(File.pathSeparator).join(Iterables.transform(injectedClasspath.getAsFiles(), new Function<File, String>() {

@@ -26,13 +26,13 @@ import java.io.File;
 
 public class DefaultCacheScopeMapping implements CacheScopeMapping {
     private final File globalCacheDir;
-    private final File buildCacheDir;
+    private final File projectCacheDir;
     private final GradleVersion version;
 
-    public DefaultCacheScopeMapping(File userHomeDir, @Nullable File buildCacheDir, GradleVersion version) {
+    public DefaultCacheScopeMapping(File userHomeDir, @Nullable File projectCacheDir, GradleVersion version) {
         this.version = version;
         this.globalCacheDir = new File(userHomeDir, "caches");
-        this.buildCacheDir = buildCacheDir;
+        this.projectCacheDir = projectCacheDir;
     }
 
     public File getBaseDirectory(Object scope, String key, VersionStrategy versionStrategy) {
@@ -56,6 +56,9 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
     public File getRootDirectory(@Nullable Object scope) {
         if (scope == null) {
             return globalCacheDir;
+        }
+        if (scope instanceof File) {
+            return (File) scope;
         }
         if (scope instanceof Gradle) {
             Gradle gradle = (Gradle) scope;
@@ -84,8 +87,8 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
     }
 
     private File getBuildCacheDir(Project rootProject) {
-        if (buildCacheDir != null) {
-            return buildCacheDir;
+        if (projectCacheDir != null) {
+            return projectCacheDir;
         }
         return new File(rootProject.getProjectDir(), ".gradle");
     }

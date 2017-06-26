@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import org.gradle.testing.internal.util.RetryUtil
+
 class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "Gradle API JAR is generated in an acceptable time frame"() {
@@ -32,7 +34,10 @@ class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegra
         buildFile << resolveDependencies(5000)
 
         expect:
-        succeeds 'resolveDependencies'
+        RetryUtil.retry {
+            succeeds 'resolveDependencies'
+            executer.gradleUserHomeDir.deleteDir()
+        }
     }
 
     def "TestKit JAR is generated in an acceptable time frame"() {
@@ -49,7 +54,10 @@ class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegra
         buildFile << resolveDependencies(2000)
 
         expect:
-        succeeds 'resolveDependencies'
+        RetryUtil.retry {
+            succeeds 'resolveDependencies'
+            executer.gradleUserHomeDir.deleteDir()
+        }
     }
 
     static String resolveDependencies(long maxMillis) {

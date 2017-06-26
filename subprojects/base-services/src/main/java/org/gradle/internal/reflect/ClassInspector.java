@@ -20,11 +20,16 @@ import com.google.common.collect.Lists;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ClassInspector {
+
     /**
-     * Extracts a view of the given class.
+     * Extracts a view of the given class. Ignores private methods.
      */
     public static ClassDetails inspect(Class<?> type) {
         MutableClassDetails classDetails = new MutableClassDetails(type);
@@ -71,38 +76,16 @@ public class ClassInspector {
                 continue;
             }
 
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            String methodName = method.getName();
-            if (methodName.startsWith("get")
-                && methodName.length() > 3
-                && !method.getReturnType().equals(Void.TYPE)
-                && parameterTypes.length == 0) {
-                String propertyName = propertyName(methodName, 3);
+            PropertyAccessorType accessorType = PropertyAccessorType.of(method);
+            if (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER) {
+                String propertyName = accessorType.propertyNameFor(method);
                 classDetails.property(propertyName).addGetter(method);
-            } else if (methodName.startsWith("is")
-                && methodName.length() > 2
-                && (method.getReturnType().equals(Boolean.class) || method.getReturnType().equals(Boolean.TYPE))
-                && parameterTypes.length == 0) {
-                String propertyName = propertyName(methodName, 2);
-                classDetails.property(propertyName).addGetter(method);
-            } else if (methodName.startsWith("set")
-                && methodName.length() > 3
-                && parameterTypes.length == 1) {
-                String propertyName = propertyName(methodName, 3);
+            } else if (accessorType == PropertyAccessorType.SETTER) {
+                String propertyName = accessorType.propertyNameFor(method);
                 classDetails.property(propertyName).addSetter(method);
             } else {
                 classDetails.instanceMethod(method);
             }
         }
     }
-
-    private static String propertyName(String methodName, int beginIndex) {
-        String propertyName = methodName.substring(beginIndex);
-        if (Character.isUpperCase(propertyName.charAt(0)) && propertyName.length() > 1 && Character.isUpperCase(propertyName.charAt(1))) {
-            // First 2 chars are upper-case -> leave name unmodified
-            return propertyName;
-        }
-        return Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
-    }
-
 }

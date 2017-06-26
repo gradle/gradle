@@ -131,7 +131,7 @@ public abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         getTask().getActions().add(Actions.doNothing())
 
         then:
-        2 == getTask().getActions().size()
+        getTask().getActions().size() == 2
 
         when:
         List<Action<? super Task>> actions = Lists.newArrayList()
@@ -139,7 +139,7 @@ public abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         getTask().setActions(actions)
 
         then:
-        1 == getTask().getActions().size()
+        getTask().getActions().size() == 1
     }
 
     def "addAction with null throws"() {

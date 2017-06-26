@@ -18,7 +18,7 @@ package org.gradle.internal.service.scopes
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.options.OptionReader
@@ -31,14 +31,21 @@ import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.initialization.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.logging.text.StyledTextOutputFactory
+import org.gradle.internal.logging.text.TestStyledTextOutputFactory
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.resources.ResourceLockCoordinationService
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
 
@@ -54,9 +61,9 @@ public class GradleScopeServicesTest extends Specification {
     private PluginRegistry pluginRegistryChild = Stub()
 
     public void setup() {
-        parent.get(StartParameter) >> Stub(StartParameter)
+        parent.get(StartParameter) >> Stub(StartParameter) { _ * getMaxWorkerCount() >> 1 }
         parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
-        parent.get(InMemoryTaskArtifactCache) >> Stub(InMemoryTaskArtifactCache)
+        parent.get(InMemoryCacheDecoratorFactory) >> Stub(InMemoryCacheDecoratorFactory)
         parent.get(ListenerManager) >> new DefaultListenerManager()
         parent.get(CacheRepository) >> cacheRepository
         parent.get(PluginRegistry) >> pluginRegistryParent
@@ -67,9 +74,15 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
         parent.get(TimeProvider) >> Stub(TimeProvider)
         parent.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
+        parent.get(WorkerLeaseService) >> Stub(WorkerLeaseService)
+        parent.get(ResourceLockCoordinationService) >> Stub(ResourceLockCoordinationService)
         parent.get(Instantiator) >> Stub(Instantiator)
+        parent.get(WorkerLeaseRegistry) >> Stub(WorkerLeaseRegistry)
+        parent.get(ParallelExecutionManager) >> Stub(ParallelExecutionManager) { _ * getParallelismConfiguration() >> DefaultParallelismConfiguration.DEFAULT }
+        parent.get(StyledTextOutputFactory) >> new TestStyledTextOutputFactory()
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
+        parent.hasService(_) >> true
     }
 
     def "can create services for a project instance"() {

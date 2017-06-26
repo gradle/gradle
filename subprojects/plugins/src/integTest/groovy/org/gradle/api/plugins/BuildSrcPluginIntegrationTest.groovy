@@ -104,7 +104,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "t"
-        failure.assertHasDescription("Execution failed for task ':compileGroovy'.")
+        failure.assertHasDescription("Execution failed for task ':buildSrc:compileGroovy'.")
     }
 
     def "use of buildSrc does not expose Gradle runtime dependencies to build script"() {
@@ -126,4 +126,67 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not compile build file '$buildFile.canonicalPath'.")
     }
 
+    def "build uses jar from buildSrc"() {
+        writeBuildSrcPlugin("buildSrc", "MyPlugin")
+        buildFile << """
+            apply plugin: MyPlugin
+            // nuke buildSrc classes so we can't use them
+            project.delete(file("buildSrc/build/classes")) 
+        """
+        when:
+        succeeds("myTaskMyPlugin")
+        then:
+        result.assertOutputContains("From MyPlugin")
+    }
+
+    def "build uses jars from multi-project buildSrc"() {
+        writeBuildSrcPlugin("buildSrc", "MyPlugin")
+        writeBuildSrcPlugin("buildSrc/subproject", "MyPluginSub")
+        file("buildSrc/build.gradle") << """
+            allprojects {
+                apply plugin: 'groovy'
+                dependencies {
+                    compile gradleApi()
+                    compile localGroovy()
+                }
+            }
+            dependencies {
+                runtime project(":subproject")
+            }
+        """
+        file("buildSrc/settings.gradle") << """
+            include 'subproject'
+        """
+        buildFile << """
+            apply plugin: MyPlugin
+            apply plugin: MyPluginSub
+            // nuke buildSrc classes so we can't use them
+            project.delete(file("buildSrc/build/classes"))
+            project.delete(file("buildSrc/subproject/build/classes"))
+        """
+        when:
+        succeeds("myTaskMyPlugin", "myTaskMyPluginSub")
+        then:
+        result.assertOutputContains("From MyPlugin")
+        result.assertOutputContains("From MyPluginSub")
+    }
+
+    private void writeBuildSrcPlugin(String location, String className) {
+        file("${location}/src/main/groovy/${className}.groovy") << """
+            import org.gradle.api.*
+
+            class ${className} implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.create("myTask${className}") {
+                        doLast {
+                            def closure = {
+                                println "From ${className}"
+                            }
+                            closure()
+                        }
+                    }
+                }
+            }
+        """
+    }
 }

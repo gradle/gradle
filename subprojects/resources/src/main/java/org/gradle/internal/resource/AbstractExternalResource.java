@@ -15,104 +15,39 @@
  */
 package org.gradle.internal.resource;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 
-import java.io.*;
+import java.io.File;
+import java.io.InputStream;
 
 public abstract class AbstractExternalResource implements ExternalResource {
-    /**
-     * Opens an unbuffered input stream to read the contents of this resource.
-     */
-    protected abstract InputStream openStream() throws IOException;
-
-    private InputStream openBuffered() {
-        try {
-            return new BufferedInputStream(openStream());
-        } catch (FileNotFoundException e) {
-            throw ResourceExceptions.getMissing(getURI(), e);
-        } catch (IOException e) {
-            throw ResourceExceptions.getFailed(getURI(), e);
-        }
-    }
-
-    private void close(InputStream input) {
-        try {
-            input.close();
-        } catch (IOException e) {
-            throw ResourceExceptions.getFailed(getURI(), e);
-        }
-    }
-
-    @Override
-    public String getDisplayName() {
-        return getURI().toString();
-    }
-
     @Override
     public String toString() {
         return getDisplayName();
     }
 
-    public void writeTo(File destination) {
-        try {
-            FileOutputStream output = new FileOutputStream(destination);
-            try {
-                writeTo(output);
-            } finally {
-                output.close();
-            }
-        } catch (Exception e) {
-            throw ResourceExceptions.getFailed(getURI(), e);
+    public ExternalResourceReadResult<Void> writeTo(File destination) {
+        ExternalResourceReadResult<Void> result = writeToIfPresent(destination);
+        if (result == null) {
+            throw ResourceExceptions.getMissing(getURI());
         }
+        return result;
     }
 
-    public void writeTo(OutputStream output) {
-        try {
-            InputStream input = openStream();
-            try {
-                IOUtils.copyLarge(input, output);
-            } finally {
-                input.close();
-            }
-        } catch (Exception e) {
-            throw ResourceExceptions.getFailed(getURI(), e);
+    public <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) {
+        ExternalResourceReadResult<T> result = withContentIfPresent(readAction);
+        if (result == null) {
+            throw ResourceExceptions.getMissing(getURI());
         }
-    }
-
-    public void withContent(Action<? super InputStream> readAction) {
-        InputStream input = openBuffered();
-        try {
-            readAction.execute(input);
-        } finally {
-            close(input);
-        }
-    }
-
-    public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) {
-        InputStream input = openBuffered();
-        try {
-            return readAction.transform(input);
-        } finally {
-            close(input);
-        }
+        return result;
     }
 
     @Override
-    public <T> T withContent(ContentAction<? extends T> readAction) {
-        InputStream input = openBuffered();
-        try {
-            try {
-                return readAction.execute(input, getMetaData());
-            } catch (IOException e) {
-                throw ResourceExceptions.getFailed(getURI(), e);
-            }
-        } finally {
-            close(input);
+    public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) {
+        ExternalResourceReadResult<T> result = withContentIfPresent(readAction);
+        if (result == null) {
+            throw ResourceExceptions.getMissing(getURI());
         }
-    }
-
-    public void close() {
+        return result;
     }
 }

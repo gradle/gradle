@@ -52,13 +52,13 @@ Classes 'main'
     build using task: :classes
     target platform: $currentJava
     tool chain: $currentJdk
-    classes dir: build/classes/main
+    classes dir: build/classes/java/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
     target platform: $currentJava
     tool chain: $currentJdk
-    classes dir: build/classes/test
+    classes dir: build/classes/java/test
     resources dir: build/resources/test
 """
     }
@@ -116,13 +116,13 @@ Classes 'main'
     build using task: :classes
     target platform: $currentJava
     tool chain: $currentJdk
-    classes dir: build/classes/main
+    classes dir: build/classes/java/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
     target platform: $currentJava
     tool chain: $currentJdk
-    classes dir: build/classes/test
+    classes dir: build/classes/java/test
     resources dir: build/resources/test
 """
     }
@@ -171,19 +171,19 @@ Classes 'custom'
     build using task: :customClasses
     target platform: $currentJava
     tool chain: $currentJdk
-    classes dir: build/classes/custom
+    classes dir: build/classes/java/custom
     resources dir: build/resources/custom
 Classes 'main'
     build using task: :classes
     target platform: $currentJava
     tool chain: $currentJdk
-    classes dir: build/classes/main
+    classes dir: build/classes/java/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
     target platform: $currentJava
     tool chain: $currentJdk
-    classes dir: build/classes/test
+    classes dir: build/classes/java/test
     resources dir: build/resources/test
 """
     }

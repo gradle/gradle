@@ -38,15 +38,26 @@ public interface ResolvedConfiguration {
     /**
      * A resolve of a configuration that is not successful does not automatically throws an exception.
      * Such a exception is only thrown if the result of a resolve is accessed. You can force the throwing
-     * of such an exception by calling this method.  
+     * of such an exception by calling this method.
+     *
+     * <p>This method does nothing when resolution was successful.</p>
      *
      * @throws ResolveException when the resolve was not successful.
      */
     void rethrowFailure() throws ResolveException;
 
     /**
+     * Returns the files for the configuration dependencies.
+     *
+     * @return The artifact files of the specified dependencies.
+     * @throws ResolveException when the resolve was not successful.
+     * @since 3.3
+     */
+    Set<File> getFiles() throws ResolveException;
+
+    /**
      * Returns the files for the specified subset of configuration dependencies.
-     * 
+     *
      * @param dependencySpec The filter for the configuration dependencies.
      * @return The artifact files of the specified dependencies.
      * @throws ResolveException when the resolve was not successful.

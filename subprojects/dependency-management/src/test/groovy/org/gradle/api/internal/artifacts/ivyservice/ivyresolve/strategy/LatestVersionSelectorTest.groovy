@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import org.gradle.api.artifacts.ComponentMetadata
 
-class LatestVersionSelectorTest extends AbstractVersionSelectorTest {
+class LatestVersionSelectorTest extends AbstractStringVersionSelectorTest {
 
     def "all handled selectors are dynamic"() {
         expect:

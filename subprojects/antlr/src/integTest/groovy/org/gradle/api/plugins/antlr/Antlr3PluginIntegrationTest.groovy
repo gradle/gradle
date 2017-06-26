@@ -33,7 +33,7 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private goodProgram() {
-        file("src/main/java/com/example/Main.java") << """
+        file("grammar-user/src/main/java/com/example/Main.java") << """
             package com.example;
             import org.acme.test.TestLexer;
             import org.acme.test.TestParser;
@@ -59,9 +59,9 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     private void assertGrammarSourceGenerated(String grammarName) {
         def slashIndex = grammarName.lastIndexOf("/")
-        assert file("build/generated-src/antlr/main/${slashIndex == -1 ? grammarName : grammarName.substring(slashIndex)}.tokens").exists()
-        assert file("build/generated-src/antlr/main/${grammarName}Lexer.java").exists()
-        assert file("build/generated-src/antlr/main/${grammarName}Parser.java").exists()
+        assert file("grammar-builder/build/generated-src/antlr/main/${slashIndex == -1 ? grammarName : grammarName.substring(slashIndex)}.tokens").exists()
+        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}Lexer.java").exists()
+        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}Parser.java").exists()
     }
 
     def "analyze bad grammar"() {
@@ -74,7 +74,7 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private goodGrammar() {
-        file("src/main/antlr/org/acme/test/Test.g") << """grammar Test;
+        file("grammar-builder/src/main/antlr/org/acme/test/Test.g") << """grammar Test;
             @header {
                 package org.acme.test;
             }
@@ -97,7 +97,7 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
                 ;
         """
 
-        file("src/main/antlr/AnotherGrammar.g") << """grammar AnotherGrammar;
+        file("grammar-builder/src/main/antlr/AnotherGrammar.g") << """grammar AnotherGrammar;
             list    :   item (item)*
                     ;
 
@@ -115,7 +115,7 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private badGrammar() {
-        file("src/main/antlr/Test.g") << """grammar Test;
+        file("grammar-builder/src/main/antlr/Test.g") << """grammar Test;
             list    :   item (item)*
                     ; some extra stuff
 

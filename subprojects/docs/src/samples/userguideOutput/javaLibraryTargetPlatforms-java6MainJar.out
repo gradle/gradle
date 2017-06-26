@@ -1,4 +1,4 @@
-:core:clean
+:core:clean UP-TO-DATE
 :server:clean UP-TO-DATE
 :core:compileMainJava6JarMainJava
 :core:compileMainJava6JarMainJava6JarJava

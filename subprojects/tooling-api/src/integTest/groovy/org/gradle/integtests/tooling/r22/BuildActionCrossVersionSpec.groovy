@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r22
 
-import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -36,7 +36,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         def workDir = temporaryFolder.file("work")
         def implJar = workDir.file("action-impl.jar")
-        def builder = new GradleBackedArtifactBuilder(new ForkingGradleExecuter(dist, temporaryFolder), workDir)
+        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder), workDir)
 
         given:
         builder.sourceFile('ActionImpl.java') << """

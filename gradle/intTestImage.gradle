@@ -18,6 +18,7 @@ evaluationDependsOn ":distributions"
 evaluationDependsOn ":docs"
 
 task intTestImage(type: Sync) {
+    group = "Verification"
     into file("$buildDir/integ test")
 }
 
@@ -28,11 +29,11 @@ if (useIncomingDistributions) {
     }
 
     // Compensate for the top level dir in the zip
-    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/${incomingAllDistribution.name - "-all.zip"}"
+    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/gradle-${incomingDistributionsBuildReceipt.versionNumber}"
 
     intTestImage {
         dependsOn unpackIncomingAllDistribution
-        from unpackedPath
+        from(unpackedPath)
     }
 } else {
     intTestImage {

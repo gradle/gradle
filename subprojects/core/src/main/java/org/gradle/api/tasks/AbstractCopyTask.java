@@ -30,6 +30,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.copy.ClosureBackedTransformer;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
@@ -40,7 +41,6 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.FilterReader;
@@ -54,8 +54,6 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
 
-    private static final String CONFIGURE_SPEC_DURING_CONFIGURATION = "Consider configuring the spec during configuration time, or using a separate task to do the configuration";
-
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
 
@@ -65,15 +63,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             @Override
             public void childSpecAdded(CopySpecInternal.CopySpecAddress path, final CopySpecInternal spec) {
                 if (getState().getExecuting()) {
-                    if (getOutputs().isCacheEnabled() && getProject().getGradle().getStartParameter().isTaskOutputCacheEnabled()) {
-                        throw new GradleException("It is not allowed to modify child specs of the task at execution time when the task output cache is enabled. "
-                            + CONFIGURE_SPEC_DURING_CONFIGURATION + ".");
-                    }
-                    DeprecationLogger.nagUserOfDeprecated(
-                        "Configuring child specs of a copy task at execution time of the task",
-                        CONFIGURE_SPEC_DURING_CONFIGURATION
-                    );
-                    return;
+                    throw new GradleException("You cannot add child specs at execution time. Consider configuring this task during configuration time or using a separate task to do the configuration.");
                 }
 
                 StringBuilder specPropertyNameBuilder = new StringBuilder("rootSpec");
@@ -135,7 +125,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                 });
             }
         });
-        this.getOutputs().doNotCacheIf(new Spec<Task>() {
+        this.getOutputs().doNotCacheIf("Has custom actions", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task task) {
                 return rootSpec.hasCustomActions();
@@ -172,15 +162,24 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected DirectoryFileTreeFactory getDirectoryFileTreeFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     protected void copy() {
-        Instantiator instantiator = getInstantiator();
-        FileSystem fileSystem = getFileSystem();
-
-        CopyActionExecuter copyActionExecuter = new CopyActionExecuter(instantiator, fileSystem);
+        CopyActionExecuter copyActionExecuter = createCopyActionExecuter();
         CopyAction copyAction = createCopyAction();
         WorkResult didWork = copyActionExecuter.execute(rootSpec, copyAction);
         setDidWork(didWork.getDidWork());
+    }
+
+    protected CopyActionExecuter createCopyActionExecuter() {
+        Instantiator instantiator = getInstantiator();
+        FileSystem fileSystem = getFileSystem();
+
+        return new CopyActionExecuter(instantiator, fileSystem, false);
     }
 
     /**

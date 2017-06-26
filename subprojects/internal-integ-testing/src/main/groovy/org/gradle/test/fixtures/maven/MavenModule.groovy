@@ -16,6 +16,7 @@
 package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.Module
+import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
 
 interface MavenModule extends Module {
@@ -70,7 +71,16 @@ interface MavenModule extends Module {
 
     String getVersion()
 
+    /**
+     * Returns the path of this module relative to the root of the repository.
+     */
+    String getPath()
+
+    ModuleArtifact getPom();
+
     TestFile getPomFile()
+
+    ModuleArtifact getArtifact();
 
     TestFile getArtifactFile()
 
@@ -79,4 +89,6 @@ interface MavenModule extends Module {
     MavenPom getParsedPom()
 
     MavenMetaData getRootMetaData()
+
+    boolean getUniqueSnapshots()
 }

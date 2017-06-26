@@ -27,7 +27,7 @@ import spock.lang.IgnoreIf
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
     def buildSucceeds(String script) {
         file('build.gradle') << script
-        executer.withArguments("--info").useDefaultBuildJvmArgs().run()
+        executer.withArguments("--info").useOnlyRequestedJvmOpts().run()
     }
 
     def "honours jvm args specified in gradle.properties"() {

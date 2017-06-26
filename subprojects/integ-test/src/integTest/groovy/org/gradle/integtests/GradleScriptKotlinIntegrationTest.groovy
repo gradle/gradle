@@ -20,8 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import spock.lang.Issue
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
 // TODO: to make it work on Windows disable IDEA's native win32 filesystem
@@ -29,7 +28,7 @@ import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 //   Might be something better done at the gradle-script-kotlin side
 
 @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
-@Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM, NOT_WINDOWS])
+@Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
 class GradleScriptKotlinIntegrationTest extends AbstractIntegrationSpec {
 
     @Override
@@ -59,5 +58,34 @@ class GradleScriptKotlinIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.output.contains('it works!')
+    }
+
+    def 'can query KotlinBuildScriptModel'() {
+        given:
+        // This test breaks encapsulation a bit in the interest of ensuring Gradle Script Kotlin use
+        // of internal APIs is not broken by refactorings on the Gradle side
+        buildFile << """
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+
+task("dumpKotlinBuildScriptModelClassPath") {
+    doLast {
+        val modelName = KotlinBuildScriptModel::class.qualifiedName
+        val builderRegistry = (project as ProjectInternal).services[ToolingModelBuilderRegistry::class.java]
+        val builder = builderRegistry.getBuilder(modelName)
+        val model = builder.buildAll(modelName, project) as KotlinBuildScriptModel
+        if (model.classPath.any { it.name.startsWith("gradle-script-kotlin") }) {
+            println("gradle-script-kotlin!")
+        }
+    }
+}
+        """
+
+        when:
+        run 'dumpKotlinBuildScriptModelClassPath'
+
+        then:
+        result.output.contains("gradle-script-kotlin!")
     }
 }

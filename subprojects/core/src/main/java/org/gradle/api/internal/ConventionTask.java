@@ -19,11 +19,12 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
+import org.gradle.api.tasks.Internal;
 
 import java.util.concurrent.Callable;
 
 public abstract class ConventionTask extends DefaultTask implements IConventionAware {
-    private ConventionMapping conventionMapping;
+    private final ConventionMapping conventionMapping;
 
     protected ConventionTask() {
         conventionMapping = new ConventionAwareHelper(this, getProject().getConvention());
@@ -39,8 +40,9 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
         return this;
     }
 
+    @Override
+    @Internal
     public ConventionMapping getConventionMapping() {
         return conventionMapping;
     }
-
 }

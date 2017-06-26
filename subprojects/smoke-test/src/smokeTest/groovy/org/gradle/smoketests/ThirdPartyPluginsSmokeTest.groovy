@@ -62,9 +62,16 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     def 'asciidoctor plugin'() {
         given:
         buildFile << """
-            plugins {
-                id "org.asciidoctor.gradle.asciidoctor" version "1.5.1"
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+                dependencies {
+                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.3"                
+                }
             }
+
+            apply plugin: 'org.asciidoctor.gradle.asciidoctor'
             """.stripIndent()
 
         file('src/docs/asciidoc/test.adoc') << """
@@ -88,7 +95,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             plugins {
                 id 'java'
                 id 'application'
-                id "com.bmuschko.docker-java-application" version "3.0.0"
+                id "com.bmuschko.docker-java-application" version "3.0.6"
             }
 
             mainClassName = 'org.gradle.JettyMain'
@@ -114,7 +121,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << """
             plugins {
                 id 'java'
-                id 'io.spring.dependency-management' version '0.6.0.RELEASE'
+                id 'io.spring.dependency-management' version '1.0.1.RELEASE'
             }
 
             repositories {
@@ -148,7 +155,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                     mavenCentral()
                 }
                 dependencies {
-                    classpath('org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE')
+                    classpath('org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE')
                 }
             }
 
@@ -232,7 +239,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id "org.gosu-lang.gosu" version "0.1.3"
+                id "org.gosu-lang.gosu" version "0.3.0"
             }
 
             apply plugin: "org.gosu-lang.gosu"
@@ -242,7 +249,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.10'
+                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.6'
             }
             """.stripIndent()
 
@@ -269,13 +276,13 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id "org.xtext.xtend" version "1.0.5"
+                id "org.xtext.xtend" version "1.0.17"
             }
 
             repositories.jcenter()
 
             dependencies {
-                compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
+                compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0'
             }
             """.stripIndent()
 

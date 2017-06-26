@@ -199,7 +199,7 @@
                 Being transparent means that its structure is understood by the rule infrastructure and as such each of its properties are also individual elements in the model space.
             </para>
             <para>
-                An “unmanaged” object is opaque to the the model space and does not enforce immutability.
+                An “unmanaged” object is opaque to the model space and does not enforce immutability.
                 Over time, more mechanisms will be available for defining managed model elements culminating in all model elements being managed in some way.
             </para>
             <para>Managed models can be defined by attaching the <literal>@Managed</literal> annotation to an interface:</para>

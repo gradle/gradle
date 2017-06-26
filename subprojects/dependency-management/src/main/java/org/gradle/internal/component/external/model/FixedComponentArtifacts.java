@@ -17,10 +17,19 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifacts;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -38,7 +47,7 @@ public class FixedComponentArtifacts implements ComponentArtifacts {
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifactsFor(ConfigurationMetadata configuration) {
-        return artifacts;
+    public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
+        return DefaultArtifactSet.singleVariant(component.getComponentId(), component.getId(), configuration.asDescribable(), artifacts, component.getSource(), exclusions, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry);
     }
 }

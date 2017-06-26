@@ -28,4 +28,8 @@ public interface BuildExperimentInvocationInfo {
     int getIterationNumber();
 
     int getIterationMax();
+
+    File getGradleUserHome();
+
+    File getBuildLog();
 }

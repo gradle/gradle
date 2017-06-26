@@ -9,7 +9,7 @@ ext.testGroupings = [
     "runtimeTests": "test",
     "runtimeIntegTests": "integTest",
     "runtimeForkingIntegTests": "forkingIntegTest",
-    "runtimeDaemonIntegTests": "daemonIntegTest",
+    "runtimeNoDaemonIntegTests": "noDaemonIntegTest",
     "runtimeParallelIntegTests": "parallelIntegTest"
 ]
 

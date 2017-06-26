@@ -51,10 +51,10 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
             TaskArtifactState taskArtifactState = context.getTaskArtifactState();
             FileCollection outputFiles = taskArtifactState.getExecutionHistory().getOutputFiles();
             if (outputFiles == null) {
-                state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
+                state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no history of previous output files.", task);
             } else if (outputFiles.isEmpty()) {
-                state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
+                state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
                 Set<File> outputFileSet = outputFiles.getFiles();
@@ -77,7 +77,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                     LOGGER.info("Cleaned previous output of {} as it has no source files.", task);
                     state.setOutcome(TaskExecutionOutcome.EXECUTED);
                 } else {
-                    state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
+                    state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 }
             }
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));

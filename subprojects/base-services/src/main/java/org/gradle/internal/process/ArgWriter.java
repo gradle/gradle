@@ -106,7 +106,9 @@ public class ArgWriter implements ArgCollector {
             if (backslashEscape) {
                 str = str.replace("\\", "\\\\").replace("\"", "\\\"");
             }
-            if (WHITESPACE.matcher(str).find()) {
+            if (str.isEmpty()) {
+                writer.print("\"\"");
+            } else if (WHITESPACE.matcher(str).find()) {
                 writer.print('\"');
                 writer.print(str);
                 writer.print('\"');

@@ -19,14 +19,17 @@ package org.gradle.integtests.resolve.caching
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetaData
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.resolve.artifactreuse.AbstractCacheReuseCrossVersionIntegrationTest
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 @IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultArtifactCacheMetaData.CACHE_LAYOUT_VERSION })
 class ConcurrentBuildsCachingCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
-    @Rule CyclicBarrierHttpServer server1 = new CyclicBarrierHttpServer()
-    @Rule CyclicBarrierHttpServer server2 = new CyclicBarrierHttpServer()
+    @Rule BlockingHttpServer blockingServer = new BlockingHttpServer()
+
+    def setup() {
+        blockingServer.start()
+    }
 
     def "can interleave resolution across multiple build processes"() {
         def mod1 = mavenHttpRepo.module("group1", "module1", "1.0").publish()
@@ -55,7 +58,7 @@ task block1 {
     dependsOn tasks.a
     onlyIf { project.hasProperty("enable-block1") }
     doLast {
-        new URL("$server1.uri").text
+        ${blockingServer.callFromBuild("block1")}
     }
 }
 
@@ -70,7 +73,7 @@ task block2 {
     dependsOn tasks.b
     onlyIf { project.hasProperty("enable-block2") }
     doLast {
-        new URL("$server2.uri").text
+        ${blockingServer.callFromBuild("block2")}
     }
 }
 
@@ -79,6 +82,9 @@ task c {
 }
 """
         expect:
+        def block1 = blockingServer.expectAndBlock("block1")
+        def block2 = blockingServer.expectAndBlock("block2")
+
         // Build 1 should download module 1 and check whether it can reuse module 2 files
         mod1.pom.expectGet()
         mod1.artifact.expectGet()
@@ -105,19 +111,19 @@ task c {
         previousExecuter.withArgument("-Penable-block1")
         previousExecuter.withTasks("c")
         def build1 = previousExecuter.start()
-        server1.waitFor()
+        block1.waitForAllPendingCalls()
 
         // Start build 2 then wait until it has run both 'a' and 'b'.
         def currentExecuter = version(current)
         currentExecuter.withArgument("-Penable-block2")
         currentExecuter.withTasks("c")
         def build2 = currentExecuter.start()
-        server2.waitFor()
+        block2.waitForAllPendingCalls()
 
         // Finish up build 1 and 2
-        server1.release() // finish build 1 while build 2 is still running
+        block1.releaseAll() // finish build 1 while build 2 is still running
         build1.waitForFinish()
-        server2.release()
+        block2.releaseAll()
         build2.waitForFinish()
     }
 }

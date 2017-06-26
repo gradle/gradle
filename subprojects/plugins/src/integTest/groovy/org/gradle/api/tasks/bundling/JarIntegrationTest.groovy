@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -24,6 +25,7 @@ import spock.lang.Unroll
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 
+@TestReproducibleArchives
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
     def canCreateAnEmptyJar() {
@@ -77,6 +79,29 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('META-INF/file1.txt')
         jar.assertContainsFile('META-INF/dir2/file2.txt')
         jar.assertContainsFile('dir1/file1.txt')
+    }
+
+    def "manifest is the first file in the Jar"() {
+        given:
+        createDir('meta-inf') {
+            file('AAA.META') << 'Some custom metadata'
+        }
+        buildFile << """
+            task jar(type: Jar) {
+                metaInf {
+                    from 'meta-inf'
+                }
+                destinationDir = buildDir
+                archiveName = 'test.jar'
+            }
+        """
+
+        when:
+        succeeds 'jar'
+
+        then:
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.assertContainsFile('META-INF/AAA.META')
     }
 
     def metaInfSpecsAreIndependentOfOtherSpec() {

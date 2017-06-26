@@ -19,10 +19,15 @@ package org.gradle.internal.resource;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URLConnection;
@@ -35,35 +40,31 @@ public class UriTextResource implements TextResource {
     private final File sourceFile;
     private final URI sourceUri;
     private final String description;
+    private String displayName;
 
     public UriTextResource(String description, File sourceFile) {
         this.description = description;
-        this.sourceFile = canonicalise(sourceFile);
+        this.sourceFile = FileUtils.canonicalize(sourceFile);
         this.sourceUri = sourceFile.toURI();
-    }
-
-    private File canonicalise(File file) {
-        try {
-            return file.getCanonicalFile();
-        } catch (IOException e) {
-            return file.getAbsoluteFile();
-        }
     }
 
     public UriTextResource(String description, URI sourceUri) {
         this.description = description;
-        this.sourceFile = sourceUri.getScheme().equals("file") ? canonicalise(new File(sourceUri.getPath())) : null;
+        this.sourceFile = sourceUri.getScheme().equals("file") ? FileUtils.canonicalize(new File(sourceUri.getPath())) : null;
         this.sourceUri = sourceUri;
     }
 
     @Override
     public String getDisplayName() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(description);
-        builder.append(" '");
-        builder.append(sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
-        builder.append("'");
-        return builder.toString();
+        if (displayName == null) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(description);
+            builder.append(" '");
+            builder.append(sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
+            builder.append("'");
+            displayName = builder.toString();
+        }
+        return displayName;
     }
 
     @Override

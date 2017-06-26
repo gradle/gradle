@@ -17,7 +17,9 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
 import groovy.util.Node;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.XmlProvider;
 
 import java.io.File;
 import java.io.InputStream;
@@ -33,94 +35,122 @@ class NonRenamableProject extends Project {
         this.delegate = delegate;
     }
 
+    @Override
     public void setName(String name) {
         throw new InvalidUserDataException("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook is not allowed.");
     }
 
+    @Override
     public String getDefaultResourceName() {
         return delegate.getDefaultResourceName();
     }
 
+    @Override
     public String getName() {
         return delegate.getName();
     }
 
+    @Override
     public String getComment() {
         return delegate.getComment();
     }
 
+    @Override
     public void setComment(String comment) {
         delegate.setComment(comment);
     }
 
+    @Override
     public Set<String> getReferencedProjects() {
         return delegate.getReferencedProjects();
     }
 
+    @Override
     public void setReferencedProjects(Set<String> referencedProjects) {
         delegate.setReferencedProjects(referencedProjects);
     }
 
+    @Override
     public List<String> getNatures() {
         return delegate.getNatures();
     }
 
+    @Override
     public void setNatures(List<String> natures) {
         delegate.setNatures(natures);
     }
 
+    @Override
     public List<BuildCommand> getBuildCommands() {
         return delegate.getBuildCommands();
     }
 
+    @Override
     public void setBuildCommands(List<BuildCommand> buildCommands) {
         delegate.setBuildCommands(buildCommands);
     }
 
+    @Override
     public Set<Link> getLinkedResources() {
         return delegate.getLinkedResources();
     }
 
+    @Override
     public void setLinkedResources(Set<Link> linkedResources) {
         delegate.setLinkedResources(linkedResources);
     }
 
+    @Override
     public Object configure(EclipseProject eclipseProject) {
         return delegate.configure(eclipseProject);
     }
 
+    @Override
     public void load(Node xml) {
         delegate.load(xml);
     }
 
+    @Override
     public void store(Node xml) {
         delegate.store(xml);
     }
 
+    @Override
     public void load(InputStream inputStream) throws Exception {
         delegate.load(inputStream);
     }
 
+    @Override
     public void store(OutputStream outputStream) {
         delegate.store(outputStream);
     }
 
+    @Override
     public Node getXml() {
         return delegate.getXml();
     }
 
+    @Override
     public void transformAction(Closure action) {
         delegate.transformAction(action);
     }
 
+    @Override
+    public void transformAction(Action<? super XmlProvider> action) {
+        delegate.transformAction(action);
+    }
+
+    @Override
     public void load(File inputFile) {
         delegate.load(inputFile);
     }
 
+    @Override
     public void loadDefaults() {
         delegate.loadDefaults();
     }
 
+    @Override
     public void store(File outputFile) {
         delegate.store(outputFile);
     }

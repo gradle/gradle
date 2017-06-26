@@ -15,7 +15,10 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
+
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
@@ -24,18 +27,24 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 class ModuleForcingResolveRuleSpec extends Specification {
 
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
+        module(_, _) >> { args ->
+            DefaultModuleIdentifier.newId(*args)
+        }
+    }
+
     def "forces modules"() {
         given:
         def details = Mock(DependencySubstitutionInternal)
 
         when:
         new ModuleForcingResolveRule([
-            newSelector("org",  "module1", "1.0"),
-            newSelector("org",  "module2", "2.0"),
+            newSelector("org", "module1", "1.0"),
+            newSelector("org", "module2", "2.0"),
             //exotic module with colon in the name
-            newSelector("org",  "module:with:colon", "3.0"),
-            newSelector("org:with:colon",  "module2", "4.0")
-        ]).execute(details)
+            newSelector("org", "module:with:colon", "3.0"),
+            newSelector("org:with:colon", "module2", "4.0")
+        ], moduleIdentifierFactory).execute(details)
 
         then:
         _ * details.requested >> DefaultModuleComponentSelector.newSelector(requested)
@@ -57,11 +66,11 @@ class ModuleForcingResolveRuleSpec extends Specification {
 
         when:
         new ModuleForcingResolveRule([
-            newSelector("org",  "module1", "1.0"),
-            newSelector("org",  "module2", "2.0"),
-            newSelector("org",  "module:with:colon", "3.0"),
-            newSelector("org:with:colon",  "module2", "4.0")
-        ]).execute(details)
+            newSelector("org", "module1", "1.0"),
+            newSelector("org", "module2", "2.0"),
+            newSelector("org", "module:with:colon", "3.0"),
+            newSelector("org:with:colon", "module2", "4.0")
+        ], moduleIdentifierFactory).execute(details)
 
         then:
         _ * details.getOldRequested() >> requested
@@ -82,7 +91,7 @@ class ModuleForcingResolveRuleSpec extends Specification {
         def details = Mock(DependencySubstitutionInternal)
 
         when:
-        new ModuleForcingResolveRule([]).execute(details)
+        new ModuleForcingResolveRule([], moduleIdentifierFactory).execute(details)
 
         then:
         0 * details._

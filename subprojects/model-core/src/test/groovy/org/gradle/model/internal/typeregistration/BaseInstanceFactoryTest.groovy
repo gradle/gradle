@@ -24,6 +24,7 @@ import org.gradle.model.internal.type.ModelType
 import spock.lang.Ignore
 import spock.lang.Specification
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 import static org.gradle.model.internal.typeregistration.BaseInstanceFactory.ImplementationFactory
 
 class BaseInstanceFactoryTest extends Specification {
@@ -154,7 +155,7 @@ class BaseInstanceFactoryTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "No factory registered to create an instance of implementation class '${DefaultThingSpec.name}'."
+        e.message == "No factory registered to create an instance of implementation class '${fullyQualifiedNameOf(DefaultThingSpec)}'."
     }
 
     def "factory for closest superclass to create implementation for a public type"() {
@@ -227,7 +228,7 @@ class BaseInstanceFactoryTest extends Specification {
             .withImplementation(ModelType.of(NoDefaultConstructorThingSpec))
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Implementation type '$NoDefaultConstructorThingSpec.name' registered for '$ThingSpec.name' must have a public default constructor"
+        ex.message == "Implementation type '${fullyQualifiedNameOf(NoDefaultConstructorThingSpec)}' registered for '${fullyQualifiedNameOf(ThingSpec)}' must have a public default constructor"
     }
 
     def "fails when registered implementation type is an abstract type"() {
@@ -236,7 +237,7 @@ class BaseInstanceFactoryTest extends Specification {
             .withImplementation(ModelType.of(AbstractThingSpec))
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Implementation type '$AbstractThingSpec.name' registered for '$ThingSpec.name' must not be abstract"
+        ex.message == "Implementation type '${fullyQualifiedNameOf(AbstractThingSpec)}' registered for '${fullyQualifiedNameOf(ThingSpec)}' must not be abstract"
     }
 
     def "fails when implementation type is registered twice"() {
@@ -249,7 +250,7 @@ class BaseInstanceFactoryTest extends Specification {
             .withImplementation(ModelType.of(DefaultThingSpec))
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Cannot register implementation for type '$ThingSpec.name' because an implementation for this type was already registered by test rule"
+        ex.message == "Cannot register implementation for type '${fullyQualifiedNameOf(ThingSpec)}' because an implementation for this type was already registered by test rule"
     }
 
     def "fails when asking for implementation info for a non-managed type"() {
@@ -257,7 +258,7 @@ class BaseInstanceFactoryTest extends Specification {
         instanceFactory.getManagedSubtypeImplementationInfo(ModelType.of(ThingSpec))
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Type '$ThingSpec.name' is not managed"
+        ex.message == "Type '${fullyQualifiedNameOf(ThingSpec)}' is not managed"
     }
 
     def "fails validation if default implementation does not implement internal view"() {
@@ -271,7 +272,7 @@ class BaseInstanceFactoryTest extends Specification {
         instanceFactory.validateRegistrations()
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Factory registration for '$ThingSpec.name' is invalid because the implementation type '$DefaultThingSpec.name' does not implement internal view '$NotImplementedInternalViewSpec.name'" +
+        ex.message == "Factory registration for '${fullyQualifiedNameOf(ThingSpec)}' is invalid because the implementation type '${fullyQualifiedNameOf(DefaultThingSpec)}' does not implement internal view '${fullyQualifiedNameOf(NotImplementedInternalViewSpec)}'" +
             ", implementation type was registered by impl rule, internal view was registered by view rule"
     }
 
@@ -282,7 +283,7 @@ class BaseInstanceFactoryTest extends Specification {
         instanceFactory.validateRegistrations()
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Factory registration for '$ManagedThingSpec.name' is invalid because it doesn't extend an interface with a default implementation"
+        ex.message == "Factory registration for '${fullyQualifiedNameOf(ManagedThingSpec)}' is invalid because it doesn't extend an interface with a default implementation"
     }
 
     @Ignore("This would be hard to check, and we only use this internally, so we'll just be careful")
@@ -297,7 +298,7 @@ class BaseInstanceFactoryTest extends Specification {
         instanceFactory.validateRegistrations()
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Factory registration for '$BothThingSpec.name' is invalid because it has multiple default implementations registered, super-types that registered an implementation are: $ThingSpec.name, $OtherThingSpec.name"
+        ex.message == "Factory registration for '${fullyQualifiedNameOf(BothThingSpec)}' is invalid because it has multiple default implementations registered, super-types that registered an implementation are: ${fullyQualifiedNameOf(ThingSpec)}, ${fullyQualifiedNameOf(OtherThingSpec)}"
     }
 
     def "fails when registering non-interface internal view"() {
@@ -306,7 +307,7 @@ class BaseInstanceFactoryTest extends Specification {
             .withInternalView(ModelType.of(Object))
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Internal view '$Object.name' registered for '$ThingSpec.name' must be an interface"
+        ex.message == "Internal view '$Object.name' registered for '${fullyQualifiedNameOf(ThingSpec)}' must be an interface"
     }
 
     def "fails when registering unmanaged internal view for managed type"() {
@@ -315,7 +316,7 @@ class BaseInstanceFactoryTest extends Specification {
             .withInternalView(ModelType.of(ThingSpecInternal))
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Internal view '$ThingSpecInternal.name' registered for managed type '$ManagedThingSpec.name' must be managed"
+        ex.message == "Internal view '${fullyQualifiedNameOf(ThingSpecInternal)}' registered for managed type '${fullyQualifiedNameOf(ManagedThingSpec)}' must be managed"
     }
 
     def "can register managed internal view for managed type that extends interface that is implemented by delegate type"() {
@@ -342,7 +343,6 @@ class BaseInstanceFactoryTest extends Specification {
         instanceFactory.validateRegistrations()
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Factory registration for '$ManagedThingSpec.name' is invalid because the default implementation type '$DefaultThingSpec.name' does not implement unmanaged internal view '$OtherThingSpec.name', internal view was registered by managed thing"
+        ex.message == "Factory registration for '${fullyQualifiedNameOf(ManagedThingSpec)}' is invalid because the default implementation type '${fullyQualifiedNameOf(DefaultThingSpec)}' does not implement unmanaged internal view '${fullyQualifiedNameOf(OtherThingSpec)}', internal view was registered by managed thing"
     }
-
 }

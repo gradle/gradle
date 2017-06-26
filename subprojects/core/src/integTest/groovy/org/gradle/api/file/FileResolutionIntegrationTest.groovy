@@ -19,6 +19,34 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class FileResolutionIntegrationTest extends AbstractIntegrationSpec {
+    def "file conversion works with java.nio.file.Path"() {
+        buildFile << """
+java.nio.file.Path fAsPath = buildDir.toPath().resolve('testdir').toAbsolutePath()
+def f = file(fAsPath)
+assert f == fAsPath.toFile()
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "file conversion works with Provider of supported types"() {
+        buildFile << """
+def provider = project.provider { $expression }
+def f = file(provider)
+assert f == file("testdir")
+"""
+
+        expect:
+        succeeds()
+
+        where:
+        expression                        | _
+        "new File(projectDir, 'testdir')" | _
+        "new File('testdir').toPath()"    | _
+        "'testdir'"                       | _
+    }
+
     def "gives reasonable error message when value cannot be converted to file"() {
         buildFile << """
 def f = file(12)
@@ -33,7 +61,36 @@ The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
   - A String or CharSequence URI, for example 'file:/usr/include'.
   - A File instance.
+  - A Path instance.
   - A URI or URL instance.""")
+    }
+
+    def "can construct file collection using java.nio.file.Path"() {
+        buildFile << """
+java.nio.file.Path fAsPath = buildDir.toPath().resolve('testdir').toAbsolutePath()
+def f = files(fAsPath)
+assert f.files as List == [fAsPath.toFile()]
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "can construct file collection using Provider of supported types"() {
+        buildFile << """
+def provider = project.provider { $expression }
+def f = files(provider)
+assert f.files as List == [file("testdir")]
+"""
+
+        expect:
+        succeeds()
+
+        where:
+        expression                        | _
+        "new File(projectDir, 'testdir')" | _
+        "new File('testdir').toPath()"    | _
+        "'testdir'"                       | _
     }
 
     def "gives reasonable error message when value cannot be converted to file collection"() {
@@ -51,6 +108,7 @@ The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
   - A String or CharSequence URI, for example 'file:/usr/include'.
   - A File instance.
+  - A Path instance.
   - A URI or URL instance.""")
     }
 }

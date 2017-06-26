@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 import java.util.Map;
@@ -26,8 +27,8 @@ import java.util.Set;
 import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
- * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current
- * build.
+ * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current project.
+ *
  * <p>
  * For examples on configuring the exclude rules please refer to {@link #exclude(java.util.Map)}.
  */
@@ -135,20 +136,20 @@ public interface ModuleDependency extends Dependency {
     ModuleDependency setTransitive(boolean transitive);
 
     /**
-     * Returns the configuration of this dependency module (not the configurations this dependency belongs too). Never
-     * returns null. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}.
-     *
-     * @deprecated Use {@link #getTargetConfiguration()} instead
-     */
-    @Deprecated
-    String getConfiguration();
-
-    /**
      * Returns the requested target configuration of this dependency. This is the name of the configuration in the target module that should be used when
      * selecting the matching configuration. If {@code null}, a default configuration should be used.
      */
     @Nullable
     String getTargetConfiguration();
+
+    /**
+     * Sets the requested target configuration of this dependency. This is the name of the configuration in the target module that should be used when
+     * selecting the matching configuration. If {@code null}, a default configuration will be used.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    void setTargetConfiguration(@Nullable String name);
 
     /**
      * {@inheritDoc}

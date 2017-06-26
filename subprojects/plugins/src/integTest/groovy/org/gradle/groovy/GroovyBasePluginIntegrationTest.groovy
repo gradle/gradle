@@ -51,9 +51,9 @@ task verify {
 
         where:
         dependency                                   | jarFile
-        "org.codehaus.groovy:groovy-all:2.4.7"      | "groovy-all-2.4.7.jar"
-        "org.codehaus.groovy:groovy:2.4.7"          | "groovy-2.4.7.jar"
-        "org.codehaus.groovy:groovy-all:2.4.7:indy" | "groovy-all-2.4.7-indy.jar"
+        "org.codehaus.groovy:groovy-all:2.4.10"      | "groovy-all-2.4.10.jar"
+        "org.codehaus.groovy:groovy:2.4.10"          | "groovy-2.4.10.jar"
+        "org.codehaus.groovy:groovy-all:2.4.10:indy" | "groovy-all-2.4.10-indy.jar"
     }
 
     def "only resolves source class path feeding into inferred Groovy class path if/when the latter is actually used (but not during autowiring)"() {
@@ -69,7 +69,7 @@ repositories {
 }
 
 dependencies {
-    customCompile "org.codehaus.groovy:groovy-all:2.4.7"
+    customCompile "org.codehaus.groovy:groovy-all:2.4.10"
 }
 
 task groovydoc(type: Groovydoc) {
@@ -114,7 +114,7 @@ task verify {
         fails "compileGroovy"
 
         then:
-        failure.assertHasDescription "Cannot infer Groovy class path because no Groovy Jar was found on class path: configuration ':compileClasspath'"
+        failure.assertHasDescription "Cannot infer Groovy class path because no Groovy Jar was found on class path: "
     }
 
 }

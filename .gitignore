@@ -45,6 +45,8 @@ atlassian-ide-plugin.xml
 # Emacs
 # -----
 *~
+\#*\#
+.\#*
 
 # Textmate
 # --------
@@ -74,3 +76,6 @@ atlassian-ide-plugin.xml
 # Logs
 # ----
 /*.log
+
+# oh-my-zsh gradle plugin
+.gradletasknamecache

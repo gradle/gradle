@@ -16,8 +16,10 @@
 
 package org.gradle.nativeplatform.internal.services;
 
+import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.NativeBinaryRenderer;
 import org.gradle.nativeplatform.internal.NativeExecutableBinaryRenderer;
 import org.gradle.nativeplatform.internal.NativePlatformResolver;
@@ -26,10 +28,11 @@ import org.gradle.nativeplatform.internal.StaticLibraryBinaryRenderer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolverServices;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultUcrtLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator;
 
-public class NativeBinaryServices implements PluginServiceRegistry {
+public class NativeBinaryServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(NativeBinaryRenderer.class);
@@ -41,22 +44,22 @@ public class NativeBinaryServices implements PluginServiceRegistry {
     }
 
     @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
-
-    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new NativeDependencyResolverServices());
         registration.add(DefaultVisualStudioLocator.class);
         registration.add(DefaultWindowsSdkLocator.class);
+        registration.add(DefaultUcrtLocator.class);
         registration.add(CompilerMetaDataProviderFactory.class);
     }
 
     @Override
-    public void registerGradleServices(ServiceRegistration registration) {
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectCompilerServices());
     }
 
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
+    private static final class ProjectCompilerServices {
+        CompilerOutputFileNamingSchemeFactory createCompilerOutputFileNamingSchemeFactory(RelativeFilePathResolver fileResolver) {
+            return new CompilerOutputFileNamingSchemeFactory(fileResolver);
+        }
     }
 }

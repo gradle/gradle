@@ -1,3 +1,5 @@
+import org.gradle.internal.os.OperatingSystem
+
 if (buildTypes.promotionBuild.active) {
     logger.lifecycle "Invocation tasks: $gradle.startParameter.taskNames\nInvocation properties: $gradle.startParameter.projectProperties"
 }
@@ -5,60 +7,121 @@ if (buildTypes.promotionBuild.active) {
 ext.milestoneNumber = project.hasProperty("milestoneNumber") ? project.milestoneNumber.toInteger() : null
 ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
 ext.finalRelease = project.hasProperty("finalRelease")
-boolean timestampedVersion
-if (project.hasProperty("timestampedVersion")) {
-    def value = project.property("timestampedVersion")
-    timestampedVersion = value != "false"
-} else {
-    timestampedVersion = gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")
-}
 if ((milestoneNumber != null && rcNumber != null) ||
         (rcNumber != null && finalRelease) ||
         (milestoneNumber != null && finalRelease)) {
     throw new InvalidUserDataException("Cannot set any combination of milestoneNumber, rcNumber and finalRelease at the same time")
 }
 
-
 if (incomingDistributionsBuildReceipt) {
     ext.baseVersion = incomingDistributionsBuildReceipt.baseVersion
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
-    ext.devBuild = false
 } else {
-    ext.devBuild = milestoneNumber == null && rcNumber == null && !finalRelease && !timestampedVersion;
     ext.baseVersion = rootProject.file("version.txt").text.trim()
 
-    if (devBuild) {
-        ext.buildTimestamp = "unknown";
+    def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
+    timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
+    Date buildTime
+    if (project.hasProperty("buildTimestamp")) {
+        buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
-        timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
-        Date buildTime
-        if (project.hasProperty("buildTimestamp")) {
-            buildTime = timestampFormat.parse(buildTimestamp)
-        } else {
-            File timestampFile = file("$buildDir/timestamp.txt")
-            if (timestampFile.isFile()) {
-                boolean uptodate = true
-                def modified = timestampFile.lastModified()
-                project(':core').fileTree('src/main').visit {fte ->
-                    if (fte.file.isFile() && fte.lastModified > modified) {
-                        uptodate = false
-                        fte.stopVisiting()
+        buildTime = new Date()
+    }
+    ext.buildTimestamp = timestampFormat.format(buildTime)
+}
+
+task determineCommitId {
+    ext.commitId = null
+
+    doLast {
+        def strategies = []
+
+        def env = System.getenv()
+
+        // For promotion builds use the commitId passed in as a project property
+        strategies << {
+            project.hasProperty('promotionCommitId') ? project.property('promotionCommitId') : null
+        }
+
+        // Builds of Gradle happening on the CI server
+        strategies << {
+            env["BUILD_VCS_NUMBER"]
+        }
+
+        // For the discovery builds, this points to the Gradle revision
+        strategies << {
+            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_Master") }?.value
+        }
+
+        // For the discovery release builds, this points to the Gradle revision
+        strategies << {
+            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_release_branch") }?.value
+        }
+
+        // If it's a checkout, ask Git for it
+        strategies << {
+            def gitDir = file("${rootDir}/.git")
+            if (gitDir.exists()) {
+                def baos = new ByteArrayOutputStream()
+                def execResult = exec {
+                    workingDir = rootDir
+                    ignoreExitValue = true
+                    commandLine = ["git", "log", "-1", "--format=%H"]
+                    if (OperatingSystem.current().windows) {
+                        commandLine = ["cmd", "/c"] + commandLine
                     }
+
+                    standardOutput = baos
                 }
-                if (!uptodate) {
-                    timestampFile.setLastModified(new Date().time)
+                if (execResult.exitValue == 0) {
+                    new String(baos.toByteArray(), "utf8").trim()
+                } else if (file("${gitDir}/HEAD").exists()) {
+                    // Read commit id directly from filesystem
+                    def headRef = file("${gitDir}/HEAD").text
+                    headRef = headRef.replaceAll('ref: ', '').trim()
+                    file("${gitDir}/$headRef").text.trim()
                 }
             } else {
-                timestampFile.parentFile.mkdirs()
-                timestampFile.createNewFile()
+                null
             }
-
-            buildTime = new Date(timestampFile.lastModified())
         }
-        ext.buildTimestamp = timestampFormat.format(buildTime)
+
+        // It's a source distribution, we don't know.
+        strategies << {
+            if (!file("design-docs").directory) {
+                "<unknown>"
+            }
+        }
+
+        for (strategy in strategies) {
+            commitId = strategy()
+            if (commitId) {
+                break
+            }
+        }
+        if (!commitId) {
+            throw new InvalidUserDataException("Could not determine commit id")
+        }
     }
 }
+
+task configureBuildReceipt {
+    dependsOn determineCommitId
+    doLast {
+        createBuildReceipt.versionNumber = rootProject.version
+        createBuildReceipt.baseVersion = rootProject.baseVersion
+        createBuildReceipt.snapshot = rootProject.isSnapshot
+        createBuildReceipt.buildTimestamp = rootProject.buildTimestamp
+        createBuildReceipt.commitId = determineCommitId.commitId
+    }
+}
+
+task createBuildReceipt(type: org.gradle.build.BuildReceipt) {
+    dependsOn configureBuildReceipt
+    destinationDir = file("${rootProject.buildDir}")
+}
+
+ext.buildReceiptPackage = '/org/gradle/'
 
 version = baseVersion
 
@@ -69,14 +132,11 @@ if (finalRelease) {
     version += "-rc-$rcNumber"
 } else if (milestoneNumber != null) {
     version += "-milestone-$milestoneNumber"
-} else if (timestampedVersion) {
-    isSnapshot = true
-    version += "-$buildTimestamp"
 } else {
     isSnapshot = true
-    version += "-snapshot-1"
+    version += "-$buildTimestamp"
 }
 
 if (buildTypes.promotionBuild.active) {
-    logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot, dev build: $devBuild)"
+    logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot)"
 }

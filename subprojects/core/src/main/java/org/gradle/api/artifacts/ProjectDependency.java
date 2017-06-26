@@ -29,16 +29,6 @@ public interface ProjectDependency extends ModuleDependency, SelfResolvingDepend
     Project getDependencyProject();
 
     /**
-     * Returns the configuration associated with this project dependency. The configuration belongs to the project
-     * associated with this project dependency.
-     *
-     * @see #getDependencyProject()
-     * @deprecated A project dependency may select different configurations.
-     */
-    @Deprecated
-    Configuration getProjectConfiguration();
-
-    /**
      * {@inheritDoc}
      */
     ProjectDependency copy();

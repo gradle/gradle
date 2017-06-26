@@ -17,28 +17,37 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.InputFiles;
 
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 
-public class ClasspathPropertyAnnotationHandler implements PropertyAnnotationHandler {
+public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileSnapshottingPropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Classpath.class;
     }
 
     @Override
+    public Class<? extends Annotation> getOverriddenAnnotationType() {
+        return InputFiles.class;
+    }
+
+    public Class<? extends FileCollectionSnapshotter> getSnapshotterType() {
+        return ClasspathSnapshotter.class;
+    }
+
+    @Override
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().files(futureValue)
+                ((TaskInputFilePropertyBuilderInternal) task.getInputs().files(futureValue))
                     .withPropertyName(context.getName())
-                    .orderSensitive(true)
-                    .withSnapshotNormalizationStrategy(ClasspathSnapshotNormalizationStrategy.INSTANCE)
-                    .withSnapshotter(ClasspathSnapshotter.class)
+                    .withSnapshotter(getSnapshotterType())
                     .optional(context.isOptional());
             }
         });

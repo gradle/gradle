@@ -8,7 +8,7 @@ to more users, by enabling the Gradle daemon by default.
 ### Audience
 
 The improvements are aimed at *developers* working in the Java and Android ecosystems and whose builds use the
-current software model and and who are using the Gradle daemon (possibly implicitly through the IDE).
+current software model and who are using the Gradle daemon (possibly implicitly through the IDE).
 
 The improvements will be general purpose and so will benefit all Gradle users, to greater and lesser degrees.
 

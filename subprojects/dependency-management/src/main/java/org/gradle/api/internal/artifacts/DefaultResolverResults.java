@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 public class DefaultResolverResults implements ResolverResults {
@@ -28,7 +28,7 @@ public class DefaultResolverResults implements ResolverResults {
     private ResolveException fatalFailure;
     private ResolvedLocalComponentsResult resolvedLocalComponentsResult;
     private Object artifactResolveState;
-    private FileDependencyResults fileDependencyResults;
+    private VisitedArtifactSet visitedArtifacts;
 
     @Override
     public boolean hasError() {
@@ -43,34 +43,38 @@ public class DefaultResolverResults implements ResolverResults {
 
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
-        assertHasArtifacts();
+        assertHasArtifactResult();
         return resolvedConfiguration;
     }
 
     @Override
     public ResolutionResult getResolutionResult() {
-        if (fatalFailure != null) {
-            throw fatalFailure;
-        }
-        if (resolutionResult == null) {
-            throw new IllegalStateException("Resolution result has not been attached.");
-        }
+        assertHasGraphResult();
         return resolutionResult;
     }
 
     @Override
     public ResolvedLocalComponentsResult getResolvedLocalComponents() {
-        assertHasLocalResult();
+        assertHasGraphResult();
         return resolvedLocalComponentsResult;
     }
 
     @Override
-    public FileDependencyResults getFileDependencies() {
-        assertHasLocalResult();
-        return fileDependencyResults;
+    public VisitedArtifactSet getVisitedArtifacts() {
+        assertHasVisitResult();
+        return visitedArtifacts;
     }
 
-    private void assertHasLocalResult() {
+    private void assertHasVisitResult() {
+        if (fatalFailure != null) {
+            throw fatalFailure;
+        }
+        if (visitedArtifacts == null) {
+            throw new IllegalStateException("Resolution result has not been attached.");
+        }
+    }
+
+    private void assertHasGraphResult() {
         if (fatalFailure != null) {
             throw fatalFailure;
         }
@@ -79,25 +83,25 @@ public class DefaultResolverResults implements ResolverResults {
         }
     }
 
-    private void assertHasArtifacts() {
+    private void assertHasArtifactResult() {
         if (resolvedConfiguration == null) {
             throw new IllegalStateException("Resolution artifacts have not been attached.");
         }
     }
 
     @Override
-    public void resolved(ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults) {
-        this.fileDependencyResults = fileDependencyResults;
-        this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
+    public void graphResolved(VisitedArtifactSet visitedArtifacts) {
+        this.visitedArtifacts = visitedArtifacts;
+        this.resolvedLocalComponentsResult = null;
         this.resolutionResult = null;
         this.fatalFailure = null;
     }
 
     @Override
-    public void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults) {
+    public void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactSet visitedArtifacts) {
         this.resolutionResult = resolutionResult;
         this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
-        this.fileDependencyResults = fileDependencyResults;
+        this.visitedArtifacts = visitedArtifacts;
         this.fatalFailure = null;
     }
 
@@ -109,8 +113,9 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
+    public void artifactsResolved(ResolvedConfiguration resolvedConfiguration, VisitedArtifactSet visitedArtifacts) {
         this.resolvedConfiguration = resolvedConfiguration;
+        this.visitedArtifacts = visitedArtifacts;
         this.artifactResolveState = null;
     }
 

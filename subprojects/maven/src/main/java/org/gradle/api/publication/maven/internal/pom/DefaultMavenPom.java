@@ -31,7 +31,7 @@ import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.BufferedWriter;
@@ -46,7 +46,7 @@ public class DefaultMavenPom implements MavenPom {
     private PathToFileResolver fileResolver;
     private Model model = new MavenProject().getModel();
     private Conf2ScopeMappingContainer scopeMappings;
-    private ActionBroadcast<MavenPom> whenConfiguredActions = new ActionBroadcast<MavenPom>();
+    private MutableActionSet<MavenPom> whenConfiguredActions = new MutableActionSet<MavenPom>();
     private XmlTransformer withXmlActions = new XmlTransformer();
     private ConfigurationContainer configurations;
 

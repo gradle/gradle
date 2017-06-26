@@ -127,6 +127,9 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
         return codenarcClasspath;
     }
 
+    /**
+     * The class path containing the CodeNarc library to be used.
+     */
     public void setCodenarcClasspath(FileCollection codenarcClasspath) {
         this.codenarcClasspath = codenarcClasspath;
     }
@@ -142,6 +145,12 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
         return config;
     }
 
+    /**
+     * The CodeNarc configuration to use. Replaces the {@code configFile} property.
+     *
+     * @since 2.2
+     */
+    @Incubating
     public void setConfig(TextResource config) {
         this.config = config;
     }
@@ -154,6 +163,9 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
         return maxPriority1Violations;
     }
 
+    /**
+     * The maximum number of priority 1 violations allowed before failing the build.
+     */
     public void setMaxPriority1Violations(int maxPriority1Violations) {
         this.maxPriority1Violations = maxPriority1Violations;
     }
@@ -166,6 +178,9 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
         return maxPriority2Violations;
     }
 
+    /**
+     * The maximum number of priority 2 violations allowed before failing the build.
+     */
     public void setMaxPriority2Violations(int maxPriority2Violations) {
         this.maxPriority2Violations = maxPriority2Violations;
     }
@@ -178,6 +193,9 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
         return maxPriority3Violations;
     }
 
+    /**
+     * The maximum number of priority 3 violations allowed before failing the build.
+     */
     public void setMaxPriority3Violations(int maxPriority3Violations) {
         this.maxPriority3Violations = maxPriority3Violations;
     }
@@ -191,14 +209,16 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
     }
 
     /**
-     * Whether or not the build should break when the verifications performed by this task fail.
-     *
+     * Whether the build should break when the verifications performed by this task fail.
      */
     @Input
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
 
+    /**
+     * Whether the build should break when the verifications performed by this task fail.
+     */
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }

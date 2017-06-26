@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.nativeplatform.internal.DefaultLinkerSpec;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
@@ -27,7 +26,6 @@ import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
  * Links a binary shared library from object files and imported libraries.
  */
 @Incubating
-@ParallelizableTask
 public class LinkSharedLibrary extends AbstractLinkTask {
     private String installName;
 

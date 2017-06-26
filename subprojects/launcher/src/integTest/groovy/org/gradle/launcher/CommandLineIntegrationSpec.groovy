@@ -18,6 +18,7 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.logging.sink.OutputEventRenderer
 import org.gradle.launcher.debug.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
@@ -25,7 +26,8 @@ import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
-    @Rule JDWPUtil jdwpClient = new JDWPUtil(5005)
+    @Rule
+    JDWPUtil jdwpClient = new JDWPUtil(5005)
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
     @Unroll
@@ -64,10 +66,8 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
+    @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() })
     def "can debug with org.gradle.debug=true"() {
-        given:
-        debugPortIsFree()
-
         when:
         def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()
 
@@ -79,25 +79,72 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         gradle.waitForFinish()
     }
 
-    boolean debugPortIsFree() {
+    static boolean debugPortIsFree() {
+        boolean free = true
+
         ConcurrentTestUtil.poll(30) {
-            boolean listening = false
-            Socket probe;
+            Socket probe
             try {
                 probe = new Socket(InetAddress.getLocalHost(), 5005)
                 // something is listening, keep polling
-                listening = true
+                free = false
             } catch (Exception e) {
                 // nothing listening - exit the polling loop
             } finally {
-                if (probe != null) {
-                    probe.close()
-                }
-            }
-
-            if (listening) {
-                throw new IllegalStateException("Something is listening on port 5005")
+                probe?.close()
             }
         }
+
+        free
+    }
+
+    def "cannot combine --scan and --no-scan"() {
+        given:
+        requireGradleDistribution()
+        file("buildSrc/src/main/groovy/BuildScanPlugin.groovy").text = """
+            package com.gradle.test.build.dummy
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class BuildScanPlugin implements Plugin<Project> {
+                void apply(Project project){
+                }
+            }
+        """
+
+        when:
+        args("--scan", "--no-scan")
+
+        then:
+        fails("tasks")
+        errorOutput.contains("Command line switches '--scan' and '--no-scan' are mutually exclusive and must not be used together.")
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Unroll
+    def "set logging max worker count to #expectedMaxWorkerCount according to command line flags #flags"() {
+        buildFile << """
+            import ${OutputEventRenderer.canonicalName}
+
+            task assertExpectedMaxWorkerCount {
+                doLast {
+                    def outputRenderer = gradle.services.get(OutputEventRenderer)
+                    assert outputRenderer.maxWorkerCount.get() == ${expectedMaxWorkerCount}
+                }
+            }
+        """
+        expect:
+        executer.withArguments(flags)
+        succeeds("assertExpectedMaxWorkerCount")
+
+        where:
+        expectedMaxWorkerCount | flags
+        1                      | []
+        1                      | ['--max-workers=4']
+        1                      | ['-Dorg.gradle.parallel=false', '--max-workers=4']
+        4                      | ['--parallel', '--max-workers=4']
+        4                      | ['--parallel', '-Dorg.gradle.workers.max=4']
+        6                      | ['--parallel', '--max-workers=6', '-Dorg.gradle.workers.max=4']
+        4                      | ['-Dorg.gradle.parallel=true', '--max-workers=4']
     }
 }

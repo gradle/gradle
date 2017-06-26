@@ -34,7 +34,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "asking for a model and specifying some task(s) to run first"
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.model(BuildInvocations).forTasks('assemble').addProgressListener(events).get()
@@ -49,7 +49,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('assemble').addProgressListener(events).run()
@@ -64,7 +64,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "running a build action"
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.action(new NullAction()).addProgressListener(events).run()
@@ -79,7 +79,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "registering for all progress event types"
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.allOf(OperationType)).run()
@@ -97,7 +97,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "registering for subset of progress event types"
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -115,7 +115,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "registering for all progress event types but provider only knows how to send test progress events"
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.allOf(OperationType)).run()

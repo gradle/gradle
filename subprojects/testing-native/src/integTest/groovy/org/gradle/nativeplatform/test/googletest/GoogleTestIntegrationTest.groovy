@@ -490,6 +490,20 @@ model {
         executed ':customHelloCheck', ':runHelloTestGoogleTestExe'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1000")
+    def "can configure legacy plugin"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+        """
+
+        when:
+        succeeds 'tasks'
+
+        then:
+        noExceptionThrown()
+    }
+
     private useConventionalSourceLocations() {
         app.library.writeSources(file("src/hello"))
         app.googleTestTests.writeSources(file("src/helloTest"))

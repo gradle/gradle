@@ -38,7 +38,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2358")
-    @FailsWith(UnexpectedBuildFailure) // Test is currently failing
+    @FailsWith(UnexpectedBuildFailure)
     def "can reference plugin by id in unit test"() {
 
         given:

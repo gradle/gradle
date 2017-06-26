@@ -26,8 +26,8 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
 
     final MavenInvocationSpec invocation
 
-    MavenBuildExperimentSpec(String displayName, String projectName, File workingDirectory, MavenInvocationSpec mavenInvocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
-        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener, invocationCustomizer)
+    MavenBuildExperimentSpec(String displayName, String projectName, File workingDirectory, MavenInvocationSpec mavenInvocation, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
+        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer)
         this.invocation = mavenInvocation
     }
 
@@ -48,8 +48,6 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
 
         Integer warmUpCount
         Integer invocationCount
-        Long sleepAfterWarmUpMillis = 5000L
-        Long sleepAfterTestRoundMillis = 1000L
         BuildExperimentListener listener
         InvocationCustomizer invocationCustomizer
 
@@ -77,17 +75,6 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
             this.invocationCount = invocationCount
             this
         }
-
-        MavenBuilder sleepAfterWarmUpMillis(Long sleepAfterWarmUpMillis) {
-            this.sleepAfterWarmUpMillis = sleepAfterWarmUpMillis
-            this
-        }
-
-        MavenBuilder sleepAfterTestRoundMillis(Long sleepAfterTestRoundMillis) {
-            this.sleepAfterTestRoundMillis = sleepAfterTestRoundMillis
-            this
-        }
-
         MavenBuilder listener(BuildExperimentListener listener) {
             this.listener = listener
             this
@@ -103,7 +90,7 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
             assert displayName != null
             assert invocation != null
 
-            new MavenBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener, invocationCustomizer)
+            new MavenBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, listener, invocationCustomizer)
         }
 
     }

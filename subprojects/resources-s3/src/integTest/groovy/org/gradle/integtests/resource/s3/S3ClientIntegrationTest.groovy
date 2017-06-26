@@ -26,6 +26,7 @@ import com.amazonaws.services.s3.model.S3Object
 import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.internal.IoActions
@@ -113,9 +114,9 @@ class S3ClientIntegrationTest extends Specification {
         server.stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
         S3Object data = s3Client.getMetaData(uri)
         def metadata = null
-        IoActions.withResource(data) {
+        IoActions.withResource(data, {
             metadata = data.getObjectMetadata()
-        }
+        } as Action)
 
         then:
         metadata.getContentLength() == 0
@@ -126,13 +127,13 @@ class S3ClientIntegrationTest extends Specification {
 
         then:
         S3Object object = s3Client.getResource(uri)
-        IoActions.withResource(object) {
+        IoActions.withResource(object, {
             object.metadata.getContentLength() == fileContents.length()
             object.metadata.getETag() ==~ /\w{32}/
             ByteArrayOutputStream outStream = new ByteArrayOutputStream()
             IOUtils.copyLarge(object.getObjectContent(), outStream);
             outStream.toString() == fileContents
-        }
+        } as Action)
 
         when:
         server.stubListFile(temporaryFolder.testDirectory, bucketName)
@@ -151,7 +152,7 @@ class S3ClientIntegrationTest extends Specification {
      * Allows for quickly making real aws requests during development
      */
     @Ignore
-    def "should interact with real S3"() {
+    def "should interact with real S3 using KEY/SECRET pair"() {
         DefaultAwsCredentials credentials = new DefaultAwsCredentials()
         String bucketName = System.getenv('G_S3_BUCKET')
         credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
@@ -168,6 +169,45 @@ class S3ClientIntegrationTest extends Specification {
         s3Client.put(stream, file.length(), uri)
         s3Client.getResource(new URI("s3://${bucketName}/maven/release/idontExist.txt")).close()
     }
+
+    @Ignore
+    def "should interact with real S3 using KEY/SECRET/TOKEN triplet"() {
+        DefaultAwsCredentials credentials = new DefaultAwsCredentials()
+        String bucketName = System.getenv('G_S3_BUCKET')
+        credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
+        credentials.setSecretKey(System.getenv('G_AWS_SECRET_ACCESS_KEY'))
+        credentials.setSessionToken(System.getenv('G_AWS_SESSION_TOKEN'))
+
+        S3Client s3Client = new S3Client(credentials, new S3ConnectionProperties())
+
+        def fileContents = 'This is only a test'
+        File file = temporaryFolder.createFile(FILE_NAME)
+        file << fileContents
+
+        expect:
+        def stream = new FileInputStream(file)
+        def uri = new URI("s3://${bucketName}/maven/release/${new Date().getTime()}-mavenTest.txt")
+        s3Client.put(stream, file.length(), uri)
+        s3Client.getResource(new URI("s3://${bucketName}/maven/release/idontExist.txt"))
+    }
+
+    @Ignore
+    def "should interact with real S3 using SDK delegation"() {
+        String bucketName = System.getenv('G_S3_BUCKET')
+
+        S3Client s3Client = new S3Client(new S3ConnectionProperties())
+
+        def fileContents = 'This is only a test'
+        File file = temporaryFolder.createFile(FILE_NAME)
+        file << fileContents
+
+        expect:
+        def stream = new FileInputStream(file)
+        def uri = new URI("s3://${bucketName}/maven/release/${new Date().getTime()}-mavenTest.txt")
+        s3Client.put(stream, file.length(), uri)
+        s3Client.getResource(new URI("s3://${bucketName}/maven/release/idontExist.txt"))
+    }
+
 
     @Ignore
     def "should use region specific endpoints to interact with buckets in all regions"() {

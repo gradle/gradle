@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.IncludedBuildExecuter;
+import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -38,13 +38,12 @@ public class CompositeBuildIdeProjectResolver {
     private final ProjectArtifactBuilder artifactBuilder;
 
     public static CompositeBuildIdeProjectResolver from(ServiceRegistry services) {
-        return new CompositeBuildIdeProjectResolver(services.get(LocalComponentRegistry.class), services.get(IncludedBuildExecuter.class), services.get(BuildIdentity.class));
+        return new CompositeBuildIdeProjectResolver(services.get(LocalComponentRegistry.class), services.get(IncludedBuildTaskGraph.class), services.get(BuildIdentity.class));
     }
 
-    public CompositeBuildIdeProjectResolver(LocalComponentRegistry registry, IncludedBuildExecuter executer, BuildIdentity buildIdentity) {
+    public CompositeBuildIdeProjectResolver(LocalComponentRegistry registry, IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
         this.registry = registry;
-        // Can't use the session-scope `IncludedBuildArtifactBuilder`, because we don't want to be execute jar tasks (which are pre-registered)
-        artifactBuilder = new CompositeProjectArtifactBuilder(new IncludedBuildArtifactBuilder(executer), buildIdentity);
+        artifactBuilder = new CompositeProjectArtifactBuilder(new IncludedBuildArtifactBuilder(includedBuilds), buildIdentity);
     }
 
     /**

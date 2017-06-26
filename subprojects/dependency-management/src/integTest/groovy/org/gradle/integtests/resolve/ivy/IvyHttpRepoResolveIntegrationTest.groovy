@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -58,11 +59,10 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
 
         fails 'retrieve'
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-            .assertHasCause('Credentials must be an instance of: org.gradle.api.artifacts.repositories.PasswordCredentials')
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve org.group.name:projectA:1.2.")
+        failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
     }
-
-
 
     public void "can resolve and cache dependencies with missing status and publication date"() {
         given:

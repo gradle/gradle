@@ -19,9 +19,6 @@ package org.gradle.launcher.continuous
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import java.util.jar.JarOutputStream
-import java.util.zip.ZipEntry
-
 // NB: there's nothing specific about Java support and continuous.
 //     this spec just lays out some more practical use cases than the other targeted tests.
 class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
@@ -51,7 +48,15 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        assert !file("src/main/java").deleteDir().exists()
+        if (TestPrecondition.WINDOWS) {
+            //the main src dir might be locked, only delete children
+            file("src/main/java").listFiles().each {
+                assert !it.deleteDir().exists()
+            }
+        } else {
+            assert !file("src/main/java").deleteDir().exists()
+        }
+
 
         then:
         succeeds()
@@ -118,8 +123,8 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
 
         then:
         succeeds()
-        executedAndNotSkipped(":processResources", ":compileTestJava", ":test")
-        skipped(":compileJava")
+        executedAndNotSkipped(":processResources", ":test")
+        skipped(":compileJava", ":compileTestJava")
     }
 
     def "failing main source build ignores changes to test source"() {
@@ -200,14 +205,14 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        createJar(somelib, "META-INF/")
+        jarWithClasses(somelib, Thing: 'class Thing {}')
 
         then:
         succeeds()
         executedAndNotSkipped ":compileJava"
 
         when:
-        createJar(somelib, "META-INF/", "another-dir/")
+        jarWithClasses(somelib, Thing: 'class Thing { String s; }')
 
         then:
         succeeds()
@@ -224,7 +229,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
     def "multiple dependencies as inputs from local filesystem"() {
         when:
         def libDir = file('libs').createDir()
-        createJar(libDir.file("somelib.jar"), "META-INF/")
+        jarWithClasses(libDir.file("somelib.jar"), Thing: 'class Thing {}')
         file("src/main/java/Thing.java") << "class Thing {}"
         buildFile << """
             dependencies {
@@ -237,7 +242,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        createJar(libDir.file("anotherlib.jar"), "META-INF/")
+        jarWithClasses(libDir.file("anotherlib.jar"), Thing2: 'class Thing2 {}')
 
         then:
         succeeds()
@@ -257,14 +262,4 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         succeeds()
         executedAndNotSkipped ":compileJava"
     }
-
-    static void createJar(File jarFile, String... entries) throws IOException {
-        def jarOutputStream = new JarOutputStream(new FileOutputStream(jarFile))
-        jarOutputStream.withCloseable {
-            entries.each {
-                jarOutputStream.putNextEntry(new ZipEntry(it))
-            }
-        }
-    }
-
 }

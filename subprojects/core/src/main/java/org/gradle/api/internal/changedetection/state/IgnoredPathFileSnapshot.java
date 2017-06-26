@@ -17,13 +17,13 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashUtil;
 
 public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
-    private final IncrementalFileSnapshot snapshot;
+    private final FileContentSnapshot snapshot;
 
-    public IgnoredPathFileSnapshot(IncrementalFileSnapshot snapshot) {
+    public IgnoredPathFileSnapshot(FileContentSnapshot snapshot) {
         this.snapshot = snapshot;
     }
 
@@ -33,13 +33,13 @@ public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
     }
 
     @Override
-    public IncrementalFileSnapshot getSnapshot() {
+    public FileContentSnapshot getSnapshot() {
         return snapshot;
     }
 
     @Override
-    public void appendToCacheKey(TaskCacheKeyBuilder builder) {
-        builder.putBytes(snapshot.getHash().asBytes());
+    public void appendToHasher(BuildCacheHasher hasher) {
+        hasher.putHash(snapshot.getContentMd5());
     }
 
     @Override
@@ -47,7 +47,7 @@ public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
         if (!(o instanceof IgnoredPathFileSnapshot)) {
             return -1;
         }
-        return HashUtil.compareHashCodes(getSnapshot().getHash(), o.getSnapshot().getHash());
+        return HashUtil.compareHashCodes(getSnapshot().getContentMd5(), o.getSnapshot().getContentMd5());
     }
 
     @Override

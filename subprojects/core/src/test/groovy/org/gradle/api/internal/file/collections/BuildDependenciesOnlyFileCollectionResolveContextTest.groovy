@@ -22,6 +22,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
 import spock.lang.Specification
 
+import java.nio.file.Path
 import java.util.concurrent.Callable
 
 class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specification {
@@ -147,6 +148,7 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
         context.add('a')
         context.add(Stub(TaskDependency))
         context.add(Stub(Runnable))
+        context.add(Stub(Path))
 
         then:
         0 * taskContext._

@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.collect.Sets;
+
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 public class ClassSetAnalysis {
@@ -29,30 +29,50 @@ public class ClassSetAnalysis {
         this.data = data;
     }
 
-    public DependentsSet getRelevantDependents(Iterable<String> classes) {
-        List<String> result = new LinkedList<String>();
+    public DependentsSet getRelevantDependents(Iterable<String> classes, Set<Integer> constants) {
+        Set<String> result = null;
         for (String cls : classes) {
-            DependentsSet d = getRelevantDependents(cls);
+            DependentsSet d = getRelevantDependents(cls, constants);
             if (d.isDependencyToAll()) {
                 return d;
             }
-            result.addAll(d.getDependentClasses());
+            Set<String> dependentClasses = d.getDependentClasses();
+            if (dependentClasses.isEmpty()) {
+                continue;
+            }
+            if (result == null) {
+                result = Sets.newLinkedHashSet();
+            }
+            for (String dependentClass : dependentClasses) {
+                result.add(dependentClass);
+                Set<String> children = data.classesToChildren.get(dependentClass);
+                if (children != null && children.contains(cls)) {
+                    System.out.println("children = " + children);
+                }
+            }
+            result.addAll(dependentClasses);
         }
-        return new DefaultDependentsSet(result);
+        return result == null ? DefaultDependentsSet.EMPTY : new DefaultDependentsSet(result);
     }
 
-    public DependentsSet getRelevantDependents(String className) {
+    public DependentsSet getRelevantDependents(String className, Set<Integer> constants) {
         DependentsSet deps = data.getDependents(className);
-        if (deps == null) {
-            return new DefaultDependentsSet();
+        if (deps != null && deps.isDependencyToAll()) {
+            return deps;
         }
-        if (deps.isDependencyToAll()) {
-            return new DependencyToAll();
+        if (deps == null && constants.isEmpty()) {
+            return DefaultDependentsSet.EMPTY;
+        }
+        if (!constants.isEmpty()) {
+            return DependencyToAll.INSTANCE;
         }
         Set<String> result = new HashSet<String>();
-        recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
+        if (deps != null && !deps.isDependencyToAll()) {
+            recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
+        }
         result.remove(className);
         return new DefaultDependentsSet(result);
+
     }
 
     public boolean isDependencyToAll(String className) {
@@ -69,7 +89,9 @@ public class ClassSetAnalysis {
                 result.add(d);
             }
             DependentsSet currentDependents = data.getDependents(d);
-            recurseDependents(visited, result, currentDependents.getDependentClasses());
+            if (currentDependents != null && !currentDependents.isDependencyToAll()) {
+                recurseDependents(visited, result, currentDependents.getDependentClasses());
+            }
         }
     }
 

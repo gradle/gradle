@@ -21,7 +21,9 @@ import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +67,12 @@ public abstract class BridgedCollections {
                                         ModelReference.of(containerPath.child(name), new DslObject(item).getDeclaredType()),
                                         new ExtractFromParentContainer<I, C>(name, containerType)
                                     )
-                                    .descriptor(itemDescriptorGenerator.transform(name))
+                                    .descriptor(new SimpleModelRuleDescriptor(new Factory<String>() {
+                                        @Override
+                                        public String create() {
+                                            return itemDescriptorGenerator.transform(name);
+                                        }
+                                    }))
                                     .build();
                                 containerNode.addLink(itemRegistration);
                             }

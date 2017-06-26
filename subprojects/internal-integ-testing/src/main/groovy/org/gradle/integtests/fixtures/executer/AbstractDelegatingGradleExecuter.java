@@ -39,7 +39,7 @@ public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExe
     }
 
     @Override
-    public GradleHandle doStart() {
+    public GradleHandle createGradleHandle() {
         return configureExecuter().start();
     }
 

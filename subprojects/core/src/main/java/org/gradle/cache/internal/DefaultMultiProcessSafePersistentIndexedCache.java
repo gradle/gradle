@@ -15,7 +15,7 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.api.Transformer;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.internal.Factory;
 
@@ -30,8 +30,13 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     }
 
     @Override
+    public String toString() {
+        return fileAccess.toString();
+    }
+
+    @Override
     public V get(final K key) {
-        final PersistentIndexedCache<K, V> cache = getCache();
+        final BTreePersistentIndexedCache<K, V> cache = getCache();
         try {
             return fileAccess.readFile(new Factory<V>() {
                 public V create() {
@@ -44,8 +49,18 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     }
 
     @Override
+    public V get(K key, Transformer<? extends V, ? super K> producer) {
+        V value = get(key);
+        if (value == null) {
+            value = producer.transform(key);
+            put(key, value);
+        }
+        return value;
+    }
+
+    @Override
     public void put(final K key, final V value) {
-        final PersistentIndexedCache<K, V> cache = getCache();
+        final BTreePersistentIndexedCache<K, V> cache = getCache();
         // Use writeFile because the cache can internally recover from datafile
         // corruption, so we don't care at this level if it's corrupt
         fileAccess.writeFile(new Runnable() {
@@ -57,7 +72,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
 
     @Override
     public void remove(final K key) {
-        final PersistentIndexedCache<K, V> cache = getCache();
+        final BTreePersistentIndexedCache<K, V> cache = getCache();
         // Use writeFile because the cache can internally recover from datafile
         // corruption, so we don't care at this level if it's corrupt
         fileAccess.writeFile(new Runnable() {
@@ -90,7 +105,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     public void beforeLockRelease(FileLock.State currentCacheState) {
     }
 
-    private PersistentIndexedCache<K, V> getCache() {
+    private BTreePersistentIndexedCache<K, V> getCache() {
         if (cache == null) {
             // Use writeFile because the cache can internally recover from datafile
             // corruption, so we don't care at this level if it's corrupt

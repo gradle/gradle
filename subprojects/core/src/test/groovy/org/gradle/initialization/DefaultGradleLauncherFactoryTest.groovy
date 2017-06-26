@@ -16,14 +16,16 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.internal.scan.config.BuildScanConfig
+import org.gradle.internal.scan.config.BuildScanConfigProvider
+import org.gradle.internal.scan.config.BuildScanPluginMetadata
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
+import org.gradle.internal.service.scopes.BuildTreeScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -35,13 +37,21 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def startParameter = new StartParameter()
-    final ServiceRegistry globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
-    final ServiceRegistry userHomeServices = globalServices.get(GradleUserHomeScopeServiceRegistry).getServicesFor(tmpDir.createDir("user-home"))
-    final ServiceRegistry sessionServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY)
-    final ListenerManager listenerManager = globalServices.get(ListenerManager)
-    final ProgressLoggerFactory progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
-    final GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
-    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry, new TrueTimeProvider());
+    final def globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
+    final def userHomeServices = globalServices.get(GradleUserHomeScopeServiceRegistry).getServicesFor(tmpDir.createDir("user-home"))
+    final def sessionServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY)
+    final def buildTreeServices = new BuildTreeScopeServices(sessionServices)
+    final def listenerManager = globalServices.get(ListenerManager)
+    final def progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
+    final def userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
+    final def factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry)
+
+    def cleanup() {
+        buildTreeServices.close()
+        sessionServices.close()
+        userHomeScopeServiceRegistry.release(userHomeServices)
+        globalServices.close()
+    }
 
     def "makes services from build context available as build scoped services"() {
         def cancellationToken = Stub(BuildCancellationToken)
@@ -52,20 +62,12 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         }
 
         expect:
-        def launcher = factory.newInstance(startParameter, requestContext, sessionServices)
+        def launcher = factory.newInstance(startParameter, requestContext, buildTreeServices)
         launcher.gradle.parent == null
         launcher.gradle.startParameter == startParameter
         launcher.gradle.services.get(BuildRequestMetaData) == requestContext
         launcher.gradle.services.get(BuildCancellationToken) == cancellationToken
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
-    }
-
-    def "cannot create child launcher when no outer build is running"() {
-        when:
-        factory.nestedInstance(startParameter)
-
-        then:
-        thrown IllegalStateException
     }
 
     def "reuses build context services for nested build"() {
@@ -78,17 +80,59 @@ class DefaultGradleLauncherFactoryTest extends Specification {
             getEventConsumer() >> eventConsumer
         }
 
-        def parent = factory.newInstance(startParameter, requestContext, sessionServices);
+        def parent = factory.newInstance(startParameter, requestContext, buildTreeServices)
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:
-        def launcher = factory.nestedInstance(startParameter)
+        def launcher = parent.gradle.services.get(NestedBuildFactory).nestedInstance(startParameter)
         launcher.gradle.parent == parent.gradle
+
         def request = launcher.gradle.services.get(BuildRequestMetaData)
         request instanceof DefaultBuildRequestMetaData
         request != requestContext
         request.client == clientMetaData
         launcher.gradle.services.get(BuildCancellationToken) == cancellationToken
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
+    }
+
+    def "initializes build scan config"() {
+        given:
+        startParameter.setBuildScan(true)
+
+        when:
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), buildTreeServices)
+        def c = buildScanConfig(launcher)
+
+        then:
+        c.enabled
+        !c.disabled
+    }
+
+    def "marks BuildScanRequest as disabled when no build scan startparameter is set"() {
+        given:
+        startParameter.setNoBuildScan(true)
+
+        when:
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), buildTreeServices)
+        def c = buildScanConfig(launcher)
+
+        then:
+        !c.enabled
+        c.disabled
+    }
+
+    def "marks BuildScanRequest as neither enabled or disabled when no parameter is set"() {
+        when:
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), buildTreeServices)
+        def c = buildScanConfig(launcher)
+
+        then:
+        !c.enabled
+        !c.disabled
+    }
+
+
+    BuildScanConfig buildScanConfig(GradleLauncher launcher) {
+        launcher.gradle.services.get(BuildScanConfigProvider).collect([getVersion: { "2.0" }] as BuildScanPluginMetadata)
     }
 }

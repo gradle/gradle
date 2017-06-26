@@ -72,6 +72,10 @@ class DaemonLogFileStateProbe implements DaemonStateProbe {
         return log.text
     }
 
+    File getLogFile() {
+        return log
+    }
+
     int getPort() {
         Pattern pattern = Pattern.compile("^.*" + DaemonMessages.ADVERTISING_DAEMON + ".*port:(\\d+).*",
                 Pattern.MULTILINE + Pattern.DOTALL);

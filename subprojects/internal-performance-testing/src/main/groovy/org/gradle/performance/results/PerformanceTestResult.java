@@ -23,6 +23,7 @@ public abstract class PerformanceTestResult {
     String testId;
     String jvm;
     String operatingSystem;
+    String host;
     long startTime;
     long endTime;
     String vcsBranch;
@@ -127,4 +128,11 @@ public abstract class PerformanceTestResult {
 
     public abstract void assertEveryBuildSucceeds();
 
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
 }

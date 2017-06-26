@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
@@ -32,9 +36,13 @@ class ModuleMetadataStoreTest extends Specification {
     PathKeyFileStore pathKeyFileStore = Mock()
     String repository = "repositoryId"
     LocallyAvailableResource fileStoreEntry = Mock()
+    ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory) {
+        module(_,_) >> { args -> DefaultModuleIdentifier.newId(*args)}
+    }
+    ModuleExclusions moduleExclusions = new ModuleExclusions(moduleIdentifierFactory)
     ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "testArtifact", "1.0")
     ModuleMetadataSerializer serializer = Mock()
-    ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer);
+    ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer, moduleIdentifierFactory, moduleExclusions);
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {
         when:
@@ -53,7 +61,7 @@ class ModuleMetadataStoreTest extends Specification {
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {
         setup:
         File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
-        def descriptor = new DefaultMutableMavenModuleResolveMetadata(moduleComponentIdentifier, new MutableModuleDescriptorState(moduleComponentIdentifier), "packaging", false, []).asImmutable()
+        def descriptor = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), moduleComponentIdentifier, new MutableModuleDescriptorState(moduleComponentIdentifier), "packaging", false, []).asImmutable()
 
         when:
         store.putModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier), descriptor)

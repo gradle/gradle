@@ -16,14 +16,14 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.gradle.internal.resource.local.LocalResource
+import org.gradle.internal.resource.ReadableContent
 
 class HttpResourceUploaderTest extends AbstractHttpClientTest {
 
     def 'uploader closes the request'() {
         given:
         HttpClientHelper client = Mock()
-        LocalResource resource = Mock()
+        ReadableContent resource = Mock()
         MockedHttpResponse mockedHttpResponse = mockedHttpResponse()
 
         when:

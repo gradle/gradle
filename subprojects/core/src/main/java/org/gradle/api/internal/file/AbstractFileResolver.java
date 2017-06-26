@@ -21,12 +21,14 @@ import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.CollectionUtils;
@@ -55,6 +57,11 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     public FileResolver withBaseDir(Object path) {
         return new BaseDirFileResolver(fileSystem, resolve(path), patternSetFactory);
+    }
+
+    @Override
+    public FileResolver newResolver(File baseDir) {
+        return new BaseDirFileResolver(fileSystem, baseDir, patternSetFactory);
     }
 
     public File resolve(Object path) {
@@ -169,7 +176,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         if (path instanceof ReadableResourceInternal) {
             return (ReadableResourceInternal) path;
         }
-        return new FileResource(resolve(path));
+        return new LocalResourceAdapter(new LocalFileStandInExternalResource(resolve(path), fileSystem));
     }
 
     @Override

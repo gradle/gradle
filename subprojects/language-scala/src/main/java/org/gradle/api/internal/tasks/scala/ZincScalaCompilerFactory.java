@@ -33,6 +33,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.GFileUtils;
 import sbt.ScalaInstance;
 import sbt.compiler.AnalyzingCompiler;
@@ -40,19 +41,14 @@ import xsbti.compile.JavaCompiler;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class ZincScalaCompilerFactory {
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompilerFactory.class);
 
-    public static final String ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY = "org.gradle.zinc.home.dir";
-    private static final String ZINC_DIR_SYSTEM_PROPERTY = "zinc.dir";
-    public static final String ZINC_DIR_IGNORED_MESSAGE = "In order to guarantee parallel safe Scala compilation, Gradle does not support the '" + ZINC_DIR_SYSTEM_PROPERTY + "' system property and ignores any value provided.";
-
     static Compiler createParallelSafeCompiler(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, final xsbti.Logger logger, File gradleUserHome) {
-        File zincCacheHomeDir = new File(System.getProperty(ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY, gradleUserHome.getAbsolutePath()));
+        File zincCacheHomeDir = new File(System.getProperty(ZincScalaCompilerUtil.ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY, gradleUserHome.getAbsolutePath()));
         CacheRepository cacheRepository = ZincCompilerServices.getInstance(zincCacheHomeDir).get(CacheRepository.class);
 
         String zincVersion = Setup.zincVersion().published();
@@ -69,10 +65,10 @@ public class ZincScalaCompilerFactory {
 
             final String userSuppliedZincDir = System.getProperty("zinc.dir");
             if (userSuppliedZincDir != null && !userSuppliedZincDir.equals(cacheDir.getAbsolutePath())) {
-                LOGGER.warn(ZINC_DIR_IGNORED_MESSAGE);
+                LOGGER.warn(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE);
             }
 
-            compiler = SystemProperties.getInstance().withSystemProperty(ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Factory<Compiler>() {
+            compiler = SystemProperties.getInstance().withSystemProperty(ZincScalaCompilerUtil.ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Factory<Compiler>() {
                 @Override
                 public Compiler create() {
                     Setup zincSetup = createZincSetup(scalaClasspath, zincClasspath, logger);
@@ -103,7 +99,7 @@ public class ZincScalaCompilerFactory {
         final String sbtInterfaceFileName = Compiler.interfaceId(instance.actualVersion()) + ".jar";
         final File compilerInterface = new File(setup.cacheDir(), sbtInterfaceFileName);
         if (compilerInterface.exists()) {
-            return zincCache.useCache("getting sbt interface", new Factory<File>() {
+            return zincCache.useCache(new Factory<File>() {
                 @Override
                 public File create() {
                     return compilerInterface;
@@ -118,7 +114,7 @@ public class ZincScalaCompilerFactory {
             final File tmpDir = new File(zincCache.getBaseDir(), "tmp");
             tmpDir.mkdirs();
             final File tempFile = File.createTempFile("zinc", ".jar", tmpDir);
-            final long start = System.nanoTime();
+            final Clock timer = new Clock();
             sbt.compiler.IC.compileInterfaceJar(
                     sbtInterfaceFileName,
                     setup.compilerInterfaceSrc(),
@@ -126,15 +122,14 @@ public class ZincScalaCompilerFactory {
                     setup.sbtInterface(),
                     instance,
                     logger);
-            final long compilationTimeMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
-            final String interfaceCompletedMessage = String.format("Zinc interface compilation took %dms", compilationTimeMillis);
-            if (compilationTimeMillis > 30000) {
+            final String interfaceCompletedMessage = String.format("Zinc interface compilation took %s", timer.getElapsed());
+            if (timer.getElapsedMillis() > 30000) {
                 LOGGER.warn(interfaceCompletedMessage);
             } else {
                 LOGGER.debug(interfaceCompletedMessage);
             }
 
-            return zincCache.useCache("copying sbt interface", new Factory<File>() {
+            return zincCache.useCache(new Factory<File>() {
                 public File create() {
                     // Another process may have already copied the compiler interface JAR
                     // Avoid copying over same existing file to avoid locking problems
@@ -148,7 +143,7 @@ public class ZincScalaCompilerFactory {
             });
         } catch (IOException e) {
             // fall back to the default logic
-            return zincCache.useCache("compiling sbt interface", new Factory<File>() {
+            return zincCache.useCache(new Factory<File>() {
                 public File create() {
                     return Compiler.compilerInterface(setup, instance, logger);
                 }

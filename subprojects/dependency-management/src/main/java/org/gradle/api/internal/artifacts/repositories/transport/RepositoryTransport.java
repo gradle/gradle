@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.ExternalResourceRepository;
 
 public interface RepositoryTransport {
     ExternalResourceRepository getRepository();

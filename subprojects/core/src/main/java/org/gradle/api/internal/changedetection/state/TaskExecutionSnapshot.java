@@ -16,40 +16,51 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.hash.HashCode;
-
-import java.util.Map;
+import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.internal.id.UniqueId;
 
 /**
  * Immutable snapshot of the state of a task when it was executed.
  */
 public class TaskExecutionSnapshot {
-    private final String taskClass;
-    private final HashCode taskClassLoaderHash;
-    private final HashCode taskActionsClassLoaderHash;
-    // Should be declared as immutable map, however some entries are null and entries are not guaranteed to be immutable
-    private final Map<String, Object> inputProperties;
-    private final ImmutableSet<String> cacheableOutputProperties;
+    private final UniqueId buildInvocationId;
+    private final ImplementationSnapshot taskImplementation;
+    private final ImmutableList<ImplementationSnapshot> taskActionsImplementations;
+    private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
+    private final ImmutableSortedSet<String> cacheableOutputProperties;
     private final ImmutableSet<String> declaredOutputFilePaths;
     private final ImmutableSortedMap<String, Long> inputFilesSnapshotIds;
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(String taskClass, ImmutableSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, HashCode taskActionsClassLoaderHash, Map<String, Object> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
-        this.taskClass = taskClass;
+    public TaskExecutionSnapshot(UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+        this.buildInvocationId = buildInvocationId;
+        this.taskImplementation = taskImplementation;
+        this.taskActionsImplementations = taskActionsImplementations;
         this.cacheableOutputProperties = cacheableOutputProperties;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
-        this.taskClassLoaderHash = taskClassLoaderHash;
-        this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
         this.inputProperties = inputProperties;
         this.inputFilesSnapshotIds = inputFilesSnapshotIds;
         this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
         this.outputFilesSnapshotIds = outputFilesSnapshotIds;
     }
 
-    public ImmutableSet<String> getCacheableOutputProperties() {
+    public UniqueId getBuildInvocationId() {
+        return buildInvocationId;
+    }
+
+    public ImplementationSnapshot getTaskImplementation() {
+        return taskImplementation;
+    }
+
+    public ImmutableList<ImplementationSnapshot> getTaskActionsImplementations() {
+        return taskActionsImplementations;
+    }
+
+    public ImmutableSortedSet<String> getCacheableOutputProperties() {
         return cacheableOutputProperties;
     }
 
@@ -65,23 +76,11 @@ public class TaskExecutionSnapshot {
         return inputFilesSnapshotIds;
     }
 
-    public Map<String, Object> getInputProperties() {
+    public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
         return inputProperties;
     }
 
     public ImmutableSortedMap<String, Long> getOutputFilesSnapshotIds() {
         return outputFilesSnapshotIds;
-    }
-
-    public HashCode getTaskActionsClassLoaderHash() {
-        return taskActionsClassLoaderHash;
-    }
-
-    public String getTaskClass() {
-        return taskClass;
-    }
-
-    public HashCode getTaskClassLoaderHash() {
-        return taskClassLoaderHash;
     }
 }

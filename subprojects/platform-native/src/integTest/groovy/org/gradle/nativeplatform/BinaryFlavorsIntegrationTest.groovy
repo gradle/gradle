@@ -154,7 +154,8 @@ model {
 
         then:
         fails "mainGermanExecutable"
-        failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'german', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'debug']")
+        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainGermanExecutable'.")
+        failure.assertHasCause("No shared library binary available for library 'hello' with [flavor: 'german', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'debug']")
     }
 
     def "fails with reasonable error message when trying to target an unknown flavor"() {

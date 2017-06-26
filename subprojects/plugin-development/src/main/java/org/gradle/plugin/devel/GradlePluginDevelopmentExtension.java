@@ -99,7 +99,7 @@ public class GradlePluginDevelopmentExtension {
     }
 
     /**
-     * Returns the the source sets executing the functional tests with TestKit. Defaults to {@code project.sourceSets.test}.
+     * Returns the source sets executing the functional tests with TestKit. Defaults to {@code project.sourceSets.test}.
      *
      * @return the test source sets
      */

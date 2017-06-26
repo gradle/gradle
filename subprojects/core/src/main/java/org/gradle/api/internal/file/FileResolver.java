@@ -44,4 +44,7 @@ public interface FileResolver extends RelativeFilePathResolver, PathToFileResolv
     NotationParser<Object, File> asNotationParser();
 
     Factory<PatternSet> getPatternSetFactory();
+
+    @Override
+    FileResolver newResolver(File baseDir);
 }

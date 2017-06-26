@@ -16,6 +16,8 @@
 
 package org.gradle.test.fixtures.maven
 
+import com.google.common.collect.ArrayListMultimap
+
 class MavenPom {
     String groupId
     String artifactId
@@ -33,6 +35,7 @@ class MavenPom {
             version = pom.version[0]?.text()
             packaging = pom.packaging[0]?.text()
             description = pom.description[0]?.text()
+            def scopesByDependency = ArrayListMultimap.create()
 
             pom.dependencies.dependency.each { dep ->
                 def scopeElement = dep.scope
@@ -64,6 +67,11 @@ class MavenPom {
                 def key = "${mavenDependency.groupId}:${mavenDependency.artifactId}:${mavenDependency.version}"
                 key += mavenDependency.classifier ? ":${mavenDependency.classifier}" : ""
                 scope.dependencies[key] = mavenDependency
+                scopesByDependency.put(key, scopeName)
+            }
+
+            scopesByDependency.asMap().entrySet().findAll { it.value.size() > 1 }.each {
+                throw new AssertionError("$it.key appeared in more than one scope: $it.value")
             }
         }
     }

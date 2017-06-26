@@ -17,7 +17,6 @@ package org.gradle.internal.classloader;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.IOException;
 import java.net.URL;
@@ -38,8 +37,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHierarchy {
 
-    private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
-    private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD = JavaReflectionUtil.method(ClassLoader.class, Package.class, "getPackage", String.class);
+    private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = ClassLoaderUtils.getPackagesMethod();
+    private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD =  ClassLoaderUtils.getPackageMethod();
 
     private final List<ClassLoader> parents;
 

@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
+import org.gradle.api.Action
+import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
@@ -33,7 +36,7 @@ class DefaultArtifactHandlerTest extends Specification {
     private Configuration configurationMock = Mock()
     private PublishArtifactSet artifactsMock = Mock()
 
-    private DefaultArtifactHandler artifactHandler = new DefaultArtifactHandler(configurationContainerStub, artifactFactoryStub)
+    private DefaultArtifactHandler artifactHandler = new AsmBackedClassGenerator().newInstance(DefaultArtifactHandler, configurationContainerStub, artifactFactoryStub)
 
     void setup() {
         configurationContainerStub.findByName(TEST_CONF_NAME) >> configurationMock
@@ -42,7 +45,7 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void pushOneDependency() {
-        PublishArtifact artifactDummy = Mock()
+        ConfigurablePublishArtifact artifactDummy = Mock()
 
         when:
         artifactHandler.someConf("someNotation")
@@ -53,7 +56,7 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void pushOneDependencyWithClosure() {
-        PublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        ConfigurablePublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
 
         when:
         artifactHandler.someConf("someNotation") { type = 'source' }
@@ -67,8 +70,8 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void pushMultipleDependencies() {
-        PublishArtifact artifactDummy1 = Mock()
-        PublishArtifact artifactDummy2 = Mock()
+        ConfigurablePublishArtifact artifactDummy1 = Mock()
+        ConfigurablePublishArtifact artifactDummy2 = Mock()
 
         when:
         artifactHandler.someConf("someNotation", "someNotation2")
@@ -81,8 +84,26 @@ class DefaultArtifactHandlerTest extends Specification {
 
     }
 
+    void failsWhenNoParameters() {
+        when:
+        artifactHandler.someConf()
+
+        then:
+        def e = thrown(MissingMethodException)
+        e.message == "Could not find method someConf() for arguments [] on object of type $DefaultArtifactHandler.name."
+    }
+
+    void failsWhenAddingToUnknownConfiguration() {
+        when:
+        artifactHandler.unknown("someNotation")
+
+        then:
+        def e = thrown(MissingMethodException)
+        e.message == "Could not find method unknown() for arguments [someNotation] on object of type $DefaultArtifactHandler.name."
+    }
+
     void addOneDependency() {
-        PublishArtifact artifactDummy = Mock()
+        ConfigurablePublishArtifact artifactDummy = Mock()
 
         when:
         artifactHandler.add('someConf', "someNotation")
@@ -93,7 +114,7 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void addOneDependencyWithClosure() {
-        PublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        ConfigurablePublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
 
         when:
         artifactHandler.add('someConf', "someNotation") { type = 'source' }
@@ -103,6 +124,22 @@ class DefaultArtifactHandlerTest extends Specification {
 
         and:
         1 * artifactFactoryStub.parseNotation("someNotation") >> artifact
+        1 * artifactsMock.add(artifact)
+    }
+
+    void addOneDependencyWithAction() {
+        ConfigurablePublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        Action action = Mock(Action)
+
+        when:
+        artifactHandler.add('someConf', "someNotation", action)
+
+        then:
+        artifact.type == 'source'
+
+        and:
+        1 * artifactFactoryStub.parseNotation("someNotation") >> artifact
+        1 * action.execute(_) >> { PublishArtifact a -> a.type = 'source' }
         1 * artifactsMock.add(artifact)
     }
 

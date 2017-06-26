@@ -210,19 +210,23 @@ class ToolingApi implements TestRule {
                 try {
                     base.evaluate();
                 } finally {
-                    if (isolatedToolingClient != null) {
-                        isolatedToolingClient.close()
-                    }
-                    if (requireIsolatedDaemons) {
-                        try {
-                            getDaemons().killAll()
-                        } catch (RuntimeException ex) {
-                            //TODO once we figured out why pid from logfile can be null we should remove this again
-                            LOGGER.warn("Unable to kill daemon(s)", ex);
-                        }
-                    }
+                    cleanUpIsolatedDaemonsAndServices()
                 }
             }
-        };
+        }
+    }
+
+    def cleanUpIsolatedDaemonsAndServices() {
+        if (isolatedToolingClient != null) {
+            isolatedToolingClient.close()
+        }
+        if (requireIsolatedDaemons) {
+            try {
+                getDaemons().killAll()
+            } catch (RuntimeException ex) {
+                //TODO once we figured out why pid from logfile can be null we should remove this again
+                LOGGER.warn("Unable to kill daemon(s)", ex)
+            }
+        }
     }
 }

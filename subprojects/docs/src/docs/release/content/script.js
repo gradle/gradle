@@ -14,8 +14,8 @@ $(function() {
     };
     paraFadeOut();
 
-    $.ajax(url + "?callback=?", {
-      dataType: "jsonp",
+    $.ajax(url, {
+      dataType: "json",
       cache: true,
       success: function(data, textStatus, jqXHR) {
         finishAnimation();

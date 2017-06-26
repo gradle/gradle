@@ -97,8 +97,8 @@ task log {
         !stdOutAndErr.stdErr.contains("logging")
     }
 
-    @ToolingApiVersion(">=2.3")
-    @TargetGradleVersion(">=2.3")
+    @ToolingApiVersion(">=2.3 <4.0")
+    @TargetGradleVersion(">=2.3 <4.0")
     def "can specify color output"() {
         file("build.gradle") << """
 task log {

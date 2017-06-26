@@ -38,6 +38,9 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -52,12 +55,14 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 public abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class);
 
     private FileOperations fileOperations;
     private ProcessOperations processOperations;
+    private ProviderFactory providerFactory;
     private LoggingManager loggingManager;
 
     public ServiceRegistry __scriptServices;
@@ -82,6 +87,7 @@ public abstract class DefaultScript extends BasicScript {
         }
 
         processOperations = (ProcessOperations) fileOperations;
+        providerFactory = services.get(ProviderFactory.class);
     }
 
     @Override
@@ -242,6 +248,16 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public ExecResult exec(Action<? super ExecSpec> action) {
         return processOperations.exec(action);
+    }
+
+    @Override
+    public <T> Provider<T> provider(Callable<T> value) {
+        return providerFactory.provider(value);
+    }
+
+    @Override
+    public <T> PropertyState<T> property(Class<T> clazz) {
+        return providerFactory.property(clazz);
     }
 
     @Override

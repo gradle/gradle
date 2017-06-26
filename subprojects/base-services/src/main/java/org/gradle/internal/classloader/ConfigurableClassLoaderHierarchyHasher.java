@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierarchyHasher {
-    private static final byte[] UNKNOWN = "unknown".getBytes(Charsets.UTF_8);
     private final Map<ClassLoader, byte[]> knownClassLoaders;
     private final ClassLoaderHasher classLoaderHasher;
 
@@ -39,19 +38,12 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
         this.knownClassLoaders = hashes;
     }
 
+    @Nullable
     @Override
-    public HashCode getLenientHash(ClassLoader classLoader) {
+    public HashCode getClassLoaderHash(ClassLoader classLoader) {
         Visitor visitor = new Visitor();
         visitor.visit(classLoader);
         return visitor.getHash();
-    }
-
-    @Nullable
-    @Override
-    public HashCode getStrictHash(ClassLoader classLoader) {
-        Visitor visitor = new Visitor();
-        visitor.visit(classLoader);
-        return visitor.hasUnknown() ? null : visitor.getHash();
     }
 
     private class Visitor extends ClassLoaderVisitor {
@@ -66,20 +58,9 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
         }
 
         public HashCode getHash() {
-            return hasher.hash();
+            return foundUnknown ? null : hasher.hash();
         }
 
-        public boolean hasUnknown() {
-            return foundUnknown;
-        }
-
-        /**
-         * Feeds the hash of the given classloader into the hasher. If the given classloader doesn't have
-         * a hash, a dummy value is used, and {@link #hasUnknown()} will return {@code true}.
-         *
-         * @return {@code true} if the parent of the classloader should also be visited, {@code false} if
-         * the traversal should stop.
-         */
         private boolean addToHash(ClassLoader cl) {
             byte[] knownId = knownClassLoaders.get(cl);
             if (knownId != null) {
@@ -94,9 +75,8 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
                 hasher.putBytes(hash.asBytes());
                 return true;
             }
-            hasher.putBytes(UNKNOWN);
             foundUnknown = true;
-            return true;
+            return false;
         }
     }
 }

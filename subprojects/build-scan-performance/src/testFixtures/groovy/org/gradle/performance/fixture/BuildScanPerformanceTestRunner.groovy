@@ -21,6 +21,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
+import org.gradle.performance.util.Git
 import org.gradle.util.GradleVersion
 
 class BuildScanPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
@@ -38,6 +39,7 @@ class BuildScanPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
             operatingSystem: OperatingSystem.current().toString(),
+            host: InetAddress.getLocalHost().getHostName(),
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId, pluginCommitSha],

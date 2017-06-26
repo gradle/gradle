@@ -35,6 +35,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final ExecutorFactory executorFactory;
     private final String displayName;
     protected final File propertiesFile;
+    protected final File gcFile;
     private CacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(File dir, String displayName, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, FileLockManager fileLockManager, ExecutorFactory executorFactory) {
@@ -44,9 +45,11 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
         this.propertiesFile = new File(dir, "cache.properties");
+        this.gcFile = new File(dir, "gc.properties");
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
     }
 
+    @Override
     public DefaultPersistentDirectoryStore open() {
         GFileUtils.mkdirs(dir);
         cacheAccess = createCacheAccess();
@@ -60,7 +63,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private CacheCoordinator createCacheAccess() {
-        return new DefaultCacheAccess(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), executorFactory);
+        return new DefaultCacheAccess(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), getCleanupAction(), executorFactory);
     }
 
     private File getLockTarget() {
@@ -87,6 +90,21 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         };
     }
 
+    protected CacheCleanupAction getCleanupAction() {
+        return new CacheCleanupAction() {
+            @Override
+            public boolean requiresCleanup() {
+                return false;
+            }
+
+            @Override
+            public void cleanup() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+    @Override
     public void close() {
         if (cacheAccess != null) {
             try {
@@ -97,6 +115,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         }
     }
 
+    @Override
     public File getBaseDir() {
         return dir;
     }
@@ -106,34 +125,29 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return displayName;
     }
 
+    @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
         return cacheAccess.newCache(parameters);
     }
 
+    @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
         return cacheAccess.newCache(new PersistentIndexedCacheParameters<K, V>(name, keyType, valueSerializer));
     }
 
     @Override
-    public void flush() {
-        if (cacheAccess != null) {
-            cacheAccess.flush();
-        }
+    public <T> T withFileLock(Factory<? extends T> action) {
+        return cacheAccess.withFileLock(action);
     }
 
-    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        return cacheAccess.useCache(operationDisplayName, action);
+    @Override
+    public <T> T useCache(Factory<? extends T> action) {
+        return cacheAccess.useCache(action);
     }
 
-    public void useCache(String operationDisplayName, Runnable action) {
-        cacheAccess.useCache(operationDisplayName, action);
+    @Override
+    public void useCache(Runnable action) {
+        cacheAccess.useCache(action);
     }
 
-    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        return cacheAccess.longRunningOperation(operationDisplayName, action);
-    }
-
-    public void longRunningOperation(String operationDisplayName, Runnable action) {
-        cacheAccess.longRunningOperation(operationDisplayName, action);
-    }
 }

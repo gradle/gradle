@@ -22,7 +22,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 
 class ResolvedConfigurationIdentifierSerializerTest extends SerializerSpec {
 
-    def s = new ResolvedConfigurationIdentifierSerializer()
+    def s = new ResolvedConfigurationIdentifierSerializer(new DefaultImmutableModuleIdentifierFactory())
 
     def "serializes"() {
         def id = newId("org", "foo", "2.0")

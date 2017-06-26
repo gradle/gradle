@@ -17,33 +17,18 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.Resources
+import org.gradle.util.TestPrecondition
+import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
-
-import static org.gradle.util.JarUtils.jarWithContents
+import spock.lang.Unroll
 
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
-    @Issue("GRADLE-3152")
-    def "can use the task without applying java-base plugin"() {
-        buildFile << """
-            task compile(type: JavaCompile) {
-                classpath = files()
-                sourceCompatibility = JavaVersion.current()
-                targetCompatibility = JavaVersion.current()
-                destinationDir = file("build/classes")
-                source "src/main/java"
-            }
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        run("compile")
-
-        then:
-        file("build/classes/Foo.class").exists()
-    }
+    @Rule
+    Resources resources = new Resources()
 
     def "uses default platform settings when applying java plugin"() {
         buildFile << """
@@ -55,7 +40,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         when:
         run("compileJava")
         then:
-        file("build/classes/main/Foo.class").exists()
+        javaClassFile("Foo.class").exists()
     }
 
     def "don't implicitly compile source files from classpath"() {
@@ -85,16 +70,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         // This makes sure the test above is correct AND you can get back javac's default behavior if needed
         when:
         buildFile << "project(':b').compileJava { options.sourcepath = classpath }"
-        run("compileJava")
+        executer.noDeprecationChecks().withTasks("compileJava").run()
         then:
-        file("b/build/classes/main/Bar.class").exists()
-        file("b/build/classes/main/Foo.class").exists()
+        file("b/build/classes/java/main/Bar.class").exists()
+        file("b/build/classes/java/main/Foo.class").exists()
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3508")
     def "detects change in classpath order"() {
-        file("lib1.jar") << jarWithContents("data.txt": "data1")
-        file("lib2.jar") << jarWithContents("data.txt": "data2")
+        jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
+        jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")
@@ -109,21 +94,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         skippedTasks.contains ":compile"
 
-        // Need to wait for build script cache to be able to recognize change
-        sleep(1000L)
-
-        buildFile.delete()
-        buildFile << buildScriptWithClasspath("lib2.jar", "lib1.jar")
-
         when:
+        buildFile.text = buildScriptWithClasspath("lib2.jar", "lib1.jar")
         run "compile"
         then:
         nonSkippedTasks.contains ":compile"
     }
 
     def "stays up-to-date after file renamed on classpath"() {
-        file("lib1.jar") << jarWithContents("data.txt": "data1")
-        file("lib2.jar") << jarWithContents("data.txt": "data2")
+        jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
+        jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")
@@ -145,56 +125,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         run "compile"
         then:
         skippedTasks.contains ":compile"
-    }
-
-    def "detects change in contents of directory on classpath"() {
-        file("resources", "data").createDir()
-        file("resources/data/input.txt") << "data"
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        buildFile << buildScriptWithClasspath("resources")
-
-        when:
-        run "compile"
-        then:
-        nonSkippedTasks.contains ":compile"
-
-        when:
-        run "compile"
-        then:
-        skippedTasks.contains ":compile"
-
-        when:
-        file("resources/data/input.txt") << "data modified"
-
-        run "compile"
-        then:
-        nonSkippedTasks.contains ":compile"
-    }
-
-    def "detects relocated resource included via directory on classpath"() {
-        file("resources", "data").createDir()
-        file("resources/data/input.txt") << "data"
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        buildFile << buildScriptWithClasspath("resources")
-
-        when:
-        run "compile"
-        then:
-        nonSkippedTasks.contains ":compile"
-
-        when:
-        run "compile"
-        then:
-        skippedTasks.contains ":compile"
-
-        when:
-        file("resources/data").renameTo(file("resources/data-modified"))
-
-        run "compile"
-        then:
-        nonSkippedTasks.contains ":compile"
     }
 
     def buildScriptWithClasspath(String... dependencies) {
@@ -245,7 +175,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
         then:
         nonSkippedTasks.contains ":test"
-        file("build/classes/main/com/example/Foo.class").file
+        javaClassFile("com/example/Foo.class").assertIsFile()
 
         when:
         // Move source file to case-renamed package
@@ -271,6 +201,448 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
         then:
         nonSkippedTasks.contains ":test"
-        file("build/classes/main/com/Example/Foo.class").file
+        javaClassFile("com/example/Foo.class").assertIsFile()
     }
+
+    def "implementation dependencies should not leak into compile classpath of consumer"() {
+        mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'other', '1.0').publish()
+
+        given:
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+        allprojects {
+            apply plugin: 'java'
+
+            repositories {
+               maven { url '$mavenRepo.uri' }
+            }
+        }
+
+        task checkClasspath {
+            doLast {
+                def compileClasspath = project(':a').compileJava.classpath.files*.name
+                assert compileClasspath.contains('b.jar')
+                assert compileClasspath.contains('other-1.0.jar')
+                assert !compileClasspath.contains('shared-1.0.jar')
+            }
+        }
+        """
+
+        file('a/build.gradle') << '''
+            dependencies {
+                implementation project(':b')
+            }
+        '''
+        file('b/build.gradle') << '''
+            dependencies {
+                compile 'org.gradle.test:other:1.0' // using the old 'compile' makes it leak into compile classpath
+                implementation 'org.gradle.test:shared:1.0' // but not using 'implementation'
+            }
+        '''
+
+        when:
+        run 'checkClasspath'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "test runtime classpath includes implementation dependencies"() {
+        given:
+        buildFile << '''
+            apply plugin: 'java'
+
+            repositories {
+                jcenter()
+            }
+
+            dependencies {
+                implementation 'org.apache.commons:commons-lang3:3.4'
+                testCompile 'junit:junit:4.12' // not using testImplementation intentionally, that's not what we want to test
+            }
+        '''
+        file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
+            public class Text {
+                public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
+            }
+        '''
+        file('src/test/java/TextTest.java') << '''
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class TextTest {
+                @Test
+                public void testGreeting() {
+                    assertEquals("Hello, Cedric", Text.sayHello("cedric"));
+                }
+            }
+        '''
+
+        when:
+        run 'test'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "test runtime classpath includes test implementation dependencies"() {
+        given:
+        buildFile << '''
+            apply plugin: 'java'
+
+            repositories {
+                jcenter()
+            }
+
+            dependencies {
+                implementation 'org.apache.commons:commons-lang3:3.4'
+                testImplementation 'junit:junit:4.12'
+            }
+        '''
+        file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
+            public class Text {
+                public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
+            }
+        '''
+        file('src/test/java/TextTest.java') << '''
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class TextTest {
+                @Test
+                public void testGreeting() {
+                    assertEquals("Hello, Cedric", Text.sayHello("cedric"));
+                }
+            }
+        '''
+
+        when:
+        run 'test'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "test compile classpath includes implementation dependencies"() {
+        given:
+        buildFile << '''
+            apply plugin: 'java'
+
+            repositories {
+                jcenter()
+            }
+
+            dependencies {
+                implementation 'org.apache.commons:commons-lang3:3.4'
+                testImplementation 'junit:junit:4.12'
+            }
+        '''
+        file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
+            public class Text {
+                public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
+            }
+        '''
+        file('src/test/java/TextTest.java') << '''import org.apache.commons.lang3.StringUtils;
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class TextTest {
+                @Test
+                public void testGreeting() {
+                    assertEquals(StringUtils.capitalize("hello, Cedric"), Text.sayHello("cedric"));
+                }
+            }
+        '''
+
+        when:
+        run 'test'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "test runtime classpath includes test runtime only dependencies"() {
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compileonly', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'runtimeonly', '1.0').publish()
+
+        given:
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            apply plugin: 'java'
+
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+
+            dependencies {
+                testImplementation 'org.gradle.test:compile:1.0'
+                testCompileOnly 'org.gradle.test:compileonly:1.0'
+                testRuntimeOnly 'org.gradle.test:runtimeonly:1.0'
+            }
+
+        task checkClasspath {
+            doLast {
+                def runtimeClasspath = test.classpath.files*.name
+                assert runtimeClasspath.contains('compile-1.0.jar')
+                assert !runtimeClasspath.contains('compileonly-1.0.jar')
+                assert runtimeClasspath.contains('runtimeonly-1.0.jar')
+            }
+        }
+        """
+
+        when:
+        run 'checkClasspath'
+
+        then:
+        noExceptionThrown()
+    }
+
+    @Unroll
+    def "can depend on #scenario without building the jar"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+        file('a/build.gradle') << """
+            apply plugin: 'java'
+            
+            dependencies {
+                implementation project(':b')
+            }
+            
+            task processDependency {
+                def lazyInputs = configurations.runtimeClasspath.incoming.artifactView { 
+                    attributes{ attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.${token})) }
+                }.files
+                inputs.files(lazyInputs)
+                doLast {
+                    assert CollectionUtils.single(lazyInputs.files).toPath().endsWith("${expectedDirName}")
+                }
+            }
+        """
+        file('b/build.gradle') << '''
+            apply plugin: 'java'
+        '''
+        file('b/src/main/java/Foo.java') << 'class Foo {}'
+        file('b/src/main/resources/foo.txt') << 'some resource'
+
+        when:
+        run 'processDependency'
+
+        then:
+        executedAndNotSkipped ":b:$executed"
+        notExecuted ":b:$notExec"
+
+        where:
+        scenario              | token                    | expectedDirName     | executed           | notExec
+        'class directory'     | 'JAVA_RUNTIME_CLASSES'   | 'classes/java/main' | 'compileJava'      | 'processResources'
+        'resources directory' | 'JAVA_RUNTIME_RESOURCES' | 'resources/main'    | 'processResources' | 'compileJava'
+    }
+
+    @Issue("gradle/gradle#1347")
+    def "compile classpath snapshotting ignores non-relevant elements"() {
+        def buildFileWithDependencies = { String... dependencies ->
+            buildFile.text = """
+                apply plugin: 'java'
+                                  
+                repositories {
+                    mavenCentral()
+                }
+
+                dependencies {
+                    ${dependencies.collect { "compile ${it}"}.join('\n') }
+                }
+            """
+        }
+
+        def ignoredFile = file('foo.txt') << 'should not throw an error during compile classpath snapshotting'
+        file('bar.txt') << 'should be ignored, too'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        def nonIgnoredDependency = '"org.apache.commons:commons-lang3:3.4"'
+        def ignoredDependency = 'files("foo.txt")'
+        def anotherIgnoredDependency = 'files("bar.txt")'
+
+        when:
+        buildFileWithDependencies(ignoredDependency, nonIgnoredDependency)
+        run 'compileJava'
+
+        then:
+        noExceptionThrown()
+        executedAndNotSkipped ':compileJava'
+
+        when: "we update a non relevant file on compile classpath"
+        buildFileWithDependencies(ignoredDependency, nonIgnoredDependency)
+        ignoredFile << 'should not trigger recompilation'
+        run 'compileJava'
+
+        then:
+        skipped ':compileJava'
+
+        when: "we remove a non relevant file from compile classpath"
+        buildFileWithDependencies(nonIgnoredDependency)
+        run 'compileJava'
+
+        then:
+        skipped ':compileJava'
+
+        when: "we add a non-relevant element to the classpath"
+        buildFileWithDependencies(ignoredDependency, anotherIgnoredDependency, nonIgnoredDependency)
+        succeeds 'compileJava'
+
+        then:
+        skipped ':compileJava'
+
+        when: "we reorder ignored elements on the classpath"
+        buildFileWithDependencies(anotherIgnoredDependency, nonIgnoredDependency, ignoredDependency)
+        succeeds('compileJava')
+
+        then:
+        skipped ':compileJava'
+
+        when: "we duplicate ignored elements on the classpath"
+        buildFileWithDependencies(anotherIgnoredDependency, anotherIgnoredDependency, nonIgnoredDependency, ignoredDependency)
+        succeeds('compileJava')
+
+        then:
+        skipped ':compileJava'
+
+        when: "we remove a non relevant file from disk"
+        buildFileWithDependencies(ignoredDependency, nonIgnoredDependency)
+        assert ignoredFile.delete()
+        run 'compileJava'
+
+        then:
+        skipped ':compileJava'
+    }
+
+    @Issue("gradle/gradle#1358")
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // Java 9 compiler throws error already: 'zip END header not found'
+    def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile files('foo.jar')
+            }
+        '''
+        file('foo.jar') << 'this is clearly not a well formed jar file'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        outputContains 'Malformed jar [foo.jar] found on compile classpath'
+
+    }
+
+    @Issue("gradle/gradle#1581")
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // Java 9 compiler throws error already: java.nio.file.InvalidPathException: Path: nul character not allowed
+    def "compile classpath snapshotting should warn when jar on classpath has non-utf8 characters in filenames"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile files('broken-utf8.jar')
+            }
+        '''
+        // This file has a file name which is not UTF-8.
+        // See https://bugs.openjdk.java.net/browse/JDK-7062777?focusedCommentId=12254124&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12254124.
+        resources.findResource('broken-utf8.is-a-jar').copyTo(file('broken-utf8.jar'))
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        outputContains 'Malformed jar [broken-utf8.jar] found on classpath'
+
+    }
+
+    @Issue("gradle/gradle#1358")
+    def "compile classpath snapshotting should warn when jar on classpath contains malformed class file"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            task fooJar(type:Jar) {
+                archiveName = 'foo.jar'
+                from file('foo.class')
+            }
+            
+            dependencies {
+               compile files(fooJar.archivePath)
+            }
+            
+            compileJava.dependsOn(fooJar)
+            
+            
+        '''
+        file('foo.class') << 'this is clearly not a well formed class file'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':fooJar', ':compileJava'
+        outputContains 'Malformed jar [foo.jar] found on classpath.'
+    }
+
+    @Issue("gradle/gradle#1358")
+    def "compile classpath snapshotting should warn when class on classpath is malformed"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile files('classes')
+            }
+            
+        '''
+        file('classes/foo.class') << 'this is clearly not a well formed class file'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        outputContains 'Malformed class file [foo.class] found on compile classpath'
+    }
+
+    @Issue("gradle/gradle#1359")
+    def "compile classpath snapshotting should support unicode class names"() {
+        settingsFile << 'include "b"'
+        file("b/build.gradle") << '''
+            apply plugin: 'java'
+        '''
+        file("b/src/main/java/λ.java") << 'public class λ {}'
+
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile project(':b')
+            }
+        '''
+        file('src/main/java/Lambda.java') << 'public class Lambda extends λ {}'
+
+        when:
+        run 'compileJava'
+
+        then:
+        noExceptionThrown()
+        executedAndNotSkipped ':compileJava'
+    }
+
 }

@@ -33,11 +33,4 @@ public class AggregatingProjectArtifactBuilder implements ProjectArtifactBuilder
             delegate.build(artifact);
         }
     }
-
-    @Override
-    public void willBuild(ComponentArtifactMetadata artifact) {
-        for (ProjectArtifactBuilder delegate : delegates) {
-            delegate.willBuild(artifact);
-        }
-    }
 }

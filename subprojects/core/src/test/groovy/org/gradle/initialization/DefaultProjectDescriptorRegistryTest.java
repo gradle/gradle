@@ -48,6 +48,7 @@ public class DefaultProjectDescriptorRegistryTest {
         registry.addProject(project);
 
         registry.changeDescriptorPath(Path.path(":"), Path.path(":newPath"));
+        assertThat(registry.getRootProject(), nullValue());
         assertThat(registry.getProject(":"), nullValue());
         assertThat(registry.getProject(":newPath"), sameInstance(project));
     }

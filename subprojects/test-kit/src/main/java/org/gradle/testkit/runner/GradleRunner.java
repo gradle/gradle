@@ -46,7 +46,7 @@ import java.util.List;
  * GradleRunner instances are not thread safe and cannot be used concurrently.
  * However, multiple instances are able to be used concurrently.
  * <p>
- * Please see <a href="https://docs.gradle.org/current/userguide/test_kit.html">the Gradle TestKit User Guide chapter</a> for more information.
+ * Please see <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">the Gradle TestKit User Guide chapter</a> for more information.
  *
  * @since 2.6
  */
@@ -176,7 +176,7 @@ public abstract class GradleRunner {
      * A project directory must be set.
      * This method must be called before {@link #build()} or {@link #buildAndFail()}.
      * <p>
-     * All builds executed with the runner effectively implicitly add the {@code --no-search-upwards} argument.
+     * All builds executed with the runner effectively implicitly add the {@code --no-search-upward} argument.
      * This suppresses Gradle's default behaviour of searching upwards through the file system in order to find the root of the current project tree.
      * This default behaviour is often utilised when focusing on a particular build within a multi-project build.
      * This behaviour is suppressed due to test builds being executed potentially being created within a “real build”

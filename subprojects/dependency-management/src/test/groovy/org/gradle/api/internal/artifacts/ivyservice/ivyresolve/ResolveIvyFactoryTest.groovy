@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import com.google.common.collect.Lists
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
@@ -30,12 +31,13 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCa
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
-import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 
@@ -51,6 +53,7 @@ class ResolveIvyFactoryTest extends Specification {
     InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory
     VersionSelectorScheme versionSelectorScheme
     VersionComparator versionComparator
+    ImmutableModuleIdentifierFactory moduleIdentifierFactory
 
     def setup() {
         moduleVersionsCache = Mock(ModuleVersionsCache)
@@ -65,12 +68,13 @@ class ResolveIvyFactoryTest extends Specification {
         inMemoryCachedRepositoryFactory = Mock(InMemoryCachedRepositoryFactory) {
             _ * cached(_) >> { ModuleComponentRepository repository -> repository }
         }
+        moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
         versionSelectorScheme = Mock(VersionSelectorScheme)
         versionComparator = Mock(VersionComparator)
 
         resolveIvyFactory = new ResolveIvyFactory(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache,
-              cachedArtifactIndex, cacheLockingManager, startParameterResolutionOverride, buildCommencedTimeProvider,
-              inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator)
+            cachedArtifactIndex, cacheLockingManager, startParameterResolutionOverride, buildCommencedTimeProvider,
+            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory)
     }
 
     def "returns an empty resolver when no repositories are configured" () {
@@ -115,17 +119,19 @@ class ResolveIvyFactoryTest extends Specification {
         CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor = Stub()
         VersionLister versionLister = Stub()
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
-        FileStore<ModuleComponentArtifactMetadata> fileStore = Stub()
+        FileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [
-                    "Spy Resolver",
-                    false,
-                    externalResourceRepository,
-                    cacheAwareExternalResourceAccessor,
-                    versionLister,
-                    locallyAvailableResourceFinder,
-                    fileStore
+                "Spy Resolver",
+                false,
+                externalResourceRepository,
+                cacheAwareExternalResourceAccessor,
+                versionLister,
+                locallyAvailableResourceFinder,
+                artifactFileStore,
+                moduleIdentifierFactory,
+                TestFiles.fileRepository()
             ]
         ) {
             getLocalAccess() >> Stub(ModuleComponentRepositoryAccess)

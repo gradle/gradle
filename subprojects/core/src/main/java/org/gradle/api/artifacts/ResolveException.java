@@ -20,7 +20,7 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 /**
- * <p>A <code>ResolveException</code> is thrown when a dependency configuration cannot be resolved for some reason.</p>
+ * <p>A <code>ResolveException</code> is thrown when dependency resolution fails for some reason.</p>
  */
 @Contextual
 public class ResolveException extends DefaultMultiCauseException {

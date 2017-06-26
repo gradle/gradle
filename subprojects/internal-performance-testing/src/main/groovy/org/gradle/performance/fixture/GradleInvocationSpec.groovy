@@ -121,6 +121,10 @@ class GradleInvocationSpec implements InvocationSpec {
             this.gradleOptions.addAll(Arrays.asList(gradleOpts))
             this
         }
+        InvocationBuilder gradleOpts(Iterable<String> gradleOpts) {
+            this.gradleOptions.addAll(gradleOpts)
+            this
+        }
 
         InvocationBuilder useDaemon() {
             useDaemon(true)

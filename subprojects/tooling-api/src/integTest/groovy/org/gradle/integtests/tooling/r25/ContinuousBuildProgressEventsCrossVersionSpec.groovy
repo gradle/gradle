@@ -25,7 +25,7 @@ import org.gradle.tooling.BuildLauncher
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
 class ContinuousBuildProgressEventsCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 
-    def events = new ProgressEvents()
+    def events = ProgressEvents.create()
 
     void customizeLauncher(BuildLauncher launcher) {
         launcher.addProgressListener(events)

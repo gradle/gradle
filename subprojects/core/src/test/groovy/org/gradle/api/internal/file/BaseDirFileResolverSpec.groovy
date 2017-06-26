@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file
 
+import org.gradle.api.provider.Provider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -191,6 +192,7 @@ The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
   - A String or CharSequence URI, for example 'file:/usr/include'.
   - A File instance.
+  - A Path instance.
   - A URI or URL instance.""")
     }
 
@@ -212,7 +214,20 @@ The following types/formats are supported:
         }, baseDir)
         then:
         IllegalArgumentException e = thrown()
-        e.message == "Cannot convert path to File. path='null returning Callable' basedir='${baseDir.absolutePath}'"
+        e.message == "Cannot convert path to File. path='null returning Callable'"
+    }
+
+    def "normalizes Provider value"() {
+        def baseDir = tmpDir.testDirectory.file("base")
+        def file = tmpDir.testDirectory.file("test")
+        def provider1 = Stub(Provider)
+        provider1.get() >> file
+        def provider2 = Stub(Provider)
+        provider2.get() >> "value"
+
+        expect:
+        normalize(provider1, baseDir) == file
+        normalize(provider2, baseDir) == baseDir.file("value")
     }
 
     def createLink(File link, File target) {

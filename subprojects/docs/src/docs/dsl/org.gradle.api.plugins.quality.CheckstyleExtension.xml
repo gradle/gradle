@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>toolVersion</td>
-                <td><literal>5.9</literal></td>
+                <td><literal>6.19</literal></td>
             </tr>
             <tr>
                 <td>reportsDir</td>
@@ -18,11 +18,15 @@
             </tr>
             <tr>
                 <td>config</td>
-                <td><literal><replaceable>${project.projectDir}</replaceable>/config/checkstyle/checkstyle.xml</literal></td>
+                <td><literal><replaceable>${configDir}</replaceable>/checkstyle.xml</literal></td>
             </tr>
             <tr>
                 <td>configFile</td>
-                <td><literal><replaceable>${project.projectDir}</replaceable>/config/checkstyle/checkstyle.xml</literal></td>
+                <td><literal><replaceable>${configDir}</replaceable>/checkstyle.xml</literal></td>
+            </tr>
+            <tr>
+                <td>configDir</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/config/checkstyle</literal></td>
             </tr>
             <tr>
                 <td>configProperties</td>
@@ -31,6 +35,14 @@
             <tr>
                 <td>showViolations</td>
                 <td><literal>true</literal></td>
+            </tr>
+            <tr>
+                <td>maxErrors</td>
+                <td><literal>0</literal></td>
+            </tr>
+            <tr>
+                <td>maxWarnings</td>
+                <td><literal>Integer.MAX_VALUE</literal></td>
             </tr>
         </table>
     </section>

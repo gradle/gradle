@@ -17,50 +17,32 @@ package org.gradle.testing.performance.generator.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.Project
 import org.gradle.internal.os.OperatingSystem
 
 class RemoteProject extends DefaultTask {
     @Input String remoteUri
     @Input String branch
+    @Input @Optional String subdirectory
     @OutputDirectory File outputDirectory = project.file("$project.buildDir/$name")
 
     @TaskAction
     void checkout() {
         outputDirectory.deleteDir()
+        File tmpDir = getTemporaryDir()
+        if (tmpDir.exists()) {
+            project.delete(tmpDir)
+        }
         project.exec {
-            commandLine = ["git", "clone", "--depth", "1", "--branch", branch, remoteUri, outputDirectory.absolutePath]
+            commandLine = ["git", "clone", "--depth", "1", "--branch", branch, remoteUri, tmpDir.absolutePath]
             if (OperatingSystem.current().windows) {
                 commandLine = ["cmd", "/c"] + commandLine
             }
+            errorOutput = System.out
         }
-        def perfTesting = project.project(':internalPerformanceTesting')
-        copyInitScript(perfTesting)
-        applyMeasurementPlugin(perfTesting)
-    }
-
-    private File copyInitScript(Project perfTesting) {
-        new File(outputDirectory, "init.gradle") << perfTesting.file("src/templates/init.gradle").text
-    }
-
-    private void applyMeasurementPlugin(Project perfTesting) {
-        def buildFile = new File(outputDirectory, "build.gradle")
-        String measurementPluginConfiguration = """buildscript {
-    dependencies {
-        classpath files("${perfTesting.buildDir}/libs/measurement-plugin.jar")
-    }
-}
-
-apply plugin: org.gradle.performance.plugin.MeasurementPlugin
-
-"""
-        if (buildFile.exists()) {
-            buildFile.text = """$measurementPluginConfiguration
-$buildFile.text"""
-        } else {
-            buildFile.text = measurementPluginConfiguration
-        }
+        File baseDir = subdirectory?new File(tmpDir, subdirectory) : tmpDir
+        baseDir.renameTo(outputDirectory)
     }
 }

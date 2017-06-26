@@ -17,9 +17,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Unroll
 
 class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def module = mavenHttpRepo.module("test", "test", "1.0").publish()
+    def module2 = mavenHttpRepo.module("test", "test2", "1.0").publish()
 
     def setup() {
         settingsFile << "include 'child'"
@@ -40,35 +42,73 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
             project(':child') {
                 dependencies {
                     compile 'test:test:1.0'
+                    compile 'test:test2:1.0'
                 }                
             }
-            
+"""
+    }
+
+    def "downloads only the metadata when dependency graph is queried"() {
+        given:
+        buildFile << """
             task graph {
                 doLast {
                     println configurations.compile.incoming.resolutionResult.allComponents
                 }
             }
+"""
+
+        when:
+        module.pom.expectGet()
+        module2.pom.expectGet()
+
+        then:
+        succeeds("graph")
+    }
+
+    def "downloads only the metadata when resolved artifacts are queried"() {
+        given:
+        buildFile << """
             task artifacts {
                 doLast {
                     println configurations.compile.resolvedConfiguration.resolvedArtifacts
                 }
             }
 """
-    }
 
-    def "downloads only metadata when dependency graph is queried"() {
         when:
         module.pom.expectGet()
-
-        then:
-        succeeds("graph")
-    }
-
-    def "downloads only metadata when artifacts are queried"() {
-        when:
-        module.pom.expectGet()
+        module2.pom.expectGet()
 
         then:
         succeeds("artifacts")
+    }
+
+    @Unroll
+    def "downloads only the metadata on failure to resolve the graph - #expression"() {
+        given:
+        buildFile << """
+            task artifacts {
+                doLast {
+                    configurations.compile.${expression}.each { it }
+                }
+            }
+"""
+
+        when:
+        module.pom.expectGetBroken()
+        module2.pom.expectGet()
+
+        then:
+        fails("artifacts")
+        failure.assertResolutionFailure(":compile")
+        failure.assertHasCause("Could not resolve test:test:1.0.")
+
+        where:
+        expression                                | _
+        "files"                                   | _
+        "fileCollection { true }"                 | _
+        "resolvedConfiguration.resolvedArtifacts" | _
+        "incoming.artifacts"                      | _
     }
 }

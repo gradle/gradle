@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Nullable;
+
 /**
  * A {@link PublishArtifact} whose properties can be modified.
  */
@@ -45,7 +47,7 @@ public interface ConfigurablePublishArtifact extends PublishArtifact {
      *
      * @param classifier The classifier. May be null.
      */
-    void setClassifier(String classifier);
+    void setClassifier(@Nullable String classifier);
 
     /**
      * Registers some tasks which build this artifact.

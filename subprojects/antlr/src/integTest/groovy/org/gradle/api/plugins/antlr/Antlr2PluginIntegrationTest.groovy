@@ -37,24 +37,18 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         badGrammar()
         then:
         fails("generateGrammarSource")
-        output.contains("TestGrammar.g:7:24: unexpected token: extra")
-        output.contains("TestGrammar.g:9:13: unexpected token: mexpr")
-        output.contains("TestGrammar.g:7:24: rule classDef trapped:")
-        output.contains("TestGrammar.g:7:24: unexpected token: extra")
+        errorOutput.contains("TestGrammar.g:7:24: unexpected token: extra")
+        errorOutput.contains("TestGrammar.g:9:13: unexpected token: mexpr")
+        errorOutput.contains("TestGrammar.g:7:24: rule classDef trapped:")
+        errorOutput.contains("TestGrammar.g:7:24: unexpected token: extra")
         assertAntlrVersion(2)
-        failure.assertHasDescription("Execution failed for task ':generateGrammarSource'.")
+        failure.assertHasDescription("Execution failed for task ':grammar-builder:generateGrammarSource'.")
         failure.assertHasCause("There were errors during grammar generation")
         failure.assertHasCause("ANTLR Panic: Exiting due to errors.")
     }
 
     def "uses antlr v2 if no explicit dependency is set"() {
-        buildFile.text = """
-            apply plugin: "java"
-            apply plugin: "antlr"
-
-            repositories() {
-                jcenter()
-            }"""
+        buildFile.text = buildFile.text.replace("antlr '$antlrDependency'", "")
 
         goodGrammar()
         goodProgram()
@@ -65,12 +59,10 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         assertGrammarSourceGenerated("org/acme/TestGrammar")
         assertGrammarSourceGenerated("org/acme/AnotherGrammar")
         assertGrammarSourceGenerated("UnpackagedGrammar")
-
-        succeeds("build")
     }
 
     private goodGrammar() {
-        file("src/main/antlr/TestGrammar.g") << """
+        file("grammar-builder/src/main/antlr/TestGrammar.g") << """
             header {
                 package org.acme;
             }
@@ -91,7 +83,7 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
             atom:   INT
                 ;"""
 
-        file("src/main/antlr/AnotherGrammar.g") << """
+        file("grammar-builder/src/main/antlr/AnotherGrammar.g") << """
             header {
                 package org.acme;
             }
@@ -111,7 +103,7 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
             atom:   INT
                 ;"""
 
-        file("src/main/antlr/UnpackagedGrammar.g") << """class UnpackagedGrammar extends Parser;
+        file("grammar-builder/src/main/antlr/UnpackagedGrammar.g") << """class UnpackagedGrammar extends Parser;
             options {
                 buildAST = true;
             }
@@ -129,7 +121,7 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private goodProgram() {
-        file("src/main/java/com/example/test/Test.java") << """
+        file("grammar-user/src/main/java/com/example/test/Test.java") << """
             import antlr.Token;
             import antlr.TokenStream;
             import antlr.TokenStreamException;
@@ -150,7 +142,7 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private badGrammar() {
-        file("src/main/antlr/TestGrammar.g") << """class TestGrammar extends Parser;
+        file("grammar-builder/src/main/antlr/TestGrammar.g") << """class TestGrammar extends Parser;
             options {
                 buildAST = true;
             }
@@ -167,9 +159,9 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private void assertGrammarSourceGenerated(String grammarName) {
-        assert file("build/generated-src/antlr/main/${grammarName}.java").exists()
-        assert file("build/generated-src/antlr/main/${grammarName}.smap").exists()
-        assert file("build/generated-src/antlr/main/${grammarName}TokenTypes.java").exists()
-        assert file("build/generated-src/antlr/main/${grammarName}TokenTypes.txt").exists()
+        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}.java").exists()
+        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}.smap").exists()
+        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}TokenTypes.java").exists()
+        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}TokenTypes.txt").exists()
     }
 }

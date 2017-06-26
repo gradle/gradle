@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.internal.operations.logging.BuildOperationLogger;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import java.io.File;
 import java.util.List;
@@ -62,7 +63,7 @@ class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
     }
 
     @Override
-    public String getDescription() {
-        return description;
+    public BuildOperationDescriptor.Builder description() {
+        return BuildOperationDescriptor.displayName(description);
     }
 }

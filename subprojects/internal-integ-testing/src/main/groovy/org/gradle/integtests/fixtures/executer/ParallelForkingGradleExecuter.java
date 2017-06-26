@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
-import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -26,7 +25,7 @@ import org.gradle.util.GradleVersion;
 import java.util.ArrayList;
 import java.util.List;
 
-class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
+class ParallelForkingGradleExecuter extends DaemonGradleExecuter {
     public ParallelForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
@@ -39,14 +38,22 @@ class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
             args.add("--parallel-threads=4");
         } else {
             args.add("--parallel");
-            args.add("--max-workers=4");
+            maybeSetMaxWorkers(args);
         }
-        args.add("-D" + DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE + "=true");
         return args;
     }
 
+    private void maybeSetMaxWorkers(List<String> args) {
+        for (String arg : args) {
+            if (arg.startsWith("--max-workers")) {
+                return;
+            }
+        }
+        args.add("--max-workers=4");
+    }
+
     @Override
-    protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
-        return new ParallelForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement(), isOutputCapturingEnabled());
+    protected ForkingGradleHandle createForkingGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+        return new ParallelForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
     }
 }

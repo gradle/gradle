@@ -33,6 +33,14 @@ public interface ProcessForkOptions {
      * Sets the name of the executable to use.
      *
      * @param executable The executable. Must not be null.
+     * @since 4.0
+     */
+    void setExecutable(String executable);
+
+    /**
+     * Sets the name of the executable to use.
+     *
+     * @param executable The executable. Must not be null.
      */
     void setExecutable(Object executable);
 
@@ -50,6 +58,14 @@ public interface ProcessForkOptions {
      * @return The working directory. Never returns null.
      */
     File getWorkingDir();
+
+    /**
+     * Sets the working directory for the process.
+     *
+     * @param dir The working directory. Must not be null.
+     * @since 4.0
+     */
+    void setWorkingDir(File dir);
 
     /**
      * Sets the working directory for the process. The supplied argument is evaluated as per {@link

@@ -278,6 +278,11 @@ public class XmlTransformer implements Transformer<String, String> {
                 public void println() {
                     printWriter.println();
                 }
+
+                @Override
+                public void flush() {
+                    // for performance, ignore flushes
+                }
             };
             XmlNodePrinter nodePrinter = new XmlNodePrinter(indentPrinter);
             nodePrinter.setPreserveWhitespace(true);

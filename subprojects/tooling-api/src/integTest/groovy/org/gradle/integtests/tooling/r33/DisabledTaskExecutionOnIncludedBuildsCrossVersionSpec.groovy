@@ -19,24 +19,23 @@ package org.gradle.integtests.tooling.r33
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
+import org.gradle.tooling.model.gradle.BuildInvocations
 
 @ToolingApiVersion('>=3.3')
 @TargetGradleVersion('>=3.3')
 class DisabledTaskExecutionOnIncludedBuildsCrossVersionSpec extends ToolingApiSpecification {
 
-    def setup() {
+    def "Can't launch tasks from included builds via launchables obtained from GradleProject model"() {
+        setup:
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
                 includeBuild 'includedBuild'
             """
         }
         singleProjectBuildInSubfolder("includedBuild")
-    }
 
-    def "Tasks from GradleProject"() {
-        setup:
         def projects = withConnection {
             action(new FetchIncludedGradleProjects()).run()
         }
@@ -48,11 +47,18 @@ class DisabledTaskExecutionOnIncludedBuildsCrossVersionSpec extends ToolingApiSp
         }
 
         then:
-        thrown(UnsupportedBuildArgumentException)
+        thrown(BuildException)
     }
 
-    def "Tasks from BuildInvocations"() {
+    def "Can't launch tasks from included builds via launchables obtained from BuildInvocations model"() {
         setup:
+        singleProjectBuildInRootFolder("root") {
+            settingsFile << """
+                includeBuild 'includedBuild'
+            """
+        }
+        singleProjectBuildInSubfolder("includedBuild")
+
         def invocations = withConnection {
             action(new FetchIncludedBuildInvocations()).run()
         }
@@ -61,18 +67,39 @@ class DisabledTaskExecutionOnIncludedBuildsCrossVersionSpec extends ToolingApiSp
 
         when:
         withBuild { BuildLauncher launcher ->
-            launcher.forLaunchables(includedTask)
-        }
-
-        then:
-        thrown(UnsupportedBuildArgumentException)
-
-        when:
-        withBuild { BuildLauncher launcher ->
             launcher.forLaunchables(includedSelector)
         }
 
         then:
-        thrown(UnsupportedBuildArgumentException)
+        thrown(BuildException)
+
+        when:
+        withBuild { BuildLauncher launcher ->
+            launcher.forLaunchables(includedTask)
+        }
+
+        then:
+        thrown(BuildException)
+    }
+
+    def "Still can launch tasks from non-included subprojects"() {
+        setup:
+        multiProjectBuildInRootFolder("root", ['sub1'])
+        settingsFile << """
+            includeBuild 'includedBuild'
+        """
+        singleProjectBuildInSubfolder("includedBuild")
+
+        when:
+        withConnection(toolingApi.connector().forProjectDirectory(projectDir.file('sub1')).searchUpwards(true)) {
+            BuildInvocations invocations = getModel(BuildInvocations)
+            def task = invocations.tasks.find { it.name.contains 'tasks' }
+            def selector = invocations.taskSelectors.find { it.name.contains 'tasks' }
+            newBuild().forLaunchables(task).run()
+            newBuild().forLaunchables(selector).run()
+        }
+
+        then:
+        notThrown(Throwable)
     }
 }

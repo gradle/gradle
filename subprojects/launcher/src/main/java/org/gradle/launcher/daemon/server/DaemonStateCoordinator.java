@@ -23,7 +23,7 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.Timer;
@@ -61,7 +61,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private String stopReason;
     private volatile DefaultBuildCancellationToken cancellationToken;
 
-    private final StoppableExecutor executor;
+    private final ManagedExecutor executor;
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
     private final Runnable onCancelCommand;

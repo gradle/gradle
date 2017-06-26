@@ -17,25 +17,28 @@
 package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
-import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
-import org.gradle.internal.jvm.inspection.JvmVersionDetector
-import org.gradle.internal.remote.MessagingServer
+import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.progress.DefaultBuildOperationExecutor
+import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.process.internal.JavaExecHandleFactory
-import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
-import org.gradle.process.internal.worker.WorkerProcessFactory
-import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -52,6 +55,9 @@ class BuildSessionScopeServicesTest extends Specification {
         parent.get(CacheFactory) >> Stub(CacheFactory)
         parent.get(ModuleRegistry) >> new DefaultModuleRegistry(CurrentGradleInstallation.get())
         parent.get(FileResolver) >> Stub(FileResolver)
+        parent.get(OutputEventListener) >> Stub(OutputEventListener)
+        parent.get(ParallelExecutionManager) >> Stub(ParallelExecutionManager)
+        parent.hasService(_) >> true
     }
 
     def "provides a DeploymentRegistry"() {
@@ -66,33 +72,30 @@ class BuildSessionScopeServicesTest extends Specification {
         registry.get(CacheRepository) == registry.get(CacheRepository)
     }
 
-    def "provides a WorkerProcessBuilder factory"() {
-        setup:
-        expectParentServiceLocated(MessagingServer)
-        expectParentServiceLocated(TemporaryFileProvider)
-        expectParentServiceLocated(JavaExecHandleFactory)
-        expectParentServiceLocated(JvmVersionDetector)
-
+    def "provides a BuildOperationWorkerRegistry"() {
         expect:
-        registry.get(WorkerProcessFactory) instanceof DefaultWorkerProcessFactory
-        registry.get(WorkerProcessFactory) == registry.get(WorkerProcessFactory)
+        registry.get(WorkerLeaseRegistry) instanceof DefaultWorkerLeaseService
+        registry.get(WorkerLeaseRegistry) == registry.get(WorkerLeaseRegistry)
     }
 
-    def "provides a ClassPathRegistry"() {
+    def "provides a ProjectLockService"() {
         expect:
-        registry.get(ClassPathRegistry) instanceof ClassPathRegistry
-        registry.get(ClassPathRegistry) == registry.get(ClassPathRegistry)
+        registry.get(ProjectLeaseRegistry) instanceof DefaultWorkerLeaseService
+        registry.get(ProjectLeaseRegistry) == registry.get(ProjectLeaseRegistry)
     }
 
-    def "provides a WorkerProcessClassPathProvider"() {
-        expect:
-        registry.get(WorkerProcessClassPathProvider) instanceof WorkerProcessClassPathProvider
-        registry.get(WorkerProcessClassPathProvider) == registry.get(WorkerProcessClassPathProvider)
-    }
+    def "provides a BuildOperationExecutor"() {
+        given:
+        def listenerManager = Mock(ListenerManager)
+        listenerManager.createChild() >> Mock(ListenerManager)
+        _ * parent.get(ListenerManager) >> listenerManager
+        _ * parent.get(TimeProvider) >> Mock(TimeProvider)
+        _ * parent.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
+        _ * parent.get(StartParameter) >> Mock(StartParameter)
+        _ * parent.get(ExecutorFactory) >> Mock(ExecutorFactory)
 
-    private <T> T expectParentServiceLocated(Class<T> type) {
-        T t = Mock(type)
-        parent.get(type) >> t
-        t
+        expect:
+        registry.get(BuildOperationExecutor) instanceof DefaultBuildOperationExecutor
+        registry.get(BuildOperationExecutor) == registry.get(BuildOperationExecutor)
     }
 }

@@ -87,16 +87,12 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "inputs.dir('a')"                                           | "TaskInputs.dir(Object)"
         "inputs.property('key', 'value')"                           | "TaskInputs.property(String, Object)"
         "inputs.properties([key: 'value'])"                         | "TaskInputs.properties(Map)"
-        "inputs.source('a')"                                        | "TaskInputs.source(Object)"
-        "inputs.sourceDir('a')"                                     | "TaskInputs.sourceDir(Object)"
         "outputs.upToDateWhen { }"                                  | "TaskOutputs.upToDateWhen(Closure)"
         "outputs.upToDateWhen({ } as Spec)"                         | "TaskOutputs.upToDateWhen(Spec)"
+        "outputs.cacheIf({ } as Spec)"                              | "TaskOutputs.cacheIf(Spec)"
         "outputs.file('a')"                                         | "TaskOutputs.file(Object)"
         "outputs.files('a')"                                        | "TaskOutputs.files(Object...)"
-        "outputs.namedFiles(['prop':'a'])"                          | "TaskOutputs.namedFiles(Map)"
-        "outputs.namedFiles({ ['prop':'a'] })"                      | "TaskOutputs.namedFiles(Callable)"
-        "outputs.namedDirectories(['prop':'a'])"                    | "TaskOutputs.namedDirectories(Map)"
-        "outputs.namedDirectories({ ['prop':'a'] })"                | "TaskOutputs.namedDirectories(Callable)"
+        "outputs.dirs(['prop':'a'])"                                | "TaskOutputs.dirs(Object...)"
         "outputs.dir('a')"                                          | "TaskOutputs.dir(Object)"
     }
 }

@@ -49,7 +49,7 @@ public class FailsafeBuildProgressListenerAdapter implements InternalBuildProgre
 
     public void rethrowErrors() {
         if (listenerFailure != null) {
-            throw new ListenerNotificationException("One or more progress listeners failed with an exception.", Collections.singletonList(listenerFailure));
+            throw new ListenerNotificationException(null, "One or more progress listeners failed with an exception.", Collections.singletonList(listenerFailure));
         }
     }
 }

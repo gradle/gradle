@@ -54,4 +54,8 @@ public class ResultsStoreHelper {
     public static String determineChannel() {
         return System.getProperty(SYSPROP_PERFORMANCE_TEST_CHANNEL, "commits");
     }
+
+    public static boolean isAdhocPerformanceTest() {
+        return "adhoc".equals(determineChannel());
+    }
 }

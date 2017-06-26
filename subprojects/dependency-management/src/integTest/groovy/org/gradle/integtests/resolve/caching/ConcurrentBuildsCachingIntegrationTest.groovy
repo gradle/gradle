@@ -17,12 +17,16 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class ConcurrentBuildsCachingIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Rule CyclicBarrierHttpServer server1 = new CyclicBarrierHttpServer()
-    @Rule CyclicBarrierHttpServer server2 = new CyclicBarrierHttpServer()
+    @Rule BlockingHttpServer blockingServer = new BlockingHttpServer()
+
+    def setup() {
+        blockingServer.start()
+        server.start()
+    }
 
     def "can interleave resolution across multiple build processes"() {
         def mod1 = mavenHttpRepo.module("group1", "module1", "1.0").publish()
@@ -52,7 +56,7 @@ task b {
 }
 task block1 {
     doLast {
-        new URL("$server1.uri").text
+        ${blockingServer.callFromBuild("block1")}
     }
 }
 block1.mustRunAfter a
@@ -60,12 +64,18 @@ b.mustRunAfter block1
 
 task block2 {
     doLast {
-        new URL("$server2.uri").text
+        ${blockingServer.callFromBuild("block2")}
     }
 }
 block2.mustRunAfter b
 """
+        // Ensure scripts are compiled
+        run("help")
+
         expect:
+        def block1 = blockingServer.expectAndBlock("block1")
+        def block2 = blockingServer.expectAndBlock("block2")
+
         // Build 1 should download module 1 and reuse cached module 2 state
         mod1.pom.expectGet()
         mod1.artifact.expectGet()
@@ -78,18 +88,18 @@ block2.mustRunAfter b
         executer.withTasks("a", "block1", "b")
         executer.withArgument("--info")
         def build1 = executer.start()
-        server1.waitFor()
+        block1.waitForAllPendingCalls()
 
         // Start build 2 then wait until it has run both 'a' and 'b'.
         executer.withTasks("a", "b", "block2")
         executer.withArgument("--info")
         def build2 = executer.start()
-        server2.waitFor()
+        block2.waitForAllPendingCalls()
 
         // Finish up build 1 and 2
-        server1.release() // finish build 1 while build 2 is still running
+        block1.releaseAll() // finish build 1 while build 2 is still running
         build1.waitForFinish()
-        server2.release()
+        block2.releaseAll()
         build2.waitForFinish()
     }
 }

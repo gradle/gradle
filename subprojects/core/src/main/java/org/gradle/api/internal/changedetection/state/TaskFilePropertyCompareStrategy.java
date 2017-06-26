@@ -21,8 +21,9 @@ import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheHasher;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -50,13 +51,13 @@ public enum TaskFilePropertyCompareStrategy {
         return delegate.iterateContentChangesSince(current, previous, fileType, pathIsAbsolute);
     }
 
-    public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots) {
-        delegate.appendToCacheKey(builder, snapshots);
+    public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
+        delegate.appendToHasher(hasher, snapshots);
     }
 
     interface Impl {
         Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute);
-        void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots);
+        void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots);
         boolean isIncludeAdded();
     }
 
@@ -113,8 +114,8 @@ public enum TaskFilePropertyCompareStrategy {
         NormalizedFileSnapshot normalizedPrevious = previousEntry.getValue();
         NormalizedFileSnapshot normalizedCurrent = currentEntry.getValue();
         if (normalizedCurrent.getNormalizedPath().equals(normalizedPrevious.getNormalizedPath())) {
-            IncrementalFileSnapshot previousSnapshot = normalizedPrevious.getSnapshot();
-            IncrementalFileSnapshot currentSnapshot = normalizedCurrent.getSnapshot();
+            FileContentSnapshot previousSnapshot = normalizedPrevious.getSnapshot();
+            FileContentSnapshot currentSnapshot = normalizedCurrent.getSnapshot();
             if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
                 String path = currentEntry.getKey();
                 TaskStateChange change = new FileChange(path, ChangeType.MODIFIED, fileType);

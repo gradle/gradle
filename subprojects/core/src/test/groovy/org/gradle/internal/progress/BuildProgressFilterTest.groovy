@@ -48,12 +48,14 @@ class BuildProgressFilterTest extends Specification {
 
         when:
         f.buildStarted(gradle)
+        f.afterStart()
         f.settingsEvaluated(settings)
         f.projectsLoaded(gradle)
         f.beforeEvaluate(project)
         f.afterEvaluate(project, null)
         f.graphPopulated(graph)
         f.afterExecute(task, null)
+        f.beforeComplete()
         f.buildFinished(result)
 
         then: 1 * logger.buildStarted()
@@ -63,7 +65,7 @@ class BuildProgressFilterTest extends Specification {
         then: 1 * logger.afterEvaluate(":foo:bar")
         then: 1 * logger.graphPopulated(3)
         then: 1 * logger.afterExecute()
-        then: 1 * logger.buildFinished()
+        then: 1 * logger.beforeComplete()
         then: 0 * logger._
     }
 

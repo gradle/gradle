@@ -55,14 +55,14 @@ class DefaultClassPathTest extends Specification {
 
     def "add returns lhs when rhs is empty"() {
         def cp1 = new DefaultClassPath(new File("a.jar"))
-        def cp2 = new DefaultClassPath()
+        def cp2 = ClassPath.EMPTY
 
         expect:
         (cp1 + cp2).is(cp1)
     }
 
     def "add returns rhs when lhs is empty"() {
-        def cp1 = new DefaultClassPath()
+        def cp1 = ClassPath.EMPTY
         def cp2 = new DefaultClassPath(new File("a.jar"))
 
         expect:
@@ -78,7 +78,7 @@ class DefaultClassPathTest extends Specification {
         (cp + [file2]).asFiles == [file1, file2]
         (cp + []).is(cp)
     }
-    
+
     def "classpaths are equal when the contain the same sequence of files"() {
         def file1 = new File("a.jar")
         def file2 = new File("b.jar")

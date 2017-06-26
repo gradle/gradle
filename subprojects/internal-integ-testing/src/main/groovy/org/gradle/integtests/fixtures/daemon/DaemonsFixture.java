@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.daemon;
 
+import java.io.File;
 import java.util.List;
 
 public interface DaemonsFixture {
@@ -38,4 +39,14 @@ public interface DaemonsFixture {
      * Convenience to get a single daemon. Fails if there is not exactly 1 daemon.
      */
     DaemonFixture getDaemon();
+
+    /**
+     * Returns the base dir of the daemon.
+     */
+    File getDaemonBaseDir();
+
+    /**
+     * Returns the Gradle version of the daemon.
+     */
+    String getVersion();
 }

@@ -15,9 +15,11 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.NotYetImplemented
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
+import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
@@ -131,7 +133,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
             pmdMain {
                 reports {
                     xml.enabled false
-                    html.destination "htmlReport.html"
+                    html.destination file("htmlReport.html")
                 }
             }
         """
@@ -197,6 +199,33 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
         output.contains "\tAvoid instantiating Boolean objects"
         output.contains "\tEnsure you override both equals() and hashCode()"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2326")
+    @NotYetImplemented
+    def "check task should not be up-to-date after clean if it only outputs to console"() {
+        given:
+        badCode()
+        buildFile << """
+            pmd {
+                consoleOutput = true
+                ignoreFailures = true
+            }
+            tasks.withType(Pmd) {
+                reports {
+                    html.enabled false
+                    xml.enabled false
+                }
+            }
+        """
+
+        when:
+        succeeds('check')
+        succeeds('clean', 'check')
+
+        then:
+        nonSkippedTasks.contains(':pmdMain')
+        output.contains("PMD rule violations were found")
     }
 
     private static Matcher<String> containsClass(String className) {

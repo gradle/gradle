@@ -23,7 +23,7 @@ import org.gradle.internal.invocation.BuildController;
 import java.util.List;
 
 public class ChainingBuildActionRunner implements BuildActionRunner {
-    private final List<? extends BuildActionRunner> runners;
+    private List<? extends BuildActionRunner> runners;
 
     public ChainingBuildActionRunner(List<? extends BuildActionRunner> runners) {
         this.runners = runners;
@@ -37,6 +37,5 @@ public class ChainingBuildActionRunner implements BuildActionRunner {
                 return;
             }
         }
-        throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.", action.getClass().getSimpleName()));
     }
 }

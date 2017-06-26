@@ -35,7 +35,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Opens a TCP connection for clients to connect to to communicate with a daemon.
+ * Opens a TCP connection for clients to connect to communicate with a daemon.
  */
 public class DaemonTcpServerConnector implements DaemonServerConnector {
     final private IncomingConnector incomingConnector;

@@ -35,6 +35,7 @@ import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.internal.reflect.UnsupportedPropertyValueException;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypeConverter;
+import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.binding.BridgeMethodBinding;
@@ -154,11 +155,9 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         if (!structBindings.getImplementedViewSchemas().contains(viewSchema)) {
             throw new IllegalArgumentException(String.format("View '%s' is not supported by struct '%s'", viewSchema.getType(), structBindings.getPublicSchema().getType()));
         }
-        ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-
         ModelType<M> viewType = viewSchema.getType();
 
-        StringBuilder generatedTypeNameBuilder = new StringBuilder(viewType.getName());
+        StringBuilder generatedTypeNameBuilder = new StringBuilder();
         if (backingStateType == GeneratedViewState.class) {
             generatedTypeNameBuilder.append("$View");
         } else {
@@ -169,8 +168,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             generatedTypeNameBuilder.append("$").append(delegateSchema.getType().getName().replaceAll("\\.", "_"));
         }
 
-        String generatedTypeName = generatedTypeNameBuilder.toString();
-        Type generatedType = Type.getType("L" + generatedTypeName.replaceAll("\\.", "/") + ";");
+        String classNameSuffix = generatedTypeNameBuilder.toString();
 
         Class<?> superclass;
         final ImmutableSet.Builder<String> interfacesToImplement = ImmutableSet.builder();
@@ -202,8 +200,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             });
         }
 
-        generateProxyClass(visitor, viewSchema, structBindings, interfacesToImplement.build(), typesToDelegate.build(), generatedType, Type.getType(superclass), backingStateType);
-
         ClassLoader targetClassLoader = viewClass.getClassLoader();
         if (delegateSchema != null) {
             // TODO - remove this once the above is removed
@@ -215,7 +211,12 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             }
         }
 
-        return defineClass(visitor, targetClassLoader, generatedTypeName);
+        AsmClassGenerator generator = new AsmClassGenerator(viewClass, classNameSuffix);
+        ClassWriter visitor = generator.getVisitor();
+
+        generateProxyClass(visitor, viewSchema, structBindings, interfacesToImplement.build(), typesToDelegate.build(), generator.getGeneratedType(), Type.getType(superclass), backingStateType);
+
+        return generator.define(targetClassLoader);
     }
 
     private void generateProxyClass(ClassWriter visitor, StructSchema<?> viewSchema, StructBindings<?> bindings, Collection<String> interfacesToImplement,

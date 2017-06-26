@@ -430,8 +430,13 @@ class IncrementalCompileProcessorTest extends Specification {
             this.compilationState = newValue
         }
 
-        void update(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
+        CompilationState update(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
+            throw new UnsupportedOperationException()
+        }
 
+        @Override
+        CompilationState maybeUpdate(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
+            throw new UnsupportedOperationException()
         }
     }
 }

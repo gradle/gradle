@@ -16,9 +16,15 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -27,6 +33,9 @@ import java.net.SocketException;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class FileLockCommunicator {
+    private static final Logger LOGGER = Logging.getLogger(FileLockCommunicator.class);
+    private static final String SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE = "Operation not permitted";
+
     private static final byte PROTOCOL_VERSION = 1;
     private final DatagramSocket socket;
     private final InetAddressFactory addressFactory;
@@ -46,7 +55,15 @@ public class FileLockCommunicator {
             byte[] bytesToSend = encode(lockId);
             // Ping the owner via all available local addresses
             for (InetAddress address : addressFactory.getCommunicationAddresses()) {
-                socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
+                try {
+                    socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
+                } catch (IOException e) {
+                    if (SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE.equals(e.getMessage())) {
+                        LOGGER.debug("Failed attempt to ping owner of lock for {} (lock id: {}, port: {}, address: {})", displayName, lockId, ownerPort, address);
+                    } else {
+                        throw e;
+                    }
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(String.format("Failed to ping owner of lock for %s (lock id: %s, port: %s)", displayName, lockId, ownerPort), e);

@@ -1,6 +1,6 @@
 :generatePomFileForMavenJavaPublication
 :compileJava
-:processResources UP-TO-DATE
+:processResources NO-SOURCE
 :classes
 :jar
 :publishMavenJavaPublicationToMavenLocal

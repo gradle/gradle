@@ -67,6 +67,11 @@ Current registry state is ${lastRegistryState} and current log state is ${lastLo
         return logFileProbe.log
     }
 
+    @Override
+    File getLogFile() {
+        return logFileProbe.logFile
+    }
+
     int getPort() {
         return logFileProbe.port
     }

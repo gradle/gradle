@@ -52,7 +52,7 @@ class JDependRelocationIntegrationTest extends AbstractTaskRelocationIntegration
 
             task jdepend(type: JDepend) {
                 dependsOn compile
-                classesDir = file("$classesDir")
+                classesDirs = files("$classesDir")
             }
         """
     }

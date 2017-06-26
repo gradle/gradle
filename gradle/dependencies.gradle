@@ -21,7 +21,7 @@ ext {
 
 versions.commons_io = 'commons-io:commons-io:2.2'
 
-versions.groovy = "2.4.7"
+versions.groovy = "2.4.11"
 
 versions.bouncycastle = "1.51"
 
@@ -37,7 +37,7 @@ libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
 libraries.commons_io = dependencies.module(versions.commons_io)
 libraries.commons_lang = 'commons-lang:commons-lang:2.6@jar'
 libraries.commons_collections = 'commons-collections:commons-collections:3.2.2@jar'
-libraries.jsch = "com.jcraft:jsch:0.1.53"
+libraries.jsch = "com.jcraft:jsch:0.1.54"
 libraries.ivy = dependencies.module('org.apache.ivy:ivy:2.2.0'){
     dependency libraries.jsch
 }
@@ -83,20 +83,24 @@ libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:ht
 
 
 libraries += [
-        dom4j: 'dom4j:dom4j:1.6.1@jar',
-        guava: 'com.google.guava:guava-jdk5:17.0@jar',
-        jsr305: 'com.google.code.findbugs:jsr305:1.3.9@jar',
-        groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}",
-        jaxen: 'jaxen:jaxen:1.1@jar',
-        jcip: "net.jcip:jcip-annotations:1.0@jar",
-        junit: 'junit:junit:4.12@jar',
-        xmlunit: 'xmlunit:xmlunit:1.3',
-        nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14',
-        xbean: 'org.apache.xbean:xbean-reflect:3.4@jar', //required by maven3 classes
-        nativePlatform: 'net.rubygrapefruit:native-platform:0.11',
-        xerces: "xerces:xercesImpl:2.9.1",
-        objenesis: 'org.objenesis:objenesis:1.2@jar',
-        jsoup:'org.jsoup:jsoup:1.6.3'
+    jatl: 'com.googlecode.jatl:jatl:0.2.2',
+    dom4j: 'dom4j:dom4j:1.6.1@jar',
+    guava: 'com.google.guava:guava-jdk5:17.0@jar',
+    kryo: 'com.esotericsoftware.kryo:kryo:2.20',
+    jsr305: 'com.google.code.findbugs:jsr305:1.3.9@jar',
+    groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}",
+    jaxen: 'jaxen:jaxen:1.1@jar',
+    jcip: "net.jcip:jcip-annotations:1.0@jar",
+    junit: 'junit:junit:4.12@jar',
+    xmlunit: 'xmlunit:xmlunit:1.3',
+    equalsVerifier: 'nl.jqno.equalsverifier:equalsverifier:2.1.6',
+    nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14',
+    xbean: 'org.apache.xbean:xbean-reflect:3.4@jar', //required by maven3 classes
+    nativePlatform: 'net.rubygrapefruit:native-platform:0.14',
+    jansi: dependencies.module('org.fusesource.jansi:jansi:1.14'),
+    xerces: "xerces:xercesImpl:2.9.1",
+    objenesis: 'org.objenesis:objenesis:1.2@jar',
+    jsoup:'org.jsoup:jsoup:1.6.3'
 ]
 
 libraries.maven3 = dependencies.module("org.apache.maven:maven-core:${versions.maven}") {
@@ -143,7 +147,7 @@ libraries.spock = [
     'org.spockframework:spock-core:1.0-groovy-2.4@jar',
     libraries.groovy,
     libraries.objenesis,
-    'cglib:cglib-nodep:2.2.2'
+    'cglib:cglib-nodep:3.2.5'
 ]
 libraries.jmock = [
     'org.jmock:jmock:2.5.1',
@@ -152,12 +156,22 @@ libraries.jmock = [
     dependencies.create('org.jmock:jmock-junit4:2.5.1') { exclude group: 'junit', module: 'junit-dep' }, //junit-dep pulls old definitions of core junit types.
     'org.jmock:jmock-legacy:2.5.1',
     libraries.objenesis,
-    'cglib:cglib-nodep:2.2'
+    'cglib:cglib-nodep:3.2.5'
 ]
+
+versions.findbugs = "2.0.1"
+libraries.findbugs = dependencies.module("com.google.code.findbugs:findbugs:${versions.findbugs}") {
+    dependency libraries.dom4j
+}
+libraries.bcel = "com.google.code.findbugs:bcel:${versions.findbugs}@jar"
+
 libraries.gson = "com.google.code.gson:gson:2.7"
-libraries.sshd = dependencies.module("org.apache.sshd:sshd-core:0.13.0") {
+libraries.mina = dependencies.module("org.apache.mina:mina-core:2.0.10") {
     dependency libraries.slf4j_api
-    dependency "org.apache.mina:mina-core:2.0.8"
+}
+libraries.sshd = dependencies.module("org.apache.sshd:sshd-core:1.2.0") {
+    dependency libraries.slf4j_api
+    dependency libraries.mina
 }
 
 libraries.bouncycastle_provider = "org.bouncycastle:bcprov-jdk15on:${versions.bouncycastle}@jar"
@@ -177,6 +191,9 @@ libraries.awsS3 = [
         "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}@jar",
         "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
 ] + libraries.commons_httpclient + libraries.joda
+
+// keep in sync with ScalaLanguagePlugin code
+libraries.zinc = 'com.typesafe.zinc:zinc:0.3.13'
 
 allprojects {
     configurations.all {

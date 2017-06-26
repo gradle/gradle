@@ -16,23 +16,33 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.gradle.api.Action;
+
 import java.io.File;
 import java.util.Collections;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Set;
 
 public class JarClasspathSnapshot {
 
-    private final Map<File, JarSnapshot> jarSnapshots;
+    private final LinkedHashMap<File, JarSnapshot> jarSnapshots;
     private final JarClasspathSnapshotData data;
 
-    public JarClasspathSnapshot(Map<File, JarSnapshot> jarSnapshots, JarClasspathSnapshotData data) {
+    public JarClasspathSnapshot(LinkedHashMap<File, JarSnapshot> jarSnapshots, JarClasspathSnapshotData data) {
         this.jarSnapshots = jarSnapshots;
         this.data = data;
     }
 
     public JarSnapshot getSnapshot(JarArchive jarArchive) {
         return jarSnapshots.get(jarArchive.file);
+    }
+
+    public JarSnapshot getSnapshot(File file) {
+        return jarSnapshots.get(file);
+    }
+
+    public Set<File> getJars() {
+        return jarSnapshots.keySet();
     }
 
     public boolean isAnyClassDuplicated(Set<String> classNames) {
@@ -47,5 +57,11 @@ public class JarClasspathSnapshot {
     public boolean isAnyClassDuplicated(JarArchive jarArchive) {
         JarSnapshot snapshot = getSnapshot(jarArchive);
         return isAnyClassDuplicated(snapshot.getClasses());
+    }
+
+    public void forEachSnapshot(Action<? super JarSnapshot> action) {
+        for (JarSnapshot jarSnapshot : jarSnapshots.values()) {
+            action.execute(jarSnapshot);
+        }
     }
 }

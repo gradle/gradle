@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
 import static org.hamcrest.Matchers.startsWith
 
 public class AntProjectIntegrationTest extends AbstractIntegrationTest {
@@ -45,7 +46,7 @@ task ant(dependsOn: target1)
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
-        inTestDirectory().withTasks('ant').run().assertTasksExecuted(':init', ':target2', ':target1', ':ant')
+        inTestDirectory().withTasks('ant').run().assertTasksExecutedInOrder(':init', ':target2', ':target1', ':ant')
 
         target1File.assertExists()
         target2File.assertExists()
@@ -175,7 +176,12 @@ ant.importBuild('build.xml')
         testFile('build.gradle') << """
 ant.importBuild('build.xml')
 """
-        inTestDirectory().withTasks('a', 'e', 'h').run().assertTasksExecuted(':d', ':c', ':b', ':a', ':g', ':f', ':e', ':i', ':h')
+        inTestDirectory().withTasks('a', 'e', 'h').run()
+            .assertTasksExecutedInOrder any(
+                exact(any(':d', ':c', ':b'), ':a'),
+                exact(any(':g', ':f'), ':e'),
+                exact(':i', ':h')
+            )
     }
 
     @Test
@@ -190,7 +196,7 @@ ant.importBuild('build.xml')
         testFile('build.gradle') << """
 ant.importBuild('build.xml')
 """
-        inTestDirectory().withTasks('a').run().assertTasksExecuted(':b', ':c', ':a')
+        inTestDirectory().withTasks('a').run().assertTasksExecutedInOrder(':b', ':c', ':a')
     }
 
     @Test
@@ -239,7 +245,7 @@ ant.importBuild(file('build.xml')) { antTaskName ->
 
 task ant(dependsOn: 'ant-target1')
 """
-        inTestDirectory().withTasks('clean', 'ant').run().assertTasksExecuted(':clean', ':ant-clean', ':ant-target2', ':ant-target1', ':ant')
+        inTestDirectory().withTasks('clean', 'ant').run().assertTasksExecutedInOrder(':clean', ':ant-clean', ':ant-target2', ':ant-target1', ':ant')
 
     }
 
@@ -260,7 +266,7 @@ ant.importBuild(file('build.xml')) { antTaskName ->
 
 task runAnt(dependsOn: 'a')
 """
-        inTestDirectory().withTasks('runAnt').run().assertTasksExecuted(':c', ':ant-b', ':a', ':runAnt')
+        inTestDirectory().withTasks('runAnt').run().assertTasksExecutedInOrder(':c', ':ant-b', ':a', ':runAnt')
 
     }
 }

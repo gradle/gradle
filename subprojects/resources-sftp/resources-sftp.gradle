@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+apply plugin: 'java-library'
 
 dependencies {
-    compile project(':resources')
-    compile project(':core')
-    compile libraries.jsch
-    testCompile libraries.groovy
+    api project(':resources')
+    api project(':core')
+
+    implementation libraries.slf4j_api
+    implementation libraries.guava
+    implementation libraries.jsch
+    implementation libraries.jcip
+    implementation libraries.commons_io
 }
 
 useTestFixtures(project: ":dependencyManagement")

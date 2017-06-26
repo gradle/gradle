@@ -45,6 +45,7 @@ import org.apache.ivy.util.url.URLHandlerRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
@@ -54,11 +55,11 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.transfer.UrlExternalResource;
 import org.gradle.util.CollectionUtils;
@@ -103,6 +104,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     public static final String IVY_DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
+    private final IvyModuleDescriptorConverter moduleDescriptorConverter;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
+    public IvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository) {
+        super(fileResourceRepository);
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+    }
 
     protected MutableIvyModuleResolveMetadata doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = createParser(parseContext, resource, populateProperties());
@@ -116,7 +125,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     }
 
     protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
-        return new Parser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties);
+        return new Parser(parseContext, moduleDescriptorConverter, resource, resource.getFile().toURI().toURL(), moduleIdentifierFactory, properties);
     }
 
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
@@ -455,6 +464,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private final DescriptorParseContext parseContext;
         private final RelativeUrlResolver relativeUrlResolver = new NormalRelativeUrlResolver();
         private final URL descriptorURL;
+        private final IvyModuleDescriptorConverter moduleDescriptorConverter;
+        private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
         private boolean validate = true;
 
         /* Parsing state */
@@ -470,15 +482,17 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private String[] publicationsDefaultConf;
         final Map<String, String> properties;
 
-        public Parser(DescriptorParseContext parseContext, ExternalResource res, URL descriptorURL, Map<String, String> properties) {
+        public Parser(DescriptorParseContext parseContext, IvyModuleDescriptorConverter moduleDescriptorConverter, ExternalResource res, URL descriptorURL, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Map<String, String> properties) {
             super(res);
             this.parseContext = parseContext;
+            this.moduleDescriptorConverter = moduleDescriptorConverter;
             this.descriptorURL = descriptorURL;
             this.properties = properties;
+            this.moduleIdentifierFactory = moduleIdentifierFactory;
         }
 
         public Parser newParser(ExternalResource res, URL descriptorURL) {
-            Parser parser = new Parser(parseContext, res, descriptorURL, properties);
+            Parser parser = new Parser(parseContext, moduleDescriptorConverter, res, descriptorURL, moduleIdentifierFactory, properties);
             parser.setValidate(validate);
             return parser;
         }
@@ -550,7 +564,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         private void maybeAddDefaultArtifact() {
             if (!artifactsDeclared) {
-                IvyArtifactName implicitArtifact = DefaultIvyArtifactName.of(getMd().getModuleRevisionId().getName(), "jar", "jar");
+                IvyArtifactName implicitArtifact = new DefaultIvyArtifactName(getMd().getModuleRevisionId().getName(), "jar", "jar");
                 Set<String> configurationNames = Sets.newHashSet(getMd().getConfigurationsNames());
                 metaData.addArtifact(implicitArtifact, configurationNames);
             }
@@ -769,8 +783,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } catch (MissingResourceException e) {
                 // Ignore
                 return null;
-            } finally {
-                resource.close();
             }
         }
 
@@ -778,7 +790,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             ModuleComponentIdentifier importedId = DefaultModuleComponentIdentifier.newId(parentOrganisation, parentModule, parentRevision);
             LocallyAvailableExternalResource externalResource = parseContext.getMetaDataArtifact(importedId, ArtifactType.IVY_DESCRIPTOR);
 
-            return parseModuleDescriptor(externalResource, externalResource.getLocalResource().getFile().toURI().toURL());
+            return parseModuleDescriptor(externalResource, externalResource.getFile().toURI().toURL());
         }
 
         private ModuleDescriptor parseModuleDescriptor(ExternalResource externalResource, URL descriptorURL) throws ParseException {
@@ -811,7 +823,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             // create a new temporary parser to read the configurations from
             // the specified file.
             Parser parser = newParser(UrlExternalResource.open(url), url);
-            ParserHelper.parse(url , null, parser);
+            ParserHelper.parse(url, null, parser);
 
             // add the configurations from this temporary parser to this module descriptor
             Configuration[] configs = parser.getModuleDescriptor().getConfigurations();
@@ -932,7 +944,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String artName = elvis(substitute(attributes.getValue("name")), getMd().getModuleRevisionId().getName());
                 String type = elvis(substitute(attributes.getValue("type")), "jar");
                 String ext = elvis(substitute(attributes.getValue("ext")), type);
-                String classifier = attributes.getValue(IvyModulePublishMetadata.IVY_MAVEN_NAMESPACE, "classifier");
+                String classifier = readClassifierAttribute(attributes);
                 artifact = new BuildableIvyArtifact(artName, type, ext, classifier);
                 String confs = substitute(attributes.getValue("conf"));
 
@@ -954,6 +966,18 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } else if (validate) {
                 addError("artifact tag found in invalid tag: " + state);
             }
+        }
+
+        /**
+         * Handle the 'classifier' attribute in any namespace: different tools publish differently.
+         */
+        private String readClassifierAttribute(Attributes attributes) {
+            for (int i = 0; i < attributes.getLength(); i++) {
+                if (attributes.getLocalName(i).equals("classifier")) {
+                    return attributes.getValue(i);
+                }
+            }
+            return null;
         }
 
         private void dependenciesStarted(Attributes attributes) {
@@ -1177,7 +1201,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } else if ("dependencies".equals(qName) && state == State.DEPS) {
                 state = State.NONE;
             } else if (state == State.INFO && "info".equals(qName)) {
-                metaData = new IvyModuleResolveMetaDataBuilder(getMd());
+                metaData = new IvyModuleResolveMetaDataBuilder(getMd(), moduleDescriptorConverter, moduleIdentifierFactory);
                 state = State.NONE;
             } else if (state == State.DESCRIPTION && "description".equals(qName)) {
                 getMd().setDescription(buffer == null ? "" : buffer.toString().trim());

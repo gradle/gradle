@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskExecutionHistory;
-import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
 
 import java.util.Collection;
 
@@ -40,9 +42,9 @@ public interface TaskArtifactState {
     boolean isAllowedToUseCachedResults();
 
     /**
-     * Returns the calculated cache key for the task's current state, or {@code null} if the task is not cacheable.
+     * Returns the calculated cache key for the task's current state.
      */
-    TaskCacheKey calculateCacheKey();
+    TaskOutputCachingBuildCacheKey calculateCacheKey();
 
     /**
      * Called before the task is to be executed. Note that {@link #isUpToDate(java.util.Collection)} may not necessarily have been called.
@@ -63,4 +65,15 @@ public interface TaskArtifactState {
      * Returns the history for this task.
      */
     TaskExecutionHistory getExecutionHistory();
+
+    /**
+     * The ID of the build that created the outputs that might be reused.
+     * Null if there are no previous executions, or outputs must not be reused (e.g. --rerun-tasks).
+     * Never null if {@link #isUpToDate(Collection)} returns true.
+     *
+     * TODO: should this move to getExecutionHistory()?
+     * @since 4.0
+     */
+    @Nullable
+    UniqueId getOriginBuildInvocationId();
 }

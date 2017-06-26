@@ -16,19 +16,13 @@
 
 package org.gradle.api.internal.file;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-public class BaseDirFileResolver extends AbstractFileResolver {
+public class BaseDirFileResolver extends AbstractBaseDirFileResolver {
     private final File baseDir;
 
     public BaseDirFileResolver(FileSystem fileSystem, File baseDir, Factory<PatternSet> patternSetFactory) {
@@ -37,53 +31,8 @@ public class BaseDirFileResolver extends AbstractFileResolver {
         this.baseDir = baseDir;
     }
 
-    public String resolveAsRelativePath(Object path) {
-        List<String> basePath = Arrays.asList(StringUtils.split(baseDir.getAbsolutePath(), "/" + File.separator));
-        File targetFile = resolve(path);
-        List<String> targetPath = new ArrayList<String>(Arrays.asList(StringUtils.split(targetFile.getAbsolutePath(),
-                "/" + File.separator)));
-
-        // Find and remove common prefix
-        int maxDepth = Math.min(basePath.size(), targetPath.size());
-        int prefixLen = 0;
-        while (prefixLen < maxDepth && basePath.get(prefixLen).equals(targetPath.get(prefixLen))) {
-            prefixLen++;
-        }
-        basePath = basePath.subList(prefixLen, basePath.size());
-        targetPath = targetPath.subList(prefixLen, targetPath.size());
-
-        for (int i = 0; i < basePath.size(); i++) {
-            targetPath.add(0, "..");
-        }
-        if (targetPath.isEmpty()) {
-            return ".";
-        }
-        return CollectionUtils.join(File.separator, targetPath);
-    }
-
     @Override
-    protected File doResolve(Object path) {
-        if (!GUtil.isTrue(baseDir)) {
-            throw new IllegalArgumentException(String.format(
-                    "baseDir may not be null or empty string. basedir='%s'", baseDir));
-        }
-
-        if (!GUtil.isTrue(path)) {
-            throw new IllegalArgumentException(String.format(
-                "path may not be null or empty string. path='%s'", path));
-        }
-
-        File file = convertObjectToFile(path);
-
-        if (file == null) {
-            throw new IllegalArgumentException(String.format(
-                "Cannot convert path to File. path='%s' basedir='%s'", path, baseDir));
-        }
-
-        if (!file.isAbsolute()) {
-            file = new File(baseDir, file.getPath());
-        }
-
-        return file;
+    protected File getBaseDir() {
+        return baseDir;
     }
 }

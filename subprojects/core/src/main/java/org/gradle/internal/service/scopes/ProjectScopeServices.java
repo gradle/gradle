@@ -20,10 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
@@ -33,6 +31,7 @@ import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.DefaultFileOperations;
+import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.FileLookup;
@@ -43,10 +42,10 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
-import org.gradle.api.internal.plugins.PluginApplicator;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.plugins.RuleBasedPluginApplicator;
+import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -55,6 +54,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
@@ -62,6 +62,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -72,6 +73,10 @@ import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.normalization.InputNormalizationHandler;
+import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
+import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
+import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
@@ -107,7 +112,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         } else {
             parentRegistry = project.getParent().getServices().get(PluginRegistry.class);
         }
-        return parentRegistry.createChild(project.getClassLoaderScope().createChild("plugins").lock());
+        return parentRegistry.createChild(project.getClassLoaderScope());
     }
 
     protected DeferredProjectConfiguration createDeferredProjectConfiguration() {
@@ -154,13 +159,17 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry(buildScopedToolingModelBuilders);
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, DependencyInjectingInstantiator.ConstructorCache cachedConstructors) {
-        PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, get(ModelRuleExtractor.class), get(ModelRuleSourceDetector.class));
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new DependencyInjectingInstantiator(this, cachedConstructors), applicator);
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
+        PluginTarget target = new RuleBasedPluginTarget<ProjectInternal>(
+            project,
+            get(ModelRuleExtractor.class),
+            get(ModelRuleSourceDetector.class)
+        );
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
-        return parentFactory.createChild(project, new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DependencyInjectingInstantiator(this, get(DependencyInjectingInstantiator.ConstructorCache.class))));
+        return parentFactory.createChild(project, get(InstantiatorFactory.class).injectAndDecorate(this));
     }
 
     protected Factory<TaskContainerInternal> createTaskContainerInternal() {
@@ -191,9 +200,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected ScriptHandler createScriptHandler() {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
-                get(DependencyManagementServices.class),
-                get(FileResolver.class),
-                get(DependencyMetaDataProvider.class));
+            get(DependencyManagementServices.class),
+            get(FileResolver.class),
+            get(DependencyMetaDataProvider.class));
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), project);
     }
 
@@ -222,4 +231,21 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             return new ProjectBackedModule(project);
         }
     }
+
+    protected RuntimeClasspathNormalizationInternal createRuntimeClasspathNormalizationStrategy(Instantiator instantiator) {
+        return instantiator.newInstance(DefaultRuntimeClasspathNormalization.class);
+    }
+
+    protected InputNormalizationHandler createInputNormalizationHandler(Instantiator instantiator, RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
+        return instantiator.newInstance(DefaultInputNormalizationHandler.class, runtimeClasspathNormalizationStrategy);
+    }
+
+    protected DefaultProjectLayout createProjectLayout(FileResolver fileResolver) {
+        return new DefaultProjectLayout(project.getProjectDir(), fileResolver);
+    }
+
+    protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {
+        return ConfigurationTargetIdentifier.of(project);
+    }
+
 }

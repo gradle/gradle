@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -40,28 +42,79 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
                 .open();
     }
 
+    @Override
     public void close() {
         cache.close();
     }
 
-    public void longRunningOperation(String operationDisplayName, final Runnable action) {
-        cache.longRunningOperation(operationDisplayName, action);
+    @Override
+    public <T> T withFileLock(Factory<? extends T> action) {
+        return cache.withFileLock(action);
     }
 
-    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        return cache.useCache(operationDisplayName, action);
+    @Override
+    public <T> T useCache(Factory<? extends T> action) {
+        return cache.useCache(action);
     }
 
-    public void useCache(String operationDisplayName, Runnable action) {
-        cache.useCache(operationDisplayName, action);
+    @Override
+    public void useCache(Runnable action) {
+        cache.useCache(action);
     }
 
-    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        return cache.longRunningOperation(operationDisplayName, action);
-    }
-
+    @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
-        return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFileInMetaDataStore, keySerializer, valueSerializer));
+        final PersistentIndexedCache<K, V> persistentCache = cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFileInMetaDataStore, keySerializer, valueSerializer));
+        return new CacheLockingPersistentCache<K, V>(persistentCache);
+    }
+
+    private class CacheLockingPersistentCache<K, V> implements PersistentIndexedCache<K, V> {
+        private final PersistentIndexedCache<K, V> persistentCache;
+
+        public CacheLockingPersistentCache(PersistentIndexedCache<K, V> persistentCache) {
+            this.persistentCache = persistentCache;
+        }
+
+        @Nullable
+        @Override
+        public V get(final K key) {
+            return cache.useCache(new Factory<V>() {
+                @Override
+                public V create() {
+                    return persistentCache.get(key);
+                }
+            });
+        }
+
+        @Override
+        public V get(final K key, final Transformer<? extends V, ? super K> producer) {
+            return cache.useCache(new Factory<V>() {
+                @Override
+                public V create() {
+                    return persistentCache.get(key, producer);
+                }
+            });
+        }
+
+        @Override
+        public void put(final K key, final V value) {
+            cache.useCache(new Runnable() {
+                @Override
+                public void run() {
+                    persistentCache.put(key, value);
+                }
+            });
+        }
+
+        @Override
+        public void remove(final K key) {
+            cache.useCache(new Runnable() {
+                @Override
+                public void run() {
+                    persistentCache.remove(key);
+                }
+            });
+        }
     }
 }

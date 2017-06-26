@@ -15,17 +15,60 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
+
+import java.util.List;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
-    private TaskArtifactState taskArtifactState;
 
+    private TaskArtifactState taskArtifactState;
+    private TaskOutputCachingBuildCacheKey buildCacheKey;
+    private UniqueId originBuildInvocationId;
+    private List<String> upToDateMessages;
+
+    @Override
     public TaskArtifactState getTaskArtifactState() {
         return taskArtifactState;
     }
 
+    @Override
     public void setTaskArtifactState(TaskArtifactState taskArtifactState) {
         this.taskArtifactState = taskArtifactState;
     }
+
+    @Override
+    public TaskOutputCachingBuildCacheKey getBuildCacheKey() {
+        return buildCacheKey;
+    }
+
+    @Override
+    public void setBuildCacheKey(TaskOutputCachingBuildCacheKey buildCacheKey) {
+        this.buildCacheKey = buildCacheKey;
+    }
+
+    @Override
+    public UniqueId getOriginBuildInvocationId() {
+        return originBuildInvocationId;
+    }
+
+    @Override
+    public void setOriginBuildInvocationId(@Nullable UniqueId originBuildInvocationId) {
+        this.originBuildInvocationId = originBuildInvocationId;
+    }
+
+    @Override
+    @Nullable
+    public List<String> getUpToDateMessages() {
+        return upToDateMessages;
+    }
+
+    @Override
+    public void setUpToDateMessages(List<String> upToDateMessages) {
+        this.upToDateMessages = upToDateMessages;
+    }
+
 }

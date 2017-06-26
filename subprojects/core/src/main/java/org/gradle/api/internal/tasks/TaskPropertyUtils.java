@@ -19,17 +19,20 @@ package org.gradle.api.internal.tasks;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.tasks.TaskPropertyBuilder;
+import org.gradle.internal.Cast;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 
 public class TaskPropertyUtils {
 
     // Note: sorted set used to keep order of properties consistent
-    public static <T extends TaskFilePropertySpec> SortedSet<T> collectFileProperties(String displayName, Iterable<? extends T> fileProperties) {
+    public static <T extends TaskFilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
         Set<String> names = Sets.newHashSet();
         ImmutableSortedSet.Builder<T> builder = ImmutableSortedSet.naturalOrder();
-        for (T propertySpec : fileProperties) {
+        while (fileProperties.hasNext()) {
+            T propertySpec = fileProperties.next();
             String propertyName = propertySpec.getPropertyName();
             if (!names.add(propertyName)) {
                 throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", displayName, propertyName));
@@ -48,5 +51,14 @@ public class TaskPropertyUtils {
                 propertySpec.withPropertyName(propertyName);
             }
         }
+    }
+
+    public static <T extends TaskFilePropertySpec> SortedSet<ResolvedTaskOutputFilePropertySpec> resolveFileProperties(ImmutableSortedSet<T> properties) {
+        ImmutableSortedSet.Builder<ResolvedTaskOutputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
+        for (T property : properties) {
+            CacheableTaskOutputFilePropertySpec cacheableProperty = Cast.uncheckedCast(property);
+            builder.add(new ResolvedTaskOutputFilePropertySpec(cacheableProperty.getPropertyName(), cacheableProperty.getOutputType(), cacheableProperty.getOutputFile()));
+        }
+        return builder.build();
     }
 }

@@ -63,7 +63,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskExecutionHistory.outputFiles >> null
 
         then:
-        1 * state.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
+        1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -91,7 +91,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * outputFiles.isEmpty() >> true
 
         then:
-        1 * state.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
+        1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)

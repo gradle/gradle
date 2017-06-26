@@ -100,7 +100,7 @@ HTML report is generated from the binary format, not from XML results
 3. Extend the JUnit test detection so that:
     - When exclude categories have been specified, then filter the following classes:
         - The class is annotated with an exclude category or one of its subtypes OR
-        - The class and its supertypes are not annotated with `@RunWith` and all of of the class' declared and inherited
+        - The class and its supertypes are not annotated with `@RunWith` and all of the class' declared and inherited
           `@Test` methods are annotated with an exclude category or one of its subtypes.
     - When include categories have been specified, then filter the following classes:
         - The class or its super types are not annotated with `@RunWith` AND

@@ -23,7 +23,7 @@ class PluginsProjectConfigureActionsTest extends Specification {
     final def pluginsClassLoader = Mock(ClassLoader)
 
     private PluginsProjectConfigureActions createActions() {
-        new PluginsProjectConfigureActions(new DefaultServiceLocator(pluginsClassLoader))
+        PluginsProjectConfigureActions.from(new DefaultServiceLocator(pluginsClassLoader))
     }
 
     def "executes all implicit configuration actions"() {

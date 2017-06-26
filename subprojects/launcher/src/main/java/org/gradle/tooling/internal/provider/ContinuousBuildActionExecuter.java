@@ -18,9 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
@@ -29,7 +26,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.ChangeReporter;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiter;
@@ -48,23 +44,23 @@ import org.gradle.util.SingleMessageLogger;
 
 public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
-    private final ListenerManager listenerManager;
+    private final TaskInputsListener inputsListener;
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
-    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
-        this(delegate, listenerManager, styledTextOutputFactory, OperatingSystem.current(), executorFactory, new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory));
+    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
+        this(delegate, inputsListener, styledTextOutputFactory, OperatingSystem.current(), executorFactory, new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory));
     }
 
-    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, OperatingSystem operatingSystem, ExecutorFactory executorFactory, FileSystemChangeWaiterFactory changeWaiterFactory) {
+    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, OperatingSystem operatingSystem, ExecutorFactory executorFactory, FileSystemChangeWaiterFactory changeWaiterFactory) {
         this.delegate = delegate;
-        this.listenerManager = listenerManager;
+        this.inputsListener = inputsListener;
         this.operatingSystem = operatingSystem;
         this.changeWaiterFactory = changeWaiterFactory;
         this.executorFactory = executorFactory;
-        this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.LIFECYCLE);
+        this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.QUIET);
     }
 
     @Override
@@ -157,20 +153,12 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     }
 
     private Object executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemChangeWaiter waiter, ServiceRegistry buildSessionScopeServices) {
-        TaskInputsListener listener = new TaskInputsListener() {
-            @Override
-            public void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs) {
-                FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
-                fileSystemInputs.registerWatchPoints(fileSystemSubsetBuilder);
-                waiter.watch(fileSystemSubsetBuilder.build());
-            }
-        };
-        listenerManager.addListener(listener);
         try {
+            inputsListener.setFileSystemWaiter(waiter);
             return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
         } finally {
-            listenerManager.removeListener(listener);
+            inputsListener.setFileSystemWaiter(null);
         }
-    }
 
+    }
 }

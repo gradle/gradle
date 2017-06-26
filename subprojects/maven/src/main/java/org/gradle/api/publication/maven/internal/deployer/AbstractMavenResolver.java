@@ -44,7 +44,7 @@ import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMeta
 import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -60,7 +60,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     private LoggingManagerInternal loggingManager;
 
-    private final ActionBroadcast<MavenDeployment> beforeDeploymentActions = new ActionBroadcast<MavenDeployment>();
+    private final MutableActionSet<MavenDeployment> beforeDeploymentActions = new MutableActionSet<MavenDeployment>();
 
     private final MavenSettingsProvider mavenSettingsProvider;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;

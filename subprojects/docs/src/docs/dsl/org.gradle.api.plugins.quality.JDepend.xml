@@ -14,7 +14,11 @@
             </tr>
             <tr>
                 <td>classesDir</td>
-                <td><literal><replaceable>sourceSet</replaceable>.output.classesDir</literal></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>classesDirs</td>
+                <td><literal><replaceable>sourceSet</replaceable>.output.classesDirs</literal></td>
             </tr>
             <tr>
                 <td>reports</td>

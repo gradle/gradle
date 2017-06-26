@@ -20,13 +20,12 @@ import org.gradle.util.Requires
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class GradleScriptKotlinSmokeTest extends AbstractSmokeTest {
 
     @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
-    @Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM])
+    @Requires(KOTLIN_SCRIPT)
     def 'multi-project build with buildSrc'() {
         given:
         useSample("gsk-multi-project-with-buildSrc")

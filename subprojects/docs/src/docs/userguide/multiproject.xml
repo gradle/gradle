@@ -322,10 +322,12 @@
                 <title>Dependencies and execution order</title>
                 <sample id="multiprojectFirstMessages" dir="userguide/multiproject/dependencies/firstMessages/messages" includeLocation="true" title="Dependencies and execution order">
                     <layout>
+                        build.gradle
                         settings.gradle
                         consumer/build.gradle
                         producer/build.gradle
                     </layout>
+                    <sourcefile file="build.gradle"/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
                     <sourcefile file="producer/build.gradle"/>
@@ -339,10 +341,12 @@
                 </para>
                 <sample id="multiprojectMessagesHack" dir="userguide/multiproject/dependencies/messagesHack/messages" title="Dependencies and execution order">
                     <layout>
+                        build.gradle
                         settings.gradle
                         aProducer/build.gradle
                         consumer/build.gradle
                     </layout>
+                    <sourcefile file="build.gradle"/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="aProducer/build.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
@@ -369,10 +373,12 @@
                 <title>Declaring dependencies</title>
                 <sample id="multiprojectMessagesDependencies" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages" includeLocation="true" title="Declaring dependencies">
                     <layout>
+                        build.gradle
                         settings.gradle
                         consumer/build.gradle
                         producer/build.gradle
                     </layout>
+                    <sourcefile file="build.gradle"/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
                     <sourcefile file="producer/build.gradle"/>
@@ -607,7 +613,7 @@
         <title>Parallel project execution</title>
         <para>With more and more CPU cores available on developer desktops and CI servers,
             it is important that Gradle is able to fully utilise these processing resources.
-            More specifically, the parallel execution attempts to:
+            More specifically, parallel execution attempts to:
             <itemizedlist>
                 <listitem>Reduce total build time for a multi-project build where execution is IO bound or otherwise does not consume all available CPU resources.</listitem>
                 <listitem>Provide faster feedback for execution of small projects without awaiting completion of other projects.</listitem>
@@ -631,29 +637,14 @@
             </itemizedlist>
         </para>
         <para>
-            How does parallel execution work? First, you need to tell Gradle to use the parallel mode.
+            How does parallel execution work? First, you need to tell Gradle to use parallel mode.
             You can use the command line argument (<xref linkend='gradle_command_line'/>) or configure your build environment (<xref linkend="sec:gradle_configuration_properties"/>).
-            Unless you provide a specific number of parallel threads Gradle attempts to choose the right number based on available CPU cores.
+            Unless you provide a specific number of parallel threads, Gradle attempts to choose the right number based on available CPU cores.
             Every parallel worker exclusively owns a given project while executing a task.
-            This means that 2 tasks from the same project are never executed in parallel.
-            Therefore only multi-project builds can take advantage of parallel execution.
             Task dependencies are fully supported and parallel workers will start executing upstream tasks first.
-            Bear in mind that the alphabetical scheduling of decoupled tasks, known from the sequential execution, does not really work in parallel mode.
-            You need to make sure the task dependencies are declared correctly to avoid ordering issues.
-        </para>
-        <para>
-            <emphasis>Warning:</emphasis> Be aware that task ordering is not strictly enforced when using parallel execution and can lead to unexpected results. A common case that surfaces this
-            limitation is the use of the <literal>clean</literal> task provided by the <literal>base</literal> plugin in combination with any other task producing an output for a multi-project build
-            if executed in parallel. For example let us assume a multi-project build with project A and project B where B depends on A. Running <literal>gradle clean build --parallel</literal>
-            could lead to the following situation:
-            <itemizedlist>
-                <listitem><literal>A:clean</literal> is executed after <literal>A:jar</literal>.</listitem>
-                <listitem>B depends on A and needs the JAR file of A. However, <literal>B:classes</literal> fails as it was executed after <literal>A:clean</literal> which deleted the JAR
-                    file B depends on for compilation.
-                </listitem>
-            </itemizedlist>
-            Furthermore, the tasks <literal>clean</literal> and <literal>classes</literal> could run at the same time and delete files that are needed for compilation across project boundaries. Gradle
-            emits a warning for those situations. Future versions of Gradle will provide an appropriate fix.
+            Bear in mind that the alphabetical ordering of decoupled tasks, as can be seen during sequential execution, is not guaranteed in parallel mode.  In other words,
+            in parallel mode tasks will run as soon as their dependencies complete <emphasis>and a task worker is available to run them</emphasis>, which may be earlier than they
+            would start during a sequential build.  You should make sure that task dependencies and task inputs/outputs are declared correctly to avoid ordering issues.
         </para>
     </section>
     <section id="sec:decoupled_projects">

@@ -41,7 +41,7 @@ class PlayApplicationRunnerTokenTest extends Specification {
         runnerToken.rebuildSuccess()
 
         then:
-        1 * server.reload()
+        1 * server.buildSuccess()
     }
 
     def "rebuildFailure sends failure build result to server"() {

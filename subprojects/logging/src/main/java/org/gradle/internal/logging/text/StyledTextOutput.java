@@ -16,11 +16,15 @@
 
 package org.gradle.internal.logging.text;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 /**
  * Provides streaming of styled text, that is, a stream of text with inline styling information. Implementations are not
  * required to be thread-safe.
  */
+@UsedByScanPlugin
 public interface StyledTextOutput extends Appendable {
+    @UsedByScanPlugin
     enum Style {
         /**
          * Regular text.
@@ -51,9 +55,17 @@ public interface StyledTextOutput extends Appendable {
          */
         Success,
         /**
+         * <b>Emphasized</b> success message
+         */
+        SuccessHeader,
+        /**
          * General purpose failure message
          */
         Failure,
+        /**
+         * <b>Emphasized</b> failure message
+         */
+        FailureHeader,
         /**
          * General purpose informational text
          */

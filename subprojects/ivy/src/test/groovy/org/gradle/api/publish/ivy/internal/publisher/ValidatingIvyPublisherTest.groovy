@@ -18,7 +18,9 @@ package org.gradle.api.publish.ivy.internal.publisher
 
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
@@ -39,7 +41,8 @@ public class ValidatingIvyPublisherTest extends Specification {
     final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     def delegate = Mock(IvyPublisher)
-    def publisher = new ValidatingIvyPublisher(delegate)
+    DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+    def publisher = new ValidatingIvyPublisher(delegate, moduleIdentifierFactory, TestFiles.fileRepository())
 
     def "delegates when publication is valid"() {
         when:

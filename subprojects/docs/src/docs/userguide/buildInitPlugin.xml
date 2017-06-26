@@ -142,6 +142,34 @@
                 <listitem>Generates global exclusions from Maven enforcer plugin settings</listitem>
             </itemizedlist>
         </section>
+        <section id="sec:javaapplication_">
+            <title>“<literal>java-application</literal>”
+            </title>
+            <para>
+                The “<literal>java-application</literal>” build init type is not inferable. It must be explicitly specified.
+            </para>
+            <para>
+                It has the following features:
+            </para>
+            <itemizedlist>
+                <listitem>Uses the “<literal>application</literal>” plugin to produce a command-line application implemented using Java
+                </listitem>
+                <listitem>Uses the “<literal>jcenter</literal>” dependency repository
+                </listitem>
+                <listitem>Uses <ulink url="http://junit.org">JUnit</ulink>
+                 for testing</listitem>
+                <listitem>Has directories in the conventional locations for source code</listitem>
+                <listitem>Contains a sample class and unit test, if there are no existing source or test files</listitem>
+            </itemizedlist>
+            <para>
+                Alternative test framework can be specified by supplying a <literal>--test-framework</literal> argument value.
+                To use a different test framework, execute one of the following commands:
+            </para>
+            <itemizedlist>
+                <listitem><literal>gradle init --type java-application --test-framework spock</literal>: Uses <ulink url="http://code.google.com/p/spock/">Spock</ulink> for testing instead of JUnit</listitem>
+                <listitem><literal>gradle init --type java-application --test-framework testng</literal>: Uses <ulink url="http://testng.org/doc/index.html">TestNG</ulink> for testing instead of JUnit</listitem>
+            </itemizedlist>
+        </section>
         <section id="sec:javalibrary_">
             <title>“<literal>java-library</literal>”
             </title>
@@ -152,7 +180,7 @@
                 It has the following features:
             </para>
             <itemizedlist>
-                <listitem>Uses the “<literal>java</literal>” plugin
+                <listitem>Uses the “<literal>java</literal>” plugin to produce a library Jar
                 </listitem>
                 <listitem>Uses the “<literal>jcenter</literal>” dependency repository
                 </listitem>
@@ -180,7 +208,7 @@
                 It has the following features:
             </para>
             <itemizedlist>
-                <listitem>Uses the “<literal>scala</literal>” plugin
+                <listitem>Uses the “<literal>scala</literal>” plugin to produce a library Jar
                 </listitem>
                 <listitem>Uses the “<literal>jcenter</literal>” dependency repository
                 </listitem>
@@ -201,7 +229,29 @@
                 It has the following features:
             </para>
             <itemizedlist>
+                <listitem>Uses the “<literal>groovy</literal>” plugin to produce a library Jar
+                </listitem>
+                <listitem>Uses the “<literal>jcenter</literal>” dependency repository
+                </listitem>
+                <listitem>Uses Groovy 2.x </listitem>
+                <listitem>Uses <ulink url="http://spockframework.org">Spock testing framework</ulink> for testing</listitem>
+                <listitem>Has directories in the conventional locations for source code</listitem>
+                <listitem>Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files</listitem>
+            </itemizedlist>
+        </section>
+        <section id="sec:groovyapplication_">
+            <title>“<literal>groovy-application</literal>”
+            </title>
+            <para>
+                The “<literal>groovy-application</literal>” build init type is not inferable. It must be explicitly specified.
+            </para>
+            <para>
+                It has the following features:
+            </para>
+            <itemizedlist>
                 <listitem>Uses the “<literal>groovy</literal>” plugin
+                </listitem>
+                <listitem>Uses the “<literal>application</literal>” plugin to produce a command-line application implemented using Groovy
                 </listitem>
                 <listitem>Uses the “<literal>jcenter</literal>” dependency repository
                 </listitem>

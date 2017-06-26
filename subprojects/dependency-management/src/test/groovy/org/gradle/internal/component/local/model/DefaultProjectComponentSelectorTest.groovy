@@ -44,7 +44,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "is instantiated with null constructor parameter value"() {
         when:
-        DefaultProjectComponentSelector.of("TEST", (String) null)
+        new DefaultProjectComponentSelector("TEST", (String) null)
 
         then:
         Throwable t = thrown(AssertionError)
@@ -79,7 +79,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
     def "does not match id for unexpected component selector type"() {
         when:
         ProjectComponentSelector defaultBuildComponentSelector = newSelector(':myPath')
-        boolean matches = defaultBuildComponentSelector.matchesStrictly(DefaultModuleComponentIdentifier.of('group', 'name', '1.0'))
+        boolean matches = defaultBuildComponentSelector.matchesStrictly(new DefaultModuleComponentIdentifier('group', 'name', '1.0'))
 
         then:
         assert !matches

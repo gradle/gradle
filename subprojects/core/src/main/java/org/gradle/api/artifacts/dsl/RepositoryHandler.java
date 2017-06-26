@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
@@ -198,6 +199,24 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      */
     MavenArtifactRepository mavenLocal();
+
+    /**
+     * Adds a repository which looks in Google's Maven repository for dependencies.
+     * <p>
+     * The URL used to access this repository is {@literal "https://dl.google.com/dl/android/maven2/"}.
+     * <p>
+     * Examples:
+     * <pre autoTested="">
+     * repositories {
+     *     google()
+     * }
+     * </pre>
+     *
+     * @return the added resolver
+     * @since 4.0
+     */
+    @Incubating
+    MavenArtifactRepository google();
 
     /**
      * Adds and configures a Maven repository. Newly created instance of {@code MavenArtifactRepository} is passed as an argument to the closure.

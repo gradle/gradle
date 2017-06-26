@@ -20,6 +20,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -32,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
+import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
@@ -41,7 +44,13 @@ public class MapFileTreeTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private TestFile rootDir = tmpDir.getTestDirectory();
-    private final MapFileTree tree = new MapFileTree(rootDir, TestFiles.fileSystem());
+    private MapFileTree tree;
+
+    @Before
+    public void setup() {
+        NativeServicesTestFixture.initialize();
+        tree = new MapFileTree(rootDir, TestFiles.fileSystem(), directoryFileTreeFactory());
+    }
 
     @Test
     public void isEmptyByDefault() {

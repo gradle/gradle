@@ -19,7 +19,7 @@ sourceSets {
 }
 
 task customTest(type: Test) {
-    testClassesDir = sourceSets.customTest.output.classesDir
+    testClassesDirs = sourceSets.customTest.output.classesDirs
     classpath = sourceSets.customTest.runtimeClasspath
 }
 

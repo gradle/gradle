@@ -80,7 +80,7 @@ class FindBugsTest extends Specification {
         findbugs.reports {
             xml {
                 enabled = true
-                destination "build/findbugs.xml"
+                destination = project.file("build/findbugs.xml")
             }
         }
 

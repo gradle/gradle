@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.hash.HashCode
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder
+import org.gradle.caching.internal.BuildCacheHasher
 import spock.lang.Specification
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED
@@ -26,7 +26,7 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 class DefaultFileCollectionSnapshotTest extends Specification {
 
     def "order-insensitive collection snapshot ignores order when hashing"() {
-        def builder = Mock(TaskCacheKeyBuilder)
+        def hasher = Mock(BuildCacheHasher)
         def oldSnapshot = new DefaultFileCollectionSnapshot([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
@@ -36,26 +36,26 @@ class DefaultFileCollectionSnapshotTest extends Specification {
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
         ], UNORDERED, false)
         when:
-        oldSnapshot.appendToCacheKey(builder)
+        oldSnapshot.appendToHasher(hasher)
         then:
-        1 * builder.putString("file1.txt")
-        1 * builder.putBytes(HashCode.fromInt(123).asBytes())
-        1 * builder.putString("file2.txt")
-        1 * builder.putBytes(HashCode.fromInt(234).asBytes())
+        1 * hasher.putString("file1.txt")
+        1 * hasher.putHash(HashCode.fromInt(123))
+        1 * hasher.putString("file2.txt")
+        1 * hasher.putHash(HashCode.fromInt(234))
         0 * _
 
         when:
-        newSnapshot.appendToCacheKey(builder)
+        newSnapshot.appendToHasher(hasher)
         then:
-        1 * builder.putString("file1.txt")
-        1 * builder.putBytes(HashCode.fromInt(123).asBytes())
-        1 * builder.putString("file2.txt")
-        1 * builder.putBytes(HashCode.fromInt(234).asBytes())
+        1 * hasher.putString("file1.txt")
+        1 * hasher.putHash(HashCode.fromInt(123))
+        1 * hasher.putString("file2.txt")
+        1 * hasher.putHash(HashCode.fromInt(234))
         0 * _
     }
 
     def "order-sensitive collection snapshot considers order when hashing"() {
-        def builder = Mock(TaskCacheKeyBuilder)
+        def hasher = Mock(BuildCacheHasher)
         def oldSnapshot = new DefaultFileCollectionSnapshot([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
@@ -65,21 +65,21 @@ class DefaultFileCollectionSnapshotTest extends Specification {
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
         ], ORDERED, false)
         when:
-        oldSnapshot.appendToCacheKey(builder)
+        oldSnapshot.appendToHasher(hasher)
         then:
-        1 * builder.putString("file1.txt")
-        1 * builder.putBytes(HashCode.fromInt(123).asBytes())
-        1 * builder.putString("file2.txt")
-        1 * builder.putBytes(HashCode.fromInt(234).asBytes())
+        1 * hasher.putString("file1.txt")
+        1 * hasher.putHash(HashCode.fromInt(123))
+        1 * hasher.putString("file2.txt")
+        1 * hasher.putHash(HashCode.fromInt(234))
         0 * _
 
         when:
-        newSnapshot.appendToCacheKey(builder)
+        newSnapshot.appendToHasher(hasher)
         then:
-        1 * builder.putString("file2.txt")
-        1 * builder.putBytes(HashCode.fromInt(234).asBytes())
-        1 * builder.putString("file1.txt")
-        1 * builder.putBytes(HashCode.fromInt(123).asBytes())
+        1 * hasher.putString("file2.txt")
+        1 * hasher.putHash(HashCode.fromInt(234))
+        1 * hasher.putString("file1.txt")
+        1 * hasher.putHash(HashCode.fromInt(123))
         0 * _
     }
 }

@@ -15,6 +15,9 @@
  */
 package org.gradle.test.fixtures
 
+/**
+ * Represents a module in a repository.
+ */
 public interface Module {
     Module publish()
     Module publishWithChangedContent()

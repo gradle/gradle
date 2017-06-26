@@ -23,12 +23,14 @@ import java.util.Set;
 public interface ProjectRegistry<T extends ProjectIdentifier> {
     void addProject(T project);
 
+    T getRootProject();
+
     T getProject(String path);
 
     T getProject(File projectDir);
 
     Set<T> getAllProjects();
-    
+
     Set<T> getAllProjects(String path);
 
     Set<T> getSubProjects(String path);

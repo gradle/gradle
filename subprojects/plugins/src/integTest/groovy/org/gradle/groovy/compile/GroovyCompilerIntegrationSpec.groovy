@@ -87,12 +87,12 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
     }
 
     def canJointCompileWithJavaCompilerExecutable() {
-        args("-PjdkHome=${Jvm.current().getExecutable('javac')}")
+        args("-PjdkHome=${Jvm.current().getJavaHome().absolutePath}")
 
         expect:
         succeeds("compileGroovy")
         !errorOutput
-        file("build/classes/main/GroovyCode.class").exists()
-        file("build/classes/main/JavaCode.class").exists()
+        groovyClassFile("GroovyCode.class").exists()
+        groovyClassFile("JavaCode.class").exists()
     }
 }

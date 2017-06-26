@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 public class DefaultNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
     private final String normalizedPath;
 
-    public DefaultNormalizedFileSnapshot(String normalizedPath, IncrementalFileSnapshot snapshot) {
+    public DefaultNormalizedFileSnapshot(String normalizedPath, FileContentSnapshot snapshot) {
         super(snapshot);
         this.normalizedPath = normalizedPath;
     }

@@ -23,22 +23,22 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-public class ComponentSelectorSerializer implements Serializer<ComponentSelector> {
+public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
     public ComponentSelector read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 
         if (Implementation.BUILD.getId() == id) {
-            return DefaultProjectComponentSelector.of(decoder.readString(), decoder.readString());
+            return new DefaultProjectComponentSelector(decoder.readString(), decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
-            return DefaultModuleComponentSelector.of(decoder.readString(), decoder.readString(), decoder.readString());
+            return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
-            return DefaultLibraryComponentSelector.of(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
+            return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
         }
 
         throw new IllegalArgumentException("Unable to find component selector with id: " + id);

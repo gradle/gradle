@@ -37,7 +37,7 @@ class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
             connector.useGradleUserHomeDir(userHomeDir)
         }
         toolingApi.withConnection { connection ->
-            BuildLauncher build = connection.newBuild();
+            BuildLauncher build = connection.newBuild()
             build.forTasks("gradleBuild");
             build.standardOutput = baos
             build.run()

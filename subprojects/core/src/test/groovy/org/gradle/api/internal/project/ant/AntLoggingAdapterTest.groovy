@@ -22,6 +22,8 @@ import org.apache.tools.ant.Task
 import org.gradle.api.AntBuilder.AntMessagePriority
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.logging.events.CategorisedOutputEvent
+import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -47,7 +49,7 @@ class AntLoggingAdapterTest extends Specification {
         antLoggingAdapter.messageLogged(buildEvent(antPriority))
 
         then:
-        1 * listener.onOutput({it.logLevel == gradleLogLevel})
+        1 * listener.onOutput({it.logLevel == gradleLogLevel && isCategorizedAsAntLoggingAdapter(it)})
 
         where:
         lifecyLevel                | antPriority         | gradleLogLevel
@@ -88,5 +90,10 @@ class AntLoggingAdapterTest extends Specification {
             _ * getPriority() >> antPriority
             _ * getTask() >> Stub(Task)
         }
+    }
+
+    static boolean isCategorizedAsAntLoggingAdapter(OutputEvent event) {
+        return event instanceof CategorisedOutputEvent &&
+            (event as CategorisedOutputEvent).category == AntLoggingAdapter.canonicalName
     }
 }

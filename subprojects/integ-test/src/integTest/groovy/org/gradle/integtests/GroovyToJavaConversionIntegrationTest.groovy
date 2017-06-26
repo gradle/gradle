@@ -45,17 +45,19 @@ class GroovyToJavaConversionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task checkHasGetters {
                 doLast {
-                    def classes = [${convertedClasses.collect { "${it}"}.join(',')}]
-                    def excludes = [
-                        (org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry) : 'exported', // protected field
-                        (org.gradle.plugins.signing.SigningExtension) : 'required' // protected field
-                    ]
+                    def classes = [${convertedClasses.collect { "${it}" }.join(',')}]
                     classes.each { convertedClass ->
-                        def properties = org.gradle.internal.reflect.JavaReflectionUtil.readableProperties(convertedClass)
-                        properties.each { name, accessor ->
-                            println "Checking property \${name} on \${convertedClass.name}"
-                            if (accessor.method.declaringClass == convertedClass && excludes.get(convertedClass) != name) {
-                                convertedClass.getMethod("get\${name.capitalize()}")
+                        def properties = org.gradle.internal.reflect.ClassInspector.inspect(convertedClass).properties
+                        properties.each { prop ->
+                            if (prop.getters.find { it.declaringClass == convertedClass }) {
+                                println "Checking property \${prop.name} on \${convertedClass.name}"
+                                if (convertedClass == org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry && prop.name == "exported") {
+                                    return
+                                }
+                                if (convertedClass == org.gradle.plugins.signing.SigningExtension && prop.name == "required") {
+                                    return
+                                }
+                                assert prop.getters.find { it.name.startsWith("get") }
                             }
                         }
                     }

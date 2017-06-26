@@ -1,4 +1,4 @@
-:clean
+:clean UP-TO-DATE
 :compileJava
 :instrumentClasses
 

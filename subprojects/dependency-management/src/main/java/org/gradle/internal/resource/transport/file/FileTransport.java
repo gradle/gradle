@@ -16,23 +16,24 @@
 package org.gradle.internal.resource.transport.file;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transport.AbstractRepositoryTransport;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
 
 import java.io.IOException;
-import java.net.URI;
 
 public class FileTransport extends AbstractRepositoryTransport {
-    private final FileResourceConnector repository;
+    private final FileResourceRepository repository;
     private final NoOpCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public FileTransport(String name) {
+    public FileTransport(String name, FileResourceRepository repository) {
         super(name);
-        repository = new FileResourceConnector();
-        resourceAccessor = new NoOpCacheAwareExternalResourceAccessor(repository);
+        this.repository = repository;
+        resourceAccessor = new NoOpCacheAwareExternalResourceAccessor();
     }
 
     public boolean isLocal() {
@@ -47,15 +48,13 @@ public class FileTransport extends AbstractRepositoryTransport {
         return resourceAccessor;
     }
 
-    private static class NoOpCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
-        private final FileResourceConnector connector;
-
-        public NoOpCacheAwareExternalResourceAccessor(FileResourceConnector connector) {
-            this.connector = connector;
-        }
-
-        public LocallyAvailableExternalResource getResource(URI source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
-            return connector.getResource(source, false);
+    private class NoOpCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
+        public LocallyAvailableExternalResource getResource(ExternalResourceName source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
+            LocallyAvailableExternalResource resource = repository.resource(source);
+            if (resource.getFile().exists()) {
+                return resource;
+            }
+            return null;
         }
     }
 }

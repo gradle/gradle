@@ -54,7 +54,7 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
 
     protected abstract TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);
 
-    protected abstract void beforeTask(final Callable<Object> futureValue);
+    protected abstract void beforeTask(Callable<Object> futureValue);
 
     protected abstract void validate(String propertyName, Object value, Collection<String> messages);
 }

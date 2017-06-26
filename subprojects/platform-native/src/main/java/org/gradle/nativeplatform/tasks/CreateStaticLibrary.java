@@ -24,7 +24,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
@@ -49,16 +48,14 @@ import java.util.concurrent.Callable;
  * Assembles a static library from object files.
  */
 @Incubating
-@ParallelizableTask
 public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
 
-    private FileCollection source;
+    private final ConfigurableFileCollection source;
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private File outputFile;
     private List<String> staticLibArgs;
 
-    @Inject
     public CreateStaticLibrary() {
         source = getProject().files();
         getInputs().property("outputType", new Callable<String>() {
@@ -82,7 +79,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
      * Adds a set of object files to be linked. <p> The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
     public void source(Object source) {
-        ((ConfigurableFileCollection) this.source).from(source);
+        this.source.from(source);
     }
 
     @Inject

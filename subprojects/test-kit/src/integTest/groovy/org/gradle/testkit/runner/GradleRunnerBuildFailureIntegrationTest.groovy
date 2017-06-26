@@ -19,7 +19,7 @@ package org.gradle.testkit.runner
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 
-import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.*
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.normalize
 import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -86,24 +86,22 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
         buildScript helloWorldTask()
 
         when:
-        runner('helloWorld').buildAndFail()
+        def runner = runner('helloWorld')
+        runner.buildAndFail()
 
         then:
         def t = thrown UnexpectedBuildSuccess
         def expectedOutput = """:helloWorld
 Hello world!
 
-BUILD SUCCESSFUL
-
-Total time: 1 secs
-"""
-        def expectedMessage = """Unexpected build execution success in ${testDirectory.canonicalPath} with arguments [helloWorld]
+BUILD SUCCESSFUL"""
+        def expectedMessage = """Unexpected build execution success in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
 
 Output:
 $expectedOutput"""
 
-        normalize(t.message) == expectedMessage
-        normalize(t.buildResult.output) == expectedOutput
+        normalize(t.message).startsWith(expectedMessage)
+        normalize(t.buildResult.output).startsWith(expectedOutput)
         t.buildResult.taskPaths(SUCCESS) == [':helloWorld']
     }
 
@@ -138,7 +136,8 @@ $expectedOutput"""
         """
 
         when:
-        runner('helloWorld').build()
+        def runner = runner('helloWorld')
+        runner.build()
 
         then:
         UnexpectedBuildFailure t = thrown(UnexpectedBuildFailure)
@@ -156,18 +155,15 @@ Execution failed for task ':helloWorld'.
 * Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
 
-BUILD FAILED
-
-Total time: 1 secs
-"""
-        String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments [helloWorld]
+BUILD FAILED"""
+        String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
 
 Output:
 $expectedOutput"""
 
-        normalize(t.message) == expectedMessage
+        normalize(t.message).startsWith(expectedMessage)
         def result = t.buildResult
-        normalize(result.output) == expectedOutput
+        normalize(result.output).startsWith(expectedOutput)
         result.taskPaths(FAILED) == [':helloWorld']
     }
 

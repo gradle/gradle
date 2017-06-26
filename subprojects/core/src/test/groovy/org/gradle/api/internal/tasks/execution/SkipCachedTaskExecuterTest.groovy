@@ -16,68 +16,71 @@
 
 package org.gradle.api.internal.tasks.execution
 
-import org.gradle.StartParameter
-import org.gradle.api.GradleException
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.TaskOutputCachingState
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.internal.tasks.cache.TaskCacheKey
-import org.gradle.api.internal.tasks.cache.TaskOutputCache
-import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory
-import org.gradle.api.internal.tasks.cache.TaskOutputPacker
-import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal
+import org.gradle.caching.internal.controller.BuildCacheController
+import org.gradle.caching.internal.controller.BuildCacheLoadCommand
+import org.gradle.caching.internal.controller.BuildCacheStoreCommand
+import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
+import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
 
-public class SkipCachedTaskExecuterTest extends Specification {
+class SkipCachedTaskExecuterTest extends Specification {
     def delegate = Mock(TaskExecuter)
-    def task = Mock(TaskInternal)
     def project = Mock(Project)
     def projectDir = Mock(File)
+    def taskOutputCaching = Mock(TaskOutputCachingState)
     def outputs = Mock(TaskOutputsInternal)
+    def task = Stub(TaskInternal) {
+        getOutputs() >> outputs
+    }
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
-    def taskOutputCache = Mock(TaskOutputCache)
-    def taskOutputCacheFactory = Mock(TaskOutputCacheFactory)
-    def taskCaching = Mock(TaskCachingInternal)
-    def taskOutputPacker = Mock(TaskOutputPacker)
-    def startParameter = Mock(StartParameter)
-    def cacheKey = Mock(TaskCacheKey)
-    def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
+    def buildCache = Mock(BuildCacheController)
+    def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
+    def taskOutputGenerationListener = Mock(TaskOutputsGenerationListener)
+    def loadCommand = Mock(BuildCacheLoadCommand)
+    def storeCommand = Mock(BuildCacheStoreCommand)
+    def buildCacheCommandFactory = Mock(TaskOutputCacheCommandFactory)
 
-    def executer = new SkipCachedTaskExecuter(taskCaching, taskOutputPacker, startParameter, internalTaskExecutionListener, delegate)
+    def executer = new SkipCachedTaskExecuter(buildCache, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
 
     def "skip task when cached results exist"() {
+        def originId = UniqueId.generate()
+
         when:
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskContext.buildCacheKey >> cacheKey
+        interaction { cachingEnabled() }
 
         then:
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+        1 * cacheKey.isValid() >> true
 
         then:
-        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
-        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
-        1 * taskOutputCache.getDescription() >> "test"
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _) >> loadCommand
 
         then:
-        1 * taskOutputCache.load(cacheKey, _) >> true
+        1 * buildCache.load(loadCommand) >> new TaskOutputOriginMetadata(originId)
+
+        then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
-        1 * taskState.setCacheable(true)
-        1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
+        1 * taskContext.setOriginBuildInvocationId(originId)
         0 * _
     }
 
@@ -86,33 +89,31 @@ public class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskContext.buildCacheKey >> cacheKey
+        interaction { cachingEnabled() }
 
         then:
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+        1 * cacheKey.isValid() >> true
 
         then:
-        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
-        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
-        1 * taskOutputCache.getDescription() >> "test"
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _) >> loadCommand
 
         then:
-        1 * taskOutputCache.load(cacheKey, _) >> false
+        1 * buildCache.load(loadCommand) >> null
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * taskCaching.isPushAllowed() >> true
         1 * taskState.getFailure() >> null
-        1 * taskState.setCacheable(true)
+        1 * cacheKey.isValid() >> true
 
         then:
-        1 * taskOutputCache.store(cacheKey, _)
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, task, _) >> storeCommand
+
+        then:
+        1 * buildCache.store(storeCommand)
         0 * _
     }
 
@@ -121,32 +122,27 @@ public class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskContext.buildCacheKey >> cacheKey
+        interaction { cachingEnabled() }
 
         then:
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> false
+        1 * cacheKey.isValid() >> true
 
         then:
-        1 * taskState.setCacheable(true)
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isPushAllowed() >> true
         1 * taskState.getFailure() >> null
+        1 * cacheKey.isValid() >> true
 
         then:
-        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
-        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
-        1 * taskOutputCache.getDescription() >> "test"
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, task, _) >> storeCommand
 
         then:
-        1 * taskOutputCache.store(cacheKey, _)
+        1 * buildCache.store(storeCommand)
         0 * _
     }
 
@@ -155,32 +151,42 @@ public class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskContext.buildCacheKey >> cacheKey
+        interaction { cachingEnabled() }
 
         then:
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+        1 * cacheKey.isValid() >> true
 
         then:
-        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
-        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
-        1 * taskOutputCache.getDescription() >> "test"
+        1 * buildCacheCommandFactory.createLoad(*_)
+        1 * buildCache.load(_)
 
         then:
-        1 * taskOutputCache.load(cacheKey, _) >> false
-
-        then:
-        1 * taskState.setCacheable(true)
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isPushAllowed() >> true
+        1 * cacheKey.isValid() >> true
         1 * taskState.getFailure() >> new RuntimeException()
+        0 * _
+    }
+
+    def "does not cache results when cache key is invalid"() {
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        interaction { cachingEnabled() }
+        1 * taskContext.buildCacheKey >> cacheKey
+
+        then:
+        1 * cacheKey.isValid() >> false
+
+        then:
+        1 * delegate.execute(task, taskState, taskContext)
+        1 * cacheKey.isValid() >> false
         0 * _
     }
 
@@ -189,145 +195,78 @@ public class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> false
+        1 * taskContext.buildCacheKey >> cacheKey
+        interaction { cachingDisabled() }
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * taskState.setCacheable(false)
         0 * _
     }
 
-    def "executes task and does not cache results when task is not allowed to use cache"() {
+    def "fails when cache backend throws fatal exception while finding result"() {
         when:
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> true
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> false
+        1 * taskContext.buildCacheKey >> cacheKey
+        interaction { cachingEnabled() }
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
-        1 * taskState.setCacheable(false)
-        0 * _
-    }
-
-    def "executes task and does not cache results when task does not declare outputs"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> true
-        1 * outputs.hasDeclaredOutputs() >> false
-
-        then:
-        1 * delegate.execute(task, taskState, taskContext)
-        1 * taskState.setCacheable(false)
-        0 * _
-    }
-
-    def "fails when cacheIf() clause cannot be evaluated"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        def ex = thrown GradleException
-        ex.message == "Could not evaluate TaskOutputs.cacheIf for ${task}." as String
-        ex.cause instanceof RuntimeException
-        ex.cause.message == "Bad cacheIf() clause"
-
-        1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> { throw new RuntimeException("Bad cacheIf() clause") }
-    }
-
-    def "fails if cache key cannot be calculated"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-        then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
-
-        then:
-        def ex = thrown GradleException
-        ex.message == "Could not build cache key for ${task}." as String
-        ex.cause instanceof RuntimeException
-        ex.cause.message == "Bad cache key"
+        1 * cacheKey.isValid() >> true
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> { throw new RuntimeException("Bad cache key") }
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+
+        then:
+        1 * buildCacheCommandFactory.createLoad(*_)
+        1 * buildCache.load(_) >> { throw new RuntimeException("unknown error") }
+
+        then:
+        0 * _
+        then:
+        RuntimeException e = thrown()
+        e.message == "unknown error"
     }
 
-    def "falls back to executing task when cache backend throws error while finding result"() {
+    def "fails when cache backend throws fatal exception while storing cached result"() {
         when:
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskContext.buildCacheKey >> cacheKey
+        interaction { cachingEnabled() }
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+        1 * cacheKey.isValid() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
-        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
-        1 * taskOutputCache.getDescription() >> "test"
+        1 * buildCacheCommandFactory.createLoad(*_)
+        1 * buildCache.load(_)
 
         then:
-        1 * taskOutputCache.load(cacheKey, _) >> { throw new RuntimeException("Bad cache") }
-
-        then:
-        1 * taskState.setCacheable(true)
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
+        1 * cacheKey.isValid() >> true
         1 * taskState.getFailure() >> null
-        1 * taskCaching.isPushAllowed() >> true
-        1 * taskOutputCache.store(cacheKey, _)
+        1 * buildCacheCommandFactory.createStore(*_)
+        1 * buildCache.store(_) >> { throw new RuntimeException("unknown error") }
         0 * _
+        then:
+        RuntimeException e = thrown()
+        e.message == "unknown error"
     }
 
-    def "ignores error when storing cached result"() {
-        when:
-        executer.execute(task, taskState, taskContext)
+    private void cachingEnabled() {
+        1 * taskState.getTaskOutputCaching() >> taskOutputCaching
+        1 * taskOutputCaching.isEnabled() >> true
+    }
 
-        then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
-
-        then:
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
-        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-
-        then:
-        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
-        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
-        1 * taskOutputCache.getDescription() >> "test"
-
-        then:
-        1 * taskOutputCache.load(cacheKey, _) >> false
-
-        then:
-        1 * taskState.setCacheable(true)
-        1 * delegate.execute(task, taskState, taskContext)
-
-        then:
-        1 * taskCaching.isPushAllowed() >> true
-        1 * taskState.getFailure() >> null
-        1 * taskOutputCache.store(cacheKey, _) >> { throw new RuntimeException("Bad result") }
-        0 * _
+    private void cachingDisabled() {
+        1 * taskState.getTaskOutputCaching() >> taskOutputCaching
+        1 * taskOutputCaching.isEnabled() >> false
     }
 }

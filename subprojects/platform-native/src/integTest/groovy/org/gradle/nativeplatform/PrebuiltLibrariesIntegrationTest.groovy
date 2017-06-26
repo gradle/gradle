@@ -319,7 +319,8 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not locate library 'other' required by 'main' in project ':'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
+        failure.assertHasCause("Could not locate library 'other' required by 'main' in project ':'.")
     }
 
     def "produces reasonable error message when prebuilt library does not exist in a different project"() {
@@ -363,6 +364,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not locate library 'hello' in project ':projectB' required by 'main' in project ':projectA'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':projectA:linkMainExecutable'.")
+        failure.assertHasCause("Could not locate library 'hello' in project ':projectB' required by 'main' in project ':projectA'.")
     }
 }

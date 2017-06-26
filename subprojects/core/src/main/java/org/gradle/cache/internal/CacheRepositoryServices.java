@@ -21,7 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.classloader.ClassPathSnapshotter;
+import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -45,7 +45,7 @@ public class CacheRepositoryServices {
             factory);
     }
 
-    protected CacheKeyBuilder createCacheKeyBuilder(FileHasher fileHasher, ClassPathSnapshotter snapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        return new DefaultCacheKeyBuilder(Hashing.md5(), fileHasher, snapshotter, classLoaderHierarchyHasher);
+    protected CacheKeyBuilder createCacheKeyBuilder(FileHasher fileHasher, ClasspathHasher classpathHasher, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        return new DefaultCacheKeyBuilder(Hashing.md5(), fileHasher, classpathHasher, classLoaderHierarchyHasher);
     }
 }

@@ -17,27 +17,32 @@
 package org.gradle.cache.internal.cacheops
 
 import org.gradle.util.ConcurrentSpecification
+import spock.lang.Unroll
 
 class CacheAccessOperationsStackTest extends ConcurrentSpecification {
 
     def stack = new CacheAccessOperationsStack()
 
-    def "maintains operations per thread"() {
+    @Unroll
+    def "maintains operations per thread #count"() {
         expect:
         start {
             assert !stack.inCacheAction
-            stack.pushCacheAction("foo1")
-            stack.pushCacheAction("foo2")
+            stack.pushCacheAction()
+            stack.pushCacheAction()
             assert stack.inCacheAction
-            assert stack.description == "foo2"
         }
         start {
             assert !stack.inCacheAction
-            stack.pushCacheAction("bar1")
-            stack.pushCacheAction("bar2")
+            stack.pushCacheAction()
+            stack.pushCacheAction()
             assert stack.inCacheAction
-            assert stack.description == "bar2"
+            stack.popCacheAction()
+            stack.popCacheAction()
+            assert !stack.inCacheAction
         }
         finished()
+        where:
+        count << (1..1000)
     }
 }

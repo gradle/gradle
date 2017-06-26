@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.idea.model.internal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.composite.internal.CompositeBuildIdeProjectResolver
 import org.gradle.initialization.DefaultBuildIdentity
-import org.gradle.initialization.IncludedBuildExecuter
+import org.gradle.includedbuild.internal.IncludedBuildTaskGraph
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
@@ -29,10 +29,10 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 
 class ModuleDependencyBuilderTest extends Specification {
 
-    def projectId = newProjectId("project-path")
-    def ideDependency = new IdeProjectDependency(projectId, "test")
+    def projectId = newProjectId(":nested:project-name")
+    def ideDependency = new IdeProjectDependency(projectId)
     def localComponentRegistry = Mock(LocalComponentRegistry)
-    def ideProjectResolver = new CompositeBuildIdeProjectResolver(localComponentRegistry, Stub(IncludedBuildExecuter), new DefaultBuildIdentity(projectId.build))
+    def ideProjectResolver = new CompositeBuildIdeProjectResolver(localComponentRegistry, Stub(IncludedBuildTaskGraph), new DefaultBuildIdentity(projectId.build))
     def builder = new ModuleDependencyBuilder(ideProjectResolver)
 
     def "builds dependency for nonIdea project"() {
@@ -41,7 +41,19 @@ class ModuleDependencyBuilderTest extends Specification {
 
         then:
         dependency.scope == 'compile'
-        dependency.name == "test"
+        dependency.name == "project-name"
+
+        and:
+        localComponentRegistry.getAdditionalArtifacts(_) >> []
+    }
+
+    def "builds dependency for nonIdea root project"() {
+        when:
+        def dependency = builder.create(new IdeProjectDependency(newProjectId("build-1",":")), 'compile')
+
+        then:
+        dependency.scope == 'compile'
+        dependency.name == "build-1"
 
         and:
         localComponentRegistry.getAdditionalArtifacts(_) >> []
@@ -50,7 +62,7 @@ class ModuleDependencyBuilderTest extends Specification {
     def "builds dependency for project"() {
         given:
         def imlArtifact = Stub(LocalComponentArtifactMetadata) {
-            getName() >> DefaultIvyArtifactName.of("foo", "iml", "iml", null)
+            getName() >> new DefaultIvyArtifactName("foo", "iml", "iml", null)
         }
 
         when:

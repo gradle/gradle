@@ -32,6 +32,8 @@ import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
+
 class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
     ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor(new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies()))
 
@@ -72,7 +74,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
-        ex.message == """Type ${ruleClass.name} is not a valid rule source:
+        ex.message == """Type ${fullyQualifiedNameOf(ruleClass)} is not a valid rule source:
 - Method ${ruleDescription} is not a valid rule method: ${expectedMessage}"""
 
         where:
@@ -80,7 +82,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         "extraParameter" | "A method annotated with @ComponentType must have a single parameter of type ${TypeBuilder.name}."              | "additional rule parameter"
         "returnValue"    | "A method annotated with @ComponentType must have void return type."                                            | "method with return type"
         "noTypeParam"    | "Parameter of type ${TypeBuilder.name} must declare a type parameter."                                          | "missing type parameter"
-        "notBinarySpec"  | "Type '${NotBinarySpec.name}' is not a subtype of '${ComponentSpec.name}'."                                     | "type not extending BinarySpec"
+        "notBinarySpec"  | "Type '${fullyQualifiedNameOf(NotBinarySpec)}' is not a subtype of '${ComponentSpec.name}'."                    | "type not extending BinarySpec"
         "wildcardType"   | "Type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                 | "wildcard type parameter"
         "extendsType"    | "Type '? extends ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)." | "extends type parameter"
         "superType"      | "Type '? super ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."   | "super type parameter"
@@ -101,11 +103,11 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         ex.cause.message == expectedMessage
 
         where:
-        methodName                         | expectedMessage                                                                                                               | descr
-        "implementationSetMultipleTimes"   | "Method annotated with @ComponentType cannot set default implementation multiple times."                                         | "implementation set multiple times"
-        "implementationSetForManagedType"  | "Method annotated with @ComponentType cannot set default implementation for managed type ${ManagedBinarySpec.name}."             | "implementation set for managed type"
-        "internalViewNotInterface"         | "Internal view ${NonInterfaceInternalView.name} must be an interface."                                                        | "non-interface internal view"
-        "repeatedInternalView"             | "Internal view '${BinarySpecInternalView.name}' must not be specified multiple times."                                        | "internal view specified multiple times"
+        methodName                        | expectedMessage                                                                                                                       | descr
+        "implementationSetMultipleTimes"  | "Method annotated with @ComponentType cannot set default implementation multiple times."                                              | "implementation set multiple times"
+        "implementationSetForManagedType" | "Method annotated with @ComponentType cannot set default implementation for managed type ${fullyQualifiedNameOf(ManagedBinarySpec)}." | "implementation set for managed type"
+        "internalViewNotInterface"        | "Internal view ${NonInterfaceInternalView.name} must be an interface."                                                                | "non-interface internal view"
+        "repeatedInternalView"            | "Internal view '${BinarySpecInternalView.name}' must not be specified multiple times."                                                | "internal view specified multiple times"
     }
 
     static interface SomeBinarySpec extends BinarySpec {}

@@ -28,7 +28,9 @@ class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegratio
 
     def cleanup() {
         stopGradle()
-        appIsStopped()
+        if (runningApp.isInitialized()) {
+            appIsStopped()
+        }
     }
 
     def "should reload modified scala controller and routes"() {

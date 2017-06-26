@@ -16,8 +16,10 @@
 
 package org.gradle.process.internal
 
+import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.process.internal.worker.WorkerControl
 import org.gradle.process.internal.worker.WorkerProcessException
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Ignore
 import spock.lang.Timeout
 
@@ -39,6 +41,21 @@ class MultiRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessInte
         result1 == "value:1"
         result2 == "value:2"
         result3 == "value:3"
+
+        cleanup:
+        worker?.stop()
+    }
+
+    def "receives memory status from worker process"() {
+        when:
+        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, StatefulTestWorker.class)
+        def worker = builder.build()
+        def process = worker.start()
+
+        then:
+        ConcurrentTestUtil.poll {
+            assert process.jvmMemoryStatus.committedMemory > 0
+        }
 
         cleanup:
         worker?.stop()
@@ -131,7 +148,7 @@ class CustomTestWorker implements TestProtocol {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof InstantiationException
+        e.cause instanceof ObjectInstantiationException
 
         cleanup:
         worker?.stop()

@@ -23,11 +23,7 @@ import java.io.IOException;
  * A {@link org.gradle.external.javadoc.JavadocOptionFileOption} whose value is a file.
  */
 public class FileJavadocOptionFileOption extends AbstractJavadocOptionFileOption<File> {
-    protected FileJavadocOptionFileOption(String option) {
-        super(option);
-    }
-
-    protected FileJavadocOptionFileOption(String option, File value) {
+    public FileJavadocOptionFileOption(String option, File value) {
         super(option, value);
     }
 
@@ -36,5 +32,10 @@ public class FileJavadocOptionFileOption extends AbstractJavadocOptionFileOption
         if (value != null) {
             writerContext.writeValueOption(option, value.getAbsolutePath());
         }
+    }
+
+    @Override
+    public FileJavadocOptionFileOption duplicate() {
+        return new FileJavadocOptionFileOption(option, value);
     }
 }

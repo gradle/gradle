@@ -20,10 +20,9 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 
 public class RepositoryTransportWagonAdapter {
@@ -36,25 +35,16 @@ public class RepositoryTransportWagonAdapter {
     }
 
     public boolean getRemoteFile(File destination, String resourceName) throws ResourceException {
-        URI uriForResource = getUriForResource(resourceName);
-        ExternalResource resource = transport.getRepository().getResource(uriForResource, false);
-        if (resource == null) {
-            return false;
-        }
-        try {
-            resource.writeTo(destination);
-        } finally {
-            resource.close();
-        }
-        return true;
+        ExternalResourceName location = getLocationForResource(resourceName);
+        ExternalResource resource = transport.getRepository().resource(location);
+        return resource.writeToIfPresent(destination) != null;
     }
 
-    public void putRemoteFile(LocalResource localResource, String resourceName) throws IOException {
-        transport.getRepository().withProgressLogging().put(localResource, getUriForResource(resourceName));
+    public void putRemoteFile(ReadableContent content, String resourceName) throws ResourceException {
+        transport.getRepository().withProgressLogging().resource(getLocationForResource(resourceName)).put(content);
     }
 
-    private URI getUriForResource(String resource) {
-        ExternalResourceName resourceName = new ExternalResourceName(rootUri, resource);
-        return resourceName.getUri();
+    private ExternalResourceName getLocationForResource(String resource) {
+        return new ExternalResourceName(rootUri, resource);
     }
 }

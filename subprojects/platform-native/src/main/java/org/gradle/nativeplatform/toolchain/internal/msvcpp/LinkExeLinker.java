@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
@@ -39,10 +39,10 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
     private final ArgsTransformer<LinkerSpec> argsTransformer;
     private final CommandLineToolContext invocationContext;
-    private final BuildOperationProcessor buildOperationProcessor;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    LinkExeLinker(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
-        this.buildOperationProcessor = buildOperationProcessor;
+    LinkExeLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
+        this.buildOperationExecutor = buildOperationExecutor;
         this.argsTransformer = new LinkerArgsTransformer();
         this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.invocationContext = invocationContext;
@@ -58,7 +58,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
         final CommandLineToolInvocation invocation = invocationContext.createInvocation(
                 "linking " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
 
-        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+        buildOperationExecutor.runAll(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
             public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());

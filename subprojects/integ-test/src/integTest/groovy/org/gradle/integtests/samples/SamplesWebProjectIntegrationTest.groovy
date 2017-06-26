@@ -18,7 +18,6 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
@@ -51,60 +50,6 @@ class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
                 'WEB-INF/webapp.xml',
                 'WEB-INF/web.xml',
                 'webapp.html')
-    }
-
-    @LeaksFileHandles
-    def "can execute servlet"() {
-        given:
-        def httpPort = portAllocator.assignPort()
-        def stopPort = portAllocator.assignPort()
-        def url = "http://localhost:${httpPort}/customized/hello"
-
-        // Inject some int test stuff
-        sample.dir.file('build.gradle') << """
-import org.gradle.api.plugins.jetty.internal.Monitor
-
-httpPort = ${httpPort}
-stopPort = ${stopPort}
-
-println "http port = \$httpPort, stop port = \$stopPort"
-
-ext.url = new URL("${url}")
-
-[jettyRun, jettyRunWar]*.daemon = true
-
-task runTest(dependsOn: jettyRun) {
-    doLast {
-        callServlet()
-    }
-}
-
-task runWarTest(dependsOn: jettyRunWar) {
-    doLast {
-        callServlet()
-    }
-}
-
-private void callServlet() {
-    println url.text
-}
-
-[runTest, runWarTest]*.finalizedBy jettyStop
-"""
-
-        when:
-        sample sample
-        runWithExpectedDeprecationWarning('runTest')
-
-        then:
-        output.contains('Hello Gradle')
-
-        when:
-        sample sample
-        runWithExpectedDeprecationWarning('runWarTest')
-
-        then:
-        output.contains('Hello Gradle')
     }
 
     private void runWithExpectedDeprecationWarning(String... tasks) {

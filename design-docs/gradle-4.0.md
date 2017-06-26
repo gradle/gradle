@@ -110,7 +110,7 @@ It is now straight forward to implement a rich UI using the Gradle tooling API.
 
 ## Isolate dependencies to Java 5 and Java 6
 
-Currently, many projects are limited to Java 5 and Java 6 because of the project structure. Only then entry points
+Currently, many projects are limited to Java 5 and Java 6 because of the project structure. Only the entry points
 need to run on Java 5 to be able to give a meaningful error message. For Java 6 it is enough that we can run tests
 there. If we isolate the necessary classes to dedicated subprojects we can use Java 7 in more places in our code base.
 The same is true for the next Java version upgrade.

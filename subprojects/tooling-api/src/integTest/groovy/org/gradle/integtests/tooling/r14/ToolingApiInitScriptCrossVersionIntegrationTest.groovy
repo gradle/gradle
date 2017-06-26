@@ -34,6 +34,7 @@ class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecific
 
     TestFile createDistribution(int i) {
         def distro = temporaryDistributionFolder.file("distro$i")
+        distro.deleteDir()
 
         distro.copyFrom(getTargetDist().getGradleHomeDir())
         distro.file("bin", OperatingSystem.current().getScriptName("gradle")).permissions = 'rwx------'

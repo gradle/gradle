@@ -48,7 +48,7 @@ class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         model != null
-        new OutputScrapingExecutionResult(outputStream.toString(), errorStream.toString()).assertTasksExecuted()
+        new OutputScrapingExecutionResult(outputStream.toString(), errorStream.toString()).assertTasksExecutedInOrder()
     }
 
     @ToolingApiVersion(">=2.3")
@@ -72,7 +72,7 @@ class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         model != null
-        new OutputScrapingExecutionResult(outputStream.toString(), errorStream.toString()).assertTasksExecuted()
+        new OutputScrapingExecutionResult(outputStream.toString(), errorStream.toString()).assertTasksExecutedInOrder()
     }
 
 }

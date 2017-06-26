@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.event;
 
+import org.gradle.api.Nullable;
+import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.Contextual;
 
@@ -23,7 +25,14 @@ import org.gradle.internal.exceptions.Contextual;
  */
 @Contextual
 public class ListenerNotificationException extends DefaultMultiCauseException {
-    public ListenerNotificationException(String message, Iterable<? extends Throwable> causes) {
+    private final MethodInvocation event;
+
+    public ListenerNotificationException(@Nullable MethodInvocation event, String message, Iterable<? extends Throwable> causes) {
         super(message, causes);
+        this.event = event;
+    }
+
+    public MethodInvocation getEvent() {
+        return event;
     }
 }

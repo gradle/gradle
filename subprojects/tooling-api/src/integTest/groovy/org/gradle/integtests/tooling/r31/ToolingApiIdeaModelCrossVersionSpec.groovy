@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
+import org.gradle.util.GradleVersion
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=3.1")
@@ -109,6 +110,10 @@ project(':impl') {
 
         IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
         mod.dependencyModule == project.modules.find { it.name == 'api'}
-        mod.scope.scope == 'COMPILE'
+        if (targetVersion >= GradleVersion.version("3.4")) {
+            mod.scope.scope == 'PROVIDED'
+        } else {
+            mod.scope.scope == 'COMPILE'
+        }
     }
 }

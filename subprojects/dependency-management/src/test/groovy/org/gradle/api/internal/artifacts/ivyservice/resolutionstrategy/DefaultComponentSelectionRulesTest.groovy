@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.specs.Specs
@@ -29,7 +30,6 @@ import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
-import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
@@ -39,8 +39,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
     static final GROUP = "group"
     static final MODULE = "module"
     RuleActionAdapter<ComponentSelection> adapter = Mock(RuleActionAdapter)
-    NotationParser<Object, String> notationParser = Mock(NotationParser)
-    DefaultComponentSelectionRules rules = new DefaultComponentSelectionRules(adapter, notationParser)
+    DefaultComponentSelectionRules rules = new DefaultComponentSelectionRules(new DefaultImmutableModuleIdentifierFactory(), adapter)
     ComponentSelectionInternal componentSelection
     def ruleAction = Mock(RuleAction)
     def ruleSource = new Object()
@@ -67,14 +66,13 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def "add closure rule that applies to module"() {
         def input = { ComponentSelection cs ->  }
-        def notation = "${GROUP}:${MODULE}"
+        String notation = "${GROUP}:${MODULE}"
 
         when:
         rules.withModule(notation, input)
 
         then:
         1 * adapter.createFromClosure(ComponentSelection, input) >> ruleAction
-        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
         rules.rules.size() == 1
@@ -99,14 +97,13 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def "add action rule that applies to module"() {
         def Action<ComponentSelection> action = Mock(Action)
-        def notation = "${GROUP}:${MODULE}"
+        String notation = "${GROUP}:${MODULE}"
 
         when:
         rules.withModule(notation, action)
 
         then:
         1 * adapter.createFromAction(action) >> ruleAction
-        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
         rules.rules.size() == 1
@@ -128,14 +125,13 @@ class DefaultComponentSelectionRulesTest extends Specification {
     }
 
     def "add rule source rule that applies to module"() {
-        def notation = "${GROUP}:${MODULE}"
+        String notation = "${GROUP}:${MODULE}"
 
         when:
         rules.withModule(notation, ruleSource)
 
         then:
         1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> ruleAction
-        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
         rules.rules.size() == 1
@@ -212,8 +208,8 @@ class DefaultComponentSelectionRulesTest extends Specification {
     }
 
     def "propagates error parsing module identifier for closure" () {
-        def input = { ComponentSelection cs -> }
         def notation = "group:module:1.0"
+        def input = { ComponentSelection cs -> throw new UnsupportedNotationException(notation) }
 
         when:
         rules.withModule(notation, input)
@@ -225,13 +221,13 @@ class DefaultComponentSelectionRulesTest extends Specification {
         cause instanceof UnsupportedNotationException
         cause.notation == notation
 
-        and:
-        1 * notationParser.parseNotation(notation) >> { throw new UnsupportedNotationException(notation) }
     }
 
     def "propagates error parsing module identifier for action" () {
-        def input = Mock(Action)
         def notation = "group:module:1.0"
+        def input = Mock(Action) {
+            execute() >> { throw new UnsupportedNotationException(notation) }
+        }
 
         when:
         rules.withModule(notation, input)
@@ -242,9 +238,6 @@ class DefaultComponentSelectionRulesTest extends Specification {
         def cause = e.cause
         cause instanceof UnsupportedNotationException
         cause.notation == notation
-
-        and:
-        1 * notationParser.parseNotation(notation) >> { throw new UnsupportedNotationException(notation) }
     }
 
     def "ComponentSelectionSpec matches on group and name" () {
@@ -280,13 +273,13 @@ class DefaultComponentSelectionRulesTest extends Specification {
         when: rules.all(ruleSource)
         then: 1 * checker.validateMutation(STRATEGY)
 
-        when: rules.withModule("something", Actions.doNothing())
+        when: rules.withModule("something:else", Actions.doNothing())
         then: 1 * checker.validateMutation(STRATEGY)
 
-        when: rules.withModule("something", Closure.IDENTITY)
+        when: rules.withModule("something:else", Closure.IDENTITY)
         then: 1 * checker.validateMutation(STRATEGY)
 
-        when: rules.withModule("something", ruleSource)
+        when: rules.withModule("something:else", ruleSource)
         then: 1 * checker.validateMutation(STRATEGY)
     }
 

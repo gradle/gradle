@@ -17,7 +17,6 @@
 package org.gradle.plugins.javascript.rhino.worker.internal;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;

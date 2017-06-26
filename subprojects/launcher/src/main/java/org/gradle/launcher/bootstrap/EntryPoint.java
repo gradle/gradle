@@ -24,7 +24,7 @@ import org.gradle.internal.logging.text.StreamingStyledTextOutputFactory;
 /**
  * An entry point is the point at which execution will never return from.
  * <p>
- * It's purpose is to consistently apply our completion logic of forcing the JVM
+ * Its purpose is to consistently apply our completion logic of forcing the JVM
  * to exit at a certain point instead of waiting for all threads to die, and to provide
  * some consistent unhandled exception catching.
  * <p>

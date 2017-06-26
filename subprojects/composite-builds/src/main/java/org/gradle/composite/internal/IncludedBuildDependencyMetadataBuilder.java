@@ -17,12 +17,12 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Buildable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -31,9 +31,7 @@ import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
@@ -63,45 +61,31 @@ public class IncludedBuildDependencyMetadataBuilder {
         ProjectComponentIdentifier componentIdentifier = newProjectId(build, project.getPath());
         LocalComponentMetadata compositeComponent = createCompositeCopy(build, componentIdentifier, originalComponent);
 
-        context.register(componentIdentifier, compositeComponent, project.getProjectDir());
+        context.register(componentIdentifier, compositeComponent);
         for (LocalComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
             context.registerAdditionalArtifact(componentIdentifier, createCompositeCopy(componentIdentifier, artifactMetaData));
         }
     }
 
-    private LocalComponentMetadata createCompositeCopy(IncludedBuild build, ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
-        DefaultLocalComponentMetadata compositeComponentMetadata = new DefaultLocalComponentMetadata(originalComponentMetadata.getId(), componentIdentifier, originalComponentMetadata.getStatus());
+    private LocalComponentMetadata createCompositeCopy(final IncludedBuild build, final ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
 
-        for (String configurationName : originalComponentMetadata.getConfigurationNames()) {
-            LocalConfigurationMetadata originalConfiguration = originalComponentMetadata.getConfiguration(configurationName);
-            compositeComponentMetadata.addConfiguration(configurationName,
-                originalConfiguration.getDescription(), originalConfiguration.getExtendsFrom(), originalConfiguration.getHierarchy(),
-                originalConfiguration.isVisible(), originalConfiguration.isTransitive(), originalConfiguration.getAttributes(),
-                originalConfiguration.isCanBeConsumed(),
-                originalConfiguration.isCanBeResolved());
-
-            final Set<String> targetTasks = determineTargetTasks(originalConfiguration);
-
-            Set<ComponentArtifactMetadata> artifacts = originalConfiguration.getArtifacts();
-            for (ComponentArtifactMetadata originalArtifact : artifacts) {
-                File artifactFile = ((LocalComponentArtifactMetadata) originalArtifact).getFile();
-                CompositeProjectComponentArtifactMetadata artifact = new CompositeProjectComponentArtifactMetadata(componentIdentifier, originalArtifact.getName(), artifactFile, targetTasks);
-                compositeComponentMetadata.addArtifact(configurationName, artifact);
+        return originalComponentMetadata.copy(componentIdentifier, new Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata>() {
+            @Override
+            public LocalComponentArtifactMetadata transform(LocalComponentArtifactMetadata originalArtifact) {
+                File artifactFile = originalArtifact.getFile();
+                Set<String> targetTasks = getArtifactTasks(originalArtifact);
+                return new CompositeProjectComponentArtifactMetadata(componentIdentifier, originalArtifact.getName(), artifactFile, targetTasks);
             }
-        }
-
-        for (LocalOriginDependencyMetadata dependency : originalComponentMetadata.getDependencies()) {
-            if (dependency.getSelector() instanceof ProjectComponentSelector) {
-                ProjectComponentSelector requested = (ProjectComponentSelector) dependency.getSelector();
-                dependency = dependency.withTarget(DefaultProjectComponentSelector.newSelector(build, requested));
+        }, new Transformer<LocalOriginDependencyMetadata, LocalOriginDependencyMetadata>() {
+            @Override
+            public LocalOriginDependencyMetadata transform(LocalOriginDependencyMetadata originalDependency) {
+                if (originalDependency.getSelector() instanceof ProjectComponentSelector) {
+                    ProjectComponentSelector requested = (ProjectComponentSelector) originalDependency.getSelector();
+                    return originalDependency.withTarget(DefaultProjectComponentSelector.newSelector(build, requested));
+                }
+                return originalDependency;
             }
-            compositeComponentMetadata.addDependency(dependency);
-        }
-        for (Exclude exclude : originalComponentMetadata.getExcludeRules()) {
-            compositeComponentMetadata.addExclude(exclude);
-        }
-
-        return compositeComponentMetadata;
+        });
     }
 
     private LocalComponentArtifactMetadata createCompositeCopy(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifactMetaData) {
@@ -109,27 +93,12 @@ public class IncludedBuildDependencyMetadataBuilder {
         return new CompositeProjectComponentArtifactMetadata(project, artifactMetaData.getName(), artifactFile, getArtifactTasks(artifactMetaData));
     }
 
-    private Set<String> determineTargetTasks(LocalConfigurationMetadata configuration) {
-        Set<String> taskNames = Sets.newLinkedHashSet();
-        for (ComponentArtifactMetadata artifactMetaData : configuration.getArtifacts()) {
-            addArtifactTasks(taskNames, artifactMetaData);
-        }
-        return taskNames;
-    }
-
     private Set<String> getArtifactTasks(ComponentArtifactMetadata artifactMetaData) {
-        Set<String> taskNames = Sets.newLinkedHashSet();
-        addArtifactTasks(taskNames, artifactMetaData);
-        return taskNames;
-    }
-
-    private void addArtifactTasks(Set<String> taskNames, ComponentArtifactMetadata artifactMetaData) {
-        if (artifactMetaData instanceof Buildable) {
-            Buildable publishArtifact = (Buildable) artifactMetaData;
-            Set<? extends Task> dependencies = publishArtifact.getBuildDependencies().getDependencies(null);
-            for (Task dependency : dependencies) {
-                taskNames.add(dependency.getPath());
-            }
+        Set<String> taskPaths = Sets.newLinkedHashSet();
+        Set<? extends Task> tasks = artifactMetaData.getBuildDependencies().getDependencies(null);
+        for (Task task : tasks) {
+            taskPaths.add(task.getPath());
         }
+        return taskPaths;
     }
 }

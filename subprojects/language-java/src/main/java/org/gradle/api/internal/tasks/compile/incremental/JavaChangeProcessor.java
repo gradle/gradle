@@ -21,6 +21,8 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
+import java.util.Collections;
+
 class JavaChangeProcessor {
 
     private final SourceToNameConverter sourceToNameConverter;
@@ -34,7 +36,7 @@ class JavaChangeProcessor {
     public void processChange(InputFileDetails input, RecompilationSpec spec) {
         String className = sourceToNameConverter.getClassName(input.getFile());
         spec.getClassNames().add(className);
-        DependentsSet actualDependents = previousCompilation.getDependents(className);
+        DependentsSet actualDependents = previousCompilation.getDependents(className, Collections.<Integer>emptySet());
         if (actualDependents.isDependencyToAll()) {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
             return;

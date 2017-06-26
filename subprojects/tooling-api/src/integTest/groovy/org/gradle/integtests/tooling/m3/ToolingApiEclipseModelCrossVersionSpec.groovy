@@ -300,6 +300,15 @@ project(':c') {
         child2.name == 'child2'
         child2.parent == rootProject
         child2.children.size() == 0
+    }
+
+    def "can build the eclipse project hierarchy for a multi-project build and access child projects directly"() {
+
+        projectDir.file('settings.gradle').text = '''
+            include "child1", "child2", "child1:grandChild1"
+            rootProject.name = 'root'
+'''
+        projectDir.file('child1').mkdirs()
 
         when:
         toolingApi.withConnector { connector ->

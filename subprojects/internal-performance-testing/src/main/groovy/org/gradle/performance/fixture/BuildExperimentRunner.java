@@ -17,7 +17,6 @@
 package org.gradle.performance.fixture;
 
 import org.gradle.api.Action;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
@@ -33,8 +32,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class BuildExperimentRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildExperimentRunner.class);
-    public static final String HEAP_DUMP_PROPERTY = "org.gradle.performance.heapdump";
-    private static final File OS_PREPARE_SCRIPT = new File(System.getProperty("org.gradle.performance.os_prepare_script", "/usr/local/bin/gradle_perf_test_prepare_next.sh"));
 
     private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
@@ -51,13 +48,8 @@ public class BuildExperimentRunner {
 
     public BuildExperimentRunner(GradleSessionProvider executerProvider) {
         this.executerProvider = executerProvider;
-        MemoryInfoCollector memoryInfoCollector = new MemoryInfoCollector();
-        memoryInfoCollector.setOutputFileName("build/totalMemoryUsed.txt");
-        BuildEventTimestampCollector buildEventTimestampCollector = new BuildEventTimestampCollector("build/buildEventTimestamps.txt");
-        GCLoggingCollector gcCollector = new GCLoggingCollector();
-        PerformanceCounterCollector performanceCounterCollector = new PerformanceCounterCollector();
         honestProfiler = new HonestProfilerCollector();
-        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, performanceCounterCollector, new CompilationLoggingCollector(), honestProfiler);
+        dataCollector = new CompositeDataCollector(honestProfiler);
     }
 
     public HonestProfilerCollector getHonestProfiler() {
@@ -70,37 +62,29 @@ public class BuildExperimentRunner {
         System.out.println();
 
         InvocationSpec invocationSpec = experiment.getInvocation();
+        File workingDirectory = invocationSpec.getWorkingDirectory();
+        workingDirectory.mkdirs();
+        copyTemplateTo(experiment, workingDirectory);
+
+        if (experiment.getListener() != null) {
+            experiment.getListener().beforeExperiment(experiment, workingDirectory);
+        }
+
         if (invocationSpec instanceof GradleInvocationSpec) {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
             honestProfiler.setInitiallyStopped(invocation.getUseDaemon());
-            File workingDirectory = invocation.getWorkingDirectory();
             final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
             final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
-            passHeapDumperParameter(additionalArgs);
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
-            copyTemplateTo(experiment, workingDirectory);
             GradleSession session = executerProvider.session(buildSpec);
-
             session.prepare();
             try {
                 performMeasurements(session, experiment, results, workingDirectory);
             } finally {
                 session.cleanup();
                 CompositeStoppable.stoppable(dataCollector).stop();
-            }
-        }
-    }
-
-    // activate org.gradle.performance.plugin.HeapDumper in the build
-    private void passHeapDumperParameter(List<String> additionalArgs) {
-        final String heapdumpValue = System.getProperty(HEAP_DUMP_PROPERTY);
-        if (heapdumpValue != null) {
-            if (heapdumpValue.equals("")) {
-                additionalArgs.add("-P" + HEAP_DUMP_PROPERTY);
-            } else {
-                additionalArgs.add("-P" + HEAP_DUMP_PROPERTY + "=" + heapdumpValue);
             }
         }
     }
@@ -112,43 +96,13 @@ public class BuildExperimentRunner {
     }
 
     protected void performMeasurements(final InvocationExecutorProvider session, BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir) {
-        prepareNextExperiment(experiment, projectDir);
         doWarmup(experiment, projectDir, session);
-        waitForMillis(experiment, experiment.getSleepAfterWarmUpMillis());
         doMeasure(experiment, results, projectDir, session);
-    }
-
-    protected void prepareNextExperiment(BuildExperimentSpec experiment, File projectDir) {
-        runOsPrepareNextTestScript();
-    }
-
-    // the preparation script can prepare the OS for a next measurement round by flushing OS caches
-    private void runOsPrepareNextTestScript() {
-        if (OS_PREPARE_SCRIPT.exists()) {
-            try {
-                String scriptPath = OS_PREPARE_SCRIPT.getPath();
-                System.out.println("Running " + scriptPath);
-                ProcessBuilder processBuilder = new ProcessBuilder().command(scriptPath);
-                processBuilder.inheritIO();
-                Process process = processBuilder.start();
-                int exitCode = process.waitFor();
-                if (exitCode == 0) {
-                    System.out.println("Done.");
-                } else {
-                    System.out.println("Failed with error code " + exitCode);
-                }
-            } catch (Exception e) {
-                LOGGER.warn("Problem running preparation script " + OS_PREPARE_SCRIPT, e);
-            }
-        }
     }
 
     private void doMeasure(BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir, InvocationExecutorProvider session) {
         int invocationCount = invocationsForExperiment(experiment);
         for (int i = 0; i < invocationCount; i++) {
-            if (i > 0) {
-                waitForMillis(experiment, experiment.getSleepAfterTestRoundMillis());
-            }
             System.out.println();
             System.out.println(String.format("Test run #%s", i + 1));
             BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experiment, projectDir, Phase.MEASUREMENT, i + 1, invocationCount);
@@ -201,11 +155,7 @@ public class BuildExperimentRunner {
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
         }
-        if (usesDaemon(experiment)) {
-            return 10;
-        } else {
-            return 14;
-        }
+        return 30;
     }
 
     protected int warmupsForExperiment(BuildExperimentSpec experiment) {
@@ -217,9 +167,9 @@ public class BuildExperimentRunner {
             return experiment.getWarmUpCount();
         }
         if (usesDaemon(experiment)) {
-            return 20;
+            return 10;
         } else {
-            return 4;
+            return 1;
         }
     }
 
@@ -231,22 +181,6 @@ public class BuildExperimentRunner {
             }
         }
         return false;
-    }
-
-    // the JIT compiler queues up C1/C2 JIT compilations
-    // An idle period is needed to make it more likely that the JIT compilation queues have been drained before
-    // the next measurement round starts
-    // This idle period is needed for both non-daemon and daemon tests
-    protected void waitForMillis(BuildExperimentSpec experiment, long sleepTimeMillis) {
-        if (sleepTimeMillis > 0L) {
-            System.out.println();
-            System.out.println(String.format("Waiting %d ms to let JIT compilation queues to drain before measuring...", sleepTimeMillis));
-            try {
-                Thread.sleep(sleepTimeMillis);
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
     }
 
     protected void runOnce(
@@ -278,16 +212,10 @@ public class BuildExperimentRunner {
         }
 
         if (!omitMeasurement.get()) {
-            if (operation.getException() == null) {
+            if (operation.isValid()) {
                 dataCollector.collect(invocationInfo, operation);
-                if (operation.isValid()) {
-                    results.add(operation);
-                } else {
-                    LOGGER.error("Discarding invalid operation record {}", operation);
-                }
-            } else {
-                LOGGER.error("Discarding invalid operation record " + operation, operation.getException());
             }
+            results.add(operation);
         }
     }
 

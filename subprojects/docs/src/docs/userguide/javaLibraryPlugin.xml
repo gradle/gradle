@@ -1,0 +1,296 @@
+<!--
+  ~ Copyright 2016 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id='java_library_plugin'>
+    <title>The Java Library Plugin</title>
+
+    <para>The Java Library plugin expands the capabilities of the Java plugin by providing specific knowledge about Java libraries. In particular, a Java
+        library exposes an API to consumers (i.e., other projects using the Java or the Java Library plugin). All the source sets, tasks and configurations
+        exposed by the Java plugin are implicitly available when using this plugin.
+    </para>
+
+    <section id="sec:java_library_usage">
+        <title>Usage</title>
+        <para>To use the Java Library plugin, include the following in your build script:</para>
+        <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="Using the Java Library plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+    </section>
+
+    <section id="sec:java_library_separation">
+        <title>API and implementation separation</title>
+        <para>The key difference between the standard Java plugin and the Java Library plugin is that the latter introduces the concept of
+            an <firstterm>API</firstterm> exposed to consumers. A library is a Java component meant to be consumed by other components.
+            It's a very common use case in multi-project builds, but also as soon as you have external dependencies.
+        </para>
+        <para>
+            The plugin exposes two <link linkend="configurations">configurations</link> that can be used to declare dependencies:
+            <literal>api</literal>
+            and <literal>implementation</literal>. The <literal>api</literal> configuration should be used to declare dependencies which
+            are exported by the library API, whereas the <literal>implementation</literal> configuration should be used to declare dependencies
+            which are internal to the component.
+        </para>
+        <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="Declaring API and implementation dependencies">
+            <sourcefile file="build.gradle" snippet="dependencies"/>
+        </sample>
+        <para>Dependencies appearing in the <literal>api</literal> configurations will be transitively exposed to consumers of the library, and
+            as such will appear on the compile classpath of consumers. Dependencies found in the <literal>implementation</literal> configuration will,
+            on the other hand, not be exposed to consumers, and therefore not leak into the consumers' compile classpath. This comes with several benefits:
+        </para>
+        <itemizedlist>
+            <listitem>dependencies do not leak into the compile classpath of consumers anymore, so you will never accidentally depend on a transitive dependency</listitem>
+            <listitem>faster compilation thanks to reduced classpath size</listitem>
+            <listitem>less recompilations when implementation dependencies change: consumers would not need to be recompiled</listitem>
+            <listitem>cleaner publishing: when used in conjunction with the new <literal>maven-publish</literal> plugin, Java libraries produce POM files that distinguish exactly between what
+                is required to compile against the library and what is required to use the library at runtime (in other words, don't mix what is needed to compile
+                the library itself and what is needed to compile against the library).
+            </listitem>
+        </itemizedlist>
+        <note>The <literal>compile</literal> configuration still exists but should not be used as it will not offer the guarantees that the
+            <literal>api</literal>
+            and <literal>implementation</literal> configurations provide.
+        </note>
+    </section>
+
+    <section id="sec:java_library_recognizing_dependencies">
+        <title>Recognizing API and implementation dependencies</title>
+        <para>This section will help you spot API and Implementation dependencies in your code using simple rules of thumb.
+            Basically, an API dependency is a type that is exposed in the library binary interface, often referred to ABI (Application Binary Interface).
+            This includes, but is not limited to:
+        </para>
+        <itemizedlist>
+            <listitem>types used in super classes or interfaces</listitem>
+            <listitem>types used in public method parameters, including generic parameter types (where <firstterm>public</firstterm> is something that is visible to compilers.
+                I.e. , <firstterm>public</firstterm>, <firstterm>protected</firstterm> and <firstterm>package private</firstterm> members in the Java world)
+            </listitem>
+            <listitem>types used in public fields</listitem>
+            <listitem>public annotation types</listitem>
+        </itemizedlist>
+        <para>In opposition, any type that is used in the following list is irrelevant to the ABI, and therefore should be declared as <literal>implementation</literal> dependency:
+        </para>
+        <itemizedlist>
+            <listitem>types exclusively used in method bodies</listitem>
+            <listitem>types exclusively used in private members</listitem>
+            <listitem>types exclusively found in internal classes (future versions of Gradle will let you declare which packages belong to the public API)</listitem>
+        </itemizedlist>
+        <para>In the following sample, we can make the difference between an API dependency and an implementation dependency:</para>
+        <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="Making the difference between API and implementation">
+            <sourcefile file="src/main/java/org/gradle/HttpClientWrapper.java" snippet="sample"/>
+        </sample>
+        <para>We can see that our class imports third party classes, but imports alone won't tell us if a dependency is an API or implementation dependency.
+            For this, we need to look at the methods. The public constructor of <literal>HttpClientWrapper</literal> uses <literal>HttpClient</literal> as a parameter,
+            so it exposed to consumers and therefore belongs to the API.
+        </para>
+        <para>On the other hand, the <literal>ExceptionUtils</literal> type, coming from the <literal>commons-lang</literal> library, is only used in a method
+            body, so it's an implementation dependency.
+        </para>
+        <para>Therefore, we can deduce that <literal>commons-httpclient</literal> is an API dependency, whereas <literal>commons-lang</literal> is an implementation
+            dependency, which directly translates into the build file:
+        </para>
+        <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="Declaring API and implementation dependencies">
+            <sourcefile file="build.gradle" snippet="dependencies"/>
+        </sample>
+        <para>As a guideline, you should prefer the <literal>implementation</literal> configuration first: leakage of implementation types to consumers would
+            then directly lead to a compile error of consumers, which would be solved either by removing the type from the public API, or promoting the dependency as an
+            API dependency instead.
+        </para>
+    </section>
+
+    <section id="sec:java_library_configurations_graph">
+        <title>The Java Library plugin configurations</title>
+        <para>The following graph describes the main configurations setup when the Java Library plugin is in use.
+        </para>
+        <imageobject>
+            <imagedata fileref="img/java-library-ignore-deprecated-main.png"/>
+        </imageobject>
+        <itemizedlist>
+            <listitem>The configurations in <firstterm>green</firstterm> are the ones a user should use to declare dependencies
+            </listitem>
+            <listitem>The configurations in <firstterm>pink</firstterm> are the ones used when a component compiles, or runs against the library
+            </listitem>
+            <listitem>The configurations in <firstterm>blue</firstterm> are internal to the component, for its own use
+            </listitem>
+            <listitem>The configurations in <firstterm>white</firstterm> are configurations inherited from the Java plugin
+            </listitem>
+        </itemizedlist>
+        <para>And the next graph describes the test configurations setup:
+        </para>
+        <imageobject>
+            <imagedata fileref="img/java-library-ignore-deprecated-test.png"/>
+        </imageobject>
+        <note>
+            The <firstterm>compile</firstterm>, <firstterm>testCompile</firstterm>, <firstterm>runtime</firstterm> and <firstterm>testRuntime</firstterm> configurations
+            inherited from the Java plugin are still available but are deprecated. You should avoid using them, as they are only kept for backwards compatibility.
+        </note>
+        <para>The role of each configuration is described in the following tables:</para>
+        <table>
+            <title>Java Library plugin - configurations used to declare dependencies</title>
+            <thead>
+                <tr>
+                    <td>Configuration name</td>
+                    <td>Role</td>
+                    <td>Can be consumed</td>
+                    <td>Can be resolved</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>api</td>
+                <td>Declaring API dependencies</td>
+                <td>no</td>
+                <td>no</td>
+                <td>This is where you should declare dependencies which are transitively exported to consumers, for compile.</td>
+            </tr>
+            <tr>
+                <td>implementation</td>
+                <td>Declaring implementation dependencies</td>
+                <td>no</td>
+                <td>no</td>
+                <td>This is where you should declare dependencies which are purely internal and not meant to be exposed to consumers.</td>
+            </tr>
+            <tr>
+                <td>compileOnly</td>
+                <td>Declaring compile only dependencies</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>This is where you should declare dependencies which are only required at compile time, but should not leak into the runtime. This typically includes
+                    dependencies which are shaded when found at runtime.
+                </td>
+            </tr>
+            <tr>
+                <td>runtimeOnly</td>
+                <td>Declaring runtime dependencies</td>
+                <td>no</td>
+                <td>no</td>
+                <td>This is where you should declare dependencies which are only required at runtime, and not at compile time.</td>
+            </tr>
+            <tr>
+                <td>testImplementation</td>
+                <td>Test dependencies</td>
+                <td>no</td>
+                <td>no</td>
+                <td>This is where you should declare dependencies which are used to compile tests.</td>
+            </tr>
+            <tr>
+                <td>testCompileOnly</td>
+                <td>Declaring test compile only dependencies</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>This is where you should declare dependencies which are only required at test compile time, but should not leak into the runtime. This typically includes
+                    dependencies which are shaded when found at runtime.
+                </td>
+            </tr>
+            <tr>
+                <td>testRuntimeOnly</td>
+                <td>Declaring test runtime dependencies</td>
+                <td>no</td>
+                <td>no</td>
+                <td>This is where you should declare dependencies which are only required at test runtime, and not at test compile time.</td>
+            </tr>
+        </table>
+        <table>
+            <title>Java Library plugin - configurations used by consumers</title>
+            <thead>
+                <tr>
+                    <td>Configuration name</td>
+                    <td>Role</td>
+                    <td>Can be consumed</td>
+                    <td>Can be resolved</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>apiElements</td>
+                <td>For compiling against this library</td>
+                <td>yes</td>
+                <td>no</td>
+                <td>This configuration is meant to be used by consumers, to retrieve all the elements necessary to compile against this library. Unlike
+                    the <literal>default</literal> configuration, this doesn't leak implementation or runtime dependencies.
+                </td>
+            </tr>
+            <tr>
+                <td>runtimeElements</td>
+                <td>For executing this library</td>
+                <td>yes</td>
+                <td>no</td>
+                <td>This configuration is meant to be used by consumers, to retrieve all the elements necessary to run against this library.</td>
+            </tr>
+        </table>
+       <table>
+            <title>Java Library plugin - configurations used by the library itself</title>
+            <thead>
+                <tr>
+                    <td>Configuration name</td>
+                    <td>Role</td>
+                    <td>Can be consumed</td>
+                    <td>Can be resolved</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>compileClasspath</td>
+                <td>For compiling this library</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>This configuration contains the compile classpath of this library, and is therefore used when invoking the java compiler to compile it.</td>
+            </tr>
+            <tr>
+                <td>runtimeClasspath</td>
+                <td>For executing this library</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>This configuration contains the runtime classpath of this library</td>
+            </tr>
+            <tr>
+                <td>testCompileClasspath</td>
+                <td>For compiling the tests of this library</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>This configuration contains the test compile classpath of this library.</td>
+            </tr>
+            <tr>
+                <td>testRuntimeClasspath</td>
+                <td>For executing tests of this library</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>This configuration contains the test runtime classpath of this library</td>
+            </tr>
+        </table>
+
+    </section>
+
+    <section id="sec:java_library_known_issues">
+    <title>Known issues</title>
+        <section id="sec:java_library_known_issues_compat">
+            <title>Compatibility with other plugins</title>
+            <para>At the moment the Java Library plugin is only wired to behave correctly with the <literal>java</literal> plugin. Other plugins, such as
+            the Groovy plugin, may not behave correctly. In particular, if the Groovy plugin is used in addition to the <literal>java-library</literal> plugin,
+            then consumers may not get the Groovy classes when they consume the library. To workaround this, you need to explicitly wire the Groovy compile
+            dependency, like this:</para>
+            <sample id="useGroovyPlugin" dir="java-library/with-groovy" title="Configuring the Groovy plugin to work with Java Library">
+                <sourcefile file="a/build.gradle" snippet="configure-groovy"/>
+            </sample>
+        </section>
+        <section id="sec:java_library_known_issues_memory">
+            <title>Increased memory usage for consumers</title>
+            <para>When a project uses the Java Library plugin, consumers will use the output classes directory of this project directly on their compile
+            classpath, instead of the jar file if the project uses the Java plugin. An indirect consequence is that up-to-date checking will require more
+            memory, because Gradle will snapshot individual class files instead of a single jar. This may lead to increased memory consumption for large
+            projects.
+            </para>
+        </section>
+    </section>
+</chapter>

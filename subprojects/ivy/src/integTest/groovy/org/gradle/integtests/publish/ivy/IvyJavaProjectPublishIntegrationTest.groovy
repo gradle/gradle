@@ -37,6 +37,9 @@ dependencies {
     compile "commons-collections:commons-collections:3.2.2"
     compileOnly "javax.servlet:servlet-api:2.5"
     runtime "commons-io:commons-io:1.4"
+    compile("commons-beanutils:commons-beanutils:1.8.3") {
+        exclude group: 'commons-logging'
+    }
 }
 
 uploadArchives {
@@ -55,11 +58,10 @@ uploadArchives {
         def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.jar")
 
-        with (ivyModule.parsedIvy) {
-            dependencies.size() == 3
-            dependencies["commons-collections:commons-collections:3.2.2"].hasConf("compile->default")
-            dependencies["commons-io:commons-io:1.4"].hasConf("runtime->default")
-            dependencies["javax.servlet:servlet-api:2.5"].hasConf("compileOnly->default")
-        }
+        ivyModule.parsedIvy.dependencies.size() == 4
+        ivyModule.parsedIvy.dependencies["commons-collections:commons-collections:3.2.2"].hasConf("compile->default")
+        ivyModule.parsedIvy.dependencies["commons-io:commons-io:1.4"].hasConf("runtime->default")
+        ivyModule.parsedIvy.dependencies["javax.servlet:servlet-api:2.5"].hasConf("compileOnly->default")
+        ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].exclusions[0].org == 'commons-logging'
     }
 }

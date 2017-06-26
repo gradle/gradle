@@ -27,7 +27,6 @@ import java.io.File;
  */
 @Incubating
 @SuppressWarnings("unchecked")
-@ParallelizableTask
 public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
     /**
      * The directory where the results should be generated.

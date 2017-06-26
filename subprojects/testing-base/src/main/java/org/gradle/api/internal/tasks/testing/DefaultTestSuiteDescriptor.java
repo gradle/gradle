@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import java.io.Serializable;
-
-public class DefaultTestSuiteDescriptor extends AbstractTestDescriptor implements Serializable {
+public class DefaultTestSuiteDescriptor extends AbstractTestDescriptor {
     public DefaultTestSuiteDescriptor(Object id, String name) {
         super(id, name);
     }

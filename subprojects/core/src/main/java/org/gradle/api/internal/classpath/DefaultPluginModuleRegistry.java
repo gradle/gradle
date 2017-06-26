@@ -31,9 +31,20 @@ public class DefaultPluginModuleRegistry implements PluginModuleRegistry {
         this.moduleRegistry = moduleRegistry;
     }
 
-    public Set<Module> getPluginModules() {
+    @Override
+    public Set<Module> getApiModules() {
+        Properties properties = loadPluginProperties("/gradle-plugins.properties");
+        return loadModules(properties);
+    }
+
+    @Override
+    public Set<Module> getImplementationModules() {
+        Properties properties = loadPluginProperties("/gradle-implementation-plugins.properties");
+        return loadModules(properties);
+    }
+
+    private Set<Module> loadModules(Properties properties) {
         Set<Module> modules = new LinkedHashSet<Module>();
-        Properties properties = loadPluginProperties();
         for (String pluginModule : properties.getProperty("plugins").split(",")) {
             try {
                 modules.add(moduleRegistry.getModule(pluginModule));
@@ -45,7 +56,7 @@ public class DefaultPluginModuleRegistry implements PluginModuleRegistry {
         return modules;
     }
 
-    private Properties loadPluginProperties() {
-        return GUtil.loadProperties(getClass().getResource("/gradle-plugins.properties"));
+    private Properties loadPluginProperties(String resource) {
+        return GUtil.loadProperties(getClass().getResource(resource));
     }
 }

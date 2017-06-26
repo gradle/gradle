@@ -24,6 +24,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.distribution.Distribution;
+import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.IConventionAware;
@@ -37,6 +38,7 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.TextUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -70,7 +72,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
-        DefaultDistributionContainer distributions = project.getExtensions().create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations);
+        DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations);
 
         // TODO - refactor this action out so it can be unit tested
         distributions.all(new Action<Distribution>() {
@@ -112,9 +114,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         Callable<String> baseDir = new Callable<String>() {
             @Override
             public String call() throws Exception {
-                // For backwards compatibility, we need to simulate the exact behaviour of the previously uses Groovy minus operator
-                String toBeRenamedIfExists = "." + archiveTask.getExtension();
-                return archiveTask.getArchiveName().replaceFirst(toBeRenamedIfExists, "");
+                return TextUtil.minus(archiveTask.getArchiveName(), "." + archiveTask.getExtension());
             }
         };
 

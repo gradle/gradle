@@ -31,7 +31,7 @@ class CopySpecActionImplTest extends Specification {
     Action<CopySpecInternal> copySpecInternalAction
 
     def setup() {
-        copySpecInternalAction = new CopySpecActionImpl(action, instantiator, fileSystem)
+        copySpecInternalAction = new CopySpecActionImpl(action, instantiator, fileSystem, false)
     }
 
     def "can visit spec source"() {

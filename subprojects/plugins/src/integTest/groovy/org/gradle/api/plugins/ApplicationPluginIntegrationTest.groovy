@@ -22,6 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 class ApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -39,7 +40,7 @@ class ApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
         unixStartScriptContent.contains('APP_NAME="sample"')
         unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
-        unixStartScriptContent.contains('eval \\"\$JAVACMD\\" \$JVM_OPTS -classpath \\"\$CLASSPATH\\" org.gradle.test.Main \$APP_ARGS')
+        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
         File windowsStartScript = assertGeneratedWindowsStartScript()
         String windowsStartScriptContentText = windowsStartScript.text
         windowsStartScriptContentText.contains('@rem  sample startup script for Windows')
@@ -65,7 +66,7 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         unixStartScriptContent.contains('APP_NAME="myApp"')
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=\'"-Dgreeting.language=en" "-DappId=sample"\'')
         unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
-        unixStartScriptContent.contains('eval \\"\$JAVACMD\\" \$JVM_OPTS -classpath \\"\$CLASSPATH\\" org.gradle.test.Main \$APP_ARGS')
+        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
         File windowsStartScript = assertGeneratedWindowsStartScript('myApp.bat')
         String windowsStartScriptContentText = windowsStartScript.text
         windowsStartScriptContentText.contains('@rem  myApp startup script for Windows')
@@ -145,7 +146,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     def "can execute generated Unix start script using JAVA_HOME with spaces"() {
         given:
-        def testJavaHome = file("build/java home with spaces")
+        def testJavaHome = file("javahome/java home with spaces")
         testJavaHome.createLink(Jvm.current().javaHome)
 
         when:
@@ -162,6 +163,25 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
 
         cleanup:
         testJavaHome.usingNativeTools().deleteDir() //remove symlink
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    public void "java PID equals script PID"() {
+        given:
+        succeeds('installDist')
+        def binFile = file('build/install/sample/bin/sample')
+        binFile.text = """echo Script PID: \$\$
+
+$binFile.text
+"""
+
+        when:
+        ExecutionResult result = runViaUnixStartScript()
+        def pids = result.output.findAll(/PID: \d+/)
+
+        then:
+        assert pids.size() == 2
+        assert pids[0] == pids[1]
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -238,6 +258,169 @@ dependencies {
         file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
     }
 
+    def "includes transitive implementation dependencies in distribution"() {
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
+
+        given:
+        buildFile << """
+        allprojects {
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+        }
+        """
+
+        file('settings.gradle') << "include 'utils', 'core'"
+        buildFile << '''
+            apply plugin: 'java'
+            apply plugin: 'application'
+
+            dependencies {
+               implementation project(':utils')
+            }
+        '''
+        file('utils/build.gradle') << '''
+            apply plugin: 'java-library'
+
+            dependencies {
+                api project(':core')
+            }
+        '''
+        file('core/build.gradle') << '''
+apply plugin: 'java-library'
+
+dependencies {
+    implementation 'org.gradle.test:implementation:1.0'
+}
+        '''
+
+        when:
+        run "installDist"
+
+        then:
+        file('build/install/sample/lib').allDescendants() == ['sample.jar', 'utils.jar', 'core.jar', 'implementation-1.0.jar'] as Set
+
+        and:
+        unixClasspath('sample') == ['sample.jar', 'utils.jar', 'core.jar', 'implementation-1.0.jar'] as Set
+        windowsClasspath('sample') == ['sample.jar', 'utils.jar', 'core.jar', 'implementation-1.0.jar'] as Set
+    }
+
+    def "includes transitive runtime dependencies in runtime classpath"() {
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
+
+        given:
+        buildFile << """
+        allprojects {
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+            apply plugin: 'java'
+        }
+        """
+
+        file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
+        buildFile << '''
+            apply plugin: 'java'
+            apply plugin: 'application'
+
+            dependencies {
+               implementation project(':utils')
+            }
+
+            task printRunClasspath {
+                doLast {
+                    println run.classpath.collect{ it.name }.join(',')
+                }
+            }
+
+        '''
+        file('utils/build.gradle') << '''
+            apply plugin: 'java-library'
+
+            dependencies {
+               api project(':core')
+               runtime project(':foo')
+            }
+        '''
+        file('core/build.gradle') << '''
+apply plugin: 'java-library'
+
+dependencies {
+    implementation 'org.gradle.test:implementation:1.0'
+    runtimeOnly project(':bar')
+}
+        '''
+
+        when:
+        run "printRunClasspath"
+
+        then:
+        outputContains('utils.jar,core.jar,foo.jar,implementation-1.0.jar,bar.jar')
+    }
+
+    def "includes transitive implementation dependencies in test runtime classpath"() {
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
+
+        given:
+        buildFile << """
+        allprojects {
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+            apply plugin: 'java'
+        }
+        """
+
+        file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
+        buildFile << '''
+            apply plugin: 'java'
+            apply plugin: 'application'
+
+            dependencies {
+               implementation project(':utils')
+            }
+
+            task printTestClasspath {
+                doLast {
+                    println test.classpath.collect{ it.name }.join(',')
+                }
+            }
+
+        '''
+        file('utils/build.gradle') << '''
+            apply plugin: 'java-library'
+
+            dependencies {
+                api project(':core')
+                runtimeOnly project(':foo')
+            }
+        '''
+        file('core/build.gradle') << '''
+apply plugin: 'java-library'
+
+dependencies {
+    implementation 'org.gradle.test:implementation:1.0'
+    runtime project(':bar')
+}
+        '''
+
+        when:
+        run "printTestClasspath"
+
+        then:
+        outputContains('utils.jar,core.jar,foo.jar,implementation-1.0.jar,bar.jar')
+    }
+
+    private Set<String> unixClasspath(String baseName) {
+        String[] lines = file("build/install/$baseName/bin/$baseName")
+        (lines.find { it.startsWith 'CLASSPATH='} - 'CLASSPATH=').split(':').collect([] as Set) { it - '$APP_HOME/lib/'}
+    }
+
+    private Set<String> windowsClasspath(String baseName) {
+        String[] lines = file("build/install/$baseName/bin/${baseName}.bat")
+        (lines.find { it.startsWith 'set CLASSPATH='} - 'set CLASSPATH=').split(';').collect([] as Set) { it - '%APP_HOME%\\lib\\'}
+    }
+
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
         given:
         buildFile << """
@@ -270,13 +453,20 @@ startScripts {
     }
 
     private void createMainClass() {
-        file('src/main/java/org/gradle/test/Main.java') << """
+        generateMainClass """
+            System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
+            System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+            System.out.println("Hello World!");
+        """
+    }
+
+    private void generateMainClass(String mainMethodBody) {
+        file('src/main/java/org/gradle/test/Main.java').text = """
 package org.gradle.test;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
-        System.out.println("Hello World!");
+        $mainMethodBody
     }
 }
 """
@@ -313,5 +503,41 @@ rootProject.name = 'sample'
     private File getGeneratedStartScript(String filename) {
         File scriptOutputDir = file('build/scripts')
         new File(scriptOutputDir, filename)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1923")
+    def "not up-to-date if classpath changes"() {
+        given:
+        succeeds("startScripts")
+
+        when:
+        buildFile << """
+            // Set a version so the jar is created with a different name
+            // This should cause us to regenerated the script
+            version = "3.0"
+        """
+        and:
+        succeeds("startScripts")
+
+        then:
+        nonSkippedTasks.contains(":startScripts")
+
+        and:
+        succeeds("startScripts")
+
+        then:
+        skippedTasks.contains(":startScripts")
+    }
+
+    def "up-to-date if only the content change"() {
+        given:
+        succeeds("startScripts")
+
+        when:
+        generateMainClass """System.out.println("Goodbye World!");"""
+        succeeds("startScripts")
+
+        then:
+        skippedTasks.contains(":startScripts")
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.rules
 
+import com.google.common.collect.ImmutableSortedSet
+import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -28,30 +30,35 @@ import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNor
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import spock.lang.Specification
 
-abstract public class AbstractTaskStateChangesTest extends Specification {
+abstract class AbstractTaskStateChangesTest extends Specification {
     protected mockInputs = Mock(TaskInputsInternal)
     protected mockOutputs = Mock(TaskOutputsInternal)
     protected TaskInternal stubTask
+    protected stubProject = Stub(Project) {
+        getNormalization() >> Stub(InputNormalizationHandlerInternal)
+    }
 
     def setup() {
         stubTask = Stub(TaskInternal) {
             getName() >> { "testTask" }
             getInputs() >> mockInputs
             getOutputs() >> mockOutputs
+            getProject() >> stubProject
         }
     }
 
     protected static def fileProperties(Map<String, String> props) {
-        return props.collect { entry ->
+        return ImmutableSortedSet.copyOf(props.collect { entry ->
             return new PropertySpec(
                 propertyName: entry.key,
                 propertyFiles: new SimpleFileCollection([new File(entry.value)]),
                 compareStrategy: TaskFilePropertyCompareStrategy.UNORDERED,
                 snapshotNormalizationStrategy: TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
             )
-        } as SortedSet
+        })
     }
 
     protected static class PropertySpec implements TaskInputFilePropertySpec {
@@ -64,6 +71,11 @@ abstract public class AbstractTaskStateChangesTest extends Specification {
         @Override
         int compareTo(TaskPropertySpec o) {
             return propertyName.compareTo(o.propertyName)
+        }
+
+        @Override
+        boolean isSkipWhenEmpty() {
+            return false
         }
     }
 }

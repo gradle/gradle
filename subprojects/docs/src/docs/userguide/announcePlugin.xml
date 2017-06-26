@@ -29,7 +29,6 @@
         <para>The <literal>announce</literal> method takes two String arguments: The message to be sent, and the notification
             service to be used. The following table lists supported notification services and their configuration properties.
         </para>
-    </section>
 
    <table>
        <title>Announce Plugin Notification Services</title>
@@ -73,6 +72,7 @@
            <td>Automatically chooses between snarl, growl, and notify-send depending on the current operating system.</td>
        </tr>
    </table>
+    </section>
 
     <section id="sec:announce_configuration">
         <title>Configuration</title>

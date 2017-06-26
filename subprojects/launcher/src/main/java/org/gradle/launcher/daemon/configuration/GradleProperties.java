@@ -16,9 +16,9 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import java.util.Set;
+import com.google.common.collect.ImmutableSet;
 
-import static com.google.common.collect.Sets.newHashSet;
+import java.util.Set;
 
 public class GradleProperties {
 
@@ -32,10 +32,11 @@ public class GradleProperties {
     public static final String CONFIGURE_ON_DEMAND_PROPERTY = "org.gradle.configureondemand";
     public static final String PARALLEL_PROPERTY = "org.gradle.parallel";
     public static final String WORKERS_PROPERTY = "org.gradle.workers.max";
-    public static final String TASK_OUTPUT_CACHE_PROPERTY = "org.gradle.cache.tasks";
+    public static final String BUILD_CACHE_PROPERTY = "org.gradle.caching";
+    public static final String LOG_LEVEL_PROPERTY = "org.gradle.logging.level";
 
-    public static final Set<String> ALL = newHashSet(IDLE_TIMEOUT_PROPERTY, HEALTH_CHECK_INTERVAL_PROPERTY, DAEMON_BASE_DIR_PROPERTY, JVM_ARGS_PROPERTY,
-            JAVA_HOME_PROPERTY, DAEMON_ENABLED_PROPERTY, DEBUG_MODE_PROPERTY, CONFIGURE_ON_DEMAND_PROPERTY, PARALLEL_PROPERTY, WORKERS_PROPERTY, TASK_OUTPUT_CACHE_PROPERTY);
+    public static final Set<String> ALL = ImmutableSet.of(IDLE_TIMEOUT_PROPERTY, HEALTH_CHECK_INTERVAL_PROPERTY, DAEMON_BASE_DIR_PROPERTY, JVM_ARGS_PROPERTY,
+            JAVA_HOME_PROPERTY, DAEMON_ENABLED_PROPERTY, DEBUG_MODE_PROPERTY, CONFIGURE_ON_DEMAND_PROPERTY, PARALLEL_PROPERTY, WORKERS_PROPERTY, BUILD_CACHE_PROPERTY, LOG_LEVEL_PROPERTY);
 
     public static boolean isTrue(Object propertyValue) {
         return propertyValue != null && propertyValue.toString().trim().equalsIgnoreCase("true");

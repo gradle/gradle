@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.Closure;
-import groovy.lang.MissingPropertyException;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.Namer;
+import org.gradle.api.Rule;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.TestClosure;
 import org.gradle.util.TestUtil;
@@ -606,122 +606,10 @@ public class DefaultNamedDomainObjectSetTest {
     }
 
     @Test
-    public void eachObjectIsAvailableAsADynamicProperty() {
-        Bean bean = new Bean("child");
-        container.add(bean);
-        assertTrue(container.withType(Bean.class).findByName("child") != null);
-        assertTrue(container.getAsDynamicObject().hasProperty("child"));
-        assertThat(container.getAsDynamicObject().getProperty("child"), sameInstance((Object) bean));
-        assertThat(container.getAsDynamicObject().getProperties().get("child"), sameInstance((Object) bean));
-        assertThat(call("{ it.child }", container), sameInstance((Object) bean));
-        assertThat(call("{ it.child }", container.withType(Bean.class)), sameInstance((Object) bean));
-        assertThat(call("{ it.child }", container.matching(Specs.satisfyAll())), sameInstance((Object) bean));
-    }
-
-    @Test
     public void eachObjectIsAvailableUsingAnIndex() {
         Bean bean = new Bean("child");
         container.add(bean);
         assertThat(call("{ it['child'] }", container), sameInstance((Object) bean));
-    }
-
-    @Test
-    public void cannotGetUnknownProperty() {
-        assertFalse(container.getAsDynamicObject().hasProperty("unknown"));
-
-        try {
-            container.getAsDynamicObject().getProperty("unknown");
-            fail();
-        } catch (MissingPropertyException e) {
-            // expected
-        }
-    }
-
-    @Test
-    public void dynamicPropertyAccessInvokesRulesForUnknownDomainObject() {
-        Bean bean = new Bean();
-        addRuleFor(bean);
-
-        assertTrue(container.getAsDynamicObject().hasProperty("bean"));
-        assertThat(container.getAsDynamicObject().getProperty("bean"), sameInstance((Object) bean));
-    }
-
-    @Test
-    public void eachObjectIsAvailableAsConfigureMethod() {
-        Bean bean = new Bean("child");
-        container.add(bean);
-
-        Closure closure = toClosure("{ beanProperty = 'value' }");
-        assertTrue(container.getAsDynamicObject().hasMethod("child", closure));
-        container.getAsDynamicObject().invokeMethod("child", closure);
-        assertThat(bean.getBeanProperty(), equalTo("value"));
-
-        call("{ it.child { beanProperty = 'value 2' } }", container);
-        assertThat(bean.getBeanProperty(), equalTo("value 2"));
-
-        call("{ it.invokeMethod('child') { beanProperty = 'value 3' } }", container);
-        assertThat(bean.getBeanProperty(), equalTo("value 3"));
-    }
-
-    @Test
-    public void canUseDynamicPropertiesAndMethodsInsideConfigureClosures() {
-        Bean bean = new Bean("child");
-        container.add(bean);
-        container.add(bean);
-        container.add(bean);
-        container.add(bean);
-        container.add(bean);
-
-        ConfigureUtil.configure(toClosure("{ child.beanProperty = 'value 1' }"), container);
-        assertThat(bean.getBeanProperty(), equalTo("value 1"));
-
-        ConfigureUtil.configure(toClosure("{ child { beanProperty = 'value 2' } }"), container);
-        assertThat(bean.getBeanProperty(), equalTo("value 2"));
-
-        ConfigureUtil.configure(toClosure("{ child.beanProperty = 'value 3' }"), container);
-        assertThat(bean.getBeanProperty(), equalTo("value 3"));
-
-        ConfigureUtil.configure(toClosure("{ child.beanProperty = 'value 4' }"), container);
-        assertThat(bean.getBeanProperty(), equalTo("value 4"));
-
-        Bean withType = new Bean("withType");
-        container.add(withType);
-
-        // Try with an element with the same name as a method
-        ConfigureUtil.configure(toClosure("{ withType.beanProperty = 'value 6' }"), container);
-        assertThat(withType.getBeanProperty(), equalTo("value 6"));
-
-        ConfigureUtil.configure(toClosure("{ withType { beanProperty = 'value 6' } }"), container);
-        assertThat(withType.getBeanProperty(), equalTo("value 6"));
-    }
-
-    @Test
-    public void cannotInvokeUnknownMethod() {
-        container.add(new Bean("child"));
-
-        assertMethodUnknown("unknown");
-        assertMethodUnknown("unknown", toClosure("{ }"));
-        assertMethodUnknown("child");
-        assertMethodUnknown("child", "not a closure");
-        assertMethodUnknown("child", toClosure("{ }"), "something else");
-    }
-
-    private void assertMethodUnknown(String name, Object... arguments) {
-        assertFalse(container.getAsDynamicObject().hasMethod(name, arguments));
-        try {
-            container.getAsDynamicObject().invokeMethod(name, arguments);
-            fail();
-        } catch (groovy.lang.MissingMethodException e) {
-            // Expected
-        }
-    }
-
-    @Test
-    public void configureMethodInvokesRuleForUnknownDomainObject() {
-        Bean bean = new Bean();
-        addRuleFor(bean);
-
-        assertTrue(container.getAsDynamicObject().hasMethod("bean", toClosure("{ }")));
     }
 
     @Test
@@ -763,7 +651,7 @@ public class DefaultNamedDomainObjectSetTest {
         });
     }
 
-    private class Bean {
+    public static class Bean {
         public final String name;
         private String beanProperty;
 

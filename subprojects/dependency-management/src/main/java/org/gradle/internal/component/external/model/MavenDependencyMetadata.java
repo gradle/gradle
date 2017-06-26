@@ -20,8 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -31,6 +30,7 @@ import org.gradle.internal.component.model.DefaultDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -39,7 +39,6 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     private final boolean optional;
     private final Set<String> moduleConfigurations;
     private final List<Exclude> excludes;
-    private final ModuleExclusion exclusions;
 
     public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleVersionSelector requested, List<Artifact> artifacts, List<Exclude> excludes) {
         super(requested, artifacts);
@@ -51,7 +50,6 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
             moduleConfigurations = ImmutableSet.of(scope.name().toLowerCase());
         }
         this.excludes = ImmutableList.copyOf(excludes);
-        this.exclusions = ModuleExclusions.excludeAny(excludes);
     }
 
     @Override
@@ -93,7 +91,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         Set<ConfigurationMetadata> result = Sets.newLinkedHashSet();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");
         if (!requiresCompile) {
@@ -126,15 +124,15 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     protected DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
-        return new MavenDependencyMetadata(scope, optional, newRequested, getDependencyArtifacts(), getDependencyExcludes());
+        return new MavenDependencyMetadata(scope, optional, newRequested, getDependencyArtifacts(), getExcludes());
+    }
+
+    public List<Exclude> getExcludes() {
+        return excludes;
     }
 
     @Override
-    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        return exclusions;
-    }
-
-    public List<Exclude> getDependencyExcludes() {
+    public List<Exclude> getExcludes(Collection<String> configurations) {
         return excludes;
     }
 }

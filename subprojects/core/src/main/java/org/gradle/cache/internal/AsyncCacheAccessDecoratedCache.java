@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.internal.Factory;
 
 public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
@@ -28,6 +29,11 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
         this.persistentCache = persistentCache;
     }
 
+    @Override
+    public String toString() {
+        return "{async-cache cache: " + persistentCache + "}";
+    }
+
     @Nullable
     @Override
     public V get(final K key) {
@@ -37,6 +43,11 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
                 return persistentCache.get(key);
             }
         });
+    }
+
+    @Override
+    public V get(K key, Transformer<? extends V, ? super K> producer, Runnable completion) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -24,7 +24,11 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.IOException;
 
 public class ResolvedConfigurationIdentifierSerializer implements Serializer<ResolvedConfigurationIdentifier> {
-    private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
+    private final ModuleVersionIdentifierSerializer idSerializer;
+
+    public ResolvedConfigurationIdentifierSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        idSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
+    }
 
     public ResolvedConfigurationIdentifier read(Decoder decoder) throws IOException {
         ModuleVersionIdentifier id = idSerializer.read(decoder);

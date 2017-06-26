@@ -15,12 +15,12 @@
  */
 package org.gradle.internal.metaobject;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
-import org.junit.Test;
-import groovy.lang.*;
 import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
+import org.junit.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
 
 public class AbstractDynamicObjectTest {
     private final AbstractDynamicObject object = new AbstractDynamicObject() {
@@ -41,9 +41,8 @@ public class AbstractDynamicObjectTest {
             assertThat(e.getMessage(), equalTo("Could not get unknown property 'something' for <display-name>."));
         }
 
-        GetPropertyResult getResult = new GetPropertyResult();
-        object.getProperty("something", getResult);
-        assertFalse(getResult.isFound());
+        DynamicInvokeResult result = object.tryGetProperty("something");
+        assertFalse(result.isFound());
 
         try {
             object.setProperty("something", "value");
@@ -52,9 +51,8 @@ public class AbstractDynamicObjectTest {
             assertThat(e.getMessage(), equalTo("Could not set unknown property 'something' for <display-name>."));
         }
 
-        SetPropertyResult setResult = new SetPropertyResult();
-        object.setProperty("something", "value", setResult);
-        assertFalse(setResult.isFound());
+        result = object.trySetProperty("something", "value");
+        assertFalse(result.isFound());
     }
 
     @Test
@@ -68,8 +66,7 @@ public class AbstractDynamicObjectTest {
             assertThat(e.getMessage(), equalTo("Could not find method method() for arguments [b] on <display-name>."));
         }
 
-        InvokeMethodResult result = new InvokeMethodResult();
-        object.invokeMethod("method", result, "c");
+        DynamicInvokeResult result = object.tryInvokeMethod("method", "c");
         assertFalse(result.isFound());
     }
 }

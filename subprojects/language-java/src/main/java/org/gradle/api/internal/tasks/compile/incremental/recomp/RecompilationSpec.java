@@ -22,7 +22,7 @@ import java.util.LinkedHashSet;
 
 public class RecompilationSpec {
 
-    private final Collection<String> classesToCompile = new LinkedHashSet<String>();
+    private final Collection<String> classesToCompile = new NormalizingClassNamesSet();
     private String fullRebuildCause;
 
     public Collection<String> getClassNames() {
@@ -39,5 +39,25 @@ public class RecompilationSpec {
 
     public void setFullRebuildCause(String description, File file) {
         fullRebuildCause = description != null? description : "'" + file.getName() + "' was changed";
+    }
+
+    private static class NormalizingClassNamesSet extends LinkedHashSet<String> {
+        @Override
+        public boolean add(String className) {
+            int idx = className.indexOf('$');
+            if (idx>0) {
+                className = className.substring(0, idx);
+            }
+            return super.add(className);
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends String> classNames) {
+            boolean added = false;
+            for (String cn : classNames) {
+                added |= add(cn);
+            }
+            return added;
+        }
     }
 }

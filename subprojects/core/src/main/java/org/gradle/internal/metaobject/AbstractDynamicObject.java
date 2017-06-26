@@ -41,8 +41,8 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
-    public void getProperty(String name, GetPropertyResult result) {
-        // No such property
+    public DynamicInvokeResult tryGetProperty(String name) {
+        return DynamicInvokeResult.notFound();
     }
 
     @Nullable
@@ -56,8 +56,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     @Override
     public Object getProperty(String name) throws MissingPropertyException {
-        GetPropertyResult result = new GetPropertyResult();
-        getProperty(name, result);
+        DynamicInvokeResult result = tryGetProperty(name);
         if (!result.isFound()) {
             throw getMissingProperty(name);
         }
@@ -65,14 +64,13 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
-    public void setProperty(String name, Object value, SetPropertyResult result) {
-        // No such property
+    public DynamicInvokeResult trySetProperty(String name, Object value) {
+        return DynamicInvokeResult.notFound();
     }
 
     @Override
     public void setProperty(String name, Object value) throws MissingPropertyException {
-        SetPropertyResult result = new SetPropertyResult();
-        setProperty(name, value, result);
+        DynamicInvokeResult result = trySetProperty(name, value);
         if (!result.isFound()) {
             throw setMissingProperty(name);
         }
@@ -153,16 +151,15 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
-    public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
-        // No methods
+    public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+        return DynamicInvokeResult.notFound();
     }
 
     @Override
     public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
-        InvokeMethodResult result = new InvokeMethodResult();
-        invokeMethod(name, result, arguments);
+        DynamicInvokeResult result = tryInvokeMethod(name, arguments);
         if (result.isFound()) {
-            return result.getResult();
+            return result.getValue();
         }
         throw methodMissingException(name, arguments);
     }

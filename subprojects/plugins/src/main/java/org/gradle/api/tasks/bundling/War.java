@@ -22,7 +22,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -39,7 +38,6 @@ import java.util.concurrent.Callable;
 /**
  * Assembles a WAR archive.
  */
-@CacheableTask
 public class War extends Jar {
     public static final String WAR_EXTENSION = "war";
     private static final Spec<File> IS_DIRECTORY = new Spec<File>() {
@@ -122,6 +120,21 @@ public class War extends Jar {
     }
 
     /**
+     * Adds some content to the {@code WEB-INF} directory for this WAR archive.
+     *
+     * <p>The given action is executed to configure a {@link CopySpec}.
+     *
+     * @param configureAction The action to execute
+     * @return The newly created {@code CopySpec}.
+     * @since 3.5
+     */
+    public CopySpec webInf(Action<? super CopySpec> configureAction) {
+        CopySpec webInf = getWebInf();
+        configureAction.execute(webInf);
+        return webInf;
+    }
+
+    /**
      * Returns the classpath to include in the WAR archive. Any JAR or ZIP files in this classpath are included in the {@code WEB-INF/lib} directory. Any directories in this classpath are included in
      * the {@code WEB-INF/classes} directory.
      *
@@ -131,6 +144,16 @@ public class War extends Jar {
     @Classpath
     public FileCollection getClasspath() {
         return classpath;
+    }
+
+    /**
+     * Sets the classpath to include in the WAR archive.
+     *
+     * @param classpath The classpath. Must not be null.
+     * @since 4.0
+     */
+    public void setClasspath(FileCollection classpath) {
+        setClasspath((Object) classpath);
     }
 
     /**

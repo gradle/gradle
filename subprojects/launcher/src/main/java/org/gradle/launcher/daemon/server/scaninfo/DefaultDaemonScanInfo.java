@@ -26,6 +26,8 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 public class DefaultDaemonScanInfo implements DaemonScanInfo {
 
     private final DaemonRunningStats stats;
@@ -70,6 +72,7 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
             Ideally, the value given would describe the problem and not be phrased in terms of why we are shutting down,
             but this is a practical compromise born out of piggy backing on the expiration listener mechanism to implement it.
          */
+        final AtomicReference<DaemonExpirationListener> daemonExpirationListenerReference = new AtomicReference<DaemonExpirationListener>();
         final DaemonExpirationListener daemonExpirationListener = new DaemonExpirationListener() {
             @Override
             public void onExpirationEvent(DaemonExpirationResult result) {
@@ -77,18 +80,32 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
                     try {
                         listener.execute(result.getReason());
                     } finally {
-                        listenerManager.removeListener(this);
+                        // there's a possibility that this listener is called concurrently with
+                        // the build finished listener. If the message happens to be a graceful expire
+                        // one, then there's a large risk that we create a deadlock, because we're trying to
+                        // remove the same listener from 2 different notifications. To avoid this, we just
+                        // set the reference to null, which says that we're taking care of removing the listener
+                        if (daemonExpirationListenerReference.getAndSet(null) != null) {
+                            listenerManager.removeListener(this);
+                        }
                     }
                 }
             }
         };
+        daemonExpirationListenerReference.set(daemonExpirationListener);
         listenerManager.addListener(daemonExpirationListener);
-        listenerManager.addListener(new BuildAdapter() {
+
+        final BuildAdapter buildListener = new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
-                listenerManager.removeListener(daemonExpirationListener);
+                DaemonExpirationListener daemonExpirationListener = daemonExpirationListenerReference.getAndSet(null);
+                if (daemonExpirationListener != null) {
+                    listenerManager.removeListener(daemonExpirationListener);
+                }
+                listenerManager.removeListener(this);
             }
-        });
+        };
+        listenerManager.addListener(buildListener);
     }
 
 }

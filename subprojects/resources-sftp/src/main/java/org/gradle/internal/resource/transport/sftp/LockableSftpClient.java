@@ -22,4 +22,5 @@ import org.gradle.internal.concurrent.Stoppable;
 public interface LockableSftpClient extends Stoppable {
     SftpHost getHost();
     ChannelSftp getSftpClient();
+    boolean isConnected();
 }

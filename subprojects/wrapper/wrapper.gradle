@@ -20,7 +20,6 @@ sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 dependencies {
     compile project(":cli")
 
-    testCompile libraries.groovy
     testCompile libraries.ant
 
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
@@ -30,25 +29,31 @@ ext {
     wrapperBuildReceipt = "build-receipt.properties"
 }
 
-task wrapperBuildReceiptResource() {
-    inputs.property 'version', { version }
-    outputs.file { "${generatedTestResourcesDir}/${wrapperBuildReceipt}" }
-    outputs.cacheIf { true }
-    doLast {
-        generatedTestResourcesDir.mkdirs()
-        new File(generatedTestResourcesDir, wrapperBuildReceipt).text = "versionNumber=${version}"
+normalization {
+    runtimeClasspath {
+        ignore wrapperBuildReceipt
     }
+}
+
+task wrapperBuildReceiptResource(type: Copy) {
+    from {
+        tasks.getByPath(':createBuildReceipt').outputs.files
+    }
+    destinationDir = file("${generatedTestResourcesDir}")
 }
 sourceSets.test.output.dir generatedTestResourcesDir, builtBy: wrapperBuildReceiptResource
 
 task executableJar(type: Jar) {
+    // gradle-wrapper.jar will be part of the plugins.jar - so it needs to be identical for now
+    reproducibleFileOrder = true
+    preserveFileTimestamps = false
     archiveName = 'gradle-wrapper.jar'
     from sourceSets.main.output
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
 
 integTestTasks.all {
-    inputs.files { project(":distributions").binZip }
+    requiresBinZip = true
 }
 
 useTestFixtures()

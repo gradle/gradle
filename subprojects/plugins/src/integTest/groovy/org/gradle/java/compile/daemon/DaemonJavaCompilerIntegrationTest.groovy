@@ -18,11 +18,16 @@ package org.gradle.java.compile.daemon
 import org.gradle.java.compile.JavaCompilerIntegrationSpec
 
 class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
+
+    def setup() {
+        executer.withArguments("-d")
+    }
+
     def compilerConfiguration() {
         "tasks.withType(JavaCompile) { options.fork = true }"
     }
 
     def logStatement() {
-        "in compiler daemon"
+        "worker(s) in use"
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.plugins.signing.type.pgp.ArmoredSignatureType
+
 class SigningConfigurationsSpec extends SigningProjectSpec {
     
     def setup() {
@@ -56,9 +58,21 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         signing {
             sign configurations.produced
         }
-        
+
         then:
         configurations.signatures.artifacts.size() == 3
         signProduced.signatures.every { it in configurations.signatures.artifacts }
+    }
+
+    def "sign configuration with custom type"() {
+        def signingTasks
+        when:
+        signing {
+            signingTasks = sign configurations.produced
+            signingTasks[0].signatureType new ArmoredSignatureType()
+        }
+
+        then:
+        signingTasks[0].getSignatureType() instanceof ArmoredSignatureType
     }
 }

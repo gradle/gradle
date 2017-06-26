@@ -24,18 +24,15 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
 public class JarChangeProcessor {
 
     private final FileOperations fileOperations;
-    private final JarClasspathSnapshot jarClasspathSnapshot;
-    private final PreviousCompilation previousCompilation;
+    private final JarChangeDependentsFinder dependentsFinder;
 
     public JarChangeProcessor(FileOperations fileOperations, JarClasspathSnapshot jarClasspathSnapshot, PreviousCompilation previousCompilation) {
         this.fileOperations = fileOperations;
-        this.jarClasspathSnapshot = jarClasspathSnapshot;
-        this.previousCompilation = previousCompilation;
+        this.dependentsFinder = new JarChangeDependentsFinder(jarClasspathSnapshot, previousCompilation);
     }
 
     public void processChange(InputFileDetails input, RecompilationSpec spec) {
-        JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()), fileOperations.getFileResolver().getPatternSetFactory());
-        JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarClasspathSnapshot, previousCompilation);
+        JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
         DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
         if (actualDependents.isDependencyToAll()) {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());

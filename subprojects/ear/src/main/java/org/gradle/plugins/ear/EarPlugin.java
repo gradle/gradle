@@ -48,6 +48,9 @@ public class EarPlugin implements Plugin<Project> {
 
     public static final String DEPLOY_CONFIGURATION_NAME = "deploy";
     public static final String EARLIB_CONFIGURATION_NAME = "earlib";
+
+    static final String DEFAULT_LIB_DIR_NAME = "lib";
+
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
 
@@ -62,7 +65,7 @@ public class EarPlugin implements Plugin<Project> {
 
         final EarPluginConvention earPluginConvention = instantiator.newInstance(EarPluginConvention.class, fileResolver, instantiator);
         project.getConvention().getPlugins().put("ear", earPluginConvention);
-        earPluginConvention.setLibDirName("lib");
+        earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
         earPluginConvention.setAppDirName("src/main/application");
 
         wireEarTaskConventions(project, earPluginConvention);

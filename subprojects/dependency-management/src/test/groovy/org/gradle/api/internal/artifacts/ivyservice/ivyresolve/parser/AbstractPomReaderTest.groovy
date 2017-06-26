@@ -18,10 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt
-import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.resource.local.LocalFileStandInExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
-import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -36,8 +35,7 @@ abstract class AbstractPomReaderTest extends Specification {
     def setup() {
         pomFile = tmpDir.file('pom.xml')
         pomFile.createFile()
-        LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
-        locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource)
+        locallyAvailableExternalResource = new LocalFileStandInExternalResource(pomFile, TestFiles.fileSystem())
     }
 
     protected void assertResolvedPomDependency(MavenDependencyKey key, String version) {
@@ -64,8 +62,7 @@ abstract class AbstractPomReaderTest extends Specification {
         TestFile pomFile = tmpDir.file(pomFileName)
         pomFile.createFile()
         pomFile << pomDefinition
-        LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
-        LocallyAvailableExternalResource locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource)
-        return new PomReader(locallyAvailableExternalResource)
+        LocallyAvailableExternalResource locallyAvailableExternalResource = new LocalFileStandInExternalResource(pomFile, TestFiles.fileSystem())
+        return new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
     }
 }

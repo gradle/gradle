@@ -39,7 +39,7 @@ public class DefaultProjectSpec extends AbstractProjectSpec {
             }
         }
         if (useRootWhenNoMatch && matches.isEmpty()) {
-            matches.add(candidates.getProject(":"));
+            matches.add(candidates.getRootProject());
         }
     }
 

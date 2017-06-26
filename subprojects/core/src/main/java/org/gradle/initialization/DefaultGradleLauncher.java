@@ -15,35 +15,44 @@
  */
 package org.gradle.initialization;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.Task;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.internal.Factory;
+import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.includedbuild.internal.IncludedBuildControllers;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.internal.work.WorkerLeaseService;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultGradleLauncher implements GradleLauncher {
 
     private enum Stage {
-        Load, Configure, Build
+        Load, Configure, TaskGraph, Build
     }
 
     private final InitScriptHandler initScriptHandler;
     private final SettingsLoader settingsLoader;
     private final BuildConfigurer buildConfigurer;
     private final ExceptionAnalyser exceptionAnalyser;
-    private final LoggingManagerInternal loggingManager;
     private final BuildListener buildListener;
     private final ModelConfigurationListener modelConfigurationListener;
     private final BuildCompletionListener buildCompletionListener;
@@ -51,36 +60,30 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
-    private final List<?> servicesToStopAtEndOfBuild;
+    private final List<?> servicesToStop;
     private GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
 
-    /**
-     * Creates a new instance.
-     */
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader,
                                  BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
-                                 LoggingManagerInternal loggingManager, BuildListener buildListener,
-                                 ModelConfigurationListener modelConfigurationListener,
+                                 BuildListener buildListener, ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
                                  BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter,
-                                 BuildScopeServices buildServices, List<?> servicesToStopAtEndOfBuild) {
+                                 BuildScopeServices buildServices, List<?> servicesToStop) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
         this.buildConfigurer = buildConfigurer;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
-        this.loggingManager = loggingManager;
         this.modelConfigurationListener = modelConfigurationListener;
         this.buildOperationExecutor = operationExecutor;
         this.buildConfigurationActionExecuter = buildConfigurationActionExecuter;
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
-        this.servicesToStopAtEndOfBuild = servicesToStopAtEndOfBuild;
-        loggingManager.start();
+        this.servicesToStop = servicesToStop;
     }
 
     @Override
@@ -89,8 +92,20 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     @Override
-    public SettingsInternal getSettings() {
+    public SettingsInternal getLoadedSettings() {
+        loadSettings();
         return settings;
+    }
+
+    @Override
+    public GradleInternal getConfiguredBuild() {
+        configureBuild();
+        return gradle;
+    }
+
+    @Override
+    public void scheduleTasks(final Iterable<String> tasks) {
+        gradle.getStartParameter().setTaskNames(tasks);
     }
 
     @Override
@@ -103,44 +118,55 @@ public class DefaultGradleLauncher implements GradleLauncher {
         return doBuild(Stage.Configure);
     }
 
-    @Override
-    public BuildResult load() throws ReportedException {
-        return doBuild(Stage.Load);
-    }
-
     private BuildResult doBuild(final Stage upTo) {
-        return buildOperationExecutor.run("Run build", new Factory<BuildResult>() {
+        // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
+        final AtomicReference<BuildResult> buildResult = new AtomicReference<BuildResult>();
+        WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
+        workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Runnable() {
             @Override
-            public BuildResult create() {
+            public void run() {
                 Throwable failure = null;
                 try {
-                    buildListener.buildStarted(gradle);
                     doBuildStages(upTo);
-                    flushPendingCacheOperations();
                 } catch (Throwable t) {
                     failure = exceptionAnalyser.transform(t);
+                } finally {
+                    // TODO: Build operations for these composite related things?
+                    if (!isNestedBuild()) {
+                        IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
+                        buildControllers.stopTaskExecution();
+                    }
                 }
-                BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
-                buildListener.buildFinished(buildResult);
+                buildResult.set(new BuildResult(upTo.name(), gradle, failure));
+                buildListener.buildFinished(buildResult.get());
                 if (failure != null) {
                     throw new ReportedException(failure);
                 }
-
-                return buildResult;
             }
         });
-    }
-
-    private void flushPendingCacheOperations() {
-        gradle.getServices().get(TaskHistoryStore.class).flush();
+        return buildResult.get();
     }
 
     private void doBuildStages(Stage upTo) {
-        if (stage == Stage.Build) {
-            throw new IllegalStateException("Cannot build with GradleLauncher multiple times");
+        switch (upTo) {
+            case Load:
+                loadSettings();
+                return;
+            case Configure:
+                configureBuild();
+                return;
+            case TaskGraph:
+                constructTaskGraph();
+                return;
+            case Build:
+                runTasks();
         }
+    }
 
+    private void loadSettings() {
         if (stage == null) {
+            buildListener.buildStarted(gradle);
+
             // Evaluate init scripts
             initScriptHandler.executeScripts(gradle);
 
@@ -149,54 +175,44 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
             stage = Stage.Load;
         }
+    }
 
-        if (upTo == Stage.Load) {
-            return;
-        }
+    private void configureBuild() {
+        loadSettings();
 
         if (stage == Stage.Load) {
-            // Configure build
-            buildOperationExecutor.run("Configure build", new Runnable() {
-                @Override
-                public void run() {
-                    buildConfigurer.configure(gradle);
-
-                    if (!gradle.getStartParameter().isConfigureOnDemand()) {
-                        buildListener.projectsEvaluated(gradle);
-                    }
-
-                    modelConfigurationListener.onConfigure(gradle);
-                }
-            });
+            buildOperationExecutor.run(new ConfigureBuild());
 
             stage = Stage.Configure;
         }
+    }
 
-        if (upTo == Stage.Configure) {
-            return;
+    private void constructTaskGraph() {
+        configureBuild();
+
+        if (stage == Stage.Configure) {
+            buildOperationExecutor.run(new CalculateTaskGraph());
+
+            stage = Stage.TaskGraph;
+        }
+    }
+
+    private void runTasks() {
+        if (stage == Stage.Build) {
+            throw new IllegalStateException("Cannot execute tasks with GradleLauncher multiple times");
         }
 
-        // After this point, the GradleLauncher cannot be reused
+        constructTaskGraph();
+
         stage = Stage.Build;
 
-        // Populate task graph
-        buildOperationExecutor.run("Calculate task graph", new Runnable() {
-            @Override
-            public void run() {
-                buildConfigurationActionExecuter.select(gradle);
-                if (gradle.getStartParameter().isConfigureOnDemand()) {
-                    buildListener.projectsEvaluated(gradle);
-                }
-            }
-        });
+        // TODO: Build operations for these composite related things?
+        if (!isNestedBuild()) {
+            IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
+            buildControllers.startTaskExecution();
+        }
 
-        // Execute build
-        buildOperationExecutor.run("Run tasks", new Runnable() {
-            @Override
-            public void run() {
-                buildExecuter.execute(gradle);
-            }
-        });
+        buildOperationExecutor.run(new ExecuteTasks());
     }
 
     /**
@@ -210,32 +226,102 @@ public class DefaultGradleLauncher implements GradleLauncher {
         gradle.addListener(listener);
     }
 
-    /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard output by Gradle's logging system
-     *
-     * @param listener The listener to add. Has no effect if the listener has already been added.
-     */
-    @Override
-    public void addStandardOutputListener(StandardOutputListener listener) {
-        loggingManager.addStandardOutputListener(listener);
-    }
-
-    /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard error by Gradle's logging system
-     *
-     * @param listener The listener to add. Has no effect if the listener has already been added.
-     */
-    @Override
-    public void addStandardErrorListener(StandardOutputListener listener) {
-        loggingManager.addStandardErrorListener(listener);
-    }
-
     public void stop() {
         try {
-            loggingManager.stop();
-            CompositeStoppable.stoppable(buildServices).add(servicesToStopAtEndOfBuild).stop();
+            CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();
         } finally {
             buildCompletionListener.completed();
         }
+    }
+
+    private class ConfigureBuild implements RunnableBuildOperation {
+        @Override
+        public void run(BuildOperationContext context) {
+            buildConfigurer.configure(gradle);
+
+            if (!isConfigureOnDemand()) {
+                projectsEvaluated();
+            }
+
+            modelConfigurationListener.onConfigure(gradle);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName(contextualize("Configure build")).
+                parent(getGradle().getBuildOperation());
+        }
+    }
+
+    private class CalculateTaskGraph implements RunnableBuildOperation {
+        @Override
+        public void run(BuildOperationContext buildOperationContext) {
+            buildConfigurationActionExecuter.select(gradle);
+
+            if (isConfigureOnDemand()) {
+                projectsEvaluated();
+            }
+
+            final TaskGraphExecuter taskGraph = gradle.getTaskGraph();
+            buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
+                @Override
+                public List<String> getRequestedTaskPaths() {
+                    return toTaskPaths(taskGraph.getRequestedTasks());
+                }
+
+                @Override
+                public List<String> getExcludedTaskPaths() {
+                    return toTaskPaths(taskGraph.getFilteredTasks());
+                }
+
+                private List<String> toTaskPaths(Set<Task> tasks) {
+                    return ImmutableSortedSet.copyOf(Collections2.transform(tasks, new Function<Task, String>() {
+                        @Override
+                        public String apply(Task task) {
+                            return task.getPath();
+                        }
+                    })).asList();
+                }
+            });
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName(contextualize("Calculate task graph"))
+                .details(new CalculateTaskGraphBuildOperationType.Details() {
+                }).parent(getGradle().getBuildOperation());
+        }
+    }
+
+    private class ExecuteTasks implements RunnableBuildOperation {
+        @Override
+        public void run(BuildOperationContext context) {
+            buildExecuter.execute(gradle);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName(contextualize("Run tasks")).parent(getGradle().getBuildOperation());
+        }
+    }
+
+
+    private boolean isConfigureOnDemand() {
+        return gradle.getStartParameter().isConfigureOnDemand();
+    }
+
+    private void projectsEvaluated() {
+        buildListener.projectsEvaluated(gradle);
+    }
+
+    private String contextualize(String descriptor) {
+        if (isNestedBuild()) {
+            return descriptor + " (" + gradle.getIdentityPath() + ")";
+        }
+        return descriptor;
+    }
+
+    private boolean isNestedBuild() {
+        return gradle.getParent() != null;
     }
 }

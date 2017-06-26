@@ -33,13 +33,12 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
-    @Shared String version = GradleVersion.current().version
     @Shared String baseVersion = GradleVersion.current().baseVersion.version
 
     abstract String getDistributionLabel()
 
     int getLibJarsCount() {
-        166
+        162
     }
 
     def "no duplicate entries"() {
@@ -87,15 +86,15 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         }
     }
 
-    protected TestFile unpackDistribution(type = getDistributionLabel()) {
+    protected TestFile unpackDistribution(type = getDistributionLabel(), TestFile into = testDirectory) {
         TestFile zip = getZip(type)
-        zip.usingNativeTools().unzipTo(testDirectory)
-        TestFile contentsDir = file("gradle-$version")
-        contentsDir
+        zip.usingNativeTools().unzipTo(into)
+        assert into.listFiles().size() == 1
+        into.listFiles()[0]
     }
 
     protected TestFile getZip(String type = getDistributionLabel()) {
-        buildContext.distributionsDir.file("gradle-$version-${type}.zip")
+        buildContext.distributionsDir.file("gradle-$baseVersion-${type}.zip")
     }
 
     protected void checkMinimalContents(TestFile contentsDir) {
@@ -113,7 +112,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def coreLibs = contentsDir.file("lib").listFiles().findAll {
             it.name.startsWith("gradle-") && !it.name.startsWith("gradle-script-kotlin")
         }
-        assert coreLibs.size() == 19
+        assert coreLibs.size() == 18
         coreLibs.each { assertIsGradleJar(it) }
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
@@ -128,7 +127,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-code-quality-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-antlr-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-announce-${baseVersion}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-jetty-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-maven-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-signing-${baseVersion}.jar"))

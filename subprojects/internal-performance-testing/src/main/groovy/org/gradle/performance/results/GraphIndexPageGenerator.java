@@ -46,6 +46,7 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     String channel = ResultsStoreHelper.determineChannel();
                     PerformanceTestHistory testHistory = store.getTestResults(testName, 5, 14, channel);
                     List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
+                    results = filterForRequestedCommit(results);
                     if (results.isEmpty()) {
                         continue;
                     }
@@ -60,17 +61,6 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         end();
                         script();
                             text("performanceTests.createPerformanceGraph('tests/" + testHistory.getId() + ".json', function(data) { return data.totalTime }, 'total time', 's', '" + totalTimeChartId + "');");
-                        end();
-                    end();
-
-                    div().classAttr("charts");
-                        h3().text("Average heap usage").end();
-                        String heapUsageChartId = "heapUsageChart" + testHistory.getId().replaceAll("[^a-zA-Z]", "_");
-                        div().id(heapUsageChartId).classAttr("chart");
-                            p().text("Loading...").end();
-                        end();
-                        script();
-                            text("performanceTests.createPerformanceGraph('tests/" + testHistory.getId() + ".json', function(data) { return data.heapUsage }, 'heap usage', 'mb', '" + heapUsageChartId + "');");
                         end();
                     end();
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.serialize.Decoder;
@@ -29,11 +30,12 @@ import java.util.Map;
 public class DependencyResultSerializer {
     private final static byte SUCCESSFUL = 0;
     private final static byte FAILED = 1;
-    private final ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer();
     private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer();
 
-    public DependencyResult read(Decoder decoder, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
-        ComponentSelector requested = componentSelectorSerializer.read(decoder);
+    public DependencyResult read(Decoder decoder, Map<Long, ComponentSelector> selectors, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
+        Long selectorId = decoder.readSmallLong();
+        ComponentSelector requested = selectors.get(selectorId);
+
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
             Long selectedId = decoder.readSmallLong();
@@ -43,12 +45,12 @@ public class DependencyResultSerializer {
             ModuleVersionResolveException failure = failures.get(requested);
             return new DefaultDependencyResult(requested, null, reason, failure);
         } else {
-            throw new IllegalArgumentException("Unknown result byte: " + resultByte);
+            throw new IllegalArgumentException("Unknown result type: " + resultByte);
         }
     }
 
-    public void write(Encoder encoder, DependencyResult value) throws IOException {
-        componentSelectorSerializer.write(encoder, value.getRequested());
+    public void write(Encoder encoder, DependencyGraphEdge value) throws IOException {
+        encoder.writeSmallLong(value.getSelector().getResultId());
         if (value.getFailure() == null) {
             encoder.writeByte(SUCCESSFUL);
             encoder.writeSmallLong(value.getSelected());

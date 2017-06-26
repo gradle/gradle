@@ -18,13 +18,12 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 
-public class ProgressEvent extends CategorisedOutputEvent {
+public class ProgressEvent extends OutputEvent {
     private final String status;
-    private final OperationIdentifier operationId;
+    private final OperationIdentifier progressOperationId;
 
-    public ProgressEvent(OperationIdentifier operationId, long timestamp, String category, String status) {
-        super(timestamp, category, LogLevel.LIFECYCLE);
-        this.operationId = operationId;
+    public ProgressEvent(OperationIdentifier progressOperationId, String status) {
+        this.progressOperationId = progressOperationId;
         this.status = status;
     }
 
@@ -37,7 +36,12 @@ public class ProgressEvent extends CategorisedOutputEvent {
         return "Progress " + status;
     }
 
-    public OperationIdentifier getOperationId() {
-        return operationId;
+    public OperationIdentifier getProgressOperationId() {
+        return progressOperationId;
+    }
+
+    @Override
+    public LogLevel getLogLevel() {
+        return LogLevel.LIFECYCLE;
     }
 }

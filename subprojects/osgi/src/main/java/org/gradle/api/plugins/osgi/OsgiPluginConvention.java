@@ -16,22 +16,25 @@
 package org.gradle.api.plugins.osgi;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest;
 import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
 
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Is mixed into the project when applying the {@link org.gradle.api.plugins.osgi.OsgiPlugin}.
  */
 public class OsgiPluginConvention {
-    private ProjectInternal project;
+    private final ProjectInternal project;
 
     public OsgiPluginConvention(ProjectInternal project) {
         this.project = project;
@@ -57,7 +60,7 @@ public class OsgiPluginConvention {
      * </ul>
      */
     public OsgiManifest osgiManifest() {
-        return osgiManifest(null);
+        return osgiManifest(Actions.<OsgiManifest>doNothing());
     }
 
     /**
@@ -65,10 +68,21 @@ public class OsgiPluginConvention {
      * the new manifest instance before it is returned.
      */
     public OsgiManifest osgiManifest(Closure closure) {
-        return ConfigureUtil.configure(closure, createDefaultOsgiManifest(project));
+        return configure(closure, createDefaultOsgiManifest());
     }
 
-    private OsgiManifest createDefaultOsgiManifest(final ProjectInternal project) {
+    /**
+     * Creates and configures a new instance of an  {@link org.gradle.api.plugins.osgi.OsgiManifest}. The action configures
+     * the new manifest instance before it is returned.
+     * @since 3.5
+     */
+    public OsgiManifest osgiManifest(Action<? super OsgiManifest> action) {
+        OsgiManifest manifest = createDefaultOsgiManifest();
+        action.execute(manifest);
+        return manifest;
+    }
+
+    private OsgiManifest createDefaultOsgiManifest() {
         OsgiManifest osgiManifest = project.getServices().get(Instantiator.class).newInstance(DefaultOsgiManifest.class, project.getFileResolver());
         ConventionMapping mapping = ((IConventionAware) osgiManifest).getConventionMapping();
         final OsgiHelper osgiHelper = new OsgiHelper();

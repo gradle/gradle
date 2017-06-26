@@ -17,6 +17,7 @@
 
 package org.gradle.internal.component.external.model
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
@@ -26,13 +27,13 @@ import org.gradle.internal.component.model.ModuleSource
 class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
     @Override
     AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMavenModuleResolveMetadata(new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "pom", false, dependencies))
+        return new DefaultMavenModuleResolveMetadata(new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, moduleDescriptor, "pom", false, dependencies))
     }
 
     def "copy with different source"() {
         given:
         def source = Stub(ModuleSource)
-        def mutable = new DefaultMutableMavenModuleResolveMetadata(id, [] as Set)
+        def mutable = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [] as Set)
         mutable.packaging = "other"
         mutable.relocated = true
         mutable.snapshotTimestamp = "123"
@@ -50,7 +51,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
 
     def "recognises pom packaging"() {
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, [] as Set)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [] as Set)
         metadata.packaging = packaging
 
         then:

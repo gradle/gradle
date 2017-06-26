@@ -19,16 +19,16 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativeplatform.platform.OperatingSystem;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,11 +40,11 @@ class GccLinker implements Compiler<LinkerSpec> {
     private final ArgsTransformer<LinkerSpec> argsTransformer;
     private final CommandLineToolContext invocationContext;
     private final boolean useCommandFile;
-    private final BuildOperationProcessor buildOperationProcessor;
+    private final BuildOperationExecutor buildOperationExecutor;
 
 
-    GccLinker(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile) {
-        this.buildOperationProcessor = buildOperationProcessor;
+    GccLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile) {
+        this.buildOperationExecutor = buildOperationExecutor;
         this.argsTransformer = new GccLinkerArgsTransformer();
         this.invocationContext = invocationContext;
         this.useCommandFile = useCommandFile;
@@ -61,7 +61,7 @@ class GccLinker implements Compiler<LinkerSpec> {
         final CommandLineToolInvocation invocation = invocationContext.createInvocation(
                 "linking " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
 
-        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+        buildOperationExecutor.runAll(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
             public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());

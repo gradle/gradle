@@ -122,6 +122,7 @@ if (project.hasProperty('nocache')) {
 
         and:
         server.resetExpectations()
+        snapshotModule.metaData.expectHead()
         snapshotModule.metaData.expectGet()
         snapshotModule.pom.expectHead()
         snapshotModule.pom.sha1.expectGet()
@@ -173,6 +174,7 @@ if (project.hasProperty('nocache')) {
 
         and:
         server.resetExpectations()
+        snapshotModule.metaData.expectHead()
         snapshotModule.metaData.expectGet()
         snapshotModule.pom.expectHead()
         snapshotModule.pom.sha1.expectGet()

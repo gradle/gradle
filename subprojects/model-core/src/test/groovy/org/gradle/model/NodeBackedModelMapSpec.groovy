@@ -29,6 +29,7 @@ import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> extends ProjectRegistrySpec {
@@ -324,10 +325,7 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
         then:
         def ex = thrown InvalidModelRuleException
         ex.cause instanceof ModelRuleBindingException
-        normaliseLineSeparators(ex.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
-This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)
-  - ${ModelElement.name} (or assignment compatible type thereof)"""
+        normaliseLineSeparators(ex.cause.message) == incompatibleTypesMessage()
     }
 
     def "named(String, Action) fails when named element requested in chain filtered collection with incompatible type"() {
@@ -338,9 +336,13 @@ This element was created by testrule > create(item) and can be mutated as the fo
         def ex = thrown ModelRuleExecutionException
         ex.cause instanceof InvalidModelRuleException
         ex.cause.cause instanceof ModelRuleBindingException
-        normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
+        normaliseLineSeparators(ex.cause.cause.message) == incompatibleTypesMessage()
+    }
+
+    private String incompatibleTypesMessage() {
+        """Model reference to element 'map.item' with type ${fullyQualifiedNameOf(specialItemClass)} is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)
+  - ${fullyQualifiedNameOf(itemClass)} (or assignment compatible type thereof)
   - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
@@ -354,10 +356,7 @@ This element was created by testrule > create(item) and can be mutated as the fo
         def ex = thrown ModelRuleExecutionException
         ex.cause instanceof InvalidModelRuleException
         ex.cause.cause instanceof ModelRuleBindingException
-        normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
-This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)
-  - ${ModelElement.name} (or assignment compatible type thereof)"""
+        normaliseLineSeparators(ex.cause.cause.message) == incompatibleTypesMessage()
     }
 
     def "named(String, DeferredModelAction) fails when named element requested in filtered collection with incompatible type"() {
@@ -367,10 +366,7 @@ This element was created by testrule > create(item) and can be mutated as the fo
         then:
         def ex = thrown InvalidModelRuleException
         ex.cause instanceof ModelRuleBindingException
-        normaliseLineSeparators(ex.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
-This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)
-  - ${ModelElement.name} (or assignment compatible type thereof)"""
+        normaliseLineSeparators(ex.cause.message) == incompatibleTypesMessage()
     }
 
     def "named(String, DeferredModelAction) fails when named element requested in chain filtered collection with incompatible type"() {
@@ -381,10 +377,7 @@ This element was created by testrule > create(item) and can be mutated as the fo
         def ex = thrown ModelRuleExecutionException
         ex.cause instanceof InvalidModelRuleException
         ex.cause.cause instanceof ModelRuleBindingException
-        normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
-This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)
-  - ${ModelElement.name} (or assignment compatible type thereof)"""
+        normaliseLineSeparators(ex.cause.cause.message) == incompatibleTypesMessage()
     }
 
     def "withType(Class, Action) respects chained filtering"() {
@@ -499,7 +492,7 @@ This element was created by testrule > create(item) and can be mutated as the fo
 
     def assertCannotCreateException(ModelRuleExecutionException ex) {
         assert ex.cause instanceof IllegalArgumentException
-        assert ex.cause.message == "Cannot create 'map.item' with type '$String.name' as this is not a subtype of '$itemClass.name'."
+        assert ex.cause.message == "Cannot create 'map.item' with type '$String.name' as this is not a subtype of '${fullyQualifiedNameOf(itemClass)}'."
         return true
     }
 

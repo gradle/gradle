@@ -22,7 +22,7 @@ import java.io.File;
 import java.io.IOException;
 
 public interface VersionedPlayRunAdapter {
-    void reload();
+    void buildSuccess();
 
     void buildError(Throwable throwable);
 
@@ -33,4 +33,6 @@ public interface VersionedPlayRunAdapter {
     void runDevHttpServer(ClassLoader classLoader, ClassLoader docsClassLoader, Object buildLink, Object buildDocHandler, int httpPort) throws ClassNotFoundException;
 
     Iterable<Dependency> getRunsupportClasspathDependencies(String playVersion, String scalaCompatibilityVersion);
+
+    void rebuildInProgress();
 }

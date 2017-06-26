@@ -16,8 +16,8 @@
 
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.internal.service.ServiceRegistry;
 
 /**
  * The base class for all scripts executed by Gradle.
@@ -45,15 +45,4 @@ public abstract class Script extends groovy.lang.Script {
     public abstract void init(Object target, ServiceRegistry services);
 
     public abstract StandardOutputCapture getStandardOutputCapture();
-
-    @Override
-    public Object getProperty(String property) {
-        // Refactoring of groovy.lang.Script.getProperty logic
-        // to avoid unnecessary MissingPropertyException in binding variable lookup
-        if (getBinding().hasVariable(property)) {
-            return super.getProperty(property);
-        } else {
-            return getMetaClass().getProperty(this, property);
-        }
-    }
 }

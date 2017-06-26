@@ -60,7 +60,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'buildC'.")
+        failure.assertHasDescription("A problem occurred evaluating project ':buildC'.")
             .assertHasCause("exception thrown on configure")
     }
 
@@ -99,7 +99,8 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -126,10 +127,12 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
-            edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+            edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -150,9 +153,11 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
             edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -176,12 +181,13 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                 }
-
             }
         }
     }
@@ -206,7 +212,8 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 module("org.test:transitive2:1.0") {
                     module("org.test:transitive1:1.0")
@@ -242,7 +249,8 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 project(":buildB:b1", "org.test:b1:2.0") {
                     project(":buildB:b1:b11", "org.test:b11:2.0") {}
@@ -273,7 +281,8 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 module("org.test:transitive2:1.0")
             }
@@ -304,9 +313,11 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                 }
             }
@@ -329,7 +340,7 @@ include ':b1:b11'
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+                edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                     compositeSubstitute()
                 }
             }
@@ -349,7 +360,8 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -372,7 +384,7 @@ include ':b1:b11'
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+                edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                     compositeSubstitute()
                 }
             }
@@ -408,7 +420,7 @@ include ':b1:b11'
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:something:1.0", "project :buildB:", "org.test:buildB:2.0") {
+                edge("org.test:something:1.0", "project :buildB", "org.test:buildB:2.0") {
                     compositeSubstitute()
                 }
                 edge("org.other:something-else:1.0", "project :buildB:b1", "org.test:b1:2.0") {
@@ -440,6 +452,7 @@ afterEvaluate {
         then:
         checkGraph {
             edge("group.requires.subproject.evaluation:b1:1.0", "project :buildB:b1", "group.requires.subproject.evaluation:b1:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -476,10 +489,12 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
-            edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+            edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -509,9 +524,11 @@ afterEvaluate {
         then:
         checkGraph {
             edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
             edge("org.test:c1:1.0", "project :buildC:c1", "org.test:c1:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -589,7 +606,8 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 project(":buildB:b1", "org.test:b1:2.0") {}
             }
@@ -636,7 +654,8 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -657,7 +676,70 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Project : declares a dependency from configuration 'compile' to configuration 'default' which is not declared in the descriptor for project :buildC:.")
+        failure.assertHasCause("Project : declares a dependency from configuration 'compile' to configuration 'default' which is not declared in the descriptor for project :buildC.")
+    }
+
+    def "includes build identifier in error message on failure to resolve dependencies of included build"() {
+        def m = mavenRepo.module("org.test", "test", "1.2")
+
+        given:
+        def buildC = singleProjectBuild("buildC")
+        includedBuilds << buildC
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:buildC:1.0"
+            }
+        """
+        buildC.buildFile << """
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+
+            configurations { 
+                buildInputs 
+                create('default')
+            }
+            
+            dependencies {
+                buildInputs "org.test:test:1.2"
+            }
+            
+            task buildOutputs {
+                inputs.files configurations.buildInputs
+                doLast {
+                    configurations.buildInputs.each { }
+                }
+            }
+            
+            artifacts {
+                "default" file: file("out.jar"), builtBy: buildOutputs
+            }
+        """
+
+        when:
+        checkDependenciesFails()
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':buildC:buildOutputs'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildC:buildInputs'.")
+        failure.assertHasCause("""Could not find org.test:test:1.2.
+Searched in the following locations:
+    ${m.pom.file.toURL()}
+    ${m.artifact.file.toURL()}
+Required by:
+    project :buildC""")
+
+        when:
+        m.publish()
+        m.artifact.file.delete()
+
+        checkDependenciesFails()
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':buildC:buildOutputs'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':buildC:buildInputs'.")
+        failure.assertHasCause("Could not find test.jar (org.test:test:1.2).")
     }
 
     private void withArgs(List<String> args) {

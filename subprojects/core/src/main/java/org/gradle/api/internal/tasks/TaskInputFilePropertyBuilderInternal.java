@@ -45,10 +45,4 @@ public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePrope
 
     @Override
     TaskInputFilePropertyBuilderInternal optional(boolean optional);
-
-    @Override
-    TaskInputFilePropertyBuilderInternal orderSensitive();
-
-    @Override
-    TaskInputFilePropertyBuilderInternal orderSensitive(boolean orderSensitive);
 }

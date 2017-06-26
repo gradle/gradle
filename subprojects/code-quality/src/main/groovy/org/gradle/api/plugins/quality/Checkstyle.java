@@ -25,12 +25,15 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -58,7 +61,10 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
     private final CheckstyleReports reports;
     private boolean ignoreFailures;
+    private int maxErrors;
+    private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
+    private PropertyState<File> configDir;
 
 
     /**
@@ -77,6 +83,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     public Checkstyle() {
+        configDir = getProject().property(File.class);
         reports = getInstantiator().newInstance(CheckstyleReportsImpl.class, this);
     }
 
@@ -164,6 +171,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return checkstyleClasspath;
     }
 
+    /**
+     * The class path containing the Checkstyle library to be used.
+     */
     public void setCheckstyleClasspath(FileCollection checkstyleClasspath) {
         this.checkstyleClasspath = checkstyleClasspath;
     }
@@ -176,6 +186,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return classpath;
     }
 
+    /**
+     * The class path containing the compiled classes for the source files to be analyzed.
+     */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
@@ -191,6 +204,12 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return config;
     }
 
+    /**
+     * The Checkstyle configuration to use. Replaces the {@code configFile} property.
+     *
+     * @since 2.2
+     */
+    @Incubating
     public void setConfig(TextResource config) {
         this.config = config;
     }
@@ -204,8 +223,43 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return configProperties;
     }
 
+    /**
+     * The properties available for use in the configuration file. These are substituted into the configuration file.
+     */
     public void setConfigProperties(Map<String, Object> configProperties) {
         this.configProperties = configProperties;
+    }
+
+    /**
+     * Path to other Checkstyle configuration files.
+     * <p>
+     * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
+     * </p>
+     * @return path to other Checkstyle configuration files
+     * @since 4.0
+     */
+    @Incubating
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @Optional
+    public File getConfigDir() {
+        File configDirectory = configDir.getOrNull();
+        if (configDirectory!=null && configDirectory.exists()) {
+            return configDirectory;
+        }
+        return null;
+    }
+
+    /**
+     * Path to other Checkstyle configuration files.
+     * <p>
+     * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
+     * </p>
+     * @since 4.0
+     */
+    @Incubating
+    public void setConfigDir(Provider<File> configDir) {
+        this.configDir.set(configDir);
     }
 
     /**
@@ -227,7 +281,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     /**
-     * Whether or not this task will ignore failures and continue running the build.
+     * Whether this task will ignore failures and continue running the build.
      *
      * @return true if failures should be ignored
      */
@@ -235,12 +289,59 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return ignoreFailures;
     }
 
+    /**
+     * Whether this task will ignore failures and continue running the build.
+     */
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
 
     /**
-     * Whether or not rule violations are to be displayed on the console.
+     * The maximum number of errors that are tolerated before breaking the build
+     * or setting the failure property.
+     *
+     * @since 3.4
+     * @return the maximum number of errors allowed
+     */
+    @Input
+    public int getMaxErrors() {
+        return maxErrors;
+    }
+
+    /**
+     * Set the maximum number of errors that are tolerated before breaking the build.
+     *
+     * @since 3.4
+     * @param maxErrors number of errors allowed
+     */
+    public void setMaxErrors(int maxErrors) {
+        this.maxErrors = maxErrors;
+    }
+
+    /**
+     * The maximum number of warnings that are tolerated before breaking the build
+     * or setting the failure property.
+     *
+     * @since 3.4
+     * @return the maximum number of warnings allowed
+     */
+    @Input
+    public int getMaxWarnings() {
+        return maxWarnings;
+    }
+
+    /**
+     * Set the maximum number of warnings that are tolerated before breaking the build.
+     *
+     * @since 3.4
+     * @param maxWarnings number of warnings allowed
+     */
+    public void setMaxWarnings(int maxWarnings) {
+        this.maxWarnings = maxWarnings;
+    }
+
+    /**
+     * Whether rule violations are to be displayed on the console.
      *
      * @return true if violations should be displayed on console
      */
@@ -249,8 +350,10 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return showViolations;
     }
 
+    /**
+     * Whether rule violations are to be displayed on the console.
+     */
     public void setShowViolations(boolean showViolations) {
         this.showViolations = showViolations;
     }
-
 }

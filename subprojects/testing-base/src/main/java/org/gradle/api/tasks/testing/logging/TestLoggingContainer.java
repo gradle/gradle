@@ -47,7 +47,7 @@ import org.gradle.api.logging.LogLevel;
  * </pre>
  *
  * The defaults that are in place show progressively more information
- * on log levels LIFECYCLE, INFO, and DEBUG, respectively.
+ * on log levels WARN, LIFECYCLE, INFO, and DEBUG, respectively.
  */
 public interface TestLoggingContainer extends TestLogging {
     /**

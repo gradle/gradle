@@ -26,7 +26,7 @@ import java.io.InputStream;
 
 public class JansiBootPathConfigurer {
     private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
-    private final JansiLibraryFactory factory = new JansiLibraryFactory();
+    private final JansiStorageLocator locator = new JansiStorageLocator();
 
     /**
      * Attempts to find the Jansi library and copies it to a specified folder.
@@ -39,15 +39,14 @@ public class JansiBootPathConfigurer {
      * @param storageDir where to store the Jansi library
      */
     public void configure(File storageDir) {
-        JansiLibrary jansiLibrary = factory.create();
+        JansiStorage jansiStorage = locator.locate(storageDir);
 
-        if (jansiLibrary != null) {
-            File jansiDir = factory.makeVersionSpecificDir(storageDir);
-            File libFile = new File(jansiDir, jansiLibrary.getPath());
+        if (jansiStorage != null) {
+            File libFile = jansiStorage.getTargetLibFile();
             libFile.getParentFile().mkdirs();
 
             if (!libFile.exists()) {
-                InputStream libraryInputStream = getClass().getResourceAsStream(jansiLibrary.getResourcePath());
+                InputStream libraryInputStream = getClass().getResourceAsStream(jansiStorage.getJansiLibrary().getResourcePath());
 
                 if (libraryInputStream != null) {
                     copyLibrary(libraryInputStream, libFile);

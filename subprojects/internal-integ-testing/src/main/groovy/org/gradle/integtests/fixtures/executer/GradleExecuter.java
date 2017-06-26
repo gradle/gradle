@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -170,19 +171,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
 
     /**
-     * Activates the task output cache
+     * Activates the build cache
      *
      * @return this executer
      */
-    GradleExecuter withTaskCacheEnabled();
-
-    /**
-     * Activates the task output cache for a local directory
-     *
-     * @param cacheDir the directory for the cache
-     * @return this executer
-     */
-    GradleExecuter withLocalTaskCache(File cacheDir);
+    GradleExecuter withBuildCacheEnabled();
 
     /**
      * Don't set temp folder explicitly.
@@ -203,7 +196,7 @@ public interface GradleExecuter extends Stoppable {
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
      */
-    GradleExecuter useDefaultBuildJvmArgs();
+    GradleExecuter useOnlyRequestedJvmOpts();
 
     /**
      * Sets the default character encoding to use.
@@ -328,6 +321,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter requireIsolatedDaemons();
 
     /**
+     * Disable worker daemons expiration.
+     */
+    GradleExecuter withWorkerDaemonsExpirationDisabled();
+
+    /**
      * Returns true if this executer will share daemons with other executers.
      */
     boolean usesSharedDaemons();
@@ -390,30 +388,31 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter reset();
 
     /**
-     * Sets flag to cleanup temp directory on shutdown of the executer
-     */
-    GradleExecuter withCleanupTempDirectory(boolean flag);
-    
-    /**
      * Measures the duration of the execution
      */
     GradleExecuter withDurationMeasurement(DurationMeasurement durationMeasurement);
-    
-    /**
-     * Passes -Dorg.gradle.internal.reuse.user.home.services=false to build unless this flag is set to true
-     *
-     * @see org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
-     */
-    GradleExecuter withReuseUserHomeServices(boolean reuseUserHomeServices);
-    
+
     /**
      * Returns true if this executer uses a daemon
      */
     boolean isUseDaemon();
 
     /**
-     * Sets flag for output capturing, defaults to true
+     * Configures that user home services should not be reused across multiple invocations.
      *
+     * <p>
+     * Note: You will want to call this method if the test case defines a custom Gradle user home directory
+     * so the services can be shut down after test execution in
+     * {@link org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry#release(org.gradle.internal.service.ServiceRegistry)}.
+     * Not calling the method in those situations will result in the inability to delete a file lock.
+     * </p>
      */
-    GradleExecuter withOutputCapturing(boolean flag);
+    GradleExecuter withOwnUserHomeServices();
+
+    /**
+     * Executes the build with {@code "--console=rich"} argument.
+     *
+     * @see AbstractConsoleFunctionalSpec
+     */
+    GradleExecuter withRichConsole();
 }

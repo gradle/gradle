@@ -31,6 +31,8 @@ import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
+
 class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
     BinaryTasksModelRuleExtractor ruleHandler = new BinaryTasksModelRuleExtractor()
@@ -52,7 +54,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
-        ex.message == """Type ${ruleClass.name} is not a valid rule source:
+        ex.message == """Type ${fullyQualifiedNameOf(ruleClass)} is not a valid rule source:
 - Method ${ruleDescription} is not a valid rule method: ${expectedMessage}"""
 
         where:
@@ -74,7 +76,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
-        ex.message == """Type ${ruleClass.name} is not a valid rule source:
+        ex.message == """Type ${fullyQualifiedNameOf(ruleClass)} is not a valid rule source:
 - Method ${ruleDescription} is not a valid rule method: A method annotated with @BinaryTasks must have void return type.
 - Method ${ruleDescription} is not a valid rule method: The first parameter of a method annotated with @BinaryTasks must be of type org.gradle.model.ModelMap.
 - Method ${ruleDescription} is not a valid rule method: A method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found no parameter extending BinarySpec."""

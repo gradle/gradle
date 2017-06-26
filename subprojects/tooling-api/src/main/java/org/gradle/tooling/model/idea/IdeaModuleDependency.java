@@ -27,6 +27,7 @@ public interface IdeaModuleDependency extends IdeaDependency {
      * Returns the name of the target module
      *
      * @return target module name
+     * @since 3.1
      */
     String getTargetModuleName();
 

@@ -20,6 +20,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
@@ -27,11 +31,23 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.result.*;
+import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableComponentSelectionResult;
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult;
+import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Failed;
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
@@ -43,10 +59,13 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
     private final List<String> repositoryNames = new ArrayList<String>();
     private final VersionedComponentChooser versionedComponentChooser;
     private final Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory;
+    private final CacheLockingManager cacheLockingManager;
 
-    public DynamicVersionResolver(VersionedComponentChooser versionedComponentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory) {
+    public DynamicVersionResolver(VersionedComponentChooser versionedComponentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory,
+                                  CacheLockingManager cacheLockingManager) {
         this.versionedComponentChooser = versionedComponentChooser;
         this.metaDataFactory = metaDataFactory;
+        this.cacheLockingManager = cacheLockingManager;
     }
 
     public void add(ModuleComponentRepository repository) {
@@ -186,7 +205,12 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         }
 
         void resolve() {
-            versionListingResult.resolve();
+            cacheLockingManager.useCache(new Runnable() {
+                @Override
+                public void run() {
+                    versionListingResult.resolve();
+                }
+            });
             switch (versionListingResult.result.getState()) {
                 case Failed:
                     resolveResult.failed(versionListingResult.result.getFailure());
@@ -249,14 +273,14 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private final ModuleComponentRepository repository;
         private final AttemptCollector attemptCollector;
         private final DependencyMetadata dependencyMetadata;
-        private final String version;
+        private final Version version;
         private boolean searchedLocally;
         private boolean searchedRemotely;
         private final DefaultBuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult();
 
         public CandidateResult(DependencyMetadata dependencyMetadata, String version, ModuleComponentRepository repository, AttemptCollector attemptCollector) {
             this.dependencyMetadata = dependencyMetadata;
-            this.version = version;
+            this.version = VersionParser.INSTANCE.transform(version);
             this.repository = repository;
             this.attemptCollector = attemptCollector;
             ModuleVersionSelector requested = dependencyMetadata.getRequested();
@@ -269,7 +293,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         }
 
         @Override
-        public String getVersion() {
+        public Version getVersion() {
             return version;
         }
 
@@ -293,8 +317,13 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             return result;
         }
 
+        @Override
+        public ComponentMetadataSupplier getComponentMetadataSupplier() {
+            return repository.createMetadataSupplier();
+        }
+
         private void process(ModuleComponentRepositoryAccess access) {
-            DependencyMetadata dependency = dependencyMetadata.withRequestedVersion(version);
+            DependencyMetadata dependency = dependencyMetadata.withRequestedVersion(version.getSource());
             access.resolveComponentMetaData(identifier, DefaultComponentOverrideMetadata.forDependency(dependency), result);
             attemptCollector.execute(result);
         }

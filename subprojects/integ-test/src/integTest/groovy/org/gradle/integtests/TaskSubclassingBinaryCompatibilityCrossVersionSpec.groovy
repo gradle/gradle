@@ -45,7 +45,6 @@ import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
 import org.gradle.util.GradleVersion
 import org.junit.Assume
-
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
@@ -163,12 +162,21 @@ apply plugin: SomePlugin
             }
         """
 
+        boolean previousVersionLeaksInternal = (previous.version == GradleVersion.version("3.2") ||
+            previous.version == GradleVersion.version("3.2.1"))
+
         file("producer/src/main/java/SubclassTask.java") << """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.*;
             import org.gradle.api.logging.LogLevel;
 
             public class SubclassTask extends DefaultTask {
+                public SubclassTask() {
+                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.file("someFile");
+                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.files("anotherFile", "yetAnotherFile");
+                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.dir("someDir");
+                }
+                
                 @TaskAction
                 public void doGet() {
                     // Note: not all of these specialise at time of writing, but may do in the future

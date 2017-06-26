@@ -20,9 +20,10 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.internal.Factory;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
 public class NotifyingSettingsProcessor implements SettingsProcessor {
     private final SettingsProcessor settingsProcessor;
@@ -34,12 +35,18 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
     }
 
     @Override
-    public SettingsInternal process(final GradleInternal gradle, final SettingsLocation settingsLocation, final ClassLoaderScope baseClassLoaderScope, final StartParameter startParameter) {
-        BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Configure settings").progressDisplayName("settings").build();
-        return buildOperationExecutor.run(operationDetails, new Factory<SettingsInternal>() {
+    public SettingsInternal process(final GradleInternal gradle, final SettingsLocation settingsLocation, final ClassLoaderScope buildRootClassLoaderScope, final StartParameter startParameter) {
+        return buildOperationExecutor.call(new CallableBuildOperation<SettingsInternal>() {
             @Override
-            public SettingsInternal create() {
-                return settingsProcessor.process(gradle, settingsLocation, baseClassLoaderScope, startParameter);
+            public SettingsInternal call(BuildOperationContext context) {
+                return settingsProcessor.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Configure settings").
+                    progressDisplayName("settings").
+                    parent(gradle.getBuildOperation());
             }
         });
     }

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
-import static org.gradle.plugin.internal.PluginId.*
+import static org.gradle.plugin.use.internal.DefaultPluginId.*
 import static org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor.*
 import static org.hamcrest.Matchers.containsString
 

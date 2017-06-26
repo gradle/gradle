@@ -24,4 +24,8 @@ public class UnexpectedBuildFailure extends RuntimeException {
     public UnexpectedBuildFailure(Exception e) {
         super(e);
     }
+
+    public UnexpectedBuildFailure(String message, Exception e) {
+        super(message, e);
+    }
 }

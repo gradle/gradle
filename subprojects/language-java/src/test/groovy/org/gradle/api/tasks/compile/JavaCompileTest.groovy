@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,19 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.TaskExecutionHistory
-import org.gradle.api.tasks.WorkResult
-import org.gradle.jvm.platform.JavaPlatform
-import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
-import org.gradle.platform.base.internal.toolchain.ToolProvider
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
+import org.gradle.jvm.toolchain.JavaToolChain
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import spock.lang.Issue
 
-class JavaCompileTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def toolChain = Mock(JavaToolChainInternal)
-    def platform = Mock(JavaPlatform)
-    def toolProvider = Mock(ToolProvider)
-    def compiler = Mock(Compiler)
-    def task = TestUtil.create(tmpDir).task(JavaCompile)
+class JavaCompileTest extends AbstractProjectBuilderSpec {
 
-    def "uses specified ToolChain to create a Compiler to do the work"() {
-        given:
-        task.outputs.history = Stub(TaskExecutionHistory)
-        task.destinationDir = tmpDir.file("classes")
-        task.toolChain = toolChain
-
+    @Issue("https://github.com/gradle/gradle/issues/1645")
+    def "can set the Java tool chain"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        def toolChain = Mock(JavaToolChain)
         when:
-        task.compile()
-
+        javaCompile.setToolChain(toolChain)
         then:
-        1 * toolChain.select(_) >> toolProvider
-        1 * toolProvider.newCompiler(!null) >> compiler
-        1 * compiler.execute(!null) >> Stub(WorkResult)
+        javaCompile.toolChain == toolChain
     }
 }

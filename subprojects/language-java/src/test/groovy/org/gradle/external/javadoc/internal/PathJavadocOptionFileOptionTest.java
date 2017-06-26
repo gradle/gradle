@@ -16,6 +16,7 @@
 
 package org.gradle.external.javadoc.internal;
 
+import com.google.common.collect.Lists;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -39,7 +40,7 @@ public class PathJavadocOptionFileOptionTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         writerContextMock = context.mock(JavadocOptionFileWriterContext.class);
 
-        pathOption = new PathJavadocOptionFileOption(optionName, joinBy);
+        pathOption = new PathJavadocOptionFileOption(optionName, Lists.<File>newArrayList(), joinBy);
     }
 
     @Test

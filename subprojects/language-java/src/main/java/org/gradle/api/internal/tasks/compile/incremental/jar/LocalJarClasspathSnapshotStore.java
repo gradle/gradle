@@ -16,24 +16,23 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.cache.SingleOperationPersistentStore;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentIndexedCache;
 
 //Keeps the jar classpath snapshot of given compile task
 public class LocalJarClasspathSnapshotStore {
+    private final String taskPath;
+    private final PersistentIndexedCache<String, JarClasspathSnapshotData> cache;
 
-    private final SingleOperationPersistentStore<JarClasspathSnapshotData> store;
-
-    public LocalJarClasspathSnapshotStore(CacheRepository cacheRepository, Object scope) {
-        //Single operation store that we throw away after the operation makes the implementation simpler.
-        store = new SingleOperationPersistentStore<JarClasspathSnapshotData>(cacheRepository, scope, "local jar classpath snapshot", new JarClasspathSnapshotDataSerializer());
+    public LocalJarClasspathSnapshotStore(String taskPath, PersistentIndexedCache<String, JarClasspathSnapshotData> cache) {
+        this.taskPath = taskPath;
+        this.cache = cache;
     }
 
     public void put(JarClasspathSnapshotData data) {
-        store.putAndClose(data);
+        cache.put(taskPath, data);
     }
 
     public JarClasspathSnapshotData get() {
-        return store.getAndClose();
+        return cache.get(taskPath);
     }
 }

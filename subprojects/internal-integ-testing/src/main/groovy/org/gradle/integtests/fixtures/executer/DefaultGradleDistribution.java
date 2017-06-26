@@ -54,7 +54,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
-        return new ForkingGradleExecuter(this, testDirectoryProvider, version, buildContext);
+        return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext);
     }
 
     public boolean worksWith(Jvm jvm) {
@@ -87,8 +87,8 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
         }
 
-        // 3.x works on Java 7 - 9
-        return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_9) <= 0;
+        // 3.x works on Java 7 - 8
+        return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
     }
 
     public boolean worksWith(OperatingSystem os) {
@@ -224,5 +224,4 @@ public class DefaultGradleDistribution implements GradleDistribution {
         GradleVersion otherVersion = GradleVersion.version(otherVersionString);
         return version.compareTo(otherVersion) == 0 || (version.isSnapshot() && version.getBaseVersion().equals(otherVersion.getBaseVersion()));
     }
-
 }

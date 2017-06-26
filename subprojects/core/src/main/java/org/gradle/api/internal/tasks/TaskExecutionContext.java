@@ -16,9 +16,30 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
+
+import java.util.List;
 
 public interface TaskExecutionContext {
+
     TaskArtifactState getTaskArtifactState();
+
     void setTaskArtifactState(TaskArtifactState taskArtifactState);
+
+    TaskOutputCachingBuildCacheKey getBuildCacheKey();
+
+    void setBuildCacheKey(TaskOutputCachingBuildCacheKey cacheKey);
+
+    @Nullable
+    UniqueId getOriginBuildInvocationId();
+
+    void setOriginBuildInvocationId(@Nullable UniqueId originBuildInvocationId);
+
+    @Nullable
+    List<String> getUpToDateMessages();
+
+    void setUpToDateMessages(List<String> upToDateMessages);
 }

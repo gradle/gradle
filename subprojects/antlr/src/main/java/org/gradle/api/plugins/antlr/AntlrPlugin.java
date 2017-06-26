@@ -33,8 +33,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
 
 /**
  * A plugin for adding Antlr support to {@link JavaPlugin java projects}.
@@ -64,8 +63,7 @@ public class AntlrPlugin implements Plugin<Project> {
             }
         });
 
-        project.getConfigurations().getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(antlrConfiguration);
-        project.getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME).extendsFrom(antlrConfiguration);
+        project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(antlrConfiguration);
 
         // Wire the antlr configuration into all antlr tasks
         project.getTasks().withType(AntlrTask.class, new Action<AntlrTask>() {

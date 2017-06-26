@@ -16,9 +16,12 @@
 
 package org.gradle.internal.reflect;
 
+import org.gradle.internal.exceptions.Contextual;
+
 /**
  * Thrown when an object cannot be instantiated.
  */
+@Contextual
 public class ObjectInstantiationException extends RuntimeException {
     public ObjectInstantiationException(Class<?> targetType, Throwable throwable) {
         super(String.format("Could not create an instance of type %s.", targetType.getName()), throwable);

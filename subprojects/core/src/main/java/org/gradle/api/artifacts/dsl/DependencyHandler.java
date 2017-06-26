@@ -18,8 +18,11 @@ package org.gradle.api.artifacts.dsl;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.transform.VariantTransform;
+import org.gradle.api.attributes.AttributesSchema;
 
 import java.util.Map;
 
@@ -319,7 +322,7 @@ public interface DependencyHandler {
     Dependency gradleApi();
 
     /**
-     * Creates a dependency on the <a href="http://docs.gradle.org/current/userguide/test_kit.html">Gradle test-kit</a> API.
+     * Creates a dependency on the <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">Gradle test-kit</a> API.
      *
      * @return The dependency.
      * @since 2.6
@@ -383,4 +386,46 @@ public interface DependencyHandler {
      */
     @Incubating
     ArtifactResolutionQuery createArtifactResolutionQuery();
+
+    /**
+     * Configures the attributes schema. The action is passed a {@link AttributesSchema} instance.
+     * @param configureAction the configure action
+     * @return the configured schema
+     *
+     * @since 3.4
+     */
+    @Incubating
+    AttributesSchema attributesSchema(Action<? super AttributesSchema> configureAction);
+
+    /**
+     * Returns the attributes schema for this handler.
+     * @return the attributes schema
+     *
+     * @since 3.4
+     */
+    @Incubating
+    AttributesSchema getAttributesSchema();
+
+    /**
+     * Returns the artifact type definitions for this handler.
+     * @since 4.0
+     */
+    @Incubating
+    ArtifactTypeContainer getArtifactTypes();
+
+    /**
+     * Configures the artifact type definitions for this handler.
+     * @since 4.0
+     */
+    @Incubating
+    void artifactTypes(Action<? super ArtifactTypeContainer> configureAction);
+
+    /**
+     * Register an artifact transformation.
+     *
+     * @see org.gradle.api.artifacts.transform.ArtifactTransform
+     * @since 3.5
+     */
+    @Incubating
+    void registerTransform(Action<? super VariantTransform> registrationAction);
 }

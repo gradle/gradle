@@ -26,6 +26,11 @@ class IdeaModuleDeduplicationIntegrationTest extends AbstractIdeDeduplicationInt
     }
 
     @Override
+    protected String getConfiguredModule() {
+        return "idea.module"
+    }
+
+    @Override
     protected String projectName(String path) {
         File iml = file(path).listFiles().find { it.name.endsWith("iml") }
         assert iml != null

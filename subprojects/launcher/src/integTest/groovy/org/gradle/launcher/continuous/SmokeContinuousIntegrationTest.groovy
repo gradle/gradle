@@ -60,6 +60,36 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         output.contains "value: changed"
     }
 
+    def "notifications work with quiet logging"() {
+        given:
+        def markerFile = file("marker")
+
+        when:
+        markerFile.text = "original"
+
+        buildFile << """
+            task echo {
+              inputs.files "marker"
+              doLast {
+                println "value: " + file("marker").text
+              }
+            }
+        """
+
+        then:
+        executer.withArgument("-q")
+        succeeds("echo")
+        output.contains "value: original"
+
+        when:
+        waitBeforeModification(markerFile)
+        markerFile.text = "changed"
+
+        then:
+        succeeds()
+        output.contains "value: changed"
+    }
+
     def "can recover from build failure"() {
         given:
         def markerFile = file("marker")

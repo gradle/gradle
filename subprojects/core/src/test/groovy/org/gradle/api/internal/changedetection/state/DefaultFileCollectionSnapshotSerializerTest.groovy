@@ -32,17 +32,17 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
         when:
         def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
-            "/1": new DefaultNormalizedFileSnapshot("1", DirSnapshot.getInstance()),
-            "/2": new DefaultNormalizedFileSnapshot("2", MissingFileSnapshot.getInstance()),
+            "/1": new DefaultNormalizedFileSnapshot("1", DirContentSnapshot.getInstance()),
+            "/2": new DefaultNormalizedFileSnapshot("2", MissingFileContentSnapshot.getInstance()),
             "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash))
         ], UNORDERED, true), serializer)
 
         then:
         out.snapshots.size() == 3
         out.snapshots['/1'].normalizedPath == "1"
-        out.snapshots['/1'].snapshot instanceof DirSnapshot
+        out.snapshots['/1'].snapshot instanceof DirContentSnapshot
         out.snapshots['/2'].normalizedPath == "2"
-        out.snapshots['/2'].snapshot instanceof MissingFileSnapshot
+        out.snapshots['/2'].snapshot instanceof MissingFileContentSnapshot
         out.snapshots['/3'].normalizedPath == "3"
         out.snapshots['/3'].snapshot instanceof FileHashSnapshot
         out.snapshots['/3'].snapshot.hash == hash
@@ -55,8 +55,8 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
         def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
             "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash)),
-            "/2": new DefaultNormalizedFileSnapshot("2", MissingFileSnapshot.getInstance()),
-            "/1": new DefaultNormalizedFileSnapshot("1", DirSnapshot.getInstance())
+            "/2": new DefaultNormalizedFileSnapshot("2", MissingFileContentSnapshot.getInstance()),
+            "/1": new DefaultNormalizedFileSnapshot("1", DirContentSnapshot.getInstance())
         ], ORDERED, true), serializer)
 
         then:

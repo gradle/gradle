@@ -24,31 +24,113 @@ class MixedJavaAndWebProjectIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-project(":a") {
-    apply plugin: 'war'
-}
-project(":b") {
-    apply plugin: 'java'
-    dependencies {
-        compile project(":a")
-    }
-    compileJava.doFirst {
-        assert classpath.collect { it.name } == ['a.jar']
-    }
-}
-"""
+            project(":a") {
+                apply plugin: 'war'
+            }
+            project(":b") {
+                apply plugin: 'java'
+                dependencies {
+                    compile project(":a")
+                }
+                compileJava.doFirst {
+                    assert classpath.collect { it.name } == ['a.jar']
+                }
+            }
+        """
 
         and:
         file("a/src/main/java/org/gradle/test/Person.java") << """
-package org.gradle.test;
-interface Person { }
-"""
+            package org.gradle.test;
+            interface Person { }
+        """
 
         and:
         file("b/src/main/java/org/gradle/test/PersonImpl.java") << """
-package org.gradle.test;
-class PersonImpl implements Person { }
-"""
+            package org.gradle.test;
+            class PersonImpl implements Person { }
+        """
+
+        expect:
+        succeeds "assemble"
+    }
+
+    def "war contains runtime classpath of upstream java project"() {
+        given:
+        file("settings.gradle") << 'include "a", "b", "c", "d", "e"'
+
+        and:
+        buildFile << """
+            project(":a") {
+                apply plugin: 'war'
+                dependencies {
+                    compile project(":b")
+                }
+                war.doFirst {
+                    assert classpath.collect { it.name }.containsAll(['b.jar', 'c.jar', 'd.jar'])
+                    assert !classpath.collect { it.name }.contains('e.jar')
+                }
+            }
+            project(":b") {
+                apply plugin: 'java'
+                dependencies {
+                    compile project(':c')
+                    compileOnly project(':e')
+                }
+            }
+            project(":c") {
+                apply plugin: 'java-library'
+                dependencies {
+                    implementation project(':d')
+                }
+            }
+            project(":d") {
+                apply plugin: 'java'
+            }
+            project(":e") {
+                apply plugin: 'java'
+            }
+        """
+
+        expect:
+        succeeds "assemble"
+    }
+
+    def "war contains runtime classpath of upstream java-library project"() {
+        given:
+        file("settings.gradle") << 'include "a", "b", "c", "d", "e"'
+
+        and:
+        buildFile << """
+            project(":a") {
+                apply plugin: 'war'
+                dependencies {
+                    implementation project(":b")
+                }
+                war.doFirst {
+                    assert classpath.collect { it.name }.containsAll(['b.jar', 'c.jar', 'd.jar'])
+                    assert !classpath.collect { it.name }.contains('e.jar')
+                }
+            }
+            project(":b") {
+                apply plugin: 'java-library'
+                dependencies {
+                    api project(':c')
+                    compileOnly project(':e')
+                }
+            }
+            project(":c") {
+                apply plugin: 'java'
+                dependencies {
+                    implementation project(':d')
+                }
+            }
+            project(":d") {
+                apply plugin: 'java-library'
+            }
+            project(":e") {
+                apply plugin: 'java-library'
+            }
+        """
 
         expect:
         succeeds "assemble"

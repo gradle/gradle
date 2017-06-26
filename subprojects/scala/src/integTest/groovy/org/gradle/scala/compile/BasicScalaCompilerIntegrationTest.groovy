@@ -37,7 +37,7 @@ abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegration
         expect:
         succeeds("compileScala")
         output.contains(logStatement())
-        file("build/classes/main/compile/test/Person.class").exists()
+        scalaClassFile("compile/test/Person.class").exists()
     }
 
     def compileBadCode() {
@@ -48,7 +48,53 @@ abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegration
         fails("compileScala")
         output.contains(logStatement())
         errorOutput.contains("type mismatch")
-        file("build/classes/main").assertHasDescendants()
+        scalaClassFile("").assertHasDescendants()
+    }
+
+    def "compile bad scala code do not fail the build when options.failOnError is false"() {
+        given:
+        badCode()
+
+        and:
+        buildFile << "compileScala.options.failOnError = false\n"
+
+        expect:
+        succeeds 'compileScala'
+    }
+
+    def "compile bad scala code do not fail the build when scalaCompileOptions.failOnError is false"() {
+        given:
+        badCode()
+
+        and:
+        buildFile << "compileScala.scalaCompileOptions.failOnError = false\n"
+
+        expect:
+        succeeds 'compileScala'
+    }
+
+    def "joint compile bad java code do not fail the build when options.failOnError is false"() {
+        given:
+        goodCode()
+        badJavaCode()
+
+        and:
+        buildFile << "compileScala.options.failOnError = false\n"
+
+        expect:
+        succeeds 'compileScala'
+    }
+
+    def "joint compile bad java code do not fail the build when scalaCompileOptions.failOnError is false"() {
+        given:
+        goodCode()
+        badJavaCode()
+
+        and:
+        buildFile << "compileScala.scalaCompileOptions.failOnError = false\n"
+
+        expect:
+        succeeds 'compileScala'
     }
 
     def compileBadCodeWithoutFailing() {
@@ -65,7 +111,7 @@ compileScala.scalaCompileOptions.failOnError = false
         succeeds("compileScala")
         output.contains(logStatement())
         errorOutput.contains("type mismatch")
-        file("build/classes/main").assertHasDescendants()
+        scalaClassFile("").assertHasDescendants()
     }
 
     def compileWithSpecifiedEncoding() {
@@ -94,7 +140,7 @@ compileScala.scalaCompileOptions.encoding = "ISO8859_7"
         run("compileScala")
 
         then:
-        def fullDebug = classFile("build/classes/main/compile/test/Person.class")
+        def fullDebug = classFile("compile/test/Person.class")
         fullDebug.debugIncludesSourceFile
         fullDebug.debugIncludesLineNumbers
         fullDebug.debugIncludesLocalVariables
@@ -109,7 +155,7 @@ compileScala.scalaCompileOptions.debugLevel = "line"
         run("compileScala")
 
         then:
-        def linesOnly = classFile("build/classes/main/compile/test/Person.class")
+        def linesOnly = classFile("compile/test/Person.class")
         linesOnly.debugIncludesSourceFile
         linesOnly.debugIncludesLineNumbers
         !linesOnly.debugIncludesLocalVariables
@@ -127,7 +173,7 @@ compileScala.scalaCompileOptions.debugLevel = "none"
         run("compileScala")
 
         then:
-        def noDebug = classFile("build/classes/main/compile/test/Person.class")
+        def noDebug = classFile("compile/test/Person.class")
         !noDebug.debugIncludesLineNumbers
         !noDebug.debugIncludesSourceFile
         !noDebug.debugIncludesLocalVariables
@@ -215,8 +261,15 @@ class Person(val name: String, val age: Int) {
 """
     }
 
+    def badJavaCode() {
+        file("src/main/scala/compile/test/Something.java") << """
+            package compile.test;
+            public class Something extends {}
+        """.stripIndent()
+    }
+
     def classFile(String path) {
-        return new ClassFile(file(path))
+        return new ClassFile(scalaClassFile(path))
     }
 }
 

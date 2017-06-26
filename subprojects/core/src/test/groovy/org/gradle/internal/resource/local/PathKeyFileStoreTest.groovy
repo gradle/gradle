@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.local
 
 import org.gradle.api.Action
-import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -37,49 +36,144 @@ class PathKeyFileStoreTest extends Specification {
         store = new PathKeyFileStore(fsBase)
     }
 
-    def "move vs copy"() {
-        given:
-        createFile("a", "a").exists()
-        createFile("b", "b").exists()
+    def "can copy file to filestore"() {
+        def a = createFile("abc")
+        def b = createFile("def")
 
         when:
-        store.move("a", dir.file("a"))
-        store.copy("b", dir.file("b"))
+        store.copy("a", a)
+        store.copy("b", b)
 
         then:
-        !dir.file("a").exists()
-        dir.file("b").exists()
+        def storedA = store.get("a")
+        storedA.file.text == "abc"
+        storedA.file == fsBase.file("a")
+        a.text == "abc"
+
+        def storedB = store.get("b")
+        storedB.file.text == "def"
+        storedB.file == fsBase.file("b")
+        b.text == "def"
     }
 
-    def "can move to filestore"() {
+    def "can copy directory to filestore"() {
+        def a = dir.createDir("a")
+        a.file("child-1").createFile()
+        a.file("dir/child-2").createFile()
+
         when:
-        store.move("a", createFile("abc"))
-        store.move("b", createFile("def"))
+        store.copy("a", a)
 
         then:
-        fsBase.file("a").text == "abc"
-        fsBase.file("b").text == "def"
+        def stored = store.get("a")
+        stored.file.directory
+        stored.file == fsBase.file("a")
+        fsBase.file("a").assertHasDescendants("child-1", "dir/child-2")
+        a.directory
+        a.assertHasDescendants("child-1", "dir/child-2")
     }
 
-    def "can add to filestore"() {
+    def "can move file to filestore"() {
+        def a = createFile("abc")
+        def b = createFile("def")
+
+        when:
+        store.move("a", a)
+        store.move("b", b)
+
+        then:
+        def storedA = store.get("a")
+        storedA.file.text == "abc"
+        storedA.file == fsBase.file("a")
+        !a.exists()
+
+        def storedB = store.get("b")
+        storedB.file.text == "def"
+        storedB.file == fsBase.file("b")
+        !b.exists()
+    }
+
+    def "can move directory to filestore"() {
+        def a = dir.createDir("a")
+        a.file("child-1").createFile()
+        a.file("dir/child-2").createFile()
+
+        when:
+        store.move("a", a)
+
+        then:
+        def stored = store.get("a")
+        stored.file.directory
+        stored.file == fsBase.file("a")
+        fsBase.file("a").assertHasDescendants("child-1", "dir/child-2")
+        !a.exists()
+    }
+
+    def "can add file to filestore"() {
         when:
         store.add("a", { File f -> f.text = "abc"} as Action<File>)
         store.add("b", { File f -> f.text = "def"} as Action<File>)
+
         then:
-        fsBase.file("a").text == "abc"
-        fsBase.file("b").text == "def"
+        def storedA = store.get("a")
+        storedA.file.text == "abc"
+        storedA.file == fsBase.file("a")
+
+        def storedB = store.get("b")
+        storedB.file.text == "def"
+        storedB.file == fsBase.file("b")
     }
 
-    def "add throws GradleException if exception in action occurred"() {
+    def "can add directory to filestore"() {
         when:
-        store.add("a", { File f -> throw new Exception("TestException")} as Action<File>)
+        store.add("a") { File f ->
+            f.mkdirs()
+            new File(f, "a").text = "abc"
+        }
+        store.add("b") { File f ->
+            f.mkdirs()
+            new File(f, "b").text = "def"
+        }
+
         then:
-        thrown(GradleException)
+        def storedA = store.get("a")
+        storedA.file == fsBase.file("a")
+        fsBase.file("a").assertHasDescendants("a")
+
+        def storedB = store.get("b")
+        storedB.file == fsBase.file("b")
+        fsBase.file("b").assertHasDescendants("b")
+    }
+
+    def "add throws FileStoreAddActionException if exception in action occurred and cleans up"() {
+        def failure = new RuntimeException("TestException")
+
+        when:
+        store.add("a", { File f ->
+            throw failure
+        } as Action<File>)
+        then:
+        def e = thrown(FileStoreAddActionException)
+        e.cause == failure
+
         !fsBase.file("a").exists()
         !fsBase.file("a.fslock").exists()
     }
 
-    def "can get from filestore"() {
+    def "cleans up left-over files when action fails"() {
+        when:
+        store.add("a", { File f ->
+            new File(f, "child").text = "delete-me"
+            throw new RuntimeException("TestException")
+        } as Action<File>)
+
+        then:
+        thrown(FileStoreAddActionException)
+        !fsBase.file("a").exists()
+        !fsBase.file("a.fslock").exists()
+    }
+
+    def "can get from backing filestore"() {
         when:
         createFile("abc", "fs/a")
         then:
@@ -115,7 +209,7 @@ class PathKeyFileStoreTest extends Specification {
         store.get("b").file.text == "def"
     }
 
-    def "can overwrite entry"() {
+    def "can overwrite file entry"() {
         when:
         store.move("a", createFile("abc"))
         store.move("a", createFile("def"))

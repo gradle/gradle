@@ -18,7 +18,7 @@
 
 package org.gradle.internal.resource.transfer
 
-import org.gradle.internal.resource.local.LocalResource
+import org.gradle.internal.resource.ReadableContent
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import spock.lang.Specification
@@ -29,7 +29,7 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
     def progressLoggerUploader = new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory)
     def progressLogger = Mock(ProgressLogger)
     def inputStream = Mock(InputStream)
-    def delegateResource = Mock(LocalResource)
+    def delegateResource = Mock(ReadableContent)
 
     def "delegates upload to delegate uploader and logs progress"() {
         setup:
@@ -50,8 +50,8 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         1 * progressLogger.completed()
     }
 
-    private LocalResource localResource() {
-        return new LocalResource() {
+    private ReadableContent localResource() {
+        return new ReadableContent() {
             @Override
             InputStream open() {
                 return delegateResource.open()

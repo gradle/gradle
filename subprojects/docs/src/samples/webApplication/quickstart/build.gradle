@@ -1,12 +1,21 @@
+// START SNIPPET use-gretty-plugin
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'org.akhikhl.gretty:gretty:1.4.2'
+    }
+}
+apply plugin: 'org.akhikhl.gretty'
+// END SNIPPET use-gretty-plugin
+
 // START SNIPPET use-war-plugin
 apply plugin: 'war'
 // END SNIPPET use-war-plugin
-// START SNIPPET use-jetty-plugin
-apply plugin: 'jetty'
-// END SNIPPET use-jetty-plugin
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
 
 dependencies {
@@ -14,6 +23,6 @@ dependencies {
     compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
 }
 
-httpPort = 8080
-stopPort = 9451
-stopKey = 'foo'
+gretty {
+    httpPort = 8080
+}

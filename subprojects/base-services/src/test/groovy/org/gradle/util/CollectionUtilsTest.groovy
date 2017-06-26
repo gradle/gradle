@@ -15,7 +15,6 @@
  */
 package org.gradle.util
 
-import com.google.common.base.Equivalence
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.internal.ClosureBackedAction
@@ -376,17 +375,10 @@ class CollectionUtilsTest extends Specification {
 
     def "grouping"() {
         expect:
-        groupBy([1, 2, 3], transformer { "a" }).asMap() == ["a": [1, 2, 3]]
-        groupBy(["a", "b", "c"], transformer { it.toUpperCase() }).asMap() == ["A": ["a"], "B": ["b"], "C": ["c"]]
+        groupBy([1, 2, 3], transformer { "a" }) == ["a": [1, 2, 3]]
+        groupBy(["a", "b", "c"], transformer { it.toUpperCase() }) == ["A": ["a"], "B": ["b"], "C": ["c"]]
         groupBy([], transformer { throw new AssertionError("shouldn't be called") }).isEmpty()
     }
-
-    def "dedup"() {
-        expect:
-        dedup([1, 2, 3, 2], Equivalence.equals()) == [1, 2, 3]
-        dedup([], Equivalence.equals()) == []
-    }
-
     def unpack() {
         expect:
         unpack([{ 1 } as org.gradle.internal.Factory, { 2 } as org.gradle.internal.Factory, { 3 } as org.gradle.internal.Factory]).toList() == [1, 2, 3]

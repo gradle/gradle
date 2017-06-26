@@ -28,6 +28,11 @@ public class FixedPatternStep implements PatternStep {
         this.caseSensitive = caseSensitive;
     }
 
+    @Override
+    public String toString() {
+        return "{match: " + value + "}";
+    }
+
     public boolean matches(String candidate) {
         return caseSensitive ? candidate.equals(value) : candidate.equalsIgnoreCase(value);
     }

@@ -29,7 +29,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
     @Override
     public T create() {
         if (compileOptions.isFork()) {
-            if (compileOptions.getForkOptions().getExecutable() != null) {
+            if (compileOptions.getForkOptions().getExecutable() != null || compileOptions.getForkOptions().getJavaHome() != null) {
                 return getCommandLineSpec();
             } else {
                 return getForkingSpec();

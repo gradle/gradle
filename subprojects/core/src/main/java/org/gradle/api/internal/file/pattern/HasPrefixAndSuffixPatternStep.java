@@ -26,6 +26,11 @@ public class HasPrefixAndSuffixPatternStep implements PatternStep {
     }
 
     @Override
+    public String toString() {
+        return "{prefix: " + prefixMatch + " suffix: " + suffixMatch + "}";
+    }
+
+    @Override
     public boolean matches(String candidate) {
         return prefixMatch.matches(candidate) && suffixMatch.matches(candidate);
     }

@@ -43,6 +43,8 @@ public interface PerformanceTestExecution {
 
     String getOperatingSystem();
 
+    String getHost();
+
     String getJvm();
 
     /**

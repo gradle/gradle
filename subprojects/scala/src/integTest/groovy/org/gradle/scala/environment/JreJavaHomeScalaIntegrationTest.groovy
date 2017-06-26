@@ -58,8 +58,8 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
         executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileScala").run()
 
         then:
-        file("build/classes/main/org/test/JavaClazz.class").exists()
-        file("build/classes/main/org/test/ScalaClazz.class").exists()
+        scalaClassFile("org/test/JavaClazz.class").exists()
+        scalaClassFile("org/test/ScalaClazz.class").exists()
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -82,7 +82,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
         when:
         executer.withEnvironmentVars(envVars).withTasks("compileScala").run()
         then:
-        file("build/classes/main/org/test/ScalaClazz.class").exists()
+        scalaClassFile("org/test/ScalaClazz.class").exists()
     }
 
     private writeScalaTestSource(String srcDir) {

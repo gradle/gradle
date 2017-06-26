@@ -56,4 +56,14 @@ public class DefaultBuildExperimentInvocationInfo implements BuildExperimentInvo
     public int getIterationMax() {
         return iterationMax;
     }
+
+    @Override
+    public File getGradleUserHome() {
+        return new File(projectDir, "gradle-user-home");
+    }
+
+    @Override
+    public File getBuildLog() {
+        return new File(projectDir, "log.txt");
+    }
 }

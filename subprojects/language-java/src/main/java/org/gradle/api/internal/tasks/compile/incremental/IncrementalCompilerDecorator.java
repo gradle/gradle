@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
@@ -38,12 +39,13 @@ public class IncrementalCompilerDecorator {
     private final RecompilationSpecProvider staleClassDetecter;
     private final ClassSetAnalysisUpdater classSetAnalysisUpdater;
     private final CompilationSourceDirs sourceDirs;
+    private final FileCollection annotationProcessorPath;
     private final IncrementalCompilationInitializer compilationInitializer;
 
     public IncrementalCompilerDecorator(JarClasspathSnapshotMaker jarClasspathSnapshotMaker, CompileCaches compileCaches,
                                         IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
                                         RecompilationSpecProvider staleClassDetecter, ClassSetAnalysisUpdater classSetAnalysisUpdater,
-                                        CompilationSourceDirs sourceDirs) {
+                                        CompilationSourceDirs sourceDirs, FileCollection annotationProcessorPath) {
         this.jarClasspathSnapshotMaker = jarClasspathSnapshotMaker;
         this.compileCaches = compileCaches;
         this.compilationInitializer = compilationInitializer;
@@ -52,6 +54,7 @@ public class IncrementalCompilerDecorator {
         this.staleClassDetecter = staleClassDetecter;
         this.classSetAnalysisUpdater = classSetAnalysisUpdater;
         this.sourceDirs = sourceDirs;
+        this.annotationProcessorPath = annotationProcessorPath;
     }
 
     public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
@@ -61,16 +64,20 @@ public class IncrementalCompilerDecorator {
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
         if (!inputs.isIncremental()) {
-            LOG.lifecycle("{} - is not incremental (e.g. outputs have changed, no previous execution, etc.).", displayName);
+            LOG.info("{} - is not incremental (e.g. outputs have changed, no previous execution, etc.).", displayName);
             return cleaningCompiler;
         }
         if (!sourceDirs.canInferSourceRoots()) {
-            LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
+            LOG.info("{} - is not incremental. Unable to infer the source directories.", displayName);
+            return cleaningCompiler;
+        }
+        if (!annotationProcessorPath.isEmpty()) {
+            LOG.info("{} - is not incremental. Annotation processors are present.", displayName);
             return cleaningCompiler;
         }
         ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();
         if (data == null) {
-            LOG.lifecycle("{} - is not incremental. No class analysis data available from the previous build.", displayName);
+            LOG.info("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
         PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());

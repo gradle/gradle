@@ -10,6 +10,14 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### APIs to define calculated task input and output locations
+
+TBD - This release builds on the `Provider` concept added in Gradle 4.0 to add conveniences that allow plugins and build scripts to define task input and output locations that are calculated lazily. For example, a common problem when implementing a plugin is how to define task output locations relative to the project's build directory in a way that deals with changes to the build directory location later during project configuration.
+
+- Added `Directory` and `RegularFile` abstractions and providers to represent locations that are calculated lazily.
+- Added a `ProjectLayout` service that allows input and output locations to be defined relative to the project's project directory and build directory. 
+- `Project.file()` and `Project.files()` can resolve `Provider` instances to `File` and `FileCollection` instances.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -34,77 +42,17 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
-### Deprecated Ant-related Java compiler properties
-
-The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprecated the Ant-based `<depend/>` task support as well. These properties will be removed in Gradle 4.0.
-
-* `JavaCompile.dependencyCacheDir`
-* `JavaCompileSpec.dependencyCacheDir`
-* `JavaPluginConvention.dependencyCacheDir`
-* `JavaPluginConvention.dependencyCacheDirName`
-* `CompileOptions.useDepend`
-* `CompileOptions.depend()`
-
-### Deprecated methods
-
-* `ProjectDependency.getProjectConfiguration()` is deprecated, and will be removed in Gradle 4.0. A project dependency is not guaranteed to resolve to a particular `Configuration` instance, for example, when dependency substitution rules are used, so the return value of this method can be misleading. To determine the actual target for a project dependency, you should query the resolution results provided by `Configuration.getIncoming().getResolutionResult()`.
-* `ModuleDependency.getConfiguration()` is deprecated, replaced by `getTargetConfiguration()`. This method will be removed in Gradle 4.0.
-* `FileCollectionDependency.registerWatchPoints()` is deprecated. This method is intended only for internal use and will be removed in Gradle 4.0. You can use the new `getFiles()` method as a replacement, if required.
-
 ## Potential breaking changes
 
-### BuildInvocations model is always returned for the connected project
-
-In previous Gradle versions, when connected to a sub-project and asking for the `BuildInvocations` model using a `ProjectConnection`,
-the `BuildInvocations` model for the root project was returned instead. Gradle will now
-return the `BuildInvocations` model of the project that the `ProjectConnection` is connected to.
-
-### Java `Test` task doesn't track working directory as input
-
-Previously changing the working directory for a `Test` task made the task out-of-date. Changes to the contents had no such effect: Gradle was only tracking the path of the working directory. Tracking the contents would have been problematic, too, since the default working directory is the project directory. All-in-all tracking the working directory path wasn't adding much functionality as most tests don't rely on the working directory at all, and those that do depend on its contents as well.
-
-From Gradle 3.3 the working directory is not tracked at all. Due to this changing the path of the working directory between builds won't make the task out-of-date.
-
-If it's needed, the working directory can be added as an explicit input to the task, with contents tracking:
-
-```groovy
-test {
-    workingDir "$buildDir/test-work"
-    inputs.dir workingDir
-}
-```
-
-To restore the previous behavior of tracking only the path of the working directory:
-
-```groovy
-test {
-    inputs.property "workingDir", workingDir
-}
-```
-
-### `LenientConfiguration.getFiles()` returns the same set of files as other dependency query methods
-
-There are several different methods you can use to query the set of files for the dependencies defined for a `Configuration`.
-One such method is `LenientConfiguration.getFiles()`. In previous versions of Gradle this method would not include files defined by file dependencies. These are dependencies that are declared using a `FileCollection`, such as:
-
-    dependencies {
-        compile fileTree(dir: 'some-dir', include: '**/*.jar')
-    }
-    
-In this version of Gradle, `LenientConfiguration.getFiles()` now includes these files in the result. This change makes this method consistent with other query methods such as `ResolvedConfiguration.getFiles()` or `Configuration.getFiles()`.    
+<!--
+### Example breaking change
+-->
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
- - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Fix minor typos in the native software documentation
- - [Francis Andre](https://github.com/zosrothko) - Import Gradle production source into Eclipse without compile errors
- - [Fedor Korotkov](https://github.com/fkorotkov) - Zinc compiler enhancements (#707)
- - [David Illsley](https://github.com/davidillsley) - Update docs to indicate use of HTTPS maven central (#774)
-
-<!--
- - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+ - [Bo Zhang](https://github.com/blindpirate) - Fix infinite loop when using `Path` for task property (#1973)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

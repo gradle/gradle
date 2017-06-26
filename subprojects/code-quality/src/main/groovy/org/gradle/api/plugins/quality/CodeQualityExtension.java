@@ -37,6 +37,9 @@ public abstract class CodeQualityExtension {
         return toolVersion;
     }
 
+    /**
+     * The version of the code quality tool to be used.
+     */
     public void setToolVersion(String toolVersion) {
         this.toolVersion = toolVersion;
     }
@@ -48,12 +51,15 @@ public abstract class CodeQualityExtension {
         return sourceSets;
     }
 
+    /**
+     * The source sets to be analyzed as part of the <tt>check</tt> and <tt>build</tt> tasks.
+     */
     public void setSourceSets(Collection<SourceSet> sourceSets) {
         this.sourceSets = sourceSets;
     }
 
     /**
-     * Whether or not to allow the build to continue if there are warnings.
+     * Whether to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
      */
@@ -61,6 +67,11 @@ public abstract class CodeQualityExtension {
         return ignoreFailures;
     }
 
+    /**
+     * Whether to allow the build to continue if there are warnings.
+     *
+     * Example: ignoreFailures = true
+     */
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
@@ -72,6 +83,9 @@ public abstract class CodeQualityExtension {
         return reportsDir;
     }
 
+    /**
+     * The directory where reports will be generated.
+     */
     public void setReportsDir(File reportsDir) {
         this.reportsDir = reportsDir;
     }

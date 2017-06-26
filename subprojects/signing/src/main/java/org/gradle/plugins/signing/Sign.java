@@ -238,13 +238,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     /**
-     * Changes the signature file representation for the signatures.
-     */
-    public void signatureType(SignatureType type) {
-        this.signatureType = signatureType;
-    }
-
-    /**
      * Changes the signatory of the signatures.
      */
     public void signatory(Signatory signatory) {

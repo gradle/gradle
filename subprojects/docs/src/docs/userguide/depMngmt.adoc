@@ -1,0 +1,1382 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency_management]]
+== Dependency Management
+
+
+[[sec:Introduction]]
+=== Introduction
+
+Dependency management is a critical feature of every build, and Gradle has placed an emphasis on offering first-class dependency management that is both easy to understand and compatible with a wide variety of approaches. If you are familiar with the approach used by either Maven or Ivy you will be delighted to learn that Gradle is fully compatible with both approaches in addition to being flexible enough to support fully-customized approaches.
+
+Here are the major highlights of Gradle's support for dependency management:
+
+* _Transitive dependency management_: Gradle gives you full control of your project's dependency tree.
+* _Support for non-managed dependencies_: If your dependencies are simply files in version control or a shared drive, Gradle provides powerful functionality to support this.
+* _Support for custom dependency definitions._: Gradle's Module Dependencies give you the ability to describe the dependency hierarchy in the build script.
+* _A fully customizable approach to Dependency Resolution_: Gradle provides you with the ability to customize resolution rules making dependency substitution easy.
+* _Full Compatibility with Maven and Ivy_: If you have defined dependencies in a Maven POM or an Ivy file, Gradle provides seamless integration with a range of popular build tools.
+* _Integration with existing dependency management infrastructure_: Gradle is compatible with both Maven and Ivy repositories. If you use Archiva, Nexus, or Artifactory, Gradle is 100% compatible with all repository formats.
+
+With hundreds of thousands of interdependent open source components each with a range of versions and incompatibilities, dependency management has a habit of causing problems as builds grow in complexity. When a build's dependency tree becomes unwieldy, your build tool shouldn't force you to adopt a single, inflexible approach to dependency management. A proper build system has to be designed to be flexible, and Gradle can handle any situation.
+
+
+[[sub:dependency_management_and_migrations]]
+==== Flexible dependency management for migrations
+
+Dependency management can be particularly challenging during a migration from one build system to another. If you are migrating from a tool like Ant or Maven to Gradle, you may be faced with some difficult situations. For example, one common pattern is an Ant project with version-less jar files stored in the filesystem. Other build systems require a wholesale replacement of this approach before migrating. With Gradle, you can adapt your new build to any existing source of dependencies or dependency metadata. This makes incremental migration to Gradle much easier than the alternative. On most large projects, build migrations and any change to development process is incremental because most organizations can't afford to stop everything and migrate to a build tool's idea of dependency management.
+
+Even if your project is using a custom dependency management system or something like an Eclipse .classpath file as master data for dependency management, it is very easy to write a Gradle plugin to use this data in Gradle. For migration purposes this is a common technique with Gradle. (But, once you've migrated, it might be a good idea to move away from a .classpath file and use Gradle's dependency management features directly.)
+
+[[sub:dependency_management_and_java]]
+==== Dependency management and Java
+
+It is ironic that in a language known for its rich library of open source components that Java has no concept of libraries or versions. In Java, there is no standard way to tell the JVM that you are using version 3.0.5 of Hibernate, and there is no standard way to say that `foo-1.0.jar` depends on `bar-2.0.jar`. This has led to external solutions often based on build tools. The most popular ones at the moment are Maven and Ivy. While Maven provides a complete build system, Ivy focuses solely on dependency management.
+
+Both tools rely on descriptor XML files, which contain information about the dependencies of a particular jar. Both also use repositories where the actual jars are placed together with their descriptor files, and both offer resolution for conflicting jar versions in one form or the other. Both have emerged as standards for solving dependency conflicts, and while Gradle originally used Ivy under the hood for its dependency management. Gradle has replaced this direct dependency on Ivy with a native Gradle dependency resolution engine which supports a range of approaches to dependency resolution including both POM and Ivy descriptor files.
+
+[[sec:dependency_management_overview]]
+=== Dependency Management Best Practices
+
+While Gradle has strong opinions on dependency management, the tool gives you a choice between two options: follow recommended best practices or support any kind of pattern you can think of. This section outlines the Gradle project's recommended best practices for managing dependencies.
+
+No matter what the language, proper dependency management is important for every project. From a complex enterprise application written in Java depending on hundreds of open source libraries to the simplest Clojure application depending on a handful of libraries, approaches to dependency management vary widely and can depend on the target technology, the method of application deployment, and the nature of the project. Projects bundled as reusable libraries may have different requirements than enterprise applications integrated into much larger systems of software and infrastructure. Despite this wide variation of requirements, the Gradle project recommends that all projects follow this set of core rules:
+
+
+[[sub:versioning_the_jar_name]]
+==== Put the Version in the Filename (Version the jar)
+
+The version of a library must be part of the filename. While the version of a jar is usually in the Manifest file, it isn't readily apparent when you are inspecting a project. If someone asks you to look at a collection of 20 jar files, which would you prefer? A collection of files with names like `commons-beanutils-1.3.jar` or a collection of files with names like `spring.jar`? If dependencies have file names with version numbers you can quickly identify the versions of your dependencies.
+
+If versions are unclear you can introduce subtle bugs which are very hard to find. For example there might be a project which uses Hibernate 2.5. Think about a developer who decides to install version 3.0.5 of Hibernate on her machine to fix a critical security bug but forgets to notify others in the team of this change. She may address the security bug successfully, but she also may have introduced subtle bugs into a codebase that was using a now-deprecated feature from Hibernate. Weeks later there is an exception on the integration machine which can't be reproduced on anyone's machine. Multiple developers then spend days on this issue only finally realising that the error would have been easy to uncover if they knew that Hibernate had been upgraded from 2.5 to 3.0.5.
+
+Versions in jar names increase the expressiveness of your project and make them easier to maintain. This practice also reduces the potential for error.
+
+[[sub:transitive_dependency_management]]
+==== Manage transitive dependencies
+
+Transitive dependency management is a technique that enables your project to depend on libraries which, in turn, depend on other libraries. This recursive pattern of transitive dependencies results in a tree of dependencies including your project's first-level dependencies, second-level dependencies, and so on. If you don't model your dependencies as a hierarchical tree of first-level and second-level dependencies it is very easy to quickly lose control over an assembled mess of unstructured dependencies. Consider the Gradle project itself, while Gradle only has a few direct, first-level dependencies, when Gradle is compiled it needs more than one hundred dependencies on the classpath. On a far larger scale, Enterprise projects using Spring, Hibernate, and other libraries, alongside hundreds or thousands of internal projects, can result in very large dependency trees.
+
+When these large dependency trees need to change, you'll often have to solve some dependency version conflicts. Say one open source library needs one version of a logging library and a another uses an alternative version. Gradle and other build tools all have the ability to resolve conflicts, but what differentiates Gradle is the control it gives you over transitive dependencies and conflict resolution.
+
+While you could try to manage this problem manually, you will quickly find that this approach doesn't scale. If you want to get rid of a first level dependency you really can't be sure which other jars you should remove. A dependency of a first level dependency might also be a first level dependency itself, or it might be a transitive dependency of yet another first level dependency. If you try to manage transitive dependencies yourself, the end of the story is that your build becomes brittle: no one dares to change your dependencies because the risk of breaking the build is too high. The project classpath becomes a complete mess, and, if a classpath problem arises, hell on earth invites you for a ride.
+
+[NOTE]
+====
+_NOTE:_ In one project, we found a mystery LDAP related jar in the classpath. No code referenced this jar and there was no connection to the project. No one could figure out what the jar was for, until it was removed from the build and the application suffered massive performance problems whenever it attempted to authenticate to LDAP. This mystery jar was a necessary transitive, fourth-level dependency that was easy to miss because no one had bothered to use managed transitive dependencies.
+====
+
+Gradle offers you different ways to express first-level and transitive dependencies. With Gradle you can mix and match approaches; for example, you could store your jars in an SCM without XML descriptor files and still use transitive dependency management.
+
+[[sub:version_conflicts]]
+==== Resolve version conflicts
+
+Conflicting versions of the same jar should be detected and either resolved or cause an exception. If you don't use transitive dependency management, version conflicts are undetected and the often accidental order of the classpath will determine what version of a dependency will win. On a large project with many developers changing dependencies, successful builds will be few and far between as the order of dependencies may directly affect whether a build succeeds or fails (or whether a bug appears or disappears in production).
+
+If you haven't had to deal with the curse of conflicting versions of jars on a classpath, here is a small anecdote of the fun that awaits you. In a large project with 30 submodules, adding a dependency to a subproject changed the order of a classpath, swapping Spring 2.5 for an older 2.4 version. While the build continued to work, developers were starting to notice all sorts of surprising (and surprisingly awful) bugs in production. Worse yet, this unintentional downgrade of Spring introduced several security vulnerabilities into the system, which now required a full security audit throughout the organization.
+
+In short, version conflicts are bad, and you should manage your transitive dependencies to avoid them. You might also want to learn where conflicting versions are used and consolidate on a particular version of a dependency across your organization. With a good conflict reporting tool like Gradle, that information can be used to communicate with the entire organization and standardize on a single version. _If you think version conflicts don't happen to you, think again._ It is very common for different first-level dependencies to rely on a range of different overlapping versions for other dependencies, and the JVM doesn't yet offer an easy way to have different versions of the same jar in the classpath (see <<sub:dependency_management_and_java>>).
+
+Gradle offers the following conflict resolution strategies:
+
+* _Newest_: The newest version of the dependency is used. This is Gradle's default strategy, and is often an appropriate choice as long as versions are backwards-compatible.
+* _Fail_: A version conflict results in a build failure. This strategy requires all version conflicts to be resolved explicitly in the build script. See api:org.gradle.api.artifacts.ResolutionStrategy[] for details on how to explicitly choose a particular version.
+
+While the strategies introduced above are usually enough to solve most conflicts, Gradle provides more fine-grained mechanisms to resolve version conflicts:
+
+* Configuring a first level dependency as _forced_. This approach is useful if the dependency in conflict is already a first level dependency. See examples in api:org.gradle.api.artifacts.dsl.DependencyHandler[].
+* Configuring any dependency (transitive or not) as _forced_. This approach is useful if the dependency in conflict is a transitive dependency. It also can be used to force versions of first level dependencies. See examples in api:org.gradle.api.artifacts.ResolutionStrategy[]
+* Configuring dependency resolution to _prefer modules that are part of your build_ (transitive or not). This approach is useful if your build contains custom forks of modules (as part of <<multi_project_builds>> or as include in <<composite_builds>>). See examples in api:org.gradle.api.artifacts.ResolutionStrategy[].
+* Dependency resolve rules are an <<feature_lifecycle,incubating>> feature introduced in Gradle 1.4 which give you fine-grained control over the version selected for a particular dependency.
+
+To deal with problems due to version conflicts, reports with dependency graphs are also very helpful. Such reports are another feature of dependency management.
+
+[[sub:dynamic_versions_and_changing_modules]]
+==== Use Dynamic Versions and Changing Modules
+
+There are many situations when you want to use the latest version of a particular dependency, or the latest in a range of versions. This can be a requirement during development, or you may be developing a library that is designed to work with a range of dependency versions. You can easily depend on these constantly changing dependencies by using a _dynamic version_. A dynamic version can be either a version range (e.g. `2.+`) or it can be a placeholder for the latest version available (e.g. `latest.integration`).
+
+Alternatively, sometimes the module you request can change over time, even for the same version. An example of this type of _changing module_ is a Maven `SNAPSHOT` module, which always points at the latest artifact published. In other words, a standard Maven snapshot is a module that never stands still so to speak, it is a “changing module”.
+
+The main difference between a _dynamic version_ and a _changing module_ is that when you resolve a _dynamic version_, you'll get the real, static version as the module name. When you resolve a _changing module_, the artifacts are named using the version you requested, but the underlying artifacts may change over time.
+
+By default, Gradle caches dynamic versions and changing modules for 24 hours. You can override the default cache modes using <<sec:cache_command_line_options,command line options>>. You can change the cache expiry times in your build using the resolution strategy (see <<sec:controlling_caching>>).
+
+[[sub:configurations]]
+=== Dependency configurations
+
+In Gradle dependencies are grouped into configurations. Configurations have a name, a number of other properties, and they can extend each other. Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds some configurations to represent the various classpaths it needs. see <<sec:java_plugin_and_dependency_management>> for details. Of course you can add custom configurations on top of that. There are many use cases for custom configurations. This is very handy for example for adding dependencies not needed for building or testing your software (e.g. additional JDBC drivers to be shipped with your distribution).
+
+A project's configurations are managed by a `configurations` object. The closure you pass to the configurations object is applied against its API. To learn more about this API have a look at api:org.gradle.api.artifacts.ConfigurationContainer[].
+
+To define a configuration:
+
+++++
+<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Definition of a configuration">
+            <sourcefile file="build.gradle" snippet="define-configuration"/>
+        </sample>
+++++
+
+To access a configuration:
+
+++++
+<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Accessing a configuration">
+            <sourcefile file="build.gradle" snippet="lookup-configuration"/>
+        </sample>
+++++
+
+To configure a configuration:
+
+++++
+<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Configuration of a configuration">
+            <sourcefile file="build.gradle" snippet="configure-configuration"/>
+        </sample>
+++++
+
+
+[[sec:how_to_declare_your_dependencies]]
+=== How to declare your dependencies
+
+There are several different types of dependencies that you can declare:
+
+.Dependency types
+[cols="a,a", options="header"]
+|===
+| Type
+| Description
+
+| <<sub:module_dependencies,External module dependency>>
+| A dependency on an external module in some repository.
+
+| <<sub:project_dependencies,Project dependency>>
+| A dependency on another project in the same build.
+
+| <<sub:file_dependencies,File dependency>>
+| A dependency on a set of files on the local filesystem.
+
+| <<sub:client_module_dependencies,Client module dependency>>
+| A dependency on an external module, where the artifacts are located in some repository but the module meta-data is specified by the local build. You use this kind of dependency when you want to override the meta-data for the module.
+
+| <<sub:api_dependencies,Gradle API dependency>>
+| A dependency on the API of the current Gradle version. You use this kind of dependency when you are developing custom Gradle plugins and task types.
+
+| <<sub:groovy_dependencies,Local Groovy dependency>>
+| A dependency on the Groovy version used by the current Gradle version. You use this kind of dependency when you are developing custom Gradle plugins and task types.
+|===
+
+
+[[sub:module_dependencies]]
+==== External module dependencies
+
+External module dependencies are the most common dependencies. They refer to a module in an external repository.
+
+++++
+<sample id="moduleDependencies" dir="userguide/artifacts/externalDependencies" title="Module dependencies">
+                <sourcefile file="build.gradle" snippet="module-dependencies"/>
+            </sample>
+++++
+
+See the api:org.gradle.api.artifacts.dsl.DependencyHandler[] class in the API documentation for more examples and a complete reference.
+
+Gradle provides different notations for module dependencies. There is a string notation and a map notation. A module dependency has an API which allows further configuration. Have a look at api:org.gradle.api.artifacts.ExternalModuleDependency[] to learn all about the API. This API provides properties and configuration methods. Via the string notation you can define a subset of the properties. With the map notation you can define all properties. To have access to the complete API, either with the map or with the string notation, you can assign a single dependency to a configuration together with a closure.
+
+If you declare a module dependency, Gradle looks for a module descriptor file (`pom.xml` or `ivy.xml`) in the repositories. If such a module descriptor file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. cglib) are downloaded. If no such module descriptor file exists, Gradle looks for a file called `hibernate-3.0.5.jar` to retrieve. In Maven, a module can have one and only one artifact. In Gradle and Ivy, a module can have multiple artifacts. Each artifact can have a different set of dependencies.
+
+
+[[ssub:multi_artifact_dependencies]]
+===== Depending on modules with multiple artifacts
+
+As mentioned earlier, a Maven module has only one artifact. Hence, when your project depends on a Maven module, it's obvious what its artifact is.
+With Gradle or Ivy, the case is different. Ivy's dependency descriptor (`ivy.xml`) can declare multiple artifacts.
+For more information, see the Ivy reference for `ivy.xml`.
+In Gradle, when you declare a dependency on an Ivy module, you actually declare a dependency on the `default` configuration of that module.
+So the actual set of artifacts (typically jars) you depend on is the set of artifacts that are associated with the
+`default` configuration of that module. Here are some situations where this matters:
+
+* The `default` configuration of a module contains undesired artifacts. Rather than depending on the whole configuration, a dependency on just the desired artifacts is declared.
+* The desired artifact belongs to a configuration other than `default`. That configuration is explicitly named as part of the dependency declaration.
+
+There are other situations where it is necessary to fine-tune dependency declarations.
+Please see the api:org.gradle.api.artifacts.dsl.DependencyHandler[] class in the API documentation for examples and a complete reference for declaring dependencies.
+
+[[ssub:artifact_dependencies]]
+===== Artifact only notation
+
+As said above, if no module descriptor file can be found, Gradle by default downloads a jar with the name of the module. But sometimes, even if the repository contains module descriptors, you want to download only the artifact jar, without the dependencies.footnote:[Gradle supports partial multiproject builds (see <<multi_project_builds>>).] And sometimes you want to download a zip from a repository, that does not have module descriptors. Gradle provides an _artifact only_ notation for those use cases - simply prefix the extension that you want to be downloaded with `'@'` sign:
+++++
+<sample id="artifactOnly" dir="userguide/artifacts/externalDependencies" title="Artifact only notation">
+                        <sourcefile file="build.gradle" snippet="artifact-only"/>
+                    </sample>
+++++
+
+An artifact only notation creates a module dependency which downloads only the artifact file with the specified extension. Existing module descriptors are ignored.
+
+[[sub:classifiers]]
+===== Classifiers
+
+The Maven dependency management has the notion of classifiers.footnote:[ http://books.sonatype.com/mvnref-book/reference/pom-relationships-sect-project-relationships.html[] ] Gradle supports this. To retrieve classified dependencies from a Maven repository you can write:
+
+++++
+<sample id="classifier" dir="userguide/artifacts/excludesAndClassifiers" title="Dependency with classifier">
+                    <sourcefile file="build.gradle" snippet="classifier"/>
+                </sample>
+++++
+
+As can be seen in the first line above, classifiers can be used together with the artifact only notation.
+
+It is easy to iterate over the dependency artifacts of a configuration:
+
+++++
+<sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Iterating over a configuration">
+                <sourcefile file="build.gradle" snippet="use-configuration"/>
+                <output args="-q listJars"/>
+            </sample>
+++++
+
+[[sub:client_module_dependencies]]
+==== Client module dependencies
+
+Client module dependencies allow you to declare _transitive_ dependencies directly in the build script. They are a replacement for a module descriptor in an external repository.
+
+++++
+<sample id="client-modules" dir="userguide/artifacts/externalDependencies" title="Client module dependencies - transitive dependencies">
+                <sourcefile file="build.gradle" snippet="client-modules"/>
+            </sample>
+++++
+
+This declares a dependency on Groovy. Groovy itself has dependencies. But Gradle does not look for an XML descriptor to figure them out but gets the information from the build file. The dependencies of a client module can be normal module dependencies or artifact dependencies or another client module. Also look at the API documentation for the api:org.gradle.api.artifacts.ClientModule[] class.
+
+In the current release client modules have one limitation. Let's say your project is a library and you want this library to be uploaded to your company's Maven or Ivy repository. Gradle uploads the jars of your project to the company repository together with the XML descriptor file of the dependencies. If you use client modules the dependency declaration in the XML descriptor file is not correct. We will improve this in a future release of Gradle.
+
+[[sub:project_dependencies]]
+==== Project dependencies
+
+Gradle distinguishes between external dependencies and dependencies on projects which are part of the same multi-project build. For the latter you can declare _Project Dependencies_.
+
+++++
+<sample id="project-dependencies" dir="java/multiproject/api" title="Project dependencies">
+                <sourcefile file="build.gradle" snippet="project-dependencies"/>
+            </sample>
+++++
+
+For more information see the API documentation for api:org.gradle.api.artifacts.ProjectDependency[].
+
+Multi-project builds are discussed in <<multi_project_builds>>.
+
+[[sub:file_dependencies]]
+==== File dependencies
+
+File dependencies allow you to directly add a set of files to a configuration, without first adding them to a repository. This can be useful if you cannot, or do not want to, place certain files in a repository. Or if you do not want to use any repositories at all for storing your dependencies.
+
+To add some files as a dependency for a configuration, you simply pass a <<sec:file_collections,file collection>> as a dependency:
+
+++++
+<sample id="file-dependencies" dir="userguide/artifacts/externalDependencies" title="File dependencies">
+                <sourcefile file="build.gradle" snippet="file-dependencies"/>
+            </sample>
+++++
+
+File dependencies are not included in the published dependency descriptor for your project. However, file dependencies are included in transitive project dependencies within the same build. This means they cannot be used outside the current build, but they can be used with the same build.
+
+You can declare which tasks produce the files for a file dependency. You might do this when, for example, the files are generated by the build.
+
+++++
+<sample id="generatedFileDependencies" dir="userguide/artifacts/generatedFileDependencies" title="Generated file dependencies">
+                <sourcefile file="build.gradle" snippet="generated-file-dependencies"/>
+                <output args="-q list"/>
+            </sample>
+++++
+
+
+[[sub:api_dependencies]]
+==== Gradle API Dependency
+
+You can declare a dependency on the API of the current version of Gradle by using the api:org.gradle.api.artifacts.dsl.DependencyHandler#gradleApi[] method. This is useful when you are developing custom Gradle tasks or plugins.
+
+++++
+<sample id="gradle-api-dependencies" dir="customPlugin/plugin" title="Gradle API dependencies">
+                <sourcefile file="build.gradle" snippet="gradle-api-dependencies"/>
+            </sample>
+++++
+
+
+[[sub:groovy_dependencies]]
+==== Local Groovy Dependency
+
+You can declare a dependency on the Groovy that is distributed with Gradle by using the api:org.gradle.api.artifacts.dsl.DependencyHandler#localGroovy[] method. This is useful when you are developing custom Gradle tasks or plugins in Groovy.
+
+++++
+<sample id="local-groovy-dependencies" dir="customPlugin/plugin" title="Gradle's Groovy dependencies">
+                <sourcefile file="build.gradle" snippet="local-groovy-dependencies"/>
+            </sample>
+++++
+
+
+[[sub:exclude_transitive_dependencies]]
+==== Excluding transitive dependencies
+
+You can exclude a _transitive_ dependency either by configuration or by dependency:
+
+++++
+<sample id="exclude-dependencies" dir="userguide/artifacts/excludesAndClassifiers" title="Excluding transitive dependencies">
+                <sourcefile file="build.gradle" snippet="exclude-dependencies"/>
+            </sample>
+++++
+
+If you define an exclude for a particular configuration, the excluded transitive dependency will be filtered for all dependencies when resolving this configuration or any inheriting configuration. If you want to exclude a transitive dependency from all your configurations you can use the Groovy spread-dot operator to express this in a concise way, as shown in the example. When defining an exclude, you can specify either only the organization or only the module name or both. Also look at the API documentation of the api:org.gradle.api.artifacts.Dependency[] and api:org.gradle.api.artifacts.Configuration[] classes.
+
+Not every transitive dependency can be excluded - some transitive dependencies might be essential for correct runtime behavior of the application. Generally, one can exclude transitive dependencies that are either not required by runtime or that are guaranteed to be available on the target environment/platform.
+
+Should you exclude per-dependency or per-configuration? It turns out that in the majority of cases you want to use the per-configuration exclusion. Here are some typical reasons why one might want to exclude a transitive dependency. Bear in mind that for some of these use cases there are better solutions than exclusions!
+
+* The dependency is undesired due to licensing reasons.
+* The dependency is not available in any remote repositories.
+* The dependency is not needed for runtime.
+* The dependency has a version that conflicts with a desired version. For that use case please refer to <<sub:version_conflicts>> and the documentation on api:org.gradle.api.artifacts.ResolutionStrategy[] for a potentially better solution to the problem.
+
+Basically, in most of the cases excluding the transitive dependency should be done per configuration. This way the dependency declaration is more explicit. It is also more accurate because a per-dependency exclude rule does not guarantee the given transitive dependency does not show up in the configuration. For example, some other dependency, which does not have any exclude rules, might pull in that unwanted transitive dependency.
+
+Other examples of dependency exclusions can be found in the reference for the api:org.gradle.api.artifacts.ModuleDependency[] or api:org.gradle.api.artifacts.dsl.DependencyHandler[] classes.
+
+[[sec:optional_attributes]]
+==== Optional attributes
+
+All attributes for a dependency are optional, except the name. Which attributes are required for actually finding dependencies in the repository will depend on the repository type. See <<sec:repositories>>. For example, if you work with Maven repositories, you need to define the group, name and version. If you work with filesystem repositories you might only need the name or the name and the version.
+
+++++
+<sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies" title="Optional attributes of dependencies">
+                <sourcefile file="build.gradle" snippet="dependencies-with-empty-attributes"/>
+            </sample>
+++++
+
+You can also assign collections or arrays of dependency notations to a configuration:
+
+++++
+<sample id="listGrouping" dir="userguide/artifacts/externalDependencies" title="Collections and arrays of dependencies">
+                <sourcefile file="build.gradle" snippet="list-grouping"/>
+            </sample>
+++++
+
+
+[[sec:dependency_configurations]]
+==== Dependency configurations
+
+In Gradle a dependency can have different configurations (as your project can have different configurations). If you don't specify anything explicitly, Gradle uses the default configuration of the dependency. For dependencies from a Maven repository, the default configuration is the only possibility anyway. If you work with Ivy repositories and want to declare a non-default configuration for your dependency you have to use the map notation and declare:
+
+++++
+<sample id="dependencyConfigurations" dir="userguide/artifacts/externalDependencies" title="Dependency configurations">
+                <sourcefile file="build.gradle" snippet="dependency-configurations"/>
+            </sample>
+++++
+
+To do the same for project dependencies you need to declare:
+
+++++
+<sample id="dependencyConfigurationsProjects" dir="/java/multiproject/services/webservice" title="Dependency configurations for project">
+                <sourcefile file="build.gradle" snippet="dependency-configurations"/>
+            </sample>
+++++
+
+
+[[sec:dependency_reports]]
+==== Dependency reports
+
+You can generate dependency reports from the command line (see <<sec:listing_dependencies>>). With the help of the Project report plugin (see <<project_reports_plugin>>) such a report can be created by your build.
+
+Since Gradle 1.2 there is also a new programmatic API to access the resolved dependency information. The dependency reports (see the previous paragraph) are using this API under the covers. The API lets you walk the resolved dependency graph and provides information about the dependencies. In future releases the API will grow to provide more information about the resolution result. For more information about the API please refer to the Javadocs on api:org.gradle.api.artifacts.ResolvableDependencies#getResolutionResult[]. Potential usages of the api:org.gradle.api.artifacts.result.ResolutionResult[] API:
+
+* Creation of advanced dependency reports tailored to your use case.
+* Enabling the build logic to make decisions based on the content of the dependency graph.
+
+
+[[sec:working_with_dependencies]]
+=== Working with dependencies
+
+For the examples below we have the following dependencies setup:
+
+++++
+<sample id="configurationHandlingSetup" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
+            <sourcefile file="build.gradle" snippet="setup"/>
+        </sample>
+++++
+
+The dependencies have the following transitive dependencies:
+
+shark-1.0 -&gt; seal-2.0, tuna-1.0
+
+orca-1.0 -&gt; seal-1.0
+
+tuna-1.0 -&gt; herring-1.0
+
+You can use the configuration to access the declared dependencies or a subset of those:
+
+++++
+<sample id="configurationHandlingDependencies" dir="userguide/artifacts/configurationHandling" title="Accessing declared dependencies">
+            <sourcefile file="build.gradle" snippet="dependencies"/>
+            <output args="-q dependencies"/>
+        </sample>
+++++
+
+The `dependencies` task returns only the dependencies belonging explicitly to the configuration. The `allDependencies` task includes the dependencies from extended configurations.
+
+To get the library files of the configuration dependencies you can do:
+
+++++
+<sample id="configurationHandlingAllFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.files">
+            <sourcefile file="build.gradle" snippet="allFiles"/>
+            <output args="-q allFiles"/>
+        </sample>
+++++
+
+Sometimes you want the library files of a subset of the configuration dependencies (e.g. of a single dependency).
+
+++++
+<sample id="configurationHandlingFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.files with spec">
+            <sourcefile file="build.gradle" snippet="files"/>
+            <output args="-q files"/>
+        </sample>
+++++
+
+The `Configuration.files` method always retrieves all artifacts of the _whole_ configuration. It then filters the retrieved files by specified dependencies. As you can see in the example, transitive dependencies are included.
+
+You can also copy a configuration. You can optionally specify that only a subset of dependencies from the original configuration should be copied. The copying methods come in two flavors. The `copy` method copies only the dependencies belonging explicitly to the configuration. The `copyRecursive` method copies all the dependencies, including the dependencies from extended configurations.
+
+++++
+<sample id="configurationHandlingCopy" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
+            <sourcefile file="build.gradle" snippet="copy"/>
+            <output args="-q copy"/>
+        </sample>
+++++
+
+It is important to note that the returned files of the copied configuration are often but not always the same than the returned files of the dependency subset of the original configuration. In case of version conflicts between dependencies of the subset and dependencies not belonging to the subset the resolve result might be different.
+
+++++
+<sample id="configurationHandlingCopyVsFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.copy vs. Configuration.files">
+            <sourcefile file="build.gradle" snippet="copyVsFiles"/>
+            <output args="-q copyVsFiles"/>
+        </sample>
+++++
+
+In the example above, `orca` has a dependency on `seal-1.0` whereas `shark` has a dependency on `seal-2.0`. The original configuration has therefore a version conflict which is resolved to the newer `seal-2.0` version. The `files` method therefore returns `seal-2.0` as a transitive dependency of `orca`. The copied configuration only has `orca` as a dependency and therefore there is no version conflict and `seal-1.0` is returned as a transitive dependency.
+
+Once a configuration is resolved it is immutable. Changing its state or the state of one of its dependencies will cause an exception. You can always copy a resolved configuration. The copied configuration is in the unresolved state and can be freshly resolved.
+
+To learn more about the API of the configuration class see the API documentation: api:org.gradle.api.artifacts.Configuration[].
+
+[[sec:repositories]]
+=== Repositories
+
+Gradle repository management, based on Apache Ivy, gives you a lot of freedom regarding repository layout and retrieval policies. Additionally Gradle provides various convenience method to add pre-configured repositories.
+
+You may configure any number of repositories, each of which is treated independently by Gradle. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. Although module meta-data and module artifacts must be located in the same repository, it is possible to compose a single repository of multiple URLs, giving multiple locations to search for meta-data files and jar files.
+
+There are several different types of repositories you can declare:
+
+.Repository types
+[cols="a,a", options="header"]
+|===
+| Type
+| Description
+
+| <<sub:maven_central,Maven central repository>>
+| A pre-configured repository that looks for dependencies in Maven Central.
+
+| <<sub:maven_jcenter,Maven JCenter repository>>
+| A pre-configured repository that looks for dependencies in Bintray's JCenter.
+
+| <<sub:maven_google,Maven Google repository>>
+| A pre-configured repository that looks for dependencies in Google's Maven repository.
+
+| <<sub:maven_local,Maven local repository>>
+| A pre-configured repository that looks for dependencies in the local Maven repository.
+
+| <<sub:maven_repo,Maven repository>>
+| A Maven repository. Can be located on the local filesystem or at some remote location.
+
+| <<sec:ivy_repositories,Ivy repository>>
+| An Ivy repository. Can be located on the local filesystem or at some remote location.
+
+| <<sec:flat_dir_resolver,Flat directory repository>>
+| A simple repository on the local filesystem. Does not support any meta-data formats.
+|===
+
+
+[[sub:maven_central]]
+==== Maven central repository
+
+To add the central Maven 2 repository (https://repo1.maven.org/maven2[]) simply add this to your build script:
+
+++++
+<sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
+                <sourcefile file="build.gradle" snippet="maven-central"/>
+            </sample>
+++++
+
+Now Gradle will look for your dependencies in this repository.
+
+[[sub:maven_jcenter]]
+==== Maven JCenter repository
+
+http://bintray.com[Bintray]'s JCenter is an up-to-date collection of all popular Maven OSS artifacts, including artifacts published directly to Bintray.
+
+To add the JCenter Maven repository (https://jcenter.bintray.com[]) simply add this to your build script:
+
+++++
+<sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Adding Bintray's JCenter Maven repository">
+                <sourcefile file="build.gradle" snippet="maven-jcenter"/>
+            </sample>
+++++
+
+Now Gradle will look for your dependencies in the JCenter repository. _jcenter()_ uses HTTPS to connect to the repository. If you want to use HTTP you can configure `jcenter()`:
+
+++++
+<sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Using Bintrays's JCenter with HTTP">
+                <sourcefile file="build.gradle" snippet="maven-jcenter-http"/>
+            </sample>
+++++
+
+[[sub:maven_google]]
+==== Maven Google repository
+
+The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples please the [relevant documentation](https://developer.android.com/studio/build/dependencies.html#google-maven).
+
+To add the Google Maven repository (https://dl.google.com/dl/android/maven2/[]) simply add this to your build script:
+
+++++
+<sample id="mavenGoogleRepo" dir="userguide/artifacts/defineRepository" title="Adding Google Maven repository">
+    <sourcefile file="build.gradle" snippet="maven-google"/>
+</sample>
+++++
+
+[[sub:maven_local]]
+==== Local Maven repository
+
+To use the local Maven cache as a repository you can do:
+
+++++
+<sample id="mavenLocalRepo" dir="userguide/artifacts/defineRepository" title="Adding the local Maven cache as a repository">
+                <sourcefile file="build.gradle" snippet="maven-local"/>
+            </sample>
+++++
+
+Gradle uses the same logic as Maven to identify the location of your local Maven cache. If a local repository location is defined in a `settings.xml`, this location will be used. The `settings.xml` in `__USER_HOME__/.m2` takes precedence over the `settings.xml` in `__M2_HOME__/conf`. If no `settings.xml` is available, Gradle uses the default location `__USER_HOME__/.m2/repository`.
+
+[[sub:maven_repo]]
+==== Maven repositories
+
+For adding a custom Maven repository you can do:
+
+++++
+<sample id="mavenLikeRepo" dir="userguide/artifacts/defineRepository" title="Adding custom Maven repository">
+                <sourcefile file="build.gradle" snippet="maven-like-repo"/>
+            </sample>
+++++
+
+Sometimes a repository will have the POMs published to one location, and the JARs and other artifacts published at another location. To define such a repository, you can do:
+
+++++
+<sample id="mavenLikeRepoWithJarRepo" dir="userguide/artifacts/defineRepository" title="Adding additional Maven repositories for JAR files">
+                <sourcefile file="build.gradle" snippet="maven-like-repo-with-jar-repo"/>
+            </sample>
+++++
+
+Gradle will look at the first URL for the POM and the JAR. If the JAR can't be found there, the artifact URLs are used to look for JARs.
+
+
+[[sec:accessing_password_protected_maven_repositories]]
+===== Accessing password protected Maven repositories
+
+To access a Maven repository which uses basic authentication, you specify the username and password to use when you define the repository:
+
+++++
+<sample id="mavenPasswordProtectedRepo" dir="userguide/artifacts/defineRepository" title="Accessing password protected Maven repository">
+                    <sourcefile file="build.gradle" snippet="authenticated-maven-repo"/>
+                </sample>
+++++
+
+It is advisable to keep your username and password in `gradle.properties` rather than directly in the build file.
+
+[[sec:flat_dir_resolver]]
+==== Flat directory repository
+
+If you want to use a (flat) filesystem directory as a repository, simply type:
+
+++++
+<sample id="flatDirMulti" dir="userguide/artifacts/defineRepository" title="Flat repository resolver">
+                <sourcefile file="build.gradle" snippet="flat-dir-multi"/>
+            </sample>
+++++
+
+This adds repositories which look into one or more directories for finding dependencies. Note that this type of repository does not support any meta-data formats like Ivy XML or Maven POM files. Instead, Gradle will dynamically generate a module descriptor (without any dependency information) based on the presence of artifacts. However, as Gradle prefers to use modules whose descriptor has been created from real meta-data rather than being generated, flat directory repositories cannot be used to override artifacts with real meta-data from other repositories. So, for example, if Gradle finds only `jmxri-1.2.1.jar` in a flat directory repository, but `jmxri-1.2.1.pom` in another repository that supports meta-data, it will use the second repository to provide the module. For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository instead whose URL points to a local directory. If you only work with flat directory repositories you don't need to set all attributes of a dependency. See <<sec:optional_attributes>>.
+
+[[sec:ivy_repositories]]
+==== Ivy repositories
+
+
+[[sec:defining_an_ivy_repository_with_a_standard_layout]]
+===== Defining an Ivy repository with a standard layout
+
+
+++++
+<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
+                    <sourcefile file="build.gradle" snippet="ivy-repo"/>
+                </sample>
+++++
+
+
+[[sec:defining_a_named_layout_for_an_ivy_repository]]
+===== Defining a named layout for an Ivy repository
+
+You can specify that your repository conforms to the Ivy or Maven default layout by using a named layout.
+
+++++
+<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with named layout">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-maven-layout"/>
+                </sample>
+++++
+
+Valid named layout values are `'gradle'` (the default), `'maven'`, `'ivy'` and `'pattern'`. See api:org.gradle.api.artifacts.repositories.IvyArtifactRepository#layout(java.lang.String,groovy.lang.Closure)[] in the API documentation for details of these named layouts.
+
+[[sec:defining_custom_pattern_layout_for_an_ivy_repository]]
+===== Defining custom pattern layout for an Ivy repository
+
+To define an Ivy repository with a non-standard layout, you can define a 'pattern' layout for the repository:
+
+++++
+<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with pattern layout">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-pattern-layout"/>
+                </sample>
+++++
+
+To define an Ivy repository which fetches Ivy files and artifacts from different locations, you can define separate patterns to use to locate the Ivy files and artifacts:
+
+Each `artifact` or `ivy` specified for a repository adds an _additional_ pattern to use. The patterns are used in the order that they are defined.
+
+++++
+<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with multiple custom patterns">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-custom-pattern"/>
+                </sample>
+++++
+
+Optionally, a repository with pattern layout can have its 'organisation' part laid out in Maven style, with forward slashes replacing dots as separators. For example, the organisation `my.company` would then be represented as `my/company`.
+
+++++
+<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with Maven compatible layout">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-m2compatible-layout"/>
+                </sample>
+++++
+
+
+[[sec:accessing_password_protected_ivy_repositories]]
+===== Accessing password protected Ivy repositories
+
+To access an Ivy repository which uses basic authentication, you specify the username and password to use when you define the repository:
+
+++++
+<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
+                    <sourcefile file="build.gradle" snippet="authenticated-ivy-repo"/>
+                </sample>
+++++
+
+
+[[sub:supported_transport_protocols]]
+==== Supported repository transport protocols
+
+Maven and Ivy repositories support the use of various transport protocols. At the moment the following protocols are supported:
+
+.Repository transport protocols
+[cols="a,a", options="header"]
+|===
+| Type
+| Credential types
+
+| `file`
+| none
+
+| `http`
+| username/password
+
+| `https`
+| username/password
+
+| `sftp`
+| username/password
+
+| `s3`
+| access key/secret key/session token or Environment variables
+|===
+
+To define a repository use the `repositories` configuration block. Within the `repositories` closure, a Maven repository is declared with `maven`. An Ivy repository is declared with `ivy`. The transport protocol is part of the URL definition for a repository. The following build script demonstrates how to create a HTTP-based Maven and Ivy repository:
+
+++++
+<sample id="mavenIvyRepositoriesNoAuth" dir="userguide/artifacts/defineRepository" title="Declaring a Maven and Ivy repository">
+                <sourcefile file="build.gradle" snippet="maven-ivy-repository-no-auth"/>
+            </sample>
+++++
+
+If authentication is required for a repository, the relevant credentials can be provided. The following example shows how to provide username/password-based authentication for SFTP repositories:
+
+++++
+<sample id="mavenIvyRepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Providing credentials to a Maven and Ivy repository">
+                <sourcefile file="build.gradle" snippet="maven-ivy-repository-auth"/>
+            </sample>
+++++
+
+When using an AWS S3 backed repository you need to authenticate using api:org.gradle.api.credentials.AwsCredentials[], providing access-key and a private-key. The following example shows how to declare a S3 backed repository and providing AWS credentials:
+
+++++
+<sample id="mavenIvyS3RepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository">
+                <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository"/>
+            </sample>
+++++
+
+You can also delegate all credentials to the AWS sdk by using the AwsImAuthentication. The following example shows how :
+
+++++
+<sample id="mavenIvyS3RepositoriesAuthWithIam" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository using IAM">
+                <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository-with-iam"/>
+            </sample>
+++++
+
+[[sub:s3_configuration_properties]]
+===== S3 configuration properties
+
+The following system properties can be used to configure the interactions with s3 repositories:
+
+.S3 Configuration Properties
+[cols="a,a", options="header"]
+|===
+| Property
+| Description
+
+| org.gradle.s3.endpoint
+| Used to override the AWS S3 endpoint when using a non AWS, S3 API compatible, storage service.
+
+| org.gradle.s3.maxErrorRetry
+| Specifies the maximum number of times to retry a request in the event that the S3 server responds with a HTTP 5xx status code. When not specified a default value of 3 is used.
+
+|===
+
+
+[[sub:s3_url_formats]]
+===== S3 URL formats
+
+S3 URL's are 'virtual-hosted-style' and must be in the following format `s3://&lt;bucketName&gt;[.&lt;regionSpecificEndpoint&gt;]/&lt;s3Key&gt;`
+
+e.g. `s3://myBucket.s3.eu-central-1.amazonaws.com/maven/release`
+
+* `myBucket` is the AWS S3 bucket name.
+* `s3.eu-central-1.amazonaws.com` is the _optional_ http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region[region specific endpoint].
+* `/maven/release` is the AWS S3 key (unique identifier for an object within a bucket)
+
+
+[[sub:s3_proxy_settings]]
+===== S3 proxy settings
+
+A proxy for S3 can be configured using the following system properties:
+
+* `https.proxyHost`
+* `https.proxyPort`
+* `https.proxyUser`
+* `https.proxyPassword`
+* `http.nonProxyHosts`
+
+If the 'org.gradle.s3.endpoint' property has been specified with a http (not https) URI the following system proxy settings can be used:
+
+* `http.proxyHost`
+* `http.proxyPort`
+* `http.proxyUser`
+* `http.proxyPassword`
+* `http.nonProxyHosts`
+
+
+[[s3_v4_signatures]]
+===== AWS S3 V4 Signatures (AWS4-HMAC-SHA256)
+
+Some of the AWS S3 regions (eu-central-1 - Frankfurt) require that all HTTP requests are signed in accordance with AWS's http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html[signature version 4]. It is recommended to specify S3 URL's containing the region specific endpoint when using buckets that require V4 signatures. e.g. `s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release`
+
+[NOTE]
+====
+_NOTE:_ When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle will use the default AWS region (us-east-1) and the
+following warning will appear on the console:
+
+Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, please use region-specific endpoint to access buckets located in regions that require V4 signing.
+
+Failing to specify the region-specific endpoint for buckets requiring V4 signatures means:
+
+* `3 round-trips to AWS, as opposed to one, for every file upload and download.`
+* `Depending on location - increased network latencies and slower builds.`
+* `Increased likelihood of transmission failures.`
+
+====
+
+
+[[sub:authentication_schemes]]
+===== Configuring HTTP authentication schemes
+
+When configuring a repository using HTTP or HTTPS transport protocols, multiple authentication schemes are available. By default, Gradle will attempt to use all schemes that are supported by the Apache HttpClient library, http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d5e625[documented here]. In some cases, it may be preferable to explicitly specify which authentication schemes should be used when exchanging credentials with a remote server. When explicitly declared, only those schemes are used when authenticating to a remote repository. The following example show how to configure a repository to use only digest authentication:
+
+++++
+<sample id="digestAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use only digest authentication">
+                    <sourcefile file="build.gradle" snippet="digest-authentication"/>
+                </sample>
+++++
+
+Currently supported authentication schemes are:
+
+.Authentication schemes
+[cols="a,a", options="header"]
+|===
+| Type
+| Description
+
+| api:org.gradle.authentication.http.BasicAuthentication[]
+| Basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.
+
+| api:org.gradle.authentication.http.DigestAuthentication[]
+| Digest access authentication over HTTP.
+
+|===
+
+
+[[sub:preemptive_authentication]]
+===== Using preemptive authentication
+
+Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of a HTTP 401 response. In some cases, the server will respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail. To get around this behavior, credentials may be sent to the server preemptively. To enable preemptive authentication simply configure your repository to explicitly use the api:org.gradle.authentication.http.BasicAuthentication[] scheme:
+
+++++
+<sample id="preemptiveAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use preemptive authentication">
+                    <sourcefile file="build.gradle" snippet="preemptive-authentication"/>
+                </sample>
+++++
+
+
+[[sec:working_with_repositories]]
+==== Working with repositories
+
+To access a repository:
+
+++++
+<sample id="defineRepository" dir="userguide/artifacts/defineRepository" title="Accessing a repository">
+                <sourcefile file="build.gradle" snippet="lookup-resolver"/>
+            </sample>
+++++
+
+To configure a repository:
+
+++++
+<sample id="defineRepository" dir="userguide/artifacts/defineRepository" title="Configuration of a repository">
+                <sourcefile file="build.gradle" snippet="configure-resolver"/>
+            </sample>
+++++
+
+
+[[sub:more_about_ivy_resolvers]]
+==== More about Ivy resolvers
+
+Gradle is extremely flexible regarding repositories:
+
+* There are many options for the protocol to communicate with the repository (e.g. filesystem, http, ssh, sftp ...)
+* The protocol sftp currently only supports username/password-based authentication.
+* Each repository can have its own layout.
+
+Let's say, you declare a dependency on the `junit:junit:3.8.2` library. Now how does Gradle find it in the repositories? Somehow the dependency information has to be mapped to a path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern that defines what the path will look like. Here are some examples:footnote:[At http://ant.apache.org/ivy/history/latest-milestone/concept.html[] you can learn more about ivy patterns.]
+
+[source]
+----
+
+// Maven2 layout (if a repository is marked as Maven2 compatible, the organization (group) is split into subfolders according to the dots.)
+someroot/[organisation]/[module]/[revision]/[module]-[revision].[ext]
+
+// Typical layout for an Ivy repository (the organization is not split into subfolder)
+someroot/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]
+
+// Simple layout (the organization is not used, no nested folders.)
+someroot/[artifact]-[revision].[ext]
+
+----
+
+
+To add any kind of repository (you can pretty easy write your own ones) you can do:
+
+++++
+<sample id="fileSystemResolver" dir="userguide/artifacts/excludesAndClassifiers" title="Definition of a custom repository">
+                <sourcefile file="build.gradle" snippet="file-system-resolver"/>
+            </sample>
+++++
+
+An overview of which Resolvers are offered by Ivy and thus also by Gradle can be found http://ant.apache.org/ivy/history/latest-milestone/settings/resolvers.html[here]. With Gradle you just don't configure them via XML but directly via their API.
+
+[[sec:dependency_resolution]]
+=== How dependency resolution works
+
+Gradle takes your dependency declarations and repository definitions and attempts to download all of your dependencies by a process called _dependency resolution_. Below is a brief outline of how this process works.
+
+* Given a required dependency, Gradle first attempts to resolve the _module_ for that dependency. Each repository is inspected in order, searching first for a _module descriptor_ file (POM or Ivy file) that indicates the presence of that module. If no module descriptor is found, Gradle will search for the presence of the primary _module artifact_ file indicating that the module exists in the repository.
+
+** If the dependency is declared as a dynamic version (like `1.+`), Gradle will resolve this to the newest available static version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
+
+** If the module descriptor is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
+
+* Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
+
+** For a dynamic version, a 'higher' static version is preferred over a 'lower' version.
+
+** Modules declared by a module descriptor file (Ivy or POM file) are preferred over modules that have an artifact file only.
+
+** Modules from earlier repositories are preferred over modules in later repositories.
+
+** When the dependency is declared by a static version and a module descriptor file is found in a repository, there is no need to continue searching later repositories and the remainder of the process is short-circuited.
+
+* All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
+
+
+[[sec:finetuning_the_dependency_resolution_process]]
+=== Fine-tuning the dependency resolution process
+
+In most cases, Gradle's default dependency management will resolve the dependencies that you want in your build. In some cases, however, it can be necessary to tweak dependency resolution to ensure that your build receives exactly the right dependencies.
+
+There are a number of ways that you can influence how Gradle resolves dependencies.
+
+
+[[sec:forcing_modules]]
+==== Forcing a particular module version
+
+Forcing a module version tells Gradle to always use a specific version for given dependency (transitive or not), overriding any version specified in a published module descriptor. This can be very useful when tackling version conflicts - for more information see <<sub:version_conflicts>>.
+
+Force versions can also be used to deal with rogue metadata of transitive dependencies. If a transitive dependency has poor quality metadata that leads to problems at dependency resolution time, you can force Gradle to use a newer, fixed version of this dependency. For an example, see the api:org.gradle.api.artifacts.ResolutionStrategy[] class in the API documentation. Note that 'dependency resolve rules' (outlined below) provide a more powerful mechanism for replacing a broken module dependency. See <<sec:blacklisting_version>>.
+
+[[sec:prefer_project_modules]]
+==== Preferring modules that are part of the build
+
+Preferring project modules tells Gradle to use the version of a module that is part of the build itself (as part of <<multi_project_builds>> or as includes in <<composite_builds>>). This allows the easy inclusion of an individual fork (e.g. containing a bugfix) of a module - for more information see <<sub:version_conflicts>>.
+
+[[sec:dependency_resolve_rules]]
+==== Using dependency resolve rules
+
+A dependency resolve rule is executed for each resolved dependency, and offers a powerful api for manipulating a requested dependency prior to that dependency being resolved. This feature is <<feature_lifecycle,incubating>>, but currently offers the ability to change the group, name and/or version of a requested dependency, allowing a dependency to be substituted with a completely different module during resolution.
+
+Dependency resolve rules provide a very powerful way to control the dependency resolution process, and can be used to implement all sorts of advanced patterns in dependency management. Some of these patterns are outlined below. For more information and code samples see the api:org.gradle.api.artifacts.ResolutionStrategy[] class in the API documentation.
+
+
+[[sec:releasable_unit]]
+===== Modelling releaseable units
+
+Often an organisation publishes a set of libraries with a single version; where the libraries are built, tested and published together. These libraries form a 'releasable unit', designed and intended to be used as a whole. It does not make sense to use libraries from different releasable units together.
+
+But it is easy for transitive dependency resolution to violate this contract. For example:
+
+* `module-a` depends on `releasable-unit:part-one:1.0`
+* `module-b` depends on `releasable-unit:part-two:1.1`
+
+A build depending on both `module-a` and `module-b` will obtain different versions of libraries within the releasable unit.
+
+Dependency resolve rules give you the power to enforce releasable units in your build. Imagine a releasable unit defined by all libraries that have 'org.gradle' group. We can force all of these libraries to use a consistent version:
+++++
+<sample id="releasable-unit" dir="userguide/artifacts/resolutionStrategy" title="Forcing consistent version for a group of libraries">
+                        <sourcefile file="build.gradle" snippet="releasable-unit"/>
+                    </sample>
+++++
+
+[[sec:custom_versioning_scheme]]
+===== Implement a custom versioning scheme
+
+In some corporate environments, the list of module versions that can be declared in Gradle builds is maintained and audited externally. Dependency resolve rules provide a neat implementation of this pattern:
+
+* In the build script, the developer declares dependencies with the module group and name, but uses a placeholder version, for example: `'default'`.
+* The 'default' version is resolved to a specific version via a dependency resolve rule, which looks up the version in a corporate catalog of approved modules.
+
+This rule implementation can be neatly encapsulated in a corporate plugin, and shared across all builds within the organisation.
+++++
+<sample id="custom-versioning-scheme" dir="userguide/artifacts/resolutionStrategy" title="Using a custom versioning scheme">
+                        <sourcefile file="build.gradle" snippet="custom-versioning-scheme"/>
+                    </sample>
+++++
+
+[[sec:blacklisting_version]]
+===== Blacklisting a particular version with a replacement
+
+Dependency resolve rules provide a mechanism for blacklisting a particular version of a dependency and providing a replacement version. This can be useful if a certain dependency version is broken and should not be used, where a dependency resolve rule causes this version to be replaced with a known good version. One example of a broken module is one that declares a dependency on a library that cannot be found in any of the public repositories, but there are many other reasons why a particular module version is unwanted and a different version is preferred.
+
+In example below, imagine that version `1.2.1` contains important fixes and should always be used in preference to `1.2`. The rule provided will enforce just this: any time version `1.2` is encountered it will be replaced with `1.2.1`. Note that this is different from a forced version as described above, in that any other versions of this module would not be affected. This means that the 'newest' conflict resolution strategy would still select version `1.3` if this version was also pulled transitively.
+++++
+<sample id="blacklisting_version" dir="userguide/artifacts/resolutionStrategy" title="Blacklisting a version with a replacement">
+                        <sourcefile file="build.gradle" snippet="blacklisting_version"/>
+                    </sample>
+++++
+
+
+[[sec:module_substitution]]
+===== Substituting a dependency module with a compatible replacement
+
+At times a completely different module can serve as a replacement for a requested module dependency. Examples include using `'groovy'` in place of `'groovy-all'`, or using `'log4j-over-slf4j'` instead of `'log4j'`. Starting with Gradle 1.5 you can make these substitutions using dependency resolve rules:
+++++
+<sample id="module_substitution" dir="userguide/artifacts/resolutionStrategy" title="Changing dependency group and/or name at the resolution">
+                        <sourcefile file="build.gradle" snippet="module_substitution"/>
+                    </sample>
+++++
+
+
+[[dependency_substitution_rules]]
+==== Dependency Substitution Rules
+
+Dependency substitution rules work similarly to dependency resolve rules. In fact, many capabilities of dependency resolve rules can be implemented with dependency substitution rules. They allow project and module dependencies to be transparently substituted with specified replacements. Unlike dependency resolve rules, dependency substitution rules allow project and module dependencies to be substituted interchangeably.
+
+[NOTE]
+====
+_NOTE: Adding a dependency substitution rule to a configuration changes the timing of when that configuration is resolved._ Instead of being resolved on first use, the configuration is instead resolved when the task graph is being constructed. This can have unexpected consequences if the configuration is being further modified during task execution, or if the configuration relies on modules that are published during execution of another task.
+
+To explain:
+
+* A `Configuration` can be declared as an input to any Task, and that configuration can include project dependencies when it is resolved.
+* If a project dependency is an input to a Task (via a configuration), then tasks to built the project artifacts must be added to the task dependencies.
+* In order to determine the project dependencies that are inputs to a task, Gradle needs to resolve the `Configuration` inputs.
+* Because the Gradle task graph is fixed once task execution has commenced, Gradle needs to perform this resolution prior to executing any tasks.
+
+
+In the absence of dependency substitution rules, Gradle knows that an external module dependency will never transitively reference a project dependency. This makes it easy to determine the full set of project dependencies for a configuration through simple graph traversal. With this functionality, Gradle can no longer make this assumption, and must perform a full resolve in order to determine the project dependencies.
+====
+
+
+[[sec:module_to_project_substitution]]
+===== Substituting an external module dependency with a project dependency
+
+One use case for dependency substitution is to use a locally developed version of a module in place of one that is downloaded from an external repository. This could be useful for testing a local, patched version of a dependency.
+
+The module to be replaced can be declared with or without a version specified.
+
+++++
+<sample id="module_to_project_substitution" dir="userguide/artifacts/dependency-substitution" title="Substituting a module with a project">
+                    <sourcefile file="build.gradle" snippet="module_to_project_substitution"/>
+                </sample>
+++++
+
+Note that a project that is substituted must be included in the multi-project build (via settings.gradle). Dependency substitution rules take care of replacing the module dependency with the project dependency and wiring up any task dependencies, but do not implicitly include the project in the build.
+
+[[sec:project_to_module_substitution]]
+===== Substituting a project dependency with a module replacement
+
+Another way to use substitution rules is to replace a project dependency with a module in a multi-project build. This can be useful to speed up development with a large multi-project build, by allowing a subset of the project dependencies to be downloaded from a repository rather than being built.
+
+The module to be used as a replacement must be declared with a version specified.
+
+++++
+<sample id="project_to_module_substitution" dir="userguide/artifacts/dependency-substitution" title="Substituting a project with a module">
+                    <sourcefile file="build.gradle" snippet="project_to_module_substitution"/>
+                </sample>
+++++
+
+When a project dependency has been replaced with a module dependency, that project is still included in the overall multi-project build. However, tasks to build the replaced dependency will not be executed in order to build the resolve the depending `Configuration`.
+
+[[sec:conditional_dependency_substitution]]
+===== Conditionally substituting a dependency
+
+A common use case for dependency substitution is to allow more flexible assembly of sub-projects within a multi-project build. This can be useful for developing a local, patched version of an external dependency or for building a subset of the modules within a large multi-project build.
+
+The following example uses a dependency substitution rule to replace any module dependency with the group "org.example", but only if a local project matching the dependency name can be located.
+
+++++
+<sample id="project_substitution" dir="dependency-substitution" title="Conditionally substituting a dependency">
+                    <sourcefile file="build.gradle" snippet="project_substitution"/>
+                </sample>
+++++
+
+Note that a project that is substituted must be included in the multi-project build (via settings.gradle). Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
+
+[[sec:configuration_defaults]]
+==== Specifying default dependencies for a configuration
+
+A configuration can be configured with default dependencies to be used if no dependencies are explicitly set for the configuration. A primary use case of this functionality is for developing plugins that make use of versioned tools that the user might override. By specifying default dependencies, the plugin can use a default version of the tool only if the user has not specified a particular version to use.
+
+++++
+<sample id="configuration_default_dependencies" dir="userguide/artifacts/defineConfiguration" title="Specifying default dependencies on a configuration">
+                <sourcefile file="build.gradle" snippet="configuration-default-dependencies"/>
+            </sample>
+++++
+
+
+[[ivy_dynamic_resolve_mode]]
+==== Enabling Ivy dynamic resolve mode
+
+Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic resolve mode. Normally, Gradle will use the `rev` attribute for each dependency definition included in an `ivy.xml` file. In dynamic resolve mode, Gradle will instead prefer the `revConstraint` attribute over the `rev` attribute for a given dependency definition. If the `revConstraint` attribute is not present, the `rev` attribute is used instead.
+
+To enable dynamic resolve mode, you need to set the appropriate option on the repository definition. A couple of examples are shown below. Note that dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.
+
+++++
+<sample id="dynamicResolveMode" dir="userguide/artifacts/defineRepository" title="Enabling dynamic resolve mode">
+                <sourcefile file="build.gradle" snippet="ivy-repo-dynamic-mode"/>
+            </sample>
+++++
+
+
+[[component_metadata_rules]]
+==== Component metadata rules
+
+Each module (also called _component_) has metadata associated with it, such as its group, name, version, dependencies, and so on. This metadata typically originates in the module's descriptor. Metadata rules allow certain parts of a module's metadata to be manipulated from within the build script. They take effect after a module's descriptor has been downloaded, but before it has been selected among all candidate versions. This makes metadata rules another instrument for customizing dependency resolution.
+
+One piece of module metadata that Gradle understands is a module's _status scheme_. This concept, also known from Ivy, models the different levels of maturity that a module transitions through over time. The default status scheme, ordered from least to most mature status, is `integration`, `milestone`, `release`. Apart from a status scheme, a module also has a (current) _status_, which must be one of the values in its status scheme. If not specified in the (Ivy) descriptor, the status defaults to `integration` for Ivy modules and Maven snapshot modules, and `release` for Maven modules that aren't snapshots.
+
+A module's status and status scheme are taken into consideration when a `latest` version selector is resolved. Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status. For example, with the default status scheme in place, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status), whereas `latest.release` will select the highest module version with status `release`. Here is what this looks like in code:
+
+++++
+<sample id="latestSelector" dir="componentMetadataRules" title="'Latest' version selector">
+                <sourcefile file="build.gradle" snippet="latest-selector"/>
+                <output args="-q listConfigs"/>
+            </sample>
+++++
+
+The next example demonstrates `latest` selectors based on a custom status scheme declared in a component metadata rule that applies to all modules:
+
+++++
+<sample id="customStatusScheme" dir="componentMetadataRules" title="Custom status scheme">
+                <sourcefile file="build.gradle" snippet="custom-status-scheme"/>
+            </sample>
+++++
+
+Component metadata rules can be applied to a specified module. Modules must be specified in the form of "group:module".
+
+++++
+<sample id="customStatusSchemeModule" dir="componentMetadataRules" title="Custom status scheme by module">
+                <sourcefile file="build.gradle" snippet="custom-status-scheme-module"/>
+            </sample>
+++++
+
+Gradle can also create component metadata rules utilizing Ivy-specific metadata for modules resolved from an Ivy repository. Values from the Ivy descriptor are made available via the api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[] interface.
+
+++++
+<sample id="ivyComponentMetadataRule" dir="componentMetadataRules" title="Ivy component metadata rule">
+                <sourcefile file="build.gradle" snippet="ivy-component-metadata-rule"/>
+            </sample>
+++++
+
+Note that any rule that declares specific arguments must _always_ include a api:org.gradle.api.artifacts.ComponentMetadataDetails[] argument as the first argument. The second Ivy metadata argument is optional.
+
+Component metadata rules can also be defined using a _rule source_ object. A rule source object is any object that contains exactly one method that defines the rule action and is annotated with `@Mutate`.
+
+This method:
+
+* must return void.
+* must have api:org.gradle.api.artifacts.ComponentMetadataDetails[] as the first argument.
+* may have an additional parameter of type api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[].
+
+++++
+<sample id="ruleSourceComponentMetadataRule" dir="componentMetadataRules" title="Rule source component metadata rule">
+                <sourcefile file="build.gradle" snippet="rule-source-component-metadata-rule"/>
+            </sample>
+++++
+
+
+[[component_selection_rules]]
+==== Component Selection Rules
+
+Component selection rules may influence which component instance should be selected when multiple versions are available that match a version selector. Rules are applied against every available version and allow the version to be explicitly rejected by rule. This allows Gradle to ignore any component instance that does not satisfy conditions set by the rule. Examples include:
+
+* For a dynamic version like '1.+' certain versions may be explicitly rejected from selection
+* For a static version like '1.4' an instance may be rejected based on extra component metadata such as the Ivy branch attribute, allowing an instance from a subsequent repository to be used.
+
+Rules are configured via the api:org.gradle.api.artifacts.ComponentSelectionRules[] object. Each rule configured will be called with a api:org.gradle.api.artifacts.ComponentSelection[] object as an argument which contains information about the candidate version being considered. Calling api:org.gradle.api.artifacts.ComponentSelection#reject[] causes the given candidate version to be explicitly rejected, in which case the candidate will not be considered for the selector.
+
+The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate.
+
+++++
+<sample id="componentSelectionRulesReject" dir="componentSelectionRules" title="Component selection rule">
+                <sourcefile file="build.gradle" snippet="reject-version-1.1"/>
+            </sample>
+++++
+
+Note that version selection is applied starting with the highest version first. The version selected will be the first version found that all component selection rules accept. A version is considered accepted no rule explicitly rejects it.
+
+Similarly, rules can be targeted at specific modules. Modules must be specified in the form of "group:module".
+
+++++
+<sample id="componentSelectionRulesTarget" dir="componentSelectionRules" title="Component selection rule with module target">
+                <sourcefile file="build.gradle" snippet="targeted-component-selection"/>
+            </sample>
+++++
+
+Component selection rules can also consider component metadata when selecting a version. Possible metadata arguments that can be considered are api:org.gradle.api.artifacts.ComponentMetadata[] and api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[].
+
+++++
+<sample id="componentSelectionRulesMetadata" dir="componentSelectionRules" title="Component selection rule with metadata">
+                <sourcefile file="build.gradle" snippet="component-selection-with-metadata"/>
+            </sample>
+++++
+
+Note that a api:org.gradle.api.artifacts.ComponentSelection[] argument is _always_ required as the first parameter when declaring a component selection rule with additional Ivy metadata parameters, but the metadata parameters can be declared in any order.
+
+Lastly, component selection rules can also be defined using a _rule source_ object. A rule source object is any object that contains exactly one method that defines the rule action and is annotated with `@Mutate`.
+
+This method:
+
+* must return void.
+* must have api:org.gradle.api.artifacts.ComponentSelection[] as the first argument.
+* may have additional parameters of type api:org.gradle.api.artifacts.ComponentMetadata[] and/or api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[].
+
+++++
+<sample id="componentSelectionRulesRuleSource" dir="componentSelectionRules" title="Component selection rule using a rule source object">
+                <sourcefile file="build.gradle" snippet="api-component-selection"/>
+            </sample>
+++++
+
+
+[[sec:module_replacement]]
+==== Module replacement rules
+
+Module replacement rules allow a build to declare that a legacy library has been replaced by a new one. A good example when a new library replaced a legacy one is the "google-collections" -&gt; "guava" migration. The team that created google-collections decided to change the module name from "com.google.collections:google-collections" into "com.google.guava:guava". This a legal scenario in the industry: teams need to be able to change the names of products they maintain, including the module coordinates. Renaming of the module coordinates has impact on conflict resolution.
+
+To explain the impact on conflict resolution, let's consider the "google-collections" -&gt; "guava" scenario. It may happen that both libraries are pulled into the same dependency graph. For example, "our" project depends on guava but some of our dependencies pull in a legacy version of google-collections. This can cause runtime errors, for example during test or application execution. Gradle does not automatically resolve the google-collections VS guava conflict because it is not considered as a "version conflict". It's because the module coordinates for both libraries are completely different and conflict resolution is activated when "group" and "name" coordinates are the same but there are different versions available in the dependency graph (for more info, please refer to the section on conflict resolution). Traditional remedies to this problem are:
+
+* Declare exclusion rule to avoid pulling in "google-collections" to graph. It is probably the most popular approach.
+* Avoid dependencies that pull in legacy libraries.
+* Upgrade the dependency version if the new version no longer pulls in a legacy library.
+* Downgrade to "google-collections". It's not recommended, just mentioned for completeness.
+
+Traditional approaches work but they are not general enough. For example, an organisation wants to resolve the google-collections VS guava conflict resolution problem in all projects. Starting from Gradle 2.2 it is possible to declare that certain module was replaced by other. This enables organisations to include the information about module replacement in the corporate plugin suite and resolve the problem holistically for all Gradle-powered projects in the enterprise.
+++++
+<sample id="module_replacement_declaration" dir="userguide/artifacts/componentModuleMetadata" title="Declaring module replacement">
+                    <sourcefile file="build.gradle" snippet="module_replacement_declaration"/>
+                </sample>
+++++
+
+For more examples and detailed API, please refer to the DSL reference for api:org.gradle.api.artifacts.dsl.ComponentMetadataHandler[].
+
+What happens when we declare that "google-collections" are replaced by "guava"? Gradle can use this information for conflict resolution. Gradle will consider every version of "guava" newer/better than any version of "google-collections". Also, Gradle will ensure that only guava jar is present in the classpath / resolved file list. Please note that if only "google-collections" appears in the dependency graph (e.g. no "guava") Gradle will not eagerly replace it with "guava". Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict (e.g. only "google-collections" or only "guava" in the graph) the replacement information is not used.
+
+Currently it is not possible to declare that certain modules is replaced by a set of modules. However, it is possible to declare that multiple modules are replaced by a single module.
+
+[[sec:dependency_cache]]
+=== The dependency cache
+
+Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in dependency resolution, while striving to guarantee that the results of dependency resolution are correct and reproducible.
+
+The Gradle dependency cache consists of 2 key types of storage:
+
+* A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files. The storage path for a downloaded artifact includes the SHA1 checksum, meaning that 2 artifacts with the same name but different content can easily be cached.
+* A binary store of resolved module meta-data, including the results of resolving dynamic versions, module descriptors, and artifacts.
+
+Separating the storage of downloaded artifacts from the cache metadata permits us to do some very powerful things with our cache that would be difficult with a transparent, file-only cache layout.
+
+The Gradle cache does not allow the local cache to hide problems and create other mysterious and difficult to debug behavior that has been a challenge with many build tools. This new behavior is implemented in a bandwidth and storage efficient way. In doing so, Gradle enables reliable and reproducible enterprise builds.
+
+
+[[sec:cache_features]]
+==== Key features of the Gradle dependency cache
+
+
+[[sub:cache_metadata]]
+===== Separate metadata cache
+
+Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache. The information stored in the metadata cache includes:
+
+* The result of resolving a dynamic version (e.g. `1.+`) to a concrete version (e.g. `1.2`).
+* The resolved module metadata for a particular module, including module artifacts and module dependencies.
+* The resolved artifact metadata for a particular artifact, including a pointer to the downloaded artifact file.
+* The _absence_ of a particular module or artifact in a particular repository, eliminating repeated attempts to access a resource that does not exist.
+
+Every entry in the metadata cache includes a record of the repository that provided the information as well as a timestamp that can be used for cache expiry.
+
+[[sub:cache_repository_independence]]
+===== Repository caches are independent
+
+As described above, for each repository there is a separate metadata cache. A repository is identified by its URL, type and layout. If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository. This will always involve a remote lookup on the repository, however in many cases no download will be required (see <<sub:cache_artifact_reuse>>, below).
+
+Dependency resolution will fail if the required artifacts are not available in any repository specified by the build, even if the local cache has a copy of this artifact which was retrieved from a different repository. Repository independence allows builds to be isolated from each other in an advanced way that no build tool has done before. This is a key feature to create builds that are reliable and reproducible in any environment.
+
+[[sub:cache_artifact_reuse]]
+===== Artifact reuse
+
+Before downloading an artifact, Gradle tries to determine the checksum of the required artifact by downloading the sha file associated with that artifact. If the checksum can be retrieved, an artifact is not downloaded if an artifact already exists with the same id and checksum. If the checksum cannot be retrieved from the remote server, the artifact will be downloaded (and ignored if it matches an existing artifact).
+
+As well as considering artifacts downloaded from a different repository, Gradle will also attempt to reuse artifacts found in the local Maven Repository. If a candidate artifact has been downloaded by Maven, Gradle will use this artifact if it can be verified to match the checksum declared by the remote server.
+
+[[sub:cache_checksum_storage]]
+===== Checksum based storage
+
+It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier. This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing it's identifier. By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact. This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository. This is done without requiring a separate artifact file store per repository.
+
+[[sub:cache_locking]]
+===== Cache Locking
+
+The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently. The lock is held whenever the binary meta-data store is being read or written, but is released for slow operations such as downloading remote artifacts.
+
+[[sec:cache_command_line_options]]
+==== Command line options to override caching
+
+
+[[sub:cache_offline]]
+===== Offline
+
+The `--offline` command line switch tells Gradle to always use dependency modules from the cache, regardless if they are due to be checked again. When running with offline, Gradle will never attempt to access the network to perform dependency resolution. If required modules are not present in the dependency cache, build execution will fail.
+
+[[sub:cache_refresh]]
+===== Refresh
+
+At times, the Gradle Dependency Cache can be out of sync with the actual state of the configured repositories. Perhaps a repository was initially misconfigured, or perhaps a “non-changing” module was published incorrectly. To refresh all dependencies in the dependency cache, use the `--refresh-dependencies` option on the command line.
+
+The `--refresh-dependencies` option tells Gradle to ignore all cached entries for resolved modules and artifacts. A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded. However, where possible Gradle will check if the previously downloaded artifacts are valid before downloading again. This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.
+
+[[sec:controlling_caching]]
+==== Fine-tuned control over dependency caching
+
+You can fine-tune certain aspects of caching using the `ResolutionStrategy` for a configuration.
+
+By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
+
+++++
+<sample id="dynamic-version-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Dynamic version cache control">
+                <sourcefile file="build.gradle" snippet="dynamic-version-cache-control"/>
+            </sample>
+++++
+
+By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
+
+++++
+<sample id="changing-module-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Changing module cache control">
+                <sourcefile file="build.gradle" snippet="changing-module-cache-control"/>
+            </sample>
+++++
+
+For more details, take a look at the API documentation for api:org.gradle.api.artifacts.ResolutionStrategy[].
+
+[[sec:strategies_of_transitive_dependency_management]]
+=== Strategies for transitive dependency management
+
+Many projects rely on the https://repo1.maven.org/maven2[Maven Central repository]. This is not without problems.
+
+* The Maven Central repository can be down or can be slow to respond.
+* The POM files of many popular projects specify dependencies or other configuration that are just plain wrong (for instance, the POM file of the “`commons-httpclient-3.0`” module declares JUnit as a runtime dependency).
+* For many projects there is not one right set of dependencies (as more or less imposed by the POM format).
+
+If your project relies on the Maven Central repository you are likely to need an additional custom repository, because:
+
+* You might need dependencies that are not uploaded to Maven Central yet.
+* You want to deal properly with invalid metadata in a Maven Central POM file.
+* You don't want to expose people to the downtimes or slow response of Maven Central, if they just want to build your project.
+
+It is not a big deal to set-up a custom repository,footnote:[If you want to shield your project from the downtimes of Maven Central things get more complicated. You probably want to set-up a repository proxy for this. In an enterprise environment this is rather common. For an open source project it looks like overkill.] but it can be tedious to keep it up to date. For a new version, you always have to create the new XML descriptor and the directories. Your custom repository is another infrastructure element which might have downtimes and needs to be updated. To enable historical builds, you need to keep all the past libraries, not to mention a backup of these. It is another layer of indirection. Another source of information you have to lookup. All this is not really a big deal but in its sum it has an impact. Repository managers like Artifactory or Nexus make this easier, but most open source projects don't usually have a host for those products. This is changing with new services like http://bintray.com[Bintray] that let developers host and distribute their release binaries using a self-service repository platform. Bintray also supports sharing approved artifacts though the http://jcenter.bintray.com[JCenter] public repository to provide a single resolution address for all popular OSS Java artifacts (see <<sub:maven_jcenter>>).
+
+This is a common reason why many projects prefer to store their libraries in their version control system. This approach is fully supported by Gradle. The libraries can be stored in a flat directory without any XML module descriptor files. Yet Gradle offers complete transitive dependency management. You can use either client module dependencies to express the dependency relations, or artifact dependencies in case a first level dependency has no transitive dependencies. People can check out such a project from your source code control system and have everything necessary to build it.
+
+If you are working with a distributed version control system like Git you probably don't want to use the version control system to store libraries as people check out the whole history. But even here the flexibility of Gradle can make your life easier. For example, you can use a shared flat directory without XML descriptors and yet you can have full transitive dependency management, as described above.
+
+You could also have a mixed strategy. If your main concern is bad metadata in the POM file and maintaining custom XML descriptors, then _Client Modules_ offer an alternative. However, you can still use a Maven2 repo or your custom repository as a repository for _jars only_ and still enjoy _transitive_ dependency management. Or you can only provide client modules for POMs with bad metadata. For the jars and the correct POMs you still use the remote repository.
+
+
+[[sub:implicit_transitive_dependencies]]
+==== Implicit transitive dependencies
+
+There is another way to deal with transitive dependencies _without_ XML descriptor files. You can do this with Gradle, but we don't recommend it. We mention it for the sake of completeness and comparison with other build tools.
+
+The trick is to use only artifact dependencies and group them in lists. This will directly express your first level dependencies and your transitive dependencies (see <<sec:optional_attributes>>). The problem with this is that Gradle dependency management will see this as specifying all dependencies as first level dependencies. The dependency reports won't show your real dependency graph and the `compile` task uses all dependencies, not just the first level dependencies. All in all, your build is less maintainable and reliable than it could be when using client modules, and you don't gain anything.

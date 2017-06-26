@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskgraph;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.internal.TaskInternal;
 
 import java.util.TreeSet;
@@ -130,11 +129,18 @@ public class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public boolean allDependenciesComplete() {
-        for (TaskInfo dependency : Iterables.concat(mustSuccessors, dependencySuccessors)) {
+        for (TaskInfo dependency : mustSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
         }
+
+        for (TaskInfo dependency : dependencySuccessors) {
+            if (!dependency.isComplete()) {
+                return false;
+            }
+        }
+
         return true;
     }
 

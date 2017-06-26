@@ -20,8 +20,6 @@ dependencies {
     compile project(':languageNative')
     compile project(':testingBase')
 
-    testCompile libraries.groovy
-
     integTestRuntime project(':ideNative')
 }
 

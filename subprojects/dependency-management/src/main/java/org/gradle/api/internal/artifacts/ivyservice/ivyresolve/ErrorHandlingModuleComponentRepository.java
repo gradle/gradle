@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -30,6 +34,8 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+
+import java.util.Map;
 
 public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository {
     private final ModuleComponentRepository delegate;
@@ -65,6 +71,15 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remote;
+    }
+
+    public ComponentMetadataSupplier createMetadataSupplier() {
+        return delegate.createMetadataSupplier();
+    }
+
+    @Override
+    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
+        return delegate.getArtifactCache();
     }
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
@@ -122,6 +137,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             } catch (Throwable throwable) {
                 result.failed(new ArtifactResolveException(artifact.getId(), throwable));
             }
+        }
+
+        @Override
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return delegate.estimateMetadataFetchingCost(moduleComponentIdentifier);
         }
     }
 }

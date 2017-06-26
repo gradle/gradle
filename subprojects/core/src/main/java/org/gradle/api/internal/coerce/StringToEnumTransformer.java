@@ -57,6 +57,16 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
     }
 
     @Override
+    public boolean canTransform(Object[] args) {
+        for (Object arg : args) {
+            if (arg instanceof CharSequence) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public Object transformValue(Class<?> type, Object value) {
         if (value instanceof CharSequence && type.isEnum()) {
             @SuppressWarnings("unchecked") Class<? extends Enum> enumType = (Class<? extends Enum>) type;

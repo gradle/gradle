@@ -17,8 +17,12 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.internal.Factory;
 
+/**
+ * Applies cross-process file locking to a backing cache, to ensure that any in-memory and on file state is kept in sync while this process is read from or writing to the cache.
+ */
 public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
     private final CrossProcessCacheAccess cacheAccess;
     private final MultiProcessSafeAsyncPersistentIndexedCache<K, V> target;
@@ -26,6 +30,11 @@ public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePer
     public CrossProcessSynchronizingCache(MultiProcessSafeAsyncPersistentIndexedCache<K, V> target, CrossProcessCacheAccess cacheAccess) {
         this.target = target;
         this.cacheAccess = cacheAccess;
+    }
+
+    @Override
+    public String toString() {
+        return target.toString();
     }
 
     @Nullable
@@ -37,6 +46,12 @@ public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePer
                 return target.get(key);
             }
         });
+    }
+
+    @Override
+    public V get(final K key, final Transformer<? extends V, ? super K> producer) {
+        Runnable runnable = cacheAccess.acquireFileLock();
+        return target.get(key, producer, runnable);
     }
 
     @Override

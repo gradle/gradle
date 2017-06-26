@@ -16,21 +16,22 @@
 
 def buckets = [
     "1": [
-        ":platformPlay"
+        ":platformPlay",
+        ":runtimeApiInfo",
     ],
 
     "2": [
         ":toolingApi",
         ":compositeBuilds",
         ":resourcesS3",
-        ":jetty",
         ":resources",
         ":jvmServices",
         ":docs",
         ":distributions",
         ":soak",
         ":smokeTest",
-        ":taskCacheHttp"
+        ":buildCacheHttp",
+        ":workers"
     ],
 
     "3": [
@@ -47,7 +48,6 @@ def buckets = [
     "4": [
         ":testKit",
         ":languageNative",
-        ":ui",
         ":ivy",
         ":wrapper",
         ":platformJvm",
@@ -94,8 +94,7 @@ def buckets = [
         ":resourcesSftp",
         ":messaging",
         ":logging",
-        ":resourcesHttp",
-        ":openApi"
+        ":resourcesHttp"
     ],
 
     "8": [

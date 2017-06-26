@@ -19,7 +19,7 @@ package org.gradle.api.tasks;
 /**
  * Helper interface for binary compatibility with Gradle 2.x version of the {@link TaskInputs} interface.
  *
- * @deprecated The interface is only here to allow plugins built against Gradle 2.x to run and it will be removed in Gradle 4.0.
+ * @deprecated The interface is only here to allow plugins built against Gradle 2.x to run and it will be removed in Gradle 5.0.
  */
 @Deprecated
 public interface CompatibilityAdapterForTaskInputs {

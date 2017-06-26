@@ -15,12 +15,12 @@
  */
 package org.gradle.internal.serialize;
 
+import com.google.common.base.Objects;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static java.lang.String.format;
-
-public class MapSerializer<U, V> implements Serializer<Map<U, V>> {
+public class MapSerializer<U, V> extends AbstractSerializer<Map<U, V>> {
     private final Serializer<U> keySerializer;
     private final Serializer<V> valueSerializer;
 
@@ -43,32 +43,24 @@ public class MapSerializer<U, V> implements Serializer<Map<U, V>> {
     public void write(Encoder encoder, Map<U, V> value) throws Exception {
         encoder.writeInt(value.size());
         for (Map.Entry<U, V> entry : value.entrySet()) {
-            try {
-                keySerializer.write(encoder, entry.getKey());
-                valueSerializer.write(encoder, entry.getValue());
-            } catch (Exception e) {
-                throw new EntrySerializationException(entry.getKey(), entry.getValue(), e);
-            }
+            keySerializer.write(encoder, entry.getKey());
+            valueSerializer.write(encoder, entry.getValue());
         }
     }
 
-    public static class EntrySerializationException extends RuntimeException {
-
-        private final Object key;
-        private final Object value;
-
-        EntrySerializationException(Object key, Object value, Exception cause) {
-            super(format("Unable to write entry with key: '%s' and value: '%s'.", key, value), cause);
-            this.key = key;
-            this.value = value;
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
         }
 
-        public Object getKey() {
-            return key;
-        }
+        MapSerializer rhs = (MapSerializer) obj;
+        return Objects.equal(keySerializer, rhs.keySerializer)
+            && Objects.equal(valueSerializer, rhs.valueSerializer);
+    }
 
-        public Object getValue() {
-            return value;
-        }
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), keySerializer, valueSerializer);
     }
 }

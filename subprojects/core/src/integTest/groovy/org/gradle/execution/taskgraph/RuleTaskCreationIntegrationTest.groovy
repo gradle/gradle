@@ -57,7 +57,7 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         """
 
         when:
-        succeeds "tasks"
+        succeeds "tasks", "--all"
 
         then:
         output.contains "a - task a"
@@ -84,7 +84,7 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         """
 
         when:
-        succeeds "tasks"
+        succeeds "tasks", "--all"
 
         then:
         output.contains "a - task a"

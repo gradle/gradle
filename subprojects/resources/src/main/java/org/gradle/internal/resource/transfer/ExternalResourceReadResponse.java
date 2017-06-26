@@ -29,6 +29,4 @@ public interface ExternalResourceReadResponse extends Closeable {
     InputStream openStream() throws IOException;
 
     ExternalResourceMetaData getMetaData();
-
-    boolean isLocal();
 }

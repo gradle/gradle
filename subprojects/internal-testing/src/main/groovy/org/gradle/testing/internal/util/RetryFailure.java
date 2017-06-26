@@ -16,9 +16,7 @@
 
 package org.gradle.testing.internal.util;
 
-// TODO extend AssertionError instead of Error once we upgrade to Java 7,
-// in Java 6 there is no constructor in AssertionError that takes cause parameter
-public class RetryFailure extends Error {
+public class RetryFailure extends AssertionError {
 
     private static final String MESSAGE = "Test failed despite retries";
 

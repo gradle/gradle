@@ -70,8 +70,6 @@ dependencies {
     }
 
     private void containModuleInfo(libs) {
-        assert libs.size() == 3
-
         ExternalDependency coolLib = libs.find { it.file.name == 'coolLib-2.0.jar' }
         assert coolLib.gradleModuleVersion
         assert coolLib.gradleModuleVersion.group == 'foo.bar'

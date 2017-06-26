@@ -26,7 +26,8 @@ import spock.lang.Specification
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.*
 
 class SimpleStateCacheTest extends Specification {
-    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileAccess fileAccess = Mock()
     final Chmod chmod = Mock()
     final File file = tmpDir.file("state.bin")
@@ -134,5 +135,53 @@ class SimpleStateCacheTest extends Specification {
 
         then:
         cache.get() == "b"
+    }
+
+    def "maybeUpdate only writes back changes from update"() {
+        given:
+        // Note: we are using invocation of the serializer as an indicator of
+        // file read/write activity.
+        def serializer = Spy(DefaultSerializer)
+        def cache = createStateCache(createOnDemandFileLock(file), file, serializer)
+
+        when:
+        cache.set "a"
+
+        then:
+        1 * serializer.write(_, "a")
+
+        when: // same value is not written
+        def r = cache.maybeUpdate { it }
+
+        then:
+        r == "a"
+        1 * serializer.read(_)
+
+        and:
+        0 * serializer.write(_, _)
+
+        when: // different value is written back
+        r = cache.maybeUpdate { "b" }
+
+        then:
+        1 * serializer.read(_)
+
+        and:
+        1 * serializer.write(_, "b")
+
+        and:
+        r == "b"
+
+        when: // same logical value, but different object is written back
+        r = cache.maybeUpdate { new String("b") }
+
+        then:
+        1 * serializer.read(_)
+
+        and:
+        1 * serializer.write(_, "b")
+
+        and:
+        r == "b"
     }
 }

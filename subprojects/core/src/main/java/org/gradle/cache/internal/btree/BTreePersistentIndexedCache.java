@@ -16,7 +16,6 @@
 package org.gradle.cache.internal.btree;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -45,7 +44,7 @@ import java.util.List;
 // todo - free list leaks disk space
 // todo - merge adjacent free blocks
 // todo - use more efficient lookup for free block with nearest size
-public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
+public class BTreePersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentIndexedCache.class);
     private final File cacheFile;
     private final KeyHasher<K> keyHasher;
@@ -283,7 +282,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     }
 
     private class IndexRoot {
-        private BlockPointer rootPos = new BlockPointer();
+        private BlockPointer rootPos = BlockPointer.start();
         private HeaderBlock owner;
 
         private IndexRoot(HeaderBlock owner) {
@@ -326,7 +325,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
         @Override
         protected void read(DataInputStream instr) throws Exception {
-            index.rootPos = new BlockPointer(instr.readLong());
+            index.rootPos = BlockPointer.pos(instr.readLong());
 
             short actualChildIndexEntries = instr.readShort();
             if (actualChildIndexEntries != maxChildIndexEntries) {
@@ -347,7 +346,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     private class IndexBlock extends BlockPayload {
         private final List<IndexEntry> entries = new ArrayList<IndexEntry>();
-        private BlockPointer tailPos = new BlockPointer();
+        private BlockPointer tailPos = BlockPointer.start();
         // Transient fields
         private IndexBlock parent;
         private int parentEntryIndex;
@@ -369,11 +368,11 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             for (int i = 0; i < count; i++) {
                 IndexEntry entry = new IndexEntry();
                 entry.hashCode = instr.readLong();
-                entry.dataBlock = new BlockPointer(instr.readLong());
-                entry.childIndexBlock = new BlockPointer(instr.readLong());
+                entry.dataBlock = BlockPointer.pos(instr.readLong());
+                entry.childIndexBlock = BlockPointer.pos(instr.readLong());
                 entries.add(entry);
             }
-            tailPos = new BlockPointer(instr.readLong());
+            tailPos = BlockPointer.pos(instr.readLong());
         }
 
         public void write(DataOutputStream outstr) throws IOException {
@@ -395,7 +394,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 assert tailPos.isNull();
                 entry = new IndexEntry();
                 entry.hashCode = hashCode;
-                entry.childIndexBlock = new BlockPointer();
+                entry.childIndexBlock = BlockPointer.start();
                 index = -index - 1;
                 entries.add(index, entry);
             }
@@ -420,7 +419,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 siblingEntries.clear();
                 sibling.tailPos = tailPos;
                 tailPos = splitEntry.childIndexBlock;
-                splitEntry.childIndexBlock = new BlockPointer();
+                splitEntry.childIndexBlock = BlockPointer.start();
                 parent.add(this, splitEntry, sibling);
             }
         }

@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DependencyResolveContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.exceptions.ConfigurationNotConsumableException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy
@@ -46,16 +47,6 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         projectDependency.name == project.name
         projectDependency.group == "org.gradle"
         projectDependency.version == "1.2"
-    }
-
-    void "knows the configuration"() {
-        def conf = project.configurations.create("conf1")
-
-        when:
-        projectDependency = new DefaultProjectDependency(project, "conf1", null, true)
-
-        then:
-        projectDependency.projectConfiguration == conf
     }
 
     void "transitive resolution resolves all dependencies"() {
@@ -121,6 +112,23 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         1 * context.add({it.is(conf.allArtifacts)})
         1 * listener.beforeResolvingProjectDependency(project)
         0 * _
+    }
+
+    void "doesn't allow selection of configuration is not consumable"() {
+        def context = Mock(TaskDependencyResolveContext)
+
+        def conf = project.configurations.create('conf') {
+            canBeConsumed = false
+        }
+        def listener = Mock(ProjectAccessListener)
+        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
+
+        when:
+        projectDependency.buildDependencies.visitDependencies(context)
+
+        then:
+        def e = thrown(ConfigurationNotConsumableException)
+        e.message == "Selected configuration 'conf' on 'root project 'test'' but it can't be used as a project dependency because it isn't intended for consumption by other components."
     }
 
     void "does not build project dependencies if configured so"() {

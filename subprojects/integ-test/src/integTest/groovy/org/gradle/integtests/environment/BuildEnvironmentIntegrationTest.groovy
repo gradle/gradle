@@ -156,7 +156,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:
-        def out = executer.useDefaultBuildJvmArgs().run().output
+        def out = executer.useOnlyRequestedJvmOpts().run().output
 
         then:
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)
@@ -171,7 +171,7 @@ assert System.getProperty('some-prop') == 'some-value'
 """
 
         when:
-        executer.requireGradleDistribution().useDefaultBuildJvmArgs().run()
+        executer.requireGradleDistribution().useOnlyRequestedJvmOpts().run()
 
         then:
         noExceptionThrown()

@@ -30,6 +30,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -90,14 +91,14 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
-        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientSharedServices = createGlobalClientServices(false);
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createStopDaemonServices(loggingServices.get(OutputEventListener.class), daemonParameters);
         DaemonStopClient stopClient = clientServices.get(DaemonStopClient.class);
         return new StopDaemonAction(stopClient);
     }
 
     private Runnable showDaemonStatus(DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
-        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientSharedServices = createGlobalClientServices(false);
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createStopDaemonServices(loggingServices.get(OutputEventListener.class), daemonParameters);
         ReportDaemonStatusClient statusClient = clientServices.get(ReportDaemonStatusClient.class);
         return new ReportDaemonStatusAction(statusClient);
@@ -105,7 +106,7 @@ class BuildActionsFactory implements CommandLineAction {
 
     private Runnable runBuildWithDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
         // Create a client that will match based on the daemon startup parameters.
-        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientSharedServices = createGlobalClientServices(true);
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
@@ -138,19 +139,22 @@ class BuildActionsFactory implements CommandLineAction {
         //end of workaround.
 
         // Create a client that will not match any existing daemons, so it will always startup a new one
-        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientSharedServices = createGlobalClientServices(true);
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }
 
-    private ServiceRegistry createGlobalClientServices() {
-        return ServiceRegistryBuilder.builder()
-                .displayName("Daemon client global services")
-                .parent(NativeServices.getInstance())
-                .provider(new GlobalScopeServices(false))
-                .provider(new DaemonClientGlobalServices())
-                .build();
+    private ServiceRegistry createGlobalClientServices(boolean usingDaemon) {
+        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
+            .displayName("Daemon client global services")
+            .parent(NativeServices.getInstance());
+        if (usingDaemon) {
+            builder.provider(new BasicGlobalScopeServices());
+        } else {
+            builder.provider(new GlobalScopeServices(false));
+        }
+        return builder.provider(new DaemonClientGlobalServices()).build();
     }
 
     private Runnable runBuildAndCloseServices(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer, ServiceRegistry sharedServices, Object... stopBeforeSharedServices) {
@@ -162,7 +166,7 @@ class BuildActionsFactory implements CommandLineAction {
     private BuildActionParameters createBuildActionParamters(StartParameter startParameter, DaemonParameters daemonParameters) {
         return new DefaultBuildActionParameters(
                 daemonParameters.getEffectiveSystemProperties(),
-                System.getenv(),
+                daemonParameters.getEnvironmentVariables(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
                 daemonParameters.isEnabled(), startParameter.isContinuous(), daemonParameters.isInteractive(), ClassPath.EMPTY);

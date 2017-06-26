@@ -51,6 +51,9 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
                 reloadFromResult(result);
             }
         });
+        if (isRunning()) {
+            runnerToken.rebuildInProgress();
+        }
     }
 
     void reloadFromResult(BuildResult result) {
@@ -69,6 +72,7 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
         if (isRunning()) {
             LOGGER.info("Stopping Play deployment handle for {}", id);
             runnerToken.stop();
+            LOGGER.info("Stopped Play deployment handle for {}", id);
         }
     }
 }

@@ -90,6 +90,15 @@ public class GeneratePluginDescriptors extends ConventionTask {
         return getProject().file(outputDirectory);
     }
 
+    /**
+     * Sets the output directory.
+     *
+     * @since 4.0
+     */
+    public void setOutputDirectory(File outputDirectory) {
+        setOutputDirectory((Object) outputDirectory);
+    }
+
     public void setOutputDirectory(Object outputDirectory) {
         this.outputDirectory = outputDirectory;
     }

@@ -56,7 +56,7 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
     TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskOutputs#upToDateWhen(Closure)} instead.
      */
@@ -65,7 +65,7 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
     void upToDateWhen(Closure upToDateClosure);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskOutputs#upToDateWhen(Spec)} instead.
      */
@@ -74,7 +74,7 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
     void upToDateWhen(Spec<? super Task> upToDateSpec);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskOutputs#getHasOutput()} instead.
      */
@@ -83,7 +83,7 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
     boolean getHasOutput();
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskOutputs#getFiles()} instead.
      */
@@ -92,7 +92,7 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
     FileCollection getFiles();
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskOutputs#files(Object...)} instead.
      */
@@ -101,7 +101,7 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
     TaskOutputFilePropertyBuilder files(Object... paths);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskOutputs#file(Object)} instead.
      */
@@ -110,7 +110,7 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
     TaskOutputFilePropertyBuilder file(Object path);
 
     /**
-     * {@inheritDoc}
+     * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskOutputs#dir(Object)} instead.
      */

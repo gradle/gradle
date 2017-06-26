@@ -472,7 +472,8 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
     }
 
-    @Ignore //TODO SF need to rework this test. First step might be turning off in-memory metadata caching for this test.
+    @Ignore
+    //TODO SF need to rework this test. First step might be turning off in-memory metadata caching for this test.
     def "can update snapshot artifact during build even if it is locked earlier in build"() {
         given:
         def module = mavenHttpRepo("/repo", maven("repo1")).module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
@@ -671,7 +672,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
 
         when: "Resolve without cache"
-        projectA.metaData.expectGet()
+        projectA.metaData.expectHead()
         projectA.pom.expectHead()
         projectA.pom.sha1.expectGet()
         projectA.pom.expectGet()
@@ -1034,6 +1035,9 @@ Required by:
     }
 
     private expectChangedModuleServed(MavenHttpModule module) {
+        if (module.uniqueSnapshots) {
+            module.metaData.expectHead()
+        }
         module.metaData.expectGet()
         module.pom.expectHead()
         module.pom.sha1.expectGet()
@@ -1044,7 +1048,11 @@ Required by:
     }
 
     private expectChangedArtifactServed(MavenHttpModule module) {
-        module.metaData.expectGet()
+        if (module.uniqueSnapshots) {
+            module.metaData.expectHead()
+        } else {
+            module.metaData.expectGet()
+        }
         module.pom.expectHead()
         def artifact = module.artifact
         artifact.expectHead()
@@ -1053,7 +1061,11 @@ Required by:
     }
 
     private expectChangedProbe(MavenHttpModule module) {
-        module.metaData.expectGet()
+        if (module.uniqueSnapshots) {
+            module.metaData.expectHead()
+        } else {
+            module.metaData.expectGet()
+        }
         module.pom.expectHead()
         module.artifact.expectHead()
     }

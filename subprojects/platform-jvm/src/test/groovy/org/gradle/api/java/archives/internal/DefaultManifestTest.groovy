@@ -18,14 +18,12 @@ package org.gradle.api.java.archives.internal
 
 import org.apache.tools.ant.taskdefs.Manifest
 import org.apache.tools.ant.taskdefs.Manifest.Attribute
-import org.apache.tools.ant.taskdefs.Manifest.Section
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
-
 
 class DefaultManifestTest extends Specification {
     def static final MANIFEST_VERSION_MAP = ['Manifest-Version': '1.0']
@@ -124,40 +122,6 @@ class DefaultManifestTest extends Specification {
 
         expect:
         gradleManifest.effectiveManifest.getAttributes() == [key1: 'value1', key2: 'value2', key4: 'value4'] + MANIFEST_VERSION_MAP
-    }
-
-    def write() {
-        Map testMainAttributes = [key1: 'value1', key2: 'value2', key3: 'value3', key4: 'value4'] as LinkedHashMap
-        Map testSectionAttributes = [sectionkey1: 'sectionvalue1']
-        String testSection = 'section'
-
-        DefaultManifest gradleManifest = new DefaultManifest(fileResolver)
-        gradleManifest.from(new DefaultManifest(fileResolver).attributes(testMainAttributes))
-        gradleManifest.attributes(testSectionAttributes, testSection)
-
-        Manifest expectedManifest = new Manifest()
-        expectedManifest.addConfiguredAttribute(new Attribute('key1', 'value1'))
-        expectedManifest.addConfiguredAttribute(new Attribute('key2', 'value2'))
-        expectedManifest.addConfiguredAttribute(new Attribute('key3', 'value3'))
-        expectedManifest.addConfiguredAttribute(new Attribute('key4', 'value4'))
-        expectedManifest.addConfiguredAttribute(new Attribute('Manifest-Version', '1.0'))
-        Section section = new Section()
-        section.setName testSection
-        section.addConfiguredAttribute(new Attribute('sectionkey1', 'sectionvalue1'))
-        expectedManifest.addConfiguredSection(section)
-        def StringWriter stringWriter = new StringWriter()
-
-        when:
-        gradleManifest.writeTo(stringWriter)
-        Manifest actualManifest = new Manifest(new StringReader(stringWriter.toString()))
-        def actualKeys = [] as Set
-        actualManifest.getMainSection().getAttributeKeys().each { element ->
-            actualKeys.add(element)
-        }
-
-        then:
-        actualManifest == expectedManifest
-        actualKeys == testMainAttributes.keySet()
     }
 
     def writeWithPath() {

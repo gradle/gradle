@@ -37,7 +37,7 @@ class DefaultCommandLineToolInvocationWorkerTest extends Specification {
         def invocation = new DefaultCommandLineToolInvocation("doing something", null, [], context, Mock(BuildOperationLogger))
 
         when:
-        commandLineTool.execute(invocation)
+        commandLineTool.execute(invocation, null)
 
         then:
         1 * execAction.executable(executable)

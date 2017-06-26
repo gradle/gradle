@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -33,14 +37,18 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
+import java.util.Map;
+
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleComponentRepositoryAccess localAccess;
     private final ModuleComponentRepositoryAccess remoteAccess;
+    private final Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactsCache;
 
     public InMemoryCachedModuleComponentRepository(InMemoryModuleComponentRepositoryCaches cache, ModuleComponentRepository delegate) {
         super(delegate);
         this.localAccess = new CachedAccess(delegate.getLocalAccess(), cache.localArtifactsCache, cache.localMetaDataCache);
         this.remoteAccess = new CachedAccess(delegate.getRemoteAccess(), cache.remoteArtifactsCache, cache.remoteMetaDataCache);
+        resolvedArtifactsCache = cache.resolvedArtifactsCache;
     }
 
     @Override
@@ -51,6 +59,11 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
     @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
+    }
+
+    @Override
+    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
+        return resolvedArtifactsCache;
     }
 
     private class CachedAccess extends BaseModuleComponentRepositoryAccess {
@@ -81,6 +94,11 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
             if (!metaDataCache.supplyMetaData(moduleComponentIdentifier, result)) {
                 super.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
                 metaDataCache.newDependencyResult(moduleComponentIdentifier, result);
+                if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
+                    metaDataCache.cacheFetchingCost(moduleComponentIdentifier, MetadataFetchingCost.FAST);
+                } else {
+                    metaDataCache.cacheFetchingCost(moduleComponentIdentifier, MetadataFetchingCost.CHEAP);
+                }
             }
         }
 
@@ -106,6 +124,16 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
                 super.resolveArtifact(artifact, moduleSource, result);
                 artifactsCache.newArtifact(artifact.getId(), result);
             }
+        }
+
+        @Override
+        public MetadataFetchingCost estimateMetadataFetchingCost(final ModuleComponentIdentifier moduleComponentIdentifier) {
+            return metaDataCache.getOrCacheFetchingCost(moduleComponentIdentifier, new Factory<MetadataFetchingCost>() {
+                @Override
+                public MetadataFetchingCost create() {
+                    return CachedAccess.super.estimateMetadataFetchingCost(moduleComponentIdentifier);
+                }
+            });
         }
     }
 }

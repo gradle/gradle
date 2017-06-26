@@ -16,6 +16,8 @@
 
 package org.gradle.external.javadoc;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
@@ -130,9 +132,9 @@ public class StandardJavadocDocletOptionsTest {
             oneOf(optionFileMock).addStringOption("footer");
             oneOf(optionFileMock).addStringOption("bottom");
             oneOf(optionFileMock).addStringOption("link");
-            allowing(optionFileMock).addOption(new LinksOfflineJavadocOptionFileOption("linkoffline"));
+            allowing(optionFileMock).addOption(new LinksOfflineJavadocOptionFileOption("linkoffline", Lists.<JavadocOfflineLink>newArrayList()));
             oneOf(optionFileMock).addBooleanOption("linksource");
-            oneOf(optionFileMock).addOption(new GroupsJavadocOptionFileOption("group"));
+            oneOf(optionFileMock).addOption(new GroupsJavadocOptionFileOption("group", Maps.<String, List<String>>newLinkedHashMap()));
             oneOf(optionFileMock).addBooleanOption("nodeprecated");
             oneOf(optionFileMock).addBooleanOption("nodeprecatedlist");
             oneOf(optionFileMock).addBooleanOption("nosince");

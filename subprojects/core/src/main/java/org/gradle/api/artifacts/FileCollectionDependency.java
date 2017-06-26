@@ -17,7 +17,6 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileSystemSubset;
 
 /**
  * A {@code FileCollectionDependency} is a {@link Dependency} on a collection of local files which are not stored in a
@@ -31,11 +30,4 @@ public interface FileCollectionDependency extends SelfResolvingDependency {
      */
     @Incubating
     FileCollection getFiles();
-
-    /**
-     * Registers locations to watch for this dependency.
-     * @deprecated Use {@link #getFiles()} instead.
-     */
-    @Deprecated
-    void registerWatchPoints(FileSystemSubset.Builder builder);
 }

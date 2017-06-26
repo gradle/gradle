@@ -17,8 +17,8 @@ package org.gradle.api.tasks;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.invocation.BuildController;
 
 import java.io.File;
 import java.util.Collection;
@@ -28,11 +28,11 @@ import java.util.List;
  * Executes a Gradle build.
  */
 public class GradleBuild extends ConventionTask {
-    private final GradleLauncherFactory gradleLauncherFactory;
+    private final NestedBuildFactory nestedBuildFactory;
     private StartParameter startParameter;
 
     public GradleBuild() {
-        this.gradleLauncherFactory = getServices().get(GradleLauncherFactory.class);
+        this.nestedBuildFactory = getServices().get(NestedBuildFactory.class);
         this.startParameter = getServices().get(StartParameter.class).newBuild();
         startParameter.setCurrentDir(getProject().getProjectDir());
     }
@@ -70,6 +70,16 @@ public class GradleBuild extends ConventionTask {
      * Sets the project directory for the build.
      *
      * @param dir The project directory. Should not be null.
+     * @since 4.0
+     */
+    public void setDir(File dir) {
+        setDir((Object) dir);
+    }
+
+    /**
+     * Sets the project directory for the build.
+     *
+     * @param dir The project directory. Should not be null.
      */
     public void setDir(Object dir) {
         getStartParameter().setCurrentDir(getProject().file(dir));
@@ -84,6 +94,16 @@ public class GradleBuild extends ConventionTask {
     @Optional @InputFile
     public File getBuildFile() {
         return getStartParameter().getBuildFile();
+    }
+
+    /**
+     * Sets the build file that should be used for this build.
+     *
+     * @param file The build file. May be null to use the default build file for the build.
+     * @since 4.0
+     */
+    public void setBuildFile(File file) {
+        setBuildFile((Object) file);
     }
 
     /**
@@ -109,6 +129,16 @@ public class GradleBuild extends ConventionTask {
      * Sets the tasks that should be executed for this build.
      *
      * @param tasks The task names. May be empty or null to use the default tasks for the build.
+     * @since 4.0
+     */
+    public void setTasks(List<String> tasks) {
+        setTasks((Collection<String>) tasks);
+    }
+
+    /**
+     * Sets the tasks that should be executed for this build.
+     *
+     * @param tasks The task names. May be empty or null to use the default tasks for the build.
      */
     public void setTasks(Collection<String> tasks) {
         getStartParameter().setTaskNames(tasks);
@@ -116,11 +146,11 @@ public class GradleBuild extends ConventionTask {
 
     @TaskAction
     void build() {
-        GradleLauncher launcher = gradleLauncherFactory.nestedInstance(getStartParameter());
+        BuildController buildController = nestedBuildFactory.nestedBuildController(getStartParameter());
         try {
-            launcher.run();
+            buildController.run();
         } finally {
-            launcher.stop();
+            buildController.stop();
         }
     }
 }

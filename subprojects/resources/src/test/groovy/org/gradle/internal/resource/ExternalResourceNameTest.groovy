@@ -15,6 +15,7 @@
  */
 
 package org.gradle.internal.resource
+
 import org.gradle.util.Matchers
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -99,8 +100,22 @@ class ExternalResourceNameTest extends Specification {
         "file:/a/b/c"                | "file:/a/b/c"
     }
 
+    def "short display name is last element of the path if present"() {
+        expect:
+        def name = new ExternalResourceName(URI.create(uri))
+        name.shortDisplayName == expectedDisplayName
+
+        where:
+        uri               | expectedDisplayName
+        "http://host:80"  | "http://host:80"
+        "http://host/a/b" | "b"
+        "http://host"     | "http://host"
+        "a/b/c"           | "c"
+        "file:/a/b/c"     | "c"
+    }
+
     @Requires(TestPrecondition.WINDOWS)
-    def "can handle UNC paths"(){
+    def "can handle UNC paths"() {
         expect:
         def name = new ExternalResourceName(uri)
         name.decoded == expectedDecoded

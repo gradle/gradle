@@ -285,4 +285,32 @@ public interface ResolutionStrategy {
      */
     @Incubating
     ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action);
+
+    /**
+     * Specifies the ordering for resolved artifacts. Options are:
+     * <ul>
+     * <li>{@link SortOrder#DEFAULT} : Don't specify the sort order. Gradle will provide artifacts in the default order.</li>
+     * <li>{@link SortOrder#CONSUMER_FIRST} : Artifacts for a consuming component should appear <em>before</em> artifacts for it's dependencies.</li>
+     * <li>{@link SortOrder#DEPENDENCY_FIRST} : Artifacts for a consuming component should appear <em>after</em> artifacts for it's dependencies.</li>
+     * </ul>
+     * A best attempt will be made to sort artifacts according the supplied {@link SortOrder}, but no guarantees will be made in the presence of dependency cycles.
+     *
+     * NOTE: For a particular Gradle version, artifact ordering will be consistent. Multiple resolves for the same inputs will result in the
+     * same outputs in the same order.
+     *
+     * @since 3.5
+     */
+    @Incubating
+    void sortArtifacts(SortOrder sortOrder);
+
+    /**
+     * Defines the sort order for components and artifacts produced by the configuration.
+     *
+     * @see #sortArtifacts(SortOrder)
+     * @since 3.5
+     */
+    @Incubating
+    enum SortOrder {
+        DEFAULT, CONSUMER_FIRST, DEPENDENCY_FIRST
+    }
 }

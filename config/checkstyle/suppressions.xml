@@ -7,6 +7,8 @@
 <suppressions>
     <!-- These packages are duplicated in core, don't require a package-info.java in each place -->
     <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]model-core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]platform-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]resources[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]resources[/\\][^/\\]+"/>
@@ -42,6 +44,8 @@
               files=".*[/\\]subprojects[/\\]testing-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]jvm[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]testing-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]testing[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]build-comparison[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\]buildcomparison[/\\]gradle[/\\][^/\\]+"/>
 
     <!-- Don't require api docs for projects only used internally -->
     <suppress checks="Javadoc.*"
@@ -54,6 +58,8 @@
     <!-- Protocol types may only define constants in interfaces -->
     <suppress checks="InterfaceIsTypeCheck"
               files=".*[/\\]subprojects[/\\]tooling-api[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]tooling[/\\]internal[/\\]protocol.+"/>
+    <suppress checks="InterfaceIsTypeCheck"
+              files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]attributes[/\\]Usage.+"/>
 
 
 </suppressions>
