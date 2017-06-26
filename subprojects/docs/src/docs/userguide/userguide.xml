@@ -83,7 +83,8 @@
         <xi:include href='distributionPlugin.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/announcePlugin.xml'/>
-        <xi:include href='buildAnnouncementsPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/buildAnnouncementsPlugin.xml'/>
     </part>
     <part>
         <title>Extending the build</title>
