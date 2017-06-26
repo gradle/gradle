@@ -58,7 +58,8 @@
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/tasks.xml'/>
         <xi:include href='workingWithFiles.xml'/>
-        <xi:include href='ant.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/ant.xml'/>
         <xi:include href='buildLifecycle.xml'/>
         <xi:include href='wrapperPlugin.xml'/>
         <xi:include href='logging.xml'/>
