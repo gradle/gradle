@@ -44,7 +44,7 @@
         <xi:include href='introMultiProjectBuilds.xml'/>
         <xi:include href='continuousBuild.xml'/>
         <xi:include href='compositeBuilds.xml'/>
-        <xi:include href='buildEnvironment.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/buildEnvironment.xml'/>
         <xi:include href='troubleshooting.xml'/>
         <xi:include href='embedding.xml'/>
         <!-- this is generated -->
