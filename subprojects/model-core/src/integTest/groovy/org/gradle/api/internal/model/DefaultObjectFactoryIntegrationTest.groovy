@@ -20,8 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create unnamed instances of class using injected factory"() {
         buildFile << """
-            @groovy.transform.Canonical
+            @groovy.transform.ToString
             class Thing {
+                @javax.inject.Inject
+                Thing(String name) { this.name = name }
+                
                 String name
             }
             
