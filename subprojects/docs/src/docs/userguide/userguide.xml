@@ -40,7 +40,8 @@
         <xi:include href='../../../build/asciidoc/userguide/console.xml'/>
         <xi:include href='gradleWrapper.xml'/>
         <xi:include href='gradleDaemon.xml'/>
-        <xi:include href='artifactDependenciesTutorial.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/artifactDependenciesTutorial.xml'/>
         <xi:include href='introMultiProjectBuilds.xml'/>
         <xi:include href='continuousBuild.xml'/>
         <xi:include href='compositeBuilds.xml'/>
