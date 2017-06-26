@@ -30,12 +30,14 @@ import java.io.Serializable
 internal
 data class ProjectSchema<out T>(
     val extensions: Map<String, T>,
-    val conventions: Map<String, T>) : Serializable {
+    val conventions: Map<String, T>,
+    val configurations: List<String>) : Serializable {
 
     fun <U> map(f: (T) -> U) =
         ProjectSchema(
             extensions.mapValues { f(it.value) },
-            conventions.mapValues { f(it.value) })
+            conventions.mapValues { f(it.value) },
+            configurations.toList())
 }
 
 
@@ -50,20 +52,34 @@ fun multiProjectSchemaFor(root: Project): Map<String, ProjectSchema<TypeOf<*>>> 
 
 
 internal
-fun schemaFor(project: Project) =
+fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
     accessibleProjectSchemaFrom(
         project.extensions.schema,
-        project.convention.plugins)
+        project.convention.plugins,
+        project.configurations.names.toList())
 
 
 internal
 fun accessibleProjectSchemaFrom(
     extensionSchema: Map<String, TypeOf<*>>,
-    conventionPlugins: Map<String, Any>): ProjectSchema<TypeOf<*>> =
+    conventionPlugins: Map<String, Any>,
+    configurationNames: List<String>): ProjectSchema<TypeOf<*>> =
 
     ProjectSchema(
-        extensions = extensionSchema.filterValues(::isAccessible),
-        conventions = conventionPlugins.mapValues { typeOf(it.value::class.java) }.filterValues(::isAccessible))
+        extensions = extensionSchema
+            .filterKeys(::isPublic)
+            .filterValues(::isAccessible),
+        conventions = conventionPlugins
+            .filterKeys(::isPublic)
+            .mapValues { typeOf(it.value::class.java) }
+            .filterValues(::isAccessible),
+        configurations = configurationNames
+            .filter(::isPublic))
+
+
+internal
+fun isPublic(name: String): Boolean =
+    !name.startsWith("_")
 
 
 internal
@@ -93,8 +109,9 @@ internal
 fun loadMultiProjectSchemaFrom(file: File) =
     (groovy.json.JsonSlurper().parse(file) as Map<String, Map<String, *>>).mapValues {
         ProjectSchema(
-            extensions = it.value["extensions"] as Map<String, String>,
-            conventions = it.value["conventions"] as Map<String, String>)
+            extensions = it.value["extensions"] as? Map<String, String> ?: emptyMap(),
+            conventions = it.value["conventions"] as? Map<String, String> ?: emptyMap(),
+            configurations = it.value["configurations"] as? List<String> ?: emptyList())
     }
 
 

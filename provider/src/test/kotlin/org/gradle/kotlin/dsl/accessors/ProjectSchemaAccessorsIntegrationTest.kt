@@ -29,7 +29,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             }
 
             dependencies {
-                "api"("com.google.guava:guava:21.0")
+                api("com.google.guava:guava:21.0")
             }
 
             publishing {
@@ -39,7 +39,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             }
 
             dependencies {
-                "api"("org.apache.commons:commons-lang3:3.5")
+                api("org.apache.commons:commons-lang3:3.5")
             }
 
         """)
@@ -121,6 +121,61 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         assertThat(
             build("mainClassName").output,
             containsString("*App*"))
+    }
+
+    @Test
+    fun `can access configurations registered by declared plugins via jit accessor`() {
+
+        withFile("settings.gradle", """
+            include "a", "b", "c"
+        """)
+
+        withFile("a/build.gradle.kts", """
+            plugins { `java-library` }
+        """)
+
+        withFile("b/build.gradle.kts", """
+            plugins { `java-library` }
+
+            dependencies {
+                compile("org.apache.commons:commons-io:1.3.2")
+            }
+
+            repositories { jcenter() }
+        """)
+
+        withFile("c/build.gradle.kts","""
+            plugins { `java-library` }
+
+            dependencies {
+                compileOnly(group = "org.slf4j", name = "slf4j-api", version = "1.7.25")
+                api("com.google.guava:guava:21.0")
+                implementation("ch.qos.logback:logback-classic:1.2.3") {
+                    isTransitive = false
+                }
+                implementation(project(":a"))
+                implementation(project(":b")) {
+                    exclude(group = "org.apache.commons")
+                }
+            }
+
+            repositories { jcenter() }
+
+            configurations.compileClasspath.files.forEach { println(it) }
+        """)
+
+        val result = build("help", "-q")
+
+        assertThat(
+            result.output,
+            allOf(
+                containsString("slf4j-api-1.7.25.jar"),
+                containsString("guava-21.0.jar"),
+                containsString("logback-classic-1.2.3.jar"),
+                containsString("a/build/classes/java/main"),
+                containsString("b/build/classes/java/main"),
+                not(containsString("logback-core")),
+                not(containsString("commons-io"))))
     }
 
     @Test

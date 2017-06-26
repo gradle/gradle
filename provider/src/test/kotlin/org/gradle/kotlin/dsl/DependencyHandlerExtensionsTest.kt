@@ -116,46 +116,6 @@ class DependencyHandlerExtensionsTest {
     }
 
     @Test
-    fun `given extensions for common configurations, they will delegate to the appropriate methods`() {
-
-        val externalModuleDependency = mock<ExternalModuleDependency> {
-            on { exclude(any()) }.then { it.mock }
-        }
-        val projectDependency = mock<ProjectDependency> {
-            on { exclude(any()) }.then { it.mock }
-        }
-        val dependencyHandler = mock<DependencyHandler> {
-            on { create(any()) } doReturn externalModuleDependency
-            on { create("org.gradle:baz:1.0-SNAPSHOT") } doReturn externalModuleDependency
-            on { project(any()) } doReturn projectDependency
-            on { add(any(), any()) }.then { it.getArgument(1) }
-        }
-
-        val dependencies = DependencyHandlerScope(dependencyHandler)
-        dependencies {
-
-            default(group = "org.gradle", name = "foo", version = "1.0") {
-                isForce = true
-            }
-
-            compile(group = "org.gradle", name = "bar") {
-                exclude(module = "foo")
-            }
-
-            runtime("org.gradle:baz:1.0-SNAPSHOT") {
-                isChanging = true
-                isTransitive = false
-            }
-
-            testCompile(group = "junit", name = "junit")
-
-            testRuntime(project(":core")) {
-                exclude(group = "org.gradle")
-            }
-        }
-    }
-
-    @Test
     fun `given configuration name and dependency notation, it will add the dependency`() {
 
         val dependencies = DependencyHandlerScope(mock())
@@ -226,7 +186,7 @@ class DependencyHandlerExtensionsTest {
                         "org.apache.ant:ant-junit:1.9.6")
                 }
             }
-            runtime(groovy)
+            add("runtime", groovy)
         }
 
         verify(clientModule).isTransitive = false

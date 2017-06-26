@@ -1,6 +1,5 @@
 import build.*
 
-import codegen.GenerateConfigurationExtensions
 import codegen.GenerateKotlinDependencyExtensions
 
 plugins {
@@ -31,10 +30,6 @@ java.sourceSets["main"].kotlin {
     srcDir(apiExtensionsOutputDir)
 }
 
-val generateConfigurationExtensions by task<GenerateConfigurationExtensions> {
-    outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/ConfigurationsExtensions.kt")
-}
-
 val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtensions> {
     val pluginsCurrentVersion: String by rootProject.extra
     outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
@@ -44,7 +39,6 @@ val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtension
 }
 
 val generateExtensions by tasks.creating {
-    dependsOn(generateConfigurationExtensions)
     dependsOn(generateKotlinDependencyExtensions)
 }
 

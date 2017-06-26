@@ -30,7 +30,12 @@ class GenerateProjectSchemaTest : AbstractIntegrationTest() {
                             "reporting" to "org.gradle.api.reporting.ReportingExtension"),
                         conventions = mapOf(
                             "base" to "org.gradle.api.plugins.BasePluginConvention",
-                            "java" to "org.gradle.api.plugins.JavaPluginConvention")))
+                            "java" to "org.gradle.api.plugins.JavaPluginConvention"),
+                        configurations = listOf(
+                            "apiElements", "archives", "compile", "compileClasspath", "compileOnly", "default",
+                            "implementation", "runtime", "runtimeClasspath", "runtimeElements", "runtimeOnly",
+                            "testCompile", "testCompileClasspath", "testCompileOnly", "testImplementation",
+                            "testRuntime", "testRuntimeClasspath", "testRuntimeOnly")))
 
         assertThat(
             generatedSchema,

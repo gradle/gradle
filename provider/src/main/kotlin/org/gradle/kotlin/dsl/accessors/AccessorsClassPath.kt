@@ -32,6 +32,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 import java.io.BufferedWriter
 import java.io.File
+import java.util.AbstractMap
 
 
 fun accessorsClassPathFor(project: Project, classPath: ClassPath) =
@@ -139,10 +140,17 @@ fun cacheKeyFor(projectSchema: ProjectSchema<String>): CacheKeySpec =
 
 private
 fun ProjectSchema<String>.toCacheKeyString(): String =
-    (extensions.entries.asSequence() + conventions.entries.asSequence())
+    (extensions.entries.asSequence()
+     + conventions.entries.asSequence()
+     + mapOf("configurations" to configurations.sorted().joinToString(",")).entries.asSequence())
         .map { "${it.key}=${it.value}" }
         .sorted()
         .joinToString(separator = ":")
+
+
+private
+fun <K, V> mapEntry(key: K, value: V) =
+    AbstractMap.SimpleEntry(key, value)
 
 
 private
@@ -168,6 +176,13 @@ fun writeAccessorsFor(projectSchema: ProjectSchema<String>, writer: BufferedWrit
         write(fileHeader)
         newLine()
         appendln("import org.gradle.api.Project")
+        appendln("import org.gradle.api.artifacts.Configuration")
+        appendln("import org.gradle.api.artifacts.ConfigurationContainer")
+        appendln("import org.gradle.api.artifacts.Dependency")
+        appendln("import org.gradle.api.artifacts.ExternalModuleDependency")
+        appendln("import org.gradle.api.artifacts.ModuleDependency")
+        appendln("import org.gradle.api.artifacts.dsl.DependencyHandler")
+        newLine()
         appendln("import org.gradle.kotlin.dsl.*")
         newLine()
         projectSchema.forEachAccessor {

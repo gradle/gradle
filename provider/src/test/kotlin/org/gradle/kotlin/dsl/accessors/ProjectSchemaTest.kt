@@ -28,11 +28,13 @@ class ProjectSchemaTest {
                 conventionPlugins = mapOf(
                     "publicNonSyntheticInstance" to instanceOf(publicNonSyntheticClass),
                     "nonPublicInstance" to instanceOf(nonPublicClass),
-                    "syntheticInstance" to instanceOf(syntheticClass))),
+                    "syntheticInstance" to instanceOf(syntheticClass)),
+                configurationNames = emptyList()),
             equalTo(
                 ProjectSchema(
                     extensions = mapOf("publicNonSynthetic" to publicNonSyntheticType),
-                    conventions = mapOf("publicNonSyntheticInstance" to publicNonSyntheticType))))
+                    conventions = mapOf("publicNonSyntheticInstance" to publicNonSyntheticType),
+                    configurations = emptyList())))
     }
 
     @Test

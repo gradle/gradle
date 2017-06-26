@@ -7,6 +7,6 @@ import org.gradle.kotlin.dsl.*
  */
 fun Project.kotlinProject() {
     dependencies {
-        compile(kotlin("stdlib"))
+        "compile"(kotlin("stdlib"))
     }
 }
