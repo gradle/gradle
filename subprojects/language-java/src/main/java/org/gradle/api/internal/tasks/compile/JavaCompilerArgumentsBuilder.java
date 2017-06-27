@@ -24,7 +24,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.Factory;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
@@ -172,9 +171,6 @@ public class JavaCompilerArgumentsBuilder {
                 return compileOptions.getSourcepath();
             }
         });
-        if (Jvm.current().getJavaVersion().isJava9Compatible() && containsModuleDescriptor(spec.getSource())) {
-            noEmptySourcePath();
-        }
         if (!noEmptySourcePath || sourcepath != null && !sourcepath.isEmpty()) {
             args.add("-sourcepath");
             args.add(sourcepath == null ? "" : sourcepath.getAsPath());
