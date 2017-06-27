@@ -18,7 +18,6 @@
 
 The `gradle` command has the following usage:
 
-[role=cmdsynopsis]
 ----
 gradle [option...] [task...]
 ----
@@ -70,7 +69,7 @@ Specifies the start directory for Gradle. Defaults to current directory. See <<s
 `--parallel (incubating)`::
 Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use. This option should only be used with decoupled projects (see <<sec:decoupled_projects>>). For limitations of this option please see <<sec:parallel_execution>>.
 `--max-workers (incubating)`::
-Sets the maximum number of workers that Gradle may use. For example`--max-workers=3`. The default is the number of processors.
+Sets the maximum number of workers that Gradle may use. For example `--max-workers=3`. The default is the number of processors.
 `--profile`::
 Profiles build execution time and generates a report in the `__buildDir__/reports/profile` directory. See <<sec:profiling_build>>.
 `--project-cache-dir`::
@@ -124,8 +123,9 @@ Stops the Gradle daemon if it is running. You can only stop daemons that were st
 === System properties
 
 The following system properties are available for the `gradle` command. Note that command-line options take precedence over system properties.
- `gradle.user.home`::
-Specifies the Gradle user home directory.
+
+`gradle.user.home`::
+   Specifies the Gradle user home directory.
 
 The <<sec:gradle_configuration_properties>> contains specific information about Gradle configuration available via system properties.
 
