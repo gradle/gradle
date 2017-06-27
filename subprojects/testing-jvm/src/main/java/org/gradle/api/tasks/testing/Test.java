@@ -102,7 +102,6 @@ import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -899,7 +898,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
     @Incubating
     public Test setTestNameIncludePatterns(List<String> testNamePattern) {
-        patternSet = new ReadOnlyEmptyPatternSet();
         filter.setIncludePatterns(testNamePattern.toArray(new String[]{}));
         return this;
     }
@@ -1411,68 +1409,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             getLogger().warn(message);
         } else {
             throw new GradleException(message);
-        }
-    }
-
-    private static class ReadOnlyEmptyPatternSet implements PatternFilterable {
-        @Override
-        public Set<String> getIncludes() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<String> getExcludes() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public PatternFilterable setIncludes(Iterable<String> includes) {
-            return this;
-        }
-
-        @Override
-        public PatternFilterable setExcludes(Iterable<String> excludes) {
-            return this;
-        }
-
-        @Override
-        public PatternFilterable include(String... includes) {
-            return this;
-        }
-
-        @Override
-        public PatternFilterable include(Iterable<String> includes) {
-            return this;
-        }
-
-        @Override
-        public PatternFilterable include(Spec<FileTreeElement> includeSpec) {
-            return this;
-        }
-
-        @Override
-        public PatternFilterable include(Closure includeSpec) {
-            return this;
-        }
-
-        @Override
-        public PatternFilterable exclude(String... excludes) {
-            return this;
-        }
-
-        @Override
-        public PatternFilterable exclude(Iterable<String> excludes) {
-            return this;
-        }
-
-        @Override
-        public PatternFilterable exclude(Spec<FileTreeElement> excludeSpec) {
-            return this;
-        }
-
-        @Override
-        public PatternFilterable exclude(Closure excludeSpec) {
-            return this;
         }
     }
 }

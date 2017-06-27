@@ -214,22 +214,6 @@ class TestTest extends AbstractConventionTaskTest {
         test.getExcludes() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
     }
 
-    def "disable includes and excludes when --tests specified"() {
-        given:
-        test.include(TEST_PATTERN_1)
-        test.exclude(TEST_PATTERN_1)
-
-        when:
-        test.setTestNameIncludePatterns([TEST_PATTERN_2])
-        test.include(TEST_PATTERN_3)
-        test.exclude(TEST_PATTERN_3)
-
-        then:
-        test.includes.empty
-        test.excludes.empty
-        test.filter.includePatterns == [TEST_PATTERN_2] as Set
-    }
-
     private void assertIsDirectoryTree(FileTree classFiles, Set<String> includes, Set<String> excludes) {
         assert classFiles instanceof CompositeFileTree
         def files = (CompositeFileTree) classFiles

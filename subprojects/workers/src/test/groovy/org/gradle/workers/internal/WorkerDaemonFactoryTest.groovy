@@ -64,6 +64,7 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
+        1 * workerOperation.startChild() >> completion
         1 * clientsManager.reserveIdleClient(options) >> null
 
         then:
@@ -71,7 +72,6 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveNewClient(workerProtocolImplementation.class, _, options) >> client
 
         then:
-        1 * workerOperation.startChild() >> completion
         1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
         1 * client.execute(spec)
 
@@ -84,10 +84,10 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
+        1 * workerOperation.startChild() >> completion
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * workerOperation.startChild() >> completion
         1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
         1 * client.execute(spec)
 
@@ -100,10 +100,10 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
+        1 * workerOperation.startChild() >> completion
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * workerOperation.startChild() >> completion
         1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
         1 * client.execute(spec) >> { throw new RuntimeException("Boo!") }
 
@@ -133,8 +133,8 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
-        1 * clientsManager.reserveIdleClient(options) >> client
         1 * workerOperation.startChild() >> completion
+        1 * clientsManager.reserveIdleClient(options) >> client
         1 * buildOperationExecutor.call(_)
         1 * completion.leaseFinish()
     }
@@ -144,8 +144,8 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
 
         then:
-        1 * clientsManager.reserveIdleClient(options) >> client
         1 * workerOperation.startChild() >> completion
+        1 * clientsManager.reserveIdleClient(options) >> client
         1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
         1 * client.execute(spec) >> { throw new RuntimeException("Boo!") }
 

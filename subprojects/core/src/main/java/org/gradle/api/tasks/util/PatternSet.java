@@ -102,14 +102,17 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public PatternSet copyFrom(PatternFilterable sourcePattern) {
+        return doCopyFrom((PatternSet) sourcePattern);
+    }
+
+    protected PatternSet doCopyFrom(PatternSet from) {
         includes.clear();
         excludes.clear();
         includeSpecs.clear();
         excludeSpecs.clear();
+        caseSensitive = from.caseSensitive;
 
-        if (sourcePattern instanceof IntersectionPatternSet) {
-            PatternSet from = (PatternSet) sourcePattern;
-            caseSensitive = from.caseSensitive;
+        if (from instanceof IntersectionPatternSet) {
             PatternSet other = ((IntersectionPatternSet) from).other;
             PatternSet otherCopy = new PatternSet(other).copyFrom(other);
             PatternSet intersectCopy = new IntersectionPatternSet(otherCopy);
@@ -118,9 +121,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
             intersectCopy.includeSpecs.addAll(from.includeSpecs);
             intersectCopy.excludeSpecs.addAll(from.excludeSpecs);
             includeSpecs.add(intersectCopy.getAsSpec());
-        } else if (sourcePattern instanceof PatternSet) {
-            PatternSet from = (PatternSet) sourcePattern;
-            caseSensitive = from.caseSensitive;
+        } else {
             includes.addAll(from.includes);
             excludes.addAll(from.excludes);
             includeSpecs.addAll(from.includeSpecs);
