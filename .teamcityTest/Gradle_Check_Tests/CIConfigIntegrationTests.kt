@@ -8,6 +8,7 @@ import model.TestCoverage
 import model.TestType
 import org.junit.Test
 import projects.RootProject
+import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -68,6 +69,12 @@ class CIConfigIntegrationTests {
         val p = RootProject(m)
         printTree(p)
         assertTrue(p.subProjects.size == 3)
+    }
+
+    @Test
+    fun allSubprojectsAreListed() {
+        val subprojectsFromFolders = File("../subprojects").list().map { it.replace(Regex("-([a-z\\d])"), { it.groups[1]!!.value.toUpperCase()}) }
+        assertEquals(CIBuildModel().subProjects, subprojectsFromFolders)
     }
 
     private fun printTree(project: Project, indent: String = "") {

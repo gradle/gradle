@@ -6,7 +6,6 @@ import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
-import java.io.File
 
 data class CIBuildModel (
         val projectPrefix: String = "Gradle_Check_",
@@ -59,7 +58,79 @@ data class CIBuildModel (
                             PerformanceTestType.historical)))
     ) {
 
-    val subProjects = File("subprojects").list().map { it.replace(Regex("-([a-z\\d])"), { it.groups[1]!!.value.toUpperCase()}) }
+    val subProjects = listOf(
+            "announce",
+            "antlr",
+            "baseServices",
+            "baseServicesGroovy",
+            "buildCacheHttp",
+            "buildComparison",
+            "buildInit",
+            "buildScanPerformance",
+            "cli",
+            "codeQuality",
+            "compositeBuilds",
+            "core",
+            "dependencyManagement",
+            "diagnostics",
+            "distributions",
+            "docs",
+            "ear",
+            "ide",
+            "ideNative",
+            "idePlay",
+            "installationBeacon",
+            "integTest",
+            "internalAndroidPerformanceTesting",
+            "internalIntegTesting",
+            "internalPerformanceTesting",
+            "internalTesting",
+            "ivy",
+            "jacoco",
+            "javascript",
+            "jvmServices",
+            "languageGroovy",
+            "languageJava",
+            "languageJvm",
+            "languageNative",
+            "languageScala",
+            "launcher",
+            "logging",
+            "maven",
+            "messaging",
+            "modelCore",
+            "modelGroovy",
+            "native",
+            "osgi",
+            "performance",
+            "platformBase",
+            "platformJvm",
+            "platformNative",
+            "platformPlay",
+            "pluginDevelopment",
+            "pluginUse",
+            "plugins",
+            "processServices",
+            "publish",
+            "reporting",
+            "resources",
+            "resourcesHttp",
+            "resourcesS3",
+            "resourcesSftp",
+            "runtimeApiInfo",
+            "scala",
+            "signing",
+            "smokeTest",
+            "soak",
+            "testKit",
+            "testingBase",
+            "testingJvm",
+            "testingNative",
+            "toolingApi",
+            "toolingApiBuilders",
+            "workers",
+            "wrapper"
+    )
 }
 
 data class Stage(val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
