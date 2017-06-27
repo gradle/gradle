@@ -120,7 +120,8 @@
         <xi:include href='../../../build/asciidoc/userguide/antlrPlugin.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/checkstylePlugin.xml'/>
-        <xi:include href='codeNarcPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/codeNarcPlugin.xml'/>
         <xi:include href='findBugsPlugin.xml'/>
         <xi:include href='jdependPlugin.xml'/>
         <xi:include href='pmdPlugin.xml'/>
