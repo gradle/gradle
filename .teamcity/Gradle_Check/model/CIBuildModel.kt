@@ -59,7 +59,7 @@ data class CIBuildModel (
                             PerformanceTestType.historical)))
     ) {
 
-    val subProjects = File("../subprojects").list().map { it.replace(Regex("-([a-z\\d])"), { it.groups[1]!!.value.toUpperCase()}) }
+    val subProjects = File("subprojects").list().map { it.replace(Regex("-([a-z\\d])"), { it.groups[1]!!.value.toUpperCase()}) }
 }
 
 data class Stage(val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
