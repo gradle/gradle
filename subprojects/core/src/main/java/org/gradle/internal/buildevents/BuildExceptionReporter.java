@@ -230,23 +230,37 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     private void writeGeneralTips(StyledTextOutput resolution) {
-        boolean hasBuildScans = gradle!=null && hasBuildScans(gradle.getRootProject());
+        boolean hasBuildScans = gradle != null && hasBuildScans(maybeGetRoot());
         resolution.println();
         resolution.text("* Need more help?");
         resolution.println();
-        addTip(resolution, "Sign-up for a free training: https://gradle.org/training/");
+        addTip(resolution, "Sign-up for a", "free training", "https://gradle.org/training/");
         if (!hasBuildScans) {
-            addTip(resolution, "Get insight using a Build Scan: https://scans.gradle.com/");
+            addTip(resolution, "Get insight using a", "Build Scan", "https://scans.gradle.com/");
         }
-        addTip(resolution, "Seek help on our forums: https://discuss.gradle.org/");
+        addTip(resolution, "Seek help on our", "forums", "https://discuss.gradle.org/");
     }
 
-    private void addTip(StyledTextOutput resolution, String tip) {
-        resolution.text("   - " + tip);
+    private Project maybeGetRoot() {
+        try {
+            return gradle.getRootProject();
+        } catch (IllegalStateException e) {
+            // project may not be available at this point
+            return null;
+        }
+    }
+
+    private void addTip(StyledTextOutput resolution, String tip, String label, String link) {
+        resolution.text("   - " + tip + " ");
+        resolution.withStyle(UserInput).text(label);
+        resolution.text(": " + link);
         resolution.println();
     }
 
     private boolean hasBuildScans(Project project) {
+        if (project == null) {
+            return false;
+        }
         if (project.getPlugins().findPlugin("com.gradle.build-scan") != null) {
             return true;
         }
