@@ -133,7 +133,8 @@
         <xi:include href='softwareModel.xml'/>
         <xi:include href='softwareModelConcepts.xml'/>
         <xi:include href='ruleSource.xml'/>
-        <xi:include href='buildingJavaLibraries.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/buildingJavaLibraries.xml'/>
         <xi:include href='playPlugin.xml'/>
         <xi:include href='nativeBinaries.xml'/>
         <xi:include href='softwareModelExtend.xml'/>
