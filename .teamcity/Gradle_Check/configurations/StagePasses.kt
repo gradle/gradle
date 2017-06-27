@@ -106,12 +106,12 @@ class StagePasses(model: CIBuildModel, stageNumber: Int, stage: Stage) : BuildTy
             val isSplitIntoBuckets = testCoverage.testType != TestType.soak
             if (isSplitIntoBuckets) {
                 model.subProjects.forEach { subProject ->
-                    dependency(testCoverage.asId(model) + "_" + subProject) {
+                    dependency(testCoverage.asConfigurationId(model, subProject)) {
                         snapshot {}
                     }
                 }
             } else {
-                dependency(testCoverage.asId(model) + "_0") {
+                dependency(testCoverage.asConfigurationId(model)) {
                     snapshot {}
                 }
             }

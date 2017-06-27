@@ -139,6 +139,12 @@ data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVers
     fun asId(model : CIBuildModel): String {
         return "${model.projectPrefix}${testType.name.capitalize()}_${version.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
     }
+
+    fun asConfigurationId(model : CIBuildModel, subproject: String = ""): String {
+        val shortenedSubprojectName = subproject.replace("internal", "i").replace("Testing", "T")
+        return asId(model) + "_" + if (!subproject.isEmpty()) shortenedSubprojectName else "0"
+    }
+
     fun asName(): String {
         return "Test Coverage - ${testType.name.capitalize()} ${version.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}"
     }

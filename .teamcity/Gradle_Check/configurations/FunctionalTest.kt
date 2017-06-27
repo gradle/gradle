@@ -7,7 +7,7 @@ import model.TestCoverage
 import model.TestType
 
 class FunctionalTest(model: CIBuildModel, testCoverage : TestCoverage, subProject: String = "") : BuildType({
-    uuid = "${testCoverage.asId(model)}_" + if (!subProject.isEmpty()) subProject else "0"
+    uuid = testCoverage.asConfigurationId(model, subProject)
     extId = uuid
     name = testCoverage.asName() + if (!subProject.isEmpty()) " ($subProject)" else ""
     val testTask = testCoverage.testType.name + "Test" + if (!subProject.isEmpty()) subProject.capitalize() else ""
