@@ -18,6 +18,9 @@ package org.gradle.internal.buildevents;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
+import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -34,6 +37,7 @@ import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
@@ -49,13 +53,36 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
 
+    private Gradle gradle;
+
     public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
         this.textOutputFactory = textOutputFactory;
         this.loggingConfiguration = loggingConfiguration;
         this.clientMetaData = clientMetaData;
     }
 
+    @Override
+    public void settingsEvaluated(Settings settings) {
+        this.gradle = settings.getGradle();
+    }
+
+    @Override
+    public void projectsLoaded(Gradle gradle) {
+        this.gradle = gradle;
+    }
+
+    @Override
+    public void buildStarted(Gradle gradle) {
+        this.gradle = gradle;
+    }
+
+    @Override
+    public void projectsEvaluated(Gradle gradle) {
+        this.gradle = gradle;
+    }
+
     public void buildFinished(BuildResult result) {
+        this.gradle = result.getGradle();
         Throwable failure = result.getFailure();
         if (failure == null) {
             return;
@@ -95,6 +122,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
 
             output.println("==============================================================================");
         }
+        writeGeneralTips(output);
     }
 
     private void renderSingleBuildException(Throwable failure) {
@@ -107,6 +135,8 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         output.println();
 
         writeFailureDetails(output, details);
+
+        writeGeneralTips(output);
     }
 
     private FailureDetails constructFailureDetails(String granularity, Throwable failure) {
@@ -176,26 +206,57 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     private void fillInFailureResolution(FailureDetails details) {
+        BufferingStyledTextOutput resolution = details.resolution;
         if (details.failure instanceof FailureResolutionAware) {
-            ((FailureResolutionAware) details.failure).appendResolution(details.resolution, clientMetaData);
-            if (details.resolution.getHasContent()) {
-                details.resolution.append(' ');
+            ((FailureResolutionAware) details.failure).appendResolution(resolution, clientMetaData);
+            if (resolution.getHasContent()) {
+                resolution.append(' ');
             }
         }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
-            details.resolution.text("Run with ");
-            details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.STACKTRACE_LONG);
-            details.resolution.text(" option to get the stack trace. ");
+            resolution.text("Run with ");
+            resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.STACKTRACE_LONG);
+            resolution.text(" option to get the stack trace. ");
         }
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
-            details.resolution.text("Run with ");
+            resolution.text("Run with ");
             if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
-                details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.INFO_LONG);
-                details.resolution.text(" or ");
+                resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.INFO_LONG);
+                resolution.text(" or ");
             }
-            details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
-            details.resolution.text(" option to get more log output.");
+            resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
+            resolution.text(" option to get more log output.");
         }
+    }
+
+    private void writeGeneralTips(StyledTextOutput resolution) {
+        boolean hasBuildScans = gradle!=null && hasBuildScans(gradle.getRootProject());
+        resolution.println();
+        resolution.text("* Need more help?");
+        resolution.println();
+        addTip(resolution, "Sign-up for a free training: https://gradle.org/training/");
+        if (!hasBuildScans) {
+            addTip(resolution, "Get insight using a Build Scan: https://scans.gradle.com/");
+        }
+        addTip(resolution, "Seek help on our forums: https://discuss.gradle.org/");
+    }
+
+    private void addTip(StyledTextOutput resolution, String tip) {
+        resolution.text("   - " + tip);
+        resolution.println();
+    }
+
+    private boolean hasBuildScans(Project project) {
+        if (project.getPlugins().findPlugin("com.gradle.build-scan") != null) {
+            return true;
+        }
+        Set<Project> subprojects = project.getSubprojects();
+        for (Project subproject : subprojects) {
+            if (hasBuildScans(subproject)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String getMessage(Throwable throwable) {
