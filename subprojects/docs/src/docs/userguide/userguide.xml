@@ -132,7 +132,8 @@
         <xi:include href='../../../build/src/samplesList.xml'/>
         <xi:include href='potentialTraps.xml'/>
         <xi:include href='featureLifecycle.xml'/>
-        <xi:include href='commandLine.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/commandLine.xml'/>
         <xi:include href='licenses.xml'/>
         <xi:include href='glossary.xml'/>
     </part>
