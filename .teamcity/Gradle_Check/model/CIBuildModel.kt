@@ -6,6 +6,7 @@ import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import java.io.File
 
 data class CIBuildModel (
         val projectPrefix: String = "Gradle_Check_",
@@ -58,90 +59,7 @@ data class CIBuildModel (
                             PerformanceTestType.historical)))
     ) {
 
-    //TODO this is a copy of `gradle/buildSplits.gradle`, we should use a shared specification
-    val testBuckets = listOf(
-            listOf(
-                    ":platformPlay",
-                    ":runtimeApiInfo"),
-            listOf(
-                    ":toolingApi",
-                    ":compositeBuilds",
-                    ":resourcesS3",
-                    ":resources",
-                    ":jvmServices",
-                    ":docs",
-                    ":distributions",
-                    ":soak",
-                    ":smokeTest",
-                    ":buildCacheHttp",
-                    ":workers"),
-            listOf(
-                    ":launcher",
-                    ":buildComparison",
-                    ":buildInit",
-                    ":antlr",
-                    ":signing",
-                    ":testingBase",
-                    ":baseServicesGroovy",
-                    ":toolingApiBuilders"),
-            listOf(
-                    ":testKit",
-                    ":languageNative",
-                    ":ivy",
-                    ":wrapper",
-                    ":platformJvm",
-                    ":baseServices",
-                    ":announce",
-                    ":publish"
-            ),
-            listOf(
-                    ":integTest",
-                    ":plugins",
-                    ":idePlay",
-                    ":platformBase",
-                    ":diagnostics",
-                    ":ideNative",
-                    ":javascript",
-                    ":languageJvm",
-                    ":ear"
-            ),
-            listOf(
-                    ":pluginUse",
-                    ":dependencyManagement",
-                    ":languageJava",
-                    ":maven",
-                    ":reporting",
-                    ":languageGroovy",
-                    ":internalTesting",
-                    ":performance",
-                    ":buildScanPerformance",
-                    ":internalIntegTesting",
-                    ":internalPerformanceTesting",
-                    ":internalAndroidPerformanceTesting",
-                    ":processServices",
-                    ":installationBeacon"),
-            listOf(
-                    ":core",
-                    ":languageScala",
-                    ":scala",
-                    ":platformNative",
-                    ":modelCore",
-                    ":resourcesSftp",
-                    ":messaging",
-                    ":logging",
-                    ":resourcesHttp"),
-            listOf(
-                    ":pluginDevelopment",
-                    ":codeQuality",
-                    ":testingJvm",
-                    ":ide",
-                    ":testingNative",
-                    ":jacoco",
-                    ":modelGroovy",
-                    ":osgi",
-                    ":native",
-                    ":cli")
-    )
+    val subProjects = File("../subprojects").list().map { it.replace(Regex("-([a-z\\d])"), { it.groups[1]!!.value.toUpperCase()}) }
 }
 
 data class Stage(val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)

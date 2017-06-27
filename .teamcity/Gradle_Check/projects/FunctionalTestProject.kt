@@ -10,7 +10,7 @@ class FunctionalTestProject(model: CIBuildModel, testConfig : TestCoverage) : Pr
     this.extId = uuid
     this.name = testConfig.asName()
 
-    (1..model.testBuckets.size).forEach { bucket ->
-        buildType(FunctionalTest(model, testConfig, bucket))
+    model.subProjects.forEach { subProject ->
+        buildType(FunctionalTest(model, testConfig, subProject))
     }
 })

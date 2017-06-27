@@ -6,14 +6,11 @@ import model.OS
 import model.TestCoverage
 import model.TestType
 
-class FunctionalTest(model: CIBuildModel, testCoverage : TestCoverage, bucket: Int = 0) : BuildType({
-    uuid = "${testCoverage.asId(model)}_$bucket"
+class FunctionalTest(model: CIBuildModel, testCoverage : TestCoverage, subProject: String = "") : BuildType({
+    uuid = "${testCoverage.asId(model)}_$subProject"
     extId = uuid
-    name = testCoverage.asName() + if (bucket > 0) " ($bucket)" else ""
-    if (bucket > 0) {
-        description = model.testBuckets[bucket - 1].joinToString()
-    }
-    val testTask = testCoverage.testType.name + "Test" + if (bucket > 0) bucket.toString() else ""
+    name = testCoverage.asName() + if (!subProject.isEmpty()) " ($subProject)" else ""
+    val testTask = testCoverage.testType.name + "Test" + if (!subProject.isEmpty()) subProject.capitalize() else ""
     val quickTest = testCoverage.testType == TestType.quick
     applyDefaults(model, this, testTask, requiresDistribution = !quickTest,
             runsOnWindows = testCoverage.os == OS.windows, timeout = if (quickTest) 60 else 180)

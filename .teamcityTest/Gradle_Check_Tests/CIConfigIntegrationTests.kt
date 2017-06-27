@@ -34,9 +34,9 @@ class CIConfigIntegrationTests {
             }
             if (stageNumber <= m.stages.size) {
                 val stage = m.stages[stageNumber - 1]
-                var functionalTestCount = stage.functionalTests.size * m.testBuckets.size
+                var functionalTestCount = stage.functionalTests.size * m.subProjects.size
                 if (stageNumber == 6) {
-                    functionalTestCount -= 2 * (m.testBuckets.size - 1) //Soak tests
+                    functionalTestCount -= 2 * (m.subProjects.size - 1) //Soak tests
                 }
                 assertEquals(
                         stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + hasPrevStage,
