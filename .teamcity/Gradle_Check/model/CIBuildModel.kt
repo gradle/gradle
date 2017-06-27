@@ -137,7 +137,7 @@ data class Stage(val description: String, val specificBuilds: List<SpecificBuild
 
 data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {
-        return "${model.projectPrefix}Test_Coverage_${testType.name.capitalize()}_${version.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
+        return "${model.projectPrefix}${testType.name.capitalize()}_${version.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
     }
     fun asName(): String {
         return "Test Coverage - ${testType.name.capitalize()} ${version.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}"
