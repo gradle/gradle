@@ -53,7 +53,8 @@
     </part>
     <part>
         <title>Writing Gradle build scripts</title>
-        <xi:include href='buildScriptsTutorial.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/buildScriptsTutorial.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/buildInitPlugin.xml'/>
         <xi:include href='writingBuildScripts.xml'/>
