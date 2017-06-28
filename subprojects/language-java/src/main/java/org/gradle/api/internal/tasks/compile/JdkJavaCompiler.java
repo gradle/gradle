@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.files.SourcepathIgnoringJavaFileManager;
 import org.gradle.api.tasks.WorkResult;
@@ -60,7 +61,8 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSource());
         JavaFileManager fileManager = standardFileManager;
-        if (!spec.respectsSourcepath()) {
+        FileCollection sourcepath = spec.getCompileOptions().getSourcepath();
+        if (sourcepath != null && sourcepath.isEmpty()) {
             fileManager = new SourcepathIgnoringJavaFileManager(standardFileManager);
         }
         return compiler.getTask(null, fileManager, null, options, null, compilationUnits);
