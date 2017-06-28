@@ -189,11 +189,13 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             resolution.text("Run with ");
+            maybeAddBuildScan(resolution);
             resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.STACKTRACE_LONG);
             resolution.text(" option to get the stack trace. ");
         }
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
             resolution.text("Run with ");
+            maybeAddBuildScan(resolution);
             if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
                 resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.INFO_LONG);
                 resolution.text(" or ");
@@ -201,6 +203,11 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
             resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
             resolution.text(" option to get more log output.");
         }
+    }
+
+    private void maybeAddBuildScan(BufferingStyledTextOutput resolution) {
+        resolution.withStyle(UserInput).text("--scan");
+        resolution.text(" to generate a build scan, ");
     }
 
     private void writeGeneralTips(StyledTextOutput resolution) {
