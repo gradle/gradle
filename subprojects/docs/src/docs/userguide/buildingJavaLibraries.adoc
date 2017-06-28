@@ -473,7 +473,7 @@ A test suite is declared by creating a component of type api:org.gradle.jvm.test
 
 In the example above, `test` is the name of our test suite. By convention, Gradle will create two source sets for the test suite, based on the name of the component: one for Java sources, and the other for resources: `src/test/java` and `src/test/resources`. If the component was named `integTest`, then sources and resources would have been found respectively in `src/integTest/java` and `src/integTest/resources`.
 
-Once the component is created, the test suite can be executed running the `&lt;&lt;test suite name&gt;&gt;BinaryTest` task:
+Once the component is created, the test suite can be executed running the `\<<test suite name>>BinaryTest` task:
 
 ++++
 <sample id="testing-junit-standalone-run" dir="javaLibraryPlugin/testing-junit-standalone" title="Executing the test suite">
