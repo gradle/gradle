@@ -40,7 +40,8 @@
         <xi:include href='../../../build/asciidoc/userguide/console.xml'/>
         <xi:include href='gradleWrapper.xml'/>
         <xi:include href='gradleDaemon.xml'/>
-        <xi:include href='artifactDependenciesTutorial.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/artifactDependenciesTutorial.xml'/>
         <xi:include href='introMultiProjectBuilds.xml'/>
         <xi:include href='continuousBuild.xml'/>
         <xi:include href='compositeBuilds.xml'/>
@@ -52,14 +53,18 @@
     </part>
     <part>
         <title>Writing Gradle build scripts</title>
-        <xi:include href='buildScriptsTutorial.xml'/>
-        <xi:include href='buildInitPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/buildScriptsTutorial.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/buildInitPlugin.xml'/>
         <xi:include href='writingBuildScripts.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/tasks.xml'/>
         <xi:include href='workingWithFiles.xml'/>
-        <xi:include href='ant.xml'/>
-        <xi:include href='buildLifecycle.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/ant.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/buildLifecycle.xml'/>
         <xi:include href='wrapperPlugin.xml'/>
         <xi:include href='logging.xml'/>
         <!-- this is generated from Asciidoc -->
@@ -69,17 +74,21 @@
         <xi:include href='standardPlugins.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/projectReports.xml'/>
-        <xi:include href='buildDashboardPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/buildDashboardPlugin.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/comparingBuilds.xml'/>
-        <xi:include href='artifactMngmt.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/artifactMngmt.xml'/>
         <xi:include href='mavenPlugin.xml'/>
         <xi:include href='signingPlugin.xml'/>
         <xi:include href='publishingIvy.xml'/>
         <xi:include href='publishingMaven.xml'/>
         <xi:include href='distributionPlugin.xml'/>
-        <xi:include href='announcePlugin.xml'/>
-        <xi:include href='buildAnnouncementsPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/announcePlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/buildAnnouncementsPlugin.xml'/>
     </part>
     <part>
         <title>Extending the build</title>
@@ -99,16 +108,20 @@
         <xi:include href='webTutorial.xml'/>
         <xi:include href='warPlugin.xml'/>
         <xi:include href='earPlugin.xml'/>
-        <xi:include href='applicationPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/applicationPlugin.xml'/>
         <xi:include href='javaLibraryDistributionPlugin.xml'/>
         <xi:include href='groovyTutorial.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/groovyPlugin.xml'/>
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/scalaPlugin.xml'/>
-        <xi:include href='antlrPlugin.xml'/>
-        <xi:include href='checkstylePlugin.xml'/>
-        <xi:include href='codeNarcPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/antlrPlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/checkstylePlugin.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/codeNarcPlugin.xml'/>
         <xi:include href='findBugsPlugin.xml'/>
         <xi:include href='jdependPlugin.xml'/>
         <xi:include href='pmdPlugin.xml'/>
@@ -122,7 +135,8 @@
         <xi:include href='softwareModel.xml'/>
         <xi:include href='softwareModelConcepts.xml'/>
         <xi:include href='ruleSource.xml'/>
-        <xi:include href='buildingJavaLibraries.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/buildingJavaLibraries.xml'/>
         <xi:include href='playPlugin.xml'/>
         <xi:include href='nativeBinaries.xml'/>
         <xi:include href='softwareModelExtend.xml'/>
