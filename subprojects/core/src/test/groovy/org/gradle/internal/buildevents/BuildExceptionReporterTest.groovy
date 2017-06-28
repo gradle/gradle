@@ -17,7 +17,9 @@
 package org.gradle.internal.buildevents
 
 import org.gradle.BuildResult
+import org.gradle.StartParameter
 import org.gradle.api.GradleException
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
@@ -54,6 +56,58 @@ class BuildExceptionReporterTest extends Specification {
 
         expect:
         reporter.buildFinished(result(exception))
+        output.value == '''
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+<message>
+
+* Try:
+Run with {userinput}--scan{normal} to generate a build scan, {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--scan{normal} to generate a build scan, {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+
+* Get more help at https://help.gradle.org
+'''
+    }
+
+    def "doesn't suggest to use --scan if option was on command line"() {
+        GradleException exception = new GradleException("<message>");
+
+        def result = result(exception)
+        result.gradle >> Mock(Gradle) {
+            getStartParameter() >> Mock(StartParameter) {
+                isBuildScan() >> true
+                isNoBuildScan() >> false
+            }
+        }
+
+        expect:
+        reporter.buildFinished(result)
+        output.value == '''
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+<message>
+
+* Try:
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+
+* Get more help at https://help.gradle.org
+'''
+    }
+
+    def "suggests to use --scan if --no-scan is on command line"() {
+        GradleException exception = new GradleException("<message>");
+
+        def result = result(exception)
+        result.gradle >> Mock(Gradle) {
+            getStartParameter() >> Mock(StartParameter) {
+                isBuildScan() >> false
+                isNoBuildScan() >> true
+            }
+        }
+
+        expect:
+        reporter.buildFinished(result)
         output.value == '''
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
