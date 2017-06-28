@@ -18,6 +18,8 @@ package org.gradle.internal.buildevents;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -49,14 +51,36 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
 
+    private Gradle gradle;
+
     public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
         this.textOutputFactory = textOutputFactory;
         this.loggingConfiguration = loggingConfiguration;
         this.clientMetaData = clientMetaData;
     }
 
+    @Override
+    public void settingsEvaluated(Settings settings) {
+        this.gradle = settings.getGradle();
+    }
+
+    @Override
+    public void projectsLoaded(Gradle gradle) {
+        this.gradle = gradle;
+    }
+
+    @Override
+    public void buildStarted(Gradle gradle) {
+        this.gradle = gradle;
+    }
+
+    @Override
+    public void projectsEvaluated(Gradle gradle) {
+        this.gradle = gradle;
+    }
 
     public void buildFinished(BuildResult result) {
+        this.gradle = result.getGradle();
         Throwable failure = result.getFailure();
         if (failure == null) {
             return;
@@ -206,8 +230,11 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     private void maybeAddBuildScan(BufferingStyledTextOutput resolution) {
-        resolution.withStyle(UserInput).text("--scan");
-        resolution.text(" to generate a build scan, ");
+        // todo: replace this test with something which _effectively_ checks what the status of build scan generation is
+        if (gradle == null || gradle.getStartParameter().isNoBuildScan() || !gradle.getStartParameter().isBuildScan()) {
+            resolution.withStyle(UserInput).text("--scan");
+            resolution.text(" to generate a build scan, ");
+        }
     }
 
     private void writeGeneralTips(StyledTextOutput resolution) {
