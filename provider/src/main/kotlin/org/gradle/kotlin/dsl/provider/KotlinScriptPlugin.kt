@@ -41,7 +41,9 @@ class KotlinScriptPlugin(
             throw IllegalArgumentException("target $target was not a Project as expected")
         }
         target.run {
-            plugins.apply(KotlinScriptBasePlugin::class.java)
+            afterEvaluate {
+                plugins.apply(KotlinScriptBasePlugin::class.java)
+            }
         }
         script(target)
     }
