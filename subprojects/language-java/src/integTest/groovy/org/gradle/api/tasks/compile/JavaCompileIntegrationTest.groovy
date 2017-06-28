@@ -670,4 +670,49 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/java/main/module-info.class").exists()
         file("build/classes/java/main/io/example/Example.class").exists()
     }
+
+    def "sourcepath is merged from compilerArgs, but deprecation warning is emitted"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            compileJava {
+                options.compilerArgs = ['-sourcepath', 'sources1']
+                options.sourcepath = files('sources2')
+            }            
+        '''
+        file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
+        file('sources2/Rectangle.java') << 'public class Rectangle extends Shape {}'
+        file('sources1/Shape.java') << 'public class Shape {}'
+
+        when:
+        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
+
+        then:
+        file('build/classes/java/main/Square.class').exists()
+        file('build/classes/java/main/Rectangle.class').exists()
+        file('build/classes/java/main/Shape.class').exists()
+        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+    }
+
+    def "sourcepath is respected even when exclusively specified from compilerArgs, but deprecation warning is emitted"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            compileJava {
+                options.compilerArgs = ['-sourcepath', 'sources1']
+            }            
+        '''
+        file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
+        file('sources1/Rectangle.java') << 'public class Rectangle extends Shape {}'
+        file('sources1/Shape.java') << 'public class Shape {}'
+
+        when:
+        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
+
+        then:
+        file('build/classes/java/main/Square.class').exists()
+        file('build/classes/java/main/Rectangle.class').exists()
+        file('build/classes/java/main/Shape.class').exists()
+        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+    }
 }

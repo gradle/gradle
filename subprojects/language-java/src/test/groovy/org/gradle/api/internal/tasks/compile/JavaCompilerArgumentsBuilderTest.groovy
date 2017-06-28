@@ -316,10 +316,37 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         def file2 = new File("/lib/lib2.jar")
         def fc = new SimpleFileCollection(file1, file2)
         spec.compileOptions.sourcepath = fc
+        def expected = ["-g", "-sourcepath", fc.asPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
 
         expect:
-        builder.build() == ["-g", "-sourcepath", fc.asPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
-        builder.noEmptySourcePath().build() == ["-g", "-sourcepath", fc.asPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        builder.build() == expected
+        builder.noEmptySourcePath().build() == expected
+    }
+
+    def "merges user-provided sourcepath arguments with sourcepath property"() {
+        given:
+        def file1 = new File('/libs/lib1.jar')
+        def file2 = new File('/libs/lib2.jar')
+        def fc = new SimpleFileCollection(file1, file2)
+        def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)
+        spec.compileOptions.sourcepath = fc
+        spec.compileOptions.compilerArgs = ['-sourcepath', userProvidedPath]
+        def expected = ["-g", "-sourcepath", [fc.asPath, userProvidedPath].join(File.pathSeparator), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+
+        expect:
+        builder.build() == expected
+        builder.noEmptySourcePath().build() == expected
+    }
+
+    def "respects sourcepath purely provided by compiler args list"() {
+        given:
+        def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)
+        spec.compileOptions.compilerArgs = ['-sourcepath', userProvidedPath]
+        def expected = ["-g", "-sourcepath", userProvidedPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+
+        expect:
+        builder.build() == expected
+        builder.noEmptySourcePath().build() == expected
     }
 
     String defaultEmptySourcePathRefFolder() {
