@@ -18,9 +18,6 @@ package org.gradle.internal.buildevents;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
-import org.gradle.api.Project;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -37,7 +34,6 @@ import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
@@ -53,36 +49,14 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
 
-    private Gradle gradle;
-
     public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
         this.textOutputFactory = textOutputFactory;
         this.loggingConfiguration = loggingConfiguration;
         this.clientMetaData = clientMetaData;
     }
 
-    @Override
-    public void settingsEvaluated(Settings settings) {
-        this.gradle = settings.getGradle();
-    }
-
-    @Override
-    public void projectsLoaded(Gradle gradle) {
-        this.gradle = gradle;
-    }
-
-    @Override
-    public void buildStarted(Gradle gradle) {
-        this.gradle = gradle;
-    }
-
-    @Override
-    public void projectsEvaluated(Gradle gradle) {
-        this.gradle = gradle;
-    }
 
     public void buildFinished(BuildResult result) {
-        this.gradle = result.getGradle();
         Throwable failure = result.getFailure();
         if (failure == null) {
             return;
@@ -230,47 +204,9 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     private void writeGeneralTips(StyledTextOutput resolution) {
-        boolean hasBuildScans = gradle != null && hasBuildScans(maybeGetRoot());
         resolution.println();
-        resolution.text("* Need more help?");
+        resolution.text("* Get more help at https://help.gradle.org");
         resolution.println();
-        addTip(resolution, "Sign-up for a", "free training", "https://gradle.org/training/");
-        if (!hasBuildScans) {
-            addTip(resolution, "Get insight using a", "Build Scan", "https://scans.gradle.com/");
-        }
-        addTip(resolution, "Seek help on our", "forums", "https://discuss.gradle.org/");
-    }
-
-    private Project maybeGetRoot() {
-        try {
-            return gradle.getRootProject();
-        } catch (IllegalStateException e) {
-            // project may not be available at this point
-            return null;
-        }
-    }
-
-    private void addTip(StyledTextOutput resolution, String tip, String label, String link) {
-        resolution.text("   - " + tip + " ");
-        resolution.withStyle(UserInput).text(label);
-        resolution.text(": " + link);
-        resolution.println();
-    }
-
-    private boolean hasBuildScans(Project project) {
-        if (project == null) {
-            return false;
-        }
-        if (project.getPlugins().findPlugin("com.gradle.build-scan") != null) {
-            return true;
-        }
-        Set<Project> subprojects = project.getSubprojects();
-        for (Project subproject : subprojects) {
-            if (hasBuildScans(subproject)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private String getMessage(Throwable throwable) {

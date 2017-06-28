@@ -63,10 +63,7 @@ class BuildExceptionReporterTest extends Specification {
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 '''
     }
 
@@ -84,10 +81,7 @@ org.gradle.api.GradleException (no error message)
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 '''
     }
 
@@ -109,10 +103,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 '''
     }
 
@@ -134,10 +125,7 @@ java.lang.RuntimeException (no error message)
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 '''
     }
 
@@ -160,10 +148,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 '''
     }
 
@@ -191,10 +176,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 '''
     }
 
@@ -216,10 +198,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 '''
     }
 
@@ -246,10 +225,7 @@ Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get m
 * Exception is:
 org.gradle.api.GradleException: <message>
 {stacktrace}
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 '''
     }
 
@@ -295,10 +271,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 ==============================================================================
 
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 ''';
     }
 
@@ -321,10 +294,7 @@ Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get m
 * Exception is:
 org.gradle.api.GradleException: <message>
 {stacktrace}
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 '''
     }
 
@@ -347,10 +317,7 @@ Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get m
 * Exception is:
 org.gradle.api.GradleException: <message>
 {stacktrace}
-* Need more help?
-   - Sign-up for a {userinput}free training{normal}: https://gradle.org/training/
-   - Get insight using a {userinput}Build Scan{normal}: https://scans.gradle.com/
-   - Seek help on our {userinput}forums{normal}: https://discuss.gradle.org/
+* Get more help at https://help.gradle.org
 '''
     }
 
