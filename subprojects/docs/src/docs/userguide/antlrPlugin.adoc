@@ -19,9 +19,9 @@ The ANTLR plugin extends the Java plugin to add support for generating parsers u
 
 [NOTE]
 ====
- 
+
 The ANTLR plugin supports ANTLR version 2, 3 and 4.
- 
+
 ====
 
 
@@ -73,14 +73,14 @@ The ANTLR plugin adds the following dependencies to tasks added by the Java plug
 |===
 | Task name
 | Depends on
-| compileJava
-| generateGrammarSource
+| `compileJava`
+| `generateGrammarSource`
 
-| compileTestJava
-| generateTestGrammarSource
+| `compileTestJava`
+| `generateTestGrammarSource`
 
-| compile__SourceSet__Java
-| generate__SourceSet__GrammarSource
+| `compile__SourceSet__Java`
+| `generate__SourceSet__GrammarSource`
 |===
 
 
