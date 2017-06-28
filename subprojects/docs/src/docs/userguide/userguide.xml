@@ -70,7 +70,8 @@
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/projectReports.xml'/>
         <xi:include href='buildDashboardPlugin.xml'/>
-        <xi:include href='comparingBuilds.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/comparingBuilds.xml'/>
         <xi:include href='artifactMngmt.xml'/>
         <xi:include href='mavenPlugin.xml'/>
         <xi:include href='signingPlugin.xml'/>
