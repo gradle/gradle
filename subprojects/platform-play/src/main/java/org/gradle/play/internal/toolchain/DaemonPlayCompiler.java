@@ -16,30 +16,42 @@
 
 package org.gradle.play.internal.toolchain;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.spec.PlayCompileSpec;
+import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.internal.DaemonForkOptions;
+import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
-import java.util.Collections;
 
 public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemonCompiler<T> {
     private final Iterable<File> compilerClasspath;
     private final Iterable<String> classLoaderPackages;
+    private final FileResolver fileResolver;
 
-    public DaemonPlayCompiler(File projectDir, Compiler<T> compiler, WorkerDaemonFactory workerDaemonFactory, Iterable<File> compilerClasspath, Iterable<String> classLoaderPackages) {
+    public DaemonPlayCompiler(File projectDir, Compiler<T> compiler, WorkerDaemonFactory workerDaemonFactory, Iterable<File> compilerClasspath, Iterable<String> classLoaderPackages, FileResolver fileResolver) {
         super(projectDir, compiler, workerDaemonFactory);
         this.compilerClasspath = compilerClasspath;
         this.classLoaderPackages = classLoaderPackages;
+        this.fileResolver = fileResolver;
     }
 
     @Override
     protected DaemonForkOptions toDaemonOptions(PlayCompileSpec spec) {
         BaseForkOptions forkOptions = spec.getForkOptions();
-        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), Collections.<String>emptyList(), compilerClasspath, classLoaderPackages, KeepAliveMode.SESSION);
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(forkOptions);
+
+        return new DaemonForkOptionsBuilder(fileResolver)
+            .javaForkOptions(javaForkOptions)
+            .classpath(compilerClasspath)
+            .sharedPackages(classLoaderPackages)
+            .keepAliveMode(KeepAliveMode.SESSION)
+            .build();
     }
 }

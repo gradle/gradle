@@ -177,6 +177,15 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
         addImportToBuildScript("org.gradle.test.TestRunnable")
     }
 
+    void withJava7CompatibleClasses() {
+        file('buildSrc/build.gradle') << """
+            tasks.withType(JavaCompile) {
+                sourceCompatibility = "1.7"
+                targetCompatibility = "1.7"
+            }
+        """
+    }
+
     String getParameterClass() {
         return """
             package org.gradle.other;

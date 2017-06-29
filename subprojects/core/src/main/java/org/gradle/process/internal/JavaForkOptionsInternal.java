@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+package org.gradle.process.internal;
 
-import org.gradle.api.Describable;
+import org.gradle.process.JavaForkOptions;
 
-import java.io.File;
-import java.io.Serializable;
+public interface JavaForkOptionsInternal extends JavaForkOptions {
+    /**
+     * Merges these options with the given options.
+     *
+     * @param options The target options.
+     * @return A new {@link JavaForkOptionsInternal} with the merged values.
+     */
+    JavaForkOptionsInternal mergeWith(JavaForkOptions options);
 
-public interface WorkSpec extends Serializable, Describable {
-    File getExecutionWorkingDir();
+    /**
+     * Returns true if the given options are compatible with this set of options.
+     */
+    boolean isCompatibleWith(JavaForkOptions options);
+
 }

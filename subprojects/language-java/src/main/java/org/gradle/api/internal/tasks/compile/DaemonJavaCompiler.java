@@ -15,7 +15,10 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -27,16 +30,22 @@ import java.util.Collections;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
     private static final Iterable<String> SHARED_PACKAGES = Collections.singleton("com.sun.tools.javac");
+    private final FileResolver fileResolver;
 
-    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory workerDaemonFactory) {
+    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver) {
         super(daemonWorkingDir, delegate, workerDaemonFactory);
+        this.fileResolver = fileResolver;
     }
 
     @Override
     protected DaemonForkOptions toDaemonOptions(JavaCompileSpec spec) {
         ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
-        return new DaemonForkOptions(
-                forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(),
-                Collections.<File>emptyList(), SHARED_PACKAGES, KeepAliveMode.SESSION);
+        JavaForkOptions javaForkOptions = new ForkOptionsConverter(fileResolver).transform(forkOptions);
+
+        return new DaemonForkOptionsBuilder(fileResolver)
+            .javaForkOptions(javaForkOptions)
+            .sharedPackages(SHARED_PACKAGES)
+            .keepAliveMode(KeepAliveMode.SESSION)
+            .build();
     }
 }

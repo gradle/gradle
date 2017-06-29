@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import java.util.Map;
 /**
  * <p>Specifies the options to use to fork a Java process.</p>
  */
+@HasInternalProtocol
 public interface JavaForkOptions extends ProcessForkOptions {
     /**
      * Returns the system properties which will be used for the process.

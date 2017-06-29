@@ -27,7 +27,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
-import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.IsolationMode;
 
 /**
@@ -40,16 +39,14 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     private final WorkerDaemonExpiration workerDaemonExpiration;
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final WorkerDirectoryProvider workerDirectoryProvider;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, WorkerDirectoryProvider workerDirectoryProvider) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
         this.clientsManager = clientsManager;
         this.memoryManager = memoryManager;
         this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, getTotalPhysicalMemory());
         memoryManager.addMemoryHolder(workerDaemonExpiration);
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.workerDirectoryProvider = workerDirectoryProvider;
     }
 
     @Override
@@ -60,7 +57,7 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
                 try {
                     WorkerDaemonClient<T> client = clientsManager.reserveIdleClient(forkOptions);
                     if (client == null) {
-                        client = clientsManager.reserveNewClient(workerImplementationClass, workerDirectoryProvider.getIdleWorkingDirectory(), forkOptions);
+                        client = clientsManager.reserveNewClient(workerImplementationClass, spec.getExecutionWorkingDir(), forkOptions);
                     }
 
                     try {

@@ -19,45 +19,26 @@ package org.gradle.workers.internal;
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.JavaForkOptionsInternal;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Set;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 public class DaemonForkOptions {
-    private final String minHeapSize;
-    private final String maxHeapSize;
-    private final Iterable<String> jvmArgs;
+    private final JavaForkOptionsInternal forkOptions;
     private final Iterable<File> classpath;
     private final Iterable<String> sharedPackages;
     private final KeepAliveMode keepAliveMode;
 
-    public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs, KeepAliveMode keepAliveMode) {
-        this(minHeapSize, maxHeapSize, jvmArgs, Collections.<File>emptyList(), Collections.<String>emptyList(), keepAliveMode);
-    }
-
-    public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs, Iterable<File> classpath,
-                             Iterable<String> sharedPackages, KeepAliveMode keepAliveMode) {
-        this.minHeapSize = minHeapSize;
-        this.maxHeapSize = maxHeapSize;
-        this.jvmArgs = jvmArgs;
+    DaemonForkOptions(JavaForkOptionsInternal forkOptions, Iterable<File> classpath,
+                      Iterable<String> sharedPackages, KeepAliveMode keepAliveMode) {
+        this.forkOptions = forkOptions;
         this.classpath = classpath;
         this.sharedPackages = sharedPackages;
         this.keepAliveMode = keepAliveMode;
-    }
-
-    public String getMinHeapSize() {
-        return minHeapSize;
-    }
-
-    public String getMaxHeapSize() {
-        return maxHeapSize;
-    }
-
-    public Iterable<String> getJvmArgs() {
-        return jvmArgs;
     }
 
     public Iterable<File> getClasspath() {
@@ -72,13 +53,16 @@ public class DaemonForkOptions {
         return keepAliveMode;
     }
 
+    public JavaForkOptions getJavaForkOptions() {
+        return forkOptions;
+    }
+
     public boolean isCompatibleWith(DaemonForkOptions other) {
-        return getHeapSizeMb(minHeapSize) >= getHeapSizeMb(other.getMinHeapSize())
-                && getHeapSizeMb(maxHeapSize) >= getHeapSizeMb(other.getMaxHeapSize())
-                && getNormalizedJvmArgs(jvmArgs).containsAll(getNormalizedJvmArgs(other.getJvmArgs()))
+        return forkOptions.isCompatibleWith(other.forkOptions)
                 && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()))
                 && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages))
-                && keepAliveMode == other.getKeepAliveMode();
+                && keepAliveMode == other.getKeepAliveMode()
+                && getNormalized(forkOptions.getExecutable()).equals(getNormalized(other.forkOptions.getExecutable()));
     }
 
     // one way to merge fork options, good for current use case
@@ -87,47 +71,12 @@ public class DaemonForkOptions {
             throw new IllegalArgumentException("Cannot merge a fork options object with a different keep alive mode (this: " + keepAliveMode + ", other: " + other.getKeepAliveMode() + ").");
         }
 
-        String mergedMinHeapSize = mergeHeapSize(minHeapSize, other.minHeapSize);
-        String mergedMaxHeapSize = mergeHeapSize(maxHeapSize, other.maxHeapSize);
-        Set<String> mergedJvmArgs = getNormalizedJvmArgs(jvmArgs);
-        mergedJvmArgs.addAll(getNormalizedJvmArgs(other.getJvmArgs()));
         Set<File> mergedClasspath = getNormalizedClasspath(classpath);
         mergedClasspath.addAll(getNormalizedClasspath(other.classpath));
         Set<String> mergedAllowedPackages = getNormalizedSharedPackages(sharedPackages);
         mergedAllowedPackages.addAll(getNormalizedSharedPackages(other.sharedPackages));
-        return new DaemonForkOptions(mergedMinHeapSize, mergedMaxHeapSize, mergedJvmArgs, mergedClasspath, mergedAllowedPackages, keepAliveMode);
-    }
 
-    private int getHeapSizeMb(String heapSize) {
-        if (heapSize == null) {
-            return -1; // unspecified
-        }
-
-        String normalized = heapSize.trim().toLowerCase();
-        try {
-            if (normalized.endsWith("m")) {
-                return Integer.parseInt(normalized.substring(0, normalized.length() - 1));
-            }
-            if (normalized.endsWith("g")) {
-                return Integer.parseInt(normalized.substring(0, normalized.length() - 1)) * 1024;
-            }
-        } catch (NumberFormatException e) {
-            throw new InvalidUserDataException("Cannot parse heap size: " + heapSize, e);
-        }
-        throw new InvalidUserDataException("Cannot parse heap size: " + heapSize);
-    }
-
-    private String mergeHeapSize(String heapSize1, String heapSize2) {
-        int mergedHeapSizeMb = Math.max(getHeapSizeMb(heapSize1), getHeapSizeMb(heapSize2));
-        return mergedHeapSizeMb == -1 ? null : String.valueOf(mergedHeapSizeMb) + "m";
-    }
-
-    private Set<String> getNormalizedJvmArgs(Iterable<String> jvmArgs) {
-        Set<String> normalized = Sets.newLinkedHashSet();
-        for (String jvmArg : jvmArgs) {
-            normalized.add(jvmArg.trim());
-        }
-        return normalized;
+        return new DaemonForkOptions(forkOptions.mergeWith(other.forkOptions), mergedClasspath, mergedAllowedPackages, keepAliveMode);
     }
 
     private Set<File> getNormalizedClasspath(Iterable<File> classpath) {
@@ -138,7 +87,11 @@ public class DaemonForkOptions {
         return Sets.newLinkedHashSet(allowedPackages);
     }
 
+    private String getNormalized(String string) {
+        return nullToEmpty(string).trim();
+    }
+
     public String toString() {
-        return Objects.toStringHelper(this).add("minHeapSize", minHeapSize).add("maxHeapSize", maxHeapSize).add("jvmArgs", jvmArgs).add("classpath", classpath).toString();
+        return Objects.toStringHelper(this).add("executable", forkOptions.getExecutable()).add("minHeapSize", forkOptions.getMinHeapSize()).add("maxHeapSize", forkOptions.getMaxHeapSize()).add("jvmArgs", forkOptions.getJvmArgs()).add("classpath", classpath).add("keepAliveMode", keepAliveMode).toString();
     }
 }

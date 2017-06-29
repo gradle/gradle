@@ -20,7 +20,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;s
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.process.internal.DefaultExecActionFactory;
@@ -95,5 +96,9 @@ public class TestFiles {
 
     public static Factory<PatternSet> getPatternSetFactory() {
         return resolver().getPatternSetFactory();
+    }
+
+    public static String systemSpecificAbsolutePath(String path) {
+        return OperatingSystem.current().isWindows()? "C:/" + path : "/" + path;
     }
 }

@@ -24,6 +24,7 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.IsolationMode
@@ -44,6 +45,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def fileResolver = Mock(FileResolver)
+    def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
     def factory = Mock(Factory)
     def runnable = Mock(Runnable)
     def executor = Mock(ManagedExecutor)
@@ -55,7 +57,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * fileResolver.resolveLater(_) >> factory
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * executorFactory.create(_ as String) >> executor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider)
     }
 
     def "worker configuration fork property defaults to AUTO"() {
@@ -107,12 +109,12 @@ class DefaultWorkerExecutorTest extends Specification {
         def daemonForkOptions = workerExecutor.getDaemonForkOptions(runnable.class, configuration)
 
         then:
-        daemonForkOptions.minHeapSize == "128m"
-        daemonForkOptions.maxHeapSize == "128m"
-        daemonForkOptions.jvmArgs.contains("-Dfoo=bar")
-        daemonForkOptions.jvmArgs.contains("-foo")
-        daemonForkOptions.jvmArgs.contains("-Xbootclasspath:${File.separator}foo".toString())
-        daemonForkOptions.jvmArgs.contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")
+        daemonForkOptions.javaForkOptions.minHeapSize == "128m"
+        daemonForkOptions.javaForkOptions.maxHeapSize == "128m"
+        daemonForkOptions.javaForkOptions.allJvmArgs.contains("-Dfoo=bar")
+        daemonForkOptions.javaForkOptions.allJvmArgs.contains("-foo")
+        daemonForkOptions.javaForkOptions.allJvmArgs.contains("-Xbootclasspath:${File.separator}foo".toString())
+        daemonForkOptions.javaForkOptions.allJvmArgs.contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")
     }
 
     def "can add to classpath on executor"() {
