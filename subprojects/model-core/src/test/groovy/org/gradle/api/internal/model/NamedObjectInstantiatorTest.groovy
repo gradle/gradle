@@ -239,6 +239,16 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
 - Field b is not valid: A Named implementation class must not define any instance fields."""
     }
 
+    def "wraps constructor failure"() {
+        when:
+        factory.named(BrokenConstructor, "a")
+
+        then:
+        def e = thrown(ObjectInstantiationException)
+        e.message == "Could not create an instance of type ${BrokenConstructor.name}."
+        e.cause == BrokenConstructor.failure
+    }
+
     @Ignore
     def "interface may not have additional methods"() {
         expect: false
@@ -256,12 +266,11 @@ class DummyGroovyNamed implements Named {
     String getCalculatedValue() { "[$name]" }
 }
 
-class SomeType {
-    final Object result
+abstract class BrokenConstructor implements Named {
+    static RuntimeException failure = new RuntimeException("broken")
 
-    SomeType(CharSequence result) {
-        this.result = result
+    BrokenConstructor() {
+        throw failure
     }
 }
-
 
