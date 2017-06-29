@@ -19,9 +19,9 @@ package org.gradle.api.internal;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.inject.Inject;
@@ -38,15 +38,29 @@ public class DependencyInjectingInstantiator implements Instantiator {
 
     private final ServiceRegistry services;
     private final DependencyInjectingInstantiator.ConstructorCache cachedConstructors;
+    private final ClassGenerator classGenerator;
 
     public DependencyInjectingInstantiator(ServiceRegistry services, ConstructorCache cachedConstructors) {
+        this.classGenerator = new ClassGenerator() {
+            @Override
+            public <T> Class<? extends T> generate(Class<T> type) {
+                return type;
+            }
+        };
         this.services = services;
         this.cachedConstructors = cachedConstructors;
     }
 
+    public DependencyInjectingInstantiator(ClassGenerator classGenerator, ServiceRegistry services, ConstructorCache constructorCache) {
+        this.classGenerator = classGenerator;
+        this.services = services;
+        this.cachedConstructors = constructorCache;
+    }
+
     public <T> T newInstance(Class<? extends T> type, Object... parameters) {
         try {
-            CachedConstructor cached = cachedConstructors.get(type);
+            Class<? extends T> implClass = classGenerator.generate(type);
+            CachedConstructor cached = cachedConstructors.get(implClass);
             if (cached.error != null) {
                 throw cached.error;
             }

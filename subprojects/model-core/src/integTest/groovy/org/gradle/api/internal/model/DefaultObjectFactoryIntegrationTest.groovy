@@ -18,7 +18,7 @@ package org.gradle.api.internal.model
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
-    def "plugin can create unnamed instances of class using injected factory"() {
+    def "plugin can create instances of class using injected factory"() {
         buildFile << """
             @groovy.transform.ToString
             class Thing {
@@ -69,7 +69,50 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Thing(thing2): Thing(thing2)")
     }
 
-    def "plugin application fails with ObjectInstantiationException given invalid factory constructor"() {
+    def "can create nested DSL elements using injected ObjectFactory"() {
+        buildFile << """
+            class Thing {
+                String name   
+            }
+            
+            class Thing2 {
+                Thing thing
+                
+                @javax.inject.Inject
+                Thing2(ObjectFactory factory) {
+                    thing = factory.newInstance(Thing)
+                }
+                
+                void thing(Action<? super Thing> action) { action.execute(thing) }
+            }
+            
+            class Thing3 {
+                Thing2 thing
+                
+                Thing3(ObjectFactory factory) {
+                    thing = factory.newInstance(Thing2)
+                }
+                
+                void thing(Action<? super Thing2> action) { action.execute(thing) }
+            }
+            
+            project.extensions.create('thing', Thing3, project.objects)
+            
+            thing {
+                thing {
+                    thing {
+                        name = 'thing'
+                    }
+                }
+            }
+            assert thing.thing.thing.name == 'thing'
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "object creation fails with ObjectInstantiationException given invalid factory constructor"() {
         given:
         buildFile << """
         class Thing {}
@@ -85,6 +128,29 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         fails "fail"
 
         then:
-        failure.assertHasCause('Could not create an instance of type Thing')
+        failure.assertHasCause('Could not create an instance of type Thing.')
+        failure.assertHasCause('Too many parameters provided for constructor for class Thing. Expected 0, received 1.')
+    }
+
+    def "object creation fails with ObjectInstantiationException when constructor throws an exception"() {
+        given:
+        buildFile << """
+        class Thing {
+            Thing() { throw new GradleException("broken") }
+        }
+        
+        task fail {
+            doLast {
+                project.objects.newInstance(Thing) 
+            }
+        }
+"""
+
+        when:
+        fails "fail"
+
+        then:
+        failure.assertHasCause('Could not create an instance of type Thing.')
+        failure.assertHasCause('broken')
     }
 }
