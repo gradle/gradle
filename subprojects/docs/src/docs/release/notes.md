@@ -10,6 +10,12 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Features for easier plugin authoring
+
+While it is easy for a plugin author to extend the Gradle DSL to add top level blocks to the DSL using project extensions, in previous versions of Gradle it was awkward to create a deeply nested DSL inside these top level blocks, often requiring the use of internal Gradle APIs.
+
+In this release of Gradle, API methods have been added to allow a plugin author to create nested DSL elements. TBD - link to sample.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
