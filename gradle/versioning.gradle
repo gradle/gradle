@@ -25,7 +25,13 @@ if (incomingDistributionsBuildReceipt) {
     if (project.hasProperty("buildTimestamp")) {
         buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        buildTime = new Date()
+        if (isCiServer) {
+            buildTime = new Date()
+        } else {
+            def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            Date dateWithoutTime = sdf.parse(sdf.format(new Date()))
+            buildTime = dateWithoutTime
+        }
     }
     ext.buildTimestamp = timestampFormat.format(buildTime)
 }
