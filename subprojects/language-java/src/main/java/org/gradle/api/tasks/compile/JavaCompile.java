@@ -25,12 +25,7 @@ import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInte
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
-import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
-import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
@@ -38,14 +33,7 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCac
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
-import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.CompileClasspath;
-import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
@@ -182,7 +170,6 @@ public class JavaCompile extends AbstractCompile {
         DefaultJavaCompileSpec spec = createSpec();
         performCompilation(spec, createCompiler(spec));
     }
-
 
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
