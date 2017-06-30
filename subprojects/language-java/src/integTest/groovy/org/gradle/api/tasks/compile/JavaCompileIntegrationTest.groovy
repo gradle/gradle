@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
@@ -25,7 +26,7 @@ import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.JDK9_OR_LATER
+import static org.gradle.api.JavaVersion.VERSION_1_9
 
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
@@ -647,7 +648,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':compileJava'
     }
 
-    @Requires(JDK9_OR_LATER)
+    @Requires(adhoc = {AvailableJavaHomes.getJdk(VERSION_1_9)})
     def "compile a module"() {
         given:
         buildFile << '''
@@ -655,7 +656,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 id 'org.gradle.java.experimental-jigsaw' version '0.1.1'
             }
         '''
-        file("src/main/java/module-info.java") << 'module example { exports io.example }'
+        file("src/main/java/module-info.java") << 'module example { exports io.example; }'
         file("src/main/java/io/example/Example.java") << '''
             package io.example;
             
@@ -663,7 +664,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when:
-        run 'compileJava'
+        executer.requireGradleDistribution()
+        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_9).javaHome
+        succeeds "compileJava"
 
         then:
         noExceptionThrown()
