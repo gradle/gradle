@@ -1,0 +1,48 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ext.publicApiIncludes = [
+    'org/gradle/*',
+    'org/gradle/api/**',
+    'org/gradle/authentication/**',
+    'org/gradle/buildinit/**',
+    'org/gradle/caching/**',
+    'org/gradle/external/javadoc/**',
+    'org/gradle/ide/**',
+    'org/gradle/includedbuild/**',
+    'org/gradle/ivy/**',
+    'org/gradle/jvm/**',
+    'org/gradle/language/**',
+    'org/gradle/maven/**',
+    'org/gradle/nativeplatform/**',
+    'org/gradle/normalization/**',
+    'org/gradle/platform/**',
+    'org/gradle/play/**',
+    'org/gradle/plugin/devel/**',
+    'org/gradle/plugin/repository/*',
+    'org/gradle/plugin/use/*',
+    'org/gradle/plugin/management/*',
+    'org/gradle/plugins/**',
+    'org/gradle/process/**',
+    'org/gradle/testfixtures/**',
+    'org/gradle/testing/jacoco/**',
+    'org/gradle/tooling/**',
+    'org/gradle/model/**',
+    'org/gradle/testkit/**',
+    'org/gradle/testing/**'
+]
+
+ext.publicApiExcludes = ['**/internal/**']
