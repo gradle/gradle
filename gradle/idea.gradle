@@ -223,6 +223,8 @@ idea {
                 "-Dorg.gradle.integtest.versions=latest",
                 "-Dorg.gradle.integtest.multiversion=default",
                 "-Dorg.gradle.integtest.testkit.compatibility=current",
+                "-Dorg.gradle.public.api.includes=${publicApiIncludes.join(':')}",
+                "-Dorg.gradle.public.api.excludes=${publicApiExcludes.join(':')}",
                 "-ea",
                 "-Xmx512m"
         ]
