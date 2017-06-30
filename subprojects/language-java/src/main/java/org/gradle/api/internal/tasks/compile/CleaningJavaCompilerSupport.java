@@ -25,6 +25,9 @@ import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<T> {
     @Override
     public WorkResult execute(T spec) {
+        // TODO:  If the result here is an error, we need to abort the build.
+        new IncrementalAnnotationsSupport(spec).prebuildFull();
+
         StaleClassCleaner cleaner = createCleaner(spec);
 
         cleaner.setDestinationDir(spec.getDestinationDir());
