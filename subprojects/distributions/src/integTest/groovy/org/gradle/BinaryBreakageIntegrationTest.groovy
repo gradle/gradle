@@ -28,6 +28,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import static org.junit.Assume.assumeTrue
@@ -37,24 +38,10 @@ class BinaryBreakageIntegrationTest extends AbstractIntegrationSpec{
 
     private static final List<String> PUBLIC_API_INCLUDES = System.getProperty('org.gradle.public.api.includes').split(':')
     private static final List<String> PUBLIC_API_EXCLUDES = System.getProperty('org.gradle.public.api.excludes').split(':')
-    private static final Map<String, String> ACCEPTED_CHANGES = [
-        'org.gradle.api.initialization.ConfigurableIncludedBuild': '''---! REMOVED INTERFACE: PUBLIC(-) ABSTRACT(-) org.gradle.api.initialization.ConfigurableIncludedBuild  (not serializable)
-\t---! REMOVED INTERFACE: org.gradle.api.initialization.IncludedBuild
-\t---! REMOVED METHOD: PUBLIC(-) ABSTRACT(-) void dependencySubstitution(org.gradle.api.Action)''',
-
-        'org.gradle.api.initialization.IncludedBuild': '''---! REMOVED INTERFACE: PUBLIC(-) ABSTRACT(-) org.gradle.api.initialization.IncludedBuild  (not serializable)
-\t---! REMOVED METHOD: PUBLIC(-) ABSTRACT(-) java.lang.String getName()
-\t---! REMOVED METHOD: PUBLIC(-) ABSTRACT(-) java.io.File getProjectDir()
-\t---! REMOVED METHOD: PUBLIC(-) ABSTRACT(-) org.gradle.api.tasks.TaskReference task(java.lang.String)''',
-
-        'org.gradle.api.invocation.Gradle': '''***! MODIFIED INTERFACE: PUBLIC ABSTRACT org.gradle.api.invocation.Gradle  (not serializable)
-\t***! MODIFIED METHOD: PUBLIC ABSTRACT org.gradle.includedbuild.IncludedBuild (<-org.gradle.api.initialization.IncludedBuild) includedBuild(java.lang.String)''',
-        'org.gradle.StartParameter': '''***! MODIFIED CLASS: PUBLIC org.gradle.StartParameter  (default serialVersionUID changed)
-\t---! REMOVED INTERFACE: org.gradle.initialization.ParallelismConfiguration'''
-    ]
+    public static final String BREAKING_CHANGE_MARKER = 'BREAKING-CHANGE: '
+    public static final String CHANGE_REASON_MARKER = 'REASON: '
 
     private List<PathMatcher> publicApiIncludeMatchers
-
     private List<PathMatcher> publicApiExcludeMatchers
 
     def setup() {
@@ -67,23 +54,53 @@ class BinaryBreakageIntegrationTest extends AbstractIntegrationSpec{
     def "should be binary compatibility with Gradle #version"() {
         GradleDistribution current = new UnderDevelopmentGradleDistribution()
 
-        // For a hotfix release we need to trust our own judgement or run this test manually
         assumeTrue(previous.version < current.version)
 
         when:
         def comparison = comparePublicApi(previous, current)
+        def acceptedChanges = loadBreakingChanges(current.version)
 
         then:
         def binaryIncompatibleChanges = comparison.findAll { !it.binaryCompatible }.collectEntries { JApiClass apiClass ->
             [(apiClass.fullyQualifiedName): describeBinaryBreakingChange(apiClass)]
         }
-        def remainingChanges = binaryIncompatibleChanges - ACCEPTED_CHANGES
+        def remainingChanges = binaryIncompatibleChanges - acceptedChanges
         remainingChanges.values().isEmpty()
 
 
         where:
         previous << [new ReleasedVersionDistributions(buildContext).mostRecentFinalRelease]
         version = previous.version.version
+    }
+
+    private Map<String, String> loadBreakingChanges(GradleVersion gradleVersion) {
+        def acceptedChangesText = getClass().getResource("/breaking-changes-${gradleVersion.baseVersion.version}.txt")?.text
+        def acceptedChanges = [:]
+        if (!acceptedChangesText) {
+            return acceptedChanges
+        }
+        String className = null
+        List<String> description = []
+        String reason = null
+        acceptedChangesText.eachLine { String line ->
+            if (line.startsWith(BREAKING_CHANGE_MARKER)) {
+                className = line.substring(BREAKING_CHANGE_MARKER.length())
+                description = []
+                reason = null
+            } else if (line.startsWith(CHANGE_REASON_MARKER)) {
+                reason = line.substring(CHANGE_REASON_MARKER.length())
+            } else if (line.length() == 0 && className && reason) {
+                acceptedChanges[className] = description.join('\n')
+                className = null
+                reason = null
+            } else {
+                description.add(line)
+            }
+        }
+        if (className && reason && !description.empty) {
+            acceptedChanges[className] = description.join('\n')
+        }
+        return acceptedChanges
     }
 
     private static String describeBinaryBreakingChange(JApiClass binaryIncompatibleChange) {
@@ -125,9 +142,5 @@ class BinaryBreakageIntegrationTest extends AbstractIntegrationSpec{
         String[] path = fullyQualifiedClassname.split('\\.')
         return !publicApiExcludeMatchers.any { it.matches(path, 0) } &&
             publicApiIncludeMatchers.any { it.matches(path, 0) }
-    }
-
-    private static String formatChange(JApiClass apiClass) {
-        "Class ${apiClass.fullyQualifiedName} changed: ${apiClass.compatibilityChanges*.toString().join(', ')}"
     }
 }
