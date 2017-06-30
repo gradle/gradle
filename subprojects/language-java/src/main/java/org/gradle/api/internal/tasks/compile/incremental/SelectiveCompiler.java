@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.IncrementalAnnotationsSupport;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotProvider;
@@ -27,6 +28,9 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.time.Time;
+import org.gradle.incap.BuildWorkflow;
+import org.gradle.incap.BuildWorkflow.PreBuildResult;
+import org.gradle.incap.BuildWorkflow.PostBuildResult;
 import org.gradle.internal.time.Timer;
 
 import java.util.Collection;
@@ -69,8 +73,22 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
         }
 
         try {
-            //use the original compiler to avoid cleaning up all the files
-            return cleaningCompiler.getCompiler().execute(spec);
+            IncrementalAnnotationsSupport incapSupport = new IncrementalAnnotationsSupport(spec);
+            PreBuildResult incapStatus = incapSupport.prebuildIncremental(recompilationSpec);
+
+            if (incapStatus.status() == BuildWorkflow.PreBuildResultStatus.FULL_REBUILD) {
+                LOG.info("Incap library requested full rebuild: " + incapStatus.message());
+                return cleaningCompiler.execute(spec);
+            }
+
+            WorkResult result = cleaningCompiler.getCompiler().execute(spec);
+
+            // TODO(stevey):  Do we need to tell Incap whether the build succeeded/failed?
+            if (result.getDidWork()) {
+                PostBuildResult incapResult = incapSupport.postBuild();
+            }
+
+            return result;
         } finally {
             LOG.info("Incremental compilation of {} classes completed in {}.", classNames.size(), clock.getElapsed());
             LOG.debug("Recompiled classes {}", classNames);
