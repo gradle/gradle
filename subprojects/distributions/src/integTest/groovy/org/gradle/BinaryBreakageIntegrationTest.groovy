@@ -66,7 +66,7 @@ class BinaryBreakageIntegrationTest extends AbstractIntegrationSpec{
         }
         def remainingChanges = binaryIncompatibleChanges - acceptedChanges
         remainingChanges.values().isEmpty()
-
+        (acceptedChanges - binaryIncompatibleChanges).isEmpty() // Make sure we do not forget to remove fixed binary breakages
 
         where:
         previous << [new ReleasedVersionDistributions(buildContext).mostRecentFinalRelease]
