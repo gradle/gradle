@@ -43,12 +43,14 @@ public class NamedObjectInstantiator {
     public static final NamedObjectInstantiator INSTANCE = new NamedObjectInstantiator();
     private static final Type OBJECT = Type.getType(Object.class);
     private static final Type STRING = Type.getType(String.class);
+    private static final Type CLASS_GENERATING_LOADER = Type.getType(ClassGeneratingLoader.class);
+    private static final String RETURN_VOID = Type.getMethodDescriptor(Type.VOID_TYPE);
     private static final String RETURN_STRING = Type.getMethodDescriptor(STRING);
     private static final String RETURN_VOID_FROM_STRING = Type.getMethodDescriptor(Type.VOID_TYPE, STRING);
+    private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT, STRING);
     private static final String NAME_FIELD = "__name__";
     private static final String[] EMPTY_STRINGS = new String[0];
     private static final String CONSTRUCTOR_NAME = "<init>";
-    private static final String RETURN_VOID = Type.getMethodDescriptor(Type.VOID_TYPE);
 
     // Currently retains strong references
     private final LoadingCache<Class<?>, LoadingCache<String, Object>> values = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, LoadingCache<String, Object>>() {
@@ -153,7 +155,7 @@ public class NamedObjectInstantiator {
 
         generator = new AsmClassGenerator(publicClass, "$Factory");
         visitor = generator.getVisitor();
-        visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generator.getGeneratedType().getInternalName(), null, Type.getType(ClassGeneratingLoader.class).getInternalName(), EMPTY_STRINGS);
+        visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generator.getGeneratedType().getInternalName(), null, CLASS_GENERATING_LOADER.getInternalName(), EMPTY_STRINGS);
 
         //
         // Add constructor
@@ -163,7 +165,7 @@ public class NamedObjectInstantiator {
         methodVisitor.visitCode();
         // Call this.super()
         methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(ClassGeneratingLoader.class).getInternalName(), CONSTRUCTOR_NAME, RETURN_VOID, false);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, CLASS_GENERATING_LOADER.getInternalName(), CONSTRUCTOR_NAME, RETURN_VOID, false);
         // Done
         methodVisitor.visitInsn(Opcodes.RETURN);
         methodVisitor.visitMaxs(0, 0);
@@ -173,7 +175,7 @@ public class NamedObjectInstantiator {
         // Add factory method
         //
 
-        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "load", Type.getMethodDescriptor(OBJECT, STRING), null, EMPTY_STRINGS);
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "load", RETURN_OBJECT_FROM_STRING, null, EMPTY_STRINGS);
         methodVisitor.visitCode();
         // Call return new <implClass>(param1)
         methodVisitor.visitTypeInsn(Opcodes.NEW, implementationType.getInternalName());
