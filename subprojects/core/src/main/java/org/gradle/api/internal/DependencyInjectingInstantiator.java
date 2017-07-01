@@ -205,7 +205,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
      * An internal interface that can be used by code generators/proxies to indicate that
      * they require a service registry.
      */
-    interface WithServiceRegistry {
+    public interface WithServiceRegistry {
         void setServices(ServiceRegistry services);
     }
 }

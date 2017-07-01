@@ -69,6 +69,33 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Thing(thing2): Thing(thing2)")
     }
 
+    def "services are injected into instances using constructor or getter"() {
+        buildFile << """
+            class Thing1 {
+                final PropertyState<String> name
+                
+                @javax.inject.Inject
+                Thing1(ProviderFactory providers) { this.name = providers.property(String) }
+            }
+            
+            class Thing2 {
+                @javax.inject.Inject
+                ObjectFactory getObjects() { null }
+                
+                String getName() {
+                    def t = objects.newInstance(Thing1)
+                    t.name.set("name")
+                    t.name.get()
+                }
+            }
+            
+            assert objects.newInstance(Thing2).name == "name"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "can create nested DSL elements using injected ObjectFactory"() {
         buildFile << """
             class Thing {
