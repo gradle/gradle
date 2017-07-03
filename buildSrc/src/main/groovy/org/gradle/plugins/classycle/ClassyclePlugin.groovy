@@ -42,7 +42,7 @@ class ClassyclePlugin implements Plugin<Project> {
             def taskName = sourceSet.getTaskName('classycle', null)
             project.tasks.create(taskName, Classycle, { Classycle task ->
                 task.reportName = sourceSet.name
-                task.classesDir = sourceSet.output.classesDir
+                task.classesDirs = sourceSet.output.classesDirs.files.findAll { it.exists() }
                 task.reportDir = reporting.file('classycle')
                 task.dependsOn(sourceSet.output)
             } as Action<Classycle>)

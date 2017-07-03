@@ -20,7 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -33,10 +33,10 @@ import javax.inject.Inject
 @CacheableTask
 class Classycle extends DefaultTask {
 
-    @InputDirectory
+    @InputFiles
     @SkipWhenEmpty
     @PathSensitive(PathSensitivity.RELATIVE)
-    File classesDir
+    Set<File> classesDirs
 
     @Input
     String reportName
@@ -64,6 +64,7 @@ class Classycle extends DefaultTask {
 
     @TaskAction
     void generate() {
+        def project = this.project
         antBuilder.withClasspath(project.configurations.getByName(ClassyclePlugin.CLASSYCLE_CONFIGURATION_NAME).files).execute {
             ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask")
             ant.taskdef(name: "classycleReport", classname: "classycle.ant.ReportTask")
@@ -75,9 +76,11 @@ class Classycle extends DefaultTask {
                         check absenceOfPackageCycles > 1 in org.gradle.*
                     """
                 ) {
-                    fileset(dir: classesDir) {
-                        excludePatterns.each { excludePattern ->
-                            exclude(name: excludePattern)
+                    classesDirs.each { classesDir ->
+                        fileset(dir: classesDir) {
+                            excludePatterns.each { excludePattern ->
+                                exclude(name: excludePattern)
+                            }
                         }
                     }
                 }
@@ -85,9 +88,11 @@ class Classycle extends DefaultTask {
                 try {
                     ant.unzip(src: project.rootProject.file("gradle/classycle_report_resources.zip"), dest: reportDir)
                     ant.classycleReport(reportFile: analysisFile, reportType: 'xml', mergeInnerClasses: true, title: "${project.name} ${reportName} (${path})") {
-                        fileset(dir: classesDir) {
-                            excludePatterns.each { excludePattern ->
-                                exclude(name: excludePattern)
+                        classesDirs.each { classesDir ->
+                            fileset(dir: classesDir) {
+                                excludePatterns.each { excludePattern ->
+                                    exclude(name: excludePattern)
+                                }
                             }
                         }
                     }
