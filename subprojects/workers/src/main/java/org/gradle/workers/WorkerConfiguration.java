@@ -53,6 +53,8 @@ public interface WorkerConfiguration extends Describable, ActionConfiguration {
     Iterable<File> getClasspath();
 
     /**
+     * Gets the isolation mode for this worker, see {@link IsolationMode}.
+     *
      * @return the isolation mode for this worker, see {@link IsolationMode}, defaults to {@link IsolationMode#AUTO}
      *
      * @since 4.0
@@ -69,6 +71,8 @@ public interface WorkerConfiguration extends Describable, ActionConfiguration {
     void setIsolationMode(IsolationMode isolationMode);
 
     /**
+     * Gets the forking mode for this worker, see {@link ForkMode}.
+     *
      * @return the forking mode for this worker, see {@link ForkMode}, defaults to {@link ForkMode#AUTO}
      */
     ForkMode getForkMode();
