@@ -17,6 +17,7 @@
 package org.gradle.plugins.classycle
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
@@ -36,7 +37,7 @@ class Classycle extends DefaultTask {
     @InputFiles
     @SkipWhenEmpty
     @PathSensitive(PathSensitivity.RELATIVE)
-    Set<File> classesDirs
+    FileCollection classesDirs
 
     @Input
     String reportName
