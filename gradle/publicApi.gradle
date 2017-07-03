@@ -43,7 +43,8 @@ ext.publicApiIncludes = [
     'org/gradle/tooling/**',
     'org/gradle/model/**',
     'org/gradle/testkit/**',
-    'org/gradle/testing/**'
+    'org/gradle/testing/**',
+    'org/gradle/workers/**'
 ]
 
 ext.publicApiExcludes = ['**/internal/**']
