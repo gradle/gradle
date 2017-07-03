@@ -21,7 +21,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.3.1'
+        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.3'
     }
 }
 
@@ -32,10 +32,13 @@ configurations {
 }
 
 jmh {
-    jmhVersion = '1.12'
     includeTests = false
     warmupIterations = 10
     threads = 2
     synchronizeIterations = false
     fork = 4
+}
+
+tasks.findByName('jmhRunBytecodeGenerator').configure {
+    generatorType = 'asm'
 }
