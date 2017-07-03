@@ -38,7 +38,8 @@ public abstract class AbstractOptions implements Serializable {
             return;
         }
         for (Map.Entry<String, Object> arg: args.entrySet()) {
-            JavaReflectionUtil.writeableProperty(getClass(), arg.getKey()).setValue(this, arg.getValue());
+            Object value = arg.getValue();
+            JavaReflectionUtil.writeableProperty(getClass(), arg.getKey(), value == null ? null : value.getClass()).setValue(this, value);
         }
     }
 

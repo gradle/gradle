@@ -132,4 +132,13 @@ task printSystemProp {
         then:
         result.assertOutputContains('mySystemProp=commandline')
     }
+
+    def "can always change buildDir in properties file"() {
+        when:
+        file('gradle.properties') << """
+            buildDir=otherBuild
+        """
+        then:
+        succeeds ':help'
+    }
 }
