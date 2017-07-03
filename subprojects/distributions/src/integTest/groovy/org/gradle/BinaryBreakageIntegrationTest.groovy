@@ -58,7 +58,7 @@ class BinaryBreakageIntegrationTest extends AbstractIntegrationSpec{
 
         when:
         def comparison = comparePublicApi(previous, current)
-        def acceptedChanges = loadBreakingChanges(current.version)
+        def acceptedChanges = loadBreakingChangesSince(previous.version)
 
         then:
         def binaryIncompatibleChanges = comparison.findAll { !it.binaryCompatible }.collectEntries { JApiClass apiClass ->
@@ -73,8 +73,8 @@ class BinaryBreakageIntegrationTest extends AbstractIntegrationSpec{
         version = previous.version.version
     }
 
-    private Map<String, String> loadBreakingChanges(GradleVersion gradleVersion) {
-        def acceptedChangesText = getClass().getResource("/breaking-changes-${gradleVersion.baseVersion.version}.txt")?.text
+    private Map<String, String> loadBreakingChangesSince(GradleVersion previousVersion) {
+        def acceptedChangesText = getClass().getResource("/breaking-changes-since-${previousVersion.version}.txt")?.text
         def acceptedChanges = [:]
         if (!acceptedChangesText) {
             return acceptedChanges
