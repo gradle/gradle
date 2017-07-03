@@ -18,6 +18,8 @@
 package org.gradle.api.internal.tasks.util
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.util.UsesNativeServices
+import spock.lang.Specification
 
 import java.nio.charset.Charset
 import org.gradle.api.file.FileCollection
@@ -35,114 +37,128 @@ import static org.gradle.util.Matchers.isEmptyMap
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-@RunWith(JMock.class)
-public class DefaultJavaForkOptionsTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final FileResolver resolver = context.mock(FileResolver.class)
-    private DefaultJavaForkOptions options
+@UsesNativeServices
+class DefaultJavaForkOptionsTest extends Specification {
+    private final FileResolver resolver = Mock(FileResolver)
+    private DefaultJavaForkOptions options = new DefaultJavaForkOptions(resolver, Jvm.current())
 
-    @Before
-    public void setup() {
-        context.checking {
-            allowing(resolver).resolveLater(".")
-        }
-        options = new DefaultJavaForkOptions(resolver, Jvm.current())
+    def "provides correct default values"() {
+        expect:
+        options.executable != null
+        options.jvmArgs.isEmpty()
+        options.systemProperties.isEmpty()
+        options.minHeapSize == null
+        options.maxHeapSize == null
+        options.bootstrapClasspath.files.isEmpty()
+        !options.enableAssertions
+        !options.debug
+        options.allJvmArgs == [fileEncodingProperty(), *localeProperties()]
     }
 
-    @Test
-    public void defaultValues() {
-        assertThat(options.executable, notNullValue())
-        assertThat(options.jvmArgs, isEmpty())
-        assertThat(options.systemProperties, isEmptyMap())
-        assertThat(options.minHeapSize, nullValue())
-        assertThat(options.maxHeapSize, nullValue())
-        assertThat(options.bootstrapClasspath.files, isEmpty())
-        assertFalse(options.enableAssertions)
-        assertFalse(options.debug)
-        assert options.allJvmArgs == [fileEncodingProperty(), *localeProperties()]
-    }
-
-    @Test
-    public void convertsJvmArgsToStringOnGet() {
+    def "converts jvmArgs to String on get"() {
+        when:
         options.jvmArgs = [12, "${1 + 2}"]
-        assertThat(options.jvmArgs, equalTo(['12', '3']))
+
+        then:
+        options.jvmArgs == ['12', '3']
     }
 
-    @Test
-    public void canAddJvmArgs() {
+    def "can add jvmArgs"() {
+        when:
         options.jvmArgs('arg1', 'arg2')
-        assertThat(options.jvmArgs, equalTo(['arg1', 'arg2']))
+        options.jvmArgs('arg3')
+
+        then:
+        options.jvmArgs == ['arg1', 'arg2', 'arg3']
     }
 
-    @Test
-    public void canSetSystemProperties() {
+    def "can set system properties"() {
+        when:
         options.systemProperties = [key: 12, key2: "value", key3: null]
-        assertThat(options.systemProperties, equalTo(key: 12, key2: "value", key3: null))
+
+        then:
+        options.systemProperties == [key: 12, key2: "value", key3: null]
     }
 
-    @Test
-    public void canAddSystemProperties() {
+    def "can add system properties"() {
+        when:
         options.systemProperties(key: 12)
         options.systemProperty('key2', 'value2')
-        assertThat(options.systemProperties, equalTo(key: 12, key2: 'value2'))
+
+        then:
+        options.systemProperties == [key: 12, key2: 'value2']
     }
 
-    @Test
-    public void allJvmArgsIncludeSystemPropertiesAsString() {
+    def "all jvm args include system properties as string"() {
+        when:
         options.systemProperties(key: 12, key2: null, "key3": 'value')
         options.jvmArgs('arg1')
 
-        assert options.allJvmArgs == ['-Dkey=12', '-Dkey2', '-Dkey3=value', 'arg1', fileEncodingProperty(), *localeProperties()]
+        then:
+        options.allJvmArgs == ['-Dkey=12', '-Dkey2', '-Dkey3=value', 'arg1', fileEncodingProperty(), *localeProperties()]
     }
 
-    @Test
-    public void systemPropertiesAreUpdatedWhenAddedUsingJvmArgs() {
+    def "system properties are updated when added using jvmArgs"() {
+        when:
         options.systemProperties(key: 12)
         options.jvmArgs('-Dkey=new value', '-Dkey2')
 
-        assertThat(options.systemProperties, equalTo(key: 'new value', key2: ''))
+        then:
+        options.systemProperties == [key: 'new value', key2: '']
 
+        when:
         options.allJvmArgs = []
 
-        assertThat(options.systemProperties, equalTo([:]))
+        then:
+        options.systemProperties == [:]
 
+        when:
         options.allJvmArgs = ['-Dkey=value']
 
-        assertThat(options.systemProperties, equalTo([key: 'value']))
+        then:
+        options.systemProperties == [key: 'value']
     }
 
-    @Test
-    public void allJvmArgsIncludeMinHeapSize() {
+    def "allJvmArgs includes minHeapSize"() {
+        when:
         options.minHeapSize = '64m'
         options.jvmArgs('arg1')
-        assert options.allJvmArgs == ['arg1', '-Xms64m', fileEncodingProperty(), *localeProperties()]
+
+        then:
+        options.allJvmArgs == ['arg1', '-Xms64m', fileEncodingProperty(), *localeProperties()]
     }
 
-    @Test
-    public void allJvmArgsIncludeMaxHeapSize() {
+    def "allJvmArgs includes maxHeapSize"() {
+        when:
         options.maxHeapSize = '1g'
         options.jvmArgs('arg1')
-        assert options.allJvmArgs == ['arg1', '-Xmx1g', fileEncodingProperty(), *localeProperties()]
+
+        then:
+        options.allJvmArgs == ['arg1', '-Xmx1g', fileEncodingProperty(), *localeProperties()]
     }
 
-    @Test
-    public void minHeapSizeIsUpdatedWhenSetUsingJvmArgs() {
+    def "minHeapSize is updated when set using jvmArgs"() {
+        when:
         options.minHeapSize = '64m'
         options.jvmArgs('-Xms128m')
 
-        assertThat(options.minHeapSize, equalTo('128m'))
+        then:
+        options.minHeapSize == '128m'
 
+        when:
         options.allJvmArgs = []
 
-        assertThat(options.minHeapSize, nullValue())
+        then:
+        options.minHeapSize == null
 
+        when:
         options.allJvmArgs = ['-Xms92m']
 
-        assertThat(options.minHeapSize, equalTo('92m'))
+        then:
+        options.minHeapSize == '92m'
     }
 
-    @Test
-    public void maxHeapSizeIsUpdatedWhenSetUsingJvmArgs() {
+    def "maxHeapSizeIsUpdatedWhenSetUsingJvmArgs"() {
         options.maxHeapSize = '1g'
         options.jvmArgs('-Xmx1024m')
 
@@ -157,139 +173,181 @@ public class DefaultJavaForkOptionsTest {
         assertThat(options.maxHeapSize, equalTo('1g'))
     }
 
-    @Test
-    public void allJvmArgsIncludeAssertionsEnabled() {
+    def "allJvmArgs includes assertionsEnabled"() {
+        given:
         assert options.allJvmArgs == [fileEncodingProperty(), *localeProperties()]
+        when:
         options.enableAssertions = true
-        assert options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), '-ea']
+
+        then:
+        options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), '-ea']
     }
 
-    @Test
-    public void assertionsEnabledIsUpdatedWhenSetUsingJvmArgs() {
+    def "assertionsEnabled is updated when set using jvmArgs"() {
+        when:
         options.jvmArgs('-ea')
-        assertTrue(options.enableAssertions)
-        assertThat(options.jvmArgs, equalTo([]))
 
+        then:
+        options.enableAssertions
+        options.jvmArgs == []
+
+        when:
         options.allJvmArgs = []
-        assertFalse(options.enableAssertions)
 
+        then:
+        !options.enableAssertions
+
+        when:
         options.jvmArgs('-enableassertions')
-        assertTrue(options.enableAssertions)
 
+        then:
+        options.enableAssertions
+
+        when:
         options.allJvmArgs = ['-da']
-        assertFalse(options.enableAssertions)
+
+        then:
+        !options.enableAssertions
     }
 
-    @Test
-    public void allJvmArgsIncludeDebugArgs() {
+    def "allJvmArgs includes debug args"() {
+        given:
         assert options.allJvmArgs == [fileEncodingProperty(), *localeProperties()]
+
+        when:
         options.debug = true
-        assert options.allJvmArgs  == [fileEncodingProperty(), *localeProperties(), '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
+
+        then:
+        options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
     }
 
-    @Test
-    public void debugIsEnabledWhenSetUsingJvmArgs() {
+    def "debug is enabled when set using jvmArgs"() {
+        when:
         options.jvmArgs('-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005')
-        assertTrue(options.debug)
-        assertThat(options.jvmArgs, equalTo([]))
 
+        then:
+        options.debug
+        options.jvmArgs == []
+
+        when:
         options.allJvmArgs = []
-        assertFalse(options.debug)
 
+        then:
+        !options.debug
+
+        when:
         options.debug = false
         options.jvmArgs = ['-Xdebug']
-        assertFalse(options.debug)
-        assertThat(options.jvmArgs, equalTo(['-Xdebug']))
 
+        then:
+        !options.debug
+        options.jvmArgs == ['-Xdebug']
+
+        when:
         options.jvmArgs = ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
-        assertFalse(options.debug)
-        assertThat(options.jvmArgs, equalTo(['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']))
 
+        then:
+        !options.debug
+        options.jvmArgs == ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
+
+        when:
         options.jvmArgs '-Xdebug'
-        assertTrue(options.debug)
-        assertThat(options.jvmArgs, equalTo([]))
 
+        then:
+        options.debug
+        options.jvmArgs == []
+
+        when:
         options.debug = false
         options.jvmArgs = ['-Xdebug', '-Xrunjdwp:transport=other']
-        assertFalse(options.debug)
-        assertThat(options.jvmArgs, equalTo(['-Xdebug', '-Xrunjdwp:transport=other']))
 
+        then:
+        !options.debug
+        options.jvmArgs == ['-Xdebug', '-Xrunjdwp:transport=other']
+
+        when:
         options.debug = false
         options.allJvmArgs = ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005', '-Xdebug']
-        assertTrue(options.debug)
-        assertThat(options.jvmArgs, equalTo([]))
 
+        then:
+        options.debug
+        options.jvmArgs == []
+
+        when:
         options.debug = false
         options.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
-        assertTrue(options.debug)
-        assertThat(options.jvmArgs, equalTo([]))
+
+        then:
+        options.debug
+        options.jvmArgs == []
     }
 
-    @Test
-    public void canSetBootstrapClasspath() {
+    def "can set bootstrapClasspath"() {
         def bootstrapClasspath = [:] as FileCollection
+
+        when:
         options.bootstrapClasspath = bootstrapClasspath
 
-        assertThat(options.bootstrapClasspath.from, equalTo([bootstrapClasspath] as Set))
+        then:
+        options.bootstrapClasspath.from == [bootstrapClasspath] as Set
     }
 
-    @Test
-    public void canAddToBootstrapClasspath() {
+    def "can add to bootstrapClasspath"() {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(TestFiles.resolver());
+
+        when:
+        options = new DefaultJavaForkOptions(TestFiles.resolver())
         options.bootstrapClasspath(files[0])
         options.bootstrapClasspath(files[1])
 
-        assertThat(options.bootstrapClasspath.getFiles(), equalTo(files as Set))
+        then:
+        options.bootstrapClasspath.getFiles() == files as Set
     }
 
-    @Test
-    public void allJvmArgsIncludeBootstrapClasspath() {
+    def "allJvmArgs includes bootstrapClasspath"() {
+        when:
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(TestFiles.resolver());
+        options = new DefaultJavaForkOptions(TestFiles.resolver())
         options.bootstrapClasspath(files)
 
-        context.checking {
-            allowing(resolver).resolveFiles(['file.jar'])
-            will(returnValue([isEmpty: {false}, getAsPath: {'<classpath>'}] as FileCollection))
-        }
-
-        assert options.allJvmArgs  == ['-Xbootclasspath:' + files.join(System.properties['path.separator']), fileEncodingProperty(), *localeProperties()]
+        then:
+        options.allJvmArgs == ['-Xbootclasspath:' + files.join(System.properties['path.separator']), fileEncodingProperty(), *localeProperties()]
     }
 
-    @Test
-    public void canSetBootstrapClasspathViaAllJvmArgs() {
+    def "can set bootstrapClasspath via allJvmArgs"() {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(TestFiles.resolver());
-        options.bootstrapClasspath(files[0])
 
+        when:
+        options = new DefaultJavaForkOptions(TestFiles.resolver())
+        options.bootstrapClasspath(files[0])
         options.allJvmArgs = ['-Xbootclasspath:' + files[1]]
 
-        assertThat(options.bootstrapClasspath.files, equalTo([files[1]] as Set))
+        then:
+        options.bootstrapClasspath.files == [files[1]] as Set
     }
 
-    @Test
-    public void canCopyToTargetOptions() {
+    def "can copy to target options"() {
+        JavaForkOptions target = Mock(JavaForkOptions)
+
+        given:
         options.executable('executable')
         options.jvmArgs('arg')
         options.systemProperties(key: 12)
         options.minHeapSize = '64m'
         options.maxHeapSize = '1g'
 
-        JavaForkOptions target = context.mock(JavaForkOptions.class)
-        context.checking {
-            one(target).setExecutable('executable' as Object)
-            one(target).setJvmArgs(['arg'] as Iterable<?>)
-            one(target).setSystemProperties(key: 12)
-            one(target).setMinHeapSize('64m')
-            one(target).setMaxHeapSize('1g')
-            one(target).setBootstrapClasspath(options.bootstrapClasspath)
-            one(target).setEnableAssertions(false)
-            one(target).setDebug(false)
-            ignoring(target)
-        }
-
+        when:
         options.copyTo(target)
+
+        then:
+        1 * target.setExecutable('executable' as Object)
+        1 * target.setJvmArgs(['arg'])
+        1 * target.setSystemProperties([key: 12])
+        1 * target.setMinHeapSize('64m')
+        1 * target.setMaxHeapSize('1g')
+        1 * target.setBootstrapClasspath(options.bootstrapClasspath)
+        1 * target.setEnableAssertions(false)
+        1 * target.setDebug(false)
     }
 
     private static String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {
