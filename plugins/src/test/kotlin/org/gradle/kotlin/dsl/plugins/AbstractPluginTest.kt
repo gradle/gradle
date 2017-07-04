@@ -9,7 +9,6 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     protected
     fun buildWithPlugin(vararg arguments: String) =
         gradleRunnerFor(projectRoot)
-            .withPluginClasspath()
             .withArguments(*arguments)
             .build()!!
 }
