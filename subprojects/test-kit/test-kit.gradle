@@ -1,5 +1,3 @@
-apply from: "$rootDir/gradle/crossVersionTest.gradle"
-
 dependencies {
     compile project(':core')
     compile project(':toolingApi')
