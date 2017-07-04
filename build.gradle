@@ -106,11 +106,11 @@ buildTypes {
 
     // Used for cross version tests on CI
     crossVersionTest {
-        tasks "crossVersionIntegTest", "crossVersionTests"
+        tasks "crossVersionTests"
         projectProperties useIncomingDistributions: true
     }
     quickFeedbackCrossVersionTest {
-        tasks "quickFeedbackCrossVersionIntegTest", "quickFeedbackCrossVersionTests"
+        tasks "quickFeedbackCrossVersionTests"
         projectProperties useIncomingDistributions: true
     }
 
