@@ -139,7 +139,6 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.api.tasks.javadoc.Groovydoc[]
 * Scala toolchain:
     api:org.gradle.api.tasks.compile.ScalaCompile[],
-    api:org.gradle.api.tasks.javadoc.Scaladoc[]
 * Testing:
     api:org.gradle.api.tasks.testing.Test[]
 * Code quality tasks:
