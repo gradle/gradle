@@ -40,8 +40,6 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
 
-import static org.junit.Assume.assumeFalse
-
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
