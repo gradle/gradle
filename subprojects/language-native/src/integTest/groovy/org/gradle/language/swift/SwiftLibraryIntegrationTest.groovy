@@ -105,4 +105,31 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("Greeting/build/lib/Greeting").assertExists()
     }
 
+    def "can change default module name and successfully link against library library"() {
+        settingsFile << "include 'lib1', 'lib2'"
+        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+
+        given:
+        buildFile << """
+            project(':lib1') {
+                apply plugin: 'swift-library'
+                dependencies {
+                    implementation project(':lib2')
+                }
+                tasks.withType(SwiftCompile)*.moduleName = 'Hello'
+            }
+            project(':lib2') {
+                apply plugin: 'swift-library'
+                tasks.withType(SwiftCompile)*.moduleName = 'Greeting'
+            }
+"""
+        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/swift/$it.name")) }
+        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/swift/$it.name")) }
+
+        expect:
+        succeeds ":lib1:assemble"
+        result.assertTasksExecuted(":lib2:compileSwift", ":lib1:compileSwift", ":lib1:assemble")
+        sharedLibrary("lib1/build/lib/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/lib2").assertExists()
+    }
 }
