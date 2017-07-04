@@ -34,9 +34,6 @@ import javax.inject.Inject
 @CacheableTask
 class Classycle extends DefaultTask {
 
-    @InputFiles
-    @SkipWhenEmpty
-    @PathSensitive(PathSensitivity.RELATIVE)
     FileCollection classesDirs
 
     @Input
@@ -64,10 +61,17 @@ class Classycle extends DefaultTask {
         throw new UnsupportedOperationException()
     }
 
+    @InputFiles
+    @SkipWhenEmpty
+    @PathSensitive(PathSensitivity.RELATIVE)
+    FileCollection getClassesDirs() {
+        return project.files(classesDirs.findAll { it.exists() })
+    }
+
     @TaskAction
     void generate() {
         def project = this.project
-        def existingClassesDirs = classesDirs.findAll { it.exists() }
+        def classesDirs = this.classesDirs
         antBuilder.withClasspath(project.configurations.getByName(ClassyclePlugin.CLASSYCLE_CONFIGURATION_NAME).files).execute {
             ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask")
             ant.taskdef(name: "classycleReport", classname: "classycle.ant.ReportTask")
@@ -79,7 +83,7 @@ class Classycle extends DefaultTask {
                         check absenceOfPackageCycles > 1 in org.gradle.*
                     """
                 ) {
-                    existingClassesDirs.each { classesDir ->
+                    classesDirs.each { classesDir ->
                         fileset(dir: classesDir) {
                             excludePatterns.each { excludePattern ->
                                 exclude(name: excludePattern)
@@ -91,7 +95,7 @@ class Classycle extends DefaultTask {
                 try {
                     ant.unzip(src: project.rootProject.file("gradle/classycle_report_resources.zip"), dest: reportDir)
                     ant.classycleReport(reportFile: analysisFile, reportType: 'xml', mergeInnerClasses: true, title: "${project.name} ${reportName} (${path})") {
-                        existingClassesDirs.each { classesDir ->
+                        classesDirs.each { classesDir ->
                             fileset(dir: classesDir) {
                                 excludePatterns.each { excludePattern ->
                                     exclude(name: excludePattern)
