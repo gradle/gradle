@@ -18,9 +18,7 @@ package org.gradle.language.nativeplatform
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -49,7 +47,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    @RequiresSupportedLanguage(NativeLanguageRequirement.ASSEMBLY)
     def "assembler"() {
         given:
         sample assembler
@@ -65,7 +62,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(assembler.dir.file("build/install/main")).exec().out == "5 + 7 = 12\n"
     }
 
-    @RequiresSupportedLanguage(NativeLanguageRequirement.C)
     def "c"() {
         given:
         sample c
@@ -81,7 +77,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(c.dir.file("build/install/main")).exec().out == "Hello world!"
     }
 
-    @RequiresSupportedLanguage(NativeLanguageRequirement.C_PLUS_PLUS)
     def "cpp"() {
         given:
         sample cpp
@@ -98,7 +93,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
-    @RequiresSupportedLanguage(NativeLanguageRequirement.OBJECTIVE_C)
     def "objectiveC"() {
         given:
         sample objectiveC
@@ -114,7 +108,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
-    @RequiresSupportedLanguage(NativeLanguageRequirement.OBJECTIVE_C_PLUS_PLUS)
     def "objectiveCpp"() {
         given:
         sample objectiveCpp
@@ -130,7 +123,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @RequiresInstalledToolChain(VISUALCPP)
-    @RequiresSupportedLanguage([NativeLanguageRequirement.WINDOWS_RESOURCE, NativeLanguageRequirement.C_PLUS_PLUS])
     def "win rc"() {
         given:
         sample windowsResources
@@ -154,7 +146,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         file(windowsResources.dir.file("build/libs/helloRes/shared/helloRes.dll")).assertExists()
     }
 
-    @RequiresSupportedLanguage(NativeLanguageRequirement.C)
     def "custom layout"() {
         given:
         sample customLayout
@@ -170,7 +161,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(customLayout.dir.file("build/install/main")).exec().out == "Hello world!"
     }
 
-    @RequiresSupportedLanguage(NativeLanguageRequirement.C)
     def "idl"() {
         given:
         sample idl
@@ -186,7 +176,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(idl.dir.file("build/install/main")).exec().out == "Hello from generated source!!\n"
     }
 
-    @RequiresSupportedLanguage(NativeLanguageRequirement.C_PLUS_PLUS)
     def "pch"() {
         given:
         sample pch

@@ -131,6 +131,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     OBJECTIVE_C_SUPPORT({
         NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
     }),
+    SWIFT_SUPPORT({
+        true
+    }),
     SMART_TERMINAL({
         System.getenv("TERM")?.toUpperCase() != "DUMB"
     }),

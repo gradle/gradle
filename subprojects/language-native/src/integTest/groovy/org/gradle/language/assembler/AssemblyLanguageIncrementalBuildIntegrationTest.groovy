@@ -18,8 +18,6 @@ package org.gradle.language.assembler
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
-import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -27,7 +25,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
-@RequiresSupportedLanguage([NativeLanguageRequirement.C_PLUS_PLUS, NativeLanguageRequirement.C, NativeLanguageRequirement.ASSEMBLY])
 class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     HelloWorldApp app = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)

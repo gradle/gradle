@@ -17,8 +17,6 @@
 package org.gradle.language.objectivec
 
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
-import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
-import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedObjectiveCHelloWorldApp
 import org.gradle.util.Requires
@@ -26,7 +24,6 @@ import org.gradle.util.TestPrecondition
 
 //TODO find a better name
 @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
-@RequiresSupportedLanguage([NativeLanguageRequirement.C_PLUS_PLUS, NativeLanguageRequirement.C, NativeLanguageRequirement.OBJECTIVE_C_PLUS_PLUS, NativeLanguageRequirement.OBJECTIVE_C])
 class MixedObjectiveCIntegrationTest extends AbstractNativeLanguageIntegrationTest{
 
     @Override

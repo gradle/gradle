@@ -16,13 +16,10 @@
 package org.gradle.language.c
 
 import org.gradle.language.AbstractNativeLanguageIncrementalCompileIntegrationTest
-import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
-import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import spock.lang.Issue
 
-@RequiresSupportedLanguage(NativeLanguageRequirement.C)
 class CLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageIncrementalCompileIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {

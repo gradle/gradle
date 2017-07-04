@@ -17,6 +17,8 @@
 package org.gradle.nativeplatform.fixtures;
 
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
+import org.gradle.util.Requires;
+import org.gradle.util.TestPrecondition;
 
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -43,7 +45,7 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         } else {
             boolean hasEnabled = false;
             for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                if (!hasEnabled && toolChain.isAvailable() && toolChain.meets(getLanguageRestriction(target))) {
+                if (!hasEnabled && toolChain.isAvailable() && (!getRequirements(target).contains(TestPrecondition.SWIFT_SUPPORT) || toolChain instanceof AvailableToolChains.InstalledSwiftc)) {
                     add(new ToolChainExecution(toolChain, true));
                     hasEnabled = true;
                 } else {
@@ -53,19 +55,16 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         }
     }
 
-    private static EnumSet<NativeLanguageRequirement> getLanguageRestriction(Class<?> target) {
-        return toLanguageRequirement(target.getAnnotation(RequiresSupportedLanguage.class));
+    private static EnumSet<TestPrecondition> getRequirements(Class<?> target) {
+        return toTestPrecondition(target.getAnnotation(Requires.class));
     }
 
-    private static EnumSet<NativeLanguageRequirement> getLanguageRestriction(TestDetails target) {
-        return toLanguageRequirement(target.getAnnotation(RequiresSupportedLanguage.class));
-    }
-
-    private static EnumSet<NativeLanguageRequirement> toLanguageRequirement(RequiresSupportedLanguage languageRestriction) {
-        if (languageRestriction == null) {
-            return EnumSet.of(NativeLanguageRequirement.C_PLUS_PLUS);
+    private static EnumSet<TestPrecondition> toTestPrecondition(Requires requirements) {
+        if (requirements == null) {
+            return EnumSet.of(TestPrecondition.NULL_REQUIREMENT);
         }
-        return EnumSet.copyOf(Arrays.asList(languageRestriction.value()));
+
+        return EnumSet.copyOf(Arrays.asList(requirements.value()));
     }
 
     private static ToolChainRequirement getToolChainRestriction(Class<?> target) {
@@ -100,7 +99,7 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         @Override
         protected boolean isTestEnabled(TestDetails testDetails) {
             if (enabled) {
-                return toolChain.meets(getToolChainRestriction(testDetails)) && toolChain.meets(getLanguageRestriction(testDetails));
+                return toolChain.meets(getToolChainRestriction(testDetails));
             }
             return false;
         }

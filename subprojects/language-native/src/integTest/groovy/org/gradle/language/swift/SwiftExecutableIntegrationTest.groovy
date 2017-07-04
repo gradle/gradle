@@ -17,14 +17,14 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.NativeLanguageRequirement
-import org.gradle.nativeplatform.fixtures.RequiresSupportedLanguage
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.Matchers.containsText
 
-@RequiresSupportedLanguage(NativeLanguageRequirement.SWIFT)
+@Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new SwiftHelloWorldApp()
 
@@ -129,7 +129,6 @@ ${f.text}"""
         sharedLibrary("app/build/install/app/lib/Hello").file.assertExists()
         sharedLibrary("app/build/install/app/lib/Greeting").file.assertExists()
     }
-
 
     def "can compile and link against libraries in included builds"() {
         settingsFile << """
