@@ -57,11 +57,6 @@ public interface TaskArtifactState {
     void afterTask();
 
     /**
-     * Called when this state is finished with.
-     */
-    void finished();
-
-    /**
      * Returns the history for this task.
      */
     TaskExecutionHistory getExecutionHistory();

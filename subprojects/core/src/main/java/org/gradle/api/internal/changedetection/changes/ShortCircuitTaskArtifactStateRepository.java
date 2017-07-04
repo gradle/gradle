@@ -70,11 +70,13 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             this.reason = reason;
         }
 
+        @Override
         public boolean isUpToDate(Collection<String> messages) {
             messages.add(reason);
             return false;
         }
 
+        @Override
         public IncrementalTaskInputs getInputChanges() {
             return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
         }
@@ -89,6 +91,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return delegate.calculateCacheKey();
         }
 
+        @Override
         public TaskExecutionHistory getExecutionHistory() {
             return delegate.getExecutionHistory();
         }
@@ -99,16 +102,14 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return null;
         }
 
+        @Override
         public void beforeTask() {
             delegate.beforeTask();
         }
 
+        @Override
         public void afterTask() {
             delegate.afterTask();
-        }
-
-        public void finished() {
-            delegate.finished();
         }
     }
 

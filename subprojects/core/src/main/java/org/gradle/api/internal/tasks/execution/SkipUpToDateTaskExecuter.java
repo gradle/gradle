@@ -48,26 +48,23 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         LOGGER.debug("Determining if {} is up-to-date", task);
         Timer clock = Timers.startTimer();
         TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-        try {
-            List<String> messages = new ArrayList<String>(TaskUpToDateState.MAX_OUT_OF_DATE_MESSAGES);
-            if (taskArtifactState.isUpToDate(messages)) {
-                LOGGER.info("Skipping {} as it is up-to-date (took {}).", task, clock.getElapsed());
-                state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
-                context.setOriginBuildInvocationId(taskArtifactState.getOriginBuildInvocationId());
-                return;
-            }
-            context.setUpToDateMessages(ImmutableList.copyOf(messages));
-            logOutOfDateMessages(messages, task, clock.getElapsed());
 
-            taskArtifactState.beforeTask();
+        List<String> messages = new ArrayList<String>(TaskUpToDateState.MAX_OUT_OF_DATE_MESSAGES);
+        if (taskArtifactState.isUpToDate(messages)) {
+            LOGGER.info("Skipping {} as it is up-to-date (took {}).", task, clock.getElapsed());
+            state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
+            context.setOriginBuildInvocationId(taskArtifactState.getOriginBuildInvocationId());
+            return;
+        }
+        context.setUpToDateMessages(ImmutableList.copyOf(messages));
+        logOutOfDateMessages(messages, task, clock.getElapsed());
 
-            executer.execute(task, state, context);
+        taskArtifactState.beforeTask();
 
-            if (state.getFailure() == null) {
-                taskArtifactState.afterTask();
-            }
-        } finally {
-            taskArtifactState.finished();
+        executer.execute(task, state, context);
+
+        if (state.getFailure() == null) {
+            taskArtifactState.afterTask();
         }
     }
 
