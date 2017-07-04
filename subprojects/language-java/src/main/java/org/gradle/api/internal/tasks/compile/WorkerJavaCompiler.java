@@ -36,15 +36,17 @@ public class WorkerJavaCompiler extends AbstractWorkerCompiler<JavaCompileSpec> 
 
     @Override
     protected void applyWorkerConfiguration(JavaCompileSpec spec, WorkerConfigurationInternal config) {
-        final ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
-        config.forkOptions(new Action<JavaForkOptions>() {
-            @Override
-            public void execute(JavaForkOptions javaForkOptions) {
-                javaForkOptions.setJvmArgs(forkOptions.getJvmArgs());
-                javaForkOptions.setMinHeapSize(forkOptions.getMemoryInitialSize());
-                javaForkOptions.setMaxHeapSize(forkOptions.getMemoryMaximumSize());
-            }
-        });
+        if (getIsolationMode() == IsolationMode.PROCESS) {
+            final ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+            config.forkOptions(new Action<JavaForkOptions>() {
+                @Override
+                public void execute(JavaForkOptions javaForkOptions) {
+                    javaForkOptions.setJvmArgs(forkOptions.getJvmArgs());
+                    javaForkOptions.setMinHeapSize(forkOptions.getMemoryInitialSize());
+                    javaForkOptions.setMaxHeapSize(forkOptions.getMemoryMaximumSize());
+                }
+            });
+        }
         config.setStrictClasspath(true);
         config.setSharedPackages(SHARED_PACKAGES);
     }

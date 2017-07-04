@@ -44,15 +44,17 @@ public class WorkerGroovyCompiler extends AbstractWorkerCompiler<GroovyJavaJoint
 
     @Override
     protected void applyWorkerConfiguration(GroovyJavaJointCompileSpec spec, WorkerConfigurationInternal config) {
-        final BaseForkOptions forkOptions = new ForkOptionsMerger().merge(spec.getCompileOptions().getForkOptions(), spec.getGroovyCompileOptions().getForkOptions());
-        config.forkOptions(new Action<JavaForkOptions>() {
-            @Override
-            public void execute(JavaForkOptions javaForkOptions) {
-                javaForkOptions.setJvmArgs(forkOptions.getJvmArgs());
-                javaForkOptions.setMinHeapSize(forkOptions.getMemoryInitialSize());
-                javaForkOptions.setMaxHeapSize(forkOptions.getMemoryMaximumSize());
-            }
-        });
+        if(getIsolationMode() == IsolationMode.PROCESS) {
+            final BaseForkOptions forkOptions = new ForkOptionsMerger().merge(spec.getCompileOptions().getForkOptions(), spec.getGroovyCompileOptions().getForkOptions());
+            config.forkOptions(new Action<JavaForkOptions>() {
+                @Override
+                public void execute(JavaForkOptions javaForkOptions) {
+                    javaForkOptions.setJvmArgs(forkOptions.getJvmArgs());
+                    javaForkOptions.setMinHeapSize(forkOptions.getMemoryInitialSize());
+                    javaForkOptions.setMaxHeapSize(forkOptions.getMemoryMaximumSize());
+                }
+            });
+        }
         config.setStrictClasspath(true);
         config.setClasspath(getClasspath(spec));
         config.setSharedPackages(SHARED_PACKAGES);
