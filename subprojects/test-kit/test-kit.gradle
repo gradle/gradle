@@ -1,3 +1,5 @@
+apply from: "$rootDir/gradle/crossVersionTest.gradle"
+
 dependencies {
     compile project(':core')
     compile project(':toolingApi')
@@ -11,7 +13,7 @@ task testKitVersionCompatibilityIntegTest(type: org.gradle.testing.IntegrationTe
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
 
-crossVersionIntegTest.dependsOn testKitVersionCompatibilityIntegTest
+crossVersionTests.dependsOn testKitVersionCompatibilityIntegTest
 
 strictCompile()
 useTestFixtures()
