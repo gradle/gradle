@@ -17,6 +17,7 @@
 package org.gradle.language.swift.plugins;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -41,6 +42,7 @@ import java.util.Collections;
  *
  * @since 4.1
  */
+@Incubating
 public class SwiftExecutablePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

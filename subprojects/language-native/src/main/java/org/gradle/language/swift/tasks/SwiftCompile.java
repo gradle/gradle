@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
@@ -34,6 +35,7 @@ import java.io.File;
  *
  * @since 4.1
  */
+@Incubating
 public class SwiftCompile extends AbstractNativeSourceCompileTask {
     private File outputFile;
     private String moduleName;
