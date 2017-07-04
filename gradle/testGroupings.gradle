@@ -20,7 +20,9 @@ ext.testGroupings = [
     "runtimeIntegTests": "integTest",
     "runtimeForkingIntegTests": "forkingIntegTest",
     "runtimeNoDaemonIntegTests": "noDaemonIntegTest",
-    "runtimeParallelIntegTests": "parallelIntegTest"
+    "runtimeParallelIntegTests": "parallelIntegTest",
+    "runtimeCrossVersionTests": "crossVersionTest",
+    "runtimeForkingCrossVersionTests": "forkingCrossVersionTest"
 ]
 
 testGroupings.each { grouping, testTask ->

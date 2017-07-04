@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -36,7 +35,6 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
-import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
@@ -60,13 +58,6 @@ import static org.junit.Assume.assumeFalse
 @TargetGradleVersion('>=1.2')
 @RunWith(ToolingApiCompatibilitySuiteRunner)
 abstract class ToolingApiSpecification extends Specification {
-
-    @BeforeClass
-    static void ignoreIfDaemonOrParallelExecuter() {
-        assumeFalse(
-            "Tooling API integration tests use daemon and parallel settings anyway, don't run",
-            GradleContextualExecuter.daemon || GradleContextualExecuter.parallel)
-    }
 
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()

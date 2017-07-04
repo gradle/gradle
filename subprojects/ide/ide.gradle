@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/tapiTest.gradle"
-
 sourceSets.main.java.srcDirs = []
 sourceSets.main.groovy.srcDirs = ['src/main/java', 'src/main/groovy']
 
@@ -38,6 +36,5 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":toolingApi")
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
