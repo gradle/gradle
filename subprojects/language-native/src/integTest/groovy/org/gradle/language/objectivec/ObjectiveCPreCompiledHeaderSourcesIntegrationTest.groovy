@@ -16,9 +16,9 @@
 
 package org.gradle.language.objectivec
 
-import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
+import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 

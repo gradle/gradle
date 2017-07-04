@@ -67,21 +67,6 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         return EnumSet.copyOf(Arrays.asList(requirements.value()));
     }
 
-    private static ToolChainRequirement getToolChainRestriction(Class<?> target) {
-        return toToolChainRequirement(target.getAnnotation(RequiresInstalledToolChain.class));
-    }
-
-    private static ToolChainRequirement getToolChainRestriction(TestDetails target) {
-        return toToolChainRequirement(target.getAnnotation(RequiresInstalledToolChain.class));
-    }
-
-    private static ToolChainRequirement toToolChainRequirement(RequiresInstalledToolChain toolChainRestriction) {
-        if (toolChainRestriction == null) {
-            return ToolChainRequirement.AVAILABLE;
-        }
-        return toolChainRestriction.value();
-    }
-
     private static class ToolChainExecution extends Execution {
         private final AvailableToolChains.ToolChainCandidate toolChain;
         private final boolean enabled;
@@ -99,7 +84,9 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         @Override
         protected boolean isTestEnabled(TestDetails testDetails) {
             if (enabled) {
-                return toolChain.meets(getToolChainRestriction(testDetails));
+                RequiresInstalledToolChain toolChainRestriction = testDetails.getAnnotation(RequiresInstalledToolChain.class);
+                return toolChainRestriction == null
+                        || toolChain.meets(toolChainRestriction.value());
             }
             return false;
         }

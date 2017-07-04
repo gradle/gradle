@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language.objectivec
-
 import org.gradle.internal.hash.HashUtil
 import org.gradle.language.AbstractNativeLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
