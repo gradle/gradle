@@ -38,6 +38,11 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
     public static final String IMPLEMENTATION = "implementation";
 
     /**
+     * The name of the api configuration.
+     */
+    public static final String API = "api";
+
+    /**
      * The name of the Swift compile classpath configuration.
      */
     public static final String SWIFT_IMPORT_PATH = "swiftImportPath";
@@ -47,15 +52,20 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(SwiftCompilerPlugin.class);
 
-        // TODO - make not consumable or resolvable
+        // TODO - Merge with CppBasePlugin to remove code duplication
+        Configuration api = project.getConfigurations().create(API);
+        api.setCanBeConsumed(false);
+        api.setCanBeResolved(false);
+
         Configuration implementation = project.getConfigurations().create(IMPLEMENTATION);
+        implementation.extendsFrom(api);
         implementation.setCanBeConsumed(false);
         implementation.setCanBeResolved(false);
 
-        Configuration includePath = project.getConfigurations().create(SWIFT_IMPORT_PATH);
-        includePath.extendsFrom(implementation);
-        includePath.setCanBeConsumed(false);
-        includePath.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.SWIFT_API));
+        Configuration importPath = project.getConfigurations().create(SWIFT_IMPORT_PATH);
+        importPath.extendsFrom(implementation);
+        importPath.setCanBeConsumed(false);
+        importPath.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.SWIFT_API));
 
         Configuration nativeLink = project.getConfigurations().create(CppBasePlugin.NATIVE_LINK);
         nativeLink.extendsFrom(implementation);

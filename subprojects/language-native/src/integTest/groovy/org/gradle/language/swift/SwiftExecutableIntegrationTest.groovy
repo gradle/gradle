@@ -104,13 +104,12 @@ ${f.text}"""
                 apply plugin: 'swift-executable'
                 dependencies {
                     implementation project(':Hello')
-                    swiftImportPath project(':Greeting')  // TODO(daniel): Not sure why this is required
                 }
             }
             project(':Hello') {
                 apply plugin: 'swift-library'
                 dependencies {
-                    implementation project(':Greeting')
+                    api project(':Greeting')
                 }
             }
             project(':Greeting') {
@@ -148,14 +147,13 @@ ${f.text}"""
             apply plugin: 'swift-executable'
             dependencies {
                 implementation 'test:Hello:1.2'
-                swiftImportPath 'test:Greeting:1.4'  // TODO(daniel): Not sure why this is required
             }
         """
         file("Hello/build.gradle") << """
             apply plugin: 'swift-library'
             group = 'test'
             dependencies {
-                implementation 'test:Greeting:1.4'
+                api 'test:Greeting:1.4'
             }
         """
         file("Greeting/build.gradle") << """

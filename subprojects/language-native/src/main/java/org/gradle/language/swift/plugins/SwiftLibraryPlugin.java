@@ -60,7 +60,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         sourceTree.include("**/*.swift");
         compile.source(sourceTree);
 
-        // TODO - should use PIC
         compile.setCompilerArgs(Lists.newArrayList("-emit-library"));
         compile.setMacros(Collections.<String, String>emptyMap());
         compile.setModuleName(project.getName());
@@ -81,9 +80,11 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.getTasks().getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(compile);
 
         // TODO - add lifecycle tasks
+        Configuration api = project.getConfigurations().getByName(SwiftBasePlugin.API);
 
-
+        // TODO - extract common code with C++ plugins
         Configuration apiElements = project.getConfigurations().create("swiftApiElements");
+        apiElements.extendsFrom(api);
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.SWIFT_API));
         // TODO - should be lazy and reflect changes to output file
@@ -94,7 +95,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
             }
         });
 
-        Configuration implementation = project.getConfigurations().getByName(CppBasePlugin.IMPLEMENTATION);
+        Configuration implementation = project.getConfigurations().getByName(SwiftBasePlugin.IMPLEMENTATION);
 
         Configuration linkElements = project.getConfigurations().create("linkElements");
         linkElements.extendsFrom(implementation);
