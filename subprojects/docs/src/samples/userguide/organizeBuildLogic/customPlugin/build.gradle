@@ -1,5 +1,3 @@
-apply plugin: GreetingPlugin
-
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.task('hello') {
@@ -9,3 +7,6 @@ class GreetingPlugin implements Plugin<Project> {
         }
     }
 }
+
+// Apply the plugin
+apply plugin: GreetingPlugin

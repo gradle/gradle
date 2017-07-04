@@ -1,3 +1,24 @@
+class DocumentationPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        // Create a container of Book instances
+        def books = project.container(Book)
+        books.all {
+            sourceFile = project.file("src/docs/$name")
+        }
+        // Add the container as an extension object
+        project.extensions.books = books
+    }
+}
+
+class Book {
+    final String name
+    File sourceFile
+
+    Book(String name) {
+        this.name = name
+    }
+}
+
 apply plugin: DocumentationPlugin
 
 books {
@@ -17,24 +38,5 @@ task books {
         books.each { book ->
             println "$book.name -> $book.sourceFile"
         }
-    }
-}
-
-class DocumentationPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        def books = project.container(Book)
-        books.all {
-            sourceFile = project.file("src/docs/$name")
-        }
-        project.extensions.books = books
-    }
-}
-
-class Book {
-    final String name
-    File sourceFile
-
-    Book(String name) {
-        this.name = name
     }
 }

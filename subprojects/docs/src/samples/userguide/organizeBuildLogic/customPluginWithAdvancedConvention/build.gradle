@@ -1,16 +1,9 @@
-apply plugin: GreetingPlugin
-
-greeting {
-    message = 'Hi'
-    greeter = 'Gradle'
-}
-
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
-        project.extensions.create('greeting', GreetingPluginExtension)
+        def extension = project.extensions.create('greeting', GreetingPluginExtension)
         project.task('hello') {
             doLast {
-                println "${project.greeting.message} from ${project.greeting.greeter}"
+                println "${extension.message} from ${extension.greeter}"
             }
         }
     }
@@ -19,4 +12,11 @@ class GreetingPlugin implements Plugin<Project> {
 class GreetingPluginExtension {
     String message
     String greeter
+}
+
+apply plugin: GreetingPlugin
+
+greeting {
+    message = 'Hi'
+    greeter = 'Gradle'
 }
