@@ -1,5 +1,3 @@
-apply from: "$rootDir/gradle/tapiTest.gradle"
-
 // GradleConnector entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
@@ -20,14 +18,14 @@ dependencies {
 
     integTestRuntime project(":toolingApiBuilders")
 
-    // Need these to be loaded into the integTestRuntime, so that the modules are available on the classpath and the services can be registered
+    // Need these to be loaded into the crossVersionTestRuntime, so that the modules are available on the classpath and the services can be registered
     // I think this is only really required for the TAPI tests in embedded mode, where we use `GradleConnector.useClasspathDistribution()`.
-    tapiTestRuntime project(':ide')
-    tapiTestRuntime project(':buildInit')
-    tapiTestRuntime project(':buildComparison')
-    tapiTestRuntime project(":ivy")
-    tapiTestRuntime project(":maven")
-    tapiTestRuntime project(":compositeBuilds")
+    crossVersionTestRuntime project(':ide')
+    crossVersionTestRuntime project(':buildInit')
+    crossVersionTestRuntime project(':buildComparison')
+    crossVersionTestRuntime project(":ivy")
+    crossVersionTestRuntime project(":maven")
+    crossVersionTestRuntime project(":compositeBuilds")
 }
 
 useTestFixtures()
