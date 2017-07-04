@@ -30,3 +30,4 @@ class ObjectiveCppLanguageIntegrationTest extends AbstractNativeLanguageIntegrat
         return new ObjectiveCppHelloWorldApp()
     }
 }
+

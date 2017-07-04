@@ -21,6 +21,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.TestNativeComponent;
 
+
 // TODO integrate objective-c/cpp we have coverage on windows
 public class DuplicateMixedSameBaseNamesTestApp extends TestNativeComponent {
 
