@@ -29,4 +29,3 @@ class ObjectiveCppLanguageIncrementalCompileIntegrationTest extends ObjectiveCLa
         return new ObjectiveCppHelloWorldApp()
     }
 }
-
