@@ -48,6 +48,10 @@ class CachingKotlinCompiler(
     val implicitImports: ImplicitImports,
     val progressLoggerFactory: ProgressLoggerFactory) {
 
+    init {
+        org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
+    }
+
     private
     val logger = loggerFor<KotlinScriptPluginFactory>()
 
