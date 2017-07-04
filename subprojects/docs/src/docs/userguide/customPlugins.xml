@@ -2,14 +2,14 @@
     <title>Writing Custom Plugins</title>
 
     <para>A Gradle plugin packages up reusable pieces of build logic, which can be used across many different
-        projects and builds. Gradle allows you to implement your own custom plugins, so you can reuse your
+        projects and builds. Gradle allows you to implement your own plugins, so you can reuse your
         build logic, and share it with others.
     </para>
 
     <para>
-        You can implement a custom plugin in any language you like, provided the implementation ends up compiled as
-        bytecode. For the examples here, we are going to use Groovy as the implementation language. You could use
-        Java or Scala instead, if you want.
+        You can implement a Gradle plugin in any language you like, provided the implementation ends up compiled as
+        bytecode.
+        In our examples, we are going to use Groovy as the implementation language. Groovy, Java or Kotlin are all good choices as the language to use to implement a plugin, as the Gradle API has been designed to work well with these languages. In general, a plugin implemented using Java or Kotlin, which are statically typed, will perform better than the same plugin implemented using Groovy.
     </para>
 
     <section id="sec:packaging_a_plugin">
@@ -47,7 +47,7 @@
                 <listitem>
                     <para>You can create a separate project for your plugin. This project produces and
                         publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR
-                        might include some custom plugins, or bundle several related task classes into a single library. Or
+                        might include some plugins, or bundle several related task classes into a single library. Or
                         some combination of the two.
                     </para>
                 </listitem>
@@ -60,10 +60,8 @@
 
     <section id="sec:writing_a_simple_plugin">
         <title>Writing a simple plugin</title>
-        <para>To create a custom plugin, you need to write an implementation of <apilink class="org.gradle.api.Plugin"/>.
-            Gradle instantiates the plugin and calls the plugin instance's <apilink class="org.gradle.api.Plugin" method="apply"/> method when the
-            plugin is used with a project. The project
-            object is passed as a parameter, which the plugin can use to configure the project however it needs to.
+        <para>To create a Gradle plugin, you need to write an implementation of <apilink class="org.gradle.api.Plugin"/>.
+            When the plugin is applied to a project, Gradle creates an instance of the plugin and calls the instance's <apilink class="org.gradle.api.Plugin" method="apply"/>. The project object is passed as a parameter, which the plugin can use to configure the project however it needs to.
             The following sample contains a greeting plugin, which adds a <literal>hello</literal> task to the project.
         </para>
 
@@ -73,11 +71,9 @@
         </sample>
 
         <para>
-            One thing to note is that a new instance of a given plugin is created for each project it is applied to. Also
+            One thing to note is that a new instance of a plugin is created for each project it is applied to. Also
             note that the <apilink class="org.gradle.api.Plugin"/> class is a generic type. This example has it receiving the
-            <apilink class="org.gradle.api.Project"/> type as a type parameter. It's possible to write unusual custom
-            plugins that take different type parameters, but this will be unlikely (until someone figures out more
-            creative things to do here).
+            <apilink class="org.gradle.api.Project"/> type as a type parameter. A plugin can instead receive a parameter of type <apilink class="org.gradle.api.initialization.Settings"/>, in which case the plugin can be applied in a settings script, or a parameter of type <apilink class="org.gradle.api.invocation.Gradle"/>, in which case the plugin can be applied in an initialization script.
         </para>
     </section>
 
