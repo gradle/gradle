@@ -59,13 +59,15 @@ class Classycle extends DefaultTask {
     Set<String> excludePatterns
 
     @Inject
-    public IsolatedAntBuilder getAntBuilder() {
-        throw new UnsupportedOperationException();
+    @SuppressWarnings("GrMethodMayBeStatic")
+    IsolatedAntBuilder getAntBuilder() {
+        throw new UnsupportedOperationException()
     }
 
     @TaskAction
     void generate() {
         def project = this.project
+        def existingClassesDirs = classesDirs.findAll { it.exists() }
         antBuilder.withClasspath(project.configurations.getByName(ClassyclePlugin.CLASSYCLE_CONFIGURATION_NAME).files).execute {
             ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask")
             ant.taskdef(name: "classycleReport", classname: "classycle.ant.ReportTask")
@@ -77,7 +79,7 @@ class Classycle extends DefaultTask {
                         check absenceOfPackageCycles > 1 in org.gradle.*
                     """
                 ) {
-                    classesDirs.each { classesDir ->
+                    existingClassesDirs.each { classesDir ->
                         fileset(dir: classesDir) {
                             excludePatterns.each { excludePattern ->
                                 exclude(name: excludePattern)
@@ -89,7 +91,7 @@ class Classycle extends DefaultTask {
                 try {
                     ant.unzip(src: project.rootProject.file("gradle/classycle_report_resources.zip"), dest: reportDir)
                     ant.classycleReport(reportFile: analysisFile, reportType: 'xml', mergeInnerClasses: true, title: "${project.name} ${reportName} (${path})") {
-                        classesDirs.each { classesDir ->
+                        existingClassesDirs.each { classesDir ->
                             fileset(dir: classesDir) {
                                 excludePatterns.each { excludePattern ->
                                     exclude(name: excludePattern)
