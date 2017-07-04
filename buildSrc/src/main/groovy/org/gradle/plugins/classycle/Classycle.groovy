@@ -34,6 +34,7 @@ import javax.inject.Inject
 @CacheableTask
 class Classycle extends DefaultTask {
 
+    @Internal
     FileCollection classesDirs
 
     @Input
@@ -64,14 +65,14 @@ class Classycle extends DefaultTask {
     @InputFiles
     @SkipWhenEmpty
     @PathSensitive(PathSensitivity.RELATIVE)
-    FileCollection getClassesDirs() {
-        return project.files(classesDirs.findAll { it.exists() })
+    Iterable<File> getExistingClassesDirs() {
+        return classesDirs.findAll { it.exists() }
     }
 
     @TaskAction
     void generate() {
         def project = this.project
-        def classesDirs = this.classesDirs
+        def classesDirs = existingClassesDirs
         antBuilder.withClasspath(project.configurations.getByName(ClassyclePlugin.CLASSYCLE_CONFIGURATION_NAME).files).execute {
             ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask")
             ant.taskdef(name: "classycleReport", classname: "classycle.ant.ReportTask")
