@@ -60,8 +60,8 @@
 
     <section id="sec:writing_a_simple_plugin">
         <title>Writing a simple plugin</title>
-        <para>To create a Gradle plugin, you need to write an implementation of <apilink class="org.gradle.api.Plugin"/>.
-            When the plugin is applied to a project, Gradle creates an instance of the plugin and calls the instance's <apilink class="org.gradle.api.Plugin" method="apply"/>. The project object is passed as a parameter, which the plugin can use to configure the project however it needs to.
+        <para>To create a Gradle plugin, you need to write a class that implements the <apilink class="org.gradle.api.Plugin"/> interface.
+            When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's <apilink class="org.gradle.api.Plugin" method="apply"/> method. The project object is passed as a parameter, which the plugin can use to configure the project however it needs to.
             The following sample contains a greeting plugin, which adds a <literal>hello</literal> task to the project.
         </para>
 
@@ -78,13 +78,11 @@
     </section>
 
     <section id="sec:getting_input_from_the_build">
-        <title>Getting input from the build</title>
+        <title>Making the plugin configurable</title>
         <para>Most plugins need to obtain some configuration from the build script. One method for doing this is to use <firstterm>extension objects</firstterm>.
              The Gradle <apilink class="org.gradle.api.Project"/> has an associated <apilink class="org.gradle.api.plugins.ExtensionContainer"/> object
-             that helps keep track of all the settings and properties being passed to plugins. You can capture user input by telling
-             the extension container about your plugin. To capture input, simply add a Java Bean compliant class into the extension container's list of
-             extensions. Groovy is a good language choice for a plugin because plain old Groovy objects contain all the getter and setter methods
-             that a Java Bean requires.
+             that contains all the settings and properties for the plugins that have been applied to the project. You can provide configuration for your plugin by
+             adding an extension object to this container. An extension object is simply a Java Bean compliant class. Groovy is a good language choice to implement an extension object because plain old Groovy objects contain all the getter and setter methods that a Java Bean requires. Java and Kotlin are other good choices.
         </para>
 
         <para>Let's add a simple extension object to the project. Here we add a <literal>greeting</literal> extension object to the
@@ -96,7 +94,7 @@
             <output args="-q hello"/>
         </sample>
 
-        <para>In this example, <classname>GreetingPluginExtension</classname> is a plain old Groovy object with a field called <literal>message</literal>.
+        <para>In this example, <classname>GreetingPluginExtension</classname> is a plain old Groovy object with a property called <literal>message</literal>.
             The extension object is added to the plugin list with the name <literal>greeting</literal>. This object then becomes available as a project property
             with the same name as the extension object.
         </para>
@@ -129,7 +127,7 @@
         </sample>
         <para>
             In this example, we configure the <literal>greet</literal> task <literal>destination</literal> property as a closure, which is evaluated with
-            the <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method to turn the return value of the closure into a file object
+            the <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method to turn the return value of the closure into a <literal>File</literal> object
             at the last minute. You will notice that in the example above we specify the <literal>greetingFile</literal> property value after we have
             configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then
             resolving that value when reading the property.
