@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.worker
+package org.gradle.api.internal.tasks.testing.logging
 
 import groovy.transform.TupleConstructor
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
+import org.gradle.api.internal.tasks.testing.worker.WorkerTestClassProcessor
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.logging.progress.ProgressLogger
