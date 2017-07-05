@@ -1,7 +1,7 @@
 
 buildscript {
     dependencies {
-        classpath("com.android.tools.build:gradle:2.3.1")
+        classpath("com.android.tools.build:gradle:2.3.3")
         classpath(kotlin("gradle-plugin"))
     }
     repositories {
