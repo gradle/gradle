@@ -38,8 +38,7 @@ public abstract class AbstractOptions implements Serializable {
             return;
         }
         for (Map.Entry<String, Object> arg: args.entrySet()) {
-            Object value = arg.getValue();
-            JavaReflectionUtil.writeableProperty(getClass(), arg.getKey(), value == null ? null : value.getClass()).setValue(this, value);
+            setProperty(arg.getKey(), arg.getValue());
         }
     }
 
@@ -72,6 +71,10 @@ public abstract class AbstractOptions implements Serializable {
 
     protected Object getAntPropertyValue(String fieldName, Object value) {
         return value;
+    }
+
+    private void setProperty(String property, Object value) {
+        JavaReflectionUtil.writeableProperty(getClass(), property, value == null ? null : value.getClass()).setValue(this, value);
     }
 
     private void addValueToMapIfNotNull(Map<String, Object> map, Field field) {
