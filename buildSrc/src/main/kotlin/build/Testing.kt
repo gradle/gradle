@@ -6,12 +6,14 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 
 fun Project.withParallelTests() {
-    tasks.withType(Test::class.java) {
-        it.testLogging {
-            it.events("failed")
-            it.exceptionFormat = TestExceptionFormat.FULL
+    tasks.withType(Test::class.java) { test ->
+        test.testLogging { logging ->
+            logging.events("failed")
+            logging.exceptionFormat = TestExceptionFormat.FULL
         }
-        it.maxParallelForks = gradle.startParameter.maxWorkerCount / 2 + 1
+        val maxWorkerCount = gradle.startParameter.maxWorkerCount
+        test.maxParallelForks = if (maxWorkerCount < 2) 1 else maxWorkerCount / 2
+        test.logger.info("${test.path} will run with maxParallelForks=${test.maxParallelForks}.")
     }
 }
 
