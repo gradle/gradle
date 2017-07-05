@@ -38,7 +38,7 @@ fun ProjectSchema<String>.forEachAccessor(action: (String) -> Unit) {
 
 private
 fun extensionAccessorFor(name: String, type: String): String? =
-    if (isLegalExtensionName(name))
+    codeForExtension(name) {
         """
             /**
              * Retrieves the [$name][$type] project extension.
@@ -52,13 +52,13 @@ fun extensionAccessorFor(name: String, type: String): String? =
             fun Project.`$name`(configure: $type.() -> Unit): Unit =
                 extensions.configure("$name", configure)
 
-        """.replaceIndent()
-    else null
+        """
+    }
 
 
 private
 fun conventionAccessorFor(name: String, type: String): String? =
-    if (isLegalExtensionName(name))
+    codeForExtension(name) {
         """
             /**
              * Retrieves the [$name][$type] project convention.
@@ -72,13 +72,13 @@ fun conventionAccessorFor(name: String, type: String): String? =
             fun Project.`$name`(configure: $type.() -> Unit): Unit =
                 configure(`$name`)
 
-        """.replaceIndent()
-    else null
+        """
+    }
 
 
 private
 fun configurationAccessorFor(name: String): String? =
-    if(isLegalExtensionName (name))
+    codeForExtension(name) {
         """
             /**
              * The '$name' configuration.
@@ -173,7 +173,13 @@ fun configurationAccessorFor(name: String): String? =
             fun <T : ModuleDependency> DependencyHandler.`$name`(dependency: T, dependencyConfiguration: T.() -> Unit): T =
                 add("$name", dependency, dependencyConfiguration)
 
-        """.replaceIndent()
+        """
+    }
+
+
+private inline
+fun codeForExtension(extensionName: String, code: () -> String): String? =
+    if (isLegalExtensionName(extensionName)) code().replaceIndent()
     else null
 
 
