@@ -21,7 +21,7 @@ import org.objectweb.asm.AnnotationVisitor;
 
 import java.util.List;
 
-import static org.objectweb.asm.Opcodes.ASM5;
+import static org.objectweb.asm.Opcodes.ASM6;
 
 public class SortingAnnotationVisitor extends AnnotationVisitor {
 
@@ -33,7 +33,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     private String arrayValueName;
 
     public SortingAnnotationVisitor(AnnotationMember parentAnnotation, AnnotationVisitor av) {
-        super(ASM5, av);
+        super(ASM6, av);
         this.annotation = parentAnnotation;
     }
 

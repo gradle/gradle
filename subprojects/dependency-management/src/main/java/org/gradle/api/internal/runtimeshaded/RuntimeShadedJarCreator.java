@@ -404,7 +404,7 @@ class RuntimeShadedJarCreator {
 
         @Override
         public MethodVisitor visitMethod(int access, final String name, final String desc, String signature, String[] exceptions) {
-            return new MethodVisitor(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions)) {
+            return new MethodVisitor(Opcodes.ASM6, super.visitMethod(access, name, desc, signature, exceptions)) {
                 @Override
                 public void visitLdcInsn(Object cst) {
                     if (cst instanceof String) {

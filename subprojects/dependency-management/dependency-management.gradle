@@ -14,6 +14,8 @@ repositories {
 dependencies {
     compile project(":core")
     compile project(":resources")
+
+    compile libraries.asm
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ivy
