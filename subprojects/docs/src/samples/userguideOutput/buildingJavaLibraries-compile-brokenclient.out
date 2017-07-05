@@ -2,5 +2,4 @@
 :processMainJarMainResources
 :mainApiJar
 :compileBrokenclientJarBrokenclientJava FAILED
-
-BUILD FAILED
+4 actionable tasks: 4 executed
