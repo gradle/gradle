@@ -142,7 +142,7 @@ private
 fun ProjectSchema<String>.toCacheKeyString(): String =
     (extensions.entries.asSequence()
      + conventions.entries.asSequence()
-     + mapOf("configurations" to configurations.sorted().joinToString(",")).entries.asSequence())
+     + mapEntry("configurations", configurations.sorted().joinToString(",")))
         .map { "${it.key}=${it.value}" }
         .sorted()
         .joinToString(separator = ":")
