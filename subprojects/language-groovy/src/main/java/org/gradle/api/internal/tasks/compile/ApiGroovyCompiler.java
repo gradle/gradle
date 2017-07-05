@@ -148,9 +148,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
                             FileCollection sourcepath = new SimpleFileCollection(stubDir);
-                            List<String> args = spec.getCompileOptions().getCompilerArgs();
-                            args.add("-sourcepath");
-                            args.add(sourcepath.getAsPath());
+                            if (spec.getCompileOptions().getSourcepath() != null) {
+                                sourcepath = spec.getCompileOptions().getSourcepath().plus(sourcepath);
+                            }
+                            spec.getCompileOptions().setSourcepath(sourcepath);
                         }
 
                         spec.setSource(spec.getSource().filter(new Spec<File>() {

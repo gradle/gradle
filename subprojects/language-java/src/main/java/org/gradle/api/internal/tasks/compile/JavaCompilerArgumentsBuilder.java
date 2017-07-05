@@ -19,25 +19,14 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.base.Joiner;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.internal.Factory;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class JavaCompilerArgumentsBuilder {
-    private static final Pattern SOURCEPATH_ARGUMENT = Pattern.compile("-{1,2}source-?path");
-    private static final String SOURCEPATH_WARNING = "Gradle does not support passing a custom sourcepath to javac. Removing:";
-
-    public static final Logger LOGGER = Logging.getLogger(JavaCompilerArgumentsBuilder.class);
     public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
     public static final String EMPTY_SOURCE_PATH_REF_DIR = "emptySourcePathRef";
 
@@ -114,7 +103,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        final CompileOptions compileOptions = spec.getCompileOptions();
+        CompileOptions compileOptions = spec.getCompileOptions();
         List<String> compilerArgs = compileOptions.getCompilerArgs();
         if (!releaseOptionIsSet(compilerArgs)) {
             String sourceCompatibility = spec.getSourceCompatibility();
@@ -165,16 +154,7 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-g:none");
         }
 
-        FileCollection sourcepath = DeprecationLogger.whileDisabled(new Factory<FileCollection>() {
-            @Override
-            @SuppressWarnings("deprecation")
-            public FileCollection create() {
-                return compileOptions.getSourcepath();
-            }
-        });
-        if (Jvm.current().getJavaVersion().isJava9Compatible() && containsModuleDescriptor(spec.getSource())) {
-            noEmptySourcePath();
-        }
+        FileCollection sourcepath = compileOptions.getSourcepath();
         if (!noEmptySourcePath || sourcepath != null && !sourcepath.isEmpty()) {
             args.add("-sourcepath");
             args.add(sourcepath == null ? "" : sourcepath.getAsPath());
@@ -208,9 +188,6 @@ public class JavaCompilerArgumentsBuilder {
 
         List<String> compilerArgs = spec.getCompileOptions().getCompilerArgs();
         if (compilerArgs != null) {
-            if (!spec.respectsSourcepath()) {
-                stripSourcePath(compilerArgs);
-            }
             args.addAll(compilerArgs);
         }
     }
@@ -237,31 +214,5 @@ public class JavaCompilerArgumentsBuilder {
         for (File file : spec.getSource()) {
             args.add(file.getPath());
         }
-    }
-
-    private static void stripSourcePath(List<String> args) {
-        Iterator<String> i = args.iterator();
-        while(i.hasNext()) {
-            String arg = i.next();
-            if (SOURCEPATH_ARGUMENT.matcher(arg).matches()) {
-                i.remove();
-                if (i.hasNext()) {
-                    String next = i.next();
-                    LOGGER.warn("{} {} {}.", SOURCEPATH_WARNING, arg, next);
-                    i.remove();
-                } else {
-                    LOGGER.warn("{} {}.", SOURCEPATH_WARNING, arg);
-                }
-            }
-        }
-    }
-
-    private boolean containsModuleDescriptor(FileCollection source) {
-        for (File f : source) {
-            if (f.getName().equals("module-info.java")) {
-                return true;
-            }
-        }
-        return false;
     }
 }
