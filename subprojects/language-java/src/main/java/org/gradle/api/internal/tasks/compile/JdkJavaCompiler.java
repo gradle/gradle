@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.files.SourcepathIgnoringJavaFileManager;
 import org.gradle.api.tasks.WorkResult;
