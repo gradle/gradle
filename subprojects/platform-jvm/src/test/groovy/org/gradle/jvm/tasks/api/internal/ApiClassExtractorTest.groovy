@@ -286,7 +286,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         when:
         def cr = new ClassReader(api.extractApiClassFrom(api.classes.A))
         def stubVersion = 0
-        cr.accept(new ClassVisitor(Opcodes.ASM5) {
+        cr.accept(new ClassVisitor(Opcodes.ASM6) {
             @Override
             void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 stubVersion = version
@@ -455,7 +455,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         when:
         def apiClassBytes = api.extractApiClassFrom(api.classes['com.acme.A'])
         def cr = new ClassReader(apiClassBytes)
-        cr.accept(new ClassVisitor(Opcodes.ASM5) {
+        cr.accept(new ClassVisitor(Opcodes.ASM6) {
             @Override
             void visitSource(String source, String debug) {
                 super.visitSource(source, debug)
@@ -469,7 +469,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
             @Override
             MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                new MethodVisitor(Opcodes.ASM5) {
+                new MethodVisitor(Opcodes.ASM6) {
                     @Override
                     void visitLineNumber(int line, Label start) {
                         throw new AssertionError("Should not produce any line number information but " +

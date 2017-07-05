@@ -37,7 +37,7 @@ public class MethodStubbingApiMemberAdapter extends ClassVisitor {
     private String internalClassName;
 
     public MethodStubbingApiMemberAdapter(ClassWriter cv) {
-        super(ASM5, cv);
+        super(ASM6, cv);
     }
 
     @Override
