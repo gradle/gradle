@@ -25,6 +25,8 @@ import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.JDK9_OR_LATER
+
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -91,7 +93,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         // This makes sure the test above is correct AND you can get back javac's default behavior if needed
         when:
         buildFile << "project(':b').compileJava { options.sourcepath = classpath }"
-        executer.noDeprecationChecks().withTasks("compileJava").run()
+        run("compileJava")
         then:
         file("b/build/classes/java/main/Bar.class").exists()
         file("b/build/classes/java/main/Foo.class").exists()
@@ -666,4 +668,27 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':compileJava'
     }
 
+    @Requires(JDK9_OR_LATER)
+    def "compile a module"() {
+        given:
+        buildFile << '''
+            plugins {
+                id 'org.gradle.java.experimental-jigsaw' version '0.1.1'
+            }
+        '''
+        file("src/main/java/module-info.java") << 'module example { exports io.example }'
+        file("src/main/java/io/example/Example.java") << '''
+            package io.example;
+            
+            public class Example {}
+        '''
+
+        when:
+        run 'compileJava'
+
+        then:
+        noExceptionThrown()
+        file("build/classes/java/main/module-info.class").exists()
+        file("build/classes/java/main/io/example/Example.class").exists()
+    }
 }

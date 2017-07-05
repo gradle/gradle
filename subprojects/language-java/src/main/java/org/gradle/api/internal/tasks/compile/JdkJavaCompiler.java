@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.internal.tasks.compile.files.SourcepathIgnoringJavaFileManager;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
@@ -24,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.tools.JavaCompiler;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import java.io.Serializable;
@@ -55,8 +58,13 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
         CompileOptions compileOptions = spec.getCompileOptions();
-        StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
-        Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(spec.getSource());
-        return compiler.getTask(null, null, null, options, null, compilationUnits);
+        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
+        Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSource());
+        JavaFileManager fileManager = standardFileManager;
+        FileCollection sourcepath = spec.getCompileOptions().getSourcepath();
+        if (sourcepath != null && sourcepath.isEmpty()) {
+            fileManager = new SourcepathIgnoringJavaFileManager(standardFileManager);
+        }
+        return compiler.getTask(null, fileManager, null, options, null, compilationUnits);
     }
 }
