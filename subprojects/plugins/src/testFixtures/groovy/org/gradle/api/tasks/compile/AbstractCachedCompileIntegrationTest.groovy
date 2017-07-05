@@ -59,6 +59,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         remoteProjectDir.deleteDir()
 
         when:
+        executer.requireOwnGradleUserHomeDir()
         withBuildCache().succeeds compilationTask
         then:
         compileIsCached()
