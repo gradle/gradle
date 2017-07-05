@@ -31,6 +31,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.Iterator;
 import java.util.List;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
@@ -61,10 +62,20 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSource());
         JavaFileManager fileManager = standardFileManager;
-        FileCollection sourcepath = spec.getCompileOptions().getSourcepath();
-        if (sourcepath != null && sourcepath.isEmpty()) {
+        if (emptySourcepathIn(options)) {
             fileManager = new SourcepathIgnoringJavaFileManager(standardFileManager);
         }
         return compiler.getTask(null, fileManager, null, options, null, compilationUnits);
+    }
+
+    private static boolean emptySourcepathIn(List<String> options) {
+        Iterator<String> optionsIter = options.iterator();
+        while (optionsIter.hasNext()) {
+            String current = optionsIter.next();
+            if (current.equals("-sourcepath") || current.equals("--source-path")) {
+                return optionsIter.next().isEmpty();
+            }
+        }
+        return false;
     }
 }
