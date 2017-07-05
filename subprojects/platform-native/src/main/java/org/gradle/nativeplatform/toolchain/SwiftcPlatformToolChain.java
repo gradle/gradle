@@ -20,6 +20,8 @@ import org.gradle.api.Incubating;
 
 /**
  * Swiftc specific settings for the tools used to build for a particular platform.
+ *
+ * @since 4.1
  */
 @Incubating
 public interface SwiftcPlatformToolChain extends NativePlatformToolChain {
