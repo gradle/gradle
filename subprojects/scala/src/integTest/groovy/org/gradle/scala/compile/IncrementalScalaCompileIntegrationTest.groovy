@@ -16,10 +16,9 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
@@ -51,8 +50,47 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
 
+    def "compile is out of date when changing the zinc version"() {
+        buildScript(scalaProjectBuildScript('0.3.13'))
+
+        file('src/main/scala/Person.scala') << "class Person(name: String)"
+
+        when:
+        run 'compileScala'
+
+        then:
+        executedAndNotSkipped ':compileScala'
+
+        when:
+        run 'compileScala'
+
+        then:
+        skipped ':compileScala'
+
+        when:
+        buildScript(scalaProjectBuildScript('0.3.12'))
+        run 'compileScala'
+
+        then:
+        executedAndNotSkipped ':compileScala'
+    }
+
+    def scalaProjectBuildScript(String zincVersion) {
+        return """
+            apply plugin: 'scala'
+                        
+            repositories {
+                jcenter()
+            }
+
+            dependencies {
+                zinc "com.typesafe.zinc:zinc:${zincVersion}"
+                compile "org.scala-lang:scala-library:2.11.11" 
+            }
+        """.stripIndent()
+    }
+
     @Issue("GRADLE-2548")
-    @Ignore
     def recompilesScalaWhenJavaChanges() {
         file("build.gradle") << """
             apply plugin: 'scala'
