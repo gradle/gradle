@@ -18,7 +18,10 @@ package org.gradle.api.internal.tasks.compile.files;
 
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
+import java.io.IOException;
+import java.util.Set;
 
 /**
  * Pretends not to know about the <code>sourcepath</code>.
@@ -41,7 +44,22 @@ public class SourcepathIgnoringJavaFileManager extends ForwardingJavaFileManager
      * This implementation of hasLocation() pretends that the JavaFileManager
      * has no concept of a source path.
      */
+    @Override
     public boolean hasLocation(Location location) {
         return !location.equals(StandardLocation.SOURCE_PATH) && fileManager.hasLocation(location);
+    }
+
+    /**
+     * If we are pretending that we don't have a sourcepath, the compiler will
+     * look on the classpath for sources. Since we don't want to bring in any
+     * sources implicitly from the classpath, we have to ignore source files
+     * found on the classpath.
+     */
+    @Override
+    public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse) throws IOException {
+        if (location.equals(StandardLocation.CLASS_PATH)) {
+            kinds.remove(JavaFileObject.Kind.SOURCE);
+        }
+        return fileManager.list(location, packageName, kinds, recurse);
     }
 }
