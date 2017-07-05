@@ -46,8 +46,8 @@ import java.util.Map;
 // TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of is applies to SwiftCompiler)
 class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
 
-    SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), Transformers.<SwiftCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile);
+    SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension) {
+        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), Transformers.<SwiftCompileSpec>noOpTransformer(), objectFileExtension, false);
     }
 
     @Override

@@ -16,37 +16,31 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift;
 
+import com.google.common.collect.Maps;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.internal.compile.CompileSpec;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.SwiftcPlatformToolChain;
-import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
-import org.gradle.nativeplatform.toolchain.internal.DefaultCommandLineToolInvocationWorker;
-import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
-import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
-import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
+import org.gradle.nativeplatform.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain> implements Swiftc, NativeToolChainInternal {
     public static final String DEFAULT_NAME = "swiftc";
@@ -55,6 +49,7 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
     private final Instantiator instantiator;
     private final ToolSearchPath toolSearchPath;
     private final ExecActionFactory execActionFactory;
+    private final Map<NativePlatform, PlatformToolProvider> toolProviders = Maps.newHashMap();
 
     public SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory,
                            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProviderFactory compilerMetaDataProviderFactory, Instantiator instantiator) {
@@ -82,35 +77,33 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
         }
     }
 
+    private PlatformToolProvider createPlatformToolProvider(NativePlatformInternal targetPlatform) {
+        DefaultSwiftcPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultSwiftcPlatformToolChain.class, targetPlatform);
+        addDefaultTools(configurableToolChain);
+        configureActions.execute(configurableToolChain);
+
+        CommandLineToolSearchResult compiler = toolSearchPath.locate(ToolType.SWIFT_COMPILER, "swiftc");
+        ToolChainAvailability result = new ToolChainAvailability();
+        result.mustBeAvailable(compiler);
+        if (!result.isAvailable()) {
+            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
+        }
+
+        return new SwiftPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory);
+    }
+
     @Override
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
-        return new AbstractPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem()) {
-            @Override
-            public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
-                if (SwiftCompileSpec.class.isAssignableFrom(spec)) {
-                    return CompilerUtil.castCompiler(createSwiftCompiler());
-                }
-                return super.newCompiler(spec);
-            }
+        PlatformToolProvider toolProvider = toolProviders.get(targetPlatform);
+        if (toolProvider == null) {
+            toolProvider = createPlatformToolProvider(targetPlatform);
+            toolProviders.put(targetPlatform, toolProvider);
+        }
+        return toolProvider;
+    }
 
-            protected Compiler<SwiftCompileSpec> createSwiftCompiler() {
-                GccCommandLineToolConfigurationInternal swiftCompilerTool = instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.SWIFT_COMPILER, "swiftc");
-                SwiftCompiler swiftCompiler = new SwiftCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(swiftCompilerTool), context(swiftCompilerTool), getObjectFileExtension(), false);
-                return new OutputCleaningCompiler<SwiftCompileSpec>(swiftCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-            }
-
-            private CommandLineToolInvocationWorker commandLineTool(GccCommandLineToolConfigurationInternal tool) {
-                ToolType key = tool.getToolType();
-                String exeName = tool.getExecutable();
-                return new DefaultCommandLineToolInvocationWorker(key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
-            }
-
-            private CommandLineToolContext context(GccCommandLineToolConfigurationInternal toolConfiguration) {
-                MutableCommandLineToolContext baseInvocation = new DefaultMutableCommandLineToolContext();
-                baseInvocation.setArgAction(toolConfiguration.getArgAction());
-                return baseInvocation;
-            }
-        };
+    private void addDefaultTools(DefaultSwiftcPlatformToolChain toolChain) {
+        toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.SWIFT_COMPILER));
     }
 
     @Override
