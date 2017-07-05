@@ -32,7 +32,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['tasks']
         runner.args = ['--recompile-scripts'] // This is an approximation of first use: we recompile the scripts
         runner.useDaemon = false
-        runner.targetVersions = ["4.1-20170607235835+0000"]
+        runner.targetVersions = ["4.2-20170704235814+0000"]
 
         when:
         def result = runner.run()
@@ -53,7 +53,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
-        runner.targetVersions = ["4.1-20170607235835+0000"]
+        runner.targetVersions = ["4.2-20170704235814+0000"]
 
         when:
         def result = runner.run()
