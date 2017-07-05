@@ -285,10 +285,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void setBuildDir(Object path);
 
     /**
-     * <p>Returns the build file Gradle will evaluate against this project object. The default is <code> {@value
-     * #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file will be null. </p>
+     * The build script for this project.
+     * <p>
+     * If the file exists, it will be evaluated against this project when this project is configured.
      *
-     * @return Current build file. May return null.
+     * @return the build script for this project.
      */
     File getBuildFile();
 
