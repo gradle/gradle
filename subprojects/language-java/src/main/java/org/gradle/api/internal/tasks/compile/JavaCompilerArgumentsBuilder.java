@@ -205,8 +205,12 @@ public class JavaCompilerArgumentsBuilder {
                     "Specifying the source path in the CompilerOptions compilerArgs property",
                     "Instead, use the CompilerOptions sourcepath property directly");
                 argIterator.remove();
-                userProvidedSourcepath = argIterator.next();
-                argIterator.remove();
+                if (argIterator.hasNext()) {
+                    // Only conditional in case the user didn't supply an argument to the -sourcepath option.
+                    // Protecting the call to "next()" inside the conditional protects against a NoSuchElementException
+                    userProvidedSourcepath = argIterator.next();
+                    argIterator.remove();
+                }
             }
         }
         return userProvidedSourcepath;

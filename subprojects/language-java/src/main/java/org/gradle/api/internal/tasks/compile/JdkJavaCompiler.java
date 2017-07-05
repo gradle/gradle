@@ -67,7 +67,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         return compiler.getTask(null, fileManager, null, options, null, compilationUnits);
     }
 
-    private boolean emptySourcepathIn(List<String> options) {
+    private static boolean emptySourcepathIn(List<String> options) {
         Iterator<String> optionsIter = options.iterator();
         while (optionsIter.hasNext()) {
             String current = optionsIter.next();
