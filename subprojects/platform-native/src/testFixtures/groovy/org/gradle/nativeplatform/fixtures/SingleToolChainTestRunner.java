@@ -45,7 +45,7 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         } else {
             boolean hasEnabled = false;
             for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                if (!hasEnabled && toolChain.isAvailable() && (!getRequirements(target).contains(TestPrecondition.SWIFT_SUPPORT) || toolChain instanceof AvailableToolChains.InstalledSwiftc)) {
+                if (!hasEnabled && toolChain.isAvailable() && !(getRequirements(target).contains(TestPrecondition.SWIFT_SUPPORT) ^ toolChain instanceof AvailableToolChains.InstalledSwiftc)) {
                     add(new ToolChainExecution(toolChain, true));
                     hasEnabled = true;
                 } else {
