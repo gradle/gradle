@@ -21,7 +21,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
@@ -66,26 +65,28 @@ class PatchExternalModules extends DefaultTask {
     File destination
 
     PatchExternalModules() {
-        description = 'Patches the classpath manifests of external modules such as gradle-script-kotlin to match the Gradle runtime configuration.'
+        description = 'Patches the classpath manifests and content of external modules such as gradle-kotlin-dsl to match the Gradle runtime configuration.'
         dependsOn { modulesToPatch }
     }
 
     @TaskAction
     void patch() {
-        ((ProjectInternal) project).sync { CopySpec copySpec ->
+        project.sync { CopySpec copySpec ->
             copySpec.from(externalModules)
             copySpec.into(destination)
         }
 
-        def rootProject = project.rootProject as ProjectInternal
-
-        new ClasspathManifestPatcher(rootProject, temporaryDir, allModules, namesOfModulesToPatch)
-                .writePatchedFilesTo(destination)
+        new ClasspathManifestPatcher(project.rootProject, temporaryDir, allModules, namesOfModulesToPatch)
+            .writePatchedFilesTo(destination)
 
         // TODO: Should this be configurable?
-        new ExcludeEntryPatcher(rootProject, temporaryDir, allModules, "kotlin-compiler-embeddable")
-                .exclude("META-INF/services/java.nio.charset.spi.CharsetProvider")
-                .exclude("net/rubygrapefruit/platform/**")
-                .writePatchedFilesTo(destination)
+        new JarPatcher(project.rootProject, temporaryDir, allModules, "kotlin-compiler-embeddable")
+            .exclude("META-INF/services/java.nio.charset.spi.CharsetProvider")
+            .exclude("net/rubygrapefruit/platform/**")
+            .exclude("org/fusesource/jansi/**")
+            .exclude("META-INF/native/**/*jansi.*")
+            .includeJar("native-platform-")
+            .includeJar("jansi-", "META-INF/native/**", "org/fusesource/jansi/internal/CLibrary*.class")
+            .writePatchedFilesTo(destination)
     }
 }
