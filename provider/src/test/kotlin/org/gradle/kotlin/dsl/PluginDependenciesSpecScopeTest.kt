@@ -43,21 +43,35 @@ class PluginDependenciesSpecScopeTest {
         }
     }
 
-    fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit) {
-        assertThat(
-            plugins(block).map { Plugin(it.id.id, it.version, it.isApply) },
-            equalTo(expected.asList()))
+    @Test
+    fun `given build-scan plugin accessor, it should create a single request with default version`() {
+        expecting(plugin(id = "com.gradle.build-scan", version = "1.8")) {
+            `build-scan`
+        }
     }
 
-    fun plugins(block: PluginDependenciesSpecScope.() -> Unit) =
-        PluginRequestCollector(StringScriptSource("script", "")).run {
-            PluginDependenciesSpecScope(createSpec(1)).block()
-            listPluginRequests()
+    @Test
+    fun `given build-scan plugin accessor with version, it should create a single request with given version`() {
+        expecting(plugin(id = "com.gradle.build-scan", version = "1.7.1")) {
+            `build-scan` version "1.7.1"
         }
-
-    fun plugin(id: String, version: String? = null, isApply: Boolean = true) = Plugin(id, version, isApply)
-
-    data class Plugin(val id: String, val version: String?, val isApply: Boolean)
+    }
 }
 
+
+fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit) {
+    assertThat(
+        plugins(block).map { Plugin(it.id.id, it.version, it.isApply) },
+        equalTo(expected.asList()))
+}
+
+fun plugins(block: PluginDependenciesSpecScope.() -> Unit) =
+    PluginRequestCollector(StringScriptSource("script", "")).run {
+        PluginDependenciesSpecScope(createSpec(1)).block()
+        listPluginRequests()
+    }
+
+fun plugin(id: String, version: String? = null, isApply: Boolean = true) = Plugin(id, version, isApply)
+
+data class Plugin(val id: String, val version: String?, val isApply: Boolean)
 
