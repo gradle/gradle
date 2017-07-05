@@ -18,7 +18,7 @@ package org.gradle.plugins.ear;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.util.ConfigureUtil;
@@ -32,17 +32,17 @@ import java.io.File;
 public class EarPluginConvention {
 
     private FileResolver fileResolver;
-    private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
 
     private DeploymentDescriptor deploymentDescriptor;
     private String appDirName;
     private String libDirName;
 
     @Inject
-    public EarPluginConvention(FileResolver fileResolver, Instantiator instantiator) {
+    public EarPluginConvention(FileResolver fileResolver, ObjectFactory objectFactory) {
         this.fileResolver = fileResolver;
-        this.instantiator = instantiator;
-        deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor.class, fileResolver, instantiator);
+        this.objectFactory = objectFactory;
+        deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class, fileResolver, objectFactory);
         deploymentDescriptor.readFrom("META-INF/application.xml");
         deploymentDescriptor.readFrom(appDirName + "/META-INF/" + deploymentDescriptor.getFileName());
     }
@@ -131,7 +131,7 @@ public class EarPluginConvention {
 
     private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
-            deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor.class, fileResolver, instantiator);
+            deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class, fileResolver, objectFactory);
             assert deploymentDescriptor != null;
         }
         return deploymentDescriptor;
