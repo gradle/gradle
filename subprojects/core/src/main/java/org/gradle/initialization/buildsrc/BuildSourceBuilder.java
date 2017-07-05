@@ -64,10 +64,9 @@ public class BuildSourceBuilder {
 
     public ClassLoaderScope buildAndCreateClassLoader(StartParameter startParameter) {
         ClassPath classpath = createBuildSourceClasspath(startParameter);
-        ClassLoaderScope childScope = classLoaderScope.createChild(startParameter.getCurrentDir().getAbsolutePath());
-        childScope.export(cachedClasspathTransformer.transform(classpath));
-        childScope.lock();
-        return childScope;
+        return classLoaderScope.createChild(startParameter.getCurrentDir().getAbsolutePath())
+            .export(cachedClasspathTransformer.transform(classpath))
+            .lock();
     }
 
     ClassPath createBuildSourceClasspath(final StartParameter startParameter) {
@@ -110,12 +109,12 @@ public class BuildSourceBuilder {
 
     PersistentCache createCache(StartParameter startParameter) {
         return cacheRepository
-                .cache(new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildSrc"))
-                .withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile)
-                .withDisplayName("buildSrc state cache")
-                .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
-                .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
-                .open();
+            .cache(new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildSrc"))
+            .withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile)
+            .withDisplayName("buildSrc state cache")
+            .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
+            .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
+            .open();
     }
 
     private BuildController createBuildController(StartParameter startParameter) {
