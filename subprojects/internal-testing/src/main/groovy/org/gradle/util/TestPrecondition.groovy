@@ -132,7 +132,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
     }),
     SWIFT_SUPPORT({
-        true
+        NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
     }),
     SMART_TERMINAL({
         System.getenv("TERM")?.toUpperCase() != "DUMB"

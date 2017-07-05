@@ -18,7 +18,10 @@ package org.gradle.language.swift.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.SWIFT_SUPPORT)
 abstract class AbstractSwiftPluginIntegrationTest extends WellBehavedPluginTest {
     AvailableToolChains.InstalledToolChain toolChain
 
