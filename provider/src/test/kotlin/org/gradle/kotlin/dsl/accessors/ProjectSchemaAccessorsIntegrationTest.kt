@@ -161,7 +161,9 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
             repositories { jcenter() }
 
-            configurations.compileClasspath.files.forEach { println(it) }
+            configurations.compileClasspath.files.forEach {
+                println(org.gradle.util.TextUtil.normaliseFileSeparators(it.path))
+            }
         """)
 
         val result = build("help", "-q")
