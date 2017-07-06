@@ -137,6 +137,9 @@ Currently, the following built-in Gradle tasks are cacheable:
 * Groovy toolchain:
     api:org.gradle.api.tasks.compile.GroovyCompile[],
     api:org.gradle.api.tasks.javadoc.Groovydoc[]
+* Scala toolchain:
+    api:org.gradle.api.tasks.compile.ScalaCompile[],
+    api:org.gradle.api.tasks.javadoc.Scaladoc[]
 * Testing:
     api:org.gradle.api.tasks.testing.Test[]
 * Code quality tasks:
@@ -152,7 +155,7 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[],
     api:org.gradle.api.tasks.WriteProperties[]
 
-All other tasks are currently not cacheable, but this may change in the future for other languages (Scala) or domains (native, Android, Play).
+All other tasks are currently not cacheable, but this may change in the future for other languages (Kotlin) or domains (native, Android, Play).
 Some tasks, like api:org.gradle.api.tasks.Copy[] or api:org.gradle.api.tasks.bundling.Jar[], usually do not make sense to make cacheable because Gradle is only copying files from one location to another.
 It also doesn't make sense to make tasks cacheable that do not produce outputs or have no task actions.
 
