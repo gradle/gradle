@@ -1397,6 +1397,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </ol>
      *
      * @param propertyName The name of the property.
+     * @since 2.13
      * @return The value of the property, possibly null or null if not found.
      * @see Project#property(String)
      */
