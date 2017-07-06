@@ -41,8 +41,8 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.HashingClassLoaderFactory
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.ParallelismConfiguration
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
+import org.gradle.api.concurrent.ParallelismConfiguration
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.LoggingManagerInternal

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.concurrent
 
+import org.gradle.api.concurrent.ParallelismConfiguration
+
 class ParallelismConfigurationManagerFixture implements ParallelismConfigurationManager {
     ParallelismConfiguration parallelismConfiguration
     List<ParallelismConfigurationListener> listeners = []
