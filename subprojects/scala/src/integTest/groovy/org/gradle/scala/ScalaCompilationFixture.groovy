@@ -14,23 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.scala.compile
+package org.gradle.scala
 
+import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.test.fixtures.file.TestFile
 
-class ScalaIncrementalCompilationFixture {
+class ScalaCompilationFixture {
     private final TestFile root
     final ScalaClass basicClassSource
     final ScalaClass classDependingOnBasicClassSource
     final ScalaClass independentClassSource
     final String sourceSet
+    String scalaVersion
+    String zincVersion
+    String sourceCompatibility
+    String sourceDir
 
-    ScalaIncrementalCompilationFixture(File root) {
+    ScalaCompilationFixture(File root) {
         this.root = new TestFile(root)
         this.sourceSet = 'main'
+        this.sourceDir = 'src/main/scala'
+        this.scalaVersion = ScalaCoverage.NEWEST
+        this.zincVersion = DefaultScalaToolProvider.DEFAULT_ZINC_VERSION
+        this.sourceCompatibility = '1.7'
         basicClassSource = new ScalaClass(
             'Person',
-            'class Person(val name: String, val age: Int)',
+            '''
+                /**
+                 * A person.
+                 * Can live in a house.
+                 */
+                class Person(val name: String, val age: Int)'''.stripIndent(),
             'class Person(val name: String, val age: Int, val height: Int)')
         classDependingOnBasicClassSource = new ScalaClass(
             'House',
@@ -42,6 +57,32 @@ class ScalaIncrementalCompilationFixture {
             'class Other',
             'class Other(val some: String)'
         )
+    }
+
+    def buildScript() {
+        return """
+            apply plugin: 'scala'
+                        
+            repositories {
+                jcenter()
+            }
+
+            dependencies {
+                zinc "com.typesafe.zinc:zinc:${zincVersion}"
+                compile "org.scala-lang:scala-library:${scalaVersion}" 
+            }
+            
+            sourceSets {
+                main {
+                    scala {
+                        srcDirs = ['${sourceDir}']
+                    }
+                }
+            }
+
+            sourceCompatibility = '${sourceCompatibility}'
+            targetCompatibility = '${sourceCompatibility}'
+        """.stripIndent()
     }
 
     void baseline() {
@@ -63,12 +104,14 @@ class ScalaIncrementalCompilationFixture {
         final TestFile compiledClass
         final String originalText
         final String changedText
+        final String javadocLocation
 
         ScalaClass(String path, String originalText, String changedText) {
             this.changedText = changedText
             this.originalText = originalText
-            source = root.file("src/${sourceSet}/scala/${path}.scala")
+            source = root.file("${sourceDir}/${path}.scala")
             compiledClass = root.file("build/classes/scala/main/${path}.class")
+            javadocLocation = root.file("build/docs/scaladoc/${path}.html")
         }
 
         void create() {

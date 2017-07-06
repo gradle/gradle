@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.scala.compile
+package org.gradle.scala.javadoc
 
+import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.scala.ScalaCompilationFixture
 
 import java.nio.file.Files
 
-class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private classes = new ScalaCompilationFixture(testDirectory)
 
     @Override
     protected String getTaskName() {
-        return ":compileScala"
+        return ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
     }
 
     @Override
     protected void setupProjectInOriginalLocation() {
         classes.baseline()
-
-        buildFile << classes.buildScript()
+        buildScript(classes.buildScript())
     }
 
     @Override
@@ -47,6 +47,6 @@ class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegr
 
     @Override
     protected extractResults() {
-        return new ScalaCompilationFixture(testDirectory).classDependingOnBasicClassSource.compiledClass.bytes
+        return classes.basicClassSource.javadocLocation
     }
 }

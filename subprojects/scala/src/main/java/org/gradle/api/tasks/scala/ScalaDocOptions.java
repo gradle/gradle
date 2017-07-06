@@ -18,6 +18,8 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.util.CollectionUtils;
 
@@ -161,15 +163,22 @@ public class ScalaDocOptions extends AbstractOptions {
 
     /**
      * Returns the style sheet to override default style.
+     *
+     * @deprecated Scaladoc does not support to set a stylesheet any more (Scala 2.11).
      */
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     @InputFile @Optional
+    @Deprecated
     public File getStyleSheet() {
         return styleSheet;
     }
 
     /**
      * Sets the style sheet to override default style.
+     *
+     * @deprecated Scaladoc does not support to set a stylesheet any more (Scala 2.11).
      */
+    @Deprecated
     public void setStyleSheet(File styleSheet) {
         this.styleSheet = styleSheet;
     }

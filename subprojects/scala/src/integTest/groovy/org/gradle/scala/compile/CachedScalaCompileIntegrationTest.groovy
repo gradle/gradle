@@ -17,6 +17,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
+import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.test.fixtures.file.TestFile
 
 class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
@@ -89,7 +90,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         def compiledScalaClass = scalaClassFile('UsesJava.class')
 
         when:
-        withBuildCache().succeeds ':compileJava', ':compileScala'
+        withBuildCache().succeeds ':compileJava', compilationTask
 
         then:
         compiledJavaClass.exists()
@@ -99,7 +100,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         withBuildCache().succeeds ':clean', ':compileJava'
 
         then:
-        skippedTasks.contains(':compileJava')
+        skipped ':compileJava'
 
         when:
         // This line is crucial to expose the bug
@@ -107,10 +108,10 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         // compileScala from the cache the compiled java
         // classes are replaced and recorded as changed
         compiledJavaClass.makeOlder()
-        withBuildCache().succeeds ':compileScala'
+        withBuildCache().succeeds compilationTask
 
         then:
-        skippedTasks.containsAll([':compileJava', ':compileScala'])
+        skipped compilationTask
 
         when:
         file('src/main/java/RequiredByScala.java').text = """
@@ -130,7 +131,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             }
         """
 
-        withBuildCache().succeeds ':compileScala'
+        withBuildCache().succeeds compilationTask
 
         then:
         compiledJavaClass.exists()
@@ -142,7 +143,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         setupProjectInDirectory(warmupDir)
         warmupDir.file('settings.gradle') << localCacheConfiguration()
 
-        def classes = new ScalaIncrementalCompilationFixture(warmupDir)
+        def classes = new ScalaCompilationFixture(warmupDir)
         classes.baseline()
         classes.classDependingOnBasicClassSource.change()
 
@@ -156,7 +157,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         when:
         warmupDir.deleteDir()
         setupProjectInDirectory(testDirectory)
-        classes = new ScalaIncrementalCompilationFixture(testDirectory)
+        classes = new ScalaCompilationFixture(testDirectory)
         classes.baseline()
         withBuildCache().succeeds compilationTask
 
