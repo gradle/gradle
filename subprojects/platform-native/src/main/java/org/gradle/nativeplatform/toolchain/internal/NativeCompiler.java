@@ -29,9 +29,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
@@ -41,35 +39,25 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
-
-    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
-    private final ArgsTransformer<T> argsTransformer;
+public abstract class NativeCompiler<T extends NativeCompileSpec> extends AbstractCompiler<T> {
     private final Transformer<T, T> specTransformer;
-    private final CommandLineToolContext invocationContext;
     private final String objectFileExtension;
-    private final boolean useCommandFile;
     private final Logger logger = Logging.getLogger(NativeCompiler.class);
 
-    private final BuildOperationExecutor buildOperationExecutor;
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
 
     public NativeCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, argsTransformer, useCommandFile);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
-        this.invocationContext = invocationContext;
         this.objectFileExtension = objectFileExtension;
-        this.useCommandFile = useCommandFile;
-        this.argsTransformer = argsTransformer;
         this.specTransformer = specTransformer;
-        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public WorkResult execute(final T spec) {
         final T transformedSpec = specTransformer.transform(spec);
 
-        buildOperationExecutor.runAll(commandLineToolInvocationWorker, newInvocationAction(transformedSpec));
+        super.execute(spec);
 
         return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
     }
@@ -90,21 +78,6 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
                 }
             }
         };
-    }
-
-    protected List<String> getArguments(T spec) {
-        List<String> args = argsTransformer.transform(spec);
-
-        Action<List<String>> userArgTransformer = invocationContext.getArgAction();
-        // modifies in place
-        userArgTransformer.execute(args);
-
-        if (useCommandFile) {
-            // Shorten args and write out an options.txt file
-            // This must be called only once per execute()
-            addOptionsFileArgs(args, spec.getTempDir());
-        }
-        return args;
     }
 
     protected List<String> getSourceArgs(File sourceFile) {
@@ -173,10 +146,6 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
         return newInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());
-    }
-
-    protected CommandLineToolInvocation newInvocation(String name, File objectDir, Iterable<String> args, BuildOperationLogger operationLogger) {
-        return invocationContext.createInvocation(name, objectDir, args, operationLogger);
     }
 
     protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {

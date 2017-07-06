@@ -24,15 +24,16 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.Transformers;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
+import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
 import java.io.File;
@@ -44,13 +45,16 @@ import java.util.List;
 import java.util.Map;
 
 // TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of is applies to SwiftCompiler)
-class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
+class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
+    private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
+    private final String objectFileExtension;
 
     SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension) {
-        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), Transformers.<SwiftCompileSpec>noOpTransformer(), objectFileExtension, false);
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), false);
+        this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
+        this.objectFileExtension = objectFileExtension;
     }
 
-    @Override
     protected List<String> getOutputArgs(File outputFile) {
         return Lists.newArrayList("-o", outputFile.getAbsolutePath());
     }
@@ -59,9 +63,18 @@ class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
     protected void addOptionsFileArgs(List<String> args, File tempDir) {
     }
 
-    @Override
-    protected List<String> getPCHArgs(SwiftCompileSpec spec) {
-        return null;
+    protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
+        boolean windowsPathLimitation = OperatingSystem.current().isWindows();
+
+        File outputFile = compilerOutputFileNamingSchemeFactory.create()
+            .withObjectFileNameSuffix(fileSuffix)
+            .withOutputBaseFolder(objectFileDir)
+            .map(sourceFile);
+        File outputDirectory = outputFile.getParentFile();
+        if (!outputDirectory.exists()) {
+            outputDirectory.mkdirs();
+        }
+        return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 
     @Override
@@ -78,7 +91,7 @@ class SwiftCompiler extends NativeCompiler<SwiftCompileSpec> {
                 for (File sourceFile : spec.getSourceFiles()) {
                     outputFileMap.newEntry(sourceFile.getAbsolutePath())
                         .dependencyFile(getOutputFileDir(sourceFile, objectDir, ".d"))
-                        .objectFile(getOutputFileDir(sourceFile, objectDir, ".o"))
+                        .objectFile(getOutputFileDir(sourceFile, objectDir, objectFileExtension))
                         .swiftModuleFile(getOutputFileDir(sourceFile, objectDir, "~partial.swiftmodule"))
                         .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"))
                         .diagnosticsFile(getOutputFileDir(sourceFile, objectDir, ".dia"));
