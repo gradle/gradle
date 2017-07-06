@@ -61,6 +61,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
     operator fun <T : ModuleDependency> Configuration.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         add(name, dependency, dependencyConfiguration)
 
-    inline operator fun invoke(configuration: DependencyHandlerScope.() -> Unit) =
+    inline
+    operator fun invoke(configuration: DependencyHandlerScope.() -> Unit) =
         configuration()
 }
