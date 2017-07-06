@@ -355,7 +355,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
         project.getTasks().withType(Test.class, new Action<Test>() {
             public void execute(final Test test) {
-                test.setTestClassesDirs(pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
+                test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs();
+                    }
+                });
                 test.getConventionMapping().map("classpath", new Callable<Object>() {
                     public Object call() throws Exception {
                         return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
