@@ -39,7 +39,8 @@ val <T : Any, U : NamedDomainObjectContainer<out T>> U.getting get() = this
  * @param configuration The expression to configure this container with
  * @return The container.
  */
-inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
+inline
+operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
     configuration: NamedDomainObjectContainerScope<T>.() -> Unit): C =
 
     apply {
@@ -64,7 +65,8 @@ class NamedDomainObjectContainerScope<T : Any>(
     /**
      * @see NamedDomainObjectContainer.maybeCreate
      */
-    inline operator fun String.invoke(configuration: T.() -> Unit): T =
+    inline
+    operator fun String.invoke(configuration: T.() -> Unit): T =
         this().apply(configuration)
 
     /**
@@ -76,7 +78,8 @@ class NamedDomainObjectContainerScope<T : Any>(
     /**
      * @see PolymorphicDomainObjectContainer.maybeCreate
      */
-    inline operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): U =
+    inline
+    operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): U =
         this(type).apply(configuration)
 
     /**
@@ -143,15 +146,15 @@ class NamedDomainObjectContainerDelegateProvider<T : Any>(
 /**
  * Provides a property delegate that creates elements of the given [type].
  */
-fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(
-    type: KClass<U>) = creating(type.java, {})
+fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U>) =
+    creating(type.java, {})
 
 
 /**
  * Provides a property delegate that creates elements of the given [type] with the given [configuration].
  */
-fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(
-    type: KClass<U>, configuration: U.() -> Unit) = creating(type.java, configuration)
+fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U>, configuration: U.() -> Unit) =
+    creating(type.java, configuration)
 
 
 /**
