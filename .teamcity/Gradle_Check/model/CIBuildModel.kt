@@ -58,6 +58,7 @@ data class CIBuildModel (
                             PerformanceTestType.historical)))
     ) {
 
+    //TODO generate these lists in the Gradle build instead of maintaining them manually (see testGroupings.gradle and buildSplits.gradle)
     val subProjects = listOf(
             "announce",
             "antlr",
@@ -66,22 +67,17 @@ data class CIBuildModel (
             "buildCacheHttp",
             "buildComparison",
             "buildInit",
-            "buildScanPerformance",
             "cli",
             "codeQuality",
             "compositeBuilds",
             "core",
             "dependencyManagement",
             "diagnostics",
-            "distributions",
-            "docs",
             "ear",
             "ide",
             "ideNative",
             "idePlay",
-            "installationBeacon",
             "integTest",
-            "internalAndroidPerformanceTesting",
             "internalIntegTesting",
             "internalPerformanceTesting",
             "internalTesting",
@@ -102,7 +98,6 @@ data class CIBuildModel (
             "modelGroovy",
             "native",
             "osgi",
-            "performance",
             "platformBase",
             "platformJvm",
             "platformNative",
@@ -117,11 +112,8 @@ data class CIBuildModel (
             "resourcesHttp",
             "resourcesS3",
             "resourcesSftp",
-            "runtimeApiInfo",
             "scala",
             "signing",
-            "smokeTest",
-            "soak",
             "testKit",
             "testingBase",
             "testingJvm",
@@ -130,6 +122,18 @@ data class CIBuildModel (
             "toolingApiBuilders",
             "workers",
             "wrapper"
+    )
+
+    val  subProjectsWithoutTests = listOf(
+            "buildScanPerformance",
+            "distributions",
+            "docs",
+            "installationBeacon",
+            "internalAndroidPerformanceTesting",
+            "performance",
+            "runtimeApiInfo",
+            "smokeTest",
+            "soak"
     )
 }
 

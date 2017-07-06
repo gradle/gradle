@@ -73,8 +73,11 @@ class CIConfigIntegrationTests {
 
     @Test
     fun allSubprojectsAreListed() {
-        val subprojectsFromFolders = File("../subprojects").list().map { it.replace(Regex("-([a-z\\d])"), { it.groups[1]!!.value.toUpperCase()}) }
-        assertEquals(CIBuildModel().subProjects, subprojectsFromFolders)
+        val m = CIBuildModel()
+        val subprojectsFromFolders = File("../subprojects").list().map { it.replace(Regex("-([a-z\\d])"), { it.groups[1]!!.value.toUpperCase()}) }.filter {
+            !m.subProjectsWithoutTests.contains(it)
+        }
+        assertEquals(m.subProjects, subprojectsFromFolders)
     }
 
     private fun printTree(project: Project, indent: String = "") {
