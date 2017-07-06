@@ -102,12 +102,9 @@ fun PluginDependenciesSpec.kotlin(module: String, version: String? = null): Plug
 /**
  * The `embedded-kotlin` plugin.
  *
- * Equivalent to
- * <code>id("org.gradle.kotlin.embedded-kotlin") version "$kotlinDslPluginsVersion"`</code>
+ * Equivalent to `id("org.gradle.kotlin.embedded-kotlin") version "$kotlinDslPluginsVersion"`
  *
- * You can also use
- * <code>`embedded-kotlin` version "$kotlinDslPluginsVersion"</code>
- * if you want to use a different version.
+ * You can also use `` `embedded-kotlin` version "$kotlinDslPluginsVersion" `` if you want to use a different version.
  *
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  */
@@ -117,12 +114,9 @@ val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
 /**
  * The `kotlin-dsl` plugin.
  *
- * Equivalent to
- * <code>id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"`</code>
+ * Equivalent to `id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"`
  *
- * You can also use
- * <code>`kotlin-dsl` version "$kotlinDslPluginsVersion"</code>
- * if you want to use a different version.
+ * You can also use `` `kotlin-dsl` version "$kotlinDslPluginsVersion" `` if you want to use a different version.
  *
  * @see org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
  */
