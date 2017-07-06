@@ -39,11 +39,11 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             }
 
             dependencies {
-                compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.8'
+                compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.11'
             }
         """.stripIndent()
 
-        file('src/main/scala/Hello.scala') << """
+        file('src/main/scala/Hello.scala').text = """
             object Hello {
                 def main(args: Array[String]): Unit = {
                     print("Hello!")
@@ -136,4 +136,53 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         compiledJavaClass.exists()
         compiledScalaClass.exists()
     }
+
+    def "incremental compilation works with caching"() {
+        def warmupDir = testDirectory.file('warmupCache')
+        setupProjectInDirectory(warmupDir)
+        warmupDir.file('settings.gradle') << localCacheConfiguration()
+
+        def classes = new ScalaIncrementalCompilationFixture(warmupDir)
+        classes.baseline()
+        classes.classDependingOnBasicClassSource.change()
+
+        when:
+        executer.inDirectory(warmupDir)
+        withBuildCache().succeeds compilationTask
+
+        then:
+        classes.all*.compiledClass*.exists().every()
+
+        when:
+        warmupDir.deleteDir()
+        setupProjectInDirectory(testDirectory)
+        classes = new ScalaIncrementalCompilationFixture(testDirectory)
+        classes.baseline()
+        withBuildCache().succeeds compilationTask
+
+        then:
+        executedAndNotSkipped compilationTask
+
+        when:
+        classes.classDependingOnBasicClassSource.change()
+        withBuildCache().succeeds compilationTask
+
+        then:
+        skipped compilationTask
+
+        when:
+        classes.independentClassSource.change()
+        withBuildCache().succeeds compilationTask
+
+        then:
+        executedAndNotSkipped compilationTask
+        assertAllRecompiled(classes.allClassesLastModified, old(classes.allClassesLastModified))
+    }
+
+    private static void assertAllRecompiled(List<Long> lastModified, List<Long> oldLastModified) {
+        [lastModified, oldLastModified].transpose().each { after, before ->
+            assert after != before
+        }
+    }
+
 }
