@@ -50,46 +50,6 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
 
-    def "compile is out of date when changing the zinc version"() {
-        buildScript(scalaProjectBuildScript('0.3.13'))
-
-        file('src/main/scala/Person.scala') << "class Person(name: String)"
-
-        when:
-        run 'compileScala'
-
-        then:
-        executedAndNotSkipped ':compileScala'
-
-        when:
-        run 'compileScala'
-
-        then:
-        skipped ':compileScala'
-
-        when:
-        buildScript(scalaProjectBuildScript('0.3.12'))
-        run 'compileScala'
-
-        then:
-        executedAndNotSkipped ':compileScala'
-    }
-
-    def scalaProjectBuildScript(String zincVersion) {
-        return """
-            apply plugin: 'scala'
-                        
-            repositories {
-                jcenter()
-            }
-
-            dependencies {
-                zinc "com.typesafe.zinc:zinc:${zincVersion}"
-                compile "org.scala-lang:scala-library:2.11.11" 
-            }
-        """.stripIndent()
-    }
-
     @Issue("GRADLE-2548")
     def recompilesScalaWhenJavaChanges() {
         file("build.gradle") << """
@@ -119,4 +79,5 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         //the build should fail because the interface the scala class needs has changed
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
+    
 }

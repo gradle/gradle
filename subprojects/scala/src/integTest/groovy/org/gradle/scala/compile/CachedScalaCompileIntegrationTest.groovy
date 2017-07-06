@@ -53,23 +53,6 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         }
     }
 
-    def "compilation is not cached if we change the version of the Scala library"() {
-        given:
-        populateCache()
-        buildFile.text = """
-            plugins { id 'scala' }
-
-            repositories { mavenCentral() }
-            dependencies { compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.7' }
-        """.stripIndent()
-
-        when:
-        withBuildCache().succeeds compilationTask
-
-        then:
-        compileIsNotCached()
-    }
-
     def "joint Java and Scala compilation can be cached"() {
         given:
         buildScript """

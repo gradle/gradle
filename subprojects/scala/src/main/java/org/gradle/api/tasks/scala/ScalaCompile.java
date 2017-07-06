@@ -15,7 +15,9 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -24,6 +26,7 @@ import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -85,6 +88,20 @@ public class ScalaCompile extends AbstractScalaCompile {
 
     public void setZincClasspath(FileCollection zincClasspath) {
         this.zincClasspath = zincClasspath;
+    }
+
+    /**
+     * The Java major version of the JVM the Scala compiler is running on.
+     *
+     * We track this as an input since the Scala compiler output may depend on it.
+     * This should be replaced by a property in the Scala toolchain as soon as we model these.
+     *
+     * @since 4.1
+     */
+    @Incubating
+    @Input
+    protected String getJvmVersion() {
+        return JavaVersion.current().getMajorVersion();
     }
 
     /**
