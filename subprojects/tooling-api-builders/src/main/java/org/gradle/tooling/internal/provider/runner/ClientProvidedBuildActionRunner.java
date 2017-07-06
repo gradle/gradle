@@ -19,11 +19,11 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
-import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.execution.ProjectConfigurer;
+import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -55,13 +55,15 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
 
             @Override
             public void projectsLoaded(Gradle gradle) {
-                forceFullConfiguration((GradleInternal) gradle);
+                if (!isRunTasks) {
+                    forceFullConfiguration((GradleInternal) gradle);
+                }
             }
 
             @Override
             public void buildFinished(BuildResult result) {
                 if (result.getFailure() == null) {
-                    buildController.setResult(buildResult(clientAction, gradle, isRunTasks));
+                    buildController.setResult(buildResult(clientAction, gradle));
                 }
             }
         });
@@ -73,11 +75,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         }
     }
 
-    private BuildActionResult buildResult(InternalBuildAction<?> clientAction, GradleInternal gradle, boolean isRunTasks) {
-        if (!isRunTasks) {
-            forceFullConfiguration(gradle);
-        }
-
+    private BuildActionResult buildResult(InternalBuildAction<?> clientAction, GradleInternal gradle) {
         InternalBuildController internalBuildController = new DefaultBuildController(gradle);
         Object model = null;
         Throwable failure = null;
