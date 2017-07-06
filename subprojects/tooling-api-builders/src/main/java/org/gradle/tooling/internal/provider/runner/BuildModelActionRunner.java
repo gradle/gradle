@@ -21,6 +21,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -65,6 +66,13 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         @Override
+        public void projectsLoaded(Gradle gradle) {
+            if (!buildModelAction.isRunTasks()) {
+                forceFullConfiguration((GradleInternal) gradle);
+            }
+        }
+
+        @Override
         public void buildFinished(BuildResult result) {
             if (result.getFailure() == null) {
                 buildController.setResult(buildResult(gradle, buildModelAction));
@@ -82,11 +90,6 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         private static Object buildModel(GradleInternal gradle, BuildModelAction buildModelAction) {
-
-            if (!buildModelAction.isRunTasks()) {
-                forceFullConfiguration(gradle);
-            }
-
             String modelName = buildModelAction.getModelName();
             ToolingModelBuilder builder = getModelBuilder(gradle, modelName);
 

@@ -21,6 +21,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.invocation.BuildAction;
@@ -51,6 +52,12 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         final boolean isRunTasks = clientProvidedBuildAction.isRunTasks();
 
         gradle.addBuildListener(new BuildAdapter() {
+
+            @Override
+            public void projectsLoaded(Gradle gradle) {
+                forceFullConfiguration((GradleInternal) gradle);
+            }
+
             @Override
             public void buildFinished(BuildResult result) {
                 if (result.getFailure() == null) {
