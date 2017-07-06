@@ -19,10 +19,6 @@ package org.gradle.language.swift.internal;
 import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implements SwiftCompileSpec {
     private String moduleName;
 

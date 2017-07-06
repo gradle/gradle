@@ -17,18 +17,12 @@
 package org.gradle.language.swift.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputFile;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.language.swift.internal.DefaultSwiftCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
-
-import java.io.File;
 
 /**
  * Compiles Swift source files into object files, executables and libraries.

@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.plugins;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
