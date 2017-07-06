@@ -56,15 +56,20 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
         return new Worker<T>() {
             public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
-                WorkerDaemonClient<T> client = clientsManager.reserveIdleClient(forkOptions);
-                if (client == null) {
-                    client = clientsManager.reserveNewClient(workerImplementationClass, workerDirectoryProvider.getIdleWorkingDirectory(), forkOptions);
-                }
-
+                WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
                 try {
-                    return executeInClient(client, spec, parentWorkerWorkerLease, parentBuildOperation);
+                    WorkerDaemonClient<T> client = clientsManager.reserveIdleClient(forkOptions);
+                    if (client == null) {
+                        client = clientsManager.reserveNewClient(workerImplementationClass, workerDirectoryProvider.getIdleWorkingDirectory(), forkOptions);
+                    }
+
+                    try {
+                        return executeInClient(client, spec, parentWorkerWorkerLease, parentBuildOperation);
+                    } finally {
+                        clientsManager.release(client);
+                    }
                 } finally {
-                    clientsManager.release(client);
+                    workerLease.leaseFinish();
                 }
             }
 
@@ -74,22 +79,17 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
             }
 
             private DefaultWorkResult executeInClient(final WorkerDaemonClient<T> client, final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
-                WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
-                try {
-                    return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
-                        @Override
-                        public DefaultWorkResult call(BuildOperationContext context) {
-                            return client.execute(spec);
-                        }
+                return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
+                    @Override
+                    public DefaultWorkResult call(BuildOperationContext context) {
+                        return client.execute(spec);
+                    }
 
-                        @Override
-                        public BuildOperationDescriptor.Builder description() {
-                            return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
-                        }
-                    });
-                } finally {
-                    workerLease.leaseFinish();
-                }
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
+                    }
+                });
             }
         };
     }

@@ -18,35 +18,48 @@ package org.gradle.modules
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
-import org.gradle.api.internal.project.ProjectInternal
+
 /**
- * Removes specific entries from the specified jar file.
- * This is used to patch the kotlin-compiler-embeddable jar, which has a bogus `CharsetProvider` entry.
+ * Patch JARs by removing/adding specific entries from/into the specified jar file.
+ *
+ * This is used to patch the kotlin-compiler-embeddable jar, which has:
+ * <ul>
+ *     <li>a bogus `CharsetProvider` entry,</li>
+ *     <li>an old version of `native-platform`,</li>
+ *     <li>an old version of `jansi`.</li>
+ * </ul>
  */
 @CompileStatic
-class ExcludeEntryPatcher {
+class JarPatcher {
 
-    ProjectInternal project
+    Project project
 
     Configuration runtime
 
     String jarFile
 
     List<String> excludedEntries = []
+    Map<String, List<String>> includedJars = [:]
 
     File temporaryDir
 
-    ExcludeEntryPatcher(ProjectInternal project, File temporaryDir, Configuration runtime, String jarFile) {
+    JarPatcher(Project project, File temporaryDir, Configuration runtime, String jarFile) {
         this.project = project
         this.runtime = runtime
         this.jarFile = jarFile
         this.temporaryDir = temporaryDir
     }
 
-    ExcludeEntryPatcher exclude(String exclude) {
+    JarPatcher exclude(String exclude) {
         excludedEntries << exclude
+        this
+    }
+
+    JarPatcher includeJar(String includedJar, String... includes) {
+        includedJars.put(includedJar, includes as List<String> ?: [] as List<String>)
         this
     }
 
@@ -59,7 +72,7 @@ class ExcludeEntryPatcher {
     }
 
     private File unpack(File file) {
-        def unpackDir = new File(temporaryDir, file.name)
+        def unpackDir = new File(temporaryDir, "excluding-" + file.name)
         project.sync(new Action<CopySpec>() {
             @Override
             void execute(CopySpec spec) {
@@ -73,6 +86,29 @@ class ExcludeEntryPatcher {
 
     @CompileDynamic
     private void pack(File baseDir, File destFile) {
+        Map<File, List<String>> resolvedIncludes = [:]
+        includedJars.each { jarPrefix, includes ->
+            runtime.files.findAll { it.name.startsWith(jarPrefix) }.each { includedJar ->
+                resolvedIncludes.put(includedJar, includes)
+            }
+        }
+        project.copy(new Action<CopySpec>() {
+            @Override
+            void execute(CopySpec spec) {
+                spec.into(baseDir)
+                resolvedIncludes.each { sourceJar, includes ->
+                    spec.from(project.zipTree(sourceJar), new Action<CopySpec>() {
+                        @Override
+                        void execute(CopySpec jarSpec) {
+                            includes.each { include ->
+                                jarSpec.include(include)
+                            }
+                        }
+                    })
+
+                }
+            }
+        })
         project.ant.zip(basedir: baseDir, destfile: destFile)
     }
 }

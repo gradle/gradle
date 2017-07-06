@@ -29,7 +29,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,6 @@ import java.util.Map;
  */
 public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
-    private static final String SOURCEPATH_DEPRECATION_MESSAGE = "Specify all the sources needed for compilation in the \"source\" FileCollection.";
 
     private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
             ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "incremental");
@@ -375,33 +373,24 @@ public class CompileOptions extends AbstractOptions {
      * Note that this is different to the default value for the {@code -sourcepath} option for {@code javac}, which is to use the value specified by {@code -classpath}.
      * If you wish to use any source path, it must be explicitly set.
      *
-     * @deprecated See: #setSourcePath(FileCollection) for deprecation reason.
      * @return the source path
      * @see #setSourcepath(FileCollection)
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @Optional
-    @Deprecated
     @Incubating
     public FileCollection getSourcepath() {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("sourcepath", SOURCEPATH_DEPRECATION_MESSAGE);
         return sourcepath;
     }
 
     /**
      * Sets the source path to use for the compilation.
      *
-     * @deprecated you can still set sourcepath using #setCompilerArgs(), but some compile tasks
-     *     (e.g. {@link JavaCompile}) will throw an exception if a sourcepath argument is set.
-     *     Given the rich semantics of the {@link JavaCompile#setSource(Object)} method, users
-     *     really shouldn't need to set the sourcepath.
      * @param sourcepath the source path
      */
-    @Deprecated
     @Incubating
     public void setSourcepath(FileCollection sourcepath) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("sourcepath", SOURCEPATH_DEPRECATION_MESSAGE);
         this.sourcepath = sourcepath;
     }
 

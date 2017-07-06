@@ -75,13 +75,10 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 isolationMode = $isolationMode
-                additionalForkOptions = { options ->
-                    options.systemProperty("now", System.currentTimeMillis())
-                }
                 doLast {
-                    submitWorkItem("workItem0")
-                    submitWorkItem("workItem1")
-                    submitWorkItem("workItem2")
+                    submitWorkItem("workItem0", TestParallelRunnable) { it.classpath([ new File("foo") ]) }
+                    submitWorkItem("workItem1", TestParallelRunnable) { it.classpath([ new File("bar") ]) }
+                    submitWorkItem("workItem2", TestParallelRunnable) { it.classpath([ new File("baz") ]) }
                 }
             }
         """
@@ -92,7 +89,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
 
         where:
-        isolationMode << ISOLATION_MODES
+        isolationMode << [ "IsolationMode.PROCESS", "IsolationMode.CLASSLOADER" ]
     }
 
     @Unroll
@@ -392,6 +389,108 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         gradle.waitForFinish()
     }
 
+    def "does not start more daemons than max-workers"() {
+        def maxWorkers = 3
+
+        given:
+        buildFile << """
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
+            
+            task parallelWorkTask(type: MultipleWorkItemTask) {
+                isolationMode = IsolationMode.PROCESS
+                doLast {
+                    6.times { i ->
+                        submitWorkItem("workItem\${i}")
+                    }
+                }
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).allClients.size() == 3
+                }
+            }
+        """
+
+        // warm buildSrc
+        succeeds("help")
+
+        def calls = ["workItem0", "workItem1", "workItem2", "workItem3", "workItem4", "workItem5"] as String[]
+        def handler = blockingHttpServer.expectConcurrentAndBlock(maxWorkers, calls)
+
+        when:
+        args("--max-workers=${maxWorkers}")
+        def gradle = executer.withTasks("parallelWorkTask")
+                        .requireIsolatedDaemons()
+                        .withWorkerDaemonsExpirationDisabled()
+                        .start()
+
+        then:
+        handler.waitForAllPendingCalls()
+
+        when:
+        handler.release(3)
+
+        then:
+        handler.waitForAllPendingCalls()
+
+        when:
+        handler.release(3)
+
+        then:
+        handler.waitForAllPendingCalls()
+
+        then:
+        gradle.waitForFinish()
+    }
+
+    def "work items in the same task reuse daemons"() {
+        def maxWorkers = 1
+
+        given:
+        buildFile << """
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
+            
+            task parallelWorkTask(type: MultipleWorkItemTask) {
+                isolationMode = IsolationMode.PROCESS
+                doLast {
+                    2.times { i ->
+                        submitWorkItem("workItem\${i}")
+                    }
+                }
+            }
+        """
+
+        // warm buildSrc
+        succeeds("help")
+
+        def calls = ["workItem0", "workItem1"] as String[]
+        def handler = blockingHttpServer.expectConcurrentAndBlock(maxWorkers, calls)
+
+        when:
+        args("--max-workers=${maxWorkers}")
+        executer.withTasks("parallelWorkTask")
+        def gradle = executer.withWorkerDaemonsExpirationDisabled().start()
+
+        then:
+        handler.waitForAllPendingCalls()
+
+        when:
+        handler.release(1)
+
+        then:
+        handler.waitForAllPendingCalls()
+
+        when:
+        handler.release(1)
+
+        then:
+        handler.waitForAllPendingCalls()
+
+        then:
+        gradle.waitForFinish()
+
+        and:
+        assertSameDaemonWasUsed("workItem0", "workItem1")
+    }
+
     def "can start another task when the current task is waiting on async work"() {
         given:
         buildFile << """
@@ -658,9 +757,11 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         return """
             import java.net.URI
             import javax.inject.Inject
+            import org.gradle.test.FileHelper
 
             public class TestParallelRunnable implements Runnable {
-                final String itemName 
+                final String itemName
+                private static final String id = UUID.randomUUID().toString()
 
                 @Inject
                 public TestParallelRunnable(String itemName) {
@@ -670,6 +771,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 public void run() {
                     System.out.println("Running \${itemName}...")
                     new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${itemName}", null, null).toURL().text
+                    File outputDir = new File("${outputFileDirPath}")
+                    File outputFile = new File(outputDir, itemName)
+                    FileHelper.write(id, outputFile)
                 }
             }
         """
@@ -734,7 +838,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 
                 def submitWorkItem(item, actionClass, configClosure) {
                     return workerExecutor.submit(actionClass) { config ->
-                        config.isolationMode = isolationMode
+                        config.isolationMode = this.isolationMode
                         config.forkOptions(additionalForkOptions)
                         config.classpath(additionalClasspath)
                         config.params = [ item.toString() ]
@@ -768,5 +872,10 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 }
             }
         """
+    }
+
+    @Override
+    void assertSameDaemonWasUsed(String task1, String task2) {
+        assert outputFileDir.file(task1).text == outputFileDir.file(task2).text
     }
 }

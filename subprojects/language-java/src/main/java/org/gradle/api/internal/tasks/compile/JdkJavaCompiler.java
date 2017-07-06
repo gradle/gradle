@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.internal.tasks.compile.files.SourcepathIgnoringJavaFileManager;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
@@ -24,10 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.tools.JavaCompiler;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.Iterator;
 import java.util.List;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
@@ -55,8 +58,23 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
         CompileOptions compileOptions = spec.getCompileOptions();
-        StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
-        Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(spec.getSource());
-        return compiler.getTask(null, null, null, options, null, compilationUnits);
+        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
+        Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSource());
+        JavaFileManager fileManager = standardFileManager;
+        if (emptySourcepathIn(options)) {
+            fileManager = new SourcepathIgnoringJavaFileManager(standardFileManager);
+        }
+        return compiler.getTask(null, fileManager, null, options, null, compilationUnits);
+    }
+
+    private static boolean emptySourcepathIn(List<String> options) {
+        Iterator<String> optionsIter = options.iterator();
+        while (optionsIter.hasNext()) {
+            String current = optionsIter.next();
+            if (current.equals("-sourcepath") || current.equals("--source-path")) {
+                return optionsIter.next().isEmpty();
+            }
+        }
+        return false;
     }
 }
