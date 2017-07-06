@@ -1,3 +1,7 @@
+class GreetingPluginExtension {
+    String message = 'Hello from GreetingPlugin'
+}
+
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
         // Add the 'greeting' extension object
@@ -11,10 +15,7 @@ class GreetingPlugin implements Plugin<Project> {
     }
 }
 
-class GreetingPluginExtension {
-    String message = 'Hello from GreetingPlugin'
-}
-
 apply plugin: GreetingPlugin
 
+// Configure the extension
 greeting.message = 'Hi from Gradle'

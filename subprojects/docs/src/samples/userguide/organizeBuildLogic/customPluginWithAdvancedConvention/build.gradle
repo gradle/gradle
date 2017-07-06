@@ -1,3 +1,8 @@
+class GreetingPluginExtension {
+    String message
+    String greeter
+}
+
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
         def extension = project.extensions.create('greeting', GreetingPluginExtension)
@@ -9,13 +14,9 @@ class GreetingPlugin implements Plugin<Project> {
     }
 }
 
-class GreetingPluginExtension {
-    String message
-    String greeter
-}
-
 apply plugin: GreetingPlugin
 
+// Configure the extension using a DSL block
 greeting {
     message = 'Hi'
     greeter = 'Gradle'

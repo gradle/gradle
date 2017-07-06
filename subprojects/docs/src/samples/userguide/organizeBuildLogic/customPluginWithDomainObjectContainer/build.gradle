@@ -1,3 +1,12 @@
+class Book {
+    final String name
+    File sourceFile
+
+    Book(String name) {
+        this.name = name
+    }
+}
+
 class DocumentationPlugin implements Plugin<Project> {
     void apply(Project project) {
         // Create a container of Book instances
@@ -10,17 +19,9 @@ class DocumentationPlugin implements Plugin<Project> {
     }
 }
 
-class Book {
-    final String name
-    File sourceFile
-
-    Book(String name) {
-        this.name = name
-    }
-}
-
 apply plugin: DocumentationPlugin
 
+// Configure the container
 books {
     quickStart {
         sourceFile = file('src/docs/quick-start')
