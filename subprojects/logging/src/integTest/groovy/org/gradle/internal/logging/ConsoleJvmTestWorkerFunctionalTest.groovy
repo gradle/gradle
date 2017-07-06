@@ -45,14 +45,15 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         when:
         def gradleHandle = executer.withTasks('test').start()
         testExecution.waitForAllPendingCalls()
-        testExecution.releaseAll()
-        gradleHandle.waitForFinish()
 
         then:
         ConcurrentTestUtil.poll {
             assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Gradle Test Executor [0-9]+ > Executing test org\\.gradle\\.Test1.*")
             assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Gradle Test Executor [0-9]+ > Executing test org\\.gradle\\.Test2.*")
         }
+
+        testExecution.releaseAll()
+        gradleHandle.waitForFinish()
     }
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
@@ -71,14 +72,15 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         when:
         def gradleHandle = executer.withArguments('--parallel', '--max-workers=4').withTasks('test').start()
         testExecution.waitForAllPendingCalls()
-        testExecution.releaseAll()
-        gradleHandle.waitForFinish()
 
         then:
         ConcurrentTestUtil.poll {
             assert matchesOutput(gradleHandle.standardOutput, ".*> :project1:test > Gradle Test Executor [0-9]+ > Executing test org\\.gradle\\.Test1.*")
             assert matchesOutput(gradleHandle.standardOutput, ".*> :project2:test > Gradle Test Executor [0-9]+ > Executing test org\\.gradle\\.Test2.*")
         }
+
+        testExecution.releaseAll()
+        gradleHandle.waitForFinish()
     }
 
     private String junitTest(String testClassName, String serverResource) {
