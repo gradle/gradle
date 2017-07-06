@@ -37,7 +37,7 @@ fun <T : Any> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
  * configured Closure delegate.
  *
  * @param T the expected type of the delegate argument to the closure.
- * @param function the function to be adapted.
+ * @param action the function to be adapted.
  *
  * @see KotlinClosure
  */
