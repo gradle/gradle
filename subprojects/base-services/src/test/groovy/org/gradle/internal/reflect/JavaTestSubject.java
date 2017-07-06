@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 @SuppressWarnings("UnusedDeclaration")
@@ -139,4 +140,8 @@ public class JavaTestSubject {
     public String getMyProperty2() {
         return myProp2;
     }
+
+    public void setMyProperty3(CharSequence value) {}
+    public void setMyProperty3(Collection<?> value) {}
+    public void setMyProperty3(Object value) {}
 }
