@@ -114,8 +114,8 @@ public class JavaReflectionUtil {
         if (mutator != null) {
             return mutator;
         }
-        throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s'%s on class %s.",
-            property, valueType == null ? "" : " of type " + valueType.getSimpleName(), target.getSimpleName()));
+        throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s' %s on class %s.",
+            property, valueType == null ? "accepting null value" : "of type " + valueType.getSimpleName(), target.getSimpleName()));
     }
 
     /**

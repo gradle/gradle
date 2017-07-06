@@ -113,7 +113,7 @@ class JavaReflectionUtilTest extends Specification {
 
         then:
         def e = thrown(NoSuchPropertyException)
-        e.message == "Could not find setter method for property 'myBooleanProperty' on class JavaTestSubject."
+        e.message == "Could not find setter method for property 'myBooleanProperty' accepting null value on class JavaTestSubject."
     }
 
     def "read boolean property"() {
