@@ -26,9 +26,9 @@ import spock.lang.Unroll
 import static org.gradle.api.internal.changedetection.rules.ChangeType.*
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
 
-@Unroll
 class TaskFilePropertyCompareStrategyTest extends Specification {
 
+    @Unroll
     def "empty snapshots (#strategy)"() {
         expect:
         changes(strategy,
@@ -40,6 +40,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         strategy << [ORDERED, UNORDERED, OUTPUT]
     }
 
+    @Unroll
     def "trivial addition (#strategy)"() {
         expect:
         changes(strategy,
@@ -54,6 +55,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         OUTPUT    | []
     }
 
+    @Unroll
     def "non-trivial addition (#strategy)"() {
         expect:
         changes(strategy,
@@ -68,6 +70,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         OUTPUT    | []
     }
 
+    @Unroll
     def "non-trivial addition with absolute paths (#strategy)"() {
         expect:
         changesUsingAbsolutePaths(strategy,
@@ -82,6 +85,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         OUTPUT    | []
     }
 
+    @Unroll
     def "trivial removal (#strategy)"() {
         expect:
         changes(strategy,
@@ -93,6 +97,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         strategy << [ORDERED, UNORDERED, OUTPUT]
     }
 
+    @Unroll
     def "non-trivial removal (#strategy)"() {
         expect:
         changes(strategy,
@@ -104,6 +109,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         strategy << [ORDERED, UNORDERED, OUTPUT]
     }
 
+    @Unroll
     def "non-trivial removal with absolute paths (#strategy)"() {
         expect:
         changesUsingAbsolutePaths(strategy,
@@ -115,6 +121,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         strategy << [ORDERED, UNORDERED, OUTPUT]
     }
 
+    @Unroll
     def "non-trivial modification (#strategy)"() {
         expect:
         changes(strategy,
@@ -126,6 +133,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         strategy << [ORDERED, UNORDERED, OUTPUT]
     }
 
+    @Unroll
     def "non-trivial modification with absolute paths (#strategy)"() {
         expect:
         changesUsingAbsolutePaths(strategy,
@@ -137,6 +145,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         strategy << [ORDERED, UNORDERED, OUTPUT]
     }
 
+    @Unroll
     def "trivial replacement (#strategy)"() {
         expect:
         changes(strategy,
@@ -145,12 +154,13 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         ) as List == results
 
         where:
-        strategy  | results
+        strategy | results
         ORDERED   | [new FileChange("one-old", REMOVED, "test"), new FileChange("two-new", ADDED, "test")]
         UNORDERED | [new FileChange("one-old", REMOVED, "test"), new FileChange("two-new", ADDED, "test")]
         OUTPUT    | [new FileChange("one-old", REMOVED, "test")]
     }
 
+    @Unroll
     def "non-trivial replacement (#strategy)"() {
         expect:
         changes(strategy,
@@ -165,6 +175,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         OUTPUT    | [change("three-old", REMOVED)]
     }
 
+    @Unroll
     def "non-trivial replacement with absolute paths (#strategy)"() {
         expect:
         changesUsingAbsolutePaths(strategy,
@@ -179,6 +190,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         OUTPUT    | [change("three", REMOVED)]
     }
 
+    @Unroll
     def "reordering (#strategy)"() {
         expect:
         changes(strategy,
@@ -187,12 +199,13 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         ) == results
 
         where:
-        strategy  | results
+        strategy | results
         ORDERED   | [change("three-old", REMOVED), change("two-new", ADDED), change("two-old", REMOVED), change("three-new", ADDED)]
         UNORDERED | []
         OUTPUT    | []
     }
 
+    @Unroll
     def "reordering with absolute paths (#strategy)"() {
         expect:
         changesUsingAbsolutePaths(strategy,
@@ -201,12 +214,13 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         ) == results
 
         where:
-        strategy  | results
+        strategy | results
         ORDERED   | [change("three", REMOVED), change("two", ADDED), change("two", REMOVED), change("three", ADDED)]
         UNORDERED | []
         OUTPUT    | []
     }
 
+    @Unroll
     def "handling duplicates (#strategy)"() {
         expect:
         changes(strategy,
@@ -218,6 +232,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         strategy << [ORDERED, UNORDERED, OUTPUT]
     }
 
+    @Unroll
     def "too many elements not handled by trivial comparison (#current.size() current vs #previous.size() previous)"() {
         expect:
         compareTrivialSnapshots(current, previous, "test", true) == null
@@ -229,19 +244,6 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         ["one": snapshot("one"), "two": snapshot("two")] | [:]
     }
 
-    def "change type for #previous to #current is #changeType"() {
-        expect:
-        getChangeType(previous, current) == changeType
-
-        where:
-        previous                            | current                             | changeType
-        contentSnapshot()                   | contentSnapshot("5678abcd")         | MODIFIED
-        MissingFileContentSnapshot.instance | contentSnapshot()                   | ADDED
-        contentSnapshot()                   | MissingFileContentSnapshot.instance | REMOVED
-        DirContentSnapshot.instance         | MissingFileContentSnapshot.instance | REMOVED
-        MissingFileContentSnapshot.instance | DirContentSnapshot.instance         | ADDED
-    }
-
     def changes(TaskFilePropertyCompareStrategy strategy, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
         Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test", false))
     }
@@ -251,11 +253,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     def snapshot(String normalizedPath, String hashCode = "1234abcd") {
-        return new DefaultNormalizedFileSnapshot(normalizedPath, contentSnapshot(hashCode))
-    }
-
-    def contentSnapshot(String hashCode = "1234abcd") {
-        return new FileHashSnapshot(HashCode.fromString(hashCode))
+        return new DefaultNormalizedFileSnapshot(normalizedPath, new FileHashSnapshot(HashCode.fromString(hashCode)))
     }
 
     def change(String path, ChangeType type) {

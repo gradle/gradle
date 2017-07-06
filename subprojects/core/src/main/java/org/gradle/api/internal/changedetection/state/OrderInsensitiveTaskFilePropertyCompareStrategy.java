@@ -37,8 +37,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.getChangeType;
-
 class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
 
     private static final Comparator<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> ENTRY_COMPARATOR = new Comparator<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>>() {
@@ -85,7 +83,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                         NormalizedFileSnapshot previousNormalizedSnapshot = previous.get(currentAbsolutePath);
                         FileContentSnapshot previousSnapshot = previousNormalizedSnapshot.getSnapshot();
                         if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
-                            return new FileChange(currentAbsolutePath, getChangeType(previousSnapshot, currentSnapshot), fileType);
+                            return new FileChange(currentAbsolutePath, ChangeType.MODIFIED, fileType);
                         }
                         // else, unchanged; check next file
                     } else {
@@ -144,7 +142,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                         IncrementalFileSnapshotWithAbsolutePath previousSnapshotWithAbsolutePath = previousSnapshotsForNormalizedPath.remove(0);
                         FileContentSnapshot previousSnapshot = previousSnapshotWithAbsolutePath.getSnapshot();
                         if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
-                            return new FileChange(currentAbsolutePath, getChangeType(previousSnapshot, currentSnapshot), fileType);
+                            return new FileChange(currentAbsolutePath, ChangeType.MODIFIED, fileType);
                         }
                     }
                 }

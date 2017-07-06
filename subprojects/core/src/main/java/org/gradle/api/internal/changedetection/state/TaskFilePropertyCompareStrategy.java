@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
@@ -36,18 +35,6 @@ public enum TaskFilePropertyCompareStrategy {
     ORDERED(new OrderSensitiveTaskFilePropertyCompareStrategy()),
     UNORDERED(new OrderInsensitiveTaskFilePropertyCompareStrategy(true)),
     OUTPUT(new OrderInsensitiveTaskFilePropertyCompareStrategy(false));
-
-    static ChangeType getChangeType(FileContentSnapshot previous, FileContentSnapshot current) {
-        boolean previousMissing = previous instanceof MissingFileContentSnapshot;
-        boolean currentMissing = current instanceof MissingFileContentSnapshot;
-        Preconditions.checkState(!(previousMissing && currentMissing), "snapshots need to be different in order to determine change type, but both missing");
-        if (previousMissing) {
-            return ChangeType.ADDED;
-        } else if (currentMissing) {
-            return ChangeType.REMOVED;
-        }
-        return ChangeType.MODIFIED;
-    }
 
     private final Impl delegate;
 
@@ -131,7 +118,7 @@ public enum TaskFilePropertyCompareStrategy {
             FileContentSnapshot currentSnapshot = normalizedCurrent.getSnapshot();
             if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
                 String path = currentEntry.getKey();
-                TaskStateChange change = new FileChange(path, getChangeType(previousSnapshot, currentSnapshot), fileType);
+                TaskStateChange change = new FileChange(path, ChangeType.MODIFIED, fileType);
                 return singletonIterator(change);
             } else {
                 return emptyIterator();

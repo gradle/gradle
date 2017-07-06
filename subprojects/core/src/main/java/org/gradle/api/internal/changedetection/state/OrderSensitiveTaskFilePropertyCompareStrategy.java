@@ -26,8 +26,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.getChangeType;
-
 class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
 
     @Override
@@ -59,11 +57,7 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
                                 if (normalizedSnapshot.getSnapshot().isContentUpToDate(otherNormalizedSnapshot.getSnapshot())) {
                                     continue;
                                 } else {
-                                    return new FileChange(
-                                        absolutePath,
-                                        getChangeType(otherNormalizedSnapshot.getSnapshot(), normalizedSnapshot.getSnapshot()),
-                                        fileType
-                                    );
+                                    return new FileChange(absolutePath, ChangeType.MODIFIED, fileType);
                                 }
                             } else {
                                 String otherAbsolutePath = other.getKey();
