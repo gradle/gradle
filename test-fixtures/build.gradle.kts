@@ -4,6 +4,7 @@ apply {
 }
 
 dependencies {
+    val compile by configurations
     compile(gradleApi())
 
     compile(project(":provider"))

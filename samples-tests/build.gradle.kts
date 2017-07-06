@@ -5,6 +5,7 @@ apply {
 }
 
 dependencies {
+    val compile by configurations
     compile(project(":test-fixtures"))
 }
 
