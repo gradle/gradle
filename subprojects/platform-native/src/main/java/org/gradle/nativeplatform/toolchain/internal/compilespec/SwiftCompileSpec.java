@@ -18,9 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal.compilespec;
 
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
-import java.io.File;
-import java.util.List;
-
 public interface SwiftCompileSpec extends NativeCompileSpec {
     String getModuleName();
     void setModuleName(String moduleName);
