@@ -55,10 +55,6 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
         this.objectFileExtension = objectFileExtension;
     }
 
-    protected List<String> getOutputArgs(File outputFile) {
-        return Lists.newArrayList("-o", outputFile.getAbsolutePath());
-    }
-
     @Override
     protected void addOptionsFileArgs(List<String> args, File tempDir) {
     }
@@ -102,14 +98,15 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     genericArgs.add("-module-name");
                     genericArgs.add(spec.getModuleName());
                     outputFileMap.newEntry("")
-                        .swiftModuleFile(new File(spec.getOutputFile().getParentFile(), spec.getModuleName() + ".swiftmodule"));
+                        .swiftModuleFile(new File(spec.getObjectFileDir(), spec.getModuleName() + ".swiftmodule"));
                 }
                 genericArgs.add("-v");
+                genericArgs.add("-emit-object");
 
                 File outputFileMapFile = new File(spec.getObjectFileDir(), "output-file-map.json");
                 outputFileMap.writeToFile(outputFileMapFile);
 
-                List<String> outputArgs = getOutputArgs(spec.getOutputFile());
+                List<String> outputArgs = Lists.newArrayList();
                 outputArgs.add("-output-file-map");
                 outputArgs.add(outputFileMapFile.getAbsolutePath());
 
@@ -119,14 +116,8 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     importRootArgs.add(importRoot.getAbsolutePath());
                 }
 
-                List<String> libraryArgs = Lists.newArrayList();
-                for (File library : spec.getLibraries()) {
-                    // TODO(daniel): Linking dynamic library doesn't require -l flag
-                    libraryArgs.add(library.getAbsolutePath());
-                }
-
                 CommandLineToolInvocation perFileInvocation =
-                    newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs, libraryArgs), spec.getOperationLogger());
+                    newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs), spec.getOperationLogger());
                 buildQueue.add(perFileInvocation);
             }
         };

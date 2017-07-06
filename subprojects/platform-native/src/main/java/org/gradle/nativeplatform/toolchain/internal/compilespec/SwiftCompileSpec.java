@@ -22,12 +22,6 @@ import java.io.File;
 import java.util.List;
 
 public interface SwiftCompileSpec extends NativeCompileSpec {
-    File getOutputFile();
-    void setOutputFile(File outputFile);
-
     String getModuleName();
     void setModuleName(String moduleName);
-
-    List<File> getLibraries();
-    void libraries(Iterable<File> libraries);
 }

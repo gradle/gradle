@@ -20,6 +20,7 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
+import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.SwiftcPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider;
@@ -55,6 +56,12 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
             return CompilerUtil.castCompiler(createSwiftCompiler());
         }
         return super.newCompiler(spec);
+    }
+
+    @Override
+    protected Compiler<LinkerSpec> createLinker() {
+        CommandLineToolConfigurationInternal linkerTool = (CommandLineToolConfigurationInternal) toolRegistry.getLinker();
+        return new SwiftLinker(buildOperationExecutor, commandLineTool(ToolType.LINKER, "swiftc"), context(linkerTool));
     }
 
     protected Compiler<SwiftCompileSpec> createSwiftCompiler() {

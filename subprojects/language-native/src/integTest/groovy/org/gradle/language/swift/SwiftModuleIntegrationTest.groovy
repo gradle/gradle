@@ -57,7 +57,7 @@ class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSp
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":assemble")
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
         sharedLibrary("build/lib/hello").assertExists()
     }
 
@@ -74,9 +74,9 @@ class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSp
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":assemble")
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
         sharedLibrary("build/lib/hello").assertExists()
-        file("build/lib/hello.swiftmodule").assertExists()
+        file("build/main/objs/hello.swiftmodule").assertExists()
     }
 
     def "can compile and link against another library"() {
@@ -100,7 +100,7 @@ class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSp
 
         expect:
         succeeds ":Hello:assemble"
-        result.assertTasksExecuted(":Greeting:compileSwift", ":Hello:compileSwift", ":Hello:assemble")
+        result.assertTasksExecuted(":Greeting:compileSwift", ":Greeting:linkMain", ":Hello:compileSwift", ":Hello:linkMain", ":Hello:assemble")
         sharedLibrary("Hello/build/lib/Hello").assertExists()
         sharedLibrary("Greeting/build/lib/Greeting").assertExists()
     }
@@ -128,7 +128,7 @@ class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSp
 
         expect:
         succeeds ":lib1:assemble"
-        result.assertTasksExecuted(":lib2:compileSwift", ":lib1:compileSwift", ":lib1:assemble")
+        result.assertTasksExecuted(":lib2:compileSwift", ":lib2:linkMain", ":lib1:compileSwift", ":lib1:linkMain", ":lib1:assemble")
         sharedLibrary("lib1/build/lib/lib1").assertExists()
         sharedLibrary("lib2/build/lib/lib2").assertExists()
     }

@@ -22,18 +22,24 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import java.util.Collections;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a native executable from Swift source.</p>
@@ -52,14 +58,14 @@ public class SwiftExecutablePlugin implements Plugin<Project> {
         SwiftCompile compile = project.getTasks().create("compileSwift", SwiftCompile.class);
 
         compile.includes(project.getConfigurations().getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
-        compile.lib(project.getConfigurations().getByName(CppBasePlugin.NATIVE_LINK));
 
         ConfigurableFileTree sourceTree = project.fileTree("src/main/swift");
         sourceTree.include("**/*.swift");
         compile.source(sourceTree);
 
-        compile.setCompilerArgs(Lists.newArrayList("-emit-executable"));
+        compile.setCompilerArgs(Collections.<String>emptyList());
         compile.setMacros(Collections.<String, String>emptyMap());
+        compile.setModuleName(project.getName());
 
         // TODO - should reflect changes to build directory
         compile.setObjectFileDir(project.file("build/main/objs"));
@@ -71,8 +77,17 @@ public class SwiftExecutablePlugin implements Plugin<Project> {
         NativeToolChain toolChain = ((ProjectInternal) project).getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
         compile.setToolChain(toolChain);
 
+        // Add a link task
+        LinkExecutable link = project.getTasks().create("linkMain", LinkExecutable.class);
+        // TODO - need to set basename
+        // TODO - include only object files from this dir
+        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+        link.lib(project.getConfigurations().getByName(CppBasePlugin.NATIVE_LINK));
+        link.setLinkerArgs(Collections.<String>emptyList());
         String exeName = ((NativeToolChainInternal) toolChain).select(currentPlatform).getExecutableName("build/exe/" + project.getName());
-        compile.setOutputFile(project.file(exeName));
+        link.setOutputFile(project.file(exeName));
+        link.setTargetPlatform(currentPlatform);
+        link.setToolChain(toolChain);
 
         // Add an install task
         final InstallExecutable install = project.getTasks().create("installMain", InstallExecutable.class);
@@ -82,9 +97,9 @@ public class SwiftExecutablePlugin implements Plugin<Project> {
         // TODO - need to set basename
         install.setDestinationDir(project.file("build/install/" + project.getName()));
         // TODO - should reflect changes to task output
-        install.setExecutable(compile.getOutputFile());
+        install.setExecutable(link.getOutputFile());
         // TODO - infer this
-        install.dependsOn(compile);
+        install.dependsOn(link);
         // TODO - and this
         install.onlyIf(new Spec<Task>() {
             @Override

@@ -24,19 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implements SwiftCompileSpec {
-    private File outputFile;
     private String moduleName;
-    private final List<File> libraries = new ArrayList<File>();
-
-    @Override
-    public File getOutputFile() {
-        return outputFile;
-    }
-
-    @Override
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
-    }
 
     @Override
     public String getModuleName() {
@@ -46,21 +34,5 @@ public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implement
     @Override
     public void setModuleName(String moduleName) {
         this.moduleName = moduleName;
-    }
-
-    @Override
-    public List<File> getLibraries() {
-        return libraries;
-    }
-
-    @Override
-    public void libraries(Iterable<File> libraries) {
-        addAll(this.libraries, libraries);
-    }
-
-    private void addAll(List<File> list, Iterable<File> iterable) {
-        for (File file : iterable) {
-            list.add(file);
-        }
     }
 }

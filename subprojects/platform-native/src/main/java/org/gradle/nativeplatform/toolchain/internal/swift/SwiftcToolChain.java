@@ -104,6 +104,7 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
 
     private void addDefaultTools(DefaultSwiftcPlatformToolChain toolChain) {
         toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.SWIFT_COMPILER));
+        toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.LINKER));
     }
 
     @Override

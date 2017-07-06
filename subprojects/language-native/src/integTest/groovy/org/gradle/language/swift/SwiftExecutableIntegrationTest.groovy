@@ -58,7 +58,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
         executable("build/exe/app").exec().out == app.englishOutput
     }
 
@@ -87,7 +87,7 @@ ${f.text}"""
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":Greeter:compileSwift", ":app:compileSwift", ":app:installMain", ":app:assemble")
+        result.assertTasksExecuted(":Greeter:compileSwift", ":Greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
         executable("app/build/exe/app").assertExists()
         sharedLibrary("Greeter/build/lib/Greeter").assertExists()
         installation("app/build/install/app").exec().out == app.englishOutput
@@ -122,7 +122,7 @@ ${f.text}"""
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":Hello:compileSwift", ":Greeting:compileSwift", ":app:compileSwift", ":app:installMain", ":app:assemble")
+        result.assertTasksExecuted(":Hello:compileSwift", ":Hello:linkMain", ":Greeting:compileSwift", ":Greeting:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
         sharedLibrary("Hello/build/lib/Hello").assertExists()
         sharedLibrary("Greeting/build/lib/Greeting").assertExists()
         executable("app/build/exe/app").exec().out == app.englishOutput
@@ -166,7 +166,7 @@ ${f.text}"""
 
         expect:
         succeeds ":assemble"
-        result.assertTasksExecuted(":Hello:compileSwift", ":Greeting:compileSwift", ":compileSwift", ":installMain", ":assemble")
+        result.assertTasksExecuted(":Hello:compileSwift", ":Hello:linkMain", ":Greeting:compileSwift", ":Greeting:linkMain", ":compileSwift", ":linkMain", ":installMain", ":assemble")
         sharedLibrary("Hello/build/lib/Hello").assertExists()
         sharedLibrary("Greeting/build/lib/Greeting").assertExists()
         executable("build/exe/app").assertExists()

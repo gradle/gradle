@@ -44,6 +44,11 @@ public class DefaultSwiftcPlatformToolChain implements SwiftcPlatformToolChain {
     }
 
     @Override
+    public CommandLineToolConfiguration getLinker() {
+        return tools.get(ToolType.LINKER);
+    }
+
+    @Override
     public NativePlatform getPlatform() {
         return platform;
     }
