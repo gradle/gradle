@@ -25,13 +25,13 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new SwiftHelloWorldApp()
 
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-            apply plugin: 'swift-library'
+            apply plugin: 'swift-module'
          """
 
         and:
@@ -52,7 +52,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         and:
         buildFile << """
-            apply plugin: 'swift-library'
+            apply plugin: 'swift-module'
          """
 
         expect:
@@ -69,7 +69,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         and:
         buildFile << """
-            apply plugin: 'swift-library'
+            apply plugin: 'swift-module'
          """
 
         expect:
@@ -86,13 +86,13 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         given:
         buildFile << """
             project(':Hello') {
-                apply plugin: 'swift-library'
+                apply plugin: 'swift-module'
                 dependencies {
                     implementation project(':Greeting')
                 }
             }
             project(':Greeting') {
-                apply plugin: 'swift-library'
+                apply plugin: 'swift-module'
             }
 """
         app.library.sourceFiles.each { it.writeToFile(file("Hello/src/main/swift/$it.name")) }
@@ -112,14 +112,14 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         given:
         buildFile << """
             project(':lib1') {
-                apply plugin: 'swift-library'
+                apply plugin: 'swift-module'
                 dependencies {
                     implementation project(':lib2')
                 }
                 tasks.withType(SwiftCompile)*.moduleName = 'Hello'
             }
             project(':lib2') {
-                apply plugin: 'swift-library'
+                apply plugin: 'swift-module'
                 tasks.withType(SwiftCompile)*.moduleName = 'Greeting'
             }
 """

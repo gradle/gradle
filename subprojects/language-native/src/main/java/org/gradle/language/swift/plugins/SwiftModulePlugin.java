@@ -44,7 +44,7 @@ import java.util.Collections;
  * @since 4.1
  */
 @Incubating
-public class SwiftLibraryPlugin implements Plugin<Project> {
+public class SwiftModulePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);

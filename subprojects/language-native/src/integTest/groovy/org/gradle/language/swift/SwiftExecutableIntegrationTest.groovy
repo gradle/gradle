@@ -75,7 +75,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
                 }
             }
             project(':Greeter') {
-                apply plugin: 'swift-library'
+                apply plugin: 'swift-module'
             }
 """
         app.library.sourceFiles.each { it.writeToFile(file("Greeter/src/main/swift/$it.name")) }
@@ -107,13 +107,13 @@ ${f.text}"""
                 }
             }
             project(':Hello') {
-                apply plugin: 'swift-library'
+                apply plugin: 'swift-module'
                 dependencies {
                     api project(':Greeting')
                 }
             }
             project(':Greeting') {
-                apply plugin: 'swift-library'
+                apply plugin: 'swift-module'
             }
 """
         app.library.sourceFiles.each { it.writeToFile(file("Hello/src/main/swift/$it.name")) }
@@ -149,14 +149,14 @@ ${f.text}"""
             }
         """
         file("Hello/build.gradle") << """
-            apply plugin: 'swift-library'
+            apply plugin: 'swift-module'
             group = 'test'
             dependencies {
                 api 'test:Greeting:1.4'
             }
         """
         file("Greeting/build.gradle") << """
-            apply plugin: 'swift-library'
+            apply plugin: 'swift-module'
             group = 'test'
         """
 

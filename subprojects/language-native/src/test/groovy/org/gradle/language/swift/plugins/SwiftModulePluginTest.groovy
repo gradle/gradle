@@ -16,5 +16,23 @@
 
 package org.gradle.language.swift.plugins
 
-class SwiftLibraryPluginIntegrationTest extends AbstractSwiftPluginIntegrationTest {
+import org.gradle.language.swift.tasks.SwiftCompile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.junit.Rule
+import spock.lang.Specification
+
+class SwiftModulePluginTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.createDir("project"))
+
+    def "adds compile and link tasks"() {
+        when:
+        project.pluginManager.apply(SwiftModulePlugin)
+
+        then:
+        def compileSwift = project.tasks.compileSwift
+        compileSwift instanceof SwiftCompile
+    }
 }
