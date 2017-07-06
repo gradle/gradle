@@ -134,6 +134,13 @@ buildTypes.toArray().each { buildType ->
             tasks projectTasks as String[]
             projectProperties buildType.projectProperties
         }
+        projects.each { String singleProject ->
+            def singleProjectTasks = tasksForProjects(buildType, [singleProject])
+            buildTypes.create("${buildType.name + singleProject.substring(1, 2).toUpperCase() + singleProject.substring(2)}") {
+                tasks singleProjectTasks as String[]
+                projectProperties buildType.projectProperties
+            }
+        }
     }
 }
 

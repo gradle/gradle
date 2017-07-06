@@ -123,4 +123,10 @@ artifacts {
 
 integTestTasks.all {
     requiresDists = true
+    systemProperty 'org.gradle.public.api.includes', publicApiIncludes.join(':')
+    systemProperty 'org.gradle.public.api.excludes', publicApiExcludes.join(':')
+}
+
+dependencies {
+    testCompile "com.github.siom79.japicmp:japicmp:0.10.0"
 }

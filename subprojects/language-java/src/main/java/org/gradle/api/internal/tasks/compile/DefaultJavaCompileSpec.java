@@ -43,9 +43,4 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     public void setAnnotationProcessorPath(List<File> annotationProcessorPath) {
         this.annotationProcessorPath = annotationProcessorPath;
     }
-
-    @Override
-    public boolean respectsSourcepath() {
-        return false;
-    }
 }

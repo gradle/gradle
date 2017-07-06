@@ -19,4 +19,5 @@
 :server:check UP-TO-DATE
 :server:build
 
-BUILD SUCCESSFUL
+BUILD SUCCESSFUL in 0s
+15 actionable tasks: 13 executed, 2 up-to-date
