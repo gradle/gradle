@@ -90,6 +90,14 @@ class JavaReflectionUtilTest extends Specification {
         property.type == Object.class
     }
 
+    def "picks the typed setter if it is the better match"() {
+        when:
+        def property = writeableProperty(JavaTestSubject, "myProperty", String.class)
+
+        then:
+        property.type == String.class
+    }
+
     def "picks the generic iterable setter if the typed setter does not match the value type"() {
         when:
         def property = writeableProperty(JavaTestSubject, "multiValue", List.class)
