@@ -16,6 +16,8 @@ dependencies {
     testFixturesCompile project(':baseServicesGroovy')
     testFixturesCompile project(':internalIntegTesting')
 
+    testImplementation libraries.equalsVerifier
+
     // Need these to be loaded into the integTestRuntime, so that the modules are available on the classpath and the services can be registered
     // I think this is only really required for the TAPI tests in embedded mode, where we use `GradleConnector.useClasspathDistribution()`.
     integTestRuntime project(':ide')
