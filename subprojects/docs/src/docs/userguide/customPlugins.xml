@@ -294,21 +294,35 @@
         </section>
     </section>
 
-    <section id="sec:maintaining_multiple_domain_objects">
-        <title>Maintaining multiple domain objects</title>
+    <section id="sec:implementing_a_dsl">
+        <title>Providing a configuration DSL for the plugin</title>
+        <para>As we saw above, you can use an extension object to provide configuration for your plugin. Using an extension object also extends the Gradle DSL to add a project property and DSL block for the plugin. An extension object is simply a regular object, and so you can provide DSL elements nested inside this block by adding properties and methods to the extension object.</para>
+        <para>Gradle provides several conveniences to help create a well-behaved DSL for your plugin.</para>
+        <section id="sec:nested_dsl_elements">
+            <title>Nested DSL elements</title>
+            <para>When Gradle creates a task or extension object, Gradle <firstterm>decorates</firstterm> the implementation class to mix in DSL support. To create a nested DSL element you can use the <apilink class="org.gradle.api.model.ObjectFactory"/> type to create objects that are similarly decorated. These decorated objects can then be made visible to the DSL through properties and methods of the plugin's extension:</para>
+            <sample id="nestedDslElement" dir="userguide/organizeBuildLogic/customPluginWithNestedDsl" title="Nested DSL elements">
+                <sourcefile file="build.gradle"/>
+                <output args="-q hello"/>
+            </sample>
+            <para>In this example, the plugin passes the project's <classname>ObjectFactory</classname> to the extension object through its constructor. The constructor uses this to create a nested object and makes this object available to the DSL through the <literal>greeter</literal> property.</para>
+        </section>
+        <section id="sec:maintaining_multiple_domain_objects">
+            <title>Configuring a collection of objects</title>
 
-        <para>Gradle provides some utility classes for maintaining collections of objects, which work well with the Gradle build language.</para>
+            <para>Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL.</para>
 
-        <sample id="domainObjectContainer" dir="userguide/organizeBuildLogic/customPluginWithDomainObjectContainer" title="Managing domain objects">
-            <sourcefile file="build.gradle"/>
-            <output args="-q books"/>
-        </sample>
-        <para>
-            The <apilink class="org.gradle.api.Project" method="container(java.lang.Class)"/> methods create instances of <apilink class="org.gradle.api.NamedDomainObjectContainer"/>, that have many useful methods for managing and configuring the objects. In order
-            to use a type with any of the <literal>project.container</literal> methods, it MUST expose a property named “<literal>name</literal>”
-            as the unique, and constant, name for the object. The <literal>project.container(Class)</literal> variant of the container method creates
-            new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object.
-            See the above link for <literal>project.container</literal> method variants that allow custom instantiation strategies.
-        </para>
+            <sample id="domainObjectContainer" dir="userguide/organizeBuildLogic/customPluginWithDomainObjectContainer" title="Managing a collection of objects">
+                <sourcefile file="build.gradle"/>
+                <output args="-q books"/>
+            </sample>
+            <para>
+                The <apilink class="org.gradle.api.Project" method="container(java.lang.Class)"/> methods create instances of <apilink class="org.gradle.api.NamedDomainObjectContainer"/>, that have many useful methods for managing and configuring the objects. In order
+                to use a type with any of the <literal>project.container</literal> methods, it MUST expose a property named “<literal>name</literal>”
+                as the unique, and constant, name for the object. The <literal>project.container(Class)</literal> variant of the container method creates
+                new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object.
+                See the above link for <literal>project.container</literal> method variants that allow custom instantiation strategies.
+            </para>
+        </section>
     </section>
 </chapter>
