@@ -37,11 +37,10 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
         if (enableAllToolChains) {
             for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                if (toolChain.isAvailable() && isRespectingSwiftConstraint(toolChain)) {
-                    add(new ToolChainExecution(toolChain, true));
-                } else {
+                if (!toolChain.isAvailable()) {
                     throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
                 }
+                add(new ToolChainExecution(toolChain, isRespectingSwiftConstraint(toolChain)));
             }
         } else {
             boolean hasEnabled = false;
