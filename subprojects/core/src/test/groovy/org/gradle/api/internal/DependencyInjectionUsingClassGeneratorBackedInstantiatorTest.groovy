@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal
 
+import org.gradle.api.internal.cache.CrossBuildInMemoryCache
+import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
@@ -22,8 +25,9 @@ import javax.inject.Inject
 
 class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Specification {
     final ClassGenerator classGenerator = new AsmBackedClassGenerator()
+    final CrossBuildInMemoryCache cache = new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()).newClassCache()
     final ServiceRegistry services = Mock()
-    final DependencyInjectingInstantiator dependencyInjectingInstantiator = new DependencyInjectingInstantiator(services, new DependencyInjectingInstantiator.ConstructorCache())
+    final DependencyInjectingInstantiator dependencyInjectingInstantiator = new DependencyInjectingInstantiator(services, cache)
     final instantiator = new ClassGeneratorBackedInstantiator(classGenerator, dependencyInjectingInstantiator)
 
     def "injects service using getter injection"() {

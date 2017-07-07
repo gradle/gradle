@@ -21,7 +21,6 @@ import org.gradle.api.RecordingAntBuildListener
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.DependencyInjectingInstantiator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.artifacts.DependencyManagementServices
@@ -106,7 +105,6 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)
         parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
         parent.get(ModelRuleExtractor) >> Stub(ModelRuleExtractor)
-        parent.get(DependencyInjectingInstantiator.ConstructorCache) >> Stub(DependencyInjectingInstantiator.ConstructorCache)
         parent.get(ToolingModelBuilderRegistry) >> Mock(ToolingModelBuilderRegistry)
         parent.get(InstantiatorFactory) >> instantiatorFactory
         parent.get(ScriptClassPathResolver) >> Mock(ScriptClassPathResolver)

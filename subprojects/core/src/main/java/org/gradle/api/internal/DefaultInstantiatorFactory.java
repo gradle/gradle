@@ -16,30 +16,35 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.internal.cache.CrossBuildInMemoryCache;
+import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
-    private final DependencyInjectingInstantiator.ConstructorCache constructorCache = new DependencyInjectingInstantiator.ConstructorCache();
+    private final CrossBuildInMemoryCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor> decoratedConstructorCache;
+    private final CrossBuildInMemoryCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor> undecoratedConstructorCache;
     private final ServiceRegistry noServices = new DefaultServiceRegistry();
     private final ClassGenerator classGenerator;
     private final Instantiator decoratingInstantiator;
 
-    public DefaultInstantiatorFactory(ClassGenerator classGenerator) {
+    public DefaultInstantiatorFactory(ClassGenerator classGenerator, CrossBuildInMemoryCacheFactory cacheFactory) {
         this.classGenerator = classGenerator;
+        this.decoratedConstructorCache = cacheFactory.newClassCache();
+        this.undecoratedConstructorCache = cacheFactory.newClassCache();
         this.decoratingInstantiator = new ClassGeneratorBackedInstantiator(classGenerator, DirectInstantiator.INSTANCE);
     }
 
     @Override
     public Instantiator inject(ServiceRegistry registry) {
-        return new DependencyInjectingInstantiator(registry, constructorCache);
+        return new DependencyInjectingInstantiator(registry, undecoratedConstructorCache);
     }
 
     @Override
     public Instantiator inject() {
-        return new DependencyInjectingInstantiator(noServices, constructorCache);
+        return new DependencyInjectingInstantiator(noServices, undecoratedConstructorCache);
     }
 
     @Override
@@ -49,6 +54,6 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator injectAndDecorate(ServiceRegistry registry) {
-        return new DependencyInjectingInstantiator(classGenerator, registry, constructorCache);
+        return new DependencyInjectingInstantiator(classGenerator, registry, decoratedConstructorCache);
     }
 }

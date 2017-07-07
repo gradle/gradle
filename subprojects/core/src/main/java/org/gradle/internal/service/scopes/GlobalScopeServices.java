@@ -285,8 +285,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new StringInterner();
     }
 
-    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator) {
-        return new DefaultInstantiatorFactory(classGenerator);
+    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultInstantiatorFactory(classGenerator, cacheFactory);
     }
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
