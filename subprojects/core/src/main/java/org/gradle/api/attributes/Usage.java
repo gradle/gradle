@@ -95,4 +95,11 @@ public interface Usage extends Named {
      * @since 4.1
      */
     String NATIVE_RUNTIME = "native-runtime";
+
+    /**
+     * The Swift API of a library, packaged as swiftmodule files.
+     *
+     * @since 4.1
+     */
+    String SWIFT_API = "swift-api";
 }

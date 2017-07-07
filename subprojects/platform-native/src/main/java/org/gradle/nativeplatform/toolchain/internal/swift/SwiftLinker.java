@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.gcc;
+package org.gradle.nativeplatform.toolchain.internal.swift;
 
 import org.gradle.api.Action;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
-import org.gradle.nativeplatform.platform.OperatingSystem;
 import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
@@ -32,9 +31,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-class GccLinker extends AbstractCompiler<LinkerSpec> {
-    GccLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new GccLinkerArgsTransformer(), useCommandFile);
+// TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of is applies to SwiftCompiler)
+class SwiftLinker extends AbstractCompiler<LinkerSpec> {
+    SwiftLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), false);
+    }
+
+    @Override
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {
     }
 
     @Override
@@ -53,12 +57,7 @@ class GccLinker extends AbstractCompiler<LinkerSpec> {
         };
     }
 
-    @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) {
-        new GccOptionsFileArgsWriter(tempDir).execute(args);
-    }
-
-    private static class GccLinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
+    private static class SwiftCompileArgsTransformer implements ArgsTransformer<LinkerSpec> {
         @Override
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();
@@ -66,8 +65,9 @@ class GccLinker extends AbstractCompiler<LinkerSpec> {
             args.addAll(spec.getSystemArgs());
 
             if (spec instanceof SharedLibraryLinkerSpec) {
-                args.add("-shared");
-                maybeSetInstallName((SharedLibraryLinkerSpec) spec, args);
+                args.add("-emit-library");
+            } else {
+                args.add("-emit-executable");
             }
             args.add("-o");
             args.add(spec.getOutputFile().getAbsolutePath());
@@ -78,7 +78,7 @@ class GccLinker extends AbstractCompiler<LinkerSpec> {
                 args.add(file.getAbsolutePath());
             }
             if (!spec.getLibraryPath().isEmpty()) {
-                throw new UnsupportedOperationException("Library Path not yet supported on GCC");
+                throw new UnsupportedOperationException("Library Path not yet supported on Swiftc");
             }
 
             for (String userArg : spec.getArgs()) {
@@ -86,20 +86,6 @@ class GccLinker extends AbstractCompiler<LinkerSpec> {
             }
 
             return args;
-        }
-
-        private void maybeSetInstallName(SharedLibraryLinkerSpec spec, List<String> args) {
-            String installName = spec.getInstallName();
-            OperatingSystem targetOs = spec.getTargetPlatform().getOperatingSystem();
-
-            if (installName == null || targetOs.isWindows()) {
-                return;
-            }
-            if (targetOs.isMacOsX()) {
-                args.add("-Wl,-install_name," + installName);
-            } else {
-                args.add("-Wl,-soname," + installName);
-            }
         }
     }
 }

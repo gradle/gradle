@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.language.objectivecpp
+package org.gradle.language.swift.internal;
 
-import org.gradle.language.AbstractNativeLanguageIntegrationTest
-import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
-@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
-class ObjectiveCppLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
+public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implements SwiftCompileSpec {
+    private String moduleName;
 
     @Override
-    HelloWorldApp getHelloWorldApp() {
-        return new ObjectiveCppHelloWorldApp()
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    @Override
+    public void setModuleName(String moduleName) {
+        this.moduleName = moduleName;
     }
 }

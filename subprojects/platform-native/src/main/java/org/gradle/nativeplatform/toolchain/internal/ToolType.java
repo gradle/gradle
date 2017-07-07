@@ -26,7 +26,8 @@ public enum ToolType {
     WINDOW_RESOURCES_COMPILER("Windows resources compiler"),
     ASSEMBLER("Assembler"),
     LINKER("Linker"),
-    STATIC_LIB_ARCHIVER("Static library archiver");
+    STATIC_LIB_ARCHIVER("Static library archiver"),
+    SWIFT_COMPILER("Swift compiler");
 
     private final String toolName;
 
