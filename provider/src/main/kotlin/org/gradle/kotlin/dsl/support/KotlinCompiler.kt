@@ -207,7 +207,7 @@ fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it 
 
             fun msg() =
                 location?.run {
-                    path?.let(pathTranslation)?.let { path ->
+                    path.let(pathTranslation).let { path ->
                         when {
                             line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
                             else -> "$path: $message"
