@@ -27,9 +27,9 @@ import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 //   https://github.com/JetBrains/kotlin/blob/167ab1f860fc8a3541feb3d3b1c895ef26b5abae/compiler/cli/src/org/jetbrains/kotlin/cli/common/CLICompiler.java#L52
 //   Might be something better done at the gradle-script-kotlin side
 
-@Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
+@Issue("https://github.com/gradle/kotlin-dsl/issues/154")
 @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
-class GradleScriptKotlinIntegrationTest extends AbstractIntegrationSpec {
+class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
     @Override
     protected String getDefaultBuildFileName() {
@@ -62,11 +62,11 @@ class GradleScriptKotlinIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can query KotlinBuildScriptModel'() {
         given:
-        // This test breaks encapsulation a bit in the interest of ensuring Gradle Script Kotlin use
+        // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use
         // of internal APIs is not broken by refactorings on the Gradle side
         buildFile << """
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel
+import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
 task("dumpKotlinBuildScriptModelClassPath") {
@@ -75,8 +75,8 @@ task("dumpKotlinBuildScriptModelClassPath") {
         val builderRegistry = (project as ProjectInternal).services[ToolingModelBuilderRegistry::class.java]
         val builder = builderRegistry.getBuilder(modelName)
         val model = builder.buildAll(modelName, project) as KotlinBuildScriptModel
-        if (model.classPath.any { it.name.startsWith("gradle-script-kotlin") }) {
-            println("gradle-script-kotlin!")
+        if (model.classPath.any { it.name.startsWith("gradle-kotlin-dsl") }) {
+            println("gradle-kotlin-dsl!")
         }
     }
 }
@@ -86,6 +86,6 @@ task("dumpKotlinBuildScriptModelClassPath") {
         run 'dumpKotlinBuildScriptModelClassPath'
 
         then:
-        result.output.contains("gradle-script-kotlin!")
+        result.output.contains("gradle-kotlin-dsl!")
     }
 }

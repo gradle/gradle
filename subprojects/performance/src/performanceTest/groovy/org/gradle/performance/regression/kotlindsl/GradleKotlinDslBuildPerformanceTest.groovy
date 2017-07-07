@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.regression.gradlescriptkotlin
+package org.gradle.performance.regression.kotlindsl
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.junit.Ignore
 import spock.lang.Unroll
 
 @Ignore
-class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class GradleKotlinDslBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "configuration of #testProject"() {
