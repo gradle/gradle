@@ -44,9 +44,9 @@ Set up a sample project
 
 ### Clone the Gradle Kotlin DSL repository
 
-If you have not already done so, clone the gradle-script-kotlin repository:
+If you have not already done so, clone the kotlin-dsl repository:
 
-    git clone git@github.com:gradle/gradle-script-kotlin.git # ($REPO_ROOT)
+    git clone git@github.com:gradle/kotlin-dsl.git # ($REPO_ROOT)
 
 _Note: The remainder of these instructions focus on the `hello-world` sample project, but will work equally well for any of the other samples._
 

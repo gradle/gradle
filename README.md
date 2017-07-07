@@ -6,7 +6,7 @@ Gradle Kotlin DSL
 
 Welcome! The _Gradle Kotlin DSL_ provides support for writing [Gradle](http://gradle.org) build scripts using JetBrains' [Kotlin](http://kotlinlang.org) language. It aims to provide Gradle users with a rich, flexible and statically-typed approach to developing build logic in conjunction with the best IDE and tooling experience possible.
 
-You can read more about the project in our [announcement blog post](http://gradle.org/blog/kotlin-meets-gradle) and check out the [frequently asked questions](https://github.com/gradle/gradle-script-kotlin/wiki/Frequently-Asked-Questions) in the project wiki.
+You can read more about the project in our [announcement blog post](http://gradle.org/blog/kotlin-meets-gradle) and check out the [frequently asked questions](https://github.com/gradle/kotlin-dsl/wiki/Frequently-Asked-Questions) in the project wiki.
 
 
 Getting Started
