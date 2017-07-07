@@ -1,14 +1,14 @@
 tasks {
 
-    val publishPlugin by creating(GradleBuild::class) {
+    val plugin by creating(GradleBuild::class) {
         dir = file("plugin")
         tasks = listOf("publish")
     }
 
-    val checkConsumer by creating(GradleBuild::class) {
+    val consumer by creating(GradleBuild::class) {
         dir = file("consumer")
         tasks = listOf("myCopyTask")
     }
 
-    checkConsumer.dependsOn(publishPlugin)
+    consumer.dependsOn(plugin)
 }
