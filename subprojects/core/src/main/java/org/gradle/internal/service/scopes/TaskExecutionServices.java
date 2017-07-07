@@ -32,7 +32,6 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
@@ -145,8 +144,6 @@ public class TaskExecutionServices {
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter, BuildInvocationScopeId buildInvocationScopeId) {
-        OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter();
-
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
             snapshotter.registerSerializers(serializerRegistry);
@@ -168,7 +165,6 @@ public class TaskExecutionServices {
             new DefaultTaskArtifactStateRepository(
                 taskHistoryRepository,
                 instantiator,
-                outputFilesSnapshotter,
                 fileCollectionSnapshotterRegistry,
                 fileCollectionFactory,
                 classLoaderHierarchyHasher,

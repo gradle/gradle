@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
@@ -347,7 +348,7 @@ class DefaultTaskOutputsTest extends Specification {
         when:
         def taskHistory = Mock(TaskExecutionHistory)
         outputs.setHistory(taskHistory)
-        taskHistory.getOverlappingOutputDetection() >> new TaskExecutionHistory.OverlappingOutputs("someProperty", "path/to/outputFile")
+        taskHistory.getOverlappingOutputs() >> new OverlappingOutputs("someProperty", "path/to/outputFile")
         def cachingState = outputs.cachingState
         then:
         1 * project.relativePath(_) >> 'relative/path/to/outputFile'

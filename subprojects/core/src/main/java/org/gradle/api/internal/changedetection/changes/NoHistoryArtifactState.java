@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -69,7 +70,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public OverlappingOutputs getOverlappingOutputDetection() {
+    public OverlappingOutputs getOverlappingOutputs() {
         return null;
     }
 }

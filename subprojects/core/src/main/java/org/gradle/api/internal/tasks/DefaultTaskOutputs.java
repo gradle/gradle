@@ -25,6 +25,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
@@ -102,7 +103,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             return NO_OUTPUTS_DECLARED;
         }
 
-        TaskExecutionHistory.OverlappingOutputs overlappingOutputs = getOverlapOutputs();
+        OverlappingOutputs overlappingOutputs = getOverlappingOutputs();
         if (overlappingOutputs!=null) {
             String relativePath = task.getProject().relativePath(overlappingOutputs.getOverlappedFilePath());
             return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS,
@@ -141,8 +142,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return ENABLED;
     }
 
-    private TaskExecutionHistory.OverlappingOutputs getOverlapOutputs() {
-        return history!=null ? history.getOverlappingOutputDetection() : null;
+    private OverlappingOutputs getOverlappingOutputs() {
+        return history != null ? history.getOverlappingOutputs() : null;
     }
 
     @Override
