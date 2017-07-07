@@ -78,10 +78,12 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
 
         when:
         newSnapshot()
+
+        when:
         stopDaemonsNow()
-        daemons.daemon.stops()
 
         then:
+        daemons.daemon.stops()
         sinceSnapshot().contains("Stopped 1 worker daemon(s).")
     }
 
@@ -181,6 +183,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         daemons.daemon.stops()
 
         then:
+        daemons.daemon.stops()
         sinceSnapshot().contains("Stopped 1 worker daemon(s).")
     }
 
