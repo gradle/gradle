@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * A factory for {@link CrossBuildInMemoryCache} instances.
@@ -45,12 +46,23 @@ public class CrossBuildInMemoryCacheFactory {
     }
 
     /**
-     * Creates a new cache instance.
+     * Creates a new cache instance. Keys are always referenced using strong references, values by strong or soft references depending on their usage.
      *
      * Note: this should be used to create _only_ global scoped instances.
      */
     public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
-        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>();
+        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>(new HashMap<K, SoftReference<V>>());
+        listenerManager.addListener(cache);
+        return cache;
+    }
+
+    /**
+     * Creates a new cache instance whose keys are Class instances. Keys are referenced using strong or weak references, values by strong or soft references depending on their usage.
+     *
+     * Note: this should be used to create _only_ global scoped instances.
+     */
+    public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
+        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<Class<?>, V>(new WeakHashMap<Class<?>, SoftReference<V>>());
         listenerManager.addListener(cache);
         return cache;
     }
@@ -60,7 +72,11 @@ public class CrossBuildInMemoryCacheFactory {
         private final Map<K, V> valuesForThisSession = new HashMap<K, V>();
         // This is used only to retain strong references to the values
         private final Set<V> valuesForPreviousSession = new HashSet<V>();
-        private final Map<K, SoftReference<V>> allValues = new HashMap<K, SoftReference<V>>();
+        private final Map<K, SoftReference<V>> allValues;
+
+        public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> allValues) {
+            this.allValues = allValues;
+        }
 
         @Override
         public void afterStart() {
