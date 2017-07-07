@@ -37,6 +37,7 @@ import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.Path
 import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -987,6 +988,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         task.getProject() >> root
         task.name >> name
         task.path >> ':' + name
+        task.identityPath >> Path.path(':' + name)
         task.state >> state
         task.toString() >> "task $name"
         task.compareTo(_ as TaskInternal) >> { TaskInternal taskInternal ->

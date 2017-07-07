@@ -485,7 +485,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
         DirectedGraphRenderer<TaskInfo> graphRenderer = new DirectedGraphRenderer<TaskInfo>(new GraphNodeRenderer<TaskInfo>() {
             public void renderTo(TaskInfo node, StyledTextOutput output) {
-                output.withStyle(StyledTextOutput.Style.Identifier).text(node.getTask().getPath());
+                output.withStyle(StyledTextOutput.Style.Identifier).text(node.getTask().getIdentityPath());
             }
         }, new DirectedGraph<TaskInfo, Object>() {
             public void getNodeValues(TaskInfo node, Collection<? super Object> values, Collection<? super TaskInfo> connectedNodes) {
@@ -665,11 +665,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         Set<String> candidateTaskDestroyables = getDestroyablePaths(taskInfo);
 
         if (!candidateTaskDestroyables.isEmpty() && !taskInfo.getTask().getOutputs().getFileProperties().isEmpty()) {
-            throw new IllegalStateException("Task " + taskInfo.getTask().getPath() + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
+            throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
         }
 
         if (!candidateTaskDestroyables.isEmpty() && !taskInfo.getTask().getInputs().getFileProperties().isEmpty()) {
-            throw new IllegalStateException("Task " + taskInfo.getTask().getPath() + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
+            throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
         }
 
         if (!runningTasks.isEmpty()) {
@@ -784,7 +784,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         try {
             return canonicalizedPaths(canonicalizedFileCache, task.getTask().getOutputs().getFiles());
         } catch (ResourceDeadlockException e) {
-            throw new IllegalStateException("A deadlock was detected while resolving the task outputs for " + task.getTask().getPath() + ".  This can be caused, for instance, by a task output causing dependency resolution.", e);
+            throw new IllegalStateException("A deadlock was detected while resolving the task outputs for " + task.getTask().getIdentityPath() + ".  This can be caused, for instance, by a task output causing dependency resolution.", e);
         }
     }
 
