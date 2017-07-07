@@ -4,10 +4,13 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 
 import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.PolymorphicDomainObjectContainer
 
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.matches
 
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
@@ -54,16 +57,98 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can access existing element by getting`() {
 
         val element = DomainObject()
-        val container = mock<NamedDomainObjectCollection<DomainObject>> {
+        val container = mock<NamedDomainObjectContainer<DomainObject>> {
             on { getByName("domainObject") } doReturn element
         }
 
-        container.apply {
+        container { // invoke syntax
             val domainObject by getting
+            assertThat(domainObject, sameInstance(element))
+        }
 
-            assertThat(
-                domainObject,
-                sameInstance(element))
+        container.apply { // regular syntax
+            val domainObject by getting
+            assertThat(domainObject, sameInstance(element))
+        }
+    }
+
+    @Test
+    fun `can access existing typed element by getting`() {
+
+        val element = DomainObject()
+        val container = mock<PolymorphicDomainObjectContainer<Any>> {
+            on { getByName("domainObject") } doReturn element
+        }
+
+        container { // invoke syntax
+            val domainObject: DomainObject by getting
+            assertThat(domainObject, sameInstance(element))
+        }
+
+        container.apply { // regular syntax
+            val domainObject: DomainObject by getting
+            assertThat(domainObject, sameInstance(element))
+        }
+    }
+
+    @Test
+    fun `can access existing element by getting with type`() {
+
+        val element = DomainObject()
+        val container = mock<PolymorphicDomainObjectContainer<Any>> {
+            on { getByName("domainObject") } doReturn element
+        }
+
+        container { // invoke syntax
+            val domainObject by getting(DomainObject::class)
+            assertThat(domainObject, sameInstance(element))
+        }
+
+        container.apply { // regular syntax
+            val domainObject by getting(DomainObject::class)
+            assertThat(domainObject, sameInstance(element))
+        }
+    }
+
+    @Test
+    fun `can configure existing element by getting`() {
+
+        val element = DomainObject()
+        val container = mock<NamedDomainObjectContainer<DomainObject>> {
+            on { getByName("domainObject") } doReturn element
+        }
+
+        container { // invoke syntax
+            @Suppress("unused_variable")
+            val domainObject by getting { foo = "foo" }
+            assertThat(element.foo, equalTo("foo"))
+        }
+
+        container.apply { // regular syntax
+            @Suppress("unused_variable")
+            val domainObject by getting { foo = "bar" }
+            assertThat(element.foo, equalTo("bar"))
+        }
+    }
+
+    @Test
+    fun `can configure existing typed element by getting`() {
+
+        val element = DomainObject()
+        val container = mock<PolymorphicDomainObjectContainer<Any>> {
+            on { getByName("domainObject") } doReturn element
+        }
+
+        container { // invoke syntax
+            @Suppress("unused_variable")
+            val domainObject by getting(DomainObject::class) { foo = "foo" }
+            assertThat(element.foo, equalTo("foo"))
+        }
+
+        container.apply { // regular syntax
+            @Suppress("unused_variable")
+            val domainObject by getting(DomainObject::class) { foo = "bar" }
+            assertThat(element.foo, equalTo("bar"))
         }
     }
 

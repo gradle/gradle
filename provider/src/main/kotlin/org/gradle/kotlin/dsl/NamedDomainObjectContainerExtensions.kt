@@ -19,18 +19,11 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
 
+import org.gradle.kotlin.dsl.support.illegalElementType
+
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
-
-
-/**
- * Idiomatic way of referring to an existing element in a collection
- * via a delegate property.
- *
- * `tasks { val jar by getting }`
- */
-inline
-val <T : Any, U : NamedDomainObjectContainer<out T>> U.getting get() = this
+import kotlin.reflect.full.safeCast
 
 
 /**
@@ -53,14 +46,6 @@ operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
  */
 class NamedDomainObjectContainerScope<T : Any>(
     private val container: NamedDomainObjectContainer<T>) : NamedDomainObjectContainer<T> by container {
-
-    /**
-     * Idiomatic way of referring to an existing element in this container
-     * via a delegate property.
-     *
-     * `tasks { val jar by getting }`
-     */
-    val getting get() = container
 
     /**
      * @see NamedDomainObjectContainer.maybeCreate
@@ -99,6 +84,18 @@ class NamedDomainObjectContainerScope<T : Any>(
      */
     fun <U : T> creating(type: KClass<U>, configuration: U.() -> Unit) =
         polymorphicDomainObjectContainer().creating(type, configuration)
+
+    /**
+     * Provides a property delegate that gets elements of the given [type].
+     */
+    fun <U : T> getting(type: KClass<U>) =
+        polymorphicDomainObjectContainer().getting(type)
+
+    /**
+     * Provides a property delegate that gets elements of the given [type] and applies the given [configuration].
+     */
+    fun <U : T> getting(type: KClass<U>, configuration: U.() -> Unit) =
+        polymorphicDomainObjectContainer().getting(type, configuration)
 
     private
     fun polymorphicDomainObjectContainer() =
@@ -179,3 +176,54 @@ class PolymorphicDomainObjectContainerDelegateProvider<T : Any, U : T>(
             create(property.name, type).apply(configuration)
         } as PolymorphicDomainObjectContainer<U>
 }
+
+
+/**
+ * Provides a property delegate that gets elements of the given [type] and applies the given [configuration].
+ */
+fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.getting(type: KClass<U>, configuration: U.() -> Unit) =
+    PolymorphicDomainObjectContainerGettingDelegateProvider(this, type, configuration)
+
+
+/**
+ * Provides a property delegate that gets elements of the given [type].
+ */
+fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.getting(type: KClass<U>) =
+    PolymorphicDomainObjectContainerGettingDelegate(this, type)
+
+
+/**
+ * A property delegate that gets elements of the given [type] in the given [container].
+ */
+class PolymorphicDomainObjectContainerGettingDelegate<T : Any, U : T>(
+    val container: PolymorphicDomainObjectContainer<T>,
+    val type: KClass<U>) {
+
+    operator fun getValue(receiver: Any?, property: kotlin.reflect.KProperty<*>): U =
+        container.getByName(property.name, type)
+}
+
+
+/**
+ * A property delegate that gets elements of the given [type] from the given [container]
+ * and applies the given [configuration].
+ */
+class PolymorphicDomainObjectContainerGettingDelegateProvider<T : Any, U : T>(
+    val container: PolymorphicDomainObjectContainer<T>,
+    val type: KClass<U>,
+    val configuration: U.() -> Unit) {
+
+    @Suppress("unchecked_cast")
+    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
+        container.apply {
+            getByName(property.name, type).configuration()
+        } as PolymorphicDomainObjectContainer<U>
+}
+
+
+private
+fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.getByName(name: String, type: KClass<U>): U =
+    getByName(name).let {
+        type.safeCast(it)
+            ?: throw illegalElementType(this, name, type, it::class)
+    }

@@ -19,7 +19,10 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.UnknownDomainObjectException
 
+import org.gradle.kotlin.dsl.support.illegalElementType
+
 import kotlin.reflect.KProperty
+
 
 /**
  * Idiomatic way of referring to an existing element in a collection
@@ -28,8 +31,28 @@ import kotlin.reflect.KProperty
  * `tasks { val jar by getting }`
  */
 inline
-val <T : Any, U : NamedDomainObjectCollection<out T>> U.getting get() = this
+val <T : Any, U : NamedDomainObjectCollection<in T>> U.getting: U get() = this
 
+
+/**
+ * Idiomatic way of referring and configuring an existing element in a collection
+ * via a delegate property.
+ *
+ * `tasks { val jar by getting { group = "My" } }`
+ */
+fun <T : Any, U : NamedDomainObjectCollection<T>> U.getting(configuration: T.() -> Unit) =
+    NamedDomainObjectCollectionDelegateProvider(this, configuration)
+
+
+class NamedDomainObjectCollectionDelegateProvider<T>(
+    val collection: NamedDomainObjectCollection<T>,
+    val configuration: T.() -> Unit) {
+
+    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): NamedDomainObjectCollection<T> =
+        collection.apply {
+            getByName(property.name).apply(configuration)
+        }
+}
 
 
 /**
@@ -52,9 +75,9 @@ operator fun <T : Any> NamedDomainObjectCollection<T>.get(name: String): T =
  *
  * @see NamedDomainObjectCollection.getByName
  */
-inline operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getValue(thisRef: Any?, property: KProperty<*>): U =
+inline
+operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getValue(thisRef: Any?, property: KProperty<*>): U =
     getByName(property.name).let {
         it as? U
-            ?: throw IllegalStateException(
-                "Element '${property.name}' of type '${it::class.java.name}' from container '$this' cannot be cast to '${U::class.qualifiedName}'.")
+            ?: throw illegalElementType(this, property.name, U::class, it::class)
     }
