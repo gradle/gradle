@@ -62,7 +62,7 @@
                 The <literal>--include-build</literal> command-line argument turns the executed build into a composite, substituting dependencies from the included build into the executed build.
             </para>
             <sample id="compositeBuilds_basic_cli" dir="compositeBuilds/basic/my-app" title="Declaring a command-line composite">
-                <output args='--include-build ../my-utils run' ignoreExtraLines="true"/>
+                <output args='--include-build ../my-utils run' ignoreExtraLines="true" ignoreLineOrder="true"/>
             </sample>
         </section>
         <section id="settings_defined_composite">
