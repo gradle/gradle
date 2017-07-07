@@ -24,7 +24,7 @@ import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNor
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.OUTPUT;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
 abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
     private boolean optional;
@@ -62,7 +62,7 @@ abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDepreca
     }
 
     public TaskFilePropertyCompareStrategy getCompareStrategy() {
-        return OUTPUT;
+        return UNORDERED;
     }
 
     @Override

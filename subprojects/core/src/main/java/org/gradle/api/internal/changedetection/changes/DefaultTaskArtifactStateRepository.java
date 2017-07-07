@@ -162,15 +162,15 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 return;
             }
 
-            TaskUpToDateState states = getStates();
+            TaskUpToDateState taskState = getStates();
 
             if (taskInputs != null) {
-                states.newInputs(taskInputs.getDiscoveredInputs());
+                taskState.newInputs(taskInputs.getDiscoveredInputs());
             }
-            states.getAllTaskChanges().snapshotAfterTask();
+            taskState.getAllTaskChanges().snapshotAfterTask();
 
-            // Only store new states if there was no failure, or some output files have been changed
-            if (failure == null || !Iterables.isEmpty(states.getOutputFileChanges())) {
+            // Only store new taskState if there was no failure, or some output files have been changed
+            if (failure == null || taskState.hasAnyOutputFileChanges()) {
                 history.update();
             }
         }

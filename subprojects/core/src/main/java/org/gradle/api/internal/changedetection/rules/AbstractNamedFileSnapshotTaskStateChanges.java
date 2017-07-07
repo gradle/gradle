@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
-abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
+abstract public class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
     private final String taskName;
     private final String title;
     private final ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties;
@@ -95,8 +95,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return builder.build();
     }
 
-    @Override
-    public Iterator<TaskStateChange> iterator() {
+    protected Iterator<TaskStateChange> getFileChanges(final boolean includeAdded) {
         if (getPrevious() == null) {
             return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange(title + " file history is not available."));
         }
@@ -128,7 +127,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
                 FileCollectionSnapshot currentSnapshot = entry.getValue();
                 FileCollectionSnapshot previousSnapshot = getPrevious().get(propertyName);
                 String propertyTitle = title + " property '" + propertyName + "'";
-                return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle);
+                return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, includeAdded);
             }
         }).iterator());
     }

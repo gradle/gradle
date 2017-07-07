@@ -37,7 +37,7 @@ public class TaskUpToDateState {
     public static final int MAX_OUT_OF_DATE_MESSAGES = 3;
 
     private final TaskStateChanges inputFileChanges;
-    private final TaskStateChanges outputFileChanges;
+    private final OutputFilesTaskStateChanges outputFileChanges;
     private final DiscoveredInputsListener discoveredInputsListener;
     private final TaskStateChanges allTaskChanges;
     private final TaskStateChanges rebuildChanges;
@@ -55,8 +55,9 @@ public class TaskUpToDateState {
         TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task, valueSnapshotter);
 
         // Capture outputs state
-        TaskStateChanges outputFileChanges = caching(new OutputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, inputNormalizationStrategy));
-        this.outputFileChanges = new ErrorHandlingTaskStateChanges(task, outputFileChanges);
+        OutputFilesTaskStateChanges uncachedOutputChanges = new OutputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, inputNormalizationStrategy);
+        TaskStateChanges outputFileChanges = caching(uncachedOutputChanges);
+        this.outputFileChanges = uncachedOutputChanges;
 
         // Capture inputs state
         InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, inputNormalizationStrategy);
@@ -84,10 +85,10 @@ public class TaskUpToDateState {
     }
 
     /**
-     * Returns changes to output files only.
+     * Returns if any output files have been changed, added or removed.
      */
-    public TaskStateChanges getOutputFileChanges() {
-        return outputFileChanges;
+    public boolean hasAnyOutputFileChanges() {
+        return outputFileChanges.iteratorIncludingAdded().hasNext();
     }
 
     /**

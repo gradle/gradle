@@ -24,6 +24,8 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
+import java.util.Iterator;
+
 public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, InputNormalizationStrategy normalizationStrategy) {
         super(task.getName(), previous, current, snapshotterRegistry, "Input", task.getInputs().getFileProperties(), normalizationStrategy);
@@ -34,6 +36,11 @@ public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
     @Override
     protected ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
         return previous == null ? null : previous.getInputFilesSnapshot();
+    }
+
+    @Override
+    public Iterator<TaskStateChange> iterator() {
+        return getFileChanges(true);
     }
 
     @Override

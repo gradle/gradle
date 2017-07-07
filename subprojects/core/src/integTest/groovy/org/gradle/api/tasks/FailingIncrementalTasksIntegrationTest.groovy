@@ -105,9 +105,8 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         modifyOutputs | failiureCount | incremental | description
-        // TODO This doesn't work when the task adds new files
-//        "add"         | 1     | false       | "with additional outputs is fully rebuilt"
-//        "add"         | 2     | false       | "with additional outputs is fully rebuilt"
+        "add"         | 1     | false       | "with additional outputs is fully rebuilt"
+        "add"         | 2     | false       | "with additional outputs is fully rebuilt"
         "change"      | 1     | false       | "with changed outputs is fully rebuilt"
         "change"      | 2     | false       | "with changed outputs is fully rebuilt"
         "remove"      | 1     | false       | "with removed outputs is fully rebuilt"

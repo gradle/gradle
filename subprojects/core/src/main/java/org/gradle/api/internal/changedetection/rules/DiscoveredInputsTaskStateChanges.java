@@ -74,7 +74,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
         if (getPrevious() == null) {
             return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange("Discovered input file history is not available."));
         }
-        return getCurrent().iterateContentChangesSince(getPrevious(), "discovered input");
+        return getCurrent().iterateContentChangesSince(getPrevious(), "discovered input", true);
     }
 
     @Override

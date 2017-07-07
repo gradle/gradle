@@ -135,8 +135,8 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         when:
         def snapshot = snapshotter.snapshot(files(file1, file2), UNORDERED, ABSOLUTE, normalizationStrategy)
         file2.createFile()
-        def target = snapshotter.snapshot(files(file1, file2, file3, file4), OUTPUT, ABSOLUTE, normalizationStrategy)
-        Iterators.size(target.iterateContentChangesSince(snapshot, "TYPE")) == 0
+        def target = snapshotter.snapshot(files(file1, file2, file3, file4), UNORDERED, ABSOLUTE, normalizationStrategy)
+        Iterators.size(target.iterateContentChangesSince(snapshot, "TYPE", false)) == 0
 
         then:
         0 * _
@@ -306,7 +306,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     }
 
     private void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
-        newSnapshot.iterateContentChangesSince(oldSnapshot, "TYPE").each { FileChange change ->
+        newSnapshot.iterateContentChangesSince(oldSnapshot, "TYPE", true).each { FileChange change ->
             switch (change.type) {
                 case ChangeType.ADDED:
                     listener.added(change.path)
