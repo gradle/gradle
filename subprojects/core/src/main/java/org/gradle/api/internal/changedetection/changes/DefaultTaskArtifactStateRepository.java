@@ -161,7 +161,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public void afterTask() {
+        public void afterTask(Throwable failure) {
+            if (failure != null) {
+                return;
+            }
+
             if (upToDate) {
                 return;
             }

@@ -54,7 +54,7 @@ public interface TaskArtifactState {
     /**
      * Called on successful completion of task execution.
      */
-    void afterTask();
+    void afterTask(Throwable failure);
 
     /**
      * Returns the history for this task.

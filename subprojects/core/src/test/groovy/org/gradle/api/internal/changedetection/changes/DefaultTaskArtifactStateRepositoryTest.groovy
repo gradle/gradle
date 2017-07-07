@@ -96,8 +96,8 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }
-        SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
-        fileCollectionSnapshotter.registerSerializers(serializerRegistry);
+        SerializerRegistry serializerRegistry = new DefaultSerializerRegistry()
+        fileCollectionSnapshotter.registerSerializers(serializerRegistry)
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()), stringInterner, buildScopeId)
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, new DefaultFileCollectionSnapshotterRegistry([fileCollectionSnapshotter]), TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher, cacheKeyCalculator, new ValueSnapshotter(classLoaderHierarchyHasher))
     }
@@ -370,7 +370,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         state.isUpToDate([])
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile.createFile()
-        state.afterTask()
+        state.afterTask(null)
 
         then:
         !state.upToDate
@@ -389,7 +389,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         when:
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile2.createFile()
-        state.afterTask()
+        state.afterTask(null)
 
         then:
         // Task should be out-of-date
@@ -503,7 +503,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         task.execute()
         fileSystemMirror.beforeTaskOutputsGenerated()
         otherFile.write("new content")
-        state.afterTask()
+        state.afterTask(null)
         otherFile.delete()
 
         then:
@@ -519,7 +519,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outputDirFile.delete()
         TaskArtifactState state = repository.getStateFor(task)
         state.isUpToDate([])
-        state.afterTask()
+        state.afterTask(null)
 
         when:
         outputDirFile.write("ignore me")
@@ -647,7 +647,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             // reset state
             fileSystemMirror.beforeTaskOutputsGenerated()
             task.execute()
-            state.afterTask()
+            state.afterTask(null)
         }
         // reset state
         fileSystemMirror.beforeTaskOutputsGenerated()
@@ -761,7 +761,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
                     }
                 }
             }
-            task.doLast(new org.gradle.api.Action<Object>() {
+            task.doLast(new Action<Object>() {
                 void execute(Object o) {
                     for (TestFile file : create) {
                         file.createFile()

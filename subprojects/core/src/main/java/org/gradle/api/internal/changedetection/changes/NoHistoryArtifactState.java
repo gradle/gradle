@@ -64,7 +64,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public void afterTask() {
+    public void afterTask(Throwable failure) {
     }
 
     @Override
