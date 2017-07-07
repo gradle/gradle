@@ -37,7 +37,7 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
         if (enableAllToolChains) {
             for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                if (!toolChain.isAvailable()) {
+                if (!toolChain.isAvailable() && isRespectingSwiftConstraint(toolChain)) {
                     throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
                 }
                 add(new ToolChainExecution(toolChain, true));
@@ -45,7 +45,7 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         } else {
             boolean hasEnabled = false;
             for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                if (!hasEnabled && toolChain.isAvailable() && !(getRequirements(target).contains(TestPrecondition.SWIFT_SUPPORT) ^ toolChain instanceof AvailableToolChains.InstalledSwiftc)) {
+                if (!hasEnabled && toolChain.isAvailable() && isRespectingSwiftConstraint(toolChain)) {
                     add(new ToolChainExecution(toolChain, true));
                     hasEnabled = true;
                 } else {
@@ -53,6 +53,10 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
                 }
             }
         }
+    }
+
+    private boolean isRespectingSwiftConstraint(AvailableToolChains.ToolChainCandidate toolChain) {
+        return !(getRequirements(target).contains(TestPrecondition.SWIFT_SUPPORT) ^ toolChain instanceof AvailableToolChains.InstalledSwiftc);
     }
 
     private static EnumSet<TestPrecondition> getRequirements(Class<?> target) {
