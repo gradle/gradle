@@ -20,7 +20,7 @@ import java.util.WeakHashMap;
 
 /**
  * A generic purpose, thread-safe cache which is aimed at storing information
- * about a class. The cache is a hierachical cache, which key is a composite
+ * about a class. The cache is a hierarchical cache, which key is a composite
  * of a receiver, and argument types. All those, key or arguments, are kept
  * in a weak reference, allowing the GC to recover memory if required.
  *
