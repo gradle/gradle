@@ -52,7 +52,7 @@ public interface TaskArtifactState {
     void beforeTask();
 
     /**
-     * Called on successful completion of task execution.
+     * Called on completion of task execution.
      */
     void afterTask(Throwable failure);
 
