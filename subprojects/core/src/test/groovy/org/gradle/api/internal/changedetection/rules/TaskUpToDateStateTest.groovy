@@ -28,22 +28,17 @@ import spock.lang.Subject
 
 @Subject(TaskUpToDateState)
 class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
-    private TaskHistoryRepository.History stubHistory
-    private FileCollectionFactory fileCollectionFactory = Mock(FileCollectionFactory)
-    private classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
-
-    def setup() {
-        this.stubHistory = Stub(TaskHistoryRepository.History)
-    }
 
     def "constructor invokes snapshots" () {
-        setup:
+        def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
+        def stubHistory = Stub(TaskHistoryRepository.History)
+        def fileCollectionFactory = Mock(FileCollectionFactory)
         def stubSnapshot = Stub(FileCollectionSnapshot)
         def mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, mockInputFileSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher, new ValueSnapshotter())
+        new TaskUpToDateState(stubTask, stubHistory, mockInputFileSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher, new ValueSnapshotter(classLoaderHierarchyHasher))
 
         then:
         noExceptionThrown()
