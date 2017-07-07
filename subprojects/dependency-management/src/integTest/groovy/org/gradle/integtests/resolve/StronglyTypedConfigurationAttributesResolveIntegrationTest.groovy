@@ -1151,7 +1151,7 @@ All of them match the consumer attributes:
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
-        failure.assertHasCause("The constructor for class FlavorCompatibilityRule should be public or package protected or annotated with @Inject.")
+        failure.assertHasCause("The constructor for class FlavorCompatibilityRule should be annotated with @Inject.")
     }
 
     def "user receives reasonable error message when compatibility rule fails"() {
@@ -1283,7 +1283,7 @@ All of them match the consumer attributes:
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
-        failure.assertHasCause("The constructor for class FlavorSelectionRule should be public or package protected or annotated with @Inject.")
+        failure.assertHasCause("The constructor for class FlavorSelectionRule should be annotated with @Inject.")
     }
 
     def "user receives reasonable error message when disambiguation rule fails"() {
