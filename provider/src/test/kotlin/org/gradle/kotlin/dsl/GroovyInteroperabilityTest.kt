@@ -28,13 +28,33 @@ class GroovyInteroperabilityTest {
     }
 
     @Test
-    fun `can use KotlinClosure to control return type`() {
-        fun stringClosure(function: String.() -> String) =
-            KotlinClosure(function)
+    fun `can adapt parameterless function using KotlinClosure0`() {
+
+        fun closure(function: () -> String) = KotlinClosure0(function)
 
         assertEquals(
             "GROOVY",
-            stringClosure { toUpperCase() }.call("groovy"))
+            closure { "GROOVY" }.call())
+    }
+
+    @Test
+    fun `can adapt unary function using KotlinClosure1`() {
+
+        fun closure(function: String.() -> String) = KotlinClosure1(function)
+
+        assertEquals(
+            "GROOVY",
+            closure { toUpperCase() }.call("groovy"))
+    }
+
+    @Test
+    fun `can adapt binary function using KotlinClosure2`() {
+
+        fun closure(function: (String, String) -> String) = KotlinClosure2(function)
+
+        assertEquals(
+            "foobar",
+            closure { x, y -> x + y }.call("foo", "bar"))
     }
 
     @Test
@@ -47,11 +67,13 @@ class GroovyInteroperabilityTest {
                 @Suppress("unused")
                 fun doCall() = invocations.add("c0")
             }
+
         val c1 =
             object : Closure<Boolean>(null, null) {
                 @Suppress("unused")
                 fun doCall(x: Any) = invocations.add("c1($x)")
             }
+
         val c2 =
             object : Closure<Boolean>(null, null) {
                 @Suppress("unused")
