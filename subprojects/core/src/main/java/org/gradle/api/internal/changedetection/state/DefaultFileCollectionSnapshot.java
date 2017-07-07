@@ -94,6 +94,11 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
         return cachedFilesFactory.create();
     }
 
+    @Override
+    public String toString() {
+        return compareStrategy + (pathIsAbsolute ? " with absolute paths" : "") + ": " + snapshots;
+    }
+
     private List<File> doGetFiles() {
         List<File> files = Lists.newArrayList();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : snapshots.entrySet()) {
