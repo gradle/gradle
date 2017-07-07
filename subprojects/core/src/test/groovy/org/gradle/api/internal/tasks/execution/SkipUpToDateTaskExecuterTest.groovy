@@ -64,9 +64,6 @@ class SkipUpToDateTaskExecuterTest extends Specification {
         1 * taskContext.setUpToDateMessages(_)
 
         then:
-        1 * taskArtifactState.beforeTask()
-
-        then:
         1 * delegate.execute(task, taskState, taskContext)
         _ * taskState.getFailure() >> exception
 

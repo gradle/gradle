@@ -47,11 +47,6 @@ public interface TaskArtifactState {
     TaskOutputCachingBuildCacheKey calculateCacheKey();
 
     /**
-     * Called before the task is to be executed. Note that {@link #isUpToDate(java.util.Collection)} may not necessarily have been called.
-     */
-    void beforeTask();
-
-    /**
      * Called on completion of task execution.
      */
     void afterTask(Throwable failure);

@@ -59,7 +59,6 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         context.setUpToDateMessages(ImmutableList.copyOf(messages));
         logOutOfDateMessages(messages, task, clock.getElapsed());
 
-        taskArtifactState.beforeTask();
         executer.execute(task, state, context);
         taskArtifactState.afterTask(state.getFailure());
     }
