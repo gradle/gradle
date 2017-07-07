@@ -17,8 +17,13 @@ package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.util.ConfigureUtil;
@@ -32,12 +37,29 @@ import java.io.File;
 public class EarPluginConvention {
 
     private FileResolver fileResolver;
-    private final ObjectFactory objectFactory;
+    private ObjectFactory objectFactory;
 
     private DeploymentDescriptor deploymentDescriptor;
     private String appDirName;
     private String libDirName;
 
+    /**
+     * Construct an EarPluginConvention using internal {@link Instantiator}.
+     *
+     * @deprecated Use public {@link ObjectFactory} constructor instead of this one using internal {@link Instantiator}.
+     */
+    @Deprecated
+    public EarPluginConvention(FileResolver fileResolver, Instantiator ignored) {
+        // FIXME: Not using serviceRegistry to get ObjectFactory
+        // FIXME: this is not how ObjectFactory is constructed in ProjectScopeServices (implications unknown)
+        this(fileResolver, new DefaultObjectFactory(new DefaultInstantiatorFactory(new AsmBackedClassGenerator()).inject(), NamedObjectInstantiator.INSTANCE));
+    }
+
+    /**
+     * Construct an EarPluginConvention using public {@link ObjectFactory}.
+     *
+     * @since 4.1
+     */
     @Inject
     public EarPluginConvention(FileResolver fileResolver, ObjectFactory objectFactory) {
         this.fileResolver = fileResolver;

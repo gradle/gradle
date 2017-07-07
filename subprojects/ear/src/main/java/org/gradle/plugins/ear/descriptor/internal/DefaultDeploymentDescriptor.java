@@ -28,7 +28,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
@@ -57,7 +56,6 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     private final XmlTransformer transformer = new XmlTransformer();
     private final PathToFileResolver fileResolver;
 
-    private Instantiator instantiator;
     private ObjectFactory objectFactory;
 
     private String fileName = "application.xml";
@@ -70,12 +68,6 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     private Set<EarModule> modules = new LinkedHashSet<EarModule>();
     private Set<EarSecurityRole> securityRoles = new LinkedHashSet<EarSecurityRole>();
     private Map<String, String> moduleTypeMappings = new LinkedHashMap<String, String>();
-
-    @Deprecated
-    public DefaultDeploymentDescriptor(PathToFileResolver fileResolver, Instantiator instantiator) {
-        this.fileResolver = fileResolver;
-        this.instantiator = instantiator;
-    }
 
     @Inject
     public DefaultDeploymentDescriptor(PathToFileResolver fileResolver, ObjectFactory objectFactory) {
@@ -217,12 +209,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     @Override
     public DeploymentDescriptor securityRole(Action<? super EarSecurityRole> action) {
-        EarSecurityRole role;
-        if (objectFactory != null) {
-            role = objectFactory.newInstance(DefaultEarSecurityRole.class);
-        } else {
-            role = instantiator.newInstance(DefaultEarSecurityRole.class);
-        }
+        EarSecurityRole role = objectFactory.newInstance(DefaultEarSecurityRole.class);
         action.execute(role);
         securityRoles.add(role);
         return this;

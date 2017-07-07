@@ -19,7 +19,6 @@ package org.gradle.plugins.ear.descriptor.internal
 import org.gradle.api.Action
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.DefaultInstantiatorFactory
-import org.gradle.api.internal.DependencyInjectingInstantiator
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.model.DefaultObjectFactory
@@ -50,25 +49,6 @@ class DefaultDeploymentDescriptorTest extends Specification {
 
         when:
         descriptor.writeTo(file)
-
-        then:
-        def root = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(file.bytes)).documentElement
-        root.nodeName == 'application'
-        root.getAttribute("xmlns") == "http://java.sun.com/xml/ns/javaee"
-        root.getAttribute("xmlns:xsi") == "http://www.w3.org/2001/XMLSchema-instance"
-        root.getAttribute("xsi:schemaLocation") == "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd"
-        root.getAttribute("version") == "6"
-        root.childNodes.length == 0
-    }
-
-    def "writes default descriptor with instantiator"() {
-        given:
-        def file = tmpDir.file("out.xml")
-        def instantiator = new DependencyInjectingInstantiator(serviceRegistry, new DependencyInjectingInstantiator.ConstructorCache());
-        def instantiatingDescriptor = new DefaultDeploymentDescriptor({ it } as FileResolver, instantiator)
-
-        when:
-        instantiatingDescriptor.writeTo(file)
 
         then:
         def root = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(file.bytes)).documentElement
