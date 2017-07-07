@@ -62,15 +62,7 @@ class ClassFile {
             }
         }
         byte[] classData = inputStream.bytes
-        boolean isJava9 = JavaVersion.forClass(classData) == JavaVersion.VERSION_1_9
-        if (isJava9) {
-            // TODO:CC remove this fix once ASM 6 is out
-            classData[7] = 52
-        }
         new ClassReader(classData).accept(visitor, 0)
-        if (isJava9) {
-            classFileVersion = 53
-        }
     }
 
     JavaVersion getJavaVersion() {
