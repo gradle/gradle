@@ -24,6 +24,11 @@ import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class GradleKotlinDslSmokeTest extends AbstractSmokeTest {
 
+    @Override
+    protected String getDefaultBuildFileName() {
+        'build.gradle.kts'
+    }
+
     @Issue("https://github.com/gradle/kotlin-dsl/issues/154")
     @Requires(KOTLIN_SCRIPT)
     def 'multi-project build with buildSrc'() {
