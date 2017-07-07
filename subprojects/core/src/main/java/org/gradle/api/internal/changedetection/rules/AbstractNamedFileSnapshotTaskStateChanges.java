@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.SortedSet;
 
 abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
-    private final ImmutableSortedMap<String, FileCollectionSnapshot> fileSnapshotsBeforeExecution;
     private final String taskName;
     private final String title;
     private final ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties;
@@ -46,6 +45,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     protected final TaskExecution previous;
     protected final TaskExecution current;
     private final InputNormalizationStrategy normalizationStrategy;
+    protected ImmutableSortedMap<String, FileCollectionSnapshot> currentSnapshots;
 
     protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, InputNormalizationStrategy normalizationStrategy) {
         this.taskName = taskName;
@@ -55,7 +55,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         this.title = title;
         this.fileProperties = fileProperties;
         this.normalizationStrategy = normalizationStrategy;
-        this.fileSnapshotsBeforeExecution = buildSnapshots(taskName, snapshotterRegistry, title, fileProperties);
+        this.currentSnapshots = buildSnapshots(taskName, snapshotterRegistry, title, fileProperties);
     }
 
     protected String getTaskName() {
@@ -77,7 +77,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     }
 
     protected ImmutableSortedMap<String, FileCollectionSnapshot> getCurrent() {
-        return fileSnapshotsBeforeExecution;
+        return currentSnapshots;
     }
 
     protected ImmutableSortedMap<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties) {

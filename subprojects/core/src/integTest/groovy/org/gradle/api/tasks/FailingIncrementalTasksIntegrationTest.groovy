@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
@@ -33,15 +34,84 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        run "foo"
-        file("out.txt") << "force rerun"
-        def failure1 = runAndFail "foo"
-        def failure2 = runAndFail "foo"
+        expect:
+        succeeds "foo"
 
+        when:
+        file("out.txt") << "force rerun"
+        fails"foo"
         then:
-        failure1.assertHasCause("Boo!")
-        failure2.assertHasCause("Boo!")
+        failureHasCause "Boo!"
+
+        when:
+        fails "foo", "--info"
+        then:
+        failureHasCause "Boo!"
+        output.contains "Task has failed previously."
         //this exposes an issue we used to have with in-memory cache.
+    }
+
+    @Unroll
+    def "incremental task after previous #failiureCount failure(s) #description"() {
+        file("src/input.txt") << "input"
+        buildFile << """
+            class IncrementalTask extends DefaultTask {
+                @InputDirectory File sourceDir
+                @OutputDirectory File destinationDir
+                
+                @TaskAction
+                void process(IncrementalTaskInputs inputs) {
+                    project.file("\$destinationDir/output.txt").text = "output"
+                    if (project.hasProperty("modifyOutputs")) {
+                        switch (project.property("modifyOutputs")) {
+                            case "add":
+                                project.file("\$destinationDir/output-\${System.currentTimeMillis()}.txt").text = "output"
+                                break
+                            case "change":
+                                project.file("\$destinationDir/output.txt").text = "changed output -- \${System.currentTimeMillis()}"
+                                break
+                            case "remove":
+                                project.delete("\$destinationDir/output.txt")
+                                break
+                        }
+                    }
+
+                    if (project.hasProperty("fail")) {
+                        throw new RuntimeException("Failure")
+                    }
+                    
+                    if (project.hasProperty("expectIncremental")) {
+                        def expectIncremental = Boolean.parseBoolean(project.property("expectIncremental"))
+                        assert inputs.incremental == expectIncremental
+                    }
+                }
+            }
+
+            task incrementalTask(type: IncrementalTask) {
+                sourceDir = file("src")
+                destinationDir = file("build")
+            }
+        """
+
+        succeeds "incrementalTask"
+
+        file("src/input-change.txt") << "input"
+        failiureCount.times {
+            fails "incrementalTask", "-PmodifyOutputs=$modifyOutputs", "-Pfail"
+        }
+
+        expect:
+        succeeds "incrementalTask", "-PexpectIncremental=$incremental"
+
+        where:
+        modifyOutputs | failiureCount | incremental | description
+        // TODO This doesn't work when the task adds new files
+//        "add"         | 1     | false       | "with additional outputs is fully rebuilt"
+//        "add"         | 2     | false       | "with additional outputs is fully rebuilt"
+        "change"      | 1     | false       | "with changed outputs is fully rebuilt"
+        "change"      | 2     | false       | "with changed outputs is fully rebuilt"
+        "remove"      | 1     | false       | "with removed outputs is fully rebuilt"
+        null          | 1     | true        | "with unmodified outputs is executed as incremental"
+        null          | 2     | true        | "with unmodified outputs is executed as incremental"
     }
 }

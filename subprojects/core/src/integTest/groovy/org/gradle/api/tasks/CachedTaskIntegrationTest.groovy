@@ -21,34 +21,22 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 
 class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
-    def setup() {
-        buildFile << """
-            @CacheableTask
-            class CustomTask extends DefaultTask {
-                @OutputDirectory File outputDir = temporaryDir
-                @TaskAction
-                void generate() {
-                    new File(outputDir, "output").text = "OK"
-                }
-            }
-
-            task cacheable(type: CustomTask)
-        """
-    }
-
     def "produces incubation warning"() {
+        buildFile << defineCacheableTask()
         withBuildCache().succeeds "cacheable"
         expect:
         result.assertOutputContains("Build cache is an incubating feature.")
     }
 
     def "displays info about local build cache configuration"() {
+        buildFile << defineCacheableTask()
         withBuildCache().succeeds "cacheable", "--info"
         expect:
         result.assertOutputContains "Using local directory build cache for the root build (location = ${cacheDir})."
     }
 
     def "cache entry contains expected contents"() {
+        buildFile << defineCacheableTask()
         when:
         withBuildCache().succeeds("cacheable")
         then:
@@ -69,6 +57,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
     }
 
     def "corrupted cache provides useful error message"() {
+        buildFile << defineCacheableTask()
         when:
         withBuildCache().succeeds("cacheable")
         then:
@@ -90,6 +79,52 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         withBuildCache().fails("cacheable")
         then:
         failure.assertHasCause("Cached result format error, no origin metadata was found.")
+    }
+
+    def "task is cacheable after previous failure"() {
+        buildFile << """
+            task foo {
+                outputs.file("out.txt")
+                outputs.cacheIf { true }
+                doLast {
+                    project.file("out.txt") << "xxx"
+                    if (project.hasProperty("fail")) {
+                        throw new RuntimeException("Boo!")
+                    }
+                    assert state.taskOutputCaching.enabled
+                }
+            }
+        """
+
+        executer.withStackTraceChecksDisabled()
+
+        expect:
+        fails "foo", "-Pfail"
+
+        when:
+        withBuildCache().succeeds "foo"
+        then:
+        executedTasks == [":foo"]
+
+        when:
+        withBuildCache().succeeds "foo"
+        then:
+        skippedTasks as List == [":foo"]
+    }
+
+    def defineCacheableTask() {
+        """
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputDirectory File outputDir = temporaryDir
+                @TaskAction
+                void generate() {
+                    new File(outputDir, "output").text = "OK"
+                }
+            }
+
+            task cacheable(type: CustomTask)
+        """
     }
 
     def corruptMetadata(Closure corrupter) {

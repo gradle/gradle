@@ -33,7 +33,7 @@ public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
 
     @Override
     protected ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
-        return previous.getInputFilesSnapshot();
+        return previous == null ? null : previous.getInputFilesSnapshot();
     }
 
     @Override
