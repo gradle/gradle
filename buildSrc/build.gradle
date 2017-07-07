@@ -24,6 +24,7 @@ targetCompatibility = '1.7'
 repositories {
     maven { url 'https://repo.gradle.org/gradle/libs-releases' }
     maven { url "https://repo.gradle.org/gradle/libs-snapshots" }
+    maven { url "https://plugins.gradle.org/m2/" }
 }
 
 dependencies {
@@ -42,6 +43,7 @@ dependencies {
 
     compile "org.pegdown:pegdown:1.6.0"
     compile "org.jsoup:jsoup:1.6.3"
+    compile 'me.champeau.gradle:japicmp-gradle-plugin:0.2.3'
 }
 
 ext.isCiServer = System.getenv().containsKey("CI")

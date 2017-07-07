@@ -1,0 +1,5 @@
+Implemented interface org.gradle.api.initialization.IncludedBuild;@Incubating interface has been removed
+Method org.gradle.api.initialization.IncludedBuild;@Incubating interface has been removed
+Class org.gradle.api.invocation.Gradle;All regressions accepted
+Class org.gradle.StartParameter;All regressions accepted
+Implemented interface org.gradle.initialization.ParallelismConfiguration;Interface was incubating

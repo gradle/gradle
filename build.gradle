@@ -24,7 +24,7 @@ archivesBaseName = 'gradle'
 
 buildTypes {
     sanityCheck {
-        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
+        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility"
     }
 
     // The minimum to be run before check-in
