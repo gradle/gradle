@@ -94,15 +94,8 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def withKotlinBuildSrc() {
-        file("buildSrc/settings.gradle")  << "rootProject.buildFileName = 'build.gradle.kts'"
         file("buildSrc/build.gradle.kts") << """
-            buildscript {
-                repositories { gradleScriptKotlin() }
-                dependencies { classpath(kotlinModule("gradle-plugin")) }
-            }
-            apply { plugin("kotlin") }
-            repositories { gradleScriptKotlin() }
-            dependencies { compile(gradleScriptKotlinApi()) }
+            plugins { `kotlin-dsl` }
         """
     }
 
