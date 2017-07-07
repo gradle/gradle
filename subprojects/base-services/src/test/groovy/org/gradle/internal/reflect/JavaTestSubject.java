@@ -16,11 +16,16 @@
 
 package org.gradle.internal.reflect;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.Set;
+
 @SuppressWarnings("UnusedDeclaration")
 public class JavaTestSubject {
 
     final IllegalStateException failure = new IllegalStateException();
     private String myProp = "myValue";
+    private String myProp2;
     private boolean myBooleanProp = true;
     public String myField = "myFieldValue";
     public boolean myBooleanField = true;
@@ -38,6 +43,10 @@ public class JavaTestSubject {
 
     public void setMyProperty(String value) {
         myProp = value;
+    }
+
+    public void setMyProperty(Object value) {
+        myProp = value.toString();
     }
 
     public boolean isMyBooleanProperty() {
@@ -115,4 +124,24 @@ public class JavaTestSubject {
 
     private void setPrivateProperty(String value) {
     }
+
+    public void setMultiValue(Set<String> values) { }
+
+    public void setMultiValue(Iterable<?> values) { }
+
+    public void setMyProperty2(String value) {
+        myProp2 = value;
+    }
+
+    public void setMyProperty2(File value) {
+        myProp2 = value.toString();
+    }
+
+    public String getMyProperty2() {
+        return myProp2;
+    }
+
+    public void setMyProperty3(CharSequence value) {}
+    public void setMyProperty3(Collection<?> value) {}
+    public void setMyProperty3(Object value) {}
 }
