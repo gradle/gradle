@@ -10,8 +10,9 @@ class GradlePluginSampleTest : AbstractSampleTest("gradle-plugin") {
 
     @Test
     fun `can use the plugin`() {
-        val result = build("checkSample")
 
-        assertTrue(File(projectRoot, "sample/build/copy/build.gradle.kts").isFile)
+        build("checkConsumer")
+
+        assertTrue(File(projectRoot, "consumer/build/copy/build.gradle.kts").isFile)
     }
 }

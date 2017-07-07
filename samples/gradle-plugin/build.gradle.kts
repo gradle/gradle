@@ -5,10 +5,10 @@ tasks {
         tasks = listOf("publish")
     }
 
-    val checkSample by creating(GradleBuild::class) {
-        dir = file("sample")
+    val checkConsumer by creating(GradleBuild::class) {
+        dir = file("consumer")
         tasks = listOf("myCopyTask")
     }
 
-    checkSample.dependsOn(publishPlugin)
+    checkConsumer.dependsOn(publishPlugin)
 }
