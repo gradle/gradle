@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.util.Requires
-import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
@@ -29,7 +28,6 @@ class GradleKotlinDslSmokeTest extends AbstractSmokeTest {
         'build.gradle.kts'
     }
 
-    @Issue("https://github.com/gradle/kotlin-dsl/issues/154")
     @Requires(KOTLIN_SCRIPT)
     def 'multi-project build with buildSrc'() {
         given:

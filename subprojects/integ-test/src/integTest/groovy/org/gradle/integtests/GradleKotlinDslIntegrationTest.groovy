@@ -18,16 +18,10 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
-import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
-// TODO: to make it work on Windows disable IDEA's native win32 filesystem
-//   https://github.com/JetBrains/kotlin/blob/167ab1f860fc8a3541feb3d3b1c895ef26b5abae/compiler/cli/src/org/jetbrains/kotlin/cli/common/CLICompiler.java#L52
-//   Might be something better done at the gradle-script-kotlin side
-
-@Issue("https://github.com/gradle/kotlin-dsl/issues/154")
 @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
 class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
