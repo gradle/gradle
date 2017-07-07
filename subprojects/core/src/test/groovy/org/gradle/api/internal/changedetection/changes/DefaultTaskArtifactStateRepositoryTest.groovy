@@ -102,12 +102,12 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, new DefaultFileCollectionSnapshotterRegistry([fileCollectionSnapshotter]), TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher, cacheKeyCalculator, new ValueSnapshotter(classLoaderHierarchyHasher))
     }
 
-    def artifactsAreNotUpToDateWhenCacheIsEmpty() {
+    def "artifacts are not up to date when cache is empty"() {
         expect:
         outOfDate(task)
     }
 
-    def artifactsAreNotUpToDateWhenAnyOutputFileNoLongerExists() {
+    def "artifacts are not up to date when any output file no longer exists"() {
         given:
         execute(task)
 
@@ -118,7 +118,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate task
     }
 
-    def artifactsAreNotUpToDateWhenAnyFileInOutputDirNoLongerExists() {
+    def "artifacts are not up to date when any file in output dir no longer exists"() {
         given:
         execute(task)
 
@@ -129,7 +129,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate task
     }
 
-    def artifactsAreNotUpToDateWhenAnyOutputFileHasChangedType() {
+    def "artifacts are not up to date when any output file has changed type"() {
         given:
         execute(task)
 
@@ -141,7 +141,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate task
     }
 
-    def artifactsAreNotUpToDateWhenAnyFileInOutputDirHasChangedType() {
+    def "artifacts are not up to date when any file in output dir has changed type"() {
         given:
         execute(task)
 
@@ -153,7 +153,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate task
     }
 
-    def artifactsAreNotUpToDateWhenAnyOutputFileHasChangedHash() {
+    def "artifacts are not up to date when any output file has changed hash"() {
         given:
         execute(task)
 
@@ -164,7 +164,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate task
     }
 
-    def artifactsAreNotUpToDateWhenAnyFileInOutputDirHasChangedHash() {
+    def "artifacts are not up to date when any file in output dir has changed hash"() {
         given:
         execute(task)
 
@@ -175,7 +175,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate task
     }
 
-    def artifactsAreNotUpToDateWhenAnyOutputFilesAddedToSet() {
+    def "artifacts are not up to date when any output files added to set"() {
         when:
         execute(task)
         TaskInternal outputFilesAddedTask = builder.withOutputFiles(outputFile, outputDir, temporaryFolder.createFile("output-file-2"), emptyOutputDir, missingOutputFile).task()
@@ -184,7 +184,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate outputFilesAddedTask
     }
 
-    def artifactsAreNotUpToDateWhenAnyOutputFilesRemovedFromSet() {
+    def "artifacts are not up to date when any output files removed from set"() {
         when:
         execute(task)
         TaskInternal outputFilesRemovedTask = builder.withOutputFiles(outputFile, emptyOutputDir, missingOutputFile).task()
@@ -193,7 +193,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate outputFilesRemovedTask
     }
 
-    def artifactsAreNotUpToDateWhenTaskWithDifferentTypeGeneratedAnyOutputFiles() {
+    def "artifacts are not up to date when task with different type generated any output files"() {
         when:
         TaskInternal task1 = builder.withOutputFiles(outputFile).task()
         TaskInternal task2 = builder.withType(TaskSubType.class).withOutputFiles(outputFile).task()
@@ -203,7 +203,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate task
     }
 
-    def artifactsAreNotUpToDateWhenAnyInputFilesAddedToSet() {
+    def "artifacts are not up to date when any input files added to set"() {
         final addedFile = temporaryFolder.createFile("other-input")
 
         when:
@@ -214,7 +214,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(inputFilesAdded).withAddedFile(addedFile)
     }
 
-    def artifactsAreNotUpToDateWhenAnyInputFilesRemovedFromSet() {
+    def "artifacts are not up to date when any input files removed from set"() {
         when:
         execute(task)
         TaskInternal inputFilesRemoved = builder.withInputFiles(file: [inputFile], dir: [], missingFile: [missingInputFile]).task()
@@ -223,7 +223,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(inputFilesRemoved).withRemovedFiles(inputDir, inputDirFile)
     }
 
-    def artifactsAreNotUpToDateWhenAnyInputFileHasChangedHash() {
+    def "artifacts are not up to date when any input file has changed hash"() {
         given:
         execute(task)
 
@@ -234,7 +234,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(task).withModifiedFile(inputFile)
     }
 
-    def artifactsAreNotUpToDateWhenAnyInputFileHasChangedType() {
+    def "artifacts are not up to date when any input file has changed type"() {
         given:
         execute(task)
 
@@ -246,7 +246,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(task).withModifiedFile(inputFile)
     }
 
-    def artifactsAreNotUpToDateWhenAnyInputFileNoLongerExists() {
+    def "artifacts are not up to date when any input file no longer exists"() {
         given:
         execute(task)
 
@@ -257,7 +257,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(task).withModifiedFile(inputFile)
     }
 
-    def artifactsAreNotUpToDateWhenAnyInputFileDidNotExistAndNowDoes() {
+    def "artifacts are not up to date when any input file did not exist and now does"() {
         given:
         inputFile.delete()
         execute(task)
@@ -269,7 +269,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(task).withModifiedFile(inputFile)
     }
 
-    def artifactsAreNotUpToDateWhenAnyFileCreatedInInputDir() {
+    def "artifacts are not up to date when any file created in input dir"() {
         given:
         execute(task)
 
@@ -280,7 +280,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(task).withAddedFile(file)
     }
 
-    def artifactsAreNotUpToDateWhenAnyFileDeletedFromInputDir() {
+    def "artifacts are not up to date when any file deleted from input dir"() {
         given:
         execute(task)
 
@@ -291,7 +291,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(task).withRemovedFile(inputDirFile)
     }
 
-    def artifactsAreNotUpToDateWhenAnyFileInInputDirChangesHash() {
+    def "artifacts are not up to date when any file in input dir changes hash"() {
         given:
         execute(task)
 
@@ -302,7 +302,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(task).withModifiedFile(inputDirFile)
     }
 
-    def artifactsAreNotUpToDateWhenAnyFileInInputDirChangesType() {
+    def "artifacts are not up to date when any file in input dir changes type"() {
         given:
         execute(task)
 
@@ -314,7 +314,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(task).withModifiedFile(inputDirFile)
     }
 
-    def artifactsAreNotUpToDateWhenAnyInputPropertyValueChanged() {
+    def "artifacts are not up to date when any input property value changed"() {
         when:
         execute(builder.withProperty("prop", "original value").task())
         final inputPropertiesTask = builder.withProperty("prop", "new value").task()
@@ -323,7 +323,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate inputPropertiesTask
     }
 
-    def inputPropertyValueCanBeNull() {
+    def "input property value can be null"() {
         when:
         TaskInternal task = builder.withProperty("prop", null).task()
         execute(task)
@@ -332,7 +332,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         upToDate(task)
     }
 
-    def artifactsAreNotUpToDateWhenAnyInputPropertyAdded() {
+    def "artifacts are not up to date when any input property added"() {
         when:
         execute(task)
         final addedPropertyTask = builder.withProperty("prop2", "value").task()
@@ -341,7 +341,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate addedPropertyTask
     }
 
-    def artifactsAreNotUpToDateWhenAnyInputPropertyRemoved() {
+    def "artifacts are not up to date when any input property removed"() {
         given:
         execute(builder.withProperty("prop2", "value").task())
 
@@ -349,7 +349,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate task
     }
 
-    def artifactsAreNotUpToDateWhenStateHasNotBeenUpdated() {
+    def "artifacts are not up to date when state has not been updated"() {
         when:
         repository.getStateFor(task)
 
@@ -357,7 +357,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate task
     }
 
-    def artifactsAreNotUpToDateWhenOutputDirWhichUsedToExistHasBeenDeleted() {
+    def "artifacts are not up to date when output dir which used to exist has been deleted"() {
         given:
         // Output dir already exists before first execution of task
         outputDir.createDir()
@@ -396,7 +396,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate task1
     }
 
-    def artifactsAreUpToDateWhenNothingHasChangedSinceOutputFilesWereGenerated() {
+    def "artifacts are up to date when nothing has changed since output files were generated"() {
         given:
         execute(task)
 
@@ -405,7 +405,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         repository.getStateFor(task).isUpToDate([])
     }
 
-    def artifactsAreUpToDateWhenOutputFileWhichDidNotExistNowExists() {
+    def "artifacts are up to date when output file which did not exist now exists"() {
         given:
         execute(task)
 
@@ -416,7 +416,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         upToDate task
     }
 
-    def artifactsAreUpToDateWhenOutputDirWhichWasEmptyIsNoLongerEmpty() {
+    def "artifacts are up to date when output dir which was empty is no longer empty"() {
         given:
         execute(task)
 
@@ -427,7 +427,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         upToDate task
     }
 
-    def hasEmptyTaskHistoryWhenTaskHasNeverBeenExecuted() {
+    def "has empty task history when task has never been executed"() {
         when:
         TaskArtifactState state = repository.getStateFor(task)
 
@@ -435,7 +435,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         state.getExecutionHistory().getOutputFiles().getFiles().isEmpty()
     }
 
-    def hasTaskHistoryFromPreviousExecution() {
+    def "has task history from previous execution"() {
         given:
         execute(task)
 
@@ -446,7 +446,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         state.getExecutionHistory().getOutputFiles().getFiles() == [outputFile, outputDirFile, outputDirFile2] as Set
     }
 
-    def multipleTasksCanProduceFilesIntoTheSameOutputDirectory() {
+    def "multiple tasks can produce files into the same output directory"() {
         when:
         TaskInternal task1 = task
         TaskInternal task2 = builder.withPath("other").withOutputFiles(outputDir).createsFiles(outputDir.file("output2")).task()
@@ -457,7 +457,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         upToDate task2
     }
 
-    def multipleTasksCanProduceTheSameFileWithTheSameContents() {
+    def "multiple tasks can produce the same file with the same contents"() {
         when:
         TaskInternal task1 = builder.withOutputFiles(outputFile).task()
         TaskInternal task2 = builder.withPath("other").withOutputFiles(outputFile).task()
@@ -468,7 +468,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         upToDate task2
     }
 
-    def multipleTasksCanProduceTheSameEmptyDir() {
+    def "multiple tasks can produce the same empty dir"() {
         when:
         TaskInternal task1 = task
         TaskInternal task2 = builder.withPath("other").withOutputFiles(outputDir).task()
@@ -479,7 +479,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         upToDate task2
     }
 
-    def doesNotConsiderExistingFilesInOutputDirectoryAsProducedByTask() {
+    def "does not consider existing files in output directory as produced by task"() {
         when:
         TestFile otherFile = outputDir.file("other").createFile()
         execute(task)
@@ -491,7 +491,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         !state.getExecutionHistory().getOutputFiles().getFiles().contains(otherFile)
     }
 
-    def considersExistingFileInOutputDirectoryWhichIsUpdatedByTheTaskAsProducedByTask() {
+    def "considers existing file in output directory which is updated by the task as produced by task"() {
         when:
         TestFile otherFile = outputDir.file("other").createFile()
         TaskArtifactState state = repository.getStateFor(task)
@@ -512,7 +512,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         stateAfter.executionHistory.outputFiles.files.contains(otherFile)
     }
 
-    def fileIsNoLongerConsideredProducedByTaskOnceItIsDeleted() {
+    def "file is no longer considered produced by task once it is deleted"() {
         given:
         execute(task)
 
@@ -530,7 +530,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         !stateAfter.executionHistory.outputFiles.files.contains(outputDirFile)
     }
 
-    def artifactsAreUpToDateWhenTaskDoesNotAcceptAnyInputs() {
+    def "artifacts are up to date when task does not accept any inputs"() {
         when:
         TaskInternal noInputsTask = builder.doesNotAcceptInput().task()
         execute(noInputsTask)
@@ -546,7 +546,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outOfDate noInputsTask
     }
 
-    def artifactsAreUpToDateWhenTaskHasNoInputFiles() {
+    def "artifacts are up to date when task has no input files"() {
         when:
         TaskInternal noInputFilesTask = builder.withInputFiles().task()
         execute(noInputFilesTask)
@@ -555,7 +555,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         upToDate noInputFilesTask
     }
 
-    def artifactsAreUpToDateWhenTaskHasNoOutputFiles() {
+    def "artifacts are up to date when task has no output files"() {
         when:
         TaskInternal noOutputsTask = builder.withOutputFiles().task()
         execute(noOutputsTask)
@@ -564,7 +564,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         upToDate noOutputsTask
     }
 
-    def taskCanProduceIntoDifferentSetsOfOutputFiles() {
+    def "task can produce into different sets of output files"() {
         when:
         TestFile outputDir2 = temporaryFolder.createDir("output-dir-2")
         TestFile outputDirFile2 = outputDir2.file("output-file-2")
