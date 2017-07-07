@@ -23,10 +23,8 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.worker.WorkerTestClassProcessor;
-import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.Cast;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
@@ -46,22 +44,30 @@ public class TestWorkerProgressListener implements TestListenerInternal {
 
     @Override
     public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
-        String description = determineTestWorkerDescription(testDescriptor);
+        boolean testClassDescriptor = isDefaultTestClassDescriptor(testDescriptor);
 
-        if (description != null && !testWorkerProgressLoggers.containsKey(description)) {
-            ProgressLogger progressLogger = factory.newOperation(TestWorkerProgressListener.class, parentProgressLogger);
-            progressLogger.start(description, description);
-            testWorkerProgressLoggers.put(description, progressLogger);
+        if (testClassDescriptor) {
+            String description = createProgressLoggerDescription(testDescriptor);
+
+            if (!testWorkerProgressLoggers.containsKey(description)) {
+                ProgressLogger progressLogger = factory.newOperation(TestWorkerProgressListener.class, parentProgressLogger);
+                progressLogger.start(description, description);
+                testWorkerProgressLoggers.put(description, progressLogger);
+            }
         }
     }
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        String description = determineTestWorkerDescription(testDescriptor);
+        boolean testClassDescriptor = isDefaultTestClassDescriptor(testDescriptor);
 
-        if (description != null && testWorkerProgressLoggers.containsKey(description)) {
-            ProgressLogger progressLogger = testWorkerProgressLoggers.remove(description);
-            progressLogger.completed();
+        if (testClassDescriptor) {
+            String description = createProgressLoggerDescription(testDescriptor);
+
+            if (testWorkerProgressLoggers.containsKey(description)) {
+                ProgressLogger progressLogger = testWorkerProgressLoggers.remove(description);
+                progressLogger.completed();
+            }
         }
     }
 
@@ -80,47 +86,22 @@ public class TestWorkerProgressListener implements TestListenerInternal {
         testWorkerProgressLoggers.clear();
     }
 
-    private String determineTestWorkerDescription(TestDescriptorInternal testDescriptor) {
-        WorkerTestClassProcessor.WorkerTestSuiteDescriptor workerTestSuiteDescriptor = findParentWorkerTestSuiteDescriptor(testDescriptor);
-
-        if (workerTestSuiteDescriptor != null) {
-            DefaultTestClassDescriptor defaultTestClassDescriptor = findParentDefaultTestClassDescriptor(testDescriptor);
-
-            if (defaultTestClassDescriptor != null) {
-                return createProgressLoggerDescription(workerTestSuiteDescriptor, defaultTestClassDescriptor);
-            }
+    private boolean isDefaultTestClassDescriptor(TestDescriptorInternal testDescriptor) {
+        if (testDescriptor.isComposite()
+            && testDescriptor instanceof DecoratingTestDescriptor
+            && ((DecoratingTestDescriptor)testDescriptor).getDescriptor() instanceof DefaultTestClassDescriptor) {
+            return true;
         }
 
-        return null;
+        return false;
     }
 
-    private String createProgressLoggerDescription(WorkerTestClassProcessor.WorkerTestSuiteDescriptor workerTestSuiteDescriptor, DefaultTestClassDescriptor defaultTestClassDescriptor) {
+    private String createProgressLoggerDescription(TestDescriptorInternal testDescriptor) {
+        DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor)testDescriptor;
+        DefaultTestClassDescriptor defaultTestClassDescriptor = (DefaultTestClassDescriptor)decoratingTestDescriptor.getDescriptor();
+        DecoratingTestDescriptor parent = (DecoratingTestDescriptor)testDescriptor.getParent();
+        WorkerTestClassProcessor.WorkerTestSuiteDescriptor workerTestSuiteDescriptor = (WorkerTestClassProcessor.WorkerTestSuiteDescriptor)parent.getDescriptor();
         return workerTestSuiteDescriptor.getName() + " > Executing test " + defaultTestClassDescriptor.getClassName();
-    }
-
-    private WorkerTestClassProcessor.WorkerTestSuiteDescriptor findParentWorkerTestSuiteDescriptor(TestDescriptor testDescriptor) {
-        return findDescriptorParent(testDescriptor, WorkerTestClassProcessor.WorkerTestSuiteDescriptor.class);
-    }
-
-    private DefaultTestClassDescriptor findParentDefaultTestClassDescriptor(TestDescriptor testDescriptor) {
-        return findDescriptorParent(testDescriptor, DefaultTestClassDescriptor.class);
-    }
-
-    private <T> T findDescriptorParent(TestDescriptor testDescriptor, Class<? extends T> descriptorClass) {
-        if (testDescriptor == null) {
-            return null;
-        }
-
-        if (testDescriptor instanceof DecoratingTestDescriptor) {
-            DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor)testDescriptor;
-            TestDescriptorInternal actualTestDescriptor = decoratingTestDescriptor.getDescriptor();
-
-            if (descriptorClass.isInstance(actualTestDescriptor)) {
-                return Cast.cast(descriptorClass, actualTestDescriptor);
-            }
-        }
-
-        return findDescriptorParent(testDescriptor.getParent(), descriptorClass);
     }
 
     Map<String, ProgressLogger> getTestWorkerProgressLoggers() {

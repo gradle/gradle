@@ -51,7 +51,7 @@ class TestWorkerProgressListenerTest extends Specification {
         def testWorkerProgressLogger = Mock(ProgressLogger)
 
         given:
-        def testEvent = new TestEvent('org.gradle.TestSuite', 'Gradle Test Executor 1', 'org.gradle.Test1')
+        def testEvent = new TestEvent('Gradle Test Executor 1', 'org.gradle.Test1')
         def testDescriptor = createTestDescriptor(testEvent)
 
         when:
@@ -78,8 +78,8 @@ class TestWorkerProgressListenerTest extends Specification {
         def testWorkerProgressLogger2 = Mock(ProgressLogger)
 
         given:
-        def testEvent1 = new TestEvent('org.gradle.TestSuite', 'Gradle Test Executor 1', 'org.gradle.Test1')
-        def testEvent2 = new TestEvent('org.gradle.TestSuite', 'Gradle Test Executor 2', 'org.gradle.Test2')
+        def testEvent1 = new TestEvent('Gradle Test Executor 1', 'org.gradle.Test1')
+        def testEvent2 = new TestEvent('Gradle Test Executor 2', 'org.gradle.Test2')
         def testDescriptor1 = createTestDescriptor(testEvent1)
         def testDescriptor2 = createTestDescriptor(testEvent2)
 
@@ -104,7 +104,7 @@ class TestWorkerProgressListenerTest extends Specification {
 
     def "does not complete progress logger for test worker that hasn't been registered"() {
         given:
-        def testEvent = new TestEvent('org.gradle.TestSuite', 'Gradle Test Executor 1', 'org.gradle.Test1')
+        def testEvent = new TestEvent('Gradle Test Executor 1', 'org.gradle.Test1')
         def testDescriptor = createTestDescriptor(testEvent)
 
         when:
@@ -120,8 +120,8 @@ class TestWorkerProgressListenerTest extends Specification {
         def testWorkerProgressLogger2 = Mock(ProgressLogger)
 
         given:
-        def testEvent1 = new TestEvent('org.gradle.TestSuite', 'Gradle Test Executor 1', 'org.gradle.Test1')
-        def testEvent2 = new TestEvent('org.gradle.TestSuite', 'Gradle Test Executor 2', 'org.gradle.Test2')
+        def testEvent1 = new TestEvent('Gradle Test Executor 1', 'org.gradle.Test1')
+        def testEvent2 = new TestEvent('Gradle Test Executor 2', 'org.gradle.Test2')
         def testDescriptor1 = createTestDescriptor(testEvent1)
         def testDescriptor2 = createTestDescriptor(testEvent2)
 
@@ -153,8 +153,8 @@ class TestWorkerProgressListenerTest extends Specification {
         def testWorkerProgressLogger2 = Mock(ProgressLogger)
 
         given:
-        def testEvent1 = new TestEvent('org.gradle.TestSuite', 'Gradle Test Executor 1', 'org.gradle.Test1')
-        def testEvent2 = new TestEvent('org.gradle.TestSuite', 'Gradle Test Executor 2', 'org.gradle.Test2')
+        def testEvent1 = new TestEvent('Gradle Test Executor 1', 'org.gradle.Test1')
+        def testEvent2 = new TestEvent('Gradle Test Executor 2', 'org.gradle.Test2')
         def testDescriptor1 = createTestDescriptor(testEvent1)
         def testDescriptor2 = createTestDescriptor(testEvent2)
 
@@ -197,13 +197,11 @@ class TestWorkerProgressListenerTest extends Specification {
         def defaultTestClassDescriptor = new DefaultTestClassDescriptor(1, testEvent.testClassName)
         def decoratingDefaultTestClassDescriptor = new DecoratingTestDescriptor(defaultTestClassDescriptor, null)
         def decoratingTestWorkerDescriptor = new DecoratingTestDescriptor(testWorkerDescriptor, decoratingDefaultTestClassDescriptor)
-        def testSuiteDescriptor = new DefaultTestSuiteDescriptor(1, testEvent.testSuiteName)
-        new DecoratingTestDescriptor(testSuiteDescriptor, decoratingTestWorkerDescriptor)
+        new DecoratingTestDescriptor(defaultTestClassDescriptor, decoratingTestWorkerDescriptor)
     }
 
     @TupleConstructor
     private static class TestEvent {
-        String testSuiteName
         String testWorkerName
         String testClassName
 
