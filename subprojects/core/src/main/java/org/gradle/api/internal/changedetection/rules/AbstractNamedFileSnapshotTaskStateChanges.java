@@ -72,8 +72,6 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
 
     protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious();
 
-    protected abstract void saveCurrent();
-
     protected FileCollectionSnapshotterRegistry getSnapshotterRegistry() {
         return snapshotterRegistry;
     }
@@ -133,10 +131,5 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
                 return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle);
             }
         }).iterator());
-    }
-
-    @Override
-    public void snapshotAfterTask() {
-        saveCurrent();
     }
 }

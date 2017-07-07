@@ -44,7 +44,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     }
 
     @Override
-    public void saveCurrent() {
+    public void snapshotAfterTask() {
         final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties());
 
         ImmutableSortedMap<String, FileCollectionSnapshot> results = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(getCurrent(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
