@@ -573,7 +573,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             gradle.taskGraph.whenReady {
                 println "Executing buildB: " + it.allTasks.collect { it.identityPath }
             }
- """
+"""
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
@@ -590,7 +590,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:compileJava", ":buildC:jar"
+        executedInOrder ":buildB:b1:jar", ":buildC:compileJava", ":buildC:jar"
+        executedInOrder ":buildB:b2:jar", ":buildC:compileJava", ":buildC:jar"
     }
 
     def "reports failure to build dependent artifact"() {
