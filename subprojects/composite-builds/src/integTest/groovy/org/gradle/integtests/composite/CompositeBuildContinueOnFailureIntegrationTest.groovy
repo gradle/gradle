@@ -18,7 +18,7 @@ package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.junit.Ignore
+import spock.lang.Ignore
 
 /**
  * Tests for composite build delegating to tasks in an included build.
