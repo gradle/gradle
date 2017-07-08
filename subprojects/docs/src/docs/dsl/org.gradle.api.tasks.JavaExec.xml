@@ -57,6 +57,10 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>executableJar</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>executable</td>
                 <td><filename>java</filename> executable for current JVM</td>
             </tr>

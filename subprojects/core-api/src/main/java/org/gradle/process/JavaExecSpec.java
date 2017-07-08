@@ -19,10 +19,14 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 
 import javax.annotation.Nullable;
+
+import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -119,4 +123,28 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @return this
      */
     JavaExecSpec setClasspath(FileCollection classpath);
+
+    /**
+     * Returns the executable jar which is to be executed.
+     */
+    @Optional @InputFile
+    File getExecutableJar();
+
+    /**
+     * Sets the jar to execute.
+     *
+     * @param executableJar jar file with a main class specified in the manifest
+     *
+     * @return this
+     */
+    JavaExecSpec setExecutableJar(File executableJar);
+
+    /**
+     * Sets the jar to execute.
+     *
+     * @param executableJar jar file with a main class specified in the manifest
+     *
+     * @return this
+     */
+    JavaExecSpec setExecutableJar(Path executableJar);
 }

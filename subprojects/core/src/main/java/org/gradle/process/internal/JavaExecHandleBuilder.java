@@ -27,6 +27,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,6 +41,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private String mainClass;
     private final List<Object> applicationArgs = new ArrayList<Object>();
     private FileCollection classpath;
+    private Path executableJar;
     private final JavaForkOptions javaOptions;
     private final FileResolver fileResolver;
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
@@ -54,6 +56,10 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     public List<String> getAllJvmArgs() {
         List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
+        if (executableJar != null) {
+            allArgs.add("-jar");
+            allArgs.add(executableJar.toString());
+        }
         if (!classpath.isEmpty()) {
             allArgs.add("-cp");
             allArgs.add(CollectionUtils.join(File.pathSeparator, classpath));
@@ -218,6 +224,27 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     public FileCollection getClasspath() {
         return classpath;
+    }
+
+    @Override
+    public File getExecutableJar() {
+        if (executableJar == null) {
+            return null;
+        } else {
+            return executableJar.toFile();
+        }
+    }
+
+    @Override
+    public JavaExecSpec setExecutableJar(File executableJar) {
+        this.executableJar = executableJar.toPath();
+        return this;
+    }
+
+    @Override
+    public JavaExecSpec setExecutableJar(Path executableJar) {
+        this.executableJar = executableJar;
+        return this;
     }
 
     @Override

@@ -41,11 +41,13 @@ class JavaExecHandleBuilderTest extends Specification {
     public void buildsCommandLineForJavaProcess() {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
+        File executableJar = new File("executable.jar").canonicalFile
 
         builder.main = 'mainClass'
         builder.args("arg1", "arg2")
         builder.jvmArgs("jvm1", "jvm2")
         builder.classpath(jar1, jar2)
+        builder.setExecutableJar(executableJar)
         builder.systemProperty("prop", "value")
         builder.minHeapSize = "64m"
         builder.maxHeapSize = "1g"
@@ -55,14 +57,14 @@ class JavaExecHandleBuilderTest extends Specification {
         List jvmArgs = builder.getAllJvmArgs()
 
         then:
-        jvmArgs == ['-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2"]
+        jvmArgs == ['-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-jar', "$executableJar", '-cp', "$jar1$File.pathSeparator$jar2"]
 
         when:
         List commandLine = builder.getCommandLine()
 
         then:
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
-        commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
+        commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-jar', "$executableJar", '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
 
         where:
         inputEncoding | expectedEncoding

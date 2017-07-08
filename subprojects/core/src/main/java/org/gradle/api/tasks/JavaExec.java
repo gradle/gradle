@@ -33,6 +33,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,17 @@ import java.util.Map;
  *
  *   // arguments to pass to the application
  *   args 'appArg1'
+ * }
+ * </pre>
+ * <p>
+ * Alternatively to specifying classpath and main class manually, running executable jars is also supported.
+ * </p>
+ * <pre class='autoTested'>
+ * task runAppFromJar(type: JavaExec) {
+ *   executableJar = project.files(compileJava)
+ *
+ *   // arguments to pass to the application
+ *   args 'appJarArg1'
  * }
  * </pre>
  * <p>
@@ -355,6 +367,32 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     public FileCollection getClasspath() {
         return javaExecHandleBuilder.getClasspath();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public File getExecutableJar() {
+        return javaExecHandleBuilder.getExecutableJar();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaExecSpec setExecutableJar(File executableJar) {
+        javaExecHandleBuilder.setExecutableJar(executableJar);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaExecSpec setExecutableJar(Path executableJar) {
+        javaExecHandleBuilder.setExecutableJar(executableJar);
+        return this;
     }
 
     /**
