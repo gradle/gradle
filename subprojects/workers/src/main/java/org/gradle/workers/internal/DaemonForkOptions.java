@@ -61,8 +61,7 @@ public class DaemonForkOptions {
         return forkOptions.isCompatibleWith(other.forkOptions)
                 && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()))
                 && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages))
-                && keepAliveMode == other.getKeepAliveMode()
-                && getNormalized(forkOptions.getExecutable()).equals(getNormalized(other.forkOptions.getExecutable()));
+                && keepAliveMode == other.getKeepAliveMode();
     }
 
     // one way to merge fork options, good for current use case

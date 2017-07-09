@@ -31,21 +31,27 @@ import java.util.Collections;
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
     private static final Iterable<String> SHARED_PACKAGES = Collections.singleton("com.sun.tools.javac");
     private final FileResolver fileResolver;
+    private final File daemonWorkingDir;
 
     public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver) {
-        super(daemonWorkingDir, delegate, workerDaemonFactory);
+        super(delegate, workerDaemonFactory);
         this.fileResolver = fileResolver;
+        this.daemonWorkingDir = daemonWorkingDir;
     }
 
     @Override
-    protected DaemonForkOptions toDaemonOptions(JavaCompileSpec spec) {
+    protected InvocationContext toInvocationContext(JavaCompileSpec spec) {
         ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new ForkOptionsConverter(fileResolver).transform(forkOptions);
+        File invocationWorkingDir = javaForkOptions.getWorkingDir();
+        javaForkOptions.setWorkingDir(daemonWorkingDir);
 
-        return new DaemonForkOptionsBuilder(fileResolver)
+        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
             .javaForkOptions(javaForkOptions)
             .sharedPackages(SHARED_PACKAGES)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
+
+        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 }

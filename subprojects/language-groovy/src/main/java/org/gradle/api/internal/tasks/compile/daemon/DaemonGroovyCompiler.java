@@ -39,29 +39,35 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     private final static Iterable<String> SHARED_PACKAGES = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac");
     private final ClassPathRegistry classPathRegistry;
     private final FileResolver fileResolver;
+    private final File daemonWorkingDir;
 
     public DaemonGroovyCompiler(File daemonWorkingDir, Compiler<GroovyJavaJointCompileSpec> delegate, ClassPathRegistry classPathRegistry, WorkerFactory workerFactory, FileResolver fileResolver) {
-        super(daemonWorkingDir, delegate, workerFactory);
+        super(delegate, workerFactory);
         this.classPathRegistry = classPathRegistry;
         this.fileResolver = fileResolver;
+        this.daemonWorkingDir = daemonWorkingDir;
     }
 
     @Override
-    protected DaemonForkOptions toDaemonOptions(GroovyJavaJointCompileSpec spec) {
-        return createJavaDaemonForkOptions(spec).mergeWith(createGroovyDaemonForkOptions(spec));
+    protected InvocationContext toInvocationContext(GroovyJavaJointCompileSpec spec) {
+        return createJavaInvocationContext(spec).mergeWith(createGroovyInvocationContext(spec));
     }
 
-    private DaemonForkOptions createJavaDaemonForkOptions(GroovyJavaJointCompileSpec spec) {
+    private InvocationContext createJavaInvocationContext(GroovyJavaJointCompileSpec spec) {
         ForkOptions options = spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new ForkOptionsConverter(fileResolver).transform(options);
+        File invocationWorkingDir = javaForkOptions.getWorkingDir();
+        javaForkOptions.setWorkingDir(daemonWorkingDir);
 
-        return new DaemonForkOptionsBuilder(fileResolver)
+        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
             .javaForkOptions(javaForkOptions)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
+
+        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 
-    private DaemonForkOptions createGroovyDaemonForkOptions(GroovyJavaJointCompileSpec spec) {
+    private InvocationContext createGroovyInvocationContext(GroovyJavaJointCompileSpec spec) {
         GroovyForkOptions options = spec.getGroovyCompileOptions().getForkOptions();
         // Ant is optional dependency of groovy(-all) module but mandatory dependency of Groovy compiler;
         // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
@@ -69,12 +75,16 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         Collection<File> antFiles = classPathRegistry.getClassPath("ANT").getAsFiles();
         Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(options);
+        File invocationWorkingDir = javaForkOptions.getWorkingDir();
+        javaForkOptions.setWorkingDir(daemonWorkingDir);
 
-        return new DaemonForkOptionsBuilder(fileResolver)
+        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
             .javaForkOptions(javaForkOptions)
             .classpath(groovyFiles)
             .sharedPackages(SHARED_PACKAGES)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
+
+        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 }

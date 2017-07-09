@@ -53,38 +53,48 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
             Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac", "sbt");
     private final Iterable<File> zincClasspath;
     private final FileResolver fileResolver;
+    private final File daemonWorkingDir;
 
     public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, FileResolver fileResolver) {
-        super(daemonWorkingDir, delegate, workerDaemonFactory);
+        super(delegate, workerDaemonFactory);
         this.zincClasspath = zincClasspath;
         this.fileResolver = fileResolver;
+        this.daemonWorkingDir = daemonWorkingDir;
     }
 
     @Override
-    protected DaemonForkOptions toDaemonOptions(T spec) {
-        return createJavaDaemonForkOptions(spec).mergeWith(createScalaDaemonForkOptions(spec));
+    protected InvocationContext toInvocationContext(T spec) {
+        return createJavaInvocationContext(spec).mergeWith(createScalaInvocationContext(spec));
     }
 
-    private DaemonForkOptions createJavaDaemonForkOptions(T spec) {
+    private InvocationContext createJavaInvocationContext(T spec) {
         ForkOptions options = spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new ForkOptionsConverter(fileResolver).transform(options);
+        File invocationWorkingDir = javaForkOptions.getWorkingDir();
+        javaForkOptions.setWorkingDir(daemonWorkingDir);
 
-        return new DaemonForkOptionsBuilder(fileResolver)
+        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
             .javaForkOptions(javaForkOptions)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
+
+        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 
-    private DaemonForkOptions createScalaDaemonForkOptions(T spec) {
+    private InvocationContext createScalaInvocationContext(T spec) {
         ScalaForkOptions options = spec.getScalaCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(options);
+        File invocationWorkingDir = javaForkOptions.getWorkingDir();
+        javaForkOptions.setWorkingDir(daemonWorkingDir);
 
-        return new DaemonForkOptionsBuilder(fileResolver)
+        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
             .javaForkOptions(javaForkOptions)
             .classpath(zincClasspath)
             .sharedPackages(SHARED_PACKAGES)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
+
+        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 }
 
