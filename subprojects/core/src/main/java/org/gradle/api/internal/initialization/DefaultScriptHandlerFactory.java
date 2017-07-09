@@ -24,19 +24,23 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.composite.internal.CompositeBuildClasspathResolver;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final CompositeBuildClasspathResolver compositeBuildClasspathResolver;
     private final FileResolver fileResolver;
     private final ProjectFinder projectFinder = new UnknownProjectFinder("Cannot use project dependencies in a script classpath definition.");
 
     public DefaultScriptHandlerFactory(DependencyManagementServices dependencyManagementServices,
                                        FileResolver fileResolver,
-                                       DependencyMetaDataProvider dependencyMetaDataProvider) {
+                                       DependencyMetaDataProvider dependencyMetaDataProvider,
+                                       CompositeBuildClasspathResolver compositeBuildClasspathResolver) {
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.compositeBuildClasspathResolver = compositeBuildClasspathResolver;
     }
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope) {
@@ -45,7 +49,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
         DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, context);
-        return new DefaultScriptHandler(scriptSource, services, classLoaderScope);
+        return new DefaultScriptHandler(scriptSource, services, classLoaderScope, compositeBuildClasspathResolver);
     }
 
 }

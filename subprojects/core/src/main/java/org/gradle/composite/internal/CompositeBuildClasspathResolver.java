@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.composite.internal;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.file.FileCollection;
 
-public interface IncludedBuildTaskGraph {
-    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
-
-    void awaitCompletion(BuildIdentifier targetBuild, String taskPath);
-
-    boolean isComplete(BuildIdentifier targetBuild, String taskPath);
+/**
+ * Resolves a build script classpath to a set of files in a composite build, ensuring that the
+ * required tasks are executed to build artifacts in included builds.
+ */
+public interface CompositeBuildClasspathResolver {
+    FileCollection buildAll(ResolvableDependencies dependencies);
 }

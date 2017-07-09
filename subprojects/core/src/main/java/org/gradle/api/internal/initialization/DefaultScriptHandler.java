@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.composite.internal.CompositeBuildClasspathResolver;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -41,6 +42,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     private final ResourceLocation scriptResource;
     private final ClassLoaderScope classLoaderScope;
+    private final CompositeBuildClasspathResolver compositeBuildClasspathResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
     // The following values are relatively expensive to create, so defer creation until required
     private RepositoryHandler repositoryHandler;
@@ -49,10 +51,12 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private Configuration classpathConfiguration;
     private DynamicObject dynamicObject;
 
-    public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope) {
+    public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope,
+                                CompositeBuildClasspathResolver compositeBuildClasspathResolver) {
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
+        this.compositeBuildClasspathResolver = compositeBuildClasspathResolver;
     }
 
     @Override
@@ -70,7 +74,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         if (classpathConfiguration == null) {
             return ClassPath.EMPTY;
         }
-        return new DefaultClassPath(classpathConfiguration.getFiles());
+        return new DefaultClassPath(compositeBuildClasspathResolver.buildAll(classpathConfiguration.getIncoming()));
     }
 
     @Override

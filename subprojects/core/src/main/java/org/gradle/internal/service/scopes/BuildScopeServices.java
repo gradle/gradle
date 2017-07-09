@@ -93,6 +93,7 @@ import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
 import org.gradle.composite.internal.IncludedBuildFactory;
+import org.gradle.composite.internal.CompositeBuildClasspathResolver;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -351,7 +352,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultScriptHandlerFactory(
             get(DependencyManagementServices.class),
             get(FileResolver.class),
-            get(DependencyMetaDataProvider.class)
+            get(DependencyMetaDataProvider.class),
+            get(CompositeBuildClasspathResolver.class)
         );
     }
 

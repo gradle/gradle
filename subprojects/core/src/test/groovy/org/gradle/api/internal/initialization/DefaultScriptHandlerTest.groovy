@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.initialization.BuildIdentity
 import org.gradle.util.ConfigureUtil
 import spock.lang.Specification
 
@@ -35,7 +37,9 @@ class DefaultScriptHandlerTest extends Specification {
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> baseClassLoader
     }
-    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope)
+    def includedBuildTaskGraph = Mock(IncludedBuildTaskGraph)
+    def buildIdentity = Mock(BuildIdentity)
+    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, includedBuildTaskGraph, buildIdentity)
 
     def "adds classpath configuration when configuration container is queried"() {
         when:
@@ -84,6 +88,7 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * configurationContainer.create('classpath') >> configuration
+        1 * buildIdentity.currentBuild >> null
         1 * configuration.files >> [file]
 
         and:

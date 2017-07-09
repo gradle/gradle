@@ -44,6 +44,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.logging.LoggingManager
+import org.gradle.composite.internal.CompositeBuildClasspathResolver
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.groovy.scripts.ScriptSource
@@ -108,6 +109,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DependencyInjectingInstantiator.ConstructorCache) >> Stub(DependencyInjectingInstantiator.ConstructorCache)
         parent.get(ToolingModelBuilderRegistry) >> Mock(ToolingModelBuilderRegistry)
         parent.get(InstantiatorFactory) >> instantiatorFactory
+        parent.get(CompositeBuildClasspathResolver) >> Mock(CompositeBuildClasspathResolver)
         parent.hasService(_) >> true
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
