@@ -140,13 +140,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         failure
             .assertHasDescription("Could not determine the dependencies of task")
             .assertHasCause("Included build dependency cycle:")
-
-        // TODO:DAZ This message is technically correct, but not ideal.
-//            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
-        // Since 'buildB' is an API dependency of 'buildD', 'buildC' actually does require 'buildB',
-        // but this message is probably not what a user would expect.
-        // A more helpful cycle report would be something like:
-        //    "Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildD' -> build 'buildB'"
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildD'"))
     }
 
     // Not actually a cycle, just documenting behaviour

@@ -60,10 +60,26 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void startTaskExecution() {
+    public void startTaskExecution(boolean prePopulateTaskGraph) {
         this.taskExecutionStarted = true;
+        // Don't pre-populate the task graph for build-on-demand
+        if (prePopulateTaskGraph) {
+            populateTaskGraphs();
+        }
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.startTaskExecution();
+        }
+    }
+
+    private void populateTaskGraphs() {
+        boolean tasksDiscovered = true;
+        while (tasksDiscovered) {
+            tasksDiscovered = false;
+            for (IncludedBuildController buildController : buildControllers.values()) {
+                if (buildController.populateTaskGraph()) {
+                    tasksDiscovered = true;
+                }
+            }
         }
     }
 
@@ -73,6 +89,10 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             buildController.stopTaskExecution();
         }
         buildControllers.clear();
+        // TODO:DAZ Move this logic into IncludedBuildController, and register a controller for _every_ included build.
+        for (IncludedBuild includedBuild : includedBuilds.getBuilds()) {
+            ((IncludedBuildInternal) includedBuild).finishBuild();
+        }
     }
 
     @Override

@@ -16,16 +16,16 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 public class ProjectDependencyBuilder {
-    private final CompositeBuildIdeProjectResolver ideProjectResolver;
+    private final LocalComponentRegistry localComponentRegistry;
 
-    public ProjectDependencyBuilder(CompositeBuildIdeProjectResolver ideProjectResolver) {
-        this.ideProjectResolver = ideProjectResolver;
+    public ProjectDependencyBuilder(LocalComponentRegistry localComponentRegistry) {
+        this.localComponentRegistry = localComponentRegistry;
     }
 
     public ProjectDependency build(IdeProjectDependency dependency) {
@@ -33,7 +33,7 @@ public class ProjectDependencyBuilder {
     }
 
     private String determineTargetProjectPath(IdeProjectDependency dependency) {
-        ComponentArtifactMetadata eclipseProjectArtifact = ideProjectResolver.findArtifact(dependency.getProjectId(), "eclipse.project");
+        ComponentArtifactMetadata eclipseProjectArtifact = localComponentRegistry.findAdditionalArtifact(dependency.getProjectId(), "eclipse.project");
         String targetProjectName = eclipseProjectArtifact == null ? dependency.getProjectName() : eclipseProjectArtifact.getName().getName();
         return "/" + targetProjectName;
     }

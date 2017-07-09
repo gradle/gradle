@@ -25,4 +25,6 @@ public interface IncludedBuildController {
 
     void startTaskExecution();
     void stopTaskExecution();
+
+    boolean populateTaskGraph();
 }

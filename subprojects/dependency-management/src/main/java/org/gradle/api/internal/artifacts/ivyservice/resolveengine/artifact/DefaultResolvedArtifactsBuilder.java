@@ -61,9 +61,8 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         } else {
             ConfigurationMetadata configurationMetadata = to.getMetadata();
             if (configurationMetadata instanceof LocalConfigurationMetadata) {
-                // TODO:DAZ Make this better
                 // For a dependency from _another_ build to _this_ build, don't make the artifact buildable
-                // Doing so leads to poor error reporting due to direct task dependency cycle (losing the intervening build dependencies)
+                // Making these artifacts buildable leads to poor error reporting due to direct task dependency cycle (losing the intervening build dependencies)
                 ComponentIdentifier incomingId = from.getOwner().getComponentId();
                 ComponentIdentifier outgoingId = to.getOwner().getComponentId();
                 if (incomingId instanceof ProjectComponentIdentifier && outgoingId instanceof ProjectComponentIdentifier) {

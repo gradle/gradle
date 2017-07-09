@@ -49,6 +49,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private final IncludedBuildInternal includedBuild;
 
     private final Map<String, TaskState> tasks = Maps.newLinkedHashMap();
+    private final Set<String> tasksAdded = Sets.newHashSet();
 
     // Fields guarded by lock
     private final Lock lock = new ReentrantLock();
@@ -61,6 +62,24 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
     public DefaultIncludedBuildController(IncludedBuild includedBuild) {
         this.includedBuild = (IncludedBuildInternal) includedBuild;
+    }
+
+    @Override
+    public boolean populateTaskGraph() {
+        Set<String> tasksToExecute = Sets.newLinkedHashSet();
+        for (Map.Entry<String, TaskState> taskEntry : tasks.entrySet()) {
+            if (taskEntry.getValue().status == TaskStatus.QUEUED) {
+                String taskName = taskEntry.getKey();
+                if (tasksAdded.add(taskName)) {
+                    tasksToExecute.add(taskName);
+                }
+            }
+        }
+        if (tasksToExecute.isEmpty()) {
+            return false;
+        }
+        includedBuild.addTasks(tasksToExecute);
+        return true;
     }
 
     @Override
@@ -240,7 +259,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
         @Override
         public void graphPopulated(TaskExecutionGraph taskExecutionGraph) {
-            // TODO:DAZ There must be a better way to do this: this failure should occur during evaluation, not execution
+            // TODO:DAZ When scheduling tasks for included build, use an unambiguous task reference (rather than a string)
             for (String task : tasksToExecute) {
                 if (!taskExecutionGraph.hasTask(task)) {
                     throw new GradleException("Task '" + task + "' not found in build '" + includedBuild.getName() + "'.");

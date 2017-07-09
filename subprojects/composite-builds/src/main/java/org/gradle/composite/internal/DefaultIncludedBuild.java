@@ -28,8 +28,10 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
@@ -96,6 +98,15 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         return getGradleLauncher().getConfiguredBuild();
     }
 
+    @Override
+    public void finishBuild() {
+        getGradleLauncher().finishBuild();
+    }
+
+    public synchronized void addTasks(Iterable<String> taskPaths) {
+        getGradleLauncher().scheduleTasks(taskPaths);
+    }
+
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
             gradleLauncher = gradleLauncherFactory.create();
@@ -104,12 +115,19 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     @Override
-    public void execute(final Iterable<String> tasks, final Object listener) {
+    public synchronized void execute(final Iterable<String> tasks, final Object listener) {
         final GradleLauncher launcher = getGradleLauncher();
-        launcher.scheduleTasks(tasks);
         launcher.addListener(listener);
+        launcher.scheduleTasks(tasks);
         try {
-            launcher.run();
+            // TODO:DAZ Should share the same worker lease as the main build, or avoid separate pool of task workers per build
+            WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
+            workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Runnable() {
+                @Override
+                public void run() {
+                    launcher.executeTasks();
+                }
+            });
         } finally {
             markAsNotReusable();
         }
@@ -121,6 +139,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public String toString() {
-        return String.format("includedBuild[%s]", projectDir.getPath());
+        return String.format("includedBuild[%s]", projectDir.getName());
     }
 }
