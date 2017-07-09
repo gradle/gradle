@@ -54,15 +54,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
-    private final ProjectArtifactBuilder artifactBuilder;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ArtifactResolver self;
     // This should live closer to the project itself
     private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allProjectArtifacts = new ConcurrentHashMap<ComponentArtifactIdentifier, ResolvableArtifact>();
 
-    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ProjectArtifactBuilder artifactBuilder, ComponentIdentifierFactory componentIdentifierFactory) {
+    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ComponentIdentifierFactory componentIdentifierFactory) {
         this.localComponentRegistry = localComponentRegistry;
-        this.artifactBuilder = artifactBuilder;
         this.componentIdentifierFactory = componentIdentifierFactory;
         self = new ErrorHandlingArtifactResolver(this);
     }
@@ -140,9 +138,6 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         if (isProjectModule(artifact.getComponentId())) {
             LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
-
-            // Run any registered actions to build this artifact
-            artifactBuilder.build(projectArtifact);
 
             File localArtifactFile = projectArtifact.getFile();
             if (localArtifactFile != null) {
