@@ -23,7 +23,7 @@ configurations {
 }
 
 classpathManifest {
-    optionalProjects = ['gradle-script-kotlin']
+    optionalProjects = ['gradle-kotlin-dsl']
 }
 
 dependencies {

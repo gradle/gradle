@@ -22,12 +22,10 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
-import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
-@Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
 @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
 class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -96,15 +94,8 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def withKotlinBuildSrc() {
-        file("buildSrc/settings.gradle")  << "rootProject.buildFileName = 'build.gradle.kts'"
         file("buildSrc/build.gradle.kts") << """
-            buildscript {
-                repositories { gradleScriptKotlin() }
-                dependencies { classpath(kotlinModule("gradle-plugin")) }
-            }
-            apply { plugin("kotlin") }
-            repositories { gradleScriptKotlin() }
-            dependencies { compile(gradleScriptKotlinApi()) }
+            plugins { `kotlin-dsl` }
         """
     }
 

@@ -125,8 +125,7 @@ org.gradle.api.internal.tasks.CompileServices
             'org/gradle/reporting/report.js',
             'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
             'aQute/libg/tuple/packageinfo',
-            'org/joda/time/tz/data/Africa/Abidjan',
-            'com/sun/jna/win32-amd64/jnidispatch.dll'])
+            'org/joda/time/tz/data/Africa/Abidjan'])
         def jarFile6 = inputFilesDir.file('lib6.jar')
         createJarFileWithProviderConfigurationFile(jarFile6, 'org.gradle.internal.other.Service', 'org.gradle.internal.other.ServiceImpl')
         def inputDirectory = inputFilesDir.createDir('dir1')
@@ -150,7 +149,6 @@ org.gradle.api.internal.tasks.CompileServices
                 'org/gradle/MySecondClass.class',
                 'aQute/libg/tuple/packageinfo',
                 'org/gradle/internal/impldep/aQute/libg/tuple/packageinfo',
-                'org/gradle/internal/impldep/com/sun/jna/win32-amd64/jnidispatch.dll',
                 'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
                 'org/gradle/reporting/report.js',
                 'org/joda/time/tz/data/Africa/Abidjan',
@@ -162,7 +160,7 @@ org.gradle.api.internal.tasks.CompileServices
                 'META-INF/services/org.gradle.internal.other.Service',
                 'META-INF/.gradle-runtime-shaded']
         }
-        outputJar.md5Hash == "6b67248faadbad1356001b6331810c8b"
+        outputJar.md5Hash == "8eb7b9c992e83362a1445585b00a4fd0"
     }
 
     def "merges provider-configuration file with the same name"() {
@@ -347,7 +345,7 @@ org.gradle.api.internal.tasks.CompileServices"""
                                      'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib']
         def duplicateResources = ['aQute/libg/tuple/packageinfo',
                                   'org/joda/time/tz/data/Africa/Abidjan']
-        def onlyRelocatedResources = ['com/sun/jna/win32-amd64/jnidispatch.dll']
+        def onlyRelocatedResources = [] // None
         def generatedFiles = [GradleRuntimeShadedJarDetector.MARKER_FILENAME]
         def resources = noRelocationResources + duplicateResources + onlyRelocatedResources
         def inputFilesDir = tmpDir.createDir('inputFiles')

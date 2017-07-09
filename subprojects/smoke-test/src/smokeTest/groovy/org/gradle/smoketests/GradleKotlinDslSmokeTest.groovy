@@ -17,18 +17,21 @@
 package org.gradle.smoketests
 
 import org.gradle.util.Requires
-import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-class GradleScriptKotlinSmokeTest extends AbstractSmokeTest {
+class GradleKotlinDslSmokeTest extends AbstractSmokeTest {
 
-    @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
+    @Override
+    protected String getDefaultBuildFileName() {
+        'build.gradle.kts'
+    }
+
     @Requires(KOTLIN_SCRIPT)
     def 'multi-project build with buildSrc'() {
         given:
-        useSample("gsk-multi-project-with-buildSrc")
+        useSample("kotlin-dsl-multi-project-with-buildSrc")
 
         when:
         def result = runner('hello').build()

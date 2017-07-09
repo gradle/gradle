@@ -28,7 +28,11 @@ abstract class AbstractSmokeTest extends Specification {
     File buildFile
 
     def setup() {
-        buildFile = testProjectDir.newFile('build.gradle')
+        buildFile = testProjectDir.newFile(defaultBuildFileName)
+    }
+
+    protected String getDefaultBuildFileName() {
+        'build.gradle'
     }
 
     File file(String filename) {

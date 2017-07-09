@@ -147,7 +147,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         !PULL_REQUEST_BUILD.fulfilled
     }),
     KOTLIN_SCRIPT({
-        FIX_TO_WORK_ON_JAVA9.fulfilled && NOT_JDK_IBM.fulfilled
+        JDK8_OR_LATER.fulfilled && FIX_TO_WORK_ON_JAVA9.fulfilled && NOT_JDK_IBM.fulfilled
     })
 
     /**
