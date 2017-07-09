@@ -18,13 +18,8 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
-import org.gradle.initialization.BuildIdentity;
-import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
-
-import java.io.File;
 
 /**
  * Resolves and builds IDE metadata artifacts from other projects within the same build.
@@ -35,15 +30,13 @@ import java.io.File;
  */
 public class CompositeBuildIdeProjectResolver {
     private final LocalComponentRegistry registry;
-    private final ProjectArtifactBuilder artifactBuilder;
 
     public static CompositeBuildIdeProjectResolver from(ServiceRegistry services) {
-        return new CompositeBuildIdeProjectResolver(services.get(LocalComponentRegistry.class), services.get(IncludedBuildTaskGraph.class), services.get(BuildIdentity.class));
+        return new CompositeBuildIdeProjectResolver(services.get(LocalComponentRegistry.class));
     }
 
-    public CompositeBuildIdeProjectResolver(LocalComponentRegistry registry, IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
+    public CompositeBuildIdeProjectResolver(LocalComponentRegistry registry) {
         this.registry = registry;
-        artifactBuilder = new CompositeProjectArtifactBuilder(new IncludedBuildArtifactBuilder(includedBuilds), buildIdentity);
     }
 
     /**
@@ -58,17 +51,5 @@ public class CompositeBuildIdeProjectResolver {
             }
         }
         return null;
-    }
-
-    /**
-     * Finds an IDE metadata artifact with the specified type, and executes tasks to build the artifact file.
-     */
-    public File buildArtifactFile(ProjectComponentIdentifier project, String type) {
-        LocalComponentArtifactMetadata artifactMetaData = findArtifact(project, type);
-        if (artifactMetaData == null) {
-            return null;
-        }
-        artifactBuilder.build(artifactMetaData);
-        return artifactMetaData.getFile();
     }
 }

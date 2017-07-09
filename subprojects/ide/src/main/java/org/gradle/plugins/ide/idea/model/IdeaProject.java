@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
 import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.Path;
@@ -341,9 +342,9 @@ public class IdeaProject {
                 // IDEA Module for project in current build: handled via `modules` model elements.
                 continue;
             }
-            File imlFile = moduleToProjectMapper.buildArtifactFile(otherProjectId, "iml");
-            if (imlFile != null) {
-                xmlProject.addModulePath(imlFile);
+            LocalComponentArtifactMetadata imlArtifact = moduleToProjectMapper.findArtifact(otherProjectId, "iml");
+            if (imlArtifact != null) {
+                xmlProject.addModulePath(imlArtifact.getFile());
             }
         }
     }
