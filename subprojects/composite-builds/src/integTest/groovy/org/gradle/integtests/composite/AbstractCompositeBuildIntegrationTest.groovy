@@ -153,6 +153,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
         singleProjectBuild(name) {
             buildFile << """
 apply plugin: 'java-gradle-plugin'
+apply plugin: 'maven-publish'
 
 gradlePlugin {
     plugins {

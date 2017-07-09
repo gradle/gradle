@@ -48,6 +48,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         execute(buildA, "tasks")
 
         then:
+        executed ":pluginBuild:jar"
         outputContains("taskFromPluginBuild")
     }
 
@@ -102,10 +103,65 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         execute(buildA, "tasks")
 
         then:
+        executed ":pluginBuild:jar"
         outputContains("taskFromPluginBuild")
     }
 
-    // TODO:DAZ Fix this: https://builds.gradle.org/viewLog.html?buildId=4295932&buildTypeId=Gradle_Check_NoDaemon_Java8_Oracle_Linux_compositeBuilds
+    def "can develop a transitive plugin dependency as included build"() {
+        given:
+        applyPlugin(buildA)
+        dependency(pluginBuild, "org.test:pluginDependencyA:1.0")
+
+        includeBuild pluginBuild
+        includeBuild pluginDependencyA
+
+        when:
+        execute(buildA, "taskFromPluginBuild")
+
+        then:
+        executed ":pluginDependencyA:jar", ":pluginBuild:jar", ":taskFromPluginBuild"
+    }
+
+
+    def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
+        given:
+        publishPluginWithDependency()
+
+        buildA.buildFile << """
+            buildscript {
+                repositories {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
+            }
+"""
+        applyPlugin(buildA)
+
+        when:
+        includeBuild pluginDependencyA
+        execute(buildA, "taskFromPluginBuild")
+
+        then:
+        executed ":pluginDependencyA:jar", ":taskFromPluginBuild"
+        notExecuted ":pluginBuild:jar"
+    }
+
+    private void publishPluginWithDependency() {
+        dependency pluginBuild, 'org.test:pluginDependencyA:1.0'
+        pluginBuild.buildFile << """
+publishing {
+    repositories {
+        maven {
+            url '${mavenRepo.uri}'
+        }
+    }
+}
+"""
+        executer.inDirectory(pluginBuild).withArguments('--include-build', pluginDependencyA.absolutePath).withTasks('publish').run()
+    }
+
+// TODO:DAZ Fix this: https://builds.gradle.org/viewLog.html?buildId=4295932&buildTypeId=Gradle_Check_NoDaemon_Java8_Oracle_Linux_compositeBuilds
     @Ignore("Cycle check is not parallel safe: test may hang or produce StackOverflowError")
     def "detects dependency cycle between included builds required for buildscript classpath"() {
         given:
