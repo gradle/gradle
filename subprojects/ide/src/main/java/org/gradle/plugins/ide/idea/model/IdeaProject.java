@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
 import org.gradle.initialization.ProjectPathRegistry;
@@ -347,13 +346,5 @@ public class IdeaProject {
                 xmlProject.addModulePath(imlFile);
             }
         }
-    }
-
-    private static ProjectIdentifier getRoot(ProjectIdentifier projectIdentifier) {
-        ProjectIdentifier parent = projectIdentifier.getParentIdentifier();
-        if (parent == null) {
-            return projectIdentifier;
-        }
-        return getRoot(parent);
     }
 }
