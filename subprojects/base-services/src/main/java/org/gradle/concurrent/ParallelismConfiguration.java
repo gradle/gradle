@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.concurrent;
+package org.gradle.concurrent;
 
 import org.gradle.api.Incubating;
 

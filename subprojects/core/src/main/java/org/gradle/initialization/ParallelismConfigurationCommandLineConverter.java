@@ -20,7 +20,7 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.api.concurrent.ParallelismConfiguration;
+import org.gradle.concurrent.ParallelismConfiguration;
 
 public class ParallelismConfigurationCommandLineConverter extends AbstractCommandLineConverter<ParallelismConfiguration> {
     private static final String PARALLEL = "parallel";

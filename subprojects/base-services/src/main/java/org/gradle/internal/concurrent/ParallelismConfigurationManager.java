@@ -16,7 +16,7 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.api.concurrent.ParallelismConfiguration;
+import org.gradle.concurrent.ParallelismConfiguration;
 
 /**
  * Maintains information about max workers that can be accessed from any scope
