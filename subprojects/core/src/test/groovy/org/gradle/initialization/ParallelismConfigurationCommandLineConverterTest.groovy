@@ -17,7 +17,7 @@ package org.gradle.initialization
 
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.api.concurrent.ParallelismConfiguration
+import org.gradle.concurrent.ParallelismConfiguration
 import spock.lang.Specification
 import spock.lang.Unroll
 

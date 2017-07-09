@@ -24,7 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
-import org.gradle.api.concurrent.ParallelismConfiguration;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.AbstractTrackedResourceLock;

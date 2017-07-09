@@ -16,7 +16,7 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.api.concurrent.ParallelismConfiguration;
+import org.gradle.concurrent.ParallelismConfiguration;
 
 /**
  * A listener that is notified when the parallelism configuration changes.

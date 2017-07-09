@@ -28,7 +28,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
-import org.gradle.api.concurrent.ParallelismConfiguration;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
