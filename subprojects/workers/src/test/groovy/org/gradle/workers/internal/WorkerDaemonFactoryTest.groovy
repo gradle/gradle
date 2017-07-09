@@ -66,7 +66,7 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveIdleClient(options) >> null
 
         then:
-        1 * clientsManager.reserveNewClient(workerProtocolImplementation.class, _, options) >> client
+        1 * clientsManager.reserveNewClient(workerProtocolImplementation.class, options) >> client
 
         then:
         1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
