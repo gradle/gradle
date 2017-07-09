@@ -67,14 +67,15 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
 
     }
 
-    def "uses substituted dependency when root build dependencies are resolved at configuration time"() {
+    def "references but does not build substituted dependency resolved at configuration time"() {
         configurationTimeDependency 'org.test:buildB:1.0'
 
         when:
         execute buildA, ":resolve"
 
         then:
-        executedInOrder ":buildB:jar", ":resolve"
+        executed ":resolve"
+        notExecuted ":buildB:jar"
         result.assertOutputContains "[$buildBjar]"
 
         configured("buildB") == 1
@@ -94,7 +95,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         configured("buildB") == 1
     }
 
-    def "uses substituted dependency when root build dependencies are resolved at both configuration and execution time"() {
+    def "references substituted dependencies when root build dependencies are resolved at both configuration and execution time"() {
         configurationTimeDependency 'org.test:buildB:1.0'
         dependency 'org.test:b1:1.0'
 
@@ -102,14 +103,16 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         execute buildA, ":resolve"
 
         then:
-        executedInOrder ":buildB:jar", ":buildB:b1:jar", ":resolve"
+        executedInOrder ":buildB:b1:jar", ":resolve"
+        notExecuted ":buildB:jar"
+
         result.assertOutputContains("[$buildBjar]")
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
 
-        configured("buildB") >= 2
+        configured("buildB") == 1
     }
 
-    def "included build uses substituted dependency from preceding included build"() {
+    def "included build references substituted dependency from preceding included build"() {
         dependency 'org.test:buildC:1.0'
         configurationTimeDependency buildC, 'org.test:buildB:1.0'
 
@@ -117,7 +120,8 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         execute buildA, ":help"
 
         then:
-        executedInOrder ":buildB:jar", ":help"
+        executed ":help"
+        notExecuted ":buildB:jar"
         result.assertOutputContains("[$buildBjar]")
 
         configured("buildB") == 1
