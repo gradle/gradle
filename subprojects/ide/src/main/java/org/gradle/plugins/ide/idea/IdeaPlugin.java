@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -42,7 +43,6 @@ import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
 import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
@@ -51,7 +51,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
-import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -62,6 +61,7 @@ import org.gradle.plugins.ide.idea.model.PathFactory;
 import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
 
@@ -488,7 +488,7 @@ public class IdeaPlugin extends IdePlugin {
         List<TaskDependency> dependencies = Lists.newArrayList();
         ServiceRegistry services = project.getServices();
         ProjectPathRegistry projectPathRegistry = services.get(ProjectPathRegistry.class);
-        CompositeBuildIdeProjectResolver moduleToProjectMapper = CompositeBuildIdeProjectResolver.from(services);
+        LocalComponentRegistry localComponentRegistry = services.get(LocalComponentRegistry.class);
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.getProjectComponentIdentifier(project.getIdentityPath());
         for (Path projectPath : projectPathRegistry.getAllProjectPaths()) {
             final ProjectComponentIdentifier otherProjectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
@@ -496,7 +496,7 @@ public class IdeaPlugin extends IdePlugin {
                 // IDEA Module for project in current build: handled via `modules` model elements.
                 continue;
             }
-            LocalComponentArtifactMetadata imlArtifact = moduleToProjectMapper.findArtifact(otherProjectId, "iml");
+            LocalComponentArtifactMetadata imlArtifact = localComponentRegistry.findAdditionalArtifact(otherProjectId, "iml");
             if (imlArtifact != null) {
                 dependencies.add(imlArtifact.getBuildDependencies());
             }
