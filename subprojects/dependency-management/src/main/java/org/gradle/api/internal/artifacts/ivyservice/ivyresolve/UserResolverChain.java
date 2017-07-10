@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -34,11 +33,11 @@ public class UserResolverChain implements ComponentResolvers {
     private final RepositoryChainArtifactResolver artifactResolver;
     private final ComponentSelectionRulesInternal componentSelectionRules;
 
-    public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules, ImmutableModuleIdentifierFactory moduleIdentifierFactory, CacheLockingManager cacheLockingManager) {
+    public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.componentSelectionRules = componentSelectionRules;
         VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
-        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(versionSelectorScheme, componentChooser, metaDataFactory, moduleIdentifierFactory, cacheLockingManager);
+        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(versionSelectorScheme, componentChooser, metaDataFactory, moduleIdentifierFactory);
         componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, metaDataFactory);
         artifactResolver = new RepositoryChainArtifactResolver();
     }
