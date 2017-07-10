@@ -78,8 +78,8 @@ We would like to thank the following community members for making contributions 
  - [Björn Kautler](https://github.com/Vampire) - Fix WTP component version (#2076)
  - [Bo Zhang](https://github.com/blindpirate) - Add support for 'console' output type of CodeNarc plugin (#2170)
  - [Bo Zhang](https://github.com/blindpirate) - Fix infinite loop when using `Path` for task property (#1973)
- - [Marcin Zajączkowski](https://github.com/szpak) - Add @since tag to Project.findProperty()
- - [Seth Jackson](https://github.com/sethjackson) - Fix the default daemon JVM args on Java 8
+ - [Marcin Zajączkowski](https://github.com/szpak) - Add `@since` tag to `Project.findProperty()` (#2403)
+ - [Seth Jackson](https://github.com/sethjackson) - Fix the default daemon JVM args on Java 8 (#2310)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
