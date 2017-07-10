@@ -150,6 +150,5 @@
         <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/commandLine.xml'/>
         <xi:include href='licenses.xml'/>
-        <xi:include href='glossary.xml'/>
     </part>
 </book>
