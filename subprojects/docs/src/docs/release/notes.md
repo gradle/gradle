@@ -1,7 +1,3 @@
-The Gradle team is pleased to announce the release of Gradle 4.1.
-
-This release now supports running Gradle on the most recent JDK 9 release (b170+). It also optimizes startup speed, positively affecting the execution time of every build.
-
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -10,31 +6,9 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-
-### Faster Gradle command line client
-
-The Gradle command line client now starts up ~200ms faster, speeding up every build.
-
-### Continuous build now works with composite builds
-
-Gradle's [continuous build feature](userguide/continuous_build.html) now works with [composite builds](userguide/composite_builds.html). Gradle will automatically detect changes to any input from any build and rebuild the appropriate pieces.
-
-### CodeNarc plugin supports report format 'console'
-
-The CodeNarc plugin now supports outputting reports directly to the console through the `console` report format.
-```
-codenarc {
-    reportFormat = 'console'
-}
-```
-
-### APIs to define calculated task input and output locations
-
-TBD - This release builds on the `Provider` concept added in Gradle 4.0 to add conveniences that allow plugins and build scripts to define task input and output locations that are calculated lazily. For example, a common problem when implementing a plugin is how to define task output locations relative to the project's build directory in a way that deals with changes to the build directory location later during project configuration.
-
-- Added `Directory` and `RegularFile` abstractions and providers to represent locations that are calculated lazily.
-- Added a `ProjectLayout` service that allows input and output locations to be defined relative to the project's project directory and build directory. 
-- `Project.file()` and `Project.files()` can resolve `Provider` instances to `File` and `FileCollection` instances.
+<!--
+### Example new and noteworthy
+-->
 
 ## Promoted features
 
@@ -62,24 +36,17 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Changes to handling of project dependencies from a project that does not use the Java plugin to a project that does
-
-When a project that does not use the Java plugin has a project dependency on a project that uses the Java plugin, either directly or indirectly via another plugin, then the `runtimeElements` configuration of the target project will be selected. Previous versions of Gradle would select the `default` configuration in this case.
-
-Previous versions of Gradle would select the `runtimeElements` when both projects are using the Java plugin.
-
-This change makes the selection behaviour consistent so that the `runtimeElements` configuration is selected regardless of whether the consuming project uses the Java plugin or not. This is also consistent with the selection when the consuming project is using one of the Android plugins.
+<!--
+### Example breaking change
+-->
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
- - [Jörn Huxhorn](https://github.com/huxi) - Replace uses of `Stack` with `ArrayDeque` (#771)
- - [Björn Kautler](https://github.com/Vampire) - Fix WTP component version (#2076)
- - [Bo Zhang](https://github.com/blindpirate) - Add support for 'console' output type of CodeNarc plugin (#2170)
- - [Bo Zhang](https://github.com/blindpirate) - Fix infinite loop when using `Path` for task property (#1973)
- - [Marcin Zajączkowski](https://github.com/szpak) - Add @since tag to Project.findProperty()
- - [Seth Jackson](https://github.com/sethjackson) - Fix the default daemon JVM args on Java 8
+<!--
+ - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
+-->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
