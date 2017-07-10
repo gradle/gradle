@@ -94,6 +94,7 @@ We would like to thank the following community members for making contributions 
  - [Bo Zhang](https://github.com/blindpirate) - Fix infinite loop when using `Path` for task property (#1973)
  - [Marcin Zajączkowski](https://github.com/szpak) - Add `@since` tag to `Project.findProperty()` (#2403)
  - [Seth Jackson](https://github.com/sethjackson) - Fix the default daemon JVM args on Java 8 (#2310)
+ - [Ismael Juma](https://github.com/ijuma) - Update default Zinc compiler version to 0.13.15 with preliminary Java 9 support (#2420)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
