@@ -251,7 +251,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
-                                              ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex, CacheLockingManager cacheLockingManager,
+                                              ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory,
                                               VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
@@ -260,7 +260,6 @@ class DependencyManagementBuildScopeServices {
             moduleMetaDataCache,
             moduleArtifactsCache,
             artifactAtRepositoryCachedArtifactIndex,
-            cacheLockingManager,
             startParameterResolutionOverride,
             buildCommencedTimeProvider,
             inMemoryCachedRepositoryFactory,

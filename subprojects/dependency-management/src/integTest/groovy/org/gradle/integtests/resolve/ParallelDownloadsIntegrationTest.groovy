@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -252,6 +253,79 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         expect:
         executer.withArguments('--max-workers', '4')
         succeeds("resolve")
+    }
+
+    @Issue("gradle/gradle#2415")
+    def "should not deadlock when downloading parent pom concurrently with a top-level dependency"() {
+        given:
+        def child1 = mavenRepo.module("org", "child1", "1.0")
+        child1.parent("org", "parent1", "1.0")
+        child1.publish()
+
+        def child2 = mavenRepo.module("org", "child2", "1.0")
+        child2.parent("org", "parent2", "1.0")
+        child2.publish()
+
+        def parent1 = mavenRepo.module("org", "parent1", "1.0")
+        parent1.hasPackaging('pom')
+        parent1.publish()
+
+        def parent2 = mavenRepo.module("org", "parent2", "1.0")
+        parent2.hasPackaging('pom')
+        parent2.publish()
+
+        buildFile << """
+            repositories {
+                maven { 
+                    url = uri('$server.uri')
+                    $authConfig
+                }
+            }
+
+            configurations { compile }
+            dependencies { 
+                compile 'org:child1:1.0' 
+                compile 'org:child2:1.0'    
+            }
+            
+            task resolve {
+               inputs.files configurations.compile
+                  doLast {
+                      println configurations.compile.files
+                  }
+            }
+        """
+
+        when:
+        def getChildrenConcurrently = server.expectConcurrentAndBlock(
+            server.file(child1.pom.path, child1.pom.file),
+            server.file(child2.pom.path, child2.pom.file),
+        )
+
+        def getParentsConcurrently = server.expectConcurrentAndBlock(
+            server.file(parent1.pom.path, parent1.pom.file),
+            server.file(parent2.pom.path, parent2.pom.file),
+        )
+
+        def jars = server.expectConcurrentAndBlock(
+            server.file(child1.artifact.path, child1.artifact.file),
+            server.file(child2.artifact.path, child2.artifact.file),
+        )
+
+        then:
+        executer.withArguments('--max-workers', '4')
+        def build = executer.withTasks("resolve").start()
+
+        getChildrenConcurrently.waitForAllPendingCalls()
+        getChildrenConcurrently.releaseAll()
+
+        getParentsConcurrently.waitForAllPendingCalls()
+        getParentsConcurrently.releaseAll()
+
+        jars.waitForAllPendingCalls()
+        jars.release(2)
+
+        build.waitForFinish()
     }
 
 }
