@@ -28,10 +28,10 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
@@ -122,12 +122,14 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         try {
             // TODO:DAZ Should share the same worker lease as the main build, or avoid separate pool of task workers per build
             WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
-            workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Runnable() {
-                @Override
-                public void run() {
-                    launcher.executeTasks();
-                }
-            });
+            final WorkerLeaseRegistry.WorkerLease workerLease = workerLeaseService.getWorkerLease();
+            WorkerLeaseRegistry.WorkerLease childLease = workerLease.createChild();
+            WorkerLeaseRegistry.WorkerLeaseCompletion completion = childLease.startChild();
+            try {
+                launcher.executeTasks();
+            } finally {
+                completion.leaseFinish();
+            }
         } finally {
             markAsNotReusable();
         }
