@@ -53,6 +53,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 We would like to thank the following community members for making contributions to this release of Gradle.
 
  - [Bo Zhang](https://github.com/blindpirate) - Fix infinite loop when using `Path` for task property (#1973)
+ - [Marcin Zajączkowski](https://github.com/szpak) - Add @since tag to Project.findProperty()
+ - [Seth Jackson](https://github.com/sethjackson) - Fix the default daemon JVM args on Java 8
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
