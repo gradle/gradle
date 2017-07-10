@@ -194,7 +194,7 @@ libraries.awsS3 = [
 ] + libraries.commons_httpclient + libraries.joda
 
 // keep in sync with ScalaLanguagePlugin code
-libraries.zinc = 'com.typesafe.zinc:zinc:0.3.13'
+libraries.zinc = 'com.typesafe.zinc:zinc:0.3.15'
 
 allprojects {
     configurations.all {
