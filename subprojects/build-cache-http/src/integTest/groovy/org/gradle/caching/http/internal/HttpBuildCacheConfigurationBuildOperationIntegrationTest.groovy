@@ -18,7 +18,7 @@ package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.test.fixtures.server.http.HttpBuildCache
+import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -44,13 +44,13 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Rule
-    HttpBuildCache httpBuildCache = new HttpBuildCache(testDirectoryProvider)
+    HttpBuildCacheServer httpBuildCacheServer = new HttpBuildCacheServer(testDirectoryProvider)
 
     @Unroll
     def "remote build cache configuration is exposed"() {
         given:
-        httpBuildCache.start()
-        def url = "${httpBuildCache.uri}/"
+        httpBuildCacheServer.start()
+        def url = "${httpBuildCacheServer.uri}/"
         settingsFile << """
             buildCache {  
                 local {
@@ -97,8 +97,8 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
 
     def "remote build cache configuration is exposed when basic auth is encoded on the url"() {
         given:
-        httpBuildCache.start()
-        def safeUri = httpBuildCache.uri
+        httpBuildCacheServer.start()
+        def safeUri = httpBuildCacheServer.uri
         def basicAuthUri = new URI(safeUri.getScheme(), 'user:pwd', safeUri.getHost(), safeUri.getPort(), safeUri.getPath(), safeUri.getQuery(), safeUri.getFragment())
         settingsFile << """
             buildCache {  
@@ -121,8 +121,8 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
 
     def "--offline wins over DSL configuration when exposing remote enabled configuration"() {
         given:
-        httpBuildCache.start()
-        def url = "${httpBuildCache.uri}/"
+        httpBuildCacheServer.start()
+        def url = "${httpBuildCacheServer.uri}/"
         settingsFile << """
             buildCache {  
                 remote(org.gradle.caching.http.HttpBuildCache) {
@@ -142,8 +142,8 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
 
     def "remote build cache configuration details is not exposed when disabled"() {
         given:
-        httpBuildCache.start()
-        def url = "${httpBuildCache.uri}/"
+        httpBuildCacheServer.start()
+        def url = "${httpBuildCacheServer.uri}/"
         settingsFile << """
             buildCache {  
                 remote(org.gradle.caching.http.HttpBuildCache) {

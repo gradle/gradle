@@ -25,13 +25,13 @@ import org.mortbay.jetty.servlet.FilterHolder
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.servlet.RestFilter
 
-class HttpBuildCache extends ExternalResource implements HttpServerFixture {
+class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture {
     private final TestDirectoryProvider provider
     private final WebAppContext webapp
     private TestFile cacheDir
     private long dropConnectionForPutBytes = -1
 
-    HttpBuildCache(TestDirectoryProvider provider) {
+    HttpBuildCacheServer(TestDirectoryProvider provider) {
         this.provider = provider
         this.webapp = new WebAppContext()
     }

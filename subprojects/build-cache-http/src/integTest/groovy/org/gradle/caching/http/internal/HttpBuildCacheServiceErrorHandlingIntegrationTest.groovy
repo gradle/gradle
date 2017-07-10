@@ -52,7 +52,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
     }
 
     def "build does not fail if connection drops during store"() {
-        httpBuildCache.dropConnectionForPutAfterBytes(1024)
+        httpBuildCacheServer.dropConnectionForPutAfterBytes(1024)
         startServer()
         String errorPattern = /(Broken pipe|Connection reset|Software caused connection abort: socket write error)/
 
@@ -66,7 +66,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
     }
 
     private void startServer() {
-        httpBuildCache.start()
-        settingsFile << useHttpBuildCache(httpBuildCache.uri)
+        httpBuildCacheServer.start()
+        settingsFile << useHttpBuildCache(httpBuildCacheServer.uri)
     }
 }

@@ -35,9 +35,9 @@ class DropConnectionFilter implements Filter {
     private static final String HTTP_METHOD_DELETE = "DELETE"
     private FilterConfig filterConfig
     private final long dropConnectionForPutBytes
-    private final HttpBuildCache buildCache
+    private final HttpBuildCacheServer buildCache
 
-    DropConnectionFilter(long dropConnectionForPutBytes, HttpBuildCache buildCache) {
+    DropConnectionFilter(long dropConnectionForPutBytes, HttpBuildCacheServer buildCache) {
         this.dropConnectionForPutBytes = dropConnectionForPutBytes
         this.buildCache = buildCache
     }
