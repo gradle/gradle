@@ -43,7 +43,7 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
 
         /**
          * The target of the plugin.
-         * One of "gradle", "settings", "project" or null.
+         * One of "gradle", "settings", "project".
          */
         String getTargetType();
 
