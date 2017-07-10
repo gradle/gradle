@@ -20,7 +20,7 @@ import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -66,7 +66,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                           ExecutorFactory executorFactory,
                                           LoggingManagerInternal loggingManager,
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
-                                          ParallelExecutionManager parallelExecutionManager) {
+                                          ParallelismConfigurationManager parallelismConfigurationManager) {
             return new SetupLoggingActionExecuter(
                 new SessionFailureReportingActionExecuter(
                     new StartParamsValidatingActionExecuter(
@@ -86,9 +86,9 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                         styledTextOutputFactory,
                                         executorFactory),
                                     userHomeServiceRegistry)),
-                        parallelExecutionManager)),
+                            parallelismConfigurationManager)),
                     styledTextOutputFactory),
-                loggingManager, parallelExecutionManager);
+                loggingManager, parallelismConfigurationManager);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

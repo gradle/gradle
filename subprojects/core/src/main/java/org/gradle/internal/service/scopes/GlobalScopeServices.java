@@ -60,7 +60,7 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
 import org.gradle.initialization.DefaultLegacyTypesSupport;
-import org.gradle.initialization.DefaultParallelExecutionManager;
+import org.gradle.initialization.DefaultParallelismConfigurationManager;
 import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
@@ -69,7 +69,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
@@ -328,8 +328,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultTaskInputsListener();
     }
 
-    ParallelExecutionManager createMaxWorkersManager(ListenerManager listenerManager) {
-        return new DefaultParallelExecutionManager(listenerManager);
+    ParallelismConfigurationManager createMaxWorkersManager(ListenerManager listenerManager) {
+        return new DefaultParallelismConfigurationManager(listenerManager);
     }
 
     PatternSpecFactory createPatternSpecFactory() {

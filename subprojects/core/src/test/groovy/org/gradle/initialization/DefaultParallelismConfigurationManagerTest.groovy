@@ -16,17 +16,18 @@
 
 package org.gradle.initialization
 
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.concurrent.ParallelismConfiguration
 import org.gradle.internal.concurrent.ParallelismConfigurationListener
 import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
 
 
-class DefaultParallelExecutionManagerTest extends Specification {
+class DefaultParallelismConfigurationManagerTest extends Specification {
     ParallelismConfigurationListener broadcaster = Mock(ParallelismConfigurationListener)
     ListenerManager listenerManager = Mock(ListenerManager) { 1 * getBroadcaster(ParallelismConfigurationListener.class) >> broadcaster }
-    ParallelExecutionManager parallelExecutionManager = new DefaultParallelExecutionManager(listenerManager)
+    ParallelismConfigurationManager parallelExecutionManager = new DefaultParallelismConfigurationManager(listenerManager)
     ParallelismConfiguration configuration = Mock(ParallelismConfiguration)
 
     def "notifies listeners when parallelism configuration changes"() {
@@ -34,7 +35,7 @@ class DefaultParallelExecutionManagerTest extends Specification {
         parallelExecutionManager.setParallelismConfiguration(configuration)
 
         then:
-        1 * broadcaster.onConfigurationChange(configuration)
+        1 * broadcaster.onParallelismConfigurationChange(configuration)
     }
 
     def "registers/deregisters listeners with listener manager"() {

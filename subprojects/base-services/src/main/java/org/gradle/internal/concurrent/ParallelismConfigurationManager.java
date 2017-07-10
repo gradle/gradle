@@ -19,7 +19,7 @@ package org.gradle.internal.concurrent;
 /**
  * Maintains information about max workers that can be accessed from any scope
  */
-public interface ParallelExecutionManager {
+public interface ParallelismConfigurationManager {
     /**
      * Get the current parallelism configuration.
      */

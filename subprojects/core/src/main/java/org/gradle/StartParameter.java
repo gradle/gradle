@@ -27,7 +27,7 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
-import org.gradle.initialization.DefaultParallelismConfiguration;
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.initialization.DistributionInitScriptFinder;
 import org.gradle.internal.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.UserHomeInitScriptFinder;
