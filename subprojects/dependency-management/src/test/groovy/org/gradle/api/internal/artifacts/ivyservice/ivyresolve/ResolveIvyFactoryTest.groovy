@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
@@ -47,7 +46,6 @@ class ResolveIvyFactoryTest extends Specification {
     ModuleMetaDataCache moduleMetaDataCache
     ModuleArtifactsCache moduleArtifactsCache
     CachedArtifactIndex cachedArtifactIndex
-    CacheLockingManager cacheLockingManager
     StartParameterResolutionOverride startParameterResolutionOverride
     BuildCommencedTimeProvider buildCommencedTimeProvider
     InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory
@@ -60,7 +58,6 @@ class ResolveIvyFactoryTest extends Specification {
         moduleMetaDataCache = Mock(ModuleMetaDataCache)
         moduleArtifactsCache = Mock(ModuleArtifactsCache)
         cachedArtifactIndex = Mock(CachedArtifactIndex)
-        cacheLockingManager = Mock(CacheLockingManager)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
         }
@@ -73,7 +70,7 @@ class ResolveIvyFactoryTest extends Specification {
         versionComparator = Mock(VersionComparator)
 
         resolveIvyFactory = new ResolveIvyFactory(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache,
-            cachedArtifactIndex, cacheLockingManager, startParameterResolutionOverride, buildCommencedTimeProvider,
+            cachedArtifactIndex, startParameterResolutionOverride, buildCommencedTimeProvider,
             inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory)
     }
 
