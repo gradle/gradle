@@ -118,6 +118,7 @@ class BinaryBreakageIntegrationTest extends AbstractIntegrationSpec{
         options.classPathMode = JarArchiveComparatorOptions.ClassPathMode.TWO_SEPARATE_CLASSPATHS
         options.newClassPath = currentJars.external*.absolutePath as List
         options.oldClassPath = oldJars.external*.absolutePath as List
+        options.ignoreMissingClasses.ignoreAllMissingClasses = true
 
         def oldGradleJars = oldJars.internal.collect { new JApiCmpArchive(it, previous.version.version) }
         def currentGradleJars = currentJars.internal.collect { new JApiCmpArchive(it, buildContext.version.version) }
