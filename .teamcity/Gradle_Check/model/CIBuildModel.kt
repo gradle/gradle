@@ -31,13 +31,14 @@ data class CIBuildModel (
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
                     performanceTests = listOf(PerformanceTestType.test)),
-            Stage("Test Parallel, IBM VM, Cross-Version, Smoke Tests, Colony",
+            Stage("Test Parallel, Java9, IBM VM, Cross-Version, Smoke Tests, Colony",
                     trigger = Trigger.eachCommit,
                     specificBuilds = listOf(
                             SpecificBuild.SmokeTests, SpecificBuild.ColonyCompatibility),
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
+                            TestCoverage(TestType.java9Smoke, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
             Stage("Test Cross-version (All Versions), No-daemon, Soak Tests, Performance Experiments",
                     trigger = Trigger.daily,
@@ -50,10 +51,8 @@ data class CIBuildModel (
                             TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
-            Stage("Java9, Performance Historical",
+            Stage("Performance Historical",
                     trigger = Trigger.weekly,
-                    functionalTests = listOf(
-                            TestCoverage(TestType.java9Smoke, OS.linux, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.historical)))
     ) {
