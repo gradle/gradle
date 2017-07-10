@@ -16,7 +16,6 @@ dependencies {
 
     compile(futureKotlin("stdlib"))
     compile(futureKotlin("gradle-plugin"))
-    compile(futureKotlin("sam-with-receiver"))
 
     testImplementation(project(":test-fixtures"))
 }
