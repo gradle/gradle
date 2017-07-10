@@ -1,4 +1,4 @@
-import build.kotlinVersion
+import build.futureKotlin
 
 plugins {
     `java-gradle-plugin`
@@ -14,8 +14,9 @@ base {
 dependencies {
     compileOnly(gradleKotlinDsl())
 
-    compile(kotlin("stdlib"))
-    compile(kotlin("gradle-plugin"))
+    compile(futureKotlin("stdlib"))
+    compile(futureKotlin("gradle-plugin"))
+    compile(futureKotlin("sam-with-receiver"))
 
     testImplementation(project(":test-fixtures"))
 }
@@ -64,7 +65,3 @@ plugins.forEach { plugin ->
         }
     }
 }
-
-
-// --- Utility functions -----------------------------------------------
-fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
