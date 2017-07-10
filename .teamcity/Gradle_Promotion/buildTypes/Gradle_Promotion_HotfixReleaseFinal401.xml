@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="e20dfca3-51ee-4c9d-a413-1a7b8331f6b3" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
-  <name>Hotfix Release - Final 4.0.1</name>
+  <name>Hotfix Release - Final 4.0.2</name>
   <description>Promotes the latest successful change on 'release' as a new release</description>
   <settings>
     <options>
