@@ -83,8 +83,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                     _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies.attributesSchema {
-                    attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                    attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                    attribute(buildType)
+                    attribute(flavor)
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -774,7 +774,6 @@ All of them match the consumer attributes:
             project(':b') {
                 dependencies.attributesSchema {
                     attribute(flavor) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
                         disambiguationRules.add(FlavorSelectionRule)
                     }
                 }
@@ -831,7 +830,6 @@ All of them match the consumer attributes:
             }
             project(':b') {
                 dependencies.attributesSchema.attribute(platform) {
-                    compatibilityRules.assumeCompatibleWhenMissing()
                     disambiguationRules.add(SelectionRule)
                 }
                 configurations {
@@ -888,7 +886,6 @@ All of them match the consumer attributes:
             }
             project(':b') {
                 dependencies.attributesSchema.attribute(platform) {
-                    compatibilityRules.assumeCompatibleWhenMissing()
                     disambiguationRules.add(SelectionRule)
                 }
                 configurations {
@@ -938,7 +935,6 @@ All of them match the consumer attributes:
             project(':b') {
                dependencies.attributesSchema {
                     attribute(arch) {
-                       compatibilityRules.assumeCompatibleWhenMissing()
                        disambiguationRules.pickLast { a,b -> a<=>b }
                   }
                }
@@ -946,7 +942,6 @@ All of them match the consumer attributes:
             project(':c') {
                 dependencies.attributesSchema {
                     attribute(arch) {
-                       compatibilityRules.assumeCompatibleWhenMissing()
                        disambiguationRules.pickLast { a,b -> a<=>b }
                     }
                 }
@@ -1046,7 +1041,6 @@ All of them match the consumer attributes:
                             compatibilityRules.add(FlavorCompatibilityRule) { params("full") }
                         }
                         attribute(buildType) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
                             disambiguationRules.add(BuildTypeSelectionRule) { params(BuildType.debug) }
                         }
                     }

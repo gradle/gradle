@@ -40,8 +40,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             allprojects {
                 dependencies {
                     attributesSchema {
-                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(buildType)
+                        attribute(flavor)
                     }
                 }
             }
@@ -152,8 +152,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             allprojects {
                 dependencies {
                     attributesSchema {
-                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(flavor)
+                        attribute(buildType)
                     }
                 }
             }
