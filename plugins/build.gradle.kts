@@ -1,6 +1,7 @@
 import build.futureKotlin
 
 plugins {
+    `maven-publish`
     `java-gradle-plugin`
     id("com.gradle.plugin-publish") version "0.9.7"
 }
@@ -19,10 +20,6 @@ dependencies {
 
     testImplementation(project(":test-fixtures"))
 }
-
-val customInstallation by rootProject.tasks
-val test by tasks
-test.dependsOn(customInstallation)
 
 
 // --- Plugins declaration ----------------------------------------------
@@ -62,5 +59,40 @@ plugins.forEach { plugin ->
                 description = plugin.displayName
             }
         }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "test"
+            url = uri("build/repository")
+        }
+    }
+}
+
+val customInstallation by rootProject.tasks
+tasks {
+
+    val publishPluginsToTestRepository by creating {
+        dependsOn("publishPluginMavenPublicationToTestRepository")
+        dependsOn(
+            plugins.map {
+                "publish${it.id.capitalize()}PluginMarkerMavenPublicationToTestRepository"
+            })
+    }
+
+    val processTestResources: ProcessResources by getting
+
+    val writeTestProperties by creating(WriteProperties::class) {
+        outputFile = File(processTestResources.destinationDir, "test.properties")
+        property("version", version)
+    }
+
+    processTestResources.dependsOn(writeTestProperties)
+
+    "test" {
+        dependsOn(customInstallation)
+        dependsOn(publishPluginsToTestRepository)
     }
 }
