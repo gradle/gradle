@@ -98,6 +98,11 @@ public class TaskInfo implements Comparable<TaskInfo> {
         state = TaskExecutionState.SKIPPED;
     }
 
+    public void abortExecution() {
+        assert isReady();
+        state = TaskExecutionState.SKIPPED;
+    }
+
     public void require() {
         state = TaskExecutionState.SHOULD_RUN;
     }
