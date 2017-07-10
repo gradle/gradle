@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.JDK8_OR_EARLIER])
 abstract class AbstractSwiftPluginIntegrationTest extends WellBehavedPluginTest {
     AvailableToolChains.InstalledToolChain toolChain
 
