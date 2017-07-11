@@ -80,6 +80,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+- `Task.dependsOnTaskDidWork()` is now deprecated. Build logic should not depend on this information about a task. Instead, declare task inputs and outputs to allow Gradle to optimize task execution.
+
 ## Potential breaking changes
 
 ### Changes to handling of project dependencies from a project that does not use the Java plugin to a project that does
