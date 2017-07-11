@@ -32,7 +32,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
@@ -123,7 +122,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         launcher.scheduleTasks(tasks);
         try {
             WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
-            workerLeaseService.withLocks(Collections.singleton(parentLease.createChild()), new Runnable() {
+            workerLeaseService.withSharedLease(parentLease, new Runnable() {
                 @Override
                 public void run() {
                     launcher.executeTasks();

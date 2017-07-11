@@ -101,6 +101,16 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     @Override
+    public void withSharedLease(WorkerLease parentLease, Runnable action) {
+        workerLeaseLockRegistry.shareWorkerLease(parentLease);
+        try {
+            action.run();
+        } finally {
+            workerLeaseLockRegistry.clearWorkerLease();
+        }
+    }
+
+    @Override
     public void stop() {
         parallelismConfigurationManager.removeListener(this);
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {

@@ -38,6 +38,8 @@ public interface WorkerLeaseRegistry {
      */
     WorkerLease getWorkerLease();
 
+    void withSharedLease(WorkerLease parentLease, Runnable action);
+
     interface WorkerLease extends ResourceLock {
         /**
          * Creates a child lease of the current worker lease, but does not acquire the lease.  For use with {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock(org.gradle.api.Transformer)}

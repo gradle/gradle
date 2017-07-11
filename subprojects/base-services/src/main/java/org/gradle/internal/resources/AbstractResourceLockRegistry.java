@@ -85,6 +85,16 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
         };
     }
 
+    public void shareWorkerLease(ResourceLock sharedResource) {
+        final Long threadId = Thread.currentThread().getId();
+        threadResourceLockMap.put(threadId, sharedResource);
+    }
+
+    public void clearWorkerLease() {
+        final Long threadId = Thread.currentThread().getId();
+        threadResourceLockMap.get(threadId).clear();
+    }
+
     public interface ResourceLockProducer<T extends ResourceLock> {
         T create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction);
     }

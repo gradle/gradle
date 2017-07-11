@@ -35,14 +35,14 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     };
 
     @Override
-    public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> reasourceLockAction) {
+    public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction) {
         while (true) {
             DefaultResourceLockState resourceLockState = new DefaultResourceLockState();
             ResourceLockState.Disposition disposition;
             synchronized (lock) {
                 try {
                     currentState.get().add(resourceLockState);
-                    disposition = reasourceLockAction.transform(resourceLockState);
+                    disposition = stateLockAction.transform(resourceLockState);
 
                     switch (disposition) {
                         case RETRY:
