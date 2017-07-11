@@ -16,31 +16,23 @@
 
 package org.gradle.integtests
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
-    def "fails build if annotation processor library is not on classpath"() {
+    def "cannot compile annotated Java class if annotation processor library is not available on classpath"() {
         when:
         buildFile << basicScalaProject()
-
-        file('src/main/scala/MyClass.scala') << """
-            import org.gradle.Custom
-            
-            @Custom
-            class MyClass {}
-        """
+        file('src/main/java/MyClass.java') << annotatedJavaClass()
 
         fails 'compileScala'
 
         then:
-        errorOutput.contains('Compilation failed')
-        errorOutput.contains('not found: type Custom')
+        errorOutput.contains('Compilation failed; see the compiler error output for details.')
+        errorOutput.contains('package org.gradle does not exist')
     }
 
-    @NotYetImplemented
-    def "annotation processor is not enabled by default"() {
+    def "processes annotation for Java class if annotation processor is available on classpath"() {
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
         annotationProcessorPublisher.writeSourceFiles()
@@ -53,13 +45,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << basicScalaProject()
         buildFile << annotationProcessorDependency(annotationProcessorPublisher.repoDir, annotationProcessorPublisher.dependencyCoordinates)
-
-        file('src/main/scala/MyClass.scala') << """
-            import org.gradle.Custom
-            
-            @Custom
-            class MyClass {}
-        """
+        file('src/main/java/MyClass.java') << annotatedJavaClass()
 
         succeeds 'compileScala'
 
@@ -89,7 +75,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     static String annotationProcessorDependency(File repoDir, String processorDependency) {
         """
-            sourceCompatibility = '1.6'
+            sourceCompatibility = '1.7'
 
             repositories {
                 maven {
@@ -100,6 +86,15 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 compileOnly '$processorDependency'
             }
+        """
+    }
+
+    static String annotatedJavaClass() {
+        """
+            import org.gradle.Custom;
+            
+            @Custom
+            public class MyClass {}
         """
     }
 
