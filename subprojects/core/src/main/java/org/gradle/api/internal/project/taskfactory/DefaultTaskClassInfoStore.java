@@ -161,12 +161,16 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         }
 
         public void contextualise(TaskExecutionContext context) {
-            this.taskArtifactState = context == null ? null : context.getTaskArtifactState();
+            this.taskArtifactState = context.getTaskArtifactState();
+        }
+
+        @Override
+        public void releaseContext() {
+            this.taskArtifactState = null;
         }
 
         protected void doExecute(Task task, String methodName) {
             JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, taskArtifactState.getInputChanges());
-            taskArtifactState = null;
         }
     }
 }

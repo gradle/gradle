@@ -110,7 +110,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             assert state.executing
         }
         then:
-        1 * action1.contextualise(null)
+        1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -124,7 +124,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action2.execute(task)
         then:
-        1 * action2.contextualise(null)
+        1 * action2.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -166,7 +166,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             task.getActions().add(action2)
         }
         then:
-        1 * action1.contextualise(null)
+        1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -198,7 +198,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
-        1 * action1.contextualise(null)
+        1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -240,7 +240,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             throw new StopExecutionException('stop')
         }
         then:
-        1 * action1.contextualise(null)
+        1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -276,7 +276,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             throw new StopActionException('stop')
         }
         then:
-        1 * action1.contextualise(null)
+        1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -290,7 +290,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action2.execute(task)
         then:
-        1 * action2.contextualise(null)
+        1 * action2.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -325,7 +325,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
-        1 * action1.contextualise(null)
+        1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
@@ -370,7 +370,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
-        1 * action1.contextualise(null)
+        1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
@@ -414,7 +414,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
-        1 * action1.contextualise(null)
+        1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", failure)

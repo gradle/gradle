@@ -18,4 +18,5 @@ package org.gradle.api.internal.tasks;
 
 public interface ContextAwareTaskAction extends ClassLoaderAwareTaskAction {
     void contextualise(TaskExecutionContext context);
+    void releaseContext();
 }
