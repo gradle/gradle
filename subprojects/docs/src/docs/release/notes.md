@@ -56,6 +56,11 @@ With this release of Gradle, the console displays any test worker processes exec
     > IDLE
     > :fooBarBazQuux:test > Gradle Test Executor 6 > Executing test org.gradle.MyTest
 
+### Scala toolchain is now cacheable
+
+Tasks of types [ScalaCompile](dsl/org.gradle.api.tasks.scala.ScalaCompile.html) and [ScalaDoc](dsl/org.gradle.api.tasks.scala.ScalaDoc.html) provided by the [scala](userguide/scala_plugin.html) plugin are now cacheable.
+This means they will make use of the build cache when activated.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -75,6 +80,11 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 5.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
+
+### Scaladoc stylesheet deprecated
+
+The [ScalaDocOptions.styleSheet](javadoc/org/gradle/api/tasks/scala/ScalaDocOptions.html#setStyleSheet(java.io.File)) property has been deprecated.
+The current (Scala 2.11.8 and later) Scaladoc Ant task does not support this property any more. 
 
 <!--
 ### Example deprecation
