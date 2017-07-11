@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 
 /**
  * A build that is to be included in the composite.
@@ -40,4 +41,6 @@ public interface ConfigurableIncludedBuild extends IncludedBuild {
      */
     @Incubating
     void dependencySubstitution(Action<? super DependencySubstitutions> action);
+
+    void setParentLease(WorkerLeaseRegistry.WorkerLease parentLease);
 }

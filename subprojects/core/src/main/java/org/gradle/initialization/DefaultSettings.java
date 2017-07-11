@@ -41,6 +41,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.plugin.management.PluginManagementSpec;
 
 import javax.inject.Inject;
@@ -251,6 +252,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    public WorkerLeaseRegistry getWorkerLeaseRegistry() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public void includeBuild(Object rootProject) {
         includeBuild(rootProject, Actions.<ConfigurableIncludedBuild>doNothing());
@@ -262,6 +268,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         ConfigurableIncludedBuild build = includedBuilds.get(projectDir);
         if (build == null) {
             build = getIncludedBuildFactory().createBuild(projectDir);
+            build.setParentLease(getWorkerLeaseRegistry().getCurrentWorkerLease());
             includedBuilds.put(projectDir, build);
         }
         configuration.execute(build);

@@ -32,12 +32,14 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
     private final Factory<GradleLauncher> gradleLauncherFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private WorkerLeaseRegistry.WorkerLease parentLease;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
 
     private DefaultDependencySubstitutions dependencySubstitutions;
@@ -120,16 +122,13 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         launcher.addListener(listener);
         launcher.scheduleTasks(tasks);
         try {
-            // TODO:DAZ Should share the same worker lease as the main build, or avoid separate pool of task workers per build
             WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
-            final WorkerLeaseRegistry.WorkerLease workerLease = workerLeaseService.getWorkerLease();
-            WorkerLeaseRegistry.WorkerLease childLease = workerLease.createChild();
-            WorkerLeaseRegistry.WorkerLeaseCompletion completion = childLease.startChild();
-            try {
-                launcher.executeTasks();
-            } finally {
-                completion.leaseFinish();
-            }
+            workerLeaseService.withLocks(Collections.singleton(parentLease.createChild()), new Runnable() {
+                @Override
+                public void run() {
+                    launcher.executeTasks();
+                }
+            });
         } finally {
             markAsNotReusable();
         }
@@ -142,5 +141,10 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     @Override
     public String toString() {
         return String.format("includedBuild[%s]", projectDir.getName());
+    }
+
+    @Override
+    public void setParentLease(WorkerLeaseRegistry.WorkerLease parentLease) {
+        this.parentLease = parentLease;
     }
 }
