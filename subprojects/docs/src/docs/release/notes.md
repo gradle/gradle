@@ -20,6 +20,13 @@ TODO Placeholder
 
 TODO Placeholder
 
+### Logs grouped by project and task in non-interactive environments
+
+Log messages that can be associated with a project configuration or task will be buffered and grouped under a "header" as is done in Gradle 4.0
+with interactive terminals. Unlike interactive environments, _all_ tasks and their outcomes are printed.
+
+## Promoted features
+
 ### Support for Google Cloud Storage backed repositories
 
 It is now possible to consume dependencies from, and publish to, [Google Cloud Storage](https://cloud.google.com/storage/) buckets when using [`MavenArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html) or [`IvyArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html).

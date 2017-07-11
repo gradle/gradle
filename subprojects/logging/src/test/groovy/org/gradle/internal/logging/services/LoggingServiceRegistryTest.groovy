@@ -27,6 +27,7 @@ import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.text.StyledTextOutputFactory
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -38,6 +39,7 @@ import java.util.logging.Logger
 
 class LoggingServiceRegistryTest extends Specification {
     final TestOutputEventListener outputEventListener = new TestOutputEventListener()
+    final int logBufferFlushPeriodMs = Integer.getInteger("org.gradle.console.throttle", 85)
     @Rule ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     @Rule RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
 
@@ -96,7 +98,9 @@ class LoggingServiceRegistryTest extends Specification {
         logger.warn("warning")
 
         then:
-        outputEventListener.toString() == '[[WARN] [category] before]'
+        ConcurrentTestUtil.poll(1, 0.1) {
+            outputEventListener.toString() == '[[WARN] [category] before]'
+        }
     }
 
     def consumesSlf4jWhenStarted() {
@@ -110,6 +114,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         when:
         logger.warn("before")
+        awaitLogBufferFlush()
 
         then:
         0 * listener._
@@ -119,6 +124,7 @@ class LoggingServiceRegistryTest extends Specification {
         loggingManager.start()
         logger.info("ignored")
         logger.warn("warning")
+        awaitLogBufferFlush()
 
         then:
         1 * listener.onOutput('warning')
@@ -128,6 +134,7 @@ class LoggingServiceRegistryTest extends Specification {
         when:
         loggingManager.stop()
         logger.warn("after")
+        awaitLogBufferFlush()
 
         then:
         0 * listener._
@@ -144,6 +151,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         when:
         logger.warning("before")
+        awaitLogBufferFlush()
 
         then:
         0 * listener._
@@ -153,6 +161,7 @@ class LoggingServiceRegistryTest extends Specification {
         loggingManager.start()
         logger.info("ignored")
         logger.warning("warning")
+        awaitLogBufferFlush()
 
         then:
         1 * listener.onOutput('warning')
@@ -162,6 +171,7 @@ class LoggingServiceRegistryTest extends Specification {
         when:
         loggingManager.stop()
         logger.warning("after")
+        awaitLogBufferFlush()
 
         then:
         0 * listener._
@@ -260,6 +270,8 @@ class LoggingServiceRegistryTest extends Specification {
         System.out.println("info")
         System.err.println("error")
 
+        awaitLogBufferFlush()
+
         then:
         1 * listener.onOutput("error")
         1 * listener.onOutput(SystemProperties.instance.lineSeparator)
@@ -270,6 +282,8 @@ class LoggingServiceRegistryTest extends Specification {
 
         System.out.println("info")
         System.err.println("error")
+
+        awaitLogBufferFlush()
 
         then:
         1 * listener.onOutput("info")
@@ -293,6 +307,8 @@ class LoggingServiceRegistryTest extends Specification {
         System.out.print("in")
         System.err.print("err")
 
+        awaitLogBufferFlush()
+
         then:
         0 * listener._
 
@@ -300,6 +316,8 @@ class LoggingServiceRegistryTest extends Specification {
         System.out.println("fo")
         System.err.print("or")
         System.err.println()
+
+        awaitLogBufferFlush()
 
         then:
         1 * listener.onOutput("info")
@@ -314,6 +332,8 @@ class LoggingServiceRegistryTest extends Specification {
         System.out.print("buffered")
         System.err.print("error")
         System.err.flush()
+
+        awaitLogBufferFlush()
 
         then:
         1 * listener.onOutput("error")
@@ -383,6 +403,8 @@ class LoggingServiceRegistryTest extends Specification {
         logger.warn("before")
         logger.error("before")
 
+        awaitLogBufferFlush()
+
         then:
         outputs.stdOut == ''
         outputs.stdErr == ''
@@ -392,6 +414,8 @@ class LoggingServiceRegistryTest extends Specification {
         loggingManager.start()
         logger.warn("warning")
         logger.error("error")
+
+        awaitLogBufferFlush()
 
         then:
         outputs.stdOut == TextUtil.toPlatformLineSeparators('warning\n')
@@ -412,6 +436,8 @@ class LoggingServiceRegistryTest extends Specification {
         loggingManager.start()
         logger.warn("warning")
         logger.error("error")
+
+        awaitLogBufferFlush()
 
         then:
         1 * listener.onOutput("warning")
@@ -437,6 +463,8 @@ class LoggingServiceRegistryTest extends Specification {
         logger.info("info")
         logger.error("error")
 
+        awaitLogBufferFlush()
+
         then:
         1 * listener.onOutput("info")
         1 * listener.onOutput(TextUtil.platformLineSeparator)
@@ -445,8 +473,10 @@ class LoggingServiceRegistryTest extends Specification {
         0 * listener._
 
         and:
-        outputs.stdOut == ''
-        outputs.stdErr == ''
+        ConcurrentTestUtil.poll(1, 0.1) {
+            outputs.stdOut == ''
+            outputs.stdErr == ''
+        }
     }
 
     def doesNotConsumeJavaUtilLoggingWhenEmbedded() {
@@ -491,6 +521,8 @@ class LoggingServiceRegistryTest extends Specification {
         logger.warning("before")
         logger.info("before")
 
+        awaitLogBufferFlush()
+
         then:
         0 * listener._
 
@@ -499,6 +531,8 @@ class LoggingServiceRegistryTest extends Specification {
         logger.info("ignored")
         logger.warning("warning")
         logger.severe("error")
+
+        awaitLogBufferFlush()
 
         then:
         1 * listener.onOutput('warning')
@@ -512,6 +546,8 @@ class LoggingServiceRegistryTest extends Specification {
         logger.severe("after")
         logger.warning("after")
         logger.info("after")
+
+        awaitLogBufferFlush()
 
         then:
         0 * listener._
@@ -670,5 +706,9 @@ class LoggingServiceRegistryTest extends Specification {
         and:
         outputs.stdOut == ''
         outputs.stdErr == ''
+    }
+
+    private void awaitLogBufferFlush() {
+        Thread.sleep(logBufferFlushPeriodMs * 2)
     }
 }

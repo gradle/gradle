@@ -42,6 +42,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
+import org.gradle.internal.logging.format.StatusPostfixLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -77,19 +78,36 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         this(new TrueTimeProvider());
     }
 
-    OutputEventRenderer(TimeProvider timeProvider) {
+    OutputEventRenderer(final TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
+
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onNonError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)));
+                return onNonError(
+                    new ThrottlingOutputEventListener(
+                        new BuildLogLevelFilterRenderer(
+                            new GroupingProgressLogEventGenerator(
+                                new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())),
+                                timeProvider, new StatusPostfixLogHeaderFormatter(), true)
+                        ),
+                        timeProvider)
+                );
             }
         });
         formatters.add(stdOutChain);
         OutputEventListener stdErrChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false)));
+                return onError(
+                    new ThrottlingOutputEventListener(
+                        new BuildLogLevelFilterRenderer(
+                            new GroupingProgressLogEventGenerator(
+                                new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())),
+                                timeProvider, new StatusPostfixLogHeaderFormatter(), true)
+                        ),
+                        timeProvider)
+                );
             }
         });
         formatters.add(stdErrChain);

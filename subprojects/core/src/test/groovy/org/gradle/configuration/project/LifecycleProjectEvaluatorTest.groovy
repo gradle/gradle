@@ -184,7 +184,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         and:
         descriptor.name == 'Configure project :project1'
         descriptor.displayName == 'Configure project :project1'
-        descriptor.progressDisplayName == null
+        descriptor.progressDisplayName == 'Configure project :project1'
         details.buildPath == Path.path(':').path
         details.projectPath == Path.path(':project1').path
     }
