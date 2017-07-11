@@ -93,13 +93,12 @@ public class ScalaCompile extends AbstractScalaCompile {
     /**
      * The Java major version of the JVM the Scala compiler is running on.
      *
-     * We track this as an input since the Scala compiler output may depend on it.
-     * This should be replaced by a property in the Scala toolchain as soon as we model these.
-     *
      * @since 4.1
      */
     @Incubating
     @Input
+    // We track this as an input since the Scala compiler output may depend on it.
+    // TODO: This should be replaced by a property in the Scala toolchain as soon as we model these.
     protected String getJvmVersion() {
         return JavaVersion.current().getMajorVersion();
     }
