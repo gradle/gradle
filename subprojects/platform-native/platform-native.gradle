@@ -26,6 +26,7 @@ dependencies {
     integTestRuntime project(':ideNative')
 
     testFixturesCompile project(':internalIntegTesting')
+    testFixturesCompile libraries.plist
 }
 
 useTestFixtures()

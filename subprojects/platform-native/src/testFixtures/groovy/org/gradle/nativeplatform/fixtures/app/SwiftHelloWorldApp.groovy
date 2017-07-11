@@ -20,6 +20,11 @@ import org.gradle.integtests.fixtures.SourceFile
 
 class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
+    List<SourceFile> getAllFiles() {
+        sourceFiles
+    }
+
+    @Override
     SourceFile getMainSource() {
         return sourceFile("swift", "main.swift", """
             // Simple hello world app

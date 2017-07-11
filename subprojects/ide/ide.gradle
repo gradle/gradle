@@ -28,6 +28,7 @@ dependencies {
     compile project(':compositeBuilds')
     compile libraries.slf4j_api
     compile libraries.inject
+    compile libraries.plist
 
     testCompile libraries.xmlunit
     testCompile libraries.equalsVerifier
