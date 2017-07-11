@@ -38,7 +38,7 @@ class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegr
     protected void setupProjectInOriginalLocation() {
         classes.baseline()
         differentSubdir.createDir()
-        buildFile.text = classes.buildScript()
+        buildScript(classes.buildScript())
     }
 
     @Override
@@ -46,7 +46,7 @@ class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegr
         classes.classDependingOnBasicClassSource.source.moveToDirectory(differentSubdir)
         Files.move(file("src/main/scala").toPath(), file("src/main/new-scala").toPath())
         classes.sourceDir = 'src/main/new-scala'
-        buildFile.text = classes.buildScript()
+        buildScript(classes.buildScript())
         executer.requireOwnGradleUserHomeDir()
     }
 

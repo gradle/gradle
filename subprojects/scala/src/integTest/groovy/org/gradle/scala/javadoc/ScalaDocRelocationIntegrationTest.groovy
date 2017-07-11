@@ -34,14 +34,14 @@ class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
     @Override
     protected void setupProjectInOriginalLocation() {
         classes.baseline()
-        buildFile.text = classes.buildScript()
+        buildScript(classes.buildScript())
     }
 
     @Override
     protected void moveFilesAround() {
         Files.move(file("src/main/scala").toPath(), file("src/main/new-scala").toPath())
         classes.sourceDir = 'src/main/new-scala'
-        buildFile.text = classes.buildScript()
+        buildScript(classes.buildScript())
         executer.requireOwnGradleUserHomeDir()
     }
 
