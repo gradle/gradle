@@ -19,19 +19,20 @@ package org.gradle.scala.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
+import spock.lang.Unroll
 
 import static org.gradle.api.JavaVersion.VERSION_1_7
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
+@Unroll
 class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         file('src/main/scala/Person.scala') << "class Person(name: String)"
     }
 
-    def "compile is out of date when changing the zinc version"() {
-        def scalaVersion = '2.11.11'
-        buildScript(scalaProjectBuildScript('0.3.13', scalaVersion))
+    def "compile is out of date when changing the #changedVersion version"() {
+        buildScript(scalaProjectBuildScript(defaultZincVersion, defaultScalaVersion))
 
         when:
         run 'compileScala'
@@ -46,35 +47,19 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         skipped ':compileScala'
 
         when:
-        buildScript(scalaProjectBuildScript('0.3.12', scalaVersion))
-        run 'compileScala'
-
-        then:
-        executedAndNotSkipped ':compileScala'
-    }
-
-    def "compile is out of date when changing the scala version"() {
-        def zincVersion = '0.3.13'
-        buildScript(scalaProjectBuildScript(zincVersion, '2.11.11'))
-
-        when:
+        buildScript(scalaProjectBuildScript(newZincVersion, newScalaVersion))
         run 'compileScala'
 
         then:
         executedAndNotSkipped ':compileScala'
 
-        when:
-        run 'compileScala'
-
-        then:
-        skipped ':compileScala'
-
-        when:
-        buildScript(scalaProjectBuildScript(zincVersion, '2.11.9'))
-        run 'compileScala'
-
-        then:
-        executedAndNotSkipped ':compileScala'
+        where:
+        newScalaVersion | newZincVersion
+        '2.11.11'       | '0.3.12'
+        '2.11.9'        | '0.3.13'
+        defaultScalaVersion = '2.11.11'
+        defaultZincVersion = '0.3.13'
+        changedVersion = defaultScalaVersion != newScalaVersion ? 'scala' : 'zinc'
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_7) && AvailableJavaHomes.getJdk(VERSION_1_8) })
