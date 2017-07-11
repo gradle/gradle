@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.scala.javadoc
+package org.gradle.scala.scaladoc
 
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
