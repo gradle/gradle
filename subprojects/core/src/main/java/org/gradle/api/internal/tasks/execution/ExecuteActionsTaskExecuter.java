@@ -123,7 +123,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 } catch (Throwable t) {
                     actionFailure = t;
                 } finally {
-                    action.contextualise(null);
+                    action.releaseContext();
                 }
 
                 try {

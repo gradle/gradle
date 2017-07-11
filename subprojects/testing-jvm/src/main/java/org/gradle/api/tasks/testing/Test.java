@@ -55,6 +55,7 @@ import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -85,6 +86,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.ConsoleRenderer;
+import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -644,6 +646,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerBroadcaster.getSource(), testOutputListenerBroadcaster.getSource()));
 
+        ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
+        parentProgressLogger.setDescription("Test Execution");
+        parentProgressLogger.started();
+        TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
+        testListenerInternalBroadcaster.add(testWorkerProgressListener);
+
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
 
         if (testExecuter == null) {
@@ -661,7 +669,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         try {
             testExecuter.execute(this, resultProcessor);
         } finally {
+            parentProgressLogger.completed();
             testExecuter = null;
+            testWorkerProgressListener.completeAll();
             testListenerBroadcaster.removeAll();
             testOutputListenerBroadcaster.removeAll();
             testListenerInternalBroadcaster.removeAll();

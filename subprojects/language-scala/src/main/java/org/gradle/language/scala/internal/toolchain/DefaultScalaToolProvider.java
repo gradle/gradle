@@ -30,7 +30,7 @@ import java.io.File;
 import java.util.Set;
 
 public class DefaultScalaToolProvider implements ToolProvider {
-    public static final String DEFAULT_ZINC_VERSION = "0.3.13";
+    public static final String DEFAULT_ZINC_VERSION = "0.3.15";
 
     private final File gradleUserHomeDir;
     private final File rootProjectDir;

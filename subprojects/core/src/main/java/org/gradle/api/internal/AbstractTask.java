@@ -659,9 +659,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             this.closure = closure;
         }
 
+        @Override
         public void contextualise(TaskExecutionContext context) {
         }
 
+        @Override
+        public void releaseContext() {
+        }
+
+        @Override
         public void execute(Task task) {
             closure.setDelegate(task);
             closure.setResolveStrategy(Closure.DELEGATE_FIRST);
@@ -702,12 +708,21 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             this.action = action;
         }
 
+        @Override
         public void contextualise(TaskExecutionContext context) {
             if (action instanceof ContextAwareTaskAction) {
                 ((ContextAwareTaskAction) action).contextualise(context);
             }
         }
 
+        @Override
+        public void releaseContext() {
+            if (action instanceof ContextAwareTaskAction) {
+                ((ContextAwareTaskAction) action).releaseContext();
+            }
+        }
+
+        @Override
         public void execute(Task task) {
             ClassLoader original = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
