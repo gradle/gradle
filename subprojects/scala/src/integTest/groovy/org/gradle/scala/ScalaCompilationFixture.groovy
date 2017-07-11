@@ -44,9 +44,16 @@ class ScalaCompilationFixture {
                 /**
                  * A person.
                  * Can live in a house.
+                 * Has a name and an age.
                  */
                 class Person(val name: String, val age: Int)'''.stripIndent(),
-            'class Person(val name: String, val age: Int, val height: Int)')
+            '''                 
+                /**
+                 * A person.
+                 * Can live in a house.
+                 * Has a name, age and a height.
+                 */
+                class Person(val name: String, val age: Int, val height: Int)'''.stripIndent())
         classDependingOnBasicClassSource = new ScalaClass(
             'House',
             'class House(val owner: Person)',
