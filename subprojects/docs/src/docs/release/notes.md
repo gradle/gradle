@@ -84,6 +84,10 @@ Previous versions of Gradle would select the `runtimeElements` when both project
 
 This change makes the selection behaviour consistent so that the `runtimeElements` configuration is selected regardless of whether the consuming project uses the Java plugin or not. This is also consistent with the selection when the consuming project is using one of the Android plugins.
 
+### Updated default Scala Zinc compiler version
+
+The default version of the [Scala Zinc compiler](https://github.com/typesafehub/zinc) has changed from 0.3.13 to 0.3.15.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
