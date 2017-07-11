@@ -248,6 +248,40 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         assertThat(rootTasks, allOf(containsString("kotlinDslAccessorsReport"), containsString("kotlinDslAccessorsSnapshot")))
     }
 
+    @Test
+    fun `given extension with inaccessible type, its accessor is typed Any`() {
+
+        withFile("init.gradle", """
+            initscript {
+                repositories {
+                    maven { url "https://plugins.gradle.org/m2" }
+                }
+                dependencies {
+                    classpath "com.gradle:build-scan-plugin:1.8"
+                }
+            }
+            rootProject {
+                apply plugin: "base"
+                apply plugin: initscript.classLoader.loadClass("com.gradle.scan.plugin.BuildScanPlugin")
+                buildScan {
+                    publishAlways()
+                }
+            }
+        """)
+
+        withBuildScript("""
+
+            inline fun <reified T> typeOf(t: T) = T::class.simpleName
+
+            buildScan {
+                println("Type of `buildScan` receiver is " + typeOf(this@buildScan))
+            }
+        """)
+
+        val result = build("help", "-I", "init.gradle")
+        assertThat(result.output, containsString("Type of `buildScan` receiver is Any"))
+    }
+
     private
     fun setOfAutomaticAccessorsFor(plugins: Set<String>): File {
         val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"

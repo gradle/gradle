@@ -67,12 +67,10 @@ fun accessibleProjectSchemaFrom(
 
     ProjectSchema(
         extensions = extensionSchema
-            .filterKeys(::isPublic)
-            .filterValues(::isAccessible),
+            .filterKeys(::isPublic),
         conventions = conventionPlugins
             .filterKeys(::isPublic)
-            .mapValues { typeOf(it.value::class.java) }
-            .filterValues(::isAccessible),
+            .mapValues { typeOf(it.value::class.java) },
         configurations = configurationNames
             .filter(::isPublic))
 
@@ -80,18 +78,6 @@ fun accessibleProjectSchemaFrom(
 internal
 fun isPublic(name: String): Boolean =
     !name.startsWith("_")
-
-
-internal
-fun isAccessible(type: TypeOf<*>): Boolean =
-    type.run {
-        when {
-            isParameterized -> isAccessible(parameterizedTypeDefinition) && actualTypeArguments.all(::isAccessible)
-            isArray -> isAccessible(componentType)
-            isSynthetic -> false
-            else -> isPublic
-        }
-    }
 
 
 internal
@@ -152,4 +138,3 @@ val primitiveTypeStrings =
         "float" to "Float",
         "java.lang.Double" to "Double",
         "double" to "Double")
-

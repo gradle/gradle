@@ -32,7 +32,7 @@ open class PrintAccessors : DefaultTask() {
     @Suppress("unused")
     @TaskAction
     fun printExtensions() {
-        schemaFor(project).withKotlinTypeStrings().forEachAccessor {
+        schemaFor(project).withKotlinTypeStrings().map(::accessible).forEachAccessor {
             println()
             println(it)
             println()

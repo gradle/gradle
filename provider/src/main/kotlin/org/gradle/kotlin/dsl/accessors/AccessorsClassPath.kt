@@ -30,9 +30,16 @@ import org.gradle.kotlin.dsl.support.compileToJar
 import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.Opcodes.*
+
 import java.io.BufferedWriter
 import java.io.File
-import java.util.AbstractMap
+
+import java.util.*
+import java.util.jar.JarFile
 
 
 fun accessorsClassPathFor(project: Project, classPath: ClassPath) =
@@ -64,6 +71,143 @@ fun configuredProjectSchemaOf(project: Project) =
     aotProjectSchemaOf(project) ?: jitProjectSchemaOf(project)
 
 
+internal
+sealed class TypeAccessibility {
+    data class Accessible(val type: String) : TypeAccessibility()
+    data class Inaccessible(val type: String, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
+}
+
+
+internal
+sealed class InaccessibilityReason {
+    data class NonPublic(val type: String) : InaccessibilityReason()
+    data class NonAvailable(val type: String) : InaccessibilityReason()
+    data class Synthetic(val type: String) : InaccessibilityReason()
+}
+
+
+internal
+fun availableProjectSchemaFor(projectSchema: ProjectSchema<String>, classPath: ClassPath) =
+    projectSchema.map(TypeAccessibilityProvider(classPath)::accessibilityForType)
+
+
+private
+typealias ClassFileIndex = (String) -> ByteArray?
+
+
+private
+class TypeAccessibilityProvider(classPath: ClassPath) {
+
+    private
+    val classPathIndex = classPath.asFiles.map { classFileIndexFor(it) }
+
+    private
+    val inaccessibilityReasonsPerClass = mutableMapOf<String, List<InaccessibilityReason>>()
+
+    fun accessibilityForType(type: String): TypeAccessibility =
+        classNamesFrom(type)
+            .flatMap { inaccessibilityReasonsFor(it) }
+            .let { inaccessibilityReasons ->
+                if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
+                else accessible(type)
+            }
+
+    private
+    fun inaccessibilityReasonsFor(className: String): List<InaccessibilityReason> =
+        inaccessibilityReasonsPerClass.computeIfAbsent(className) {
+            listOfNotNull(inaccessibilityReasonFor(className))
+        }
+
+    private
+    fun inaccessibilityReasonFor(className: String): InaccessibilityReason? {
+        val classBytes = classBytesFor(className) ?: return nonAvailable(className)
+        val access = classAccessFrom(classBytes)
+        return when {
+            !access.hasFlag(ACC_PUBLIC)   -> nonPublic(className)
+            access.hasFlag(ACC_SYNTHETIC) -> synthetic(className)
+            else                          -> null
+        }
+    }
+
+    private
+    fun classBytesFor(className: String): ByteArray? {
+        val classFilePath = className.replace(".", "/") + ".class"
+        return classPathIndex.firstNotNullResult { it(classFilePath) }
+    }
+
+    private
+    fun classFileIndexFor(jarOrDir: File): ClassFileIndex =
+        when {
+            jarOrDir.isFile      -> jarIndexFor(jarOrDir)
+            jarOrDir.isDirectory -> directoryIndexFor(jarOrDir)
+            else                 -> { _ -> null }
+        }
+
+    private
+    fun jarIndexFor(file: File): ClassFileIndex = { classFilePath ->
+        JarFile(file).use { jar ->
+            jar.getJarEntry(classFilePath)?.let { jarEntry ->
+                jar.getInputStream(jarEntry).use { jarInput ->
+                    jarInput.readBytes()
+                }
+            }
+        }
+    }
+
+    private
+    fun directoryIndexFor(baseDir: File): ClassFileIndex = { classFilePath ->
+        File(baseDir, classFilePath).takeIf { it.isFile }?.readBytes()
+    }
+
+    // TODO Exclude primitives
+    private
+    fun classNamesFrom(typeString: String): List<String> =
+        typeString.split(classNameSeparators).filter { it.isNotBlank() }
+
+    private
+    val classNameSeparators = Regex("[<,> ]")
+
+    private
+    fun classAccessFrom(classBytes: ByteArray): Int =
+        ClassReader(classBytes).access
+}
+
+
+private
+fun Int.hasFlag(flag: Int) =
+    and(flag) == flag
+
+
+internal
+fun nonAvailable(type: String) =
+    InaccessibilityReason.NonAvailable(type)
+
+
+internal
+fun nonPublic(type: String) =
+    InaccessibilityReason.NonPublic(type)
+
+
+internal
+fun synthetic(type: String) =
+    InaccessibilityReason.Synthetic(type)
+
+
+internal
+fun accessible(type: String) =
+    TypeAccessibility.Accessible(type)
+
+
+internal
+fun inaccessible(type: String, vararg reasons: InaccessibilityReason) =
+    inaccessible(type, reasons.toList())
+
+
+internal
+fun inaccessible(type: String, reasons: List<InaccessibilityReason>) =
+    TypeAccessibility.Inaccessible(type, reasons)
+
+
 private
 fun aotProjectSchemaOf(project: Project) =
     project
@@ -90,9 +234,19 @@ fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 private
 fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassPath, outputDir: File) {
     val sourceFile = File(accessorsSourceDir(outputDir), "org/gradle/kotlin/dsl/accessors.kt")
-    writeAccessorsTo(sourceFile, projectSchema)
+    val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
+    writeAccessorsTo(sourceFile, availableSchema)
     require(compileToJar(accessorsJar(outputDir), listOf(sourceFile), logger, classPath.asFiles), {
-        "Failed to compile accessors\n\tprojectSchema: $projectSchema\n\tclassPath: $classPath"
+        """
+            Failed to compile accessors.
+
+                projectSchema: $projectSchema
+
+                classPath: $classPath
+
+                availableSchema: $availableSchema
+
+        """.replaceIndent()
     })
 }
 
@@ -161,7 +315,7 @@ fun enabledJitAccessors(project: Project) =
 
 
 private
-fun writeAccessorsTo(outputFile: File, projectSchema: ProjectSchema<String>): File =
+fun writeAccessorsTo(outputFile: File, projectSchema: ProjectSchema<TypeAccessibility>): File =
     outputFile.apply {
         parentFile.mkdirs()
         bufferedWriter().use { writer ->
@@ -171,7 +325,7 @@ fun writeAccessorsTo(outputFile: File, projectSchema: ProjectSchema<String>): Fi
 
 
 private
-fun writeAccessorsFor(projectSchema: ProjectSchema<String>, writer: BufferedWriter) {
+fun writeAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>, writer: BufferedWriter) {
     writer.apply {
         write(fileHeader)
         newLine()

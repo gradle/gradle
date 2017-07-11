@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 
 
 internal
-fun ProjectSchema<String>.forEachAccessor(action: (String) -> Unit) {
+fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
     extensions.forEach { (name, type) ->
         extensionAccessorFor(name, type)?.let(action)
     }
@@ -35,45 +35,96 @@ fun ProjectSchema<String>.forEachAccessor(action: (String) -> Unit) {
     }
 }
 
-
 private
-fun extensionAccessorFor(name: String, type: String): String? =
+fun extensionAccessorFor(name: String, typeAccess: TypeAccessibility): String? =
     codeForExtension(name) {
-        """
-            /**
-             * Retrieves the [$name][$type] project extension.
-             */
-            val Project.`$name`: $type get() =
-                extensions.getByName("$name") as $type
-
-            /**
-             * Configures the [$name][$type] project extension.
-             */
-            fun Project.`$name`(configure: $type.() -> Unit): Unit =
-                extensions.configure("$name", configure)
-
-        """
+        when (typeAccess) {
+            is TypeAccessibility.Accessible   -> accessibleExtensionAccessorFor(name, typeAccess.type)
+            is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(name, typeAccess)
+        }
     }
 
 
 private
-fun conventionAccessorFor(name: String, type: String): String? =
+fun accessibleExtensionAccessorFor(name: String, type: String): String =
+    """
+        /**
+         * Retrieves the [$name][$type] project extension.
+         */
+        val Project.`$name`: $type get() =
+            extensions.getByName("$name") as $type
+
+        /**
+         * Configures the [$name][$type] project extension.
+         */
+        fun Project.`$name`(configure: $type.() -> Unit): Unit =
+            extensions.configure("$name", configure)
+
+    """
+
+
+private
+fun inaccessibleExtensionAccessorFor(name: String, typeAccess: TypeAccessibility.Inaccessible): String =
+    """
+        /**
+         * Retrieves the [$name][${typeAccess.type}] project extension.
+         */
+        val Project.`$name`: Any get() =
+            extensions.getByName("$name")
+
+        /**
+         * Configures the [$name][${typeAccess.type}] project extension.
+         */
+        fun Project.`$name`(configure: Any.() -> Unit): Unit =
+            extensions.configure("$name", configure)
+
+    """
+
+
+private
+fun conventionAccessorFor(name: String, typeAccess: TypeAccessibility): String? =
     codeForExtension(name) {
-        """
-            /**
-             * Retrieves the [$name][$type] project convention.
-             */
-            val Project.`$name`: $type get() =
-                convention.getPluginByName<$type>("$name")
-
-            /**
-             * Configures the [$name][$type] project convention.
-             */
-            fun Project.`$name`(configure: $type.() -> Unit): Unit =
-                configure(`$name`)
-
-        """
+        when (typeAccess) {
+            is TypeAccessibility.Accessible   -> accessibleConventionAccessorFor(name, typeAccess.type)
+            is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(name, typeAccess)
+        }
     }
+
+
+private
+fun accessibleConventionAccessorFor(name: String, type: String): String =
+    """
+        /**
+         * Retrieves the [$name][$type] project convention.
+         */
+        val Project.`$name`: $type get() =
+            convention.getPluginByName<$type>("$name")
+
+        /**
+         * Configures the [$name][$type] project convention.
+         */
+        fun Project.`$name`(configure: $type.() -> Unit): Unit =
+            configure(`$name`)
+
+    """
+
+
+private
+fun inaccessibleConventionAccessorFor(name: String, typeAccess: TypeAccessibility.Inaccessible): String =
+    """
+        /**
+         * Retrieves the [$name][${typeAccess.type}] project convention.
+         */
+        val Project.`$name`: Any get() =
+            convention.getPluginByName<Any>("$name")
+
+        /**
+         * Configures the [$name][${typeAccess.type}] project convention.
+         */
+        fun Project.`$name`(configure: Any.() -> Unit): Unit =
+            configure(`$name`)
+
+    """
 
 
 private
