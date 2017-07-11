@@ -15,8 +15,9 @@
  */
 package org.gradle.cache;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+
+import javax.annotation.Nullable;
 
 /**
  * A persistent store of objects of type V indexed by a key of type K.

@@ -16,10 +16,10 @@
 
 package org.gradle.cache.internal.filelock;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.io.RandomAccessFileOutputStream;
 
+import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;

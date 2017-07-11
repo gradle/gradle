@@ -18,8 +18,9 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.type.ModelType;
+
+import javax.annotation.Nullable;
 
 /**
  * Criteria for selecting the descendants of a particular node.

@@ -18,7 +18,6 @@ package org.gradle.jvm.internal;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.gradle.api.Nullable;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.DependentSourceSet;
@@ -28,6 +27,7 @@ import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.SourceComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;

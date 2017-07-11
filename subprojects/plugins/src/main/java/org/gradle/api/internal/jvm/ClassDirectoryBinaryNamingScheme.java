@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.jvm;
 
-import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
+
+import javax.annotation.Nullable;
 
 public class ClassDirectoryBinaryNamingScheme {
     private final String baseName;

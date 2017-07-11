@@ -17,13 +17,13 @@ package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;

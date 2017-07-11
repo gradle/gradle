@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
+
+import javax.annotation.Nullable;
 
 public interface TaskExecutionHistory {
     /**

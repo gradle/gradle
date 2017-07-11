@@ -17,7 +17,6 @@ package org.gradle.model.internal.fixture;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
@@ -29,13 +28,28 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ChildNodeInitializerStrategyAccessors;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelMapModelProjection;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRegistration;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NodeBackedModelMap;
+import org.gradle.model.internal.core.NodeInitializerContext;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
+import org.gradle.model.internal.core.NodePredicate;
+import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 import static org.gradle.model.internal.core.ModelActionRole.Initialize;

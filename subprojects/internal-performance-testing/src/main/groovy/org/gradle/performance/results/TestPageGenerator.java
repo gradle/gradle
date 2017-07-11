@@ -21,11 +21,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.googlecode.jatl.Html;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;

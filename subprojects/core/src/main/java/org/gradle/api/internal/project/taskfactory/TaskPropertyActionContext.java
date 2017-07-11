@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 

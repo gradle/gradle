@@ -17,7 +17,8 @@
 package org.gradle.plugin.use;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * A mutable specification of a dependency on a plugin.

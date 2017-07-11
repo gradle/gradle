@@ -17,7 +17,8 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * Represents a plugin that has been applied.

@@ -17,8 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
 import org.gradle.caching.internal.BuildCacheHasher;
+
+import javax.annotation.Nullable;
 
 /**
  * Identifies a type in a classloader hierarchy. The type is identified by its name,

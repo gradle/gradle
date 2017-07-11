@@ -16,8 +16,9 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.api.Nullable
 import org.gradle.util.GradleVersion
+
+import javax.annotation.Nullable
 
 interface ToolingApiDistribution {
     GradleVersion getVersion()

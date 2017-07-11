@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
@@ -61,6 +60,7 @@ import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {

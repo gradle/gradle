@@ -17,10 +17,10 @@
 package org.gradle.internal.serialize.kryo;
 
 import com.esotericsoftware.kryo.io.Output;
-import org.gradle.api.Nullable;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.OutputStream;
 

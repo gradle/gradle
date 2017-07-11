@@ -16,13 +16,13 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.LockOptions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 

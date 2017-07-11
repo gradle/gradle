@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * <p>A {@code Module} represents the meta-information about a project which should be used when publishing the

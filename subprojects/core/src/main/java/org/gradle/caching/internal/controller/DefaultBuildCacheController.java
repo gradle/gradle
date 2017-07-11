@@ -18,7 +18,6 @@ package org.gradle.caching.internal.controller;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.controller.operations.PackOperationDetails;
@@ -46,6 +45,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

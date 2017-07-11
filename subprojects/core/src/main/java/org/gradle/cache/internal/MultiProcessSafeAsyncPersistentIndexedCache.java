@@ -15,8 +15,9 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+
+import javax.annotation.Nullable;
 
 /**
  * An indexed cache that may perform updates asynchronously.

@@ -16,7 +16,8 @@
 package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * Represents an object that can be used to launch a Gradle build, such as a task.

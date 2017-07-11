@@ -18,15 +18,25 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.InstanceModelView;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelAdapter;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelPromise;
+import org.gradle.model.internal.core.ModelRegistration;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NodePredicate;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 

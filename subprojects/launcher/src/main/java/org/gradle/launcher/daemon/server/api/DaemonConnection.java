@@ -16,13 +16,13 @@
 
 package org.gradle.launcher.daemon.server.api;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
 import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
 import org.gradle.launcher.daemon.protocol.Result;
-import org.gradle.internal.logging.events.OutputEvent;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 
 public interface DaemonConnection extends Stoppable {

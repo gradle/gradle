@@ -17,18 +17,26 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Nullable;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.inspect.*;
+import org.gradle.model.internal.inspect.AbstractExtractedModelRule;
+import org.gradle.model.internal.inspect.ExtractedModelRule;
+import org.gradle.model.internal.inspect.MethodModelRuleApplicationContext;
+import org.gradle.model.internal.inspect.MethodModelRuleExtractionContext;
+import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.inspect.ModelRuleInvoker;
+import org.gradle.model.internal.inspect.RuleApplicationScope;
+import org.gradle.model.internal.inspect.RuleExtractorUtils;
+import org.gradle.model.internal.inspect.RuleSourceValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentBinaries;
 import org.gradle.platform.base.VariantComponentSpec;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {

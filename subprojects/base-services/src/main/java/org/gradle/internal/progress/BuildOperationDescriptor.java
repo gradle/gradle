@@ -16,7 +16,7 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Meta-data about a build operation.

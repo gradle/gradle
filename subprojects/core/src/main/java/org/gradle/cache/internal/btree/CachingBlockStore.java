@@ -16,8 +16,8 @@
 package org.gradle.cache.internal.btree;
 
 import org.apache.commons.collections.map.LRUMap;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;

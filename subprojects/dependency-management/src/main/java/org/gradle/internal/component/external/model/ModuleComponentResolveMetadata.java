@@ -15,13 +15,13 @@
  */
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 

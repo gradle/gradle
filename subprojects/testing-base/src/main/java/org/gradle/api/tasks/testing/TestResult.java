@@ -16,8 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**

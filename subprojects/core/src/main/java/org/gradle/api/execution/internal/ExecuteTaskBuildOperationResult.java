@@ -16,7 +16,6 @@
 
 package org.gradle.api.execution.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
@@ -24,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
 import org.gradle.internal.id.UniqueId;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperationType.Result {

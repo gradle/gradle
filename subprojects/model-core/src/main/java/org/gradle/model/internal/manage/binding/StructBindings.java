@@ -16,9 +16,9 @@
 
 package org.gradle.model.internal.manage.binding;
 
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.manage.schema.StructSchema;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;

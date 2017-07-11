@@ -16,8 +16,7 @@
 
 package org.gradle.tooling.model.internal.outcomes;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**

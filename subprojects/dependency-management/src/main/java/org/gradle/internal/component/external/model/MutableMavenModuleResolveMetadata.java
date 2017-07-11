@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
     /**

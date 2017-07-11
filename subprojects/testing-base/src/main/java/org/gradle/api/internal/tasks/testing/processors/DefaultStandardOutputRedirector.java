@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.logging.StandardOutputCapture;
-import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 
 public class DefaultStandardOutputRedirector implements StandardOutputRedirector {

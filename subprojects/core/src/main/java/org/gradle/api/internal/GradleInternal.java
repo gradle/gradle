@@ -16,20 +16,20 @@
 package org.gradle.api.internal;
 
 import org.gradle.BuildListener;
-import org.gradle.api.Nullable;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**

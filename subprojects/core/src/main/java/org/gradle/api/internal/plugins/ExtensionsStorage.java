@@ -18,13 +18,13 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.DeferredConfigurable;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.UncheckedException;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

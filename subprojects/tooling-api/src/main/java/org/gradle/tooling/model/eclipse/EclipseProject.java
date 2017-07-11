@@ -16,8 +16,12 @@
 package org.gradle.tooling.model.eclipse;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
-import org.gradle.tooling.model.*;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.HasGradleProject;
+import org.gradle.tooling.model.UnsupportedMethodException;
+
+import javax.annotation.Nullable;
 
 /**
  * The complete model of an Eclipse project.

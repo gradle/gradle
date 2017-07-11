@@ -16,8 +16,7 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 

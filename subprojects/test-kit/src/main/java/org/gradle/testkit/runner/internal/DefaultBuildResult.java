@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.testkit.runner.BuildResult;
@@ -24,6 +23,7 @@ import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 

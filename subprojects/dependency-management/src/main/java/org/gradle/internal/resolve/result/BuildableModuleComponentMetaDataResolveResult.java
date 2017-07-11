@@ -16,9 +16,10 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+
+import javax.annotation.Nullable;
 
 /**
  * The result of attempting to resolve a component id to the meta-data for the component.

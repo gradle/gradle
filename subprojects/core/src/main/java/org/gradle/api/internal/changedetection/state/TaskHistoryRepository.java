@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
+
+import javax.annotation.Nullable;
 
 public interface TaskHistoryRepository {
     History getHistory(TaskInternal task);

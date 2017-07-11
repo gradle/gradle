@@ -21,10 +21,10 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;

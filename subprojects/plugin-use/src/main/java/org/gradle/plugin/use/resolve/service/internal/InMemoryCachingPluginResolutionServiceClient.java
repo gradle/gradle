@@ -18,13 +18,13 @@ package org.gradle.plugin.use.resolve.service.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
-import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
+import org.gradle.plugin.use.PluginId;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 public class InMemoryCachingPluginResolutionServiceClient implements PluginResolutionServiceClient {
