@@ -15,7 +15,13 @@ Add-->
 
 The Gradle command line client now starts up ~200ms faster, speeding up every build.
 
-### Continuous build now works with composite builds
+### Composite Build Improvements
+
+#### Composite builds are now built in parallel
+
+TODO, more information. Included builds are now executed in parallel. 
+
+#### Continuous build now works with composite builds
 
 Gradle's [continuous build feature](userguide/continuous_build.html) now works with [composite builds](userguide/composite_builds.html). Gradle will automatically detect changes to any input from any build and rebuild the appropriate pieces.
 
