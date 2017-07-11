@@ -19,9 +19,11 @@ package org.gradle.scala.scaladoc
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.scala.ScalaCompilationFixture
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import java.nio.file.Files
 
+@LeaksFileHandles
 class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private classes = new ScalaCompilationFixture(testDirectory)

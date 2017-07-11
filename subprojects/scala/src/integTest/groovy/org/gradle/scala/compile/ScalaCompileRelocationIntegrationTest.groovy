@@ -18,12 +18,11 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.scala.ScalaCompilationFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import java.nio.file.Files
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@LeaksFileHandles
 class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private classes = new ScalaCompilationFixture(testDirectory)
