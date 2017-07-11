@@ -157,6 +157,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
+        public void ensureSnapshotBeforeTask() {
+            getStates();
+        }
+
+        @Override
         public void afterTask(Throwable failure) {
             if (failure != null) {
                 return;
