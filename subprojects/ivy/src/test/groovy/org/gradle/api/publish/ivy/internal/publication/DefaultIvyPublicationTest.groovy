@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -29,7 +30,6 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.attributes.Usage
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.ivy.IvyArtifact
@@ -287,7 +287,9 @@ class DefaultIvyPublicationTest extends Specification {
 
     def createComponent(def artifacts, def dependencies) {
         def usage = Stub(UsageContext) {
-            getUsage() >> Usage.FOR_RUNTIME
+            getUsage() >> Mock(Usage) {
+                getName() >> Usage.JAVA_RUNTIME
+            }
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
         }

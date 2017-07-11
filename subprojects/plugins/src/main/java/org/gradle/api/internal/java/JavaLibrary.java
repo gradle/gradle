@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
+import org.gradle.api.internal.model.DefaultObjectFactory;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -36,6 +37,9 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
 public class JavaLibrary implements SoftwareComponentInternal {
+    private final static Usage API = DefaultObjectFactory.INSTANCE.named(Usage.class, Usage.JAVA_API);
+    private final static Usage RUNTIME = DefaultObjectFactory.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME);
+
     private final LinkedHashSet<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final UsageContext runtimeUsage;
     private final UsageContext compileUsage;
@@ -55,8 +59,8 @@ public class JavaLibrary implements SoftwareComponentInternal {
     @Deprecated
     public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
         this.artifacts.add(jarArtifact);
-        this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.FOR_RUNTIME, runtimeDependencies);
-        this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.FOR_COMPILE, runtimeDependencies);
+        this.runtimeUsage = new BackwardsCompatibilityUsageContext(RUNTIME, runtimeDependencies);
+        this.compileUsage = new BackwardsCompatibilityUsageContext(API, runtimeDependencies);
         this.configurations = null;
     }
 
@@ -74,7 +78,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         @Override
         public Usage getUsage() {
-            return Usage.FOR_RUNTIME;
+            return RUNTIME;
         }
 
         public Set<PublishArtifact> getArtifacts() {
@@ -95,7 +99,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         @Override
         public Usage getUsage() {
-            return Usage.FOR_COMPILE;
+            return API;
         }
 
         public Set<PublishArtifact> getArtifacts() {
