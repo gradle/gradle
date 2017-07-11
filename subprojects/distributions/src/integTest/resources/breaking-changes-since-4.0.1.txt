@@ -20,3 +20,8 @@ BREAKING-CHANGE: org.gradle.StartParameter
 REASON: ???
 ***! MODIFIED CLASS: PUBLIC org.gradle.StartParameter  (default serialVersionUID changed)
 	---! REMOVED INTERFACE: org.gradle.initialization.ParallelismConfiguration
+
+BREAKING-CHANGE: org.gradle.api.attributes.CompatibilityRuleChain
+REASON: Is incubating
+***! MODIFIED INTERFACE: PUBLIC ABSTRACT org.gradle.api.attributes.CompatibilityRuleChain  (not serializable)
+	---! REMOVED METHOD: PUBLIC(-) ABSTRACT(-) void assumeCompatibleWhenMissing()
