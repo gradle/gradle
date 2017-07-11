@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import spock.lang.Ignore
 
 /**
  * Tests for resolving dependency cycles in a composite build.
@@ -106,6 +107,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild('gradle.buildFinished')
     }
 
+    @Ignore("flaky - sometimes builds B twice")
     def "fires build listener events for included build that provides buildscript and compile dependencies"() {
         given:
         def pluginBuild = pluginProjectBuild("pluginD")
