@@ -67,7 +67,7 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.afterEvaluate(":foo:bar")
 
         then:
-        1 * buildProgress.progress(_)
+        1 * buildProgress.progress(_, 1, 16, false)
         0 * _
 
         when:
@@ -87,10 +87,10 @@ class BuildProgressLoggerTest extends Specification {
         1 * provider.start(BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, _) >> buildProgress
 
         when:
-        buildProgressLogger.afterExecute()
+        buildProgressLogger.afterExecute(false)
 
         then:
-        1 * buildProgress.progress(_)
+        1 * buildProgress.progress(_, 1, 10, false)
         0 * _
 
         when:

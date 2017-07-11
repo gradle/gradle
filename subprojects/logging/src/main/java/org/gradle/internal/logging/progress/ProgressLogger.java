@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.progress;
 
+import org.gradle.api.Nullable;
+
 /**
  * Used to log the progress of a potentially long running operation.
  *
@@ -110,7 +112,14 @@ public interface ProgressLogger {
      *
      * @param status The new status message. Can be null or empty.
      */
-    void progress(String status);
+    void progress(@Nullable String status);
+
+    /**
+     * Logs some progress, indicated by a new status with the given build health.
+     *
+     * @param status The new status message. Can be null or empty.
+     */
+    void progress(@Nullable  String status, int currentProgress, int totalProgress, boolean failing);
 
     /**
      * Logs the completion of the operation, with no final status

@@ -143,12 +143,16 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 parent.assertRunning();
             }
             current.set(this);
-            listener.started(new ProgressStartEvent(progressOperationId, parent == null ? null : parent.progressOperationId, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status), getBuildOperationId(), getParentBuildOperationId(), getBuildOperationCategory()));
+            listener.started(new ProgressStartEvent(progressOperationId, parent == null ? null : parent.progressOperationId, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, ensureNotNull(status), getBuildOperationId(), getParentBuildOperationId(), getBuildOperationCategory()));
         }
 
         public void progress(String status) {
+            progress(status, 0, 0, false);
+        }
+
+        public void progress(String status, int currentProgress, int totalProgress, boolean failing) {
             assertRunning();
-            listener.progress(new ProgressEvent(progressOperationId, toStatus(status)));
+            listener.progress(new ProgressEvent(progressOperationId, ensureNotNull(status), currentProgress, totalProgress, failing));
         }
 
         public void completed() {
@@ -159,10 +163,10 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertRunning();
             state = State.completed;
             current.set(parent);
-            listener.completed(new ProgressCompleteEvent(progressOperationId, timeProvider.getCurrentTime(), toStatus(status)));
+            listener.completed(new ProgressCompleteEvent(progressOperationId, timeProvider.getCurrentTime(), ensureNotNull(status)));
         }
 
-        private String toStatus(String status) {
+        private String ensureNotNull(String status) {
             return status == null ? "" : status;
         }
 

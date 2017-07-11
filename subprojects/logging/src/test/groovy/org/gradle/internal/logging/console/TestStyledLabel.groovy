@@ -17,26 +17,32 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.text.Span
+import org.gradle.internal.logging.text.Style
 
 class TestStyledLabel implements StyledLabel {
     String display = ""
+    Map<String, Style> stringToStyleMap = new HashMap<>()
 
     String getDisplay() {
         display
     }
 
+    Style styleOf(String text) {
+        stringToStyleMap[text]
+    }
+
     @Override
     void setText(String text) {
-        display = text;
+        display = text
     }
 
     @Override
     void setText(List<Span> spans) {
         String text = ""
         for (Span span : spans) {
+            stringToStyleMap.put(span.text, span.style)
             text += span.text
         }
-
         setText(text)
     }
 

@@ -20,15 +20,33 @@ import org.gradle.api.logging.LogLevel;
 
 public class ProgressEvent extends OutputEvent {
     private final String status;
+    private final int currentProgress;
+    private final int totalProgress;
+    private final boolean failing;
     private final OperationIdentifier progressOperationId;
 
-    public ProgressEvent(OperationIdentifier progressOperationId, String status) {
+    public ProgressEvent(OperationIdentifier progressOperationId, String status, int currentProgress, int totalProgress, boolean failing) {
         this.progressOperationId = progressOperationId;
         this.status = status;
+        this.currentProgress = currentProgress;
+        this.totalProgress = totalProgress;
+        this.failing = failing;
     }
 
     public String getStatus() {
         return status;
+    }
+
+    public int getCurrentProgress() {
+        return currentProgress;
+    }
+
+    public int getTotalProgress() {
+        return totalProgress;
+    }
+
+    public boolean isFailing() {
+        return failing;
     }
 
     @Override

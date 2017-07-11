@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.progress
+package org.gradle.internal.logging.console
 
+import org.gradle.internal.logging.text.Style
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -31,33 +32,43 @@ class ProgressBarTest extends Specification {
     ProgressBar progressBar
 
     def setup() {
-        progressBar = new ProgressBar(PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 10)
+        progressBar = new ProgressBar(PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE)
+    }
+
+    private getProgress() {
+        progressBar.formatProgress(160, false, 0).collect { it.text }.join("")
     }
 
     def "formats progress bar"() {
         expect:
-        progressBar.getProgress() == "$PREFIX${(INCOMPLETE_CHAR * PROGRESS_BAR_WIDTH)}$SUFFIX 0% $BUILD_PHASE".toString()
+        progress == "$PREFIX${(INCOMPLETE_CHAR * PROGRESS_BAR_WIDTH)}$SUFFIX 0% $BUILD_PHASE".toString()
     }
 
     def "fills completed progress"() {
         when:
-        progressBar.increment()
+        progressBar.update(1, 10, false)
 
         then:
-        progressBar.getProgress() == "[#         ] 10% EXECUTING"
-
-        and:
-        progressBar.incrementAndGetProgress() == "[##        ] 20% EXECUTING"
-    }
-
-    def "throws IllegalStateException if incremented past total"() {
-        given:
-        10.times { progressBar.increment() }
+        progress == "[#         ] 10% EXECUTING"
 
         when:
-        progressBar.increment()
+        progressBar.update(2, 10, false)
 
         then:
-        thrown IllegalStateException
+        progress == "[##        ] 20% EXECUTING"
+    }
+
+    def "formats successful progress green"() {
+        expect:
+        progressBar.formatProgress(160, false, 0)[1].style.color == Style.Color.GREEN
+    }
+
+    def "formats failed progress red"() {
+        when:
+        progressBar.update(1, 10, true)
+        progressBar.update(2, 10, false)
+
+        then:
+        progressBar.formatProgress(160, false, 0)[1].style.color == Style.Color.RED
     }
 }
