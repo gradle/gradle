@@ -34,7 +34,7 @@ class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
     @Override
     protected void setupProjectInOriginalLocation() {
         classes.baseline()
-        buildScript(classes.buildScript())
+        buildFile.text = classes.buildScript()
     }
 
     @Override

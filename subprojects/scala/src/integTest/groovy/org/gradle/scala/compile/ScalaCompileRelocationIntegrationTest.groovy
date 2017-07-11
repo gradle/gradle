@@ -27,6 +27,7 @@ import java.nio.file.Files
 class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private classes = new ScalaCompilationFixture(testDirectory)
+    def differentSubdir = file("src/main/scala/other")
 
     @Override
     protected String getTaskName() {
@@ -36,12 +37,13 @@ class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegr
     @Override
     protected void setupProjectInOriginalLocation() {
         classes.baseline()
-
-        buildFile << classes.buildScript()
+        differentSubdir.createDir()
+        buildFile.text = classes.buildScript()
     }
 
     @Override
     protected void moveFilesAround() {
+        classes.classDependingOnBasicClassSource.source.moveToDirectory(differentSubdir)
         Files.move(file("src/main/scala").toPath(), file("src/main/new-scala").toPath())
         classes.sourceDir = 'src/main/new-scala'
         buildFile.text = classes.buildScript()
@@ -50,6 +52,6 @@ class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegr
 
     @Override
     protected extractResults() {
-        return new ScalaCompilationFixture(testDirectory).classDependingOnBasicClassSource.compiledClass.bytes
+        return classes.classDependingOnBasicClassSource.compiledClass.bytes
     }
 }
