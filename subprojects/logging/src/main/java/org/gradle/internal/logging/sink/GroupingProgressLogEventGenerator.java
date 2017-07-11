@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.sink;
 
 import com.google.common.base.Objects;
-import org.gradle.api.Nullable;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
@@ -35,6 +34,7 @@ import org.gradle.internal.progress.BuildOperationCategory;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;

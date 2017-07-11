@@ -22,11 +22,11 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
-import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.internal.AbstractScriptTransformer;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;

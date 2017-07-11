@@ -16,9 +16,10 @@
 
 package org.gradle.internal.invocation;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.concurrent.Stoppable;
+
+import javax.annotation.Nullable;
 
 /**
  * This is intended to eventually replace {@link org.gradle.initialization.GradleLauncher} internally. It's pretty rough at the moment.

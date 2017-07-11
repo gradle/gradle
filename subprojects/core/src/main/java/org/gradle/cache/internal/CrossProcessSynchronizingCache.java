@@ -16,9 +16,10 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Factory;
+
+import javax.annotation.Nullable;
 
 /**
  * Applies cross-process file locking to a backing cache, to ensure that any in-memory and on file state is kept in sync while this process is read from or writing to the cache.

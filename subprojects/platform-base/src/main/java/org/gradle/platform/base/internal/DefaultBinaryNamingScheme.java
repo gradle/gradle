@@ -18,9 +18,9 @@ package org.gradle.platform.base.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Named;
-import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;

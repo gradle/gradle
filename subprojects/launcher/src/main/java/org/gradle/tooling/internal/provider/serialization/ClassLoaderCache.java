@@ -19,10 +19,10 @@ package org.gradle.tooling.internal.provider.serialization;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;

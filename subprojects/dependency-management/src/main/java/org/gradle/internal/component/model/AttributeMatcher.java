@@ -16,12 +16,12 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 

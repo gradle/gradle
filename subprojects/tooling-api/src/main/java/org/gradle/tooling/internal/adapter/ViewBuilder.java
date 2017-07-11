@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.adapter;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 public interface ViewBuilder<T> {
 

@@ -16,9 +16,9 @@
 
 package org.gradle.caching.internal.controller;
 
-import org.gradle.api.Nullable;
 import org.gradle.caching.BuildCacheService;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 
 /**

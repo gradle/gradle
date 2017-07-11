@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
+
+import javax.annotation.Nullable;
 
 /**
  * Details about a plugin being applied.

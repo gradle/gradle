@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.internal.Cast;
@@ -29,6 +28,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
 
 public class DefaultPluginRegistry implements PluginRegistry {

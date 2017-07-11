@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.ExternalResource;
@@ -26,6 +25,7 @@ import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;

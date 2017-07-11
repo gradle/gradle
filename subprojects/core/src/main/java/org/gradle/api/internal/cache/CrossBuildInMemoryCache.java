@@ -17,8 +17,9 @@
 package org.gradle.api.internal.cache;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+
+import javax.annotation.Nullable;
 
 /**
  * An in-memory cache of calculated values that are used across builds. The implementation takes care of cleaning up state that is no longer required.

@@ -20,8 +20,8 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.WeakHashMap;
 

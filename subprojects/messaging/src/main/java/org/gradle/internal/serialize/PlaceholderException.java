@@ -16,9 +16,10 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.scan.UsedByScanPlugin;
+
+import javax.annotation.Nullable;
 
 /**
  * A {@code PlaceholderException} is used when an exception cannot be serialized or deserialized.

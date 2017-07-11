@@ -19,10 +19,10 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**

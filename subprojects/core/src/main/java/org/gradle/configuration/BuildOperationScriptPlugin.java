@@ -16,7 +16,6 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -25,6 +24,7 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 

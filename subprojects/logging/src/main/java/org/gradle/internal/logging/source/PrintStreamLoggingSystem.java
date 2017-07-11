@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.source;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
@@ -28,6 +27,7 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.internal.time.TimeProvider;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicReference;
 

@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public interface ModuleConflictResolver {

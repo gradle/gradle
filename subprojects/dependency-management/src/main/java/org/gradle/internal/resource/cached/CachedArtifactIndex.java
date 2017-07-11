@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource.cached;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.math.BigInteger;
 import java.util.List;

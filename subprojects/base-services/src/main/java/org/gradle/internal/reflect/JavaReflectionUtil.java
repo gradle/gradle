@@ -18,13 +18,13 @@ package org.gradle.internal.reflect;
 
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.Constructor;

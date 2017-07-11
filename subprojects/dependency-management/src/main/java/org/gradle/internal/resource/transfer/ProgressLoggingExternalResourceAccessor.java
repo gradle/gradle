@@ -16,10 +16,10 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;

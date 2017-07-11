@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.progress;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
@@ -26,6 +25,7 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {

@@ -19,7 +19,6 @@ package org.gradle.internal.resource.transfer;
 import com.google.common.io.CountingInputStream;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.AbstractExternalResource;
@@ -30,6 +29,7 @@ import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;

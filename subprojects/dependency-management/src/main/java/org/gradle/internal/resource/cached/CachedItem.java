@@ -16,8 +16,7 @@
 
 package org.gradle.internal.resource.cached;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.io.File;
 
 public interface CachedItem {

@@ -17,8 +17,9 @@
 package org.gradle.caching.local;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.caching.configuration.AbstractBuildCache;
+
+import javax.annotation.Nullable;
 
 
 /**

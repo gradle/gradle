@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+
+import javax.annotation.Nullable;
 
 public interface SelfResolvingDependencyInternal extends SelfResolvingDependency {
     /**

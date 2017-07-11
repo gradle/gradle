@@ -17,9 +17,10 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
-import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.Model;
+import org.gradle.tooling.model.gradle.GradleBuild;
+
+import javax.annotation.Nullable;
 
 /**
  * Provides a {@link BuildAction} various ways to control a Gradle build and access information about the build.

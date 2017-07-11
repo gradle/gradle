@@ -16,9 +16,9 @@
 
 package org.gradle.platform.base.internal.dependents;
 
-import org.gradle.api.Nullable;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public abstract class AbstractDependentBinariesResolutionStrategy implements DependentBinariesResolutionStrategy {

@@ -16,11 +16,12 @@
 
 package org.gradle.plugin.management.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
+
+import javax.annotation.Nullable;
 
 public class DefaultPluginRequest implements PluginRequestInternal {
 

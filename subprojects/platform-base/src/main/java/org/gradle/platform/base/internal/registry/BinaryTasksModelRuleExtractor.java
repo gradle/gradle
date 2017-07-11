@@ -18,19 +18,34 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.inspect.*;
+import org.gradle.model.internal.core.DirectNodeNoInputsModelAction;
+import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
+import org.gradle.model.internal.core.InstanceModelView;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.ModelViews;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.model.internal.inspect.AbstractExtractedModelRule;
+import org.gradle.model.internal.inspect.ExtractedModelRule;
+import org.gradle.model.internal.inspect.MethodModelRuleApplicationContext;
+import org.gradle.model.internal.inspect.MethodModelRuleExtractionContext;
+import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.inspect.ModelRuleInvoker;
+import org.gradle.model.internal.inspect.RuleSourceValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -17,7 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
+
+import javax.annotation.Nullable;
 
 public interface RegularFileHasher {
     /**

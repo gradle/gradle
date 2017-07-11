@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.classpath;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.classpath.ClassPath;
+
+import javax.annotation.Nullable;
 
 /**
  * A registry of dynamically loadable modules.

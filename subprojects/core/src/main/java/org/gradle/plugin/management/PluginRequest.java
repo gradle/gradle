@@ -17,10 +17,11 @@
 package org.gradle.plugin.management;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.use.PluginId;
+
+import javax.annotation.Nullable;
 
 /**
  * Contains information about a plugin that has been requested for resolution.
