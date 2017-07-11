@@ -47,6 +47,11 @@ public interface TaskArtifactState {
     TaskOutputCachingBuildCacheKey calculateCacheKey();
 
     /**
+     * Ensure snapshot is taken of the task's inputs and outputs before it is executed.
+     */
+    void ensureSnapshotBeforeTask();
+
+    /**
      * Called on completion of task execution.
      */
     void afterTask(Throwable failure);

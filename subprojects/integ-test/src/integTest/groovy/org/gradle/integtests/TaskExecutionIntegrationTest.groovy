@@ -25,7 +25,7 @@ import spock.lang.Issue
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
 import static org.hamcrest.Matchers.startsWith
 
-public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def taskCanAccessTaskGraph() {
         buildFile << """
@@ -677,5 +677,37 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
         failure.assertHasDescription('Task :a has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2401")
+    def "re-run task does not query inputs after execution"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                private boolean executed
+
+                @InputDirectory
+                @Optional
+                File getInputDirectory() {
+                    if (!executed) {
+                        return null
+                    }
+                    throw new NullPointerException("Busted")
+                }
+
+                @OutputFile File outputFile
+
+                @TaskAction
+                void doStuff() {
+                    executed = true
+                }
+            }
+
+            task custom(type: CustomTask) {
+                outputFile = file("output.txt")
+            }
+        """
+
+        expect:
+        succeeds "custom", "--rerun-tasks"
     }
 }
