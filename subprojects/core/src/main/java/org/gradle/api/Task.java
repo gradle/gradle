@@ -543,7 +543,11 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <p>Checks if any of the tasks that this task depends on {@link Task#getDidWork() didWork}.</p>
      *
      * @return true if any task this task depends on did work.
+     *
+     * @deprecated Build logic should not depend on this information about a task. Instead, declare
+     * task inputs and outputs to allow Gradle to optimize task execution.
      */
+    @Deprecated
     boolean dependsOnTaskDidWork();
 
     /**
