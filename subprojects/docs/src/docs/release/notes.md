@@ -90,6 +90,12 @@ The current (Scala 2.11.8 and later) Scaladoc Ant task does not support this pro
 ### Example deprecation
 -->
 
+### Using JSR-305 nullable annotation
+
+The `org.gradle.api.Nullable` annotation has been deprecated, and replaced with `javax.annotation.Nullable`.
+
+### Deprecated public API
+
 - `Task.dependsOnTaskDidWork()` is now deprecated. Build logic should not depend on this information about a task. Instead, declare task inputs and outputs to allow Gradle to optimize task execution.
 
 ## Potential breaking changes
