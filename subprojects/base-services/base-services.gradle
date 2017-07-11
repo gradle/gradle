@@ -10,6 +10,7 @@ sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api libraries.guava
+    api libraries.jsr305
 
     implementation libraries.slf4j_api
     implementation libraries.commons_lang
