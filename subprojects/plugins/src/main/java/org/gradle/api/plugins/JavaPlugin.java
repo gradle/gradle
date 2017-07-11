@@ -227,13 +227,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     @Incubating
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
-    /**
-     * Represents the "jar" format of a variant of a Java component.
-     * @since 3.5
-     */
-    @Incubating
-    public static final String JAR_TYPE = ArtifactTypeDefinition.JAR_TYPE;
-
     private final ObjectFactory objectFactory;
 
     @Inject
@@ -315,7 +308,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         // Configure an implicit variant
         publications.getArtifacts().add(jarArtifact);
-        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.JAR_TYPE);
+        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
     }
 
     private void addRuntimeVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
@@ -323,7 +316,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         // Configure an implicit variant
         publications.getArtifacts().add(jarArtifact);
-        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.JAR_TYPE);
+        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
 
         // Define some additional variants
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
