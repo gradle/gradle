@@ -22,11 +22,14 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=3.5")
     @TargetGradleVersion(">=3.5")
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) //modifies environment variables
     def "provide setEnvironmentVariables on LongRunningOperation"() {
         given:
         toolingApi.requireDaemons() //cannot be run in embedded mode

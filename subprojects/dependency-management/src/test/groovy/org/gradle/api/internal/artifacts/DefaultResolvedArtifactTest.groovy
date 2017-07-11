@@ -53,13 +53,20 @@ class DefaultResolvedArtifactTest extends Specification {
         def buildDependencies = Stub(TaskDependency)
         def file = new File("result")
 
+        when:
         def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource)
+
+        then:
+        !artifact.resolved
 
         when:
         def result = artifact.file
 
         then:
         result == file
+        artifact.resolved
+
+        and:
         1 * artifactSource.create() >> file
         0 * artifactSource._
 
@@ -79,7 +86,11 @@ class DefaultResolvedArtifactTest extends Specification {
         def buildDependencies = Stub(TaskDependency)
         def failure = new RuntimeException()
 
+        when:
         def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource)
+
+        then:
+        !artifact.resolved
 
         when:
         artifact.file
@@ -88,6 +99,10 @@ class DefaultResolvedArtifactTest extends Specification {
         def e = thrown(RuntimeException)
         e == failure
 
+        and:
+        artifact.resolved
+
+        and:
         1 * artifactSource.create() >> { throw failure }
         0 * artifactSource._
 

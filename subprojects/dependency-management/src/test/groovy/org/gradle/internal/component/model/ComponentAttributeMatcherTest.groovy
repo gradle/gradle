@@ -19,6 +19,8 @@ package org.gradle.internal.component.model
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.collect.Multimap
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeDisambiguationRule
+import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.CompatibilityCheckResult
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
@@ -136,7 +138,7 @@ class ComponentAttributeMatcherTest extends Specification {
         matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5], requested, null) == [candidate1, candidate3, candidate4, candidate5]
     }
 
-    def "applies disambiguation rules"() {
+    def "applies disambiguation rules and selects intersection of best matches for each attribute"() {
         def attr = Attribute.of(String)
         def attr2 = Attribute.of('2', String)
         schema.attribute(attr)
@@ -173,6 +175,36 @@ class ComponentAttributeMatcherTest extends Specification {
         matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null) == [candidate1, candidate3, candidate4]
         matcher.match(schema, [candidate1, candidate2, candidate4], requested, null) == [candidate1]
         matcher.match(schema, [candidate2, candidate4], requested, null) == [candidate4]
+    }
+
+    def "rule can disambiguate based on requested value"() {
+        def rule = Mock(AttributeDisambiguationRule)
+        def attr = Attribute.of(String)
+        schema.attribute(attr)
+        schema.accept(attr, "requested", "value1")
+        schema.accept(attr, "requested", "value2")
+        schema.select(attr, rule)
+
+        rule.execute({it.consumerValue == "requested"}) >> { MultipleCandidatesDetails details -> details.closestMatch("value2") }
+        rule.execute({it.consumerValue == null}) >> { MultipleCandidatesDetails details -> details.closestMatch("value1") }
+
+        given:
+        def candidate1 = attributes()
+        candidate1.attribute(attr, "value1")
+        def candidate2 = attributes()
+        candidate2.attribute(attr, "no match")
+        def candidate3 = attributes()
+        candidate3.attribute(attr, "value2")
+        def candidate4 = attributes()
+        def requested1 = attributes()
+        requested1.attribute(attr, "requested")
+        def requested2 = attributes()
+
+        def matcher = new ComponentAttributeMatcher()
+
+        expect:
+        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested1, null) == [candidate3]
+        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested2, null) == [candidate1]
     }
 
     def "prefers match with superset of matching attributes"() {
@@ -317,6 +349,7 @@ class ComponentAttributeMatcherTest extends Specification {
     private static class TestSchema implements AttributeSelectionSchema {
         Set<Attribute<?>> attributes = []
         Map<Attribute<?>, Object> preferredValue = [:]
+        Map<Attribute<?>, AttributeDisambiguationRule> rules = [:]
         Map<Attribute<?>, Multimap<Object, Object>> compatibleValues = [:]
 
         void attribute(Attribute<?> attribute) {
@@ -328,6 +361,10 @@ class ComponentAttributeMatcherTest extends Specification {
                 compatibleValues.put(attribute, LinkedListMultimap.create())
             }
             compatibleValues.get(attribute).put(consumer, producer)
+        }
+
+        void select(Attribute<?> attribute, AttributeDisambiguationRule rule) {
+            rules.put(attribute, rule)
         }
 
         void prefer(Attribute<?> attribute, Object value) {
@@ -358,7 +395,14 @@ class ComponentAttributeMatcherTest extends Specification {
         }
 
         @Override
-        void disambiguate(Attribute<?> attribute, Object requested, MultipleCandidatesResult<Object> result) {
+        void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
+
+            def rule = rules.get(attribute)
+            if (rule != null) {
+                rule.execute(result)
+                return
+            }
+
             def preferred = preferredValue.get(attribute)
             if (preferred != null && result.candidateValues.contains(preferred)) {
                 result.closestMatch(preferred)

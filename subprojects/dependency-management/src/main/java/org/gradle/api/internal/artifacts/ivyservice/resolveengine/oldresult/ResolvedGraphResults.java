@@ -17,14 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.UnresolvedDependency;
-
-import java.util.Set;
 
 public interface ResolvedGraphResults {
-    boolean hasError();
-
-    Set<UnresolvedDependency> getUnresolvedDependencies();
-
     ModuleDependency getModuleDependency(long nodeId);
 }

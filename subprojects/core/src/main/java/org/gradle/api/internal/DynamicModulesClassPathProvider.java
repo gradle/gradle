@@ -85,6 +85,6 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
     };
 
     private static final String[] GRADLE_OPTIONAL_EXTENSION_MODULES = {
-        "gradle-script-kotlin-tooling-builders"
+        "gradle-kotlin-dsl-tooling-builders"
     };
 }

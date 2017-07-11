@@ -23,7 +23,7 @@ import org.gradle.internal.Cast;
 
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.provider.DefaultProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE;
+import static org.gradle.api.internal.provider.AbstractProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE;
 
 public class DefaultPropertyState<T> implements PropertyState<T> {
     private static final Provider<Object> NULL_PROVIDER = new Provider<Object>() {

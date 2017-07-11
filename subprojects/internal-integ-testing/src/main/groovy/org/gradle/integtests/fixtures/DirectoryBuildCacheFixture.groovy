@@ -63,4 +63,8 @@ trait DirectoryBuildCacheFixture extends BuildCacheFixture{
     static List<TestFile> listCacheFiles(TestFile cacheDir) {
         cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{32}/}.sort()
     }
+
+    TestFile localCacheArtifact(String cacheKey) {
+        new TestFile(cacheDir, cacheKey)
+    }
 }

@@ -17,6 +17,8 @@ package org.gradle.internal.nativeintegration.processenvironment;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.ReflectiveEnvironment;
@@ -30,16 +32,19 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
 
     @Override
-    public boolean maybeSetEnvironment(Map<String, String> source) {
+    public EnvironmentModificationResult maybeSetEnvironment(Map<String, String> source) {
+        if (JavaVersion.current().isJava9Compatible()) {
+            return EnvironmentModificationResult.JAVA_9_IMMUTABLE_ENVIRONMENT;
+        }
         // need to take copy to prevent ConcurrentModificationException
         List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
         for (String key : keysToRemove) {
             removeEnvironmentVariable(key);
         }
         for (Map.Entry<String, String> entry : source.entrySet()) {
-            setEnvironmentVariable(entry.getKey(), entry.getValue());
+           setEnvironmentVariable(entry.getKey(), entry.getValue());
         }
-        return true;
+        return EnvironmentModificationResult.SUCCESS;
     }
 
     @Override
@@ -51,9 +56,12 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     protected abstract void removeNativeEnvironmentVariable(String name);
 
     @Override
-    public boolean maybeRemoveEnvironmentVariable(String name) {
+    public EnvironmentModificationResult maybeRemoveEnvironmentVariable(String name) {
+        if (JavaVersion.current().isJava9Compatible()) {
+            return EnvironmentModificationResult.JAVA_9_IMMUTABLE_ENVIRONMENT;
+        }
         removeEnvironmentVariable(name);
-        return true;
+        return EnvironmentModificationResult.SUCCESS;
     }
 
     @Override
@@ -70,17 +78,16 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     protected abstract void setNativeEnvironmentVariable(String name, String value);
 
     @Override
-    public boolean maybeSetEnvironmentVariable(String name, String value) {
+    public EnvironmentModificationResult maybeSetEnvironmentVariable(String name, String value) {
+        if (JavaVersion.current().isJava9Compatible()) {
+            return EnvironmentModificationResult.JAVA_9_IMMUTABLE_ENVIRONMENT;
+        }
         setEnvironmentVariable(name, value);
-        return true;
+        return EnvironmentModificationResult.SUCCESS;
     }
 
     @Override
     public void setProcessDir(File processDir) throws NativeIntegrationException {
-        if (!processDir.exists()) {
-            return;
-        }
-
         setNativeProcessDir(processDir);
         System.setProperty("user.dir", processDir.getAbsolutePath());
     }

@@ -20,7 +20,6 @@ import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskExecution
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
@@ -34,16 +33,15 @@ class OutputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
     def "constructor adds context when output snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        def mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
-        def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
-        def mockOutputFileSnapshotter = Mock(OutputFilesSnapshotter)
+        def fileCollectionSnapshotter = Mock(FileCollectionSnapshotter)
+        def snapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        new OutputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, mockInputFileSnapshotterRegistry, mockOutputFileSnapshotter, normalizationStrategy)
+        new OutputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, snapshotterRegistry, normalizationStrategy)
         then:
-        1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> mockInputFileSnapshotter
+        1 * snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> fileCollectionSnapshotter
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        1 * mockInputFileSnapshotter.snapshot(_, _, _, _) >> { throw cause }
+        1 * fileCollectionSnapshotter.snapshot(_, _, _, _) >> { throw cause }
         0 * _
 
         def e = thrown(UncheckedIOException)

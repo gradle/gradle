@@ -441,6 +441,15 @@ public class TestFile extends File {
 
     public void createLink(String target) {
         NativeServices.getInstance().get(FileSystem.class).createSymbolicLink(this, new File(target));
+        clearCanonCaches();
+    }
+
+    private void clearCanonCaches() {
+        try {
+            File.createTempFile("doesnt", "matter").delete();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public String readLink() {

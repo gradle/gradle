@@ -16,6 +16,7 @@
 
 package org.gradle.internal.work
 
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -211,7 +212,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry.currentWorkerLease
 
         then:
-        IllegalStateException e = thrown()
+        NoAvailableWorkerLeaseException e = thrown()
         e.message == 'No worker lease associated with the current thread'
 
         when:
@@ -291,6 +292,6 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
     }
 
     WorkerLeaseService workerLeaseService(int maxWorkers) {
-        return new DefaultWorkerLeaseService(coordinationService, true, maxWorkers)
+        return new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, maxWorkers))
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
@@ -26,10 +26,16 @@ import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.DefaultExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public class HttpConnectorFactory implements ResourceConnectorFactory {
+    private final static Set<String> SUPPORTED_PROTOCOLS = ImmutableSet.of("http", "https");
+    private final static Set<Class<? extends Authentication>> SUPPORTED_AUTHENTICATION = ImmutableSet.of(
+        BasicAuthentication.class,
+        DigestAuthentication.class,
+        AllSchemesAuthentication.class
+    );
+
     private SslContextFactory sslContextFactory;
 
     public HttpConnectorFactory(SslContextFactory sslContextFactory) {
@@ -38,16 +44,12 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
 
     @Override
     public Set<String> getSupportedProtocols() {
-        return Sets.newHashSet("http", "https");
+        return SUPPORTED_PROTOCOLS;
     }
 
     @Override
     public Set<Class<? extends Authentication>> getSupportedAuthentication() {
-        Set<Class<? extends Authentication>> supported = new HashSet<Class<? extends Authentication>>();
-        supported.add(BasicAuthentication.class);
-        supported.add(DigestAuthentication.class);
-        supported.add(AllSchemesAuthentication.class);
-        return supported;
+        return SUPPORTED_AUTHENTICATION;
     }
 
     @Override

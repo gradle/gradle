@@ -19,8 +19,11 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -58,9 +61,9 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private boolean positionIndependentCode;
-    private File objectFileDir;
-    private ConfigurableFileCollection includes;
-    private ConfigurableFileCollection source;
+    private final DirectoryVar objectFileDir;
+    private final ConfigurableFileCollection includes;
+    private final ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
     private ImmutableList<String> includePaths;
@@ -68,6 +71,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
+        objectFileDir = newOutputDirectory();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -162,12 +166,21 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * The directory where object files will be generated.
      */
     @OutputDirectory
-    public File getObjectFileDir() {
+    public DirectoryVar getObjectFileDirectory() {
         return objectFileDir;
     }
 
+    @Internal
+    public File getObjectFileDir() {
+        return objectFileDir.getAsFile().getOrNull();
+    }
+
     public void setObjectFileDir(File objectFileDir) {
-        this.objectFileDir = objectFileDir;
+        this.objectFileDir.set(objectFileDir);
+    }
+
+    public void setObjectFileDir(Provider<? extends Directory> objectFileDir) {
+        this.objectFileDir.set(objectFileDir);
     }
 
     /**

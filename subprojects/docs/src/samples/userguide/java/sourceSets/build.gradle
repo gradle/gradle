@@ -4,14 +4,14 @@ if (hasProperty('showOutput')) {
 
 // START SNIPPET access-source-set
 // Various ways to access the main source set
-println sourceSets.main.output.classesDir
-println sourceSets['main'].output.classesDir
+println sourceSets.main.output.classesDirs
+println sourceSets['main'].output.classesDirs
 sourceSets {
-    println main.output.classesDir
+    println main.output.classesDirs
 }
 sourceSets {
     main {
-        println output.classesDir
+        println output.classesDirs
     }
 }
 
@@ -58,7 +58,7 @@ task intTestJavadoc(type: Javadoc) {
 
 // START SNIPPET test
 task intTest(type: Test) {
-    testClassesDir = sourceSets.intTest.output.classesDir
+    testClassesDirs = sourceSets.intTest.output.classesDirs
     classpath = sourceSets.intTest.runtimeClasspath
 }
 // END SNIPPET test

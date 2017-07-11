@@ -19,6 +19,7 @@ import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.OutputEvent
+import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.util.MockExecutor
 import org.gradle.util.MockTimeProvider
 import spock.lang.Subject
@@ -57,7 +58,7 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         0 * _
 
         when:
-        flush()
+        flushSingleScheduledActions()
 
         then:
         1 * listener.onOutput([event2, event3] as ArrayList<OutputEvent>)
@@ -127,13 +128,40 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(end)
 
         when:
-        flush()
+        flushSingleScheduledActions()
 
         then:
         0 * _
     }
 
-    void flush() {
-        executor.runNow()
+    def "executor emits update now event when executing"() {
+        when:
+        flushFixedScheduledActions()
+
+        then:
+        1 * listener.onOutput(_) >> { arguments ->
+            List<OutputEvent> outputEvents = arguments[0]
+            assert outputEvents.size() == 1
+            assert outputEvents[0] instanceof UpdateNowEvent
+        }
+    }
+
+    def "shuts down executor when receiving end output event"() {
+        expect:
+        !executor.isShutdown()
+
+        when:
+        renderer.onOutput(new EndOutputEvent())
+
+        then:
+        executor.isShutdown()
+    }
+
+    private void flushSingleScheduledActions() {
+        executor.runSingleScheduledActionsNow()
+    }
+
+    private void flushFixedScheduledActions() {
+        executor.runFixedScheduledActionsNow()
     }
 }

@@ -98,12 +98,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             dependencies {
                 compile project(':a')
             }
+            // Triggers configuration of a due to the dependency
             configurations.compile.each { println it }
 """
         file("a/build.gradle") << """
             dependencies {
                 compile project(':b')
             }
+            // Triggers configuration of a due to the dependency
             configurations.compile.each { println it }
 """
 
@@ -122,14 +124,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def configureRoot = events.operation("Configure project :")
 
         def applyRootBuildScript = configureRoot.child("Apply script build.gradle to root project 'multi'")
-        def resolveArtifactsInRoot = applyRootBuildScript.child("Resolve files of :compile")
         def resolveCompile = applyRootBuildScript.child("Resolve dependencies of :compile")
+        def resolveArtifactsInRoot = applyRootBuildScript.child("Resolve files of :compile")
         resolveArtifactsInRoot.child("Resolve a.jar (project :a)")
-        resolveArtifactsInRoot.child("Resolve b.jar (project :b)")
 
         def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply script build.gradle to project ':a'")
-        def resolveArtifactsInProjectA = applyProjectABuildScript.child("Resolve files of :a:compile")
         def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies of :a:compile")
+        def resolveArtifactsInProjectA = applyProjectABuildScript.child("Resolve files of :a:compile")
         resolveArtifactsInProjectA.child("Resolve b.jar (project :b)")
 
         resolveCompileA.child("Configure project :b")
@@ -355,7 +356,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    @Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM, NOT_WINDOWS])
+    @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
     def "generates events for nested script plugin applications of different types"() {
         given:
         def scriptPluginGroovy1 = file('scriptPluginGroovy1.gradle')

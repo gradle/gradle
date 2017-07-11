@@ -17,16 +17,6 @@ Useful links:
 
 The stories found here use the terminology defined in the `buildingJavaLibraries.xml` chapter. Please make sure you have those terms in mind before going further.
 
-
-# ASM 6
-
-This section lists the mandatory items to be fixes as soon as ASM 6 is available. ASM is the library we use to parse classes,
-and it is used in a lot of different places in Gradle. The ASM 5 library cannot read the Java 9 class format
-(version 53). We have worked around this in several places of Gradle:
-
-- remove usages of `org.gradle.util.internal.Java9ClassReader` and replace them with a standard `org.objectweb.asm.ClassReader`
-- remove hack in `org.gradle.test.fixtures.file.ClassFile`
-
 # Feature: Java library author specifies library API
 
 Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not part of the API of the library. This is intended to help teams materialize and describe the APIs of and dependencies between the various components of their software stack, and enforce the boundaries between them, helping prepare them for transition to the Java module system.

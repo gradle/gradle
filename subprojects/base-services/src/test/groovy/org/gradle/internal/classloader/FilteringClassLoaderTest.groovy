@@ -16,6 +16,7 @@
 package org.gradle.internal.classloader
 
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Test
 import org.junit.runners.BlockJUnit4ClassRunner
@@ -37,6 +38,7 @@ class FilteringClassLoaderTest extends Specification {
         canLoadClass(String)
     }
 
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     void passesThroughSystemPackages() {
         expect:
         canSeePackage('java.lang')
@@ -68,9 +70,19 @@ class FilteringClassLoaderTest extends Specification {
         e2.message == "$Test.name not found."
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     void filtersPackagesByDefault() {
         given:
         assert classLoader.parent.getPackage('org.junit') != null
+
+        expect:
+        cannotSeePackage('org.junit')
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    void filtersPackagesByDefaultPostJdk8() {
+        given:
+        assert classLoader.parent.getDefinedPackage('org.junit') != null
 
         expect:
         cannotSeePackage('org.junit')

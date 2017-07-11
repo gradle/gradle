@@ -17,18 +17,18 @@
 package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
-import spock.lang.Ignore
+import org.gradle.internal.SystemProperties
+import org.junit.Ignore
 
-@Ignore("Build fails and passes depending on timing")
+@Ignore("Flaky - either fails or locks up on Windows")
 class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
-
+    private static final String EOL = SystemProperties.instance.lineSeparator
     private static final String PROJECT_A_NAME = 'projectA'
     private static final String PROJECT_B_NAME = 'projectB'
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
     private static final String BYE_WORLD_MESSAGE = 'Bye world'
 
-    def "can group task output in composite build"() {
-        given:
+    def setup() {
         file("$PROJECT_A_NAME/build.gradle") << javaProject()
         file("$PROJECT_A_NAME/build.gradle") <<
             """
@@ -37,7 +37,7 @@ class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec 
                         logger.quiet 'Hello world'
                     }
                 }
-                
+
                 compileJava.dependsOn helloWorld
             """
         file("$PROJECT_B_NAME/build.gradle") << javaProject()
@@ -64,7 +64,9 @@ class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec 
         """
         file("$PROJECT_A_NAME/src/main/java/MyClass.java") << javaSourceFile()
         file("$PROJECT_B_NAME/src/main/java/MyClass.java") << javaSourceFile()
+    }
 
+    def "can group task output in composite build"() {
         when:
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withTasks('compileJava').run()
 
@@ -73,10 +75,19 @@ class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec 
         result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
+    @Ignore("Failing on Windows")
+    def "does not execute task actions when dry run specified on composite build"() {
+        when:
+        def result = executer.inDirectory(file(PROJECT_B_NAME)).withArgument("--dry-run").withTasks('compileJava').run()
+
+        then:
+        result.groupedOutput.strippedOutput.contains ":byeWorld SKIPPED$EOL:compileJava SKIPPED$EOL"
+    }
+
     static String javaProject() {
         """
             apply plugin: 'java'
-            
+
             group = 'org.gradle'
             version = '1.0'
         """

@@ -16,6 +16,7 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 import java.util.Set;
 
@@ -24,14 +25,22 @@ import java.util.Set;
  * the list of candidates on the producer side.
  *
  * @param <T> the concrete type of the attribute
- *
  * @since 3.3
  */
 @Incubating
 public interface MultipleCandidatesDetails<T> {
+    /**
+     * Returns the value of the attribute specified by the consumer.
+     *
+     * @return The value or {@code null} if the consumer did not specify a value.
+     * @since 4.1
+     */
+    @Nullable
+    T getConsumerValue();
 
     /**
      * A set of candidate values.
+     *
      * @return the set of candidates
      */
     Set<T> getCandidateValues();

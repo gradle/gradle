@@ -17,7 +17,7 @@
 package org.gradle.cache.internal.locklistener
 
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.util.ConcurrentSpecification
 
@@ -63,7 +63,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         handler.start(11, {} as Runnable)
 
         then:
-        1 * factory.create(_ as String) >> Mock(StoppableExecutor)
+        1 * factory.create(_ as String) >> Mock(ManagedExecutor)
         0 * factory._
     }
 
@@ -152,7 +152,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
 
     def "stopping the handler stops the executor"() {
         def factory = Mock(ExecutorFactory)
-        def executor = Mock(StoppableExecutor)
+        def executor = Mock(ManagedExecutor)
         handler = new DefaultFileLockContentionHandler(factory, addressFactory)
 
         when:

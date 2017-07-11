@@ -19,7 +19,6 @@ package org.gradle.internal.service.scopes
 import org.gradle.StartParameter
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.ExceptionAnalyser
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.ThreadGlobalInstantiator
@@ -39,7 +38,6 @@ import org.gradle.api.internal.project.ProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
-import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.configuration.DefaultBuildConfigurer
@@ -49,12 +47,9 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildLoader
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.ClassLoaderRegistry
-import org.gradle.initialization.DefaultExceptionAnalyser
 import org.gradle.initialization.DefaultGradlePropertiesLoader
 import org.gradle.initialization.IGradlePropertiesLoader
-import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser
 import org.gradle.initialization.ProjectPropertySettingBuildLoader
-import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -64,9 +59,9 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
@@ -199,17 +194,6 @@ class BuildScopeServicesTest extends Specification {
         def registry = registry.get(ServiceRegistryFactory).createFor(settings)
         expect:
         registry instanceof SettingsScopeServices
-    }
-
-    def providesAnExceptionAnalyser() {
-        setup:
-        expectParentServiceLocated(LoggingConfiguration)
-
-        expect:
-        assertThat(registry.get(ExceptionAnalyser), instanceOf(StackTraceSanitizingExceptionAnalyser))
-        assertThat(registry.get(ExceptionAnalyser).analyser, instanceOf(MultipleBuildFailuresExceptionAnalyser))
-        assertThat(registry.get(ExceptionAnalyser).analyser.delegate, instanceOf(DefaultExceptionAnalyser))
-        assertThat(registry.get(ExceptionAnalyser), sameInstance(registry.get(ExceptionAnalyser)))
     }
 
     def providesAnIsolatedAntBuilder() {

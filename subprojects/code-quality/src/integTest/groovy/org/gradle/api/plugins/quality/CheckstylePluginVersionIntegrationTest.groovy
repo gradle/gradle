@@ -308,6 +308,31 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         result.executedTasks.contains(":checkstyleMain")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/2326")
+    @NotYetImplemented
+    def "check task should not be up-to-date after clean if it only outputs to console"() {
+        given:
+        defaultLanguage('en')
+        writeConfigFileWithWarnings()
+        badCode()
+        buildFile << """
+            tasks.withType(Checkstyle) {
+                reports {
+                    html.enabled false
+                    xml.enabled false
+                }
+            }
+        """
+
+        when:
+        succeeds('check')
+        succeeds('clean', 'check')
+
+        then:
+        nonSkippedTasks.contains(':checkstyleMain')
+        errorOutput.contains("[ant:checkstyle] [WARN]")
+    }
+
     private goodCode() {
         file('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
         file('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'

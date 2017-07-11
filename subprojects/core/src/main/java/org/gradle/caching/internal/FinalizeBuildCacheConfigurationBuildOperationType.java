@@ -33,7 +33,7 @@ import java.util.Map;
  * However, if the build fails during configuration or task graph assembly, it will not be emitted.
  * It must fire before any build cache is used.
  *
- * See BuildCacheServiceProvider.
+ * See BuildCacheControllerFactory.
  *
  * @since 4.0
  */
@@ -89,63 +89,6 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
              */
             Map<String, String> getConfig();
 
-        }
-
-    }
-
-    static class DetailsImpl implements Details {
-
-    }
-
-    static class ResultImpl implements Result {
-
-        private final boolean enabled;
-
-        private final boolean localEnabled;
-
-        private final BuildCacheDescription local;
-
-        private final boolean remoteEnabled;
-
-        private final BuildCacheDescription remote;
-
-        ResultImpl(boolean enabled, boolean localEnabled, boolean remoteEnabled, @Nullable BuildCacheDescription local, @Nullable BuildCacheDescription remote) {
-            this.enabled = enabled;
-            this.localEnabled = localEnabled;
-            this.remoteEnabled = remoteEnabled;
-            this.local = local;
-            this.remote = remote;
-        }
-
-        static Result disabled() {
-            return new ResultImpl(false, false, false, null, null);
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        @Override
-        public boolean isLocalEnabled() {
-            return localEnabled;
-        }
-
-        @Override
-        public boolean isRemoteEnabled() {
-            return remoteEnabled;
-        }
-
-        @Override
-        @Nullable
-        public BuildCacheDescription getLocal() {
-            return local;
-        }
-
-        @Override
-        @Nullable
-        public BuildCacheDescription getRemote() {
-            return remote;
         }
 
     }

@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
@@ -138,7 +139,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-            Map<ResolvedArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvedArtifact, TransformArtifactOperation>();
+            Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformArtifactOperation>();
             Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
             Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(artifactResults, actions, transform, listener, fileResults));
             return new TransformingResult(result, artifactResults, fileResults);
@@ -150,13 +151,13 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         private static class TransformingAsyncArtifactListener implements AsyncArtifactListener {
-            private final Map<ResolvedArtifact, TransformArtifactOperation> artifactResults;
+            private final Map<ResolvableArtifact, TransformArtifactOperation> artifactResults;
             private final BuildOperationQueue<RunnableBuildOperation> actions;
             private final AsyncArtifactListener listener;
             private final Map<File, TransformFileOperation> fileResults;
             private final Transformer<List<File>, File> transform;
 
-            TransformingAsyncArtifactListener(Map<ResolvedArtifact, TransformArtifactOperation> artifactResults, BuildOperationQueue<RunnableBuildOperation> actions, Transformer<List<File>, File> transform, AsyncArtifactListener listener, Map<File, TransformFileOperation> fileResults) {
+            TransformingAsyncArtifactListener(Map<ResolvableArtifact, TransformArtifactOperation> artifactResults, BuildOperationQueue<RunnableBuildOperation> actions, Transformer<List<File>, File> transform, AsyncArtifactListener listener, Map<File, TransformFileOperation> fileResults) {
                 this.artifactResults = artifactResults;
                 this.actions = actions;
                 this.transform = transform;
@@ -165,7 +166,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
 
             @Override
-            public void artifactAvailable(ResolvedArtifact artifact) {
+            public void artifactAvailable(ResolvableArtifact artifact) {
                 TransformArtifactOperation operation = new TransformArtifactOperation(artifact, transform);
                 artifactResults.put(artifact, operation);
                 actions.add(operation);
@@ -192,10 +193,10 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         private class TransformingResult implements Completion {
             private final Completion result;
-            private final Map<ResolvedArtifact, TransformArtifactOperation> artifactResults;
+            private final Map<ResolvableArtifact, TransformArtifactOperation> artifactResults;
             private final Map<File, TransformFileOperation> fileResults;
 
-            public TransformingResult(Completion result, Map<ResolvedArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+            TransformingResult(Completion result, Map<ResolvableArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
                 this.result = result;
                 this.artifactResults = artifactResults;
                 this.fileResults = fileResults;
@@ -209,12 +210,12 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
     }
 
     private static class TransformArtifactOperation implements RunnableBuildOperation {
-        private final ResolvedArtifact artifact;
+        private final ResolvableArtifact artifact;
         private final Transformer<List<File>, File> transform;
         private Throwable failure;
         private List<File> result;
 
-        TransformArtifactOperation(ResolvedArtifact artifact, Transformer<List<File>, File> transform) {
+        TransformArtifactOperation(ResolvableArtifact artifact, Transformer<List<File>, File> transform) {
             this.artifact = artifact;
             this.transform = transform;
         }
@@ -262,10 +263,10 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
     private static class ArtifactTransformingVisitor implements ArtifactVisitor {
         private final ArtifactVisitor visitor;
         private final AttributeContainerInternal target;
-        private final Map<ResolvedArtifact, TransformArtifactOperation> artifactResults;
+        private final Map<ResolvableArtifact, TransformArtifactOperation> artifactResults;
         private final Map<File, TransformFileOperation> fileResults;
 
-        private ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ResolvedArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+        private ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ResolvableArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
             this.visitor = visitor;
             this.target = target;
             this.artifactResults = artifactResults;
@@ -273,7 +274,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
+        public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
             TransformArtifactOperation operation = artifactResults.get(artifact);
             if (operation.failure != null) {
                 visitor.visitFailure(operation.failure);
@@ -284,10 +285,11 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
             TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
             for (File output : transformedFiles) {
-                ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
+                ResolvedArtifact sourceArtifact = artifact.toPublicView();
+                ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(sourceArtifact.getId().getComponentIdentifier(), output.getName());
                 String extension = Files.getFileExtension(output.getName());
                 IvyArtifactName artifactName = new DefaultIvyArtifactName(output.getName(), extension, extension);
-                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
+                DefaultResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(sourceArtifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
                 visitor.visitArtifact(target, resolvedArtifact);
             }
         }

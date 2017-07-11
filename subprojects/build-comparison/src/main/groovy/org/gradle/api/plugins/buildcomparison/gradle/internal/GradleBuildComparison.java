@@ -45,6 +45,7 @@ import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
@@ -170,8 +171,9 @@ public class GradleBuildComparison {
     }
 
     private ProjectConnection createProjectConnection(ComparableGradleBuildExecuter executer) {
-        GradleConnector connector = GradleConnector.newConnector();
+        DefaultGradleConnector connector = (DefaultGradleConnector) GradleConnector.newConnector();
         connector.forProjectDirectory(executer.getSpec().getProjectDir());
+        connector.searchUpwards(false);
         File gradleUserHomeDir = gradle.getStartParameter().getGradleUserHomeDir();
         if (gradleUserHomeDir != null) {
             connector.useGradleUserHomeDir(gradleUserHomeDir);

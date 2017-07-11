@@ -58,8 +58,4 @@ public class JavadocOfflineLink implements Serializable {
     public int hashCode() {
         return Objects.hashCode(extDocUrl, packagelistLoc);
     }
-
-    public String toString() {
-        return extDocUrl + "' '" + packagelistLoc;
-    }
 }

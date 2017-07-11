@@ -20,7 +20,7 @@ import com.google.common.util.concurrent.ListenableFutureTask
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -41,7 +41,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
     def fileResolver = Mock(FileResolver)
-    def stoppableExecutor = Mock(StoppableExecutor)
+    def stoppableExecutor = Mock(ManagedExecutor)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
 
@@ -81,7 +81,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         workerExecutor.await()
 
         then:
-        1 * asyncWorkerTracker.waitForCompletion(_)
+        1 * asyncWorkerTracker.waitForCompletion(_, false)
     }
 
     def "all errors are thrown when waiting on multiple results"() {
@@ -89,7 +89,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         workerExecutor.await()
 
         then:
-        1 * asyncWorkerTracker.waitForCompletion(_) >> {
+        1 * asyncWorkerTracker.waitForCompletion(_, false) >> {
             throw new DefaultMultiCauseException(null, new RuntimeException(), new RuntimeException())
         }
 

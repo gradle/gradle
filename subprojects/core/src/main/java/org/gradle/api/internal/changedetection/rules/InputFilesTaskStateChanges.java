@@ -37,7 +37,7 @@ public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
     }
 
     @Override
-    public void saveCurrent() {
+    public void snapshotAfterTask() {
         // Inputs have already been saved in constructor
     }
 }

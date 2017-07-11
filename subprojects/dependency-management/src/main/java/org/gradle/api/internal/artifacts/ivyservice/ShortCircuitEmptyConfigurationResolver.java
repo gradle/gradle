@@ -42,7 +42,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -100,17 +99,12 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
-        public void collectSelectionFailures(Collection<? super Throwable> failures) {
-        }
-
-        @Override
         public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
         }
 
         @Override
-        public void visitArtifacts(ArtifactVisitor visitor) {
+        public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
         }
-
     }
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {

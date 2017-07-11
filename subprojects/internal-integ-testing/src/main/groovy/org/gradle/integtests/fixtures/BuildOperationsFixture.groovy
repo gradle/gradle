@@ -46,6 +46,12 @@ class BuildOperationsFixture {
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> roots() {
+        return operations.roots
+    }
+
+
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.records.values().find {
@@ -59,6 +65,11 @@ class BuildOperationsFixture {
         operations.records.values().findAll {
             it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
         }
+    }
+
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> void none(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        assert all(type, predicate).isEmpty()
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
@@ -113,5 +124,14 @@ class BuildOperationsFixture {
         }
 
         matches
+    }
+
+    void orderedSerialSiblings(BuildOperationRecord... expectedOrder) {
+        def expectedOrderList = expectedOrder.toList()
+        assert expectedOrder*.parentId.unique().size() == 1
+        def startTimeOrdered = expectedOrderList.sort(false) { it.startTime }
+        assert expectedOrderList == startTimeOrdered
+        def endTimeOrdered = expectedOrderList.sort(false) { it.endTime }
+        assert endTimeOrdered == startTimeOrdered
     }
 }

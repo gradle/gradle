@@ -518,7 +518,7 @@ Configuration 'bar':
         result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
     }
 
-    def "does not select default configuration when no match is found"() {
+    def "does not select default configuration when no match is found and configurations with attributes"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -565,12 +565,8 @@ Configuration 'bar':
         fails ':a:checkDebug'
 
         then:
-        if (FluidDependenciesResolveRunner.isFluid()) {
-            failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
-        } else {
-            failure.assertHasDescription("Execution failed for task ':a:checkDebug'.")
-        }
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:_compileFreeDebug'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("""Unable to find a matching configuration of project :b:
   - Configuration 'bar':
@@ -579,6 +575,62 @@ Configuration 'bar':
   - Configuration 'foo':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found compatible value 'free'.""")
+    }
+
+    def "does not select default configuration when consumer has no attributes and configurations with attributes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    compile
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task checkDebug(dependsOn: configurations.compile) {
+                    doLast {
+                        assert configurations.compile.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo { attributes { $freeRelease } }
+                    bar { attributes { $release } }
+                    create 'default'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
+  - bar
+  - foo
+All of them match the consumer attributes:
+  - Configuration 'bar': Found buildType 'release' but wasn't required.
+  - Configuration 'foo':
+      - Found buildType 'release' but wasn't required.
+      - Found flavor 'free' but wasn't required.""")
     }
 
     def "does not select default configuration when no configurations with attributes and default configuration is not consumable"() {

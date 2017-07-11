@@ -110,7 +110,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         // Core libs
         def coreLibs = contentsDir.file("lib").listFiles().findAll {
-            it.name.startsWith("gradle-") && !it.name.startsWith("gradle-script-kotlin")
+            it.name.startsWith("gradle-") && !it.name.startsWith("gradle-kotlin-dsl")
         }
         assert coreLibs.size() == 18
         coreLibs.each { assertIsGradleJar(it) }

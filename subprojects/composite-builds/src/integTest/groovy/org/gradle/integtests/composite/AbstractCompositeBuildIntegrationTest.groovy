@@ -18,7 +18,9 @@ package org.gradle.integtests.composite
 
 import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
 /**
  * Tests for composite build.
@@ -26,6 +28,8 @@ import org.gradle.test.fixtures.file.TestFile
 abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     BuildTestFile buildA
     List<File> includedBuilds = []
+    def operations = new BuildOperationsFixture(executer, temporaryFolder)
+
 
     def setup() {
         buildTestFixture.withBuildInSubDir()
@@ -67,16 +71,19 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     protected void execute(BuildTestFile build, String[] tasks, Iterable<String> arguments = []) {
         prepare(build, arguments)
         succeeds(tasks)
+        assertSingleBuildOperationsTree()
     }
 
     protected void execute(BuildTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         succeeds(task)
+        assertSingleBuildOperationsTree()
     }
 
     protected void fails(BuildTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         fails(task)
+        assertSingleBuildOperationsTree()
     }
 
     private void prepare(BuildTestFile build, Iterable<String> arguments) {
@@ -92,18 +99,85 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     }
 
     protected void executed(String... tasks) {
+        def executedTasks = result.executedTasks
         for (String task : tasks) {
-            executedOnce(task)
+            containsOnce(executedTasks, task)
         }
     }
 
-    protected void executedOnce(String task) {
-        def executedTasks = result.executedTasks
-        assert executedTasks.contains(task)
-        assert executedTasks.findAll({ it == task }).size() == 1
+    protected static void containsOnce(List<String> tasks, String task) {
+        assert tasks.contains(task)
+        assert tasks.findAll({ it == task }).size() == 1
+    }
+
+    void assertTaskExecuted(String build, String taskPath) {
+        assert operations.first(ExecuteTaskBuildOperationType) {
+            it.details.buildPath == build && it.details.taskPath == taskPath
+        }
+    }
+
+    void assertTaskExecutedOnce(String build, String taskPath) {
+        operations.only(ExecuteTaskBuildOperationType) {
+            it.details.buildPath == build && it.details.taskPath == taskPath
+        }
+    }
+
+    void assertTaskNotExecuted(String build, String taskPath) {
+        operations.none(ExecuteTaskBuildOperationType) {
+            it.details.buildPath == build && it.details.taskPath == taskPath
+        }
+    }
+
+    void assertSingleBuildOperationsTree() {
+        assert operations.roots().size() == 1
     }
 
     TestFile getRootDir() {
         temporaryFolder.testDirectory
+    }
+
+
+    def applyPlugin(BuildTestFile build, String name = "pluginBuild") {
+        build.buildFile << """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:$name:1.0'
+                }
+            }
+            apply plugin: 'org.test.plugin.$name'
+"""
+    }
+
+    def pluginProjectBuild(String name) {
+        def className = name.capitalize()
+        singleProjectBuild(name) {
+            buildFile << """
+apply plugin: 'java-gradle-plugin'
+
+gradlePlugin {
+    plugins {
+        ${name} {
+            id = "org.test.plugin.$name"
+            implementationClass = "org.test.$className"
+        }
+    }
+}
+"""
+            file("src/main/java/org/test/${className}.java") << """
+package org.test;
+
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+
+public class ${className} implements Plugin<Project> {
+    public void apply(Project project) {
+        Task task = project.task("taskFrom${className}");
+        task.setGroup("Plugin");
+    }
+}
+"""
+        }
+
     }
 }

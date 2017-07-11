@@ -279,6 +279,26 @@ Joe!""")
         result.assertOutputContains("-J-Dpublic.api=com.sample.tools.VisibilityPublic")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/2235")
+    def "can pass offline links"() {
+        buildFile << """
+            apply plugin: 'java'
+            
+            javadoc {
+                options {
+                    linksOffline 'https://docs.oracle.com/javase/8/docs/api/', 'gradle/javadocs/jdk'
+                    linksOffline 'http://javadox.com/org.jetbrains/annotations/15.0/', 'gradle/javadocs/jetbrains-annotations'
+                }
+            }
+        """
+        writeSourceFile()
+        file('gradle/javadocs/jdk/package-list') << ''
+        file('gradle/javadocs/jetbrains-annotations/package-list') << ''
+
+        expect:
+        succeeds("javadoc")
+    }
+
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
     }

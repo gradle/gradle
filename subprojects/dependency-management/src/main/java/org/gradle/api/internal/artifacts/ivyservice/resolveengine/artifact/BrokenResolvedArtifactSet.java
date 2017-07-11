@@ -28,6 +28,7 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
 
     @Override
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+        visitor.visitFailure(failure);
     }
 
     @Override

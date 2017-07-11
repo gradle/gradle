@@ -59,6 +59,11 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new BaseDirFileResolver(fileSystem, resolve(path), patternSetFactory);
     }
 
+    @Override
+    public FileResolver newResolver(File baseDir) {
+        return new BaseDirFileResolver(fileSystem, baseDir, patternSetFactory);
+    }
+
     public File resolve(Object path) {
         return resolve(path, PathValidation.NONE);
     }

@@ -25,12 +25,16 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.0
  */
-public final class ResolveArtifactsBuildOperationType implements BuildOperationType<ResolveArtifactsBuildOperationType.Details, Void> {
+public final class ResolveArtifactsBuildOperationType implements BuildOperationType<ResolveArtifactsBuildOperationType.Details, ResolveArtifactsBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
 
         String getConfigurationPath();
+
+    }
+
+    public interface Result {
 
     }
 
@@ -47,6 +51,9 @@ public final class ResolveArtifactsBuildOperationType implements BuildOperationT
         }
 
     }
+
+    public final static Result RESULT = new Result() {
+    };
 
     private ResolveArtifactsBuildOperationType() {
     }

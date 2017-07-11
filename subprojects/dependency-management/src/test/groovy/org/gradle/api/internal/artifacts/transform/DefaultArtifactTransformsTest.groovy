@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.Buildable
 import org.gradle.api.Transformer
-import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
@@ -263,5 +263,5 @@ Found the following transforms:
         attributeContainer.asImmutable()
     }
 
-    interface TestArtifact extends ResolvedArtifact, Buildable {}
+    interface TestArtifact extends ResolvableArtifact, Buildable {}
 }

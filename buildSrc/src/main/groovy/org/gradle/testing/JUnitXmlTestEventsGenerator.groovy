@@ -84,7 +84,7 @@ class JUnitXmlTestEventsGenerator {
                 }
                 String failureText = failure.text()
                 failureText = failureText.replace("java.lang.AssertionError: ", "")
-                testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime, 1, 0, 1, [new AssertionError(failureText)]))
+                testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime, 1, 0, 1, [assertionError(failureText)]))
             } else if (!(skipped.size() > 0)) {
                 testListener.beforeTest(testCaseDescriptor)
                 publishAdditionalMetadata(testCaseDescriptor, build)
@@ -95,6 +95,11 @@ class JUnitXmlTestEventsGenerator {
         testListener.afterSuite(testSuiteDescriptor.parent, new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 0, 0, 0, []))
         testListener.afterSuite(testSuiteDescriptor.parent.parent, new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 0, 0, 0, []))
     }
+
+    @groovy.transform.CompileStatic
+    // workaround for class org.codehaus.groovy.reflection.CachedConstructor cannot access a member of class java.lang.AssertionError (in module java.base) with modifiers "private"
+    // using Jigsaw
+    AssertionError assertionError(/*must be Object*/Object failureText) { new AssertionError(failureText) }
 
     private void publishAdditionalMetadata(DecoratingTestDescriptor testCaseDescriptor, Object build) {
         List<String> outputs = []

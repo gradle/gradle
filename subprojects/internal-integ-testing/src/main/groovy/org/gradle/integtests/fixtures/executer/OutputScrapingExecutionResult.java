@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.CharSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
@@ -22,6 +23,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
+import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
 import org.gradle.util.TextUtil;
 import org.hamcrest.core.StringContains;
 
@@ -31,7 +33,6 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -41,7 +42,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
-    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?[\\w.$_]+\\.[\\w$_ =\\+\'-]+\\(.+?\\)");
+    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =\\+\'-]+\\(.+?\\)");
     private final String output;
     private final String error;
 
@@ -95,6 +96,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 i++;
             } else if (line.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)) {
                 // Remove the "Daemon will be shut down" message
+                i++;
+            } else if (line.contains(LowTenuredSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
+                // Remove the "Expiring Daemon" message
                 i++;
             } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
@@ -186,19 +190,28 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private List<String> grepTasks(final Pattern pattern) {
-        final LinkedList<String> tasks = new LinkedList<String>();
+        final List<String> tasks = Lists.newArrayList();
+        final List<String> taskStatusLines = Lists.newArrayList();
 
         eachLine(new Action<String>() {
             public void execute(String s) {
                 java.util.regex.Matcher matcher = pattern.matcher(s);
                 if (matcher.matches()) {
+                    String taskStatusLine = matcher.group();
                     String taskName = matcher.group(1);
                     if (!taskName.contains(":buildSrc:")) {
-                        //for INFO/DEBUG level the task may appear twice - once for the execution, once for the UP-TO-DATE
-                        //so I'm not adding the task to the list if it is the same as previously added task.
-                        if (tasks.size() == 0 || !tasks.getLast().equals(taskName)) {
-                            tasks.add(taskName);
+                        // The task status line may appear twice - once for the execution, once for the UP-TO-DATE/SKIPPED/etc
+                        // So don't add to the task list if this is an update to a previously added task.
+
+                        // Find the status line for the previous record of this task
+                        String previousTaskStatusLine = tasks.contains(taskName) ? taskStatusLines.get(tasks.lastIndexOf(taskName)) : "";
+                        // Don't add if our last record has a `:taskName` status, and this one is `:taskName SOMETHING`
+                        if (previousTaskStatusLine.equals(taskName) && !taskStatusLine.equals(taskName)) {
+                            return;
                         }
+
+                        taskStatusLines.add(taskStatusLine);
+                        tasks.add(taskName);
                     }
                 }
             }

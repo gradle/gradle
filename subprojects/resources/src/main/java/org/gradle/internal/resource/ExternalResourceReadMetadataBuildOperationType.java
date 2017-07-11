@@ -24,7 +24,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.0
  */
-public final class ExternalResourceReadMetadataBuildOperationType implements BuildOperationType<ExternalResourceReadMetadataBuildOperationType.Details, Void> {
+public final class ExternalResourceReadMetadataBuildOperationType implements BuildOperationType<ExternalResourceReadMetadataBuildOperationType.Details, ExternalResourceReadMetadataBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -34,6 +34,10 @@ public final class ExternalResourceReadMetadataBuildOperationType implements Bui
          * A valid URI.
          */
         String getLocation();
+
+    }
+
+    public interface Result {
 
     }
 

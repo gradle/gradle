@@ -26,8 +26,11 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.GradleThread;
+import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
+import org.gradle.internal.concurrent.ParallelismConfiguration;
+import org.gradle.internal.concurrent.ParallelismConfigurationListener;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -43,6 +46,8 @@ import org.gradle.internal.operations.BuildOperationWorker;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.resources.ResourceDeadlockException;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -53,7 +58,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 //TODO move to base-services once the ProgressLogger dependency is removed
-public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
+public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable, ParallelismConfigurationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
     private static final long ROOT_BUILD_OPERATION_ID_VALUE = 1L;
@@ -62,18 +67,29 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final TimeProvider timeProvider;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
-    private final StoppableExecutor fixedSizePool;
+    private final ResourceLockCoordinationService resourceLockCoordinationService;
+    private final ManagedExecutor fixedSizePool;
+    private final ParallelismConfigurationManager parallelismConfigurationManager;
 
     private final AtomicLong nextId = new AtomicLong(ROOT_BUILD_OPERATION_ID_VALUE);
     private final ThreadLocal<DefaultBuildOperationState> currentOperation = new ThreadLocal<DefaultBuildOperationState>();
 
     public DefaultBuildOperationExecutor(BuildOperationListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory,
-                                         BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
+                                         BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory,
+                                         ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
         this.listener = listener;
         this.timeProvider = timeProvider;
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
-        this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
+        this.resourceLockCoordinationService = resourceLockCoordinationService;
+        this.fixedSizePool = executorFactory.create("build operations", parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount());
+        this.parallelismConfigurationManager = parallelismConfigurationManager;
+        parallelismConfigurationManager.addListener(this);
+    }
+
+    @Override
+    public void onParallelismConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
+        fixedSizePool.setFixedPoolSize(parallelismConfiguration.getMaxWorkerCount());
     }
 
     @Override
@@ -124,6 +140,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private <O extends BuildOperation> void executeInParallel(BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction) {
+        failIfInResourceLockTransform();
+
         BuildOperationQueue<O> queue = buildOperationQueueFactory.create(fixedSizePool, worker);
 
         List<GradleException> failures = Lists.newArrayList();
@@ -148,6 +166,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable DefaultBuildOperationState defaultParent) {
+        failIfInResourceLockTransform();
+
         BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
         DefaultBuildOperationState parent = (DefaultBuildOperationState) descriptorBuilder.getParentState();
         if (parent == null) {
@@ -178,10 +198,10 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
                 } finally {
                     LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
                     progressLogger.completed(context.status);
+                    assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
                 }
-                assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
             } catch (Throwable t) {
-                context.failed(t);
+                context.thrown(t);
                 failure = t;
             }
 
@@ -201,6 +221,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
                 BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
             }
             currentOperation.setRunning(false);
+        }
+    }
+
+    private void failIfInResourceLockTransform() {
+        if (resourceLockCoordinationService.getCurrent() != null) {
+            throw new ResourceDeadlockException("An attempt was made to execute build operations inside of a resource lock transform.  Aborting to avoid a deadlock.");
         }
     }
 
@@ -268,6 +294,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void stop() {
+        parallelismConfigurationManager.removeListener(this);
         fixedSizePool.stop();
     }
 
@@ -279,6 +306,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         @Override
         public void failed(Throwable t) {
             failure = t;
+        }
+
+        public void thrown(Throwable t) {
+            if (failure == null) {
+                failure = t;
+            }
         }
 
         @Override

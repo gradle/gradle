@@ -24,7 +24,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 
 class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    private static final List<String> CLEAN_ASSEMBLE_TASKS = ['clean', 'assemble']
+    private static final String CLEAN_ASSEMBLE_TASKS = 'clean assemble'
 
     def setup() {
         runner.args << '--console=rich'
@@ -34,10 +34,11 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "#tasks on #testProject with rich console"() {
         given:
         runner.testProject = testProject
-        runner.tasksToRun = tasks
+        runner.tasksToRun = tasks.split(' ')
         runner.gradleOpts = ["-Xms${daemonMemory}", "-Xmx${daemonMemory}"]
         runner.warmUpRuns = 5
         runner.runs = 8
+        runner.targetVersions = ["4.1-20170607235835+0000"]
 
         when:
         def result = runner.run()
@@ -50,6 +51,6 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
         LARGE_JAVA_MULTI_PROJECT      | CLEAN_ASSEMBLE_TASKS  | LARGE_JAVA_MULTI_PROJECT.daemonMemory
         LARGE_MONOLITHIC_JAVA_PROJECT | CLEAN_ASSEMBLE_TASKS  | LARGE_MONOLITHIC_JAVA_PROJECT.daemonMemory
         'bigNative'                   | CLEAN_ASSEMBLE_TASKS  | '1g'
-        'withVerboseJUnit'            | ['cleanTest', 'test'] | '256m'
+        'withVerboseJUnit'            | 'cleanTest test'      | '256m'
     }
 }

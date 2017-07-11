@@ -87,7 +87,7 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.output.contains("Test method foo(FooTest) -> cool output from test")
         result.output.contains("Test method foo(FooTest) -> err output from test")
-        result.output.contains("Gradle Test Executor 1 -> cool output from initializer")
+        result.output.readLines().find { it.matches "Gradle Test Executor \\d+ -> cool output from initializer" }
 
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)
         testResult.testClass("FooTest").assertTestCaseStdout("foo", is("cool output from test\n"))

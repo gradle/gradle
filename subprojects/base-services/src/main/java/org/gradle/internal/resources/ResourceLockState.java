@@ -37,4 +37,9 @@ public interface ResourceLockState {
      * @param resourceLock
      */
     void registerUnlocked(ResourceLock resourceLock);
+
+    /**
+     * Release any locks that have been acquired during the transform.
+     */
+    void releaseLocks();
 }

@@ -104,7 +104,8 @@ project.logger.debug("debug logging");
         then:
         def out = op.result.output
         def err = op.result.error
-        normaliseOutput(out) == normaliseOutput(commandLineResult.output)
+        def commandLineOutput = removeStartupWarnings(commandLineResult.output)
+        normaliseOutput(out) == normaliseOutput(commandLineOutput)
         err == commandLineResult.error
 
         and:
@@ -119,10 +120,19 @@ project.logger.debug("debug logging");
         out.count("debug") == 0
     }
 
+    private removeStartupWarnings(String output) {
+        if (output.startsWith('Starting a Gradle Daemon')) {
+            output = output.substring(output.indexOf('\n') + 1)
+        }
+        if (output.startsWith('Parallel execution is an incubating feature.')) {
+            output = output.substring(output.indexOf('\n') + 1)
+        }
+        output
+    }
+
     private ExecutionResult runUsingCommandLine() {
         targetDist.executer(temporaryFolder, getBuildContext())
             .requireGradleDistribution()
-            .withArgument("--no-daemon") //suppress daemon usage suggestions
             .withBuildJvmOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
             .run()
     }

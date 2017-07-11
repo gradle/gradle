@@ -17,6 +17,7 @@
 package org.gradle.process.internal.worker;
 
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.service.ServiceRegistry;
 
 public interface WorkerProcessContext {
     /**
@@ -35,4 +36,6 @@ public interface WorkerProcessContext {
     ObjectConnection getServerConnection();
 
     ClassLoader getApplicationClassLoader();
+
+    ServiceRegistry getServiceRegistry();
 }

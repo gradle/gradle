@@ -18,9 +18,9 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -64,28 +64,31 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                           TaskInputsListener inputsListener,
                                           StyledTextOutputFactory styledTextOutputFactory,
                                           ExecutorFactory executorFactory,
-                                          Factory<LoggingManagerInternal> loggingManagerFactory,
-                                          GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
+                                          LoggingManagerInternal loggingManager,
+                                          GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
+                                          ParallelismConfigurationManager parallelismConfigurationManager) {
             return new SetupLoggingActionExecuter(
                 new SessionFailureReportingActionExecuter(
                     new StartParamsValidatingActionExecuter(
-                        new GradleThreadBuildActionExecuter(
-                            new ServicesSetupBuildActionExecuter(
-                                new ContinuousBuildActionExecuter(
-                                    new BuildTreeScopeBuildActionExecuter(
-                                        new InProcessBuildActionExecuter(gradleLauncherFactory,
-                                            new SubscribableBuildActionRunner(
-                                                new RunAsBuildOperationBuildActionRunner(
-                                                    new ValidatingBuildActionRunner(
-                                                        new ChainingBuildActionRunner(buildActionRunners))),
-                                                buildOperationListenerManager, registrations))),
-                                    fileWatcherFactory,
-                                    inputsListener,
-                                    styledTextOutputFactory,
-                                    executorFactory),
-                                userHomeServiceRegistry))),
+                        new ParallelismConfigurationBuildActionExecuter(
+                            new GradleThreadBuildActionExecuter(
+                                new ServicesSetupBuildActionExecuter(
+                                    new ContinuousBuildActionExecuter(
+                                        new BuildTreeScopeBuildActionExecuter(
+                                            new InProcessBuildActionExecuter(gradleLauncherFactory,
+                                                new SubscribableBuildActionRunner(
+                                                    new RunAsBuildOperationBuildActionRunner(
+                                                        new ValidatingBuildActionRunner(
+                                                            new ChainingBuildActionRunner(buildActionRunners))),
+                                                    buildOperationListenerManager, registrations))),
+                                        fileWatcherFactory,
+                                        inputsListener,
+                                        styledTextOutputFactory,
+                                        executorFactory),
+                                    userHomeServiceRegistry)),
+                            parallelismConfigurationManager)),
                     styledTextOutputFactory),
-                loggingManagerFactory.create());
+                loggingManager, parallelismConfigurationManager);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

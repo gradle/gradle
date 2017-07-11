@@ -18,7 +18,6 @@ package org.gradle.composite.internal;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.GradleInternal;
@@ -29,8 +28,10 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
@@ -38,11 +39,11 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final Factory<GradleLauncher> gradleLauncherFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
+
     private DefaultDependencySubstitutions dependencySubstitutions;
 
     private GradleLauncher gradleLauncher;
-    private SettingsInternal settings;
-    private GradleInternal gradle;
+    private String name;
 
     public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.projectDir = projectDir;
@@ -61,8 +62,11 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     @Override
-    public synchronized String getName() {
-        return getLoadedSettings().getRootProject().getName();
+    public String getName() {
+        if (name == null) {
+            name = getLoadedSettings().getRootProject().getName();
+        }
+        return name;
     }
 
     @Override
@@ -86,44 +90,44 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        if (settings == null) {
-            GradleLauncher gradleLauncher = getGradleLauncher();
-            gradleLauncher.load();
-            settings = gradleLauncher.getSettings();
-        }
-        return settings;
+        return getGradleLauncher().getLoadedSettings();
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        if (gradle == null) {
-            GradleLauncher gradleLauncher = getGradleLauncher();
-            gradleLauncher.getBuildAnalysis();
-            settings = gradleLauncher.getSettings();
-            gradle = gradleLauncher.getGradle();
-        }
-        return gradle;
+        return getGradleLauncher().getConfiguredBuild();
+    }
+
+    @Override
+    public void finishBuild() {
+        getGradleLauncher().finishBuild();
+    }
+
+    public synchronized void addTasks(Iterable<String> taskPaths) {
+        getGradleLauncher().scheduleTasks(taskPaths);
     }
 
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
             gradleLauncher = gradleLauncherFactory.create();
-            reset();
         }
         return gradleLauncher;
     }
 
-    private void reset() {
-        gradle = null;
-        settings = null;
-    }
-
     @Override
-    public BuildResult execute(Iterable<String> tasks) {
-        GradleLauncher launcher = getGradleLauncher();
-        launcher.getGradle().getStartParameter().setTaskNames(tasks);
+    public synchronized void execute(final Iterable<String> tasks, final Object listener) {
+        final GradleLauncher launcher = getGradleLauncher();
+        launcher.addListener(listener);
+        launcher.scheduleTasks(tasks);
         try {
-            return launcher.run();
+            // TODO:DAZ Should share the same worker lease as the main build, or avoid separate pool of task workers per build
+            WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
+            workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Runnable() {
+                @Override
+                public void run() {
+                    launcher.executeTasks();
+                }
+            });
         } finally {
             markAsNotReusable();
         }
@@ -135,6 +139,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public String toString() {
-        return String.format("includedBuild[%s]", projectDir.getPath());
+        return String.format("includedBuild[%s]", projectDir.getName());
     }
 }

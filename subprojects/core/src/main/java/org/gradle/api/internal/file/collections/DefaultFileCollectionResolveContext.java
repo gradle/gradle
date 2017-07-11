@@ -31,6 +31,7 @@ import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -125,6 +126,8 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 if (callableResult != null) {
                     queue.add(0, callableResult);
                 }
+            } else if (element instanceof Path) {
+                queue.add(0, ((Path) element).toFile());
             } else if (element instanceof Iterable) {
                 Iterable<?> iterable = (Iterable) element;
                 GUtil.addToCollection(queue.subList(0, 0), iterable);

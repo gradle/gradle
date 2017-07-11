@@ -17,28 +17,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.UnresolvedDependency;
 
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultResolvedGraphResults implements ResolvedGraphResults {
-    private final Set<UnresolvedDependency> unresolvedDependencies;
     private final Map<Long, ModuleDependency> modulesMap;
 
-    public DefaultResolvedGraphResults(Set<UnresolvedDependency> unresolvedDependencies, Map<Long, ModuleDependency> modulesMap) {
-        this.unresolvedDependencies = unresolvedDependencies;
+    public DefaultResolvedGraphResults(Map<Long, ModuleDependency> modulesMap) {
         this.modulesMap = modulesMap;
-    }
-
-    @Override
-    public boolean hasError() {
-        return !unresolvedDependencies.isEmpty();
-    }
-
-    @Override
-    public Set<UnresolvedDependency> getUnresolvedDependencies() {
-        return unresolvedDependencies;
     }
 
     @Override

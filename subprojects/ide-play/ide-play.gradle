@@ -29,3 +29,6 @@ useTestFixtures(project: ":ide")
 useClassycle()
 strictCompile()
 
+tasks.withType(org.gradle.testing.IntegrationTest) { task ->
+    task.dependsOn(':platformPlay:integTestPrepare')
+}

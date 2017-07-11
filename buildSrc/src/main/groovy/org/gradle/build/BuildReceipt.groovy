@@ -30,6 +30,10 @@ class BuildReceipt extends DefaultTask {
     public static final String BUILD_RECEIPT_FILE_NAME = 'build-receipt.properties'
 
     private static final SimpleDateFormat TIMESTAMP_FORMAT = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
+    private static final SimpleDateFormat ISO_TIMESTAMP_FORMAT = new java.text.SimpleDateFormat('yyyy-MM-dd HH:mm:ss z')
+    static {
+        ISO_TIMESTAMP_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
     private static final String UNKNOWN_TIMESTAMP = "unknown"
 
     static Properties readBuildReceipt(File dir) {
@@ -74,6 +78,7 @@ class BuildReceipt extends DefaultTask {
             baseVersion: baseVersion,
             isSnapshot: String.valueOf(snapshot),
             buildTimestamp: getBuildTimestampAsString(),
+            buildTimestampIso: getBuildTimestampAsIsoString(),
         ]
 
         destinationDir.mkdirs()
@@ -82,6 +87,9 @@ class BuildReceipt extends DefaultTask {
 
     private String getBuildTimestampAsString() {
         buildTimestamp ? TIMESTAMP_FORMAT.format(buildTimestamp) : UNKNOWN_TIMESTAMP
+    }
+    private String getBuildTimestampAsIsoString() {
+        buildTimestamp ? ISO_TIMESTAMP_FORMAT.format(buildTimestamp) : UNKNOWN_TIMESTAMP
     }
 
     void setBuildTimestamp(String buildTimestampString) {

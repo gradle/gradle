@@ -22,12 +22,13 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifac
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.IncludedBuildExecuter;
-import org.gradle.initialization.IncludedBuildFactory;
-import org.gradle.initialization.IncludedBuildTaskGraph;
-import org.gradle.initialization.IncludedBuilds;
+import org.gradle.includedbuild.internal.IncludedBuildControllers;
+import org.gradle.includedbuild.internal.IncludedBuildFactory;
+import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
+import org.gradle.includedbuild.internal.IncludedBuilds;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -64,12 +65,12 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultCompositeContextBuilder(includedBuilds, projectRegistry, context);
         }
 
-        public IncludedBuildExecuter createIncludedBuildExecuter(IncludedBuilds includedBuilds) {
-            return new DefaultIncludedBuildExecuter(includedBuilds);
+        public IncludedBuildControllers createIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuilds includedBuilds) {
+            return new DefaultIncludedBuildControllers(executorFactory, includedBuilds);
         }
 
-        public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildExecuter includedBuildExecuter) {
-            return new DefaultIncludedBuildTaskGraph(includedBuildExecuter);
+        public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildControllers controllers) {
+            return new DefaultIncludedBuildTaskGraph(controllers);
         }
 
         public IncludedBuildArtifactBuilder createIncludedBuildArtifactBuilder(IncludedBuildTaskGraph includedBuildTaskGraph) {

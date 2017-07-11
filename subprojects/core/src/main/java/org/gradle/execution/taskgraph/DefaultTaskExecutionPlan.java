@@ -50,12 +50,14 @@ import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.Path;
 import org.gradle.util.TextUtil;
 
 import java.io.File;
@@ -89,7 +91,7 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
-    private final TaskDependencyGraph graph = new TaskDependencyGraph();
+    private final TaskInfoFactory nodeFactory = new TaskInfoFactory();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
@@ -97,6 +99,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
+
     private final BuildCancellationToken cancellationToken;
     private final Set<TaskInfo> runningTasks = Sets.newIdentityHashSet();
     private final Set<Task> filteredTasks = Sets.newIdentityHashSet();
@@ -106,12 +109,24 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInfo> dependenciesCompleteCache = Sets.newHashSet();
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseService workerLeaseService;
+    private final GradleInternal gradle;
+
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService) {
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService, GradleInternal gradle) {
         this.cancellationToken = cancellationToken;
         this.coordinationService = coordinationService;
         this.workerLeaseService = workerLeaseService;
+        this.gradle = gradle;
+    }
+
+    @Override
+    public String getDisplayName() {
+        Path path = gradle.findIdentityPath();
+        if (path == null) {
+            return "gradle";
+        }
+        return path.toString();
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
@@ -120,7 +135,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         List<Task> sortedTasks = new ArrayList<Task>(tasks);
         Collections.sort(sortedTasks);
         for (Task task : sortedTasks) {
-            TaskInfo node = graph.addNode(task);
+            TaskInfo node = nodeFactory.createNode(task);
             if (node.isMustNotRun()) {
                 requireWithDependencies(node);
             } else if (filter.isSatisfiedBy(task)) {
@@ -159,25 +174,25 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
                 Set<? extends Task> dependsOnTasks = context.getDependencies(task);
                 for (Task dependsOnTask : dependsOnTasks) {
-                    TaskInfo targetNode = graph.addNode(dependsOnTask);
+                    TaskInfo targetNode = nodeFactory.createNode(dependsOnTask);
                     node.addDependencySuccessor(targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
                 for (Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
-                    TaskInfo targetNode = graph.addNode(finalizerTask);
+                    TaskInfo targetNode = nodeFactory.createNode(finalizerTask);
                     addFinalizerNode(node, targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
                 for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
-                    TaskInfo targetNode = graph.addNode(mustRunAfter);
+                    TaskInfo targetNode = nodeFactory.createNode(mustRunAfter);
                     node.addMustSuccessor(targetNode);
                 }
                 for (Task shouldRunAfter : task.getShouldRunAfter().getDependencies(task)) {
-                    TaskInfo targetNode = graph.addNode(shouldRunAfter);
+                    TaskInfo targetNode = nodeFactory.createNode(shouldRunAfter);
                     node.addShouldSuccessor(targetNode);
                 }
                 if (node.isRequired()) {
@@ -470,7 +485,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
         DirectedGraphRenderer<TaskInfo> graphRenderer = new DirectedGraphRenderer<TaskInfo>(new GraphNodeRenderer<TaskInfo>() {
             public void renderTo(TaskInfo node, StyledTextOutput output) {
-                output.withStyle(StyledTextOutput.Style.Identifier).text(node.getTask().getPath());
+                output.withStyle(StyledTextOutput.Style.Identifier).text(node.getTask().getIdentityPath());
             }
         }, new DirectedGraph<TaskInfo, Object>() {
             public void getNodeValues(TaskInfo node, Collection<? super Object> values, Collection<? super TaskInfo> connectedNodes) {
@@ -490,7 +505,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                graph.clear();
+                nodeFactory.clear();
                 entryTasks.clear();
                 executionPlan.clear();
                 executionQueue.clear();
@@ -650,11 +665,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         Set<String> candidateTaskDestroyables = getDestroyablePaths(taskInfo);
 
         if (!candidateTaskDestroyables.isEmpty() && !taskInfo.getTask().getOutputs().getFileProperties().isEmpty()) {
-            throw new IllegalStateException("Task " + taskInfo.getTask().getPath() + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
+            throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
         }
 
         if (!candidateTaskDestroyables.isEmpty() && !taskInfo.getTask().getInputs().getFileProperties().isEmpty()) {
-            throw new IllegalStateException("Task " + taskInfo.getTask().getPath() + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
+            throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
         }
 
         if (!runningTasks.isEmpty()) {
@@ -766,7 +781,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private Set<String> getOutputPaths(TaskInfo task) {
-        return canonicalizedPaths(canonicalizedFileCache, task.getTask().getOutputs().getFiles());
+        try {
+            return canonicalizedPaths(canonicalizedFileCache, task.getTask().getOutputs().getFiles());
+        } catch (ResourceDeadlockException e) {
+            throw new IllegalStateException("A deadlock was detected while resolving the task outputs for " + task.getTask().getIdentityPath() + ".  This can be caused, for instance, by a task output causing dependency resolution.", e);
+        }
     }
 
     private Set<String> getDestroyablePaths(TaskInfo task) {

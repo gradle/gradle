@@ -39,7 +39,7 @@ class SerializedOperationFinish {
         this.endTime = finishEvent.getEndTime();
         this.result = finishEvent.getResult();
         this.resultClassName = result == null ? null : finishEvent.getResult().getClass().getName();
-        this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().getMessage();
+        this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().toString();
     }
 
     SerializedOperationFinish(Map<String, ?> map) {

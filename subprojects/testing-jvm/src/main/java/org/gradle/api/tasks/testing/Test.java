@@ -906,6 +906,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Returns the root folder for the compiled test sources.
      *
      * @return All test class directories to be used.
+     * @deprecated Use {@link #getTestClassesDirs()}.
      */
     @Deprecated
     @Internal
@@ -921,6 +922,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Sets the root folder for the compiled test sources.
      *
      * @param testClassesDir The root folder
+     * @deprecated Use {@link #setTestClassesDirs(FileCollection)}.
      */
     @Deprecated
     public void setTestClassesDir(File testClassesDir) {
@@ -941,6 +943,24 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Sets the directories to scan for compiled test sources.
+     *
+     * Typically, this would be configured to use the output of a source set:
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * sourceSets {
+     *    integrationTest {
+     *       compileClasspath += main.output
+     *       runtimeClasspath += main.output
+     *    }
+     * }
+     *
+     * task integrationTest(type: Test) {
+     *     // Runs tests from src/integrationTest
+     *     testClassesDirs = sourceSets.integrationTest.output.classesDirs
+     *     classpath = sourceSets.integrationTest.runtimeClasspath
+     * }
+     * </pre>
      *
      * @param testClassesDirs All test class directories to be used.
      * @since 4.0

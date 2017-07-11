@@ -17,12 +17,13 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentCache;
-import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.invocation.BuildController;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,13 +31,13 @@ import java.util.Collection;
 
 public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
     private final PersistentCache cache;
-    private final GradleLauncher gradleLauncher;
+    private final BuildController buildController;
     private BuildSrcBuildListenerFactory listenerFactory;
     private static final Logger LOGGER = Logging.getLogger(BuildSrcUpdateFactory.class);
 
-    public BuildSrcUpdateFactory(PersistentCache cache, GradleLauncher gradleLauncher, BuildSrcBuildListenerFactory listenerFactory) {
+    public BuildSrcUpdateFactory(PersistentCache cache, BuildController buildController, BuildSrcBuildListenerFactory listenerFactory) {
         this.cache = cache;
-        this.gradleLauncher = gradleLauncher;
+        this.buildController = buildController;
         this.listenerFactory = listenerFactory;
     }
 
@@ -56,8 +57,10 @@ public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
 
     private Collection<File> build(boolean rebuild) {
         BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create(rebuild);
-        gradleLauncher.addListener(listener);
-        gradleLauncher.run();
+        GradleInternal gradle = buildController.getGradle();
+        gradle.addListener(listener);
+
+        buildController.run();
 
         return listener.getRuntimeClasspath();
     }

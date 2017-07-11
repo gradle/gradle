@@ -89,11 +89,14 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         when: run "test"
 
         then:
-        result.output.contains """Gradle Test Executor 1 -> static out
-Gradle Test Executor 1 -> static err
-Gradle Test Executor 1 -> constructor out
-Gradle Test Executor 1 -> constructor err
-Test suite 'The Foo Test' -> beforeTest out
+        containsLinesThatMatch(result.output,
+            "Gradle Test Executor \\d+ -> static out",
+            "Gradle Test Executor \\d+ -> static err",
+            "Gradle Test Executor \\d+ -> constructor out",
+            "Gradle Test Executor \\d+ -> constructor err"
+        )
+
+        result.output.contains """Test suite 'The Foo Test' -> beforeTest out
 Test suite 'The Foo Test' -> beforeTest err
 Test suite 'The Foo Test' -> beforeClass out
 Test suite 'The Foo Test' -> beforeClass err
@@ -131,11 +134,14 @@ Test suite 'The Foo Test' -> afterTest err
         when: run "test"
 
         then:
-        result.output.contains """Gradle Test Executor 1 -> static out
-Gradle Test Executor 1 -> static err
-Gradle Test Executor 1 -> constructor out
-Gradle Test Executor 1 -> constructor err
-Test suite 'Gradle test' -> beforeTest out
+        containsLinesThatMatch(result.output,
+            "Gradle Test Executor \\d+ -> static out",
+            "Gradle Test Executor \\d+ -> static err",
+            "Gradle Test Executor \\d+ -> constructor out",
+            "Gradle Test Executor \\d+ -> constructor err"
+        )
+
+        result.output.contains """Test suite 'Gradle test' -> beforeTest out
 Test suite 'Gradle test' -> beforeTest err
 Test suite 'Gradle test' -> beforeClass out
 Test suite 'Gradle test' -> beforeClass err
@@ -168,5 +174,11 @@ Test suite 'Gradle test' -> afterTest err
         def classReport = htmlReport.testClass("FooTest")
         classReport.assertStdout(is("m1: \u03b1</html>\nm2 out\n"))
         classReport.assertStderr(is("m1 err\nm2 err\n"))
+    }
+
+    boolean containsLinesThatMatch(String text, String... regexes) {
+        return regexes.every { regex ->
+            text.readLines().find { it.matches regex }
+        }
     }
 }

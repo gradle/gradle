@@ -69,6 +69,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-1762")
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) //modifies environment variables
     def "build uses environment variables from where the build was launched"() {
         file('build.gradle') << "println System.getenv('foo')"
 

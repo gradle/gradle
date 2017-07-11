@@ -27,7 +27,7 @@ public abstract class TestClassVisitor extends ClassVisitor {
     protected final TestFrameworkDetector detector;
 
     protected TestClassVisitor(TestFrameworkDetector detector) {
-        super(Opcodes.ASM5);
+        super(Opcodes.ASM6);
         if (detector == null) {
             throw new IllegalArgumentException("detector == null!");
         }

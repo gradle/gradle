@@ -99,7 +99,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         given:
         httpBuildCache.start()
         def safeUri = httpBuildCache.uri
-        def basicAuthUri = new URI(safeUri.getScheme(), 'user@pwd', safeUri.getHost(), safeUri.getPort(), safeUri.getPath(), safeUri.getQuery(), safeUri.getFragment())
+        def basicAuthUri = new URI(safeUri.getScheme(), 'user:pwd', safeUri.getHost(), safeUri.getPort(), safeUri.getPath(), safeUri.getQuery(), safeUri.getFragment())
         settingsFile << """
             buildCache {  
                 remote(org.gradle.caching.http.HttpBuildCache) {

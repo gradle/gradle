@@ -43,8 +43,10 @@ import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
@@ -222,6 +224,7 @@ class DefaultProjectTest {
             ignoring(modelSchemaStore)
             allowing(serviceRegistryMock).get((Type) ModelSchemaStore); will(returnValue(modelSchemaStore))
             allowing(serviceRegistryMock).get(ModelSchemaStore); will(returnValue(modelSchemaStore))
+            allowing(serviceRegistryMock).get((Type) DefaultProjectLayout); will(returnValue(new DefaultProjectLayout(rootDir, TestFiles.resolver(rootDir))))
 
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
@@ -745,19 +748,10 @@ def scriptMethod(Closure closure) {
 
     @Test
     void testBuildDir() {
-        File dir = new File(rootDir, 'dir')
-        context.checking {
-            allowing(fileOperationsMock).file(Project.DEFAULT_BUILD_DIR_NAME)
-            will(returnValue(dir))
-        }
-        assertEquals(dir, child1.buildDir)
+        assertEquals(new File(rootDir, "build"), project.buildDir)
 
-        child1.buildDir = 12
-        context.checking {
-            one(fileOperationsMock).file(12)
-            will(returnValue(dir))
-        }
-        assertEquals(dir, child1.buildDir)
+        project.buildDir = "abc"
+        assertEquals(new File(rootDir, "abc"), child1.buildDir)
     }
 
     @Test

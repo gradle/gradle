@@ -18,6 +18,7 @@ package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import spock.lang.Ignore
 
 /**
  * Tests for composite build delegating to tasks in an included build.
@@ -52,22 +53,6 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         includedBuilds << buildB << buildC
     }
 
-    def "aborts build when delegated task fails"() {
-        when:
-        buildA.buildFile << """
-    task delegate {
-        dependsOn gradle.includedBuild('buildB').task(':fails')
-        dependsOn gradle.includedBuild('buildC').task(':succeeds')
-    }
-"""
-
-        fails(buildA, ":delegate")
-
-        then:
-        executed ":buildB:fails"
-        notExecuted ":buildC:succeeds"
-    }
-
     def "aborts build when delegated task in same build fails"() {
         when:
         buildA.buildFile << """
@@ -80,10 +65,11 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         fails(buildA, ":delegate")
 
         then:
-        executed ":buildB:fails"
-        notExecuted ":buildB:succeeds"
+        assertTaskExecuted(":buildB", ":fails")
+        assertTaskNotExecuted(":buildB", ":succeeds")
     }
 
+    @Ignore("Currently if 'buildB' completes before 'buildC' starts, we don't continue: we don't yet handle --continue correctly with references. gradle/composite-builds#117")
     def "attempts all dependencies when run with --continue when one delegated task dependency fails"() {
         when:
         buildA.buildFile << """
@@ -97,10 +83,12 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         fails(buildA, ":delegate")
 
         then:
-        executed ":buildB:fails", ":buildC:succeeds", ":buildB:succeeds"
+        assertTaskExecutedOnce(":buildB", ":fails")
+        assertTaskExecutedOnce(":buildC", ":succeeds")
+        assertTaskExecutedOnce(":buildB", ":succeeds")
     }
 
-    @NotYetImplemented
+    @NotYetImplemented // gradle/composite-builds#117
     def "continues build when delegated task fails when run with --continue"() {
         when:
         buildA.buildFile << """
@@ -120,7 +108,9 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         then:
         // We attach the single failure in 'buildB' to every delegated task, so ':buildB:succeeds' appears to have failed
         // Thus ":delegateWithSuccess" is never executed.
-        executed ":buildB:fails", ":buildB:succeeds", ":delegateWithSuccess"
+        assertTaskExecutedOnce(":buildB", ":fails")
+        assertTaskExecutedOnce(":buildB", ":succeeds")
+        assertTaskExecutedOnce(":", ":delegateWithSuccess")
     }
 
     def "executes delegate task with --continue"() {
@@ -139,8 +129,11 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         fails(buildA, ":delegate")
 
         then:
-        executed ":buildB:checkContinueFlag", ":buildB:fails", ":buildB:succeeds"
         outputContains("continueOnFailure = true")
+
+        assertTaskExecutedOnce(":buildB", ":checkContinueFlag")
+        assertTaskExecutedOnce(":buildB", ":fails")
+        assertTaskExecutedOnce(":buildB", ":succeeds")
     }
 
     def "passes continueOnFailure flag when building dependency artifact"() {
@@ -156,7 +149,9 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         execute(buildA, ":assemble")
 
         then:
-        executed ":buildB:jar", ":buildB:checkContinueFlag"
         outputContains("continueOnFailure = true")
+
+        assertTaskExecutedOnce(":buildB", ":checkContinueFlag")
+        assertTaskExecutedOnce(":buildB", ":jar")
     }
 }

@@ -25,7 +25,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.0
  */
-public final class ApplyPluginBuildOperationType implements BuildOperationType<ApplyPluginBuildOperationType.Details, Void> {
+public final class ApplyPluginBuildOperationType implements BuildOperationType<ApplyPluginBuildOperationType.Details, ApplyPluginBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -37,13 +37,13 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
         String getPluginId();
 
         /**
-         * The fully qualified class name of the Plugin implementation.
+         * The class of the plugin implementation.
          */
-        String getClassName();
+        Class<?> getPluginClass();
 
         /**
          * The target of the plugin.
-         * One of "gradle", "settings", "project" or null.
+         * One of "gradle", "settings", "project".
          */
         String getTargetType();
 
@@ -57,7 +57,12 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
          * The build path of the target.
          */
         String getBuildPath();
+
     }
+
+    public interface Result {
+    }
+
 
     private ApplyPluginBuildOperationType() {
     }

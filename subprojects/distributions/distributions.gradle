@@ -34,8 +34,6 @@ configurations {
     dists
 }
 
-daemonIntegTest.enabled = false
-
 evaluationDependsOn ":docs"
 
 ext {
@@ -99,6 +97,7 @@ task srcZip(type: Zip) {
                 spec.include "$it/*.gradle"
                 spec.include "$it/src/"
             }
+            include 'gradle.properties'
             include 'config/'
             include 'gradle/'
             include 'src/'
@@ -124,4 +123,10 @@ artifacts {
 
 integTestTasks.all {
     requiresDists = true
+    systemProperty 'org.gradle.public.api.includes', publicApiIncludes.join(':')
+    systemProperty 'org.gradle.public.api.excludes', publicApiExcludes.join(':')
+}
+
+dependencies {
+    testCompile "com.github.siom79.japicmp:japicmp:0.10.0"
 }

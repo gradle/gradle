@@ -16,8 +16,6 @@
 
 package org.gradle.launcher.cli.converter;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildLayoutParameters;
@@ -29,7 +27,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -37,19 +34,18 @@ public class LayoutToPropertiesConverter {
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
         configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
         configureFromGradleUserHome(layout.getGradleUserHomeDir(), properties);
-        Map<Object, Object> systemProperties = new HashMap<Object, Object>(System.getProperties());
-        Map filteredSystemProperties = filterNonSerializableEntries(systemProperties);
-        properties.putAll(filteredSystemProperties);
+        configureFromSystemproperties(properties);
         return properties;
     }
 
-    private Map filterNonSerializableEntries(Map<Object, Object> properties) {
-        return Maps.filterEntries(properties, new Predicate<Map.Entry<?, ?>>() {
-            public boolean apply(Map.Entry<?, ?> input) {
-                return input.getKey() instanceof Serializable
-                        && (input.getValue() instanceof Serializable || input.getValue() == null);
+    private void configureFromSystemproperties(Map properties) {
+        for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            if (key instanceof Serializable && (value instanceof Serializable || value == null)) {
+                properties.put(key, value);
             }
-        });
+        }
     }
 
     private void configureFromGradleUserHome(File gradleUserHomeDir, Map<String, String> result) {

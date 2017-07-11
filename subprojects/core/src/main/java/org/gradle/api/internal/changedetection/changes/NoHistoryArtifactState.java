@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -27,11 +28,13 @@ import org.gradle.internal.id.UniqueId;
 import java.util.Collection;
 
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
+    @Override
     public boolean isUpToDate(Collection<String> messages) {
         messages.add("Task has not declared any outputs.");
         return false;
     }
 
+    @Override
     public IncrementalTaskInputs getInputChanges() {
         throw new UnsupportedOperationException();
     }
@@ -46,6 +49,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
         return DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY;
     }
 
+    @Override
     public TaskExecutionHistory getExecutionHistory() {
         return this;
     }
@@ -55,21 +59,17 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
         return null;
     }
 
-    public void beforeTask() {
+    @Override
+    public void afterTask(Throwable failure) {
     }
 
-    public void afterTask() {
-    }
-
-    public void finished() {
-    }
-
+    @Override
     public FileCollection getOutputFiles() {
         return null;
     }
 
     @Override
-    public OverlappingOutputs getOverlappingOutputDetection() {
+    public OverlappingOutputs getOverlappingOutputs() {
         return null;
     }
 }

@@ -19,14 +19,19 @@ package org.gradle.nativeplatform.toolchain.internal
 import org.gradle.api.Action
 import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.GradleThread
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
@@ -53,12 +58,14 @@ abstract class NativeCompilerTest extends Specification {
 
     protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
 
-    WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
+    WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
+    ResourceLockCoordinationService resourceLockCoordinationService = Stub(ResourceLockCoordinationService)
 
     private BuildOperationListener buildOperationListener = Mock(BuildOperationListener)
     private TimeProvider timeProvider = Mock(TimeProvider)
+    ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(DefaultParallelismConfiguration.DEFAULT)
     protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, new NoOpProgressLoggerFactory(),
-        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), 1)
+        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), resourceLockCoordinationService, parallelExecutionManager)
 
     def setup() {
         _ * workerLeaseService.withLocks(_) >> { args ->
@@ -69,6 +76,7 @@ abstract class NativeCompilerTest extends Specification {
                 }
             }
         }
+        _ * resourceLockCoordinationService.current >> null
     }
 
     def "arguments include source file"() {

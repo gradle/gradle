@@ -71,11 +71,13 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
     private final ClassPathRegistry classPathRegistry;
     private final TemporaryFileProvider temporaryFileProvider;
     private final JvmVersionDetector jvmVersionDetector;
+    private final File gradleUserHomeDir;
 
-    public ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider, JvmVersionDetector jvmVersionDetector) {
+    public ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider, JvmVersionDetector jvmVersionDetector, File gradleUserHomeDir) {
         this.classPathRegistry = classPathRegistry;
         this.temporaryFileProvider = temporaryFileProvider;
         this.jvmVersionDetector = jvmVersionDetector;
+        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
     @Override
@@ -131,10 +133,11 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
             OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outstr);
             encoder.writeSmallInt(logLevel.ordinal());
             encoder.writeBoolean(publishProcessInfo);
+            encoder.writeString(gradleUserHomeDir.getAbsolutePath());
             new MultiChoiceAddressSerializer().write(encoder, (MultiChoiceAddress) serverAddress);
 
             // Serialize the worker, this is consumed by SystemApplicationClassLoaderWorker
-            ActionExecutionWorker worker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, processBuilder.getGradleUserHomeDir());
+            ActionExecutionWorker worker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, gradleUserHomeDir);
             byte[] serializedWorker = GUtil.serialize(worker);
             encoder.writeBinary(serializedWorker);
 

@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.testing
 
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.concurrent.Stoppable
 
 import java.util.concurrent.LinkedBlockingQueue
@@ -49,7 +49,7 @@ class DaemonsEventSequence implements Stoppable, Runnable {
     private final Map<Long, DaemonsState> pastStateChanges = new LinkedHashMap<Long, DaemonsState>() // processed changes
     private final Queue<Holder> changeQueue = new LinkedBlockingQueue() // unprocessed changes
 
-    private final StoppableExecutor executor
+    private final ManagedExecutor executor
     private boolean stop = false
 
     private AssertionError timeoutError

@@ -20,7 +20,6 @@ import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
-import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -60,7 +59,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         @Override
         protected byte[] transform(String className, byte[] bytes) {
             // First scan for annotation, and short circuit transformation if not present
-            ClassReader classReader = new Java9ClassReader(bytes);
+            ClassReader classReader = new ClassReader(bytes);
 
             AnnotationDetector detector = new AnnotationDetector();
             classReader.accept(detector, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE);
@@ -89,14 +88,14 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             private boolean found;
 
             private AnnotationDetector() {
-                super(Opcodes.ASM5);
+                super(Opcodes.ASM6);
             }
 
             public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                 if (desc.equals(ANNOTATION_DESCRIPTOR)) {
                     found = true;
                 }
-                return new AnnotationVisitor(Opcodes.ASM5) {
+                return new AnnotationVisitor(Opcodes.ASM6) {
 
                     @Override
                     public void visit(String name, Object value) {
@@ -112,7 +111,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             private final String mixInInterface;
 
             public TransformingAdapter(ClassWriter classWriter, String mixInInterface) {
-                super(Opcodes.ASM5, classWriter);
+                super(Opcodes.ASM6, classWriter);
                 this.mixInInterface = mixInInterface;
             }
 

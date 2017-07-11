@@ -32,6 +32,7 @@ tasks.create('smokeTest', SmokeTest) { SmokeTest task ->
     description = "Runs Smoke tests"
     testClassesDirs = sourceSets.smokeTest.output.classesDirs
     classpath = sourceSets.smokeTest.runtimeClasspath
+    maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
 }
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet

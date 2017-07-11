@@ -427,22 +427,22 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         when:
         buildFile << """
             compileJava.doFirst { }
-        """
+        """.stripIndent()
         withBuildCache().succeeds "compileJava", "--info"
 
         then:
         skippedTasks.empty
         [
-            'taskClass',
-            'classLoaderHash',
-            'actionType',
-            'actionClassLoaderHash',
-            'inputPropertyHash for \'classpath\'',
-            'outputPropertyName',
+            "taskClass",
+            "classLoaderHash",
+            "actionType",
+            "actionClassLoaderHash",
+            "inputPropertyHash for 'classpath'",
+            "outputPropertyName",
         ].each {
             assert output.contains("Appending ${it} to build cache key:")
         }
-        output.contains('Build cache key for task \':compileJava\' is ')
+        output.contains("Build cache key for task ':compileJava' is ")
     }
 
     def "compileJava is not cached if forked executable is used"() {

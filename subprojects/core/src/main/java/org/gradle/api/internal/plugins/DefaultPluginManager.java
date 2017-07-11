@@ -250,6 +250,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         @Override
         public void run(BuildOperationContext context) {
             addPlugin(adder, plugin, pluginId, pluginClass);
+            context.setResult(OPERATION_RESULT);
         }
 
         @Override
@@ -287,8 +288,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
             return pluginId == null ? null : pluginId.getId();
         }
 
-        public String getClassName() {
-            return pluginImplementation.asClass().getName();
+        @Override
+        public Class<?> getPluginClass() {
+            return pluginImplementation.asClass();
         }
 
         @Override
@@ -308,5 +310,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
+    private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
+    };
 }
 

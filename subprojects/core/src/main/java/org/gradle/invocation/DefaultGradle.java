@@ -26,7 +26,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -46,6 +46,7 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -71,6 +72,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
+    private BuildOperationState operation;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -138,6 +140,22 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             throw new IllegalStateException("Identity path already set");
         }
         identityPath = path;
+    }
+
+    @Override
+    public BuildOperationState getBuildOperation() {
+        if (operation != null) {
+            return operation;
+        }
+        if (parent != null) {
+            return parent.getBuildOperation();
+        }
+        return null;
+    }
+
+    @Override
+    public void setBuildOperation(BuildOperationState operation) {
+        this.operation = operation;
     }
 
     @Override

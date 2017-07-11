@@ -37,14 +37,6 @@ forkingIntegTest {
     maxParallelForks = Math.min(2, rootProject.maxParallelForks)
 }
 
-parallelIntegTest {
-    enabled = false //tooling integ tests use parallel settings, don't run
-}
-
-daemonIntegTest {
-    enabled = false //tooling integ tests use daemon anyway, don't rerun
-}
-
 task shadedJarWithoutVersion(type: ShadedJar) {
     ext.outputDir = file("$buildDir/shaded-jar-without-version")
     sourceFiles = jar.outputs.files +
@@ -53,7 +45,7 @@ task shadedJarWithoutVersion(type: ShadedJar) {
     classesDir = file("$outputDir/classes")
     jarFile = file("$outputDir/gradle-tooling-api-shaded-${baseVersion}.jar")
     keepPackages = ["org.gradle.tooling"]
-    unshadedPackages = ["org.gradle", "org.slf4j"]
+    unshadedPackages = ["org.gradle", "org.slf4j", "sun.misc"]
     ignorePackages = ["org.gradle.tooling.provider.model"]
     shadowPackage = "org.gradle.internal.impldep"
 }

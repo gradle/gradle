@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.internal.service.ServiceRegistry;

@@ -23,7 +23,7 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String PLUGIN_NOT_APPLIED_MSG = """Build scan cannot be created because the build scan plugin was not applied.
 For more information on how to apply the build scan plugin, please visit https://gradle.com/scans/help/gradle-cli."""
-    public static final String VERSION_CHECK_FAIL_MSG = """This version of Gradle requires version 1.7.4 of the build scan plugin or later.
+    public static final String VERSION_CHECK_FAIL_MSG = """This version of Gradle requires version 1.8.0 of the build scan plugin or later.
 Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information."""
 
     boolean collect = true
@@ -128,7 +128,7 @@ Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for 
 
     def "fails if plugin is too old"() {
         given:
-        pluginVersionNumber = "1.7.1"
+        pluginVersionNumber = "1.7.4"
 
         when:
         fails "t", "--scan"

@@ -62,9 +62,9 @@ buildTypes {
         projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
     }
 
-    // Tests using the daemon mode
-    daemonTest {
-        tasks "runtimeDaemonIntegTests"
+    // Tests not using the daemon mode
+    noDaemonTest {
+        tasks "runtimeNoDaemonIntegTests"
         projectProperties useIncomingDistributions: true
     }
 
@@ -109,6 +109,10 @@ buildTypes {
         tasks "crossVersionIntegTest"
         projectProperties useIncomingDistributions: true
     }
+    quickFeedbackCrossVersionTest {
+        tasks "quickFeedbackCrossVersionIntegTest"
+        projectProperties useIncomingDistributions: true
+    }
 
     // Used to build production distros and smoke test them
     packageBuild {
@@ -128,6 +132,10 @@ buildTypes {
     //Initial smoke test for java 9
     java9Build {
         tasks "java9Test", "java9IntegTest"
+        projectProperties useIncomingDistributions: true
+    }
+    java9SmokeTest {
+        tasks "java9IntegTest"
         projectProperties useIncomingDistributions: true
     }
 
@@ -215,6 +223,7 @@ apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 apply from: 'gradle/customM2Check.gradle'
+apply from: "gradle/publicApi.gradle"
 
 allprojects {
     group = 'org.gradle'
@@ -287,8 +296,8 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.9.1'
-    externalModules 'org.gradle:gradle-script-kotlin-tooling-builders:0.9.1'
+    externalModules 'org.gradle:gradle-kotlin-dsl:0.10.1'
+    externalModules 'org.gradle:gradle-kotlin-dsl-tooling-builders:0.10.1'
     coreRuntime project(':launcher')
     coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')
@@ -304,13 +313,10 @@ dependencies {
 import org.gradle.modules.PatchExternalModules
 
 task patchExternalModules(type: PatchExternalModules) {
-    // Include any dependency jars that are not available in the core runtime
-    externalModulesRuntime = configurations.externalModulesRuntime
-    coreRuntime = configurations.coreRuntime
-    externalModules = configurations.externalModules
+    allModules = configurations.externalModulesRuntime
+    coreModules = configurations.coreRuntime
+    modulesToPatch = configurations.externalModules
     destination = patchedExternalModulesDir
-
-    dependsOn configurations.externalModules
 }
 
 task verifyIsProductionBuildEnvironment {

@@ -18,7 +18,7 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
@@ -87,7 +87,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
         DependencySubstitutionsInternal substitutions = build.resolveDependencySubstitutions();
         if (!substitutions.hasRules()) {
             // Configure the included build to discover substitutions
-            LOGGER.lifecycle("[composite-build] Configuring build: " + build.getProjectDir());
+            LOGGER.info("[composite-build] Configuring build: " + build.getProjectDir());
             contextBuilder.build(build);
         } else {
             // Register the defined substitutions for included build

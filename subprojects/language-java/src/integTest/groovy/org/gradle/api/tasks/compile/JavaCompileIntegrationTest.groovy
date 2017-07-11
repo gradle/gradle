@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
@@ -25,31 +26,12 @@ import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.api.JavaVersion.VERSION_1_9
+
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Resources resources = new Resources()
-
-    @Issue("GRADLE-3152")
-    def "can use the task without applying java-base plugin"() {
-        buildFile << """
-            task compile(type: JavaCompile) {
-                classpath = files()
-                sourceCompatibility = JavaVersion.current()
-                targetCompatibility = JavaVersion.current()
-                destinationDir = file("build/classes")
-                source "src/main/java"
-            }
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        run("compile")
-
-        then:
-        file("build/classes/Foo.class").exists()
-    }
 
     def "uses default platform settings when applying java plugin"() {
         buildFile << """
@@ -225,7 +207,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         javaClassFile("com/example/Foo.class").assertIsFile()
     }
 
-    def "implementation dependencies should not leak into compile classpath of consuner"() {
+    def "implementation dependencies should not leak into compile classpath of consumer"() {
         mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'other', '1.0').publish()
 
@@ -280,7 +262,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
-                testCompile 'junit:junit:4.12' // not using testImplementation intentionaly, that's not what we want to test
+                testCompile 'junit:junit:4.12' // not using testImplementation intentionally, that's not what we want to test
             }
         '''
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
@@ -666,4 +648,74 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':compileJava'
     }
 
+    @Requires(adhoc = {AvailableJavaHomes.getJdk(VERSION_1_9)})
+    def "compile a module"() {
+        given:
+        buildFile << '''
+            plugins {
+                id 'org.gradle.java.experimental-jigsaw' version '0.1.1'
+            }
+        '''
+        file("src/main/java/module-info.java") << 'module example { exports io.example; }'
+        file("src/main/java/io/example/Example.java") << '''
+            package io.example;
+            
+            public class Example {}
+        '''
+
+        when:
+        executer.requireGradleDistribution()
+        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_9).javaHome
+        succeeds "compileJava"
+
+        then:
+        noExceptionThrown()
+        file("build/classes/java/main/module-info.class").exists()
+        file("build/classes/java/main/io/example/Example.class").exists()
+    }
+
+    def "sourcepath is merged from compilerArgs, but deprecation warning is emitted"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            compileJava {
+                options.compilerArgs = ['-sourcepath', 'sources1']
+                options.sourcepath = files('sources2')
+            }            
+        '''
+        file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
+        file('sources2/Rectangle.java') << 'public class Rectangle extends Shape {}'
+        file('sources1/Shape.java') << 'public class Shape {}'
+
+        when:
+        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
+
+        then:
+        file('build/classes/java/main/Square.class').exists()
+        file('build/classes/java/main/Rectangle.class').exists()
+        file('build/classes/java/main/Shape.class').exists()
+        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+    }
+
+    def "sourcepath is respected even when exclusively specified from compilerArgs, but deprecation warning is emitted"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            compileJava {
+                options.compilerArgs = ['-sourcepath', 'sources1']
+            }            
+        '''
+        file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
+        file('sources1/Rectangle.java') << 'public class Rectangle extends Shape {}'
+        file('sources1/Shape.java') << 'public class Shape {}'
+
+        when:
+        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
+
+        then:
+        file('build/classes/java/main/Square.class').exists()
+        file('build/classes/java/main/Rectangle.class').exists()
+        file('build/classes/java/main/Shape.class').exists()
+        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+    }
 }

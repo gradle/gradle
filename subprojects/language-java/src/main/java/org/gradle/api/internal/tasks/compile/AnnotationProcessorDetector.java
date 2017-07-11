@@ -72,6 +72,9 @@ public class AnnotationProcessorDetector {
             }
             return fileCollectionFactory.fixed("annotation processor path", files);
         }
+        if (compileClasspath == null) {
+            return null;
+        }
         if (checkExplicitProcessorOption(compileOptions)) {
             return compileClasspath;
         }

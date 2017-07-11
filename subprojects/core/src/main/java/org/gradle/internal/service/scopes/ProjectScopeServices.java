@@ -31,6 +31,7 @@ import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.DefaultFileOperations;
+import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.FileLookup;
@@ -237,6 +238,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected InputNormalizationHandler createInputNormalizationHandler(Instantiator instantiator, RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
         return instantiator.newInstance(DefaultInputNormalizationHandler.class, runtimeClasspathNormalizationStrategy);
+    }
+
+    protected DefaultProjectLayout createProjectLayout(FileResolver fileResolver) {
+        return new DefaultProjectLayout(project.getProjectDir(), fileResolver);
     }
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {

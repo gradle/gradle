@@ -17,23 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Adapts a {@link ResolvedConfigurationBuilder}, which is responsible for assembling the resolved configuration result, to a {@link DependencyGraphVisitor} and
@@ -41,7 +30,6 @@ import java.util.Map;
  */
 public class ResolvedConfigurationDependencyGraphVisitor implements DependencyArtifactsVisitor {
     private final ResolvedConfigurationBuilder builder;
-    private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
     private DependencyGraphNode root;
 
     public ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder) {
@@ -51,12 +39,6 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
     @Override
     public void visitNode(DependencyGraphNode node) {
         builder.newResolvedDependency(node);
-        for (DependencyGraphEdge dependency : node.getOutgoingEdges()) {
-            ModuleVersionResolveException failure = dependency.getFailure();
-            if (failure != null) {
-                addUnresolvedDependency(dependency, dependency.getRequestedModuleVersion(), failure);
-            }
-        }
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
             if (dependency.getFrom() == root) {
                 ModuleDependency moduleDependency = dependency.getModuleDependency();
@@ -82,33 +64,6 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
 
     @Override
     public void finishArtifacts() {
-        attachFailures(builder);
         builder.done(root);
     }
-
-    private void attachFailures(ResolvedConfigurationBuilder result) {
-        for (Map.Entry<ModuleVersionSelector, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
-            Collection<List<ComponentIdentifier>> paths = DependencyGraphPathResolver.calculatePaths(entry.getValue().requiredBy, root);
-            result.addUnresolvedDependency(new DefaultUnresolvedDependency(entry.getKey(), entry.getValue().failure.withIncomingPaths(paths)));
-        }
-    }
-
-    private void addUnresolvedDependency(DependencyGraphEdge dependency, ModuleVersionSelector requested, ModuleVersionResolveException failure) {
-        BrokenDependency breakage = failuresByRevisionId.get(requested);
-        if (breakage == null) {
-            breakage = new BrokenDependency(failure);
-            failuresByRevisionId.put(requested, breakage);
-        }
-        breakage.requiredBy.add(dependency.getFrom());
-    }
-
-    private static class BrokenDependency {
-        final ModuleVersionResolveException failure;
-        final List<DependencyGraphNode> requiredBy = new ArrayList<DependencyGraphNode>();
-
-        private BrokenDependency(ModuleVersionResolveException failure) {
-            this.failure = failure;
-        }
-    }
-
 }

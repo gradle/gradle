@@ -20,7 +20,6 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -29,27 +28,17 @@ import spock.lang.Subject
 
 @Subject(TaskUpToDateState)
 class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
-    private TaskHistoryRepository.History stubHistory
-    private OutputFilesSnapshotter stubOutputFileSnapshotter
-    private FileCollectionSnapshotter stubInputFileSnapshotter
-    private FileCollectionFactory fileCollectionFactory = Mock(FileCollectionFactory)
-    private classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
-
-    def setup() {
-        this.stubHistory = Stub(TaskHistoryRepository.History)
-        this.stubOutputFileSnapshotter = Stub(OutputFilesSnapshotter)
-        this.stubInputFileSnapshotter = Stub(FileCollectionSnapshotter)
-    }
 
     def "constructor invokes snapshots" () {
-        setup:
+        def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
+        def stubHistory = Stub(TaskHistoryRepository.History)
+        def fileCollectionFactory = Mock(FileCollectionFactory)
         def stubSnapshot = Stub(FileCollectionSnapshot)
-        def mockOutputFileSnapshotter = Mock(OutputFilesSnapshotter)
         def mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher, new ValueSnapshotter())
+        new TaskUpToDateState(stubTask, stubHistory, mockInputFileSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher, new ValueSnapshotter(classLoaderHierarchyHasher))
 
         then:
         noExceptionThrown()

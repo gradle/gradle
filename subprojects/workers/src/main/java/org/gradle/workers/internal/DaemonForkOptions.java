@@ -32,18 +32,20 @@ public class DaemonForkOptions {
     private final Iterable<String> jvmArgs;
     private final Iterable<File> classpath;
     private final Iterable<String> sharedPackages;
+    private final KeepAliveMode keepAliveMode;
 
-    public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs) {
-        this(minHeapSize, maxHeapSize, jvmArgs, Collections.<File>emptyList(), Collections.<String>emptyList());
+    public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs, KeepAliveMode keepAliveMode) {
+        this(minHeapSize, maxHeapSize, jvmArgs, Collections.<File>emptyList(), Collections.<String>emptyList(), keepAliveMode);
     }
 
     public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs, Iterable<File> classpath,
-                             Iterable<String> sharedPackages) {
+                             Iterable<String> sharedPackages, KeepAliveMode keepAliveMode) {
         this.minHeapSize = minHeapSize;
         this.maxHeapSize = maxHeapSize;
         this.jvmArgs = jvmArgs;
         this.classpath = classpath;
         this.sharedPackages = sharedPackages;
+        this.keepAliveMode = keepAliveMode;
     }
 
     public String getMinHeapSize() {
@@ -66,16 +68,25 @@ public class DaemonForkOptions {
         return sharedPackages;
     }
 
+    public KeepAliveMode getKeepAliveMode() {
+        return keepAliveMode;
+    }
+
     public boolean isCompatibleWith(DaemonForkOptions other) {
         return getHeapSizeMb(minHeapSize) >= getHeapSizeMb(other.getMinHeapSize())
                 && getHeapSizeMb(maxHeapSize) >= getHeapSizeMb(other.getMaxHeapSize())
                 && getNormalizedJvmArgs(jvmArgs).containsAll(getNormalizedJvmArgs(other.getJvmArgs()))
                 && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()))
-                && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages));
+                && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages))
+                && keepAliveMode == other.getKeepAliveMode();
     }
 
     // one way to merge fork options, good for current use case
     public DaemonForkOptions mergeWith(DaemonForkOptions other) {
+        if (keepAliveMode != other.getKeepAliveMode()) {
+            throw new IllegalArgumentException("Cannot merge a fork options object with a different keep alive mode (this: " + keepAliveMode + ", other: " + other.getKeepAliveMode() + ").");
+        }
+
         String mergedMinHeapSize = mergeHeapSize(minHeapSize, other.minHeapSize);
         String mergedMaxHeapSize = mergeHeapSize(maxHeapSize, other.maxHeapSize);
         Set<String> mergedJvmArgs = getNormalizedJvmArgs(jvmArgs);
@@ -84,7 +95,7 @@ public class DaemonForkOptions {
         mergedClasspath.addAll(getNormalizedClasspath(other.classpath));
         Set<String> mergedAllowedPackages = getNormalizedSharedPackages(sharedPackages);
         mergedAllowedPackages.addAll(getNormalizedSharedPackages(other.sharedPackages));
-        return new DaemonForkOptions(mergedMinHeapSize, mergedMaxHeapSize, mergedJvmArgs, mergedClasspath, mergedAllowedPackages);
+        return new DaemonForkOptions(mergedMinHeapSize, mergedMaxHeapSize, mergedJvmArgs, mergedClasspath, mergedAllowedPackages, keepAliveMode);
     }
 
     private int getHeapSizeMb(String heapSize) {

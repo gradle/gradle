@@ -33,6 +33,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.work.AsyncWorkCompletion;
 import org.gradle.internal.work.AsyncWorkTracker;
+import org.gradle.internal.work.NoAvailableWorkerLeaseException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.JavaForkOptions;
@@ -58,7 +59,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
 
-    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
+                                 FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor,
+                                 AsyncWorkTracker asyncWorkTracker) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -78,23 +81,23 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         // Serialize parameters in this thread prior to starting work in a separate thread
         ActionExecutionSpec spec;
         try {
-            spec = new ActionExecutionSpec(actionClass, description, configuration.getParams());
+            spec = new SerializingActionExecutionSpec(actionClass, description, configuration.getForkOptions().getWorkingDir(), configuration.getParams());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
 
-        submit(spec, configuration.getForkOptions().getWorkingDir(), configuration.getIsolationMode(), getDaemonForkOptions(actionClass, configuration));
+        submit(spec, configuration.getIsolationMode(), getDaemonForkOptions(actionClass, configuration));
     }
 
-    private void submit(final ActionExecutionSpec spec, final File workingDir, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
-        final WorkerLease currentWorkerWorkerLease = workerLeaseRegistry.getCurrentWorkerLease();
+    private void submit(final ActionExecutionSpec spec, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
+        final WorkerLease currentWorkerWorkerLease = getCurrentWorkerLease();
         final BuildOperationState currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call() throws Exception {
                 try {
                     WorkerFactory workerFactory = getWorkerFactory(isolationMode);
-                    Worker<ActionExecutionSpec> worker = workerFactory.getWorker(WorkerDaemonServer.class, workingDir, daemonForkOptions);
+                    Worker<ActionExecutionSpec> worker = workerFactory.getWorker(getWorkerServer(isolationMode), daemonForkOptions);
                     return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);
@@ -102,6 +105,14 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             }
         });
         registerAsyncWork(spec.getDisplayName(), workerDaemonResult);
+    }
+
+    private WorkerLease getCurrentWorkerLease() {
+        try {
+            return workerLeaseRegistry.getCurrentWorkerLease();
+        } catch (NoAvailableWorkerLeaseException e) {
+            throw new IllegalStateException("An attempt was made to submit work from a thread not managed by Gradle.  Work may only be submitted from a Gradle-managed thread.", e);
+        }
     }
 
     private WorkerFactory getWorkerFactory(IsolationMode isolationMode) {
@@ -113,6 +124,19 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 return noIsolationWorkerFactory;
             case PROCESS:
                 return daemonWorkerFactory;
+            default:
+                throw new IllegalArgumentException("Unknown isolation mode: " + isolationMode);
+        }
+    }
+
+    private Class<? extends WorkerProtocol<ActionExecutionSpec>> getWorkerServer(IsolationMode isolationMode) {
+        switch(isolationMode) {
+            case AUTO:
+            case CLASSLOADER:
+            case NONE:
+                return WorkerServer.class;
+            case PROCESS:
+                return WorkerDaemonServer.class;
             default:
                 throw new IllegalArgumentException("Unknown isolation mode: " + isolationMode);
         }
@@ -145,7 +169,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     public void await() throws WorkerExecutionException {
         BuildOperationState currentOperation = buildOperationExecutor.getCurrentOperation();
         try {
-            asyncWorkTracker.waitForCompletion(currentOperation);
+            asyncWorkTracker.waitForCompletion(currentOperation, false);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());
         }
@@ -223,7 +247,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         Iterable<File> daemonClasspath = classpathBuilder.build();
         Iterable<String> daemonSharedPackages = sharedPackagesBuilder.build();
 
-        return new DaemonForkOptions(forkOptions.getMinHeapSize(), forkOptions.getMaxHeapSize(), forkOptions.getAllJvmArgs(), daemonClasspath, daemonSharedPackages);
+        return new DaemonForkOptions(forkOptions.getMinHeapSize(), forkOptions.getMaxHeapSize(), forkOptions.getAllJvmArgs(), daemonClasspath, daemonSharedPackages, KeepAliveMode.DAEMON);
     }
 
     private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder, boolean addToSharedPackages) {

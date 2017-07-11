@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Matchers
@@ -565,6 +566,33 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
 
         then:
         output.contains("Scanning archives")
+    }
+  
+    @Issue("https://github.com/gradle/gradle/issues/2326")
+    @NotYetImplemented
+    def "check task should not be up-to-date after clean if it only outputs to console"() {
+        given:
+        badCode()
+        buildFile << """
+            findbugs {
+                ignoreFailures true
+            }
+            tasks.withType(FindBugs) {
+                reports {
+                    html.enabled false
+                    xml.enabled false
+                    text.enabled false
+                }
+            }
+        """
+
+        when:
+        succeeds('check')
+        succeeds('clean', 'check')
+
+        then:
+        nonSkippedTasks.contains(':findbugsMain')
+        output.contains("Analyzing classes")
     }
 
     private static boolean containsXmlMessages(File xmlReportFile) {

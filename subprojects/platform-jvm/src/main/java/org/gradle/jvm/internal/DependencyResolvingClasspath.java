@@ -17,7 +17,7 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.artifacts.ResolutionStrategy;
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Build
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
@@ -104,7 +105,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         ParallelResolveArtifactSet artifacts = ParallelResolveArtifactSet.wrap(resolveResult.artifactsResults.getArtifacts(), buildOperationExecutor);
         artifacts.visit(new ArtifactVisitor() {
             @Override
-            public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
+            public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
                 result.add(artifact.getFile());
             }
 
@@ -136,6 +137,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         ensureResolved(false);
 
         final List<Object> taskDependencies = new ArrayList<Object>();
+        final List<Throwable> failures = new ArrayList<Throwable>();
         resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(new BuildDependenciesVisitor() {
             @Override
             public void visitDependency(Object dep) {
@@ -144,9 +146,12 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
             @Override
             public void visitFailure(Throwable failure) {
-                throw UncheckedException.throwAsUncheckedException(failure);
+                failures.add(failure);
             }
         });
+        if (!failures.isEmpty()) {
+            throw new ResolveException(getDisplayName(), failures);
+        }
         return TaskDependencies.of(taskDependencies);
     }
 

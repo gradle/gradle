@@ -51,7 +51,7 @@ package org.gradle.internal.operations;
  * - Collection like structures should have deterministic order - either sorted, or meaningful
  * - Should expose either java.util.List or java.util.Map over specialised collection types
  *
- * Implementations can assume that their getters will be called exactly 0 or 1 times.
+ * Implementations can assume that their getters will be called at-most-once.
  *
  * The lifecycle of details and result objects are effectively undetermined.
  * The build scan plugin will retain the objects for a short time after the operation has
@@ -62,17 +62,6 @@ package org.gradle.internal.operations;
  * Consideration should be given to the package space of the details and result types.
  * They should be housed in a logical package space, which may not be the same as the class
  * that executes the actual operation being represented, as often that is internal detail that may change.
- *
- * All types have detail objects — some empty.
- * This makes notification dispatching on the build scan plugin side easier.
- * Some types have Void result types to indicate that there is no structured result.
- * A change from a Void result type to a structured type is a compatible change,
- * the inverse however is not.
- *
- * This is because the presence of a detail object is the heuristic we use to
- * decide whether to forward an operation notification to the build scan plugin.
- * In such cases the build scan plugin does not use the empty type so we can change this
- * later and use a more definitive signal of whether to emit a notification.
  *
  * @param <D> the type of details object for the operation
  * @param <R> the type of result object for the operation

@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
@@ -156,7 +157,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     @Override
-    public Map<ComponentArtifactIdentifier, ResolvedArtifact> getArtifactCache() {
+    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
         throw new UnsupportedOperationException();
     }
 
@@ -245,19 +246,27 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     protected void checkMetadataConsistency(ModuleComponentIdentifier expectedId, MutableModuleComponentResolveMetadata metadata) throws MetaDataParseException {
+        checkModuleIdentifier(expectedId, metadata.getId());
+    }
+
+    private void checkModuleIdentifier(ModuleComponentIdentifier expectedId, ModuleVersionIdentifier actualId) {
         List<String> errors = new ArrayList<String>();
-        if (!expectedId.getGroup().equals(metadata.getId().getGroup())) {
-            errors.add("bad group: expected='" + expectedId.getGroup() + "' found='" + metadata.getId().getGroup() + "'");
-        }
-        if (!expectedId.getModule().equals(metadata.getId().getName())) {
-            errors.add("bad module name: expected='" + expectedId.getModule() + "' found='" + metadata.getId().getName() + "'");
-        }
-        if (!expectedId.getVersion().equals(metadata.getId().getVersion())) {
-            errors.add("bad version: expected='" + expectedId.getVersion() + "' found='" + metadata.getId().getVersion() + "'");
-        }
+        checkEquals("group", expectedId.getGroup(), actualId.getGroup(), errors);
+        checkEquals("module name", expectedId.getModule(), actualId.getName(), errors);
+        checkEquals("version", expectedId.getVersion(), actualId.getVersion(), errors);
         if (errors.size() > 0) {
-            throw new MetaDataParseException(String.format("inconsistent module metadata found. Descriptor: %s Errors: %s",
-                metadata.getId(), Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(errors)));
+            throw new MetaDataParseException(
+                String.format("inconsistent module metadata found. Descriptor: %s Errors: %s", actualId, joinLines(errors)));
+        }
+    }
+
+    private String joinLines(List<String> lines) {
+        return Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(lines);
+    }
+
+    private void checkEquals(String label, String expected, String actual, List<String> errors) {
+        if (!expected.equals(actual)) {
+            errors.add("bad " + label + ": expected='" + expected + "' found='" + actual + "'");
         }
     }
 
