@@ -29,7 +29,7 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 class TaskFilePropertyCompareStrategyTest extends Specification {
 
     @Unroll
-    def "empty snapshots (#strategy)"() {
+    def "empty snapshots (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             [:],
@@ -45,7 +45,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "trivial addition (#strategy)"() {
+    def "trivial addition (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one-new": snapshot("one")],
@@ -61,7 +61,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "non-trivial addition (#strategy)"() {
+    def "non-trivial addition (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one-new": snapshot("one"), "two-new": snapshot("two")],
@@ -77,7 +77,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "non-trivial addition with absolute paths (#strategy)"() {
+    def "non-trivial addition with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one"), "two": snapshot("two")],
@@ -93,7 +93,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "trivial removal (#strategy)"() {
+    def "trivial removal (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             [:],
@@ -109,7 +109,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "non-trivial removal (#strategy)"() {
+    def "non-trivial removal (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one-new": snapshot("one")],
@@ -125,7 +125,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "non-trivial removal with absolute paths (#strategy)"() {
+    def "non-trivial removal with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one")],
@@ -141,7 +141,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "non-trivial modification (#strategy)"() {
+    def "non-trivial modification (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one-new": snapshot("one"), "two-new": snapshot("two", "9876cafe")],
@@ -157,7 +157,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "non-trivial modification with absolute paths (#strategy)"() {
+    def "non-trivial modification with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one"), "two": snapshot("two", "9876cafe")],
@@ -173,7 +173,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "trivial replacement (#strategy)"() {
+    def "trivial replacement (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["two-new": snapshot("two")],
@@ -189,7 +189,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "non-trivial replacement (#strategy)"() {
+    def "non-trivial replacement (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one-new": snapshot("one"), "two-new": snapshot("two"), "four-new": snapshot("four")],
@@ -205,7 +205,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "non-trivial replacement with absolute paths (#strategy)"() {
+    def "non-trivial replacement with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one"), "two": snapshot("two"), "four": snapshot("four")],
@@ -221,7 +221,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "reordering (#strategy)"() {
+    def "reordering (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one-new": snapshot("one"), "two-new": snapshot("two"), "three-new": snapshot("three")],
@@ -237,7 +237,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "reordering with absolute paths (#strategy)"() {
+    def "reordering with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one"), "two": snapshot("two"), "three": snapshot("three")],
@@ -253,7 +253,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "handling duplicates (#strategy)"() {
+    def "handling duplicates (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one-new-1": snapshot("one"), "one-new-2": snapshot("one"), "two-new": snapshot("two")],

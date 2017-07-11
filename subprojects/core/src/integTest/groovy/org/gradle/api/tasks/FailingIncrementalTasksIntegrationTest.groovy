@@ -39,7 +39,7 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         file("out.txt") << "force rerun"
-        fails"foo"
+        fails "foo"
         then:
         failureHasCause "Boo!"
 
@@ -52,7 +52,7 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "incremental task after previous #failiureCount failure(s) #description"() {
+    def "incremental task after previous #failureCount failure(s) #description"() {
         file("src/input.txt") << "input"
         buildFile << """
             class IncrementalTask extends DefaultTask {
@@ -96,7 +96,7 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "incrementalTask"
 
         file("src/input-change.txt") << "input"
-        failiureCount.times {
+        failureCount.times {
             fails "incrementalTask", "-PmodifyOutputs=$modifyOutputs", "-Pfail"
         }
 
@@ -104,13 +104,13 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "incrementalTask", "-PexpectIncremental=$incremental"
 
         where:
-        modifyOutputs | failiureCount | incremental | description
-        "add"         | 1     | false       | "with additional outputs is fully rebuilt"
-        "add"         | 2     | false       | "with additional outputs is fully rebuilt"
-        "change"      | 1     | false       | "with changed outputs is fully rebuilt"
-        "change"      | 2     | false       | "with changed outputs is fully rebuilt"
-        "remove"      | 1     | false       | "with removed outputs is fully rebuilt"
-        null          | 1     | true        | "with unmodified outputs is executed as incremental"
-        null          | 2     | true        | "with unmodified outputs is executed as incremental"
+        modifyOutputs | failureCount | incremental | description
+        "add"         | 1            | false       | "with additional outputs is fully rebuilt"
+        "add"         | 2            | false       | "with additional outputs is fully rebuilt"
+        "change"      | 1            | false       | "with changed outputs is fully rebuilt"
+        "change"      | 2            | false       | "with changed outputs is fully rebuilt"
+        "remove"      | 1            | false       | "with removed outputs is fully rebuilt"
+        "none"        | 1            | true        | "with unmodified outputs is executed as incremental"
+        "none"        | 2            | true        | "with unmodified outputs is executed as incremental"
     }
 }

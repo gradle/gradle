@@ -87,25 +87,53 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
                 outputs.file("out.txt")
                 outputs.cacheIf { true }
                 doLast {
+                    assert state.taskOutputCaching.enabled
                     project.file("out.txt") << "xxx"
                     if (project.hasProperty("fail")) {
                         throw new RuntimeException("Boo!")
                     }
-                    assert state.taskOutputCaching.enabled
                 }
             }
         """
 
-        executer.withStackTraceChecksDisabled()
-
         expect:
-        fails "foo", "-Pfail"
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().fails "foo", "-Pfail"
 
         when:
         withBuildCache().succeeds "foo"
         then:
         executedTasks == [":foo"]
 
+        when:
+        withBuildCache().succeeds "foo"
+        then:
+        skippedTasks as List == [":foo"]
+    }
+
+    def "task is loaded from cache when returning to already cached state after failure"() {
+        buildFile << """
+            task foo {
+                inputs.property("change", project.hasProperty("change"))
+                outputs.file("out.txt")
+                outputs.cacheIf { true }
+                doLast {
+                    project.file("out.txt") << "xxx"
+                    if (project.hasProperty("fail")) {
+                        throw new RuntimeException("Boo!")
+                    }
+                }
+            }
+        """
+
+        // Cache original
+        withBuildCache().succeeds "foo"
+
+        // Fail with a change
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().fails "foo", "-Pfail", "-Pchange"
+
+        // Re-running without change should load from cache
         when:
         withBuildCache().succeeds "foo"
         then:
