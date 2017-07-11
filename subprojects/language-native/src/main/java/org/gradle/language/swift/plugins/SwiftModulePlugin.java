@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -60,7 +61,7 @@ public class SwiftModulePlugin implements Plugin<Project> {
         sourceTree.include("**/*.swift");
         compile.source(sourceTree);
 
-        compile.setCompilerArgs(Collections.<String>emptyList());
+        compile.setCompilerArgs(Lists.newArrayList("-g"));
         compile.setMacros(Collections.<String, String>emptyMap());
         compile.setModuleName(project.getName());
 
