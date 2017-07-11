@@ -127,6 +127,5 @@
         <xi:include href='../../../build/asciidoc/userguide/featureLifecycle.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/commandLine.xml'/>
         <xi:include href='licenses.xml'/>
-        <xi:include href='glossary.xml'/>
     </part>
 </book>
