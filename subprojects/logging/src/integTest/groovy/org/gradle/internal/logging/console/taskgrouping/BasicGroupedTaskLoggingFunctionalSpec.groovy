@@ -202,6 +202,37 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
         gradle?.waitForFinish()
     }
 
+    def "group header is printed red if task failed"() {
+        given:
+        buildFile << """
+            task failing { doFirst { 
+                logger.quiet 'hello'
+                throw new RuntimeException('Failure...')
+            } }
+        """
+
+        when:
+        fails('failing')
+
+        then:
+        result.output.contains("[31;1m> Task :failing")
+    }
+
+    def "group header is printed white if task succeeds"() {
+        given:
+        buildFile << """
+            task succeeding { doFirst { 
+                logger.quiet 'hello'
+            } }
+        """
+
+        when:
+        succeeds('succeeding')
+
+        then:
+        result.output.contains("[1m> Task :succeeding")
+    }
+
     private void assertOutputContains(GradleHandle gradle, String str) {
         ConcurrentTestUtil.poll {
             assert gradle.standardOutput =~ /(?ms)$str/
