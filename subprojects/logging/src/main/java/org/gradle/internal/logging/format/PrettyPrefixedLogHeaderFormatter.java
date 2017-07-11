@@ -28,9 +28,14 @@ public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
         final String message = header != null ? header : description;
         if (message != null) {
             // Visually indicate group by adding surrounding lines
-            return Lists.newArrayList(new StyledTextOutputEvent.Span(EOL), new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, "> " + message), new StyledTextOutputEvent.Span(EOL));
+            return Lists.newArrayList(new StyledTextOutputEvent.Span(EOL), new StyledTextOutputEvent.Span(
+                isFailing(status) ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.Header, "> " + message), new StyledTextOutputEvent.Span(EOL));
         } else {
             return Lists.newArrayList();
         }
+    }
+
+    private boolean isFailing(@Nullable String status) {
+        return "FAILED".equals(status);
     }
 }
