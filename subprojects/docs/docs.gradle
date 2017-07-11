@@ -143,6 +143,8 @@ tasks.withType(AsciidoctorTask) {
         }
     }
 
+    attributes website: 'http://www.gradle.org'
+
     doLast {
         outputDir.eachFile { File file ->
             def contents = file.getText("utf-8")
