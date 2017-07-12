@@ -20,13 +20,13 @@ import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Namer
 import spock.lang.Specification
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.api.reflect.ObjectInstantiationException
 
 class FactoryNamedDomainObjectContainerSpec extends Specification {
     final NamedDomainObjectFactory<String> factory = Mock()
     final Instantiator instantiator = Mock()
     final namer = { it } as Namer
-    
+
     def usesFactoryToCreateContainerElements() {
         def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, factory)
 
@@ -61,13 +61,13 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
         result == 'element a'
         0 * _._
     }
-    
+
     // Tests for reflective instantiation
-    
+
     def type
     def extraArgs = []
     def name = "test"
-    
+
     protected getInstance() {
         getInstance(name)
     }
@@ -142,5 +142,5 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
         instance.arg1 == 1
         instance.arg2 == 2
     }
-    
+
 }

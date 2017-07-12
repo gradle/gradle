@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
@@ -21,18 +20,16 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultObjectFactory implements ObjectFactory {
+public class InstantiatorBackedObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
-    private final NamedObjectInstantiator namedObjectInstantiator;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator) {
+    public InstantiatorBackedObjectFactory(Instantiator instantiator) {
         this.instantiator = instantiator;
-        this.namedObjectInstantiator = namedObjectInstantiator;
     }
 
     @Override
-    public <T extends Named> T named(final Class<T> type, final String name) {
-        return namedObjectInstantiator.named(type, name);
+    public <T extends Named> T named(Class<T> type, String name) throws ObjectInstantiationException {
+        throw new UnsupportedOperationException("Instantiator does not support constructing named objects");
     }
 
     @Override

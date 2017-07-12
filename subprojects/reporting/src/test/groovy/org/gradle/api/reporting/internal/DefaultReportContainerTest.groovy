@@ -27,7 +27,7 @@ import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.ReportContainer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 

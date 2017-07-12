@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
 import org.gradle.api.provider.PropertyState;
@@ -42,7 +43,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
-import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -84,11 +84,11 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     public Checkstyle() {
         configDir = getProject().property(File.class);
-        reports = getInstantiator().newInstance(CheckstyleReportsImpl.class, this);
+        reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
     }
 
     @Inject
-    public Instantiator getInstantiator() {
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 

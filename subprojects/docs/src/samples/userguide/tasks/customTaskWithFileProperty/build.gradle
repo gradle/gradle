@@ -11,7 +11,7 @@ class GreetingToFileTask extends DefaultTask {
     def greet() {
         def file = getDestination()
         file.parentFile.mkdirs()
-        file.write "Hello!"
+        file.write 'Hello!'
     }
 }
 // END SNIPPET task

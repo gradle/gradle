@@ -47,7 +47,7 @@ class EarTest extends AbstractArchiveTaskTest {
 
     def "correct default deployment descriptor"() {
         when:
-        ear.deploymentDescriptor = new DefaultDeploymentDescriptor(null, instantiator)
+        ear.deploymentDescriptor = new DefaultDeploymentDescriptor(null, objectFactory)
         def d = makeDeploymentDescriptor(ear)
 
         then:

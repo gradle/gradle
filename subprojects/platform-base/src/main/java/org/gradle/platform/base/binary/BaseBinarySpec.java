@@ -27,7 +27,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;

@@ -24,8 +24,10 @@ import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 
-public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> implements FindBugsReportsInternal {
+import javax.inject.Inject;
 
+public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> implements FindBugsReportsInternal {
+    @Inject
     public FindBugsReportsImpl(Task task) {
         super(SingleFileReport.class, task);
 

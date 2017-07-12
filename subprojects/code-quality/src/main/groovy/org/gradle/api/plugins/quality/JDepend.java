@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.JDependInvoker;
 import org.gradle.api.plugins.quality.internal.JDependReportsImpl;
 import org.gradle.api.reporting.Reporting;
@@ -33,7 +34,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.SingleMessageLogger;
 
@@ -74,11 +74,11 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
     }
 
     public JDepend() {
-        reports = getInstantiator().newInstance(JDependReportsImpl.class, this);
+        reports = getObjectFactory().newInstance(JDependReportsImpl.class, this);
     }
 
     @Inject
-    public Instantiator getInstantiator() {
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 

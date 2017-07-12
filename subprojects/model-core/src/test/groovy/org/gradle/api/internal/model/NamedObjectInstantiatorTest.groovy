@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.model
 
-import org.gradle.api.GradleException
 import org.gradle.api.Named
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Matchers
 import spock.lang.Ignore
@@ -25,8 +25,8 @@ import spock.lang.Ignore
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CyclicBarrier
 
-class DefaultObjectFactoryTest extends ConcurrentSpec {
-    def factory = DefaultObjectFactory.INSTANCE
+class NamedObjectInstantiatorTest extends ConcurrentSpec {
+    static factory = new NamedObjectInstantiator()
 
     def "creates instance of Named"() {
         expect:
@@ -221,8 +221,9 @@ class DefaultObjectFactoryTest extends ConcurrentSpec {
         factory.named(NamedWithFields, "a")
 
         then:
-        def e = thrown(GradleException)
-        e.message == """Type ${NamedWithFields.name} is not a valid Named implementation class:
+        def e = thrown(ObjectInstantiationException)
+        e.message == "Could not create an instance of type ${NamedWithFields.name}."
+        e.cause.message == """Type ${NamedWithFields.name} is not a valid Named implementation class:
 - Field name is not valid: A Named implementation class must not define any instance fields.
 - Field other is not valid: A Named implementation class must not define any instance fields."""
 
@@ -230,11 +231,22 @@ class DefaultObjectFactoryTest extends ConcurrentSpec {
         factory.named(NamedWithFields.Sub, "a")
 
         then:
-        e = thrown(GradleException)
-        e.message == """Type ${NamedWithFields.name}.Sub is not a valid Named implementation class:
+        e = thrown(ObjectInstantiationException)
+        e.message == "Could not create an instance of type ${NamedWithFields.Sub.name}."
+        e.cause.message == """Type ${NamedWithFields.name}.Sub is not a valid Named implementation class:
 - Field NamedWithFields.name is not valid: A Named implementation class must not define any instance fields.
 - Field NamedWithFields.other is not valid: A Named implementation class must not define any instance fields.
 - Field b is not valid: A Named implementation class must not define any instance fields."""
+    }
+
+    def "wraps constructor failure"() {
+        when:
+        factory.named(BrokenConstructor, "a")
+
+        then:
+        def e = thrown(ObjectInstantiationException)
+        e.message == "Could not create an instance of type ${BrokenConstructor.name}."
+        e.cause == BrokenConstructor.failure
     }
 
     @Ignore
@@ -253,3 +265,12 @@ class DummyGroovyNamed implements Named {
 
     String getCalculatedValue() { "[$name]" }
 }
+
+abstract class BrokenConstructor implements Named {
+    static RuntimeException failure = new RuntimeException("broken")
+
+    BrokenConstructor() {
+        throw failure
+    }
+}
+

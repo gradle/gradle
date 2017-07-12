@@ -18,7 +18,7 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
