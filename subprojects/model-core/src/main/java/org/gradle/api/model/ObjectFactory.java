@@ -56,6 +56,8 @@ public interface ObjectFactory {
      *
      * <p>Objects created using this method are decorated and extensible.</p>
      *
+     * <p>An @Inject annotation on any constructor that accepts parameters because JSR-330 semantics for dependency injection are used.</p>
+     *
      * @throws ObjectInstantiationException On failure to create the new instance.
      * @since 4.1
      */
