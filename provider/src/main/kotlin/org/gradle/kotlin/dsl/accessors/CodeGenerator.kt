@@ -68,12 +68,16 @@ fun inaccessibleExtensionAccessorFor(name: String, typeAccess: TypeAccessibility
     """
         /**
          * Retrieves the [$name][${typeAccess.type}] project extension.
+         *
+         * ${documentInaccessibilityReasons(name, typeAccess)}
          */
         val Project.`$name`: Any get() =
             extensions.getByName("$name")
 
         /**
          * Configures the [$name][${typeAccess.type}] project extension.
+         *
+         * ${documentInaccessibilityReasons(name, typeAccess)}
          */
         fun Project.`$name`(configure: Any.() -> Unit): Unit =
             extensions.configure("$name", configure)
@@ -114,12 +118,16 @@ fun inaccessibleConventionAccessorFor(name: String, typeAccess: TypeAccessibilit
     """
         /**
          * Retrieves the [$name][${typeAccess.type}] project convention.
+         *
+         * ${documentInaccessibilityReasons(name, typeAccess)}
          */
         val Project.`$name`: Any get() =
             convention.getPluginByName<Any>("$name")
 
         /**
          * Configures the [$name][${typeAccess.type}] project convention.
+         *
+         * ${documentInaccessibilityReasons(name, typeAccess)}
          */
         fun Project.`$name`(configure: Any.() -> Unit): Unit =
             configure(`$name`)
@@ -226,6 +234,13 @@ fun configurationAccessorFor(name: String): String? =
 
         """
     }
+
+
+private
+fun documentInaccessibilityReasons(name: String, typeAccess: TypeAccessibility.Inaccessible): String =
+    "`$name` is not accessible in a type safe way because:\n${typeAccess.reasons.map { reason ->
+        "         * - ${reason.explanation}"
+    }.joinToString("\n")}"
 
 
 private inline

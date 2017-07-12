@@ -80,9 +80,20 @@ sealed class TypeAccessibility {
 
 internal
 sealed class InaccessibilityReason {
-    data class NonPublic(val type: String) : InaccessibilityReason()
-    data class NonAvailable(val type: String) : InaccessibilityReason()
-    data class Synthetic(val type: String) : InaccessibilityReason()
+
+    abstract val explanation: String
+
+    data class NonPublic(val type: String) : InaccessibilityReason() {
+        override val explanation = "`$type` is not public"
+    }
+
+    data class NonAvailable(val type: String) : InaccessibilityReason() {
+        override val explanation = "`$type` is not available"
+    }
+
+    data class Synthetic(val type: String) : InaccessibilityReason() {
+        override val explanation = "`$type` is synthetic"
+    }
 }
 
 
