@@ -16,21 +16,20 @@
 
 package org.gradle.caching.internal.controller.operations;
 
-import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.operations.BuildCacheArchivePackBuildOperationType;
 
-public class StoreOperationResult implements BuildCacheRemoteStoreBuildOperationType.Result {
+public class PackOperationDetails implements BuildCacheArchivePackBuildOperationType.Details {
 
-    public static final BuildCacheRemoteStoreBuildOperationType.Result STORED = new StoreOperationResult(true);
-    public static final BuildCacheRemoteStoreBuildOperationType.Result NOT_STORED = new StoreOperationResult(false);
+    private final BuildCacheKey key;
 
-    private final boolean stored;
-
-    private StoreOperationResult(boolean stored) {
-        this.stored = stored;
+    public PackOperationDetails(BuildCacheKey key) {
+        this.key = key;
     }
 
     @Override
-    public boolean isStored() {
-        return stored;
+    public String getCacheKey() {
+        return key.getHashCode();
     }
+
 }

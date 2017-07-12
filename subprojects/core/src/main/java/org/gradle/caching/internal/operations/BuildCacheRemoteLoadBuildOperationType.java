@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.operations;
 
-import org.gradle.caching.internal.controller.BuildCacheServiceRole;
 import org.gradle.internal.operations.BuildOperationType;
 
 /**
@@ -26,16 +25,9 @@ import org.gradle.internal.operations.BuildOperationType;
  * It may also fail.
  * Load operation results and failures are mutually exclusive.
  */
-public final class BuildCacheLoadBuildOperationType implements BuildOperationType<BuildCacheLoadBuildOperationType.Details, BuildCacheLoadBuildOperationType.Result> {
+public final class BuildCacheRemoteLoadBuildOperationType implements BuildOperationType<BuildCacheRemoteLoadBuildOperationType.Details, BuildCacheRemoteLoadBuildOperationType.Result> {
 
     public interface Details {
-
-        /**
-         * Identifies whether the cache is local or remote.
-         *
-         * Value from {@link BuildCacheServiceRole}
-         */
-        String getRole();
 
         /**
          * The cache key.
@@ -54,14 +46,8 @@ public final class BuildCacheLoadBuildOperationType implements BuildOperationTyp
          */
         long getArchiveSize();
 
-        /**
-         * The number of entries in the loaded cache artifact if it was a hit.
-         * Else undetermined.
-         */
-        long getArchiveEntryCount();
-
     }
 
-    private BuildCacheLoadBuildOperationType() {
+    private BuildCacheRemoteLoadBuildOperationType() {
     }
 }

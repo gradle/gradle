@@ -57,6 +57,17 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
     @ToolingApiVersion('>=3.3')
     @TargetGradleVersion('>=3.5')
     def "cacheable task generates build operations for load and store"() {
+        given:
+        def cacheDir = file("task-output-cache-2")
+        settingsFile << """
+            buildCache {
+                local.push = false
+                remote(DirectoryBuildCache) {
+                    push = true
+                    directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
+                }
+            }
+        """
         when:
         def pushToCacheEvents = ProgressEvents.create()
         runCacheableBuild(pushToCacheEvents)

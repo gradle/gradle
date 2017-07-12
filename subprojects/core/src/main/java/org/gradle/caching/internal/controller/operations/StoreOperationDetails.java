@@ -17,26 +17,25 @@
 package org.gradle.caching.internal.controller.operations;
 
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.BuildCacheStoreBuildOperationType;
-import org.gradle.caching.internal.controller.BuildCacheServiceRole;
+import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType;
 
-public class StoreOperationDetails implements BuildCacheStoreBuildOperationType.Details {
+public class StoreOperationDetails implements BuildCacheRemoteStoreBuildOperationType.Details {
 
     private final BuildCacheKey cacheKey;
-    private final BuildCacheServiceRole role;
+    private final long archiveSize;
 
-    public StoreOperationDetails(BuildCacheKey cacheKey, BuildCacheServiceRole role) {
+    public StoreOperationDetails(BuildCacheKey cacheKey, long archiveSize) {
         this.cacheKey = cacheKey;
-        this.role = role;
-    }
-
-    @Override
-    public String getRole() {
-        return role.getDisplayName();
+        this.archiveSize = archiveSize;
     }
 
     @Override
     public String getCacheKey() {
         return cacheKey.getHashCode();
+    }
+
+    @Override
+    public long getArchiveSize() {
+        return archiveSize;
     }
 }

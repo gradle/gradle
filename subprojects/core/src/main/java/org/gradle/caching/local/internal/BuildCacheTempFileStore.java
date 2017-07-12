@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller.operations;
+package org.gradle.caching.local.internal;
 
-import org.gradle.caching.internal.BuildCacheDisableServiceBuildOperationType;
+import org.gradle.api.Action;
+import org.gradle.caching.BuildCacheKey;
 
-public class DisableOperationResult implements BuildCacheDisableServiceBuildOperationType.Result {
+import java.io.File;
 
-    public static final BuildCacheDisableServiceBuildOperationType.Result INSTANCE = new DisableOperationResult();
+public interface BuildCacheTempFileStore {
 
-    private DisableOperationResult() {
-    }
+    String SUFFIX = ".part";
+
+    void allocateTempFile(BuildCacheKey key, Action<? super File> action);
+
 }

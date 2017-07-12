@@ -508,10 +508,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         executer.withStackTraceChecksDisabled()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().fails "customTask"
         then:
         def expectedMessage = message.replace("PATH", file("build/output").path)
-        output.contains(expectedMessage)
+        failure.assertHasCause(expectedMessage)
 
         where:
         expected | actual | message

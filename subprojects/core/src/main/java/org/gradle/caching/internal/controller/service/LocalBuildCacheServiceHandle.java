@@ -14,32 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller;
+package org.gradle.caching.internal.controller.service;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.local.internal.LocalBuildCacheService;
 
 import java.io.Closeable;
 import java.io.File;
 
-public interface BuildCacheServiceHandle extends Closeable {
+public interface LocalBuildCacheServiceHandle extends Closeable {
 
     @Nullable
     @VisibleForTesting
-    BuildCacheService getService();
+    LocalBuildCacheService getService();
 
     boolean canLoad();
 
-    <T> T doLoad(BuildCacheLoadCommand<T> command);
+    // TODO: what if this errors?
+    void load(BuildCacheKey key, Action<? super File> reader);
 
     boolean canStore();
 
-    void doStore(BuildCacheStoreCommand command);
-
-    void doStore(BuildCacheKey key, File file, BuildCacheStoreCommand.Result storeResult);
+    // TODO: what if this errors?
+    void store(BuildCacheKey key, File file);
 
     @Override
     void close();
+
 }

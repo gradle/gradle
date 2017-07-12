@@ -14,52 +14,53 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller;
+package org.gradle.caching.internal.controller.service;
 
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.local.internal.LocalBuildCacheService;
 
 import java.io.File;
 
-public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
+public class DefaultLocalBuildCacheServiceHandle implements LocalBuildCacheServiceHandle {
 
-    public static final BuildCacheServiceHandle INSTANCE = new NullBuildCacheServiceHandle();
+    private final LocalBuildCacheService service;
+    private final boolean pushEnabled;
+
+    public DefaultLocalBuildCacheServiceHandle(LocalBuildCacheService service, boolean pushEnabled) {
+        this.service = service;
+        this.pushEnabled = pushEnabled;
+    }
 
     @Nullable
     @Override
-    public BuildCacheService getService() {
-        return null;
+    public LocalBuildCacheService getService() {
+        return service;
     }
 
     @Override
     public boolean canLoad() {
-        return false;
+        return true;
     }
 
     @Override
-    public <T> T doLoad(BuildCacheLoadCommand<T> command) {
-        throw new UnsupportedOperationException();
+    public void load(BuildCacheKey key, Action<? super File> reader) {
+        service.load(key, reader);
     }
 
     @Override
     public boolean canStore() {
-        return false;
+        return pushEnabled;
     }
 
     @Override
-    public void doStore(BuildCacheStoreCommand command) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void doStore(BuildCacheKey key, File file, BuildCacheStoreCommand.Result storeResult) {
-        throw new UnsupportedOperationException();
+    public void store(BuildCacheKey key, File file) {
+        service.store(key, file);
     }
 
     @Override
     public void close() {
-
+        service.close();
     }
-
 }

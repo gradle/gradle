@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller.operations;
+package org.gradle.caching.internal.controller.service;
 
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType;
+import org.gradle.caching.BuildCacheService;
 
-public class LoadOperationDetails implements BuildCacheRemoteLoadBuildOperationType.Details {
+public final class BuildCacheServicesConfiguration {
 
-    private final BuildCacheKey buildCacheKey;
+    public final BuildCacheService local;
+    public final boolean localPush;
 
-    public LoadOperationDetails(BuildCacheKey buildCacheKey) {
-        this.buildCacheKey = buildCacheKey;
-    }
+    public final BuildCacheService remote;
+    public final boolean remotePush;
 
-    @Override
-    public String getCacheKey() {
-        return buildCacheKey.getHashCode();
+    public BuildCacheServicesConfiguration(
+        BuildCacheService local,
+        boolean localPush,
+        BuildCacheService remote,
+        boolean remotePush
+    ) {
+        this.remote = remote;
+        this.remotePush = remotePush;
+        this.local = local;
+        this.localPush = localPush;
     }
 }
