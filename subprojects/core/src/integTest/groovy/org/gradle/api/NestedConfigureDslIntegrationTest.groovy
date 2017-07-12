@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.dsl
+package org.gradle.api
 
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.RepositoryHandler
