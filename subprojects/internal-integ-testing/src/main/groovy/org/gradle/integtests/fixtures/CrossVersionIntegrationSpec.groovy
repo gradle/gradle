@@ -85,7 +85,7 @@ abstract class CrossVersionIntegrationSpec extends Specification {
         return mavenRepo
     }
 
-    GradleExecuter version(GradleDistribution dist) {
+    GradleExecuter version(GradleDistribution dist, boolean withDeprecationWarnings = false) {
         def executer = dist.executer(temporaryFolder, IntegrationTestBuildContext.INSTANCE)
         if (gradleUserHomeDir) {
             executer.withGradleUserHomeDir(gradleUserHomeDir)

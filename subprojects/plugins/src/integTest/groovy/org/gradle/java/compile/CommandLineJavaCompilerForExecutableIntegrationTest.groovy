@@ -25,12 +25,6 @@ import org.gradle.util.TextUtil
 @IgnoreIf({ !Jvm.current().getExecutable("javac").exists() })
 class CommandLineJavaCompilerForExecutableIntegrationTest extends JavaCompilerIntegrationSpec {
 
-    def setup() {
-        executer.beforeExecute {
-            expectDeprecationWarning()
-        }
-    }
-
     def compilerConfiguration() {
         def executable = TextUtil.escapeString(Jvm.current().getExecutable("javac"))
 

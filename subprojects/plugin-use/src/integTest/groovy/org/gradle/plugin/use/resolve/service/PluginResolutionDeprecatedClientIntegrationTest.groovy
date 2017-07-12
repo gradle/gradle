@@ -51,7 +51,6 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
     def setup() {
         executer.requireOwnGradleUserHomeDir()
         executer.beforeExecute {
-            it.expectDeprecationWarning()
             moduleResolution()
         }
 
@@ -125,7 +124,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         deprecateClient(null)
         usePlugin2() // use a different plugin, because the response for the previous will be cached
         pluginQuery2()
-        build()
+        build(false)
         containsNoDeprecationMessage()
     }
 
@@ -204,11 +203,11 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         usePlugin1()
         pluginQuery1()
         service.expectStatusQuery404()
-        build()
+        build(false)
         output.contains("Received error response fetching client status from")
 
         service.expectStatusQuery404()
-        build()
+        build(false)
         output.contains("Received error response fetching client status from")
     }
 
@@ -218,10 +217,10 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         usePlugin1()
         pluginQuery1()
         service.expectStatusQueryOutOfProtocol()
-        build()
+        build(false)
 
         service.expectStatusQueryOutOfProtocol()
-        build()
+        build(false)
 
         // Test that if the issue gets resolved, everything works as it should
         service.expectStatusQuery()
@@ -259,7 +258,10 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         service.http.resetExpectations()
     }
 
-    void build() {
+    void build(boolean withDeprecationWarning = true) {
+        if (withDeprecationWarning) {
+            executer.expectDeprecationWarning()
+        }
         run "tasks"
     }
 
@@ -275,16 +277,25 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         (failure == null ? result : failure).output
     }
 
-    void failPluginNotFound() {
+    void failPluginNotFound(boolean withDeprecationWarning = true) {
+        if (withDeprecationWarning) {
+            executer.expectDeprecationWarning()
+        }
         fails "tasks"
         failure.assertThatDescription(containsText("Plugin [id: '${PLUGIN_ID_1}', version: '1.0'] was not found"))
     }
 
-    void fail() {
+    void fail(boolean withDeprecationWarning = true) {
+        if (withDeprecationWarning) {
+            executer.expectDeprecationWarning()
+        }
         fails "tasks"
     }
 
-    void failError() {
+    void failError(boolean withDeprecationWarning = true) {
+        if (withDeprecationWarning) {
+            executer.expectDeprecationWarning()
+        }
         fails "tasks"
         failure.assertThatDescription(containsText("Error resolving plugin"))
     }
