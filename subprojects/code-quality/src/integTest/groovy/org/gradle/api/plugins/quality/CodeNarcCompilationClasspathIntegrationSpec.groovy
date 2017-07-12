@@ -18,33 +18,36 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.startsWith
-
 class CodeNarcCompilationClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
     private final static String CONFIG_FILE_PATH = 'config/codenarc/rulesets.groovy'
+    private final static String SUPPORTED_COMPILATION_CLASSPATH_VERSION = '0.27.0'
+    private final static String UNSUPPORTED_COMPILATION_CLASSPATH_VERSION = '0.26.0'
 
     def "compilation classpath can be specified for a CodeNarc task"() {
         given:
-        buildFileWithCodeNarcAndCompilationClasspath('0.27.0')
+        buildFileWithCodeNarcAndCompilationClasspath(SUPPORTED_COMPILATION_CLASSPATH_VERSION)
         cloneWithoutCloneableRuleEnabled()
         codeViolatingCloneWithoutCloneableRule()
 
-        expect:
+        when:
         fails("codenarcMain")
-        failure.assertThatCause(startsWith("CodeNarc rule violations were found"))
+
+        then:
+        failure.assertHasCause('CodeNarc rule violations were found')
     }
 
     def "an informative error is shown when a compilation classpath is specified on a CodeNarc task when using an incompatible CodeNarc version"() {
         given:
-        buildFileWithCodeNarcAndCompilationClasspath('0.26.0')
+        buildFileWithCodeNarcAndCompilationClasspath(UNSUPPORTED_COMPILATION_CLASSPATH_VERSION)
         cloneWithoutCloneableRuleEnabled()
         codeViolatingCloneWithoutCloneableRule()
 
-        expect:
+        when:
         fails("codenarcMain")
-        failure.assertThatCause(equalTo("The compilationClasspath property of CodeNarc task can only be non-empty when using CodeNarc 0.27.0 or newer."))
+
+        then:
+        failure.assertHasCause("The compilationClasspath property of CodeNarc task can only be non-empty when using CodeNarc $SUPPORTED_COMPILATION_CLASSPATH_VERSION or newer.")
     }
 
     private void buildFileWithCodeNarcAndCompilationClasspath(String codeNarcVersion) {
@@ -79,7 +82,7 @@ class CodeNarcCompilationClasspathIntegrationSpec extends AbstractIntegrationSpe
         '''
     }
 
-    private codeViolatingCloneWithoutCloneableRule() {
+    private void codeViolatingCloneWithoutCloneableRule() {
         file('src/main/groovy/ViolatingClass.groovy') << '''
             class ViolatingClass extends Tuple {
                 ViolatingClass clone() {}
