@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.plugins.quality.internal.CodeNarcInvoker;
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl;
@@ -29,6 +30,7 @@ import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
@@ -49,6 +51,8 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
 
     private FileCollection codenarcClasspath;
 
+    private FileCollection compilationClasspath;
+
     private TextResource config;
 
     private int maxPriority1Violations;
@@ -63,6 +67,7 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
 
     public CodeNarc() {
         reports = getInstantiator().newInstance(CodeNarcReportsImpl.class, this);
+        compilationClasspath = new SimpleFileCollection();
     }
 
     /**
@@ -132,6 +137,22 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
      */
     public void setCodenarcClasspath(FileCollection codenarcClasspath) {
         this.codenarcClasspath = codenarcClasspath;
+    }
+
+    /**
+     * The class path to be used by CodeNarc when compiling classes during analysis.
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.ABSOLUTE)
+    public FileCollection getCompilationClasspath() {
+        return compilationClasspath;
+    }
+
+    /**
+     * The class path to be used by CodeNarc when compiling classes during analysis.
+     */
+    public void setCompilationClasspath(FileCollection compilationClasspath) {
+        this.compilationClasspath = compilationClasspath;
     }
 
     /**
