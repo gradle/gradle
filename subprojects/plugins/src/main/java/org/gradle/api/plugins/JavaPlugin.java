@@ -300,7 +300,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addJar(runtimeConfiguration, jarArtifact);
         addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
 
-        project.getComponents().add(new JavaLibrary(project.getConfigurations(), jarArtifact));
+        project.getComponents().add(new JavaLibrary(objectFactory, project.getConfigurations(), jarArtifact));
     }
 
     private void addJar(Configuration configuration, ArchivePublishArtifact jarArtifact) {

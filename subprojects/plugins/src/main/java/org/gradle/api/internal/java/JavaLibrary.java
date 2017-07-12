@@ -25,6 +25,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.model.ObjectFactory;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -37,19 +38,17 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
 public class JavaLibrary implements SoftwareComponentInternal {
-    private final static Usage API = DefaultObjectFactory.INSTANCE.named(Usage.class, Usage.JAVA_API);
-    private final static Usage RUNTIME = DefaultObjectFactory.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME);
 
     private final LinkedHashSet<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final UsageContext runtimeUsage;
     private final UsageContext compileUsage;
     private final ConfigurationContainer configurations;
 
-    public JavaLibrary(ConfigurationContainer configurations, PublishArtifact... artifacts) {
+    public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, PublishArtifact... artifacts) {
         Collections.addAll(this.artifacts, artifacts);
         this.configurations = configurations;
-        this.runtimeUsage = new RuntimeUsageContext();
-        this.compileUsage = new CompileUsageContext();
+        this.runtimeUsage = new RuntimeUsageContext(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        this.compileUsage = new CompileUsageContext(objectFactory.named(Usage.class, Usage.JAVA_API));
     }
 
     /**
@@ -59,8 +58,8 @@ public class JavaLibrary implements SoftwareComponentInternal {
     @Deprecated
     public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
         this.artifacts.add(jarArtifact);
-        this.runtimeUsage = new BackwardsCompatibilityUsageContext(RUNTIME, runtimeDependencies);
-        this.compileUsage = new BackwardsCompatibilityUsageContext(API, runtimeDependencies);
+        this.runtimeUsage = new BackwardsCompatibilityUsageContext(DefaultObjectFactory.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME), runtimeDependencies);
+        this.compileUsage = new BackwardsCompatibilityUsageContext(DefaultObjectFactory.INSTANCE.named(Usage.class, Usage.JAVA_API), runtimeDependencies);
         this.configurations = null;
     }
 
@@ -74,11 +73,16 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
     private class RuntimeUsageContext implements UsageContext {
 
+        private final Usage usage;
         private DependencySet dependencies;
+
+        public RuntimeUsageContext(Usage usage) {
+            this.usage = usage;
+        }
 
         @Override
         public Usage getUsage() {
-            return RUNTIME;
+            return usage;
         }
 
         public Set<PublishArtifact> getArtifacts() {
@@ -95,11 +99,16 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
     private class CompileUsageContext implements UsageContext {
 
+        private final Usage usage;
         private DependencySet dependencies;
+
+        public CompileUsageContext(Usage usage) {
+            this.usage = usage;
+        }
 
         @Override
         public Usage getUsage() {
-            return API;
+            return usage;
         }
 
         public Set<PublishArtifact> getArtifacts() {
