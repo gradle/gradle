@@ -101,8 +101,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         file('build/docs/javadoc/Foo.html').text.contains('myHeader')
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)  // JDK 9 Breaks multiline -header arguments.
+    @Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.JDK8_OR_EARLIER])  // JDK 9 Breaks multiline -header arguments.
     @Issue("GRADLE-3099")
     def "writes multiline header"() {
         buildFile << """
