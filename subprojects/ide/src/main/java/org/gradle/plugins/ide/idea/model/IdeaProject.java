@@ -181,7 +181,7 @@ public class IdeaProject {
     }
 
     /**
-     * A {@link org.gradle.api.dsl.ConventionProperty} that holds modules for the ipr file.
+     * Modules for the ipr file.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
