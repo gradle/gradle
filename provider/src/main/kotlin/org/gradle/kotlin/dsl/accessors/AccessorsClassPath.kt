@@ -36,6 +36,7 @@ import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.Opcodes.*
 
 import java.io.BufferedWriter
+import java.io.Closeable
 import java.io.File
 
 import java.util.*
@@ -99,7 +100,9 @@ sealed class InaccessibilityReason {
 
 internal
 fun availableProjectSchemaFor(projectSchema: ProjectSchema<String>, classPath: ClassPath) =
-    projectSchema.map(TypeAccessibilityProvider(classPath)::accessibilityForType)
+    TypeAccessibilityProvider(classPath).use { accessibilityProvider ->
+        projectSchema.map(accessibilityProvider::accessibilityForType)
+    }
 
 
 private
@@ -107,10 +110,13 @@ typealias ClassFileIndex = (String) -> ByteArray?
 
 
 private
-class TypeAccessibilityProvider(classPath: ClassPath) {
+class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
     private
     val classPathIndex = classPath.asFiles.map { classFileIndexFor(it) }
+
+    private
+    val openJars = mutableMapOf<File, JarFile>()
 
     private
     val inaccessibilityReasonsPerClass = mutableMapOf<String, List<InaccessibilityReason>>()
@@ -156,13 +162,21 @@ class TypeAccessibilityProvider(classPath: ClassPath) {
 
     private
     fun jarIndexFor(file: File): ClassFileIndex = { classFilePath ->
-        JarFile(file).use { jar ->
-            jar.getJarEntry(classFilePath)?.let { jarEntry ->
-                jar.getInputStream(jarEntry).use { jarInput ->
+        openJarFile(file).run {
+            getJarEntry(classFilePath)?.let { jarEntry ->
+                getInputStream(jarEntry).use { jarInput ->
                     jarInput.readBytes()
                 }
             }
         }
+    }
+
+    private
+    fun openJarFile(file: File) =
+        openJars.computeIfAbsent(file, { JarFile(file) })
+
+    override fun close() {
+        openJars.values.forEach(JarFile::close)
     }
 
     private
