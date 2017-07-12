@@ -18,6 +18,7 @@ package org.gradle.api.tasks.scala
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.compile.AbstractCompile
@@ -31,6 +32,8 @@ public class ScalaCompileTest extends AbstractCompileTest {
 
     private scalaCompiler = Mock(Compiler)
     private scalaClasspath = Mock(FileTreeInternal)
+    private processorClasspath = Mock(FileTreeInternal)
+    private processorDetector = Mock(AnnotationProcessorDetector)
 
     @Override
     public AbstractCompile getCompile() {
@@ -43,6 +46,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
     }
 
     def setup() {
+        serviceRegistry.add(AnnotationProcessorDetector.class, processorDetector)
         scalaCompile = createTask(ScalaCompile)
         scalaCompile.setCompiler(scalaCompiler)
 
@@ -74,6 +78,21 @@ public class ScalaCompileTest extends AbstractCompileTest {
         TaskExecutionException e = thrown()
         e.cause instanceof InvalidUserDataException
         e.cause.message.contains("'testTask.scalaClasspath' must not be empty")
+    }
+
+    def "sets annotation processor path"() {
+        ScalaJavaJointCompileSpec compileSpec
+
+        given:
+        setUpMocksAndAttributes(scalaCompile)
+        processorDetector.getEffectiveAnnotationProcessorClasspath(scalaCompile.getOptions(), scalaCompile.getClasspath()) >> processorClasspath
+
+        when:
+        scalaCompile.execute()
+
+        then:
+        1 * scalaCompiler.execute(_ as ScalaJavaJointCompileSpec) >> { args -> compileSpec = args[0]; null }
+        compileSpec.getAnnotationProcessorPath() != null
     }
 
     protected void setUpMocksAndAttributes(final ScalaCompile compile) {
