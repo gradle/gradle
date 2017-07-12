@@ -138,3 +138,7 @@ val primitiveTypeStrings =
         "float" to "Float",
         "java.lang.Double" to "Double",
         "double" to "Double")
+
+
+internal
+val primitiveKotlinTypeNames = primitiveTypeStrings.values.toHashSet()

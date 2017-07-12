@@ -153,7 +153,7 @@ private
 typealias ClassFileIndex = (String) -> ByteArray?
 
 
-private
+internal
 class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
     private
@@ -228,10 +228,9 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
         File(baseDir, classFilePath).takeIf { it.isFile }?.readBytes()
     }
 
-    // TODO Exclude primitives
     private
     fun classNamesFrom(typeString: String): List<String> =
-        typeString.split(classNameSeparators).filter { it.isNotBlank() }
+        typeString.split(classNameSeparators).filter { it.isNotBlank() && it !in primitiveKotlinTypeNames }
 
     private
     val classNameSeparators = Regex("[<,> ]")
