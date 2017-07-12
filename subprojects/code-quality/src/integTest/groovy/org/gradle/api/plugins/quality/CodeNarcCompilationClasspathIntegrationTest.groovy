@@ -18,7 +18,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class CodeNarcCompilationClasspathIntegrationSpec extends AbstractIntegrationSpec {
+class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpec {
 
     private final static String CONFIG_FILE_PATH = 'config/codenarc/rulesets.groovy'
     private final static String SUPPORTED_COMPILATION_CLASSPATH_VERSION = '0.27.0'
