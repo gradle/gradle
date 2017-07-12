@@ -190,7 +190,7 @@ project(':consumer') {
         buildFile << """
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                configurations.consume.attributes.attribute(artifactType, JavaPlugin.JAR_TYPE)
+                configurations.consume.attributes.attribute(artifactType, ArtifactTypeDefinition.JAR_TYPE)
             }
 """
         when:
