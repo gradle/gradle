@@ -176,7 +176,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     private
     fun inaccessibilityReasonsFor(className: String): List<InaccessibilityReason> =
         inaccessibilityReasonsPerClass.computeIfAbsent(className) {
-            listOfNotNull(inaccessibilityReasonFor(className))
+            listOfNotNull(inaccessibilityReasonFor(it))
         }
 
     private
