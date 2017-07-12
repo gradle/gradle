@@ -47,8 +47,7 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
 
         when:
         executer.withArgument("--continue")
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarnings(2)
         fails("broken", "broken2", "broken4")
 
         then:

@@ -279,9 +279,18 @@ public interface GradleExecuter extends Stoppable {
     TestDirectoryProvider getTestDirectoryProvider();
 
     /**
-     * Expects exactly one deprecation warning in the build output. Call multiple times to expect multiple warnings.
+     * Expects exactly one deprecation warning in the build output. If more than one warning is produced,
+     * or no warning is produced at all, the assertion fails.
+     *
+     * @see #expectDeprecationWarnings(int)
      */
     GradleExecuter expectDeprecationWarning();
+
+    /**
+     * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
+     * the execution, the assertion fails.
+     */
+    GradleExecuter expectDeprecationWarnings(int count);
 
     /**
      * Disable deprecation warning checks.
