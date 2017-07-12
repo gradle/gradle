@@ -7,5 +7,6 @@
  * @customtag custom tag value
  * @customtaglet custom taglet value
  */
+@Deprecated
 public class Person {
 }
