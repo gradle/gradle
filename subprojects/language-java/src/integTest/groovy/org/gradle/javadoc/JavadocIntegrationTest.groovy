@@ -28,6 +28,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     @Issue("GRADLE-1563")
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)  // JDK 9 requires an @Deprecated annotation that breaks this same test on Java 7 on Windows.
     def handlesTagsAndTaglets() {
         when:
         run("javadoc")
@@ -101,6 +102,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)  // JDK 9 Breaks multiline -header arguments.
     @Issue("GRADLE-3099")
     def "writes multiline header"() {
         buildFile << """
