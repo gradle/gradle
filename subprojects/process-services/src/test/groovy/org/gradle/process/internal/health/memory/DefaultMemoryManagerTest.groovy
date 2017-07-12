@@ -23,6 +23,9 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
 import spock.util.concurrent.PollingConditions
 
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+
 @UsesNativeServices
 class DefaultMemoryManagerTest extends ConcurrentSpec {
 
@@ -172,6 +175,39 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
         then:
         1 * listenerManager.removeListener(_) >> { args -> assert args[0] == osMemoryStatusListener }
+
+        cleanup:
+        memoryManager.stop()
+    }
+
+    def "can add and remove holders concurrently"() {
+        given:
+        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of(1).bytes
+        def memoryManager = newMemoryManager()
+        def holders = new LinkedBlockingQueue<MemoryHolder>()
+        when:
+        async {
+            10.times {
+                start {
+                    def holder
+                    holder = Mock(MemoryHolder) {
+                        attemptToRelease(_) >> {
+                            memoryManager.removeMemoryHolder(holders.poll(10, TimeUnit.SECONDS))
+                            MemoryAmount.ofGigaBytes(4).bytes
+                        }
+                    }
+                    holders.add(holder)
+                    memoryManager.addMemoryHolder(holder)
+                }
+                start {
+                    memoryManager.requestFreeMemory(MemoryAmount.ofGigaBytes(3).bytes)
+                }
+            }
+
+        }
+
+        then:
+        noExceptionThrown()
 
         cleanup:
         memoryManager.stop()
