@@ -264,7 +264,6 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
             repositories {
                 maven { 
                     url = uri('$server.uri')
-                    $authConfig
                 }
             }
 
