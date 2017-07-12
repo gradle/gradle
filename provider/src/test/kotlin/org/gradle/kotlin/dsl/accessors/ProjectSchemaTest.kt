@@ -1,57 +1,22 @@
 package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.api.reflect.TypeOf
-import org.gradle.api.reflect.TypeOf.parameterizedTypeOf
-import org.gradle.api.reflect.TypeOf.typeOf
+import org.gradle.internal.classpath.ClassPath
 
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Assert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Test
 
-import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes.*
-import java.lang.reflect.Array
 
-class ProjectSchemaTest {
 
-    @Test
-    fun `#accessibleProjectSchemaFrom rejects non-public or synthetic types`() {
+@Suppress("unused")
+class PublicGenericType<T>
+class PublicComponentType
+private class PrivateComponentType
 
-        assertThat(
-            accessibleProjectSchemaFrom(
-                extensionSchema = mapOf(
-                    "publicNonSynthetic" to publicNonSyntheticType,
-                    "nonPublic" to nonPublicType,
-                    "synthetic" to syntheticType),
-                conventionPlugins = mapOf(
-                    "publicNonSyntheticInstance" to instanceOf(publicNonSyntheticClass),
-                    "nonPublicInstance" to instanceOf(nonPublicClass),
-                    "syntheticInstance" to instanceOf(syntheticClass)),
-                configurationNames = emptyList()),
-            equalTo(
-                ProjectSchema(
-                    extensions = mapOf("publicNonSynthetic" to publicNonSyntheticType),
-                    conventions = mapOf("publicNonSyntheticInstance" to publicNonSyntheticType),
-                    configurations = emptyList())))
-    }
-
-    @Test
-    fun `#isAccessible rejects array of non-public or synthetic type`() {
-
-        assert(isAccessible(arrayTypeOf(publicNonSyntheticClass)))
-        assertFalse(isAccessible(arrayTypeOf(nonPublicClass)))
-        assertFalse(isAccessible(arrayTypeOf(syntheticClass)))
-    }
-
-    @Test
-    fun `#isAccessible rejects parameterized type of non-public or synthetic type`() {
-
-        assert(isAccessible(listTypeOf(publicNonSyntheticType)))
-        assertFalse(isAccessible(listTypeOf(nonPublicType)))
-        assertFalse(isAccessible(listTypeOf(syntheticType)))
-    }
+class ProjectSchemaTest : TestWithClassPath() {
 
     @Test
     fun `#isLegalExtensionName rejects illegal Kotlin extension names`() {
@@ -66,58 +31,122 @@ class ProjectSchemaTest {
         assertFalse(isLegalExtensionName("foo\\bar"))
     }
 
-    fun instanceOf(`class`: Class<*>): Any =
-        `class`.getDeclaredConstructor().apply { isAccessible = true }.newInstance()
+    @Test
+    fun `non existing type is represented as Inaccessible because NonAvailable`() {
 
-    fun arrayTypeOf(componentType: Class<*>): TypeOf<*> =
-        typeOf(Array.newInstance(componentType, 0)::class.java)
+        val typeString = "non.existing.Type"
 
-    fun listTypeOf(componentType: TypeOf<*>): TypeOf<*> =
-        parameterizedTypeOf(object : TypeOf<List<*>>() {}, componentType)
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("buildScan" to typeString),
+            ClassPath.EMPTY)
 
-    val publicNonSyntheticType by lazy {
-        typeOf(publicNonSyntheticClass)!!
+        assertThat(
+            projectSchema.extensions["buildScan"]!!,
+            equalTo(inaccessible(typeString, nonAvailable(typeString))))
     }
 
-    val publicNonSyntheticClass by lazy {
-        defineClass("PublicNonSynthetic", ACC_PUBLIC)
+    @Test
+    fun `public type is represented as Accessible`() {
+
+        val typeString = "existing.Type"
+
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("buildScan" to typeString),
+            classPathWithPublicType(typeString))
+
+        assertThat(
+            projectSchema.extensions["buildScan"]!!,
+            equalTo(accessible(typeString)))
     }
 
-    val nonPublicType by lazy {
-        typeOf(nonPublicClass)!!
+    @Test
+    fun `private type is represented as Inaccessible because NonPublic`() {
+
+        val typeString = "non.visible.Type"
+
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("buildScan" to typeString),
+            classPathWithPrivateType(typeString))
+
+        assertThat(
+            projectSchema.extensions["buildScan"]!!,
+            equalTo(inaccessible(typeString, nonPublic(typeString))))
     }
 
-    val nonPublicClass by lazy {
-        defineClass("NonPublic")
+    @Test
+    fun `public synthetic type is represented as Inaccessible because Synthetic`() {
+
+        val typeString = "synthetic.Type"
+
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("buildScan" to typeString),
+            classPathWithType(typeString, ACC_PUBLIC, ACC_SYNTHETIC))
+
+        assertThat(
+            projectSchema.extensions["buildScan"]!!,
+            equalTo(inaccessible(typeString, synthetic(typeString))))
     }
 
-    val syntheticType by lazy {
-        typeOf(syntheticClass)!!
+    @Test
+    fun `parameterized public type with public component type is represented as Accessible`() {
+
+        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PublicComponentType>>())
+
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("generic" to genericTypeString),
+            classPathWith(PublicGenericType::class, PublicComponentType::class))
+
+        assertThat(
+            projectSchema.extensions["generic"]!!,
+            equalTo(accessible(genericTypeString)))
     }
 
-    val syntheticClass by lazy {
-        defineClass("Synthetic", ACC_PUBLIC, ACC_SYNTHETIC)
+    @Test
+    fun `parameterized public type with non public component type is represented as Inaccessible because of NonPublic component type`() {
+
+        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PrivateComponentType>>())
+
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("generic" to genericTypeString),
+            classPathWith(PublicGenericType::class, PrivateComponentType::class))
+
+        assertThat(
+            projectSchema.extensions["generic"]!!,
+            equalTo(inaccessible(genericTypeString, nonPublic(PrivateComponentType::class.qualifiedName!!))))
     }
 
-    fun defineClass(name: String, vararg modifiers: Int): Class<*> =
-        DynamicClassLoader().defineClass(name, classBytesOf(name, modifiers))
+    @Test
+    fun `parameterized public type with non existing component type is represented as Inaccessible because of NonAvailable component type`() {
 
-    fun classBytesOf(name: String, modifiers: IntArray): ByteArray =
-        ClassWriter(0).run {
-            visit(V1_7, modifiers.fold(0, Int::plus), name, null, "java/lang/Object", null)
-            visitMethod(ACC_PUBLIC, "<init>", "()V", null, null).apply {
-                visitCode()
-                visitVarInsn(ALOAD, 0)
-                visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
-                visitInsn(RETURN)
-                visitMaxs(1, 1)
-            }
-            visitEnd()
-            toByteArray()
-        }
+        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PublicComponentType>>())
 
-    class DynamicClassLoader : ClassLoader() {
-        fun defineClass(name: String, bytes: ByteArray): Class<*> =
-            defineClass(name, bytes, 0, bytes.size)!!
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("generic" to genericTypeString),
+            classPathWith(PublicGenericType::class))
+
+        assertThat(
+            projectSchema.extensions["generic"]!!,
+            equalTo(inaccessible(genericTypeString, nonAvailable(PublicComponentType::class.qualifiedName!!))))
     }
+
+    @Test
+    fun `public type from jar is represented as Accessible`() {
+
+        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PublicComponentType>>())
+
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("generic" to genericTypeString),
+            jarClassPathWith(PublicGenericType::class, PublicComponentType::class))
+
+        assertThat(
+            projectSchema.extensions["generic"]!!,
+            equalTo(accessible(genericTypeString)))
+    }
+
+    private
+    fun schemaWithExtensions(vararg pairs: Pair<String, String>) =
+        ProjectSchema(
+            extensions = mapOf(*pairs),
+            conventions = emptyMap(),
+            configurations = emptyList())
 }

@@ -44,8 +44,8 @@ class KotlinTypeStringTest {
             kotlinTypeStringFor(typeOf<T>()),
             equalTo(T::class.simpleName))
     }
-
-    private inline
-    fun <reified T> typeOf(): TypeOf<T> =
-        object : TypeOf<T>() {}
 }
+
+inline
+fun <reified T> typeOf(): TypeOf<T> =
+    object : TypeOf<T>() {}

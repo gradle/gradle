@@ -21,6 +21,9 @@ val Project.kotlinVersion get() = rootProject.extra["kotlinVersion"] as String
 val Project.kotlinRepo get() = rootProject.extra["kotlinRepo"] as String
 
 
+fun Project.futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
+
+
 private
 val Project.extra: ExtraPropertiesExtension get() = extensions.extraProperties
 
