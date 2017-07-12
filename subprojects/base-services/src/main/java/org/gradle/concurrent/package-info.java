@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.concurrent;
-
-import org.gradle.concurrent.ParallelismConfiguration;
-
 /**
- * A listener that is notified when the parallelism configuration changes.
+ * Classes related to Gradle parallelism and concurrency.
  */
-public interface ParallelismConfigurationListener {
-    /**
-     * Called when the parallelism configuration is changed during the build lifecycle.
-     *
-     * @param parallelismConfiguration - the new parallelism configuration
-     */
-    void onParallelismConfigurationChange(ParallelismConfiguration parallelismConfiguration);
-}
+package org.gradle.concurrent;

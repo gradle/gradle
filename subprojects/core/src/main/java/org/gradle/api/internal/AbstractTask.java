@@ -541,6 +541,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public boolean dependsOnTaskDidWork() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.dependsOnTaskDidWork()");
         TaskDependency dependency = getTaskDependencies();
         for (Task depTask : dependency.getDependencies(this)) {
             if (depTask.getDidWork()) {

@@ -315,7 +315,7 @@ public class IdeaModule {
     }
 
     /**
-     * {@link org.gradle.api.dsl.ConventionProperty} for the directories to be excluded. <p> For example see docs for {@link IdeaModule}
+     * Directories to be excluded. <p> For example see docs for {@link IdeaModule}
      */
     public Set<File> getExcludeDirs() {
         return excludeDirs;

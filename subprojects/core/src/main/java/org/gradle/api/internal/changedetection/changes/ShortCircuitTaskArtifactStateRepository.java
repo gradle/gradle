@@ -103,6 +103,11 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
+        public void ensureSnapshotBeforeTask() {
+            delegate.ensureSnapshotBeforeTask();
+        }
+
+        @Override
         public void afterTask(Throwable failure) {
             delegate.afterTask(failure);
         }

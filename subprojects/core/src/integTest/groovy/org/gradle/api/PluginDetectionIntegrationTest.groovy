@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.dsl
+package org.gradle.api
 
-import org.gradle.api.Plugin
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder

@@ -18,7 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
-import org.gradle.internal.concurrent.ParallelismConfiguration
+import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.internal.concurrent.ParallelismConfigurationListener
 import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
