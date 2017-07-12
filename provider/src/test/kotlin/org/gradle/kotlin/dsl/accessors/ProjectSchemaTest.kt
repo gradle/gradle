@@ -48,7 +48,7 @@ class ProjectSchemaTest : TestWithTempFiles() {
             schemaWithExtensions("buildScan" to typeString),
             ClassPath.EMPTY)
 
-        assertThat<TypeAccessibility>(
+        assertThat(
             projectSchema.extensions["buildScan"]!!,
             equalTo(inaccessible(typeString, nonAvailable(typeString))))
     }
@@ -62,7 +62,7 @@ class ProjectSchemaTest : TestWithTempFiles() {
             schemaWithExtensions("buildScan" to typeString),
             classPathWithPublicType(typeString))
 
-        assertThat<TypeAccessibility>(
+        assertThat(
             projectSchema.extensions["buildScan"]!!,
             equalTo(accessible(typeString)))
     }
@@ -76,7 +76,7 @@ class ProjectSchemaTest : TestWithTempFiles() {
             schemaWithExtensions("buildScan" to typeString),
             classPathWithPrivateType(typeString))
 
-        assertThat<TypeAccessibility>(
+        assertThat(
             projectSchema.extensions["buildScan"]!!,
             equalTo(inaccessible(typeString, nonPublic(typeString))))
     }
@@ -90,7 +90,7 @@ class ProjectSchemaTest : TestWithTempFiles() {
             schemaWithExtensions("buildScan" to typeString),
             classPathWithType(typeString, ACC_PUBLIC, ACC_SYNTHETIC))
 
-        assertThat<TypeAccessibility>(
+        assertThat(
             projectSchema.extensions["buildScan"]!!,
             equalTo(inaccessible(typeString, synthetic(typeString))))
     }
@@ -104,7 +104,7 @@ class ProjectSchemaTest : TestWithTempFiles() {
             schemaWithExtensions("generic" to genericTypeString),
             classPathWith(PublicGenericType::class, PublicComponentType::class))
 
-        assertThat<TypeAccessibility>(
+        assertThat(
             projectSchema.extensions["generic"]!!,
             equalTo(accessible(genericTypeString)))
     }
@@ -118,7 +118,7 @@ class ProjectSchemaTest : TestWithTempFiles() {
             schemaWithExtensions("generic" to genericTypeString),
             classPathWith(PublicGenericType::class, PrivateComponentType::class))
 
-        assertThat<TypeAccessibility>(
+        assertThat(
             projectSchema.extensions["generic"]!!,
             equalTo(inaccessible(genericTypeString, nonPublic(PrivateComponentType::class.qualifiedName!!))))
     }
@@ -132,7 +132,7 @@ class ProjectSchemaTest : TestWithTempFiles() {
             schemaWithExtensions("generic" to genericTypeString),
             classPathWith(PublicGenericType::class))
 
-        assertThat<TypeAccessibility>(
+        assertThat(
             projectSchema.extensions["generic"]!!,
             equalTo(inaccessible(genericTypeString, nonAvailable(PublicComponentType::class.qualifiedName!!))))
     }
@@ -146,7 +146,7 @@ class ProjectSchemaTest : TestWithTempFiles() {
             schemaWithExtensions("generic" to genericTypeString),
             jarClassPathWith(PublicGenericType::class, PublicComponentType::class))
 
-        assertThat<TypeAccessibility>(
+        assertThat(
             projectSchema.extensions["generic"]!!,
             equalTo(accessible(genericTypeString)))
     }

@@ -248,22 +248,22 @@ operator fun Int.contains(flag: Int) =
 
 
 internal
-fun nonAvailable(type: String) =
+fun nonAvailable(type: String): InaccessibilityReason =
     InaccessibilityReason.NonAvailable(type)
 
 
 internal
-fun nonPublic(type: String) =
+fun nonPublic(type: String): InaccessibilityReason =
     InaccessibilityReason.NonPublic(type)
 
 
 internal
-fun synthetic(type: String) =
+fun synthetic(type: String): InaccessibilityReason =
     InaccessibilityReason.Synthetic(type)
 
 
 internal
-fun accessible(type: String) =
+fun accessible(type: String): TypeAccessibility =
     TypeAccessibility.Accessible(type)
 
 
@@ -273,7 +273,7 @@ fun inaccessible(type: String, vararg reasons: InaccessibilityReason) =
 
 
 internal
-fun inaccessible(type: String, reasons: List<InaccessibilityReason>) =
+fun inaccessible(type: String, reasons: List<InaccessibilityReason>): TypeAccessibility =
     TypeAccessibility.Inaccessible(type, reasons)
 
 
