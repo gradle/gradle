@@ -19,6 +19,8 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
+import static org.gradle.util.TextUtil.escapeString
+
 @Issue("https://github.com/gradle/gradle/issues/1498")
 class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
@@ -225,7 +227,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                         super.init(processingEnv);
 
                         try {
-                            new File("${testDirectory.absolutePath}/generated.txt").createNewFile();
+                            new File("${escapeString(testDirectory.absolutePath)}/generated.txt").createNewFile();
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
