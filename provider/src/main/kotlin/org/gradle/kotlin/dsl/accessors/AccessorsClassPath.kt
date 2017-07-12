@@ -33,7 +33,8 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import org.jetbrains.org.objectweb.asm.ClassReader
-import org.jetbrains.org.objectweb.asm.Opcodes.*
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 
 import java.io.BufferedWriter
 import java.io.Closeable
@@ -70,6 +71,49 @@ fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
 private
 fun configuredProjectSchemaOf(project: Project) =
     aotProjectSchemaOf(project) ?: jitProjectSchemaOf(project)
+
+
+private
+fun aotProjectSchemaOf(project: Project) =
+    project
+        .rootProject
+        .getOrCreateSingletonProperty { multiProjectSchemaSnapshotOf(project) }
+        .schema
+        ?.let { it[project.path] }
+
+
+private
+fun jitProjectSchemaOf(project: Project) =
+    project.takeIf(::enabledJitAccessors)?.let {
+        require(classLoaderScopeOf(project).isLocked) {
+            "project.classLoaderScope must be locked before querying the project schema"
+        }
+        schemaFor(project).withKotlinTypeStrings()
+    }
+
+
+private
+fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
+
+
+private
+fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassPath, outputDir: File) {
+    val sourceFile = File(accessorsSourceDir(outputDir), "org/gradle/kotlin/dsl/accessors.kt")
+    val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
+    writeAccessorsTo(sourceFile, availableSchema)
+    require(compileToJar(accessorsJar(outputDir), listOf(sourceFile), logger, classPath.asFiles), {
+        """
+            Failed to compile accessors.
+
+                projectSchema: $projectSchema
+
+                classPath: $classPath
+
+                availableSchema: $availableSchema
+
+        """.replaceIndent()
+    })
+}
 
 
 internal
@@ -140,9 +184,9 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
         val classBytes = classBytesFor(className) ?: return nonAvailable(className)
         val access = classAccessFrom(classBytes)
         return when {
-            !access.hasFlag(ACC_PUBLIC)   -> nonPublic(className)
-            access.hasFlag(ACC_SYNTHETIC) -> synthetic(className)
-            else                          -> null
+            ACC_PUBLIC !in access   -> nonPublic(className)
+            ACC_SYNTHETIC in access -> synthetic(className)
+            else                    -> null
         }
     }
 
@@ -173,7 +217,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
     private
     fun openJarFile(file: File) =
-        openJars.computeIfAbsent(file, { JarFile(file) })
+        openJars.computeIfAbsent(file, ::JarFile)
 
     override fun close() {
         openJars.values.forEach(JarFile::close)
@@ -199,7 +243,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
 
 private
-fun Int.hasFlag(flag: Int) =
+operator fun Int.contains(flag: Int) =
     and(flag) == flag
 
 
@@ -232,48 +276,6 @@ internal
 fun inaccessible(type: String, reasons: List<InaccessibilityReason>) =
     TypeAccessibility.Inaccessible(type, reasons)
 
-
-private
-fun aotProjectSchemaOf(project: Project) =
-    project
-        .rootProject
-        .getOrCreateSingletonProperty { multiProjectSchemaSnapshotOf(project) }
-        .schema
-        ?.let { it[project.path] }
-
-
-private
-fun jitProjectSchemaOf(project: Project) =
-    project.takeIf(::enabledJitAccessors)?.let {
-        require(classLoaderScopeOf(project).isLocked) {
-            "project.classLoaderScope must be locked before querying the project schema"
-        }
-        schemaFor(project).withKotlinTypeStrings()
-    }
-
-
-private
-fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
-
-
-private
-fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassPath, outputDir: File) {
-    val sourceFile = File(accessorsSourceDir(outputDir), "org/gradle/kotlin/dsl/accessors.kt")
-    val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
-    writeAccessorsTo(sourceFile, availableSchema)
-    require(compileToJar(accessorsJar(outputDir), listOf(sourceFile), logger, classPath.asFiles), {
-        """
-            Failed to compile accessors.
-
-                projectSchema: $projectSchema
-
-                classPath: $classPath
-
-                availableSchema: $availableSchema
-
-        """.replaceIndent()
-    })
-}
 
 private
 val logger by lazy { loggerFor<AccessorsClassPath>() }
