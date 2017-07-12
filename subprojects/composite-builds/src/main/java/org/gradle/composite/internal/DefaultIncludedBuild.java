@@ -120,8 +120,8 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         final GradleLauncher launcher = getGradleLauncher();
         launcher.addListener(listener);
         launcher.scheduleTasks(tasks);
+        WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
         try {
-            WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
             workerLeaseService.withSharedLease(parentLease, new Runnable() {
                 @Override
                 public void run() {
@@ -142,7 +142,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         return String.format("includedBuild[%s]", projectDir.getName());
     }
 
-    @Override
     public void setParentLease(WorkerLeaseRegistry.WorkerLease parentLease) {
         this.parentLease = parentLease;
     }

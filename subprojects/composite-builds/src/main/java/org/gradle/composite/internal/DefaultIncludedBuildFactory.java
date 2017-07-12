@@ -31,6 +31,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
 import java.util.Set;
@@ -41,12 +42,14 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     private final NestedBuildFactory nestedBuildFactory;
     private final Set<GradleLauncher> launchers = Sets.newHashSet();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final WorkerLeaseService workerLeaseService;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, WorkerLeaseService workerLeaseService) {
         this.instantiator = instantiator;
         this.startParameter = startParameter;
         this.nestedBuildFactory = nestedBuildFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.workerLeaseService = workerLeaseService;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -75,6 +78,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
 
         SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
         validateIncludedBuild(includedBuild, settingsInternal);
+        includedBuild.setParentLease(workerLeaseService.getCurrentWorkerLease());
         return includedBuild;
     }
 

@@ -18,6 +18,7 @@ package org.gradle.internal.work;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Runnables;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
@@ -38,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -107,6 +109,8 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
             action.run();
         } finally {
             workerLeaseLockRegistry.clearWorkerLease();
+            // HACK
+            withLocks(Collections.singleton(parentLease.createChild()), Runnables.doNothing());
         }
     }
 
