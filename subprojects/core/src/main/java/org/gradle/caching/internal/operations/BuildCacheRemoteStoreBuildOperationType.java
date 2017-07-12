@@ -14,38 +14,41 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.operations;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * Emitted when a build cache service is disabled during the build.
+ * A store operation to a build cache.
+ *
+ * A store operation may actually store or fail.
+ * Store operation results and failures are mutually exclusive.
  */
-public class BuildCacheDisableServiceBuildOperationType implements BuildOperationType<BuildCacheDisableServiceBuildOperationType.Details, BuildCacheDisableServiceBuildOperationType.Result> {
+public final class BuildCacheRemoteStoreBuildOperationType implements BuildOperationType<BuildCacheRemoteStoreBuildOperationType.Details, BuildCacheRemoteStoreBuildOperationType.Result> {
 
+    @UsedByScanPlugin
     public interface Details {
 
         /**
-         * One of ["local", "remote"].
+         * The cache key.
          */
-        String getRole();
+        String getCacheKey();
 
         /**
-         * A human friendly description of why the cache was disabled.
+         * The number of bytes of the stored cache artifact.
          */
-        String getMessage();
-
-        enum DisabledReason {
-            NON_RECOVERABLE_ERROR,
-            TOO_MANY_RECOVERABLE_ERRORS
-        }
-
-        DisabledReason getReason();
+        long getArchiveSize();
 
     }
 
-    public interface Result {}
+    @UsedByScanPlugin
+    public interface Result {
 
-    private BuildCacheDisableServiceBuildOperationType() {
+        boolean isStored();
+
+    }
+
+    private BuildCacheRemoteStoreBuildOperationType() {
     }
 }

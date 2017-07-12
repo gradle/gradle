@@ -14,32 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller;
+package org.gradle.caching.internal.controller.operations;
 
-import com.google.common.io.Files;
-import org.gradle.caching.BuildCacheEntryWriter;
+import org.gradle.caching.internal.operations.BuildCacheArchivePackBuildOperationType;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+public class PackOperationResult implements BuildCacheArchivePackBuildOperationType.Result {
 
-class FileCopyBuildCacheEntryWriter implements BuildCacheEntryWriter {
+    private final long archiveEntryCount;
+    private final long archiveSize;
 
-    private final File file;
-
-    boolean copied;
-
-    FileCopyBuildCacheEntryWriter(File file) {
-        this.file = file;
+    public PackOperationResult(long archiveEntryCount, long archiveSize) {
+        this.archiveEntryCount = archiveEntryCount;
+        this.archiveSize = archiveSize;
     }
 
     @Override
-    public void writeTo(OutputStream output) throws IOException {
-        if (copied) {
-            throw new IllegalStateException("Build cache entry has already been written");
-        }
+    public long getArchiveSize() {
+        return archiveSize;
+    }
 
-        Files.copy(file, output);
-        copied = true;
+    @Override
+    public long getArchiveEntryCount() {
+        return archiveEntryCount;
     }
 }

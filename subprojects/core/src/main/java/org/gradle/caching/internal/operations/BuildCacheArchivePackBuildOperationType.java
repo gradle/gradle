@@ -14,29 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.operations;
 
-import org.gradle.caching.internal.controller.BuildCacheServiceRole;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-/**
- * A store operation to a build cache.
- *
- * A store operation may actually store or fail.
- * Store operation results and failures are mutually exclusive.
- */
-public final class BuildCacheStoreBuildOperationType implements BuildOperationType<BuildCacheStoreBuildOperationType.Details, BuildCacheStoreBuildOperationType.Result> {
+public final class BuildCacheArchivePackBuildOperationType implements BuildOperationType<BuildCacheArchivePackBuildOperationType.Details, BuildCacheArchivePackBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
-
-        /**
-         * Identifies whether the cache is local or remote.
-         *
-         * Value from {@link BuildCacheServiceRole}
-         */
-        String getRole();
 
         /**
          * The cache key.
@@ -48,18 +34,10 @@ public final class BuildCacheStoreBuildOperationType implements BuildOperationTy
     @UsedByScanPlugin
     public interface Result {
 
-        /**
-         * The number of bytes of the stored cache artifact.
-         */
         long getArchiveSize();
 
-        /**
-         * The number of entries in the cache artifact.
-         */
         long getArchiveEntryCount();
 
     }
 
-    private BuildCacheStoreBuildOperationType() {
-    }
 }

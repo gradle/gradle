@@ -14,21 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller.operations;
+package org.gradle.caching.internal.operations;
 
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType;
+import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-public class LoadOperationDetails implements BuildCacheRemoteLoadBuildOperationType.Details {
+public final class BuildCacheArchiveUnpackBuildOperationType implements BuildOperationType<BuildCacheArchiveUnpackBuildOperationType.Details, BuildCacheArchiveUnpackBuildOperationType.Result> {
 
-    private final BuildCacheKey buildCacheKey;
+    @UsedByScanPlugin
+    public interface Details {
 
-    public LoadOperationDetails(BuildCacheKey buildCacheKey) {
-        this.buildCacheKey = buildCacheKey;
+        /**
+         * The cache key.
+         */
+        String getCacheKey();
+
+        long getArchiveSize();
+
     }
 
-    @Override
-    public String getCacheKey() {
-        return buildCacheKey.getHashCode();
+    @UsedByScanPlugin
+    public interface Result {
+
+        long getArchiveEntryCount();
+
     }
+
 }

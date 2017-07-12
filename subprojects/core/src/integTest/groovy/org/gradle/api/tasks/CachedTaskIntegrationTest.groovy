@@ -81,7 +81,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         corruptMetadata({ metadata -> metadata.text = "corrupt" })
         withBuildCache().fails("cacheable")
         then:
-        failure.assertHasCause("Cached result format error, corrupted origin metadata.")
+        failure.assertHasDescription("Cached result format error, corrupted origin metadata.")
 
         when:
         file("build").deleteDir()
@@ -89,7 +89,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         corruptMetadata({ metadata -> metadata.delete() })
         withBuildCache().fails("cacheable")
         then:
-        failure.assertHasCause("Cached result format error, no origin metadata was found.")
+        failure.assertHasDescription("Cached result format error, no origin metadata was found.")
     }
 
     def corruptMetadata(Closure corrupter) {

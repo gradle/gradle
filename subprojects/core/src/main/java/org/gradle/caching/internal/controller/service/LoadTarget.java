@@ -14,40 +14,43 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller;
+package org.gradle.caching.internal.controller.service;
 
-import com.google.common.io.CountingInputStream;
+import com.google.common.io.Files;
 import org.gradle.caching.BuildCacheEntryReader;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class CommandBackedEntryReader<T> implements BuildCacheEntryReader {
+public class LoadTarget implements BuildCacheEntryReader {
 
-    private final BuildCacheLoadCommand<T> command;
+    private final File file;
+    private boolean loaded;
 
-    private long bytes;
-    private BuildCacheLoadCommand.Result<T> result;
-
-    public CommandBackedEntryReader(BuildCacheLoadCommand<T> command) {
-        this.command = command;
+    public LoadTarget(File file) {
+        this.file = file;
     }
 
     @Override
     public void readFrom(InputStream input) throws IOException {
-        if (getResult() != null) {
+        if (loaded) {
             throw new IllegalStateException("Build cache entry has already been read");
         }
-        CountingInputStream countingInputStream = new CountingInputStream(input);
-        result = command.load(countingInputStream);
-        bytes = countingInputStream.getCount();
+        Files.asByteSink(file).writeFrom(input);
+        loaded = true;
     }
 
-    public long getBytes() {
-        return bytes;
+    public boolean isLoaded() {
+        return loaded;
     }
 
-    public BuildCacheLoadCommand.Result<T> getResult() {
-        return result;
+    public long getLoadedSize() {
+        if (loaded) {
+            return file.length();
+        } else {
+            return -1;
+        }
     }
+
 }

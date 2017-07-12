@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller.operations;
+package org.gradle.caching.internal.controller.service;
 
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-public class LoadOperationDetails implements BuildCacheRemoteLoadBuildOperationType.Details {
+@UsedByScanPlugin("values are expected (type is not linked), see BuildCacheStoreBuildOperationType and friends")
+public enum BuildCacheServiceRole {
+    LOCAL,
+    REMOTE;
 
-    private final BuildCacheKey buildCacheKey;
+    private final String displayName;
 
-    public LoadOperationDetails(BuildCacheKey buildCacheKey) {
-        this.buildCacheKey = buildCacheKey;
+    BuildCacheServiceRole() {
+        this.displayName = name().toLowerCase();
     }
 
-    @Override
-    public String getCacheKey() {
-        return buildCacheKey.getHashCode();
+    public String getDisplayName() {
+        return displayName;
     }
 }

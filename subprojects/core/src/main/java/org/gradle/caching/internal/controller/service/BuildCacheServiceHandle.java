@@ -14,21 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller;
+package org.gradle.caching.internal.controller.service;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.Nullable;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 
-final class BuildCacheServicesConfiguration {
+import java.io.Closeable;
 
-    final BuildCacheService local;
-    final boolean localPush;
-    final BuildCacheService remote;
-    final boolean remotePush;
+public interface BuildCacheServiceHandle extends Closeable {
 
-    BuildCacheServicesConfiguration(BuildCacheService local, boolean localPush, BuildCacheService remote, boolean remotePush) {
-        this.local = local;
-        this.localPush = localPush;
-        this.remote = remote;
-        this.remotePush = remotePush;
-    }
+    @Nullable
+    @VisibleForTesting
+    BuildCacheService getService();
+
+    boolean canLoad();
+
+    void load(BuildCacheKey key, LoadTarget loadTarget);
+
+    boolean canStore();
+
+    void store(BuildCacheKey key, StoreTarget storeTarget);
+
+    @Override
+    void close();
 }
