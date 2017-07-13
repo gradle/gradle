@@ -74,11 +74,10 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     public ConfigurableIncludedBuild createBuild(File buildDirectory) {
         validateBuildDirectory(buildDirectory);
         Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, nestedBuildFactory, startParameter);
-        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, moduleIdentifierFactory);
+        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, moduleIdentifierFactory, workerLeaseService.getCurrentWorkerLease());
 
         SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
         validateIncludedBuild(includedBuild, settingsInternal);
-        includedBuild.setParentLease(workerLeaseService.getCurrentWorkerLease());
         return includedBuild;
     }
 

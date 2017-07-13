@@ -38,7 +38,14 @@ public interface WorkerLeaseRegistry {
      */
     WorkerLease getWorkerLease();
 
-    void withSharedLease(WorkerLease parentLease, Runnable action);
+    /**
+     * For the given action, update the worker lease registry to associate the current thread with the worker lease.
+     * Note that this does not actually reserve a lease and the worker lease.
+     *
+     * @param sharedLease Lease to associate as shared
+     * @param action action to execute
+     */
+    void withSharedLease(WorkerLease sharedLease, Runnable action);
 
     interface WorkerLease extends ResourceLock {
         /**

@@ -38,7 +38,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
     private final Factory<GradleLauncher> gradleLauncherFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private WorkerLeaseRegistry.WorkerLease parentLease;
+    private final WorkerLeaseRegistry.WorkerLease parentLease;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
 
     private DefaultDependencySubstitutions dependencySubstitutions;
@@ -46,10 +46,11 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private GradleLauncher gradleLauncher;
     private String name;
 
-    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
         this.projectDir = projectDir;
         this.gradleLauncherFactory = launcherFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.parentLease = parentLease;
     }
 
     public File getProjectDir() {
@@ -140,9 +141,5 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     @Override
     public String toString() {
         return String.format("includedBuild[%s]", projectDir.getName());
-    }
-
-    public void setParentLease(WorkerLeaseRegistry.WorkerLease parentLease) {
-        this.parentLease = parentLease;
     }
 }

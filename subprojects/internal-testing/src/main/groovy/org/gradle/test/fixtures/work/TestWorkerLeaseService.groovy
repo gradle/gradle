@@ -44,7 +44,7 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    void withSharedLease(WorkerLeaseRegistry.WorkerLease parentLease, Runnable action) {
+    void withSharedLease(WorkerLeaseRegistry.WorkerLease sharedLease, Runnable action) {
         throw new UnsupportedOperationException("not implemented yet")
     }
 

@@ -71,7 +71,7 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
         return new Action<ResourceLock>() {
             @Override
             public void execute(ResourceLock resourceLock) {
-                threadResourceLockMap.put(Thread.currentThread().getId(), resourceLock);
+                associateWorkerLease(resourceLock);
             }
         };
     }
@@ -80,19 +80,17 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
         return new Action<ResourceLock>() {
             @Override
             public void execute(ResourceLock resourceLock) {
-                threadResourceLockMap.remove(Thread.currentThread().getId(), resourceLock);
+                unassociateWorkerLease(resourceLock);
             }
         };
     }
 
-    public void shareWorkerLease(ResourceLock sharedResource) {
-        final Long threadId = Thread.currentThread().getId();
-        threadResourceLockMap.put(threadId, sharedResource);
+    public void associateWorkerLease(ResourceLock sharedResource) {
+        threadResourceLockMap.put(Thread.currentThread().getId(), sharedResource);
     }
 
-    public void clearWorkerLease() {
-        final Long threadId = Thread.currentThread().getId();
-        threadResourceLockMap.get(threadId).clear();
+    public void unassociateWorkerLease(ResourceLock sharedResource) {
+        threadResourceLockMap.remove(Thread.currentThread().getId(), sharedResource);
     }
 
     public interface ResourceLockProducer<T extends ResourceLock> {

@@ -44,5 +44,8 @@ public interface ResourceLockCoordinationService {
      */
     boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction);
 
+    /**
+     * Notify other threads about changes to resource locks.
+     */
     void notifyStateChange();
 }
