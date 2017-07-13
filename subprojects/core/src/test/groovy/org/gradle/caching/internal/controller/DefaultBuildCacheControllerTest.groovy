@@ -25,10 +25,12 @@ import org.gradle.caching.internal.controller.service.BuildCacheServicesConfigur
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
 
+@LeaksFileHandles
 class DefaultBuildCacheControllerTest extends Specification {
 
     def key = Mock(BuildCacheKey) {

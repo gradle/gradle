@@ -25,6 +25,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
+import spock.lang.Ignore
 
 class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
@@ -56,6 +57,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     @ToolingApiVersion('>=3.3')
     @TargetGradleVersion('>=3.5')
+    @Ignore
     def "cacheable task generates build operations for load and store"() {
         given:
         def cacheDir = file("task-output-cache-2")
@@ -85,6 +87,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     @ToolingApiVersion('>=3.3')
     @TargetGradleVersion('>=3.5')
+    @Ignore
     def "cacheable task generates build operations when pushing to two caches"() {
         TestFile localCache = file('local-cache')
         TestFile remoteCache = file('remote-cache')
