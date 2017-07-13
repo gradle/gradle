@@ -18,15 +18,14 @@ package org.gradle.internal.work;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Runnables;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.AbstractTrackedResourceLock;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -39,13 +38,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*;
-import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 
 public class DefaultWorkerLeaseService implements WorkerLeaseService, ParallelismConfigurationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
@@ -109,8 +107,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
             action.run();
         } finally {
             workerLeaseLockRegistry.clearWorkerLease();
-            // HACK
-            withLocks(Collections.singleton(parentLease.createChild()), Runnables.doNothing());
+            coordinationService.notifyStateChange();
         }
     }
 

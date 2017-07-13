@@ -43,4 +43,6 @@ public interface ResourceLockCoordinationService {
      * @return true if the lock state changes finished successfully, otherwise false.
      */
     boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction);
+
+    void notifyStateChange();
 }
