@@ -59,6 +59,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         remoteProjectDir.deleteDir()
 
         when:
+        // Move the dependencies around by using a new Gradle user home
         executer.requireOwnGradleUserHomeDir()
         withBuildCache().succeeds compilationTask
         then:
