@@ -114,7 +114,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
                         systemProperty("foo", "bar")
                         jvmArgs("-Dbar=baz")
                         bootstrapClasspath = fileTree(new File(Jvm.current().jre.homeDir, "lib")).include("*.jar")
-                        bootstrapClasspath(new File("${systemSpecificAbsolutePath('foo')}"))
+                        bootstrapClasspath(new File("${normaliseFileSeparators(systemSpecificAbsolutePath('foo'))}"))
                         defaultCharacterEncoding = "UTF-8"
                         enableAssertions = true
                         workingDir = file('${outputFileDirPath}')
