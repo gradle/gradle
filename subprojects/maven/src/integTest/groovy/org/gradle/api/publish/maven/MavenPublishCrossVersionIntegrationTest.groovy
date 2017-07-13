@@ -17,6 +17,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.util.GradleVersion
 
 class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     final MavenFileRepository repo = new MavenFileRepository(file("maven-repo"))
@@ -101,6 +102,10 @@ task retrieve(type: Sync) {
 }
 """
 
-        version previous requireOwnGradleUserHomeDir() withTasks 'retrieve' run()
+        def executer = version previous
+        if (previous.version == GradleVersion.version("1.12")) {
+            executer.expectDeprecationWarning()
+        }
+        executer.requireOwnGradleUserHomeDir() withTasks 'retrieve' run()
     }
 }
