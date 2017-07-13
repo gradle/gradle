@@ -61,6 +61,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/classes/java/main").assertDoesNotExist()
         file("build/classes/main/Main.class").assertExists()
+        result.assertOutputContains("Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set.")
     }
 
     def "emits deprecation message if something uses classesDir"() {

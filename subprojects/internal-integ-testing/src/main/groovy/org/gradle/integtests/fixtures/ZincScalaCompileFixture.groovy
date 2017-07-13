@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 class ZincScalaCompileFixture extends InitScriptExecuterFixture {
     ZincScalaCompileFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
-        super(executer.expectDeprecationWarning(), testDir)
+        super(executer, testDir)
     }
 
     @Override

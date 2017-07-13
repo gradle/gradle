@@ -31,7 +31,7 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
         sample sample
 
         when:
-        executer.withTasks('clean', 'build').expectDeprecationWarning().run()
+        executer.withTasks('clean', 'build').run()
 
         then:
         // Check contents of War
