@@ -41,6 +41,7 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_1_7.toString() == "1.7"
         JavaVersion.VERSION_1_8.toString() == "1.8"
         JavaVersion.VERSION_1_9.toString() == "1.9"
+        JavaVersion.VERSION_1_10.toString() == "1.10"
     }
 
     def convertsStringToVersion() {
@@ -57,10 +58,13 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.toVersion("7") == JavaVersion.VERSION_1_7
         JavaVersion.toVersion("8") == JavaVersion.VERSION_1_8
         JavaVersion.toVersion("9") == JavaVersion.VERSION_1_9
+        JavaVersion.toVersion("10") == JavaVersion.VERSION_1_10
 
         JavaVersion.toVersion("1.9.0-internal") == JavaVersion.VERSION_1_9
         JavaVersion.toVersion("1.9.0-ea") == JavaVersion.VERSION_1_9
         JavaVersion.toVersion("9-ea") == JavaVersion.VERSION_1_9
+
+        JavaVersion.toVersion("10-ea") == JavaVersion.VERSION_1_10
     }
 
     def convertClassVersionToJavaVersion() {
@@ -74,6 +78,7 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.forClassVersion(51) == JavaVersion.VERSION_1_7
         JavaVersion.forClassVersion(52) == JavaVersion.VERSION_1_8
         JavaVersion.forClassVersion(53) == JavaVersion.VERSION_1_9
+        JavaVersion.forClassVersion(54) == JavaVersion.VERSION_1_10
     }
 
     def failsToConvertStringToVersionForUnknownVersion() {
@@ -81,7 +86,6 @@ public class JavaVersionSpec extends Specification {
         conversionFails("1");
         conversionFails("2");
 
-        conversionFails("10");
         conversionFails("17");
 
         conversionFails("a");
@@ -91,7 +95,6 @@ public class JavaVersionSpec extends Specification {
 
         conversionFails("0.1");
         conversionFails("1.54");
-        conversionFails("1.10");
         conversionFails("2.0");
         conversionFails("1_4");
         conversionFails("8.1");
@@ -100,7 +103,7 @@ public class JavaVersionSpec extends Specification {
         conversionFails("10.1.2");
 
         conversionFails("9-");
-        conversionFails("10-ea");
+        conversionFails("11-ea");
     }
 
     def convertsVersionToVersion() {
@@ -118,6 +121,8 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.toVersion(1.7) == JavaVersion.VERSION_1_7
         JavaVersion.toVersion(1.8) == JavaVersion.VERSION_1_8
         JavaVersion.toVersion(1.9) == JavaVersion.VERSION_1_9
+        JavaVersion.toVersion(9) == JavaVersion.VERSION_1_9
+        JavaVersion.toVersion(10) == JavaVersion.VERSION_1_10
     }
 
     def failsToConvertNumberToVersionForUnknownVersion() {
@@ -232,5 +237,28 @@ public class JavaVersionSpec extends Specification {
 
         where:
         javaVersion << ['1.9', '9-ea']
+    }
+
+    def "uses system property to determine if compatible with Java 10"() {
+        System.properties['java.version'] = javaVersion
+
+        expect:
+        !JavaVersion.current().java5
+        !JavaVersion.current().java6
+        !JavaVersion.current().java7
+        !JavaVersion.current().java8
+        !JavaVersion.current().java9
+        JavaVersion.current().java10
+
+        and:
+        JavaVersion.current().java5Compatible
+        JavaVersion.current().java6Compatible
+        JavaVersion.current().java7Compatible
+        JavaVersion.current().java8Compatible
+        JavaVersion.current().java9Compatible
+        JavaVersion.current().java10Compatible
+
+        where:
+        javaVersion << ['1.10', '10-ea']
     }
 }
