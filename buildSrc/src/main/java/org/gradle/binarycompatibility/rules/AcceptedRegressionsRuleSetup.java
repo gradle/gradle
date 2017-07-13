@@ -16,13 +16,15 @@
 
 package org.gradle.binarycompatibility.rules;
 
-import java.util.Set;
+import me.champeau.gradle.japicmp.report.SetupRule;
+import me.champeau.gradle.japicmp.report.ViolationCheckContext;
+
 import java.util.HashSet;
 import java.util.Map;
-import me.champeau.gradle.japicmp.report.ViolationCheckContext;
-import me.champeau.gradle.japicmp.report.SetupRule;
+import java.util.Set;
 
 public class AcceptedRegressionsRuleSetup implements SetupRule {
+
     private final Set<String> declaredRegressions;
 
     public AcceptedRegressionsRuleSetup(Map<String, String> regressions) {
@@ -35,4 +37,5 @@ public class AcceptedRegressionsRuleSetup implements SetupRule {
         userData.put("declaredRegressions", declaredRegressions);
         userData.put("seenRegressions", new HashSet<String>());
     }
+
 }

@@ -17,13 +17,14 @@
 package org.gradle.binarycompatibility.rules;
 
 import japicmp.model.JApiCompatibility;
+import japicmp.model.JApiHasAnnotations;
 import me.champeau.gradle.japicmp.report.Violation;
 
 import java.util.Map;
 
-public class AcceptedRegressionRule extends AbstractGradleViolationRule {
+public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
 
-    public AcceptedRegressionRule(Map<String, String> acceptedViolations) {
+    public BinaryBreakingChangesRule(Map<String, String> acceptedViolations) {
         super(acceptedViolations);
     }
 
@@ -31,8 +32,15 @@ public class AcceptedRegressionRule extends AbstractGradleViolationRule {
     @SuppressWarnings("unchecked")
     public Violation maybeViolation(final JApiCompatibility member) {
         if (!member.isBinaryCompatible()) {
+            if (member instanceof JApiHasAnnotations) {
+                if (isIncubating((JApiHasAnnotations) member)) {
+                    return Violation.accept(member, "Removed member was incubating");
+                }
+            }
+
             return acceptOrReject(member, Violation.notBinaryCompatible(member));
         }
         return null;
     }
+
 }
