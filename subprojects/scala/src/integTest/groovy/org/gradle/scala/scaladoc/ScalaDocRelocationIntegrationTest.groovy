@@ -19,9 +19,12 @@ package org.gradle.scala.scaladoc
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.scala.ScalaCompilationFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import java.nio.file.Files
 
+@Requires(TestPrecondition.JDK8_OR_LATER) // Scala 2.12 requires JDK 8 or later
 class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private classes = new ScalaCompilationFixture(testDirectory)
@@ -33,6 +36,12 @@ class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
 
     @Override
     protected void setupProjectInOriginalLocation() {
+        classes.scalaVersion = '2.12.2'
+        executer.beforeExecute {
+            // Scaladoc leaks file handles if this is not activated: https://github.com/scala/scala/pull/5592
+            // This requires Scala 2.12.2
+            args '-Dscala.classpath.closeZip=true'
+        }
         classes.baseline()
         buildScript(classes.buildScript())
     }
