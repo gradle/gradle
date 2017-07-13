@@ -14,13 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+package org.gradle.java.compile.daemon
 
-public interface ActionExecutionSpec extends WorkSpec {
-    Class<? extends Runnable> getImplementationClass();
+import org.gradle.api.tasks.compile.AbstractCompilerDaemonReuseIntegrationTest
+import org.gradle.integtests.fixtures.jvm.TestJvmComponent
+import org.gradle.language.fixtures.TestJavaComponent
+
+
+class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuseIntegrationTest {
+    @Override
+    String getCompileTaskType() {
+        return "JavaCompile"
+    }
 
     @Override
-    String getDisplayName();
+    String getApplyAndConfigure() {
+        return """
+            apply plugin: "java"
+        """
+    }
 
-    Object[] getParams(ClassLoader classLoader);
+    @Override
+    TestJvmComponent getComponent() {
+        return new TestJavaComponent()
+    }
 }

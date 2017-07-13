@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+package org.gradle.api.tasks.compile
 
-import org.gradle.api.Describable;
 
-import java.io.File;
-import java.io.Serializable;
+abstract class AbstractComponentCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuseIntegrationTest {
+    @Override
+    String newSourceSet(String name) {
+        return """
+            model {
+                components {
+                    ${name}(JvmLibrarySpec)
+                }
+            }
+        """
+    }
 
-public interface WorkSpec extends Serializable, Describable {
-    File getExecutionWorkingDir();
+    @Override
+    String compileTaskPath(String sourceSet) {
+        return ":compile${sourceSet.capitalize()}Jar${sourceSet.capitalize()}${component.languageName.capitalize()}"
+    }
 }

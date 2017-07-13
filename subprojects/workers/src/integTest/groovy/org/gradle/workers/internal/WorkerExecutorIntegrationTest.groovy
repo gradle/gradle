@@ -16,22 +16,11 @@
 
 package org.gradle.workers.internal
 
-import groovy.transform.NotYetImplemented
-import org.gradle.api.JavaVersion
-import org.gradle.api.specs.Spec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.jvm.JvmInstallation
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
-import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Unroll
-
-import static org.hamcrest.CoreMatchers.notNullValue
 
 class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     private final String fooPath = TextUtil.normaliseFileSeparators(file('foo').absolutePath)
@@ -256,71 +245,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ISOLATION_MODES
     }
 
-    @Requires(TestPrecondition.JDK_ORACLE)
-    def "interesting worker daemon fork options are honored"() {
-        Assume.assumeThat(Jvm.current().jre, notNullValue())
-        withRunnableClassInBuildSrc()
-        outputFileDir.createDir()
-
-        buildFile << """
-            import org.gradle.internal.jvm.Jvm
-
-            $optionVerifyingRunnable
-
-            task runInDaemon(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
-                runnableClass = OptionVerifyingRunnable.class
-                additionalForkOptions = { options ->
-                    options.with {
-                        minHeapSize = "128m"
-                        maxHeapSize = "128m"
-                        systemProperty("foo", "bar")
-                        jvmArgs("-Dbar=baz")
-                        bootstrapClasspath = fileTree(new File(Jvm.current().jre.homeDir, "lib")).include("*.jar")
-                        bootstrapClasspath(new File('${fooPath}'))
-                        defaultCharacterEncoding = "UTF-8"
-                        enableAssertions = true
-                        workingDir = file('${outputFileDirPath}')
-                        environment "foo", "bar"
-                    }
-                }
-            }
-        """
-
-        when:
-        succeeds("runInDaemon")
-
-        then:
-        assertRunnableExecuted("runInDaemon")
-    }
-
-    @NotYetImplemented
-    def "worker daemons honor different executable specified in fork options"() {
-        def differentJvm = findAnotherJvm()
-        Assume.assumeNotNull(differentJvm)
-        def differentJavaExecutablePath = TextUtil.normaliseFileSeparators(differentJvm.getExecutable("java").absolutePath)
-
-        withRunnableClassInBuildSrc()
-
-        buildFile << """
-            ${getExecutableVerifyingRunnable(differentJvm.javaHome)}
-
-            task runInDaemon(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
-                runnableClass = ExecutableVerifyingRunnable.class
-                additionalForkOptions = { options ->
-                    options.executable = new File('${differentJavaExecutablePath}')
-                }
-            }
-        """
-
-        when:
-        succeeds("runInDaemon")
-
-        then:
-        assertRunnableExecuted("runInDaemon")
-    }
-
     @Unroll
     def "can set a custom display name for work items in #isolationMode"() {
         withRunnableClassInBuildSrc()
@@ -485,66 +409,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         """
     }
 
-    String getOptionVerifyingRunnable() {
-        return """
-            import java.io.File;
-            import java.util.regex.Pattern;
-            import java.util.List;
-            import org.gradle.other.Foo;
-            import java.lang.management.ManagementFactory;
-            import java.lang.management.RuntimeMXBean;
-            import javax.inject.Inject;
-
-            public class OptionVerifyingRunnable extends TestRunnable {
-                @Inject
-                public OptionVerifyingRunnable(List<String> files, File outputDir, Foo foo) {
-                    super(files, outputDir, foo);
-                }
-
-                public void run() {
-                    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-                    List<String> arguments = runtimeMxBean.getInputArguments();
-                    assert arguments.contains("-Dfoo=bar");
-                    assert arguments.contains("-Dbar=baz");
-                    assert arguments.contains("-Xmx128m");
-                    assert arguments.contains("-Xms128m");
-                    assert arguments.contains("-Dfile.encoding=UTF-8");
-                    assert arguments.contains("-ea");
-
-                    assert runtimeMxBean.getBootClassPath().replaceAll(Pattern.quote(File.separator),'/').endsWith("${fooPath}");
-
-                    assert new File(System.getProperty("user.dir")).equals(new File('${outputFileDirPath}'));
-
-                    //NotYetImplemented
-                    //assert System.getenv("foo").equals("bar")
-
-                    super.run();
-                }
-            }
-        """
-    }
-
-    String getExecutableVerifyingRunnable(File differentJvmHome) {
-        return """
-            import java.io.File;
-            import java.util.List;
-            import org.gradle.other.Foo;
-            import java.net.URL;
-
-            public class ExecutableVerifyingRunnable extends TestRunnable {
-                public ExecutableVerifyingRunnable(List<String> files, File outputDir, Foo foo) {
-                    super(files, outputDir, foo);
-                }
-
-                public void run() {
-                    assert new File(System.getProperty("java.home")).equals(new File('${differentJvmHome.absolutePath}'));
-
-                    super.run();
-                }
-            }
-        """
-    }
-
     void withBlockingRunnableClassInBuildSrc(String url) {
         file("buildSrc/src/main/java/org/gradle/test/BlockingRunnable.java") << """
             package org.gradle.test;
@@ -563,15 +427,5 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         """
 
         addImportToBuildScript("org.gradle.test.AlternateRunnable")
-    }
-
-    Jvm findAnotherJvm() {
-        def current = Jvm.current()
-        AvailableJavaHomes.getAvailableJdk(new Spec<JvmInstallation>() {
-            @Override
-            boolean isSatisfiedBy(JvmInstallation jvm) {
-                return jvm.javaHome != current.javaHome && jvm.javaVersion >= JavaVersion.VERSION_1_7
-            }
-        })
     }
 }

@@ -31,7 +31,7 @@ class DefaultScalaToolProviderTest extends Specification {
 
     def "newCompiler provides decent error for unsupported CompileSpec"() {
         setup:
-        DefaultScalaToolProvider scalaToolProvider = new DefaultScalaToolProvider(gradleUserHome, rootProjectDir, workerDaemonFactory, scalacClasspath, zincClasspath)
+        DefaultScalaToolProvider scalaToolProvider = new DefaultScalaToolProvider(gradleUserHome, rootProjectDir, workerDaemonFactory, fileResolver, scalacClasspath, zincClasspath)
 
         when:
         scalaToolProvider.newCompiler(UnknownCompileSpec.class)
