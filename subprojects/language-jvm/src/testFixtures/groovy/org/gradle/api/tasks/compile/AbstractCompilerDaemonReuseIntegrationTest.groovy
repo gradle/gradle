@@ -17,8 +17,10 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 
 
 abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegrationSpec {
@@ -71,6 +73,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertOneCompilerDaemonIsCreated()
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "reuses compiler daemons within a multi-project build"() {
         withMultiProjectSources()
 
@@ -84,6 +87,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertOneCompilerDaemonIsCreated()
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "starts a new daemon when different options are used"() {
         withMultiProjectSources()
         buildFile << """
