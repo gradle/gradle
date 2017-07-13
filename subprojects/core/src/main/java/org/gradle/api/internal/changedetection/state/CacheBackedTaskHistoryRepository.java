@@ -167,6 +167,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
          */
         LazyTaskExecution(TaskExecutionSnapshot taskExecutionSnapshot, FileSnapshotRepository snapshotRepository) {
             this(snapshotRepository);
+            setSuccessful(taskExecutionSnapshot.isSuccessful());
             setBuildInvocationId(taskExecutionSnapshot.getBuildInvocationId());
             setTaskImplementation(taskExecutionSnapshot.getTaskImplementation());
             setTaskActionImplementations(taskExecutionSnapshot.getTaskActionsImplementations());
@@ -240,6 +241,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
         public TaskExecutionSnapshot snapshot() {
             return new TaskExecutionSnapshot(
+                isSuccessful(),
                 getBuildInvocationId(),
                 getTaskImplementation(),
                 getTaskActionImplementations(),
@@ -262,6 +264,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             public TaskExecutionSnapshot read(Decoder decoder) throws Exception {
+                boolean successful = decoder.readBoolean();
+
                 UniqueId buildId = UniqueId.from(decoder.readString());
 
                 ImmutableSortedMap<String, Long> inputFilesSnapshotIds = readSnapshotIds(decoder);
@@ -296,6 +300,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
 
                 return new TaskExecutionSnapshot(
+                    successful,
                     buildId,
                     taskImplementation,
                     taskActionImplementations,
@@ -309,6 +314,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             public void write(Encoder encoder, TaskExecutionSnapshot execution) throws Exception {
+                encoder.writeBoolean(execution.isSuccessful());
                 encoder.writeString(execution.getBuildInvocationId().asString());
                 writeSnapshotIds(encoder, execution.getInputFilesSnapshotIds());
                 writeSnapshotIds(encoder, execution.getOutputFilesSnapshotIds());

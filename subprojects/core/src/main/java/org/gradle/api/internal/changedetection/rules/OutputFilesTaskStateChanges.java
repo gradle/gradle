@@ -31,6 +31,7 @@ import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStra
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
@@ -42,7 +43,16 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
 
     @Override
     public ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
-        return previous.getOutputFilesSnapshot();
+        return previous == null ? null : previous.getOutputFilesSnapshot();
+    }
+
+    @Override
+    public Iterator<TaskStateChange> iterator() {
+        return getFileChanges(false);
+    }
+
+    public Iterator<TaskStateChange> iteratorIncludingAdded() {
+        return getFileChanges(true);
     }
 
     @Override
@@ -58,6 +68,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
             }
         }));
         current.setOutputFilesSnapshot(results);
+        currentSnapshots = results;
     }
 
     private FileCollectionSnapshot getSnapshotAfterPreviousExecution(String propertyName) {
@@ -114,7 +125,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
             if (newEntryCount == afterSnapshots.size()) {
                 filesSnapshot = afterExecution;
             } else {
-                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.OUTPUT, true);
+                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.UNORDERED, true);
             }
         } else {
             filesSnapshot = afterExecution;

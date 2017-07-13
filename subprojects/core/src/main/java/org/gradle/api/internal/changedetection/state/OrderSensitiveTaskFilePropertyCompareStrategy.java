@@ -29,7 +29,7 @@ import java.util.Map;
 class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
 
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType, boolean isPathAbsolute) {
+    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType, boolean isPathAbsolute, final boolean includeAdded) {
         final Iterator<Map.Entry<String, NormalizedFileSnapshot>> currentEntries = current.entrySet().iterator();
         final Iterator<Map.Entry<String, NormalizedFileSnapshot>> previousEntries = previous.entrySet().iterator();
         return new AbstractIterator<TaskStateChange>() {
@@ -54,18 +54,20 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
                             String normalizedPath = normalizedSnapshot.getNormalizedPath();
                             String otherNormalizedPath = otherNormalizedSnapshot.getNormalizedPath();
                             if (normalizedPath.equals(otherNormalizedPath)) {
-                                if (normalizedSnapshot.getSnapshot().isContentUpToDate(otherNormalizedSnapshot.getSnapshot())) {
-                                    continue;
-                                } else {
+                                if (!normalizedSnapshot.getSnapshot().isContentUpToDate(otherNormalizedSnapshot.getSnapshot())) {
                                     return new FileChange(absolutePath, ChangeType.MODIFIED, fileType);
                                 }
                             } else {
                                 String otherAbsolutePath = other.getKey();
-                                remaining = new FileChange(absolutePath, ChangeType.ADDED, fileType);
+                                if (includeAdded) {
+                                    remaining = new FileChange(absolutePath, ChangeType.ADDED, fileType);
+                                }
                                 return new FileChange(otherAbsolutePath, ChangeType.REMOVED, fileType);
                             }
                         } else {
-                            return new FileChange(absolutePath, ChangeType.ADDED, fileType);
+                            if (includeAdded) {
+                                return new FileChange(absolutePath, ChangeType.ADDED, fileType);
+                            }
                         }
                     } else {
                         if (previousEntries.hasNext()) {
@@ -84,10 +86,5 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
         for (NormalizedFileSnapshot normalizedSnapshot : snapshots) {
             normalizedSnapshot.appendToHasher(hasher);
         }
-    }
-
-    @Override
-    public boolean isIncludeAdded() {
-        return true;
     }
 }

@@ -37,8 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
-abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
-    private final ImmutableSortedMap<String, FileCollectionSnapshot> fileSnapshotsBeforeExecution;
+abstract public class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
     private final String taskName;
     private final String title;
     private final ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties;
@@ -46,6 +45,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     protected final TaskExecution previous;
     protected final TaskExecution current;
     private final InputNormalizationStrategy normalizationStrategy;
+    protected ImmutableSortedMap<String, FileCollectionSnapshot> currentSnapshots;
 
     protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, InputNormalizationStrategy normalizationStrategy) {
         this.taskName = taskName;
@@ -55,7 +55,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         this.title = title;
         this.fileProperties = fileProperties;
         this.normalizationStrategy = normalizationStrategy;
-        this.fileSnapshotsBeforeExecution = buildSnapshots(taskName, snapshotterRegistry, title, fileProperties);
+        this.currentSnapshots = buildSnapshots(taskName, snapshotterRegistry, title, fileProperties);
     }
 
     protected String getTaskName() {
@@ -77,7 +77,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     }
 
     protected ImmutableSortedMap<String, FileCollectionSnapshot> getCurrent() {
-        return fileSnapshotsBeforeExecution;
+        return currentSnapshots;
     }
 
     protected ImmutableSortedMap<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties) {
@@ -86,7 +86,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
             FileCollectionSnapshot result;
             try {
                 FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter());
-                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareStrategy(), propertySpec.getSnapshotNormalizationStrategy(), normalizationStrategy);
+                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getSnapshotNormalizationStrategy(), normalizationStrategy);
             } catch (UncheckedIOException e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertySpec.getPropertyName()), e);
             }
@@ -95,8 +95,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return builder.build();
     }
 
-    @Override
-    public Iterator<TaskStateChange> iterator() {
+    protected Iterator<TaskStateChange> getFileChanges(final boolean includeAdded) {
         if (getPrevious() == null) {
             return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange(title + " file history is not available."));
         }
@@ -128,7 +127,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
                 FileCollectionSnapshot currentSnapshot = entry.getValue();
                 FileCollectionSnapshot previousSnapshot = getPrevious().get(propertyName);
                 String propertyTitle = title + " property '" + propertyName + "'";
-                return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle);
+                return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, includeAdded);
             }
         }).iterator());
     }

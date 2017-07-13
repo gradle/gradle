@@ -163,19 +163,21 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public void afterTask(Throwable failure) {
-            if (failure != null) {
-                return;
-            }
-
             if (upToDate) {
                 return;
             }
 
+            TaskUpToDateState taskState = getStates();
+
             if (taskInputs != null) {
-                getStates().newInputs(taskInputs.getDiscoveredInputs());
+                taskState.newInputs(taskInputs.getDiscoveredInputs());
             }
-            getStates().getAllTaskChanges().snapshotAfterTask();
-            history.update();
+            taskState.getAllTaskChanges().snapshotAfterTask();
+
+            // Only store new taskState if there was no failure, or some output files have been changed
+            if (failure == null || taskState.hasAnyOutputFileChanges()) {
+                history.update();
+            }
         }
 
         private TaskUpToDateState getStates() {

@@ -26,6 +26,7 @@ import org.gradle.internal.id.UniqueId;
  * The state for a single task execution.
  */
 public abstract class TaskExecution {
+    private boolean successful;
     private UniqueId buildInvocationId;
     private ImplementationSnapshot taskImplementation;
     private ImmutableList<ImplementationSnapshot> taskActionImplementations;
@@ -33,6 +34,14 @@ public abstract class TaskExecution {
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
     private OverlappingOutputs detectedOverlappingOutputs;
+
+    public boolean isSuccessful() {
+        return successful;
+    }
+
+    public void setSuccessful(boolean successful) {
+        this.successful = successful;
+    }
 
     public UniqueId getBuildInvocationId() {
         return buildInvocationId;
