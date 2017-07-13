@@ -16,47 +16,22 @@
 
 package org.gradle.binarycompatibility.rules;
 
-import japicmp.model.*;
+import japicmp.model.JApiCompatibility;
 import me.champeau.gradle.japicmp.report.Violation;
+
 import java.util.Map;
-import java.util.Set;
 
-public class AcceptedRegressionRule extends WithIncubatingCheck {
-    private final Map<String, String> acceptedViolations;
+public class AcceptedRegressionRule extends AbstractGradleViolationRule {
 
-    public AcceptedRegressionRule(Map<String, String> params) {
-        acceptedViolations = params;
+    public AcceptedRegressionRule(Map<String, String> acceptedViolations) {
+        super(acceptedViolations);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public Violation maybeViolation(final JApiCompatibility member) {
         if (!member.isBinaryCompatible()) {
-            Set<String> seenRegressions = (Set<String>) getContext().getUserData().get("seenRegressions");
-            String describe = Violation.describe(member);
-            String acceptation = acceptedViolations.get(describe);
-            if (acceptation == null) {
-                for (String key: acceptedViolations.keySet()) {
-                    if (describe.startsWith(key)) {
-                        acceptation = acceptedViolations.get(key);
-                        seenRegressions.add(key);
-                    }
-                }
-                if (acceptation == null) {
-                    if (member instanceof JApiHasAnnotations) {
-                        if (isIncubating((JApiHasAnnotations)member)) {
-                            return Violation.accept(member, "Removed member was incubating");
-                        }
-                    }
-                }
-            } else {
-                seenRegressions.add(describe);
-            }
-            if (acceptation != null) {
-                return Violation.accept(member, acceptation);
-            } else {
-                return Violation.notBinaryCompatible(member);
-            }
+            return acceptOrReject(member, Violation.notBinaryCompatible(member));
         }
         return null;
     }

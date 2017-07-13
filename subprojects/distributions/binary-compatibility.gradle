@@ -118,7 +118,7 @@ task checkBinaryCompatibility(type: JapicmpTask) {
         destinationDir = file("$buildDir/reports/binary-compatibility")
         reportName = "report.html"
         addRule(AcceptedRegressionRule, acceptedViolations)
-        addRule(JApiChangeStatus.NEW, IncubatingMissingRule)
+        addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedViolations)
         addSetupRule(AcceptedRegressionsRuleSetup, acceptedViolations)
         addPostProcessRule(AcceptedRegressionsRulePostProcess)
 

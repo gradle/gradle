@@ -16,11 +16,26 @@
 
 package org.gradle.binarycompatibility.rules;
 
-import me.champeau.gradle.japicmp.report.*;
-import japicmp.model.*;
-import java.util.List;
+import japicmp.model.JApiAnnotation;
+import japicmp.model.JApiClass;
+import japicmp.model.JApiCompatibility;
+import japicmp.model.JApiHasAnnotations;
+import japicmp.model.JApiMethod;
+import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule;
+import me.champeau.gradle.japicmp.report.Violation;
 
-public abstract class WithIncubatingCheck extends AbstractContextAwareViolationRule {
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
+
+    private final Map<String, String> acceptedViolations;
+
+    AbstractGradleViolationRule(Map<String, String> acceptedViolations) {
+        this.acceptedViolations = acceptedViolations;
+    }
+
     private boolean isAnnotatedWithIncubating(JApiHasAnnotations member) {
         for (JApiAnnotation annotation : member.getAnnotations()) {
             if ("org.gradle.api.Incubating".equals(annotation.getFullyQualifiedName())) {
@@ -58,5 +73,33 @@ public abstract class WithIncubatingCheck extends AbstractContextAwareViolationR
 
     boolean isIncubating(JApiMethod method) {
         return isAnnotatedWithIncubating(method) || isAnnotatedWithIncubating(method.getjApiClass());
+    }
+
+
+    Violation acceptOrReject(JApiCompatibility member, Violation rejection) {
+        Set<String> seenRegressions = (Set<String>) getContext().getUserData().get("seenRegressions");
+        String describe = Violation.describe(member);
+        String acceptationReason = acceptedViolations.get(describe);
+        if (acceptationReason == null) {
+            for (String key: acceptedViolations.keySet()) {
+                if (describe.startsWith(key)) {
+                    acceptationReason = acceptedViolations.get(key);
+                    seenRegressions.add(key);
+                }
+            }
+            if (acceptationReason == null) {
+                if (member instanceof JApiHasAnnotations) {
+                    if (isIncubating((JApiHasAnnotations)member)) {
+                        acceptationReason = "Removed member was incubating";
+                    }
+                }
+            }
+        } else {
+            seenRegressions.add(describe);
+        }
+        if (acceptationReason != null) {
+            return Violation.accept(member, acceptationReason);
+        }
+        return rejection;
     }
 }

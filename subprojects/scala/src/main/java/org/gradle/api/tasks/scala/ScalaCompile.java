@@ -70,7 +70,6 @@ public class ScalaCompile extends AbstractScalaCompile {
      */
     @Override
     @PathSensitive(PathSensitivity.NAME_ONLY)
-    @Incubating
     public FileTree getSource() {
         return super.getSource();
     }

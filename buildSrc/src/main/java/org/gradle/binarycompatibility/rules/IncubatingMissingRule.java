@@ -16,17 +16,24 @@
 
 package org.gradle.binarycompatibility.rules;
 
-import japicmp.model.*;
+import japicmp.model.JApiCompatibility;
+import japicmp.model.JApiMethod;
 import me.champeau.gradle.japicmp.report.Violation;
 
-public class IncubatingMissingRule extends WithIncubatingCheck {
+import java.util.Map;
+
+public class IncubatingMissingRule extends AbstractGradleViolationRule {
+
+    public IncubatingMissingRule(Map<String, String> acceptedViolations) {
+        super(acceptedViolations);
+    }
 
     @Override
     public Violation maybeViolation(final JApiCompatibility member) {
         if (member instanceof JApiMethod) {
             JApiMethod method = (JApiMethod) member;
             if (!isIncubating(method) && !isIncubating(method.getjApiClass())) {
-                return Violation.error(member, "New method is not annotated with @Incubating");
+                return acceptOrReject(member, Violation.error(member, "New method is not annotated with @Incubating"));
             }
         }
         return null;
