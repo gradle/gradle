@@ -27,11 +27,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.io.NullOutputStream
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TextUtil
 import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
+@LeaksFileHandles
 class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Shared
@@ -86,7 +88,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
                 }
     
                 void allocateTempFile(BuildCacheKey key, Action<? super File> action) {
-                    new $DefaultBuildCacheTempFileStore.name(new File("${file("tmp")}")).allocateTempFile(key, action)
+                    new $DefaultBuildCacheTempFileStore.name(new File("${TextUtil.normaliseFileSeparators(file("tmp").absolutePath)}")).allocateTempFile(key, action)
                 } 
 
                 @Override
@@ -235,7 +237,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def failedLoadOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
         failedLoadOp.details.cacheKey != null
         failedLoadOp.result == null
-        failedLoadOp.failure == "org.gradle.api.UncheckedIOException: java.io.FileNotFoundException: not.there (No such file or directory)"
+        failedLoadOp.failure.startsWith "org.gradle.api.UncheckedIOException: java.io.FileNotFoundException: not.there"
     }
 
     def "records ops for miss then store"() {
