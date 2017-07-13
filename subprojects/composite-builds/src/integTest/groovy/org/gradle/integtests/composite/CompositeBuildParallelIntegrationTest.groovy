@@ -16,10 +16,17 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import spock.lang.IgnoreIf
+import spock.lang.Unroll
+
+@IgnoreIf({ GradleContextualExecuter.isParallel() })
 class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    def "works when number of included builds exceeds max-workers"() {
-        def maxWorkers = 1
-        def totalIncludedBuilds = 2*maxWorkers
+
+    @Unroll
+    def "works when number of included builds exceeds max-workers --max-workers=#maxWorkers"() {
+        def totalIncludedBuilds = 5*maxWorkers
         buildA.buildFile << """
             task delegate {
                 dependsOn gradle.includedBuilds*.task(":someTask")
@@ -30,7 +37,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
                 buildFile << """
                     task someTask {
                         doLast {
-                            Thread.sleep(500)
+                            Thread.sleep(100)
                         }
                     }
                 """
@@ -38,5 +45,9 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         }
         expect:
         execute(buildA, "delegate", "--parallel", "--max-workers=$maxWorkers")
+        assertConcurrentOperationsDoNotExceed(ExecuteTaskBuildOperationType, maxWorkers, maxWorkers != 1)
+
+        where:
+        maxWorkers << [ 1, 2, 4 ]
     }
 }
