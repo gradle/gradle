@@ -42,6 +42,7 @@ class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
         Files.move(file("src/main/scala").toPath(), file("src/main/new-scala").toPath())
         classes.sourceDir = 'src/main/new-scala'
         buildScript(classes.buildScript())
+        // Move scala library dependency around on disk
         executer.requireOwnGradleUserHomeDir()
     }
 

@@ -44,6 +44,7 @@ class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegr
         Files.move(file("src/main/scala").toPath(), file("src/main/new-scala").toPath())
         classes.sourceDir = 'src/main/new-scala'
         buildScript(classes.buildScript())
+        // Move zinc and scala library dependencies around on disk
         executer.requireOwnGradleUserHomeDir()
     }
 

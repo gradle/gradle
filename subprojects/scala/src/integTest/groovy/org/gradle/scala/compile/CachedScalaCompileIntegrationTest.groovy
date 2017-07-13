@@ -40,7 +40,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             }
 
             dependencies {
-                compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.11'
+                compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.8'
             }
         """.stripIndent()
 
