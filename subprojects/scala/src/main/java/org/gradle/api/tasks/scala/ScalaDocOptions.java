@@ -22,6 +22,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.List;
@@ -170,6 +171,7 @@ public class ScalaDocOptions extends AbstractOptions {
     @InputFile @Optional
     @Deprecated
     public File getStyleSheet() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ScalaDocOptions.getStyleSheet");
         return styleSheet;
     }
 
@@ -180,6 +182,7 @@ public class ScalaDocOptions extends AbstractOptions {
      */
     @Deprecated
     public void setStyleSheet(File styleSheet) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ScalaDocOptions.setStyleSheet");
         this.styleSheet = styleSheet;
     }
 
