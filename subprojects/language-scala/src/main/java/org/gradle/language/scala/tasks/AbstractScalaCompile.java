@@ -153,7 +153,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      */
     @Incubating
     @Classpath
-    private FileCollection getEffectiveAnnotationProcessorPath() {
+    public FileCollection getEffectiveAnnotationProcessorPath() {
         AnnotationProcessorDetector annotationProcessorDetector = getServices().get(AnnotationProcessorDetector.class);
         return annotationProcessorDetector.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
     }
