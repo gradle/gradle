@@ -91,6 +91,8 @@ task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
         "ScalaCompileRelocationIntegrationTest",
         "UpToDateScalaCompileIntegrationTest",
         "ScalaDocIntegrationTest",
+        "ScalaCompilerDaemonReuseIntegrationTest",
+        "ScalaComponentCompilerDaemonReuseIntegrationTest",
 
         // Sample attempts to set max perm space
         "SamplesScalaZincIntegrationTest",
