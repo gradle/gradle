@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -69,6 +70,7 @@ public class ScalaDoc extends SourceTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
+    @Incubating
     public FileTree getSource() {
         return super.getSource();
     }
