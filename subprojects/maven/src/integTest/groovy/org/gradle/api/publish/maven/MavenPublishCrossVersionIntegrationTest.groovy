@@ -79,7 +79,7 @@ publishing {
         version current withTasks 'publish' run()
     }
 
-    def consumePublicationWithPreviousVersion(boolean expectDeprecationWarningForGradle1_12) {
+    def consumePublicationWithPreviousVersion(boolean expectDeprecationWarningForGradle112) {
         settingsFile.text = "rootProject.name = 'consumer'"
 
         buildFile.text = """
@@ -103,7 +103,7 @@ task retrieve(type: Sync) {
 """
 
         def executer = version previous
-        if (expectDeprecationWarningForGradle1_12 && previous.version == GradleVersion.version("1.12")) {
+        if (expectDeprecationWarningForGradle112 && previous.version == GradleVersion.version("1.12")) {
             executer.expectDeprecationWarning()
         }
         executer.requireOwnGradleUserHomeDir() withTasks 'retrieve' run()
