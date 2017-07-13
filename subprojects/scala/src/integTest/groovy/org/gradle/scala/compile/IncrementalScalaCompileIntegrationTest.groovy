@@ -16,10 +16,9 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
@@ -52,7 +51,6 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2548")
-    @Ignore
     def recompilesScalaWhenJavaChanges() {
         file("build.gradle") << """
             apply plugin: 'scala'
@@ -81,4 +79,5 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         //the build should fail because the interface the scala class needs has changed
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
+    
 }

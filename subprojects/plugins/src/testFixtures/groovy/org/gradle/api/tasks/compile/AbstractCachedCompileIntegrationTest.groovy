@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle
+package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
@@ -59,6 +59,8 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         remoteProjectDir.deleteDir()
 
         when:
+        // Move the dependencies around by using a new Gradle user home
+        executer.requireOwnGradleUserHomeDir()
         withBuildCache().succeeds compilationTask
         then:
         compileIsCached()

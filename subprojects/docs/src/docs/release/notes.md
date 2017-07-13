@@ -56,6 +56,11 @@ With this release of Gradle, the console displays any test worker processes exec
     > IDLE
     > :fooBarBazQuux:test > Gradle Test Executor 6 > Executing test org.gradle.MyTest
 
+### Scala toolchain is now cacheable
+
+Tasks of types [ScalaCompile](dsl/org.gradle.api.tasks.scala.ScalaCompile.html) and [ScalaDoc](dsl/org.gradle.api.tasks.scala.ScalaDoc.html) provided by the [scala](userguide/scala_plugin.html) plugin are now cacheable.
+This means they will make use of the build cache when activated.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -75,6 +80,11 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 5.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
+
+### Scaladoc stylesheet deprecated
+
+The [ScalaDocOptions.styleSheet](javadoc/org/gradle/api/tasks/scala/ScalaDocOptions.html#setStyleSheet(java.io.File)) property has been deprecated.
+The current (Scala 2.11.8 and later) Scaladoc Ant task does not support this property any more. 
 
 <!--
 ### Example deprecation
@@ -108,6 +118,7 @@ We would like to thank the following community members for making contributions 
  - [Seth Jackson](https://github.com/sethjackson) - Fix the default daemon JVM args on Java 8 (#2310)
  - [Ismael Juma](https://github.com/ijuma) - Update default Zinc compiler version to 0.3.15 with preliminary Java 9 support (#2420)
  - [Krzysztof Ropiak](https://github.com/krro) - Sets annotation processor classpath in Scala compilation task (#2281)
+ - [Dave Brewster](https://github.com/dbrewster) - Add support for caching Scala compilation (#1958)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
