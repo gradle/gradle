@@ -192,6 +192,12 @@ class RetryRuleUtil {
                     it.deleteDir()
                 }
             }
+        } else if (specification.hasProperty("temporaryFolder")) {
+            specification.temporaryFolder.testDirectory.listFiles().each {
+                if (!FILES_TO_PRESERVE.contains(it.name)) {
+                    it.deleteDir()
+                }
+            }
         }
         true
     }
