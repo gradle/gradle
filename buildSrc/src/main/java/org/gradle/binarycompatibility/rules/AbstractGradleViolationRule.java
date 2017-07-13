@@ -47,9 +47,9 @@ public abstract class AbstractGradleViolationRule extends AbstractContextAwareVi
 
     boolean isIncubating(JApiHasAnnotations member) {
         if (member instanceof JApiClass) {
-            return isIncubating((JApiClass)member);
+            return isIncubating((JApiClass) member);
         } else if (member instanceof JApiMethod) {
-            return isIncubating((JApiMethod)member);
+            return isIncubating((JApiMethod) member);
         }
         return isAnnotatedWithIncubating(member);
     }
@@ -81,17 +81,10 @@ public abstract class AbstractGradleViolationRule extends AbstractContextAwareVi
         String describe = Violation.describe(member);
         String acceptationReason = acceptedViolations.get(describe);
         if (acceptationReason == null) {
-            for (String key: acceptedViolations.keySet()) {
+            for (String key : acceptedViolations.keySet()) {
                 if (describe.startsWith(key)) {
                     acceptationReason = acceptedViolations.get(key);
                     seenRegressions.add(key);
-                }
-            }
-            if (acceptationReason == null) {
-                if (member instanceof JApiHasAnnotations) {
-                    if (isIncubating((JApiHasAnnotations)member)) {
-                        acceptationReason = "Removed member was incubating";
-                    }
                 }
             }
         } else {
@@ -102,4 +95,5 @@ public abstract class AbstractGradleViolationRule extends AbstractContextAwareVi
         }
         return rejection;
     }
+
 }
