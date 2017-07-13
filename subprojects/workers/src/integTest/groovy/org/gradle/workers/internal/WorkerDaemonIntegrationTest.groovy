@@ -249,7 +249,9 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         AvailableJavaHomes.getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             boolean isSatisfiedBy(JvmInstallation jvm) {
-                return jvm.javaHome != current.javaHome && jvm.javaVersion >= JavaVersion.VERSION_1_7
+                return jvm.javaHome != current.javaHome && 
+                    jvm.javaVersion >= JavaVersion.VERSION_1_7 &&
+                    Jvm.discovered(jvm.javaHome, jvm.javaVersion).jre != null
             }
         })
     }
