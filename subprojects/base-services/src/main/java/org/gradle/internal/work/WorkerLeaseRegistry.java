@@ -40,7 +40,7 @@ public interface WorkerLeaseRegistry {
 
     /**
      * For the given action, update the worker lease registry to associate the current thread with the worker lease.
-     * Note that this does not actually reserve a lease and the worker lease.
+     * Note that this does not actually reserve the worker lease.
      *
      * @param sharedLease Lease to associate as shared
      * @param action action to execute

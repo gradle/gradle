@@ -102,11 +102,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
 
     @Override
     public void withSharedLease(WorkerLease sharedLease, Runnable action) {
-        workerLeaseLockRegistry.associateWorkerLease(sharedLease);
+        workerLeaseLockRegistry.associateResourceLock(sharedLease);
         try {
             action.run();
         } finally {
-            workerLeaseLockRegistry.unassociateWorkerLease(sharedLease);
+            workerLeaseLockRegistry.unassociatResourceLock(sharedLease);
             coordinationService.notifyStateChange();
         }
     }
