@@ -148,6 +148,7 @@ public enum JavaVersion {
         return this.compareTo(VERSION_1_9) >= 0;
     }
 
+    @Incubating
     public boolean isJava10Compatible() {
         return this.compareTo(VERSION_1_10) >= 0;
     }
