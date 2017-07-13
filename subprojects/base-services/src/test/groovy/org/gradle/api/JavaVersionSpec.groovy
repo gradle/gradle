@@ -65,6 +65,7 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.toVersion("9-ea") == JavaVersion.VERSION_1_9
 
         JavaVersion.toVersion("10-ea") == JavaVersion.VERSION_1_10
+        JavaVersion.toVersion("10-internal") == JavaVersion.VERSION_1_10
     }
 
     def convertClassVersionToJavaVersion() {
