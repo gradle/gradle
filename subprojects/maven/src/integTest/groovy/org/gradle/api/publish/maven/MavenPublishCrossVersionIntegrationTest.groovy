@@ -31,7 +31,7 @@ class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
         projectPublishedUsingMavenPublishPlugin('java')
 
         expect:
-        consumePublicationWithPreviousVersion()
+        consumePublicationWithPreviousVersion(false)
 
         file('build/resolved').assertHasDescendants('published-1.9.jar', 'test-project-1.2.jar')
     }
@@ -41,7 +41,7 @@ class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
         projectPublishedUsingMavenPublishPlugin('web')
 
         expect:
-        consumePublicationWithPreviousVersion()
+        consumePublicationWithPreviousVersion(true)
 
         file('build/resolved').assertHasDescendants('published-1.9.war')
     }
@@ -79,7 +79,7 @@ publishing {
         version current withTasks 'publish' run()
     }
 
-    def consumePublicationWithPreviousVersion() {
+    def consumePublicationWithPreviousVersion(boolean expectDeprecationWarningForGradle1_12) {
         settingsFile.text = "rootProject.name = 'consumer'"
 
         buildFile.text = """
@@ -103,7 +103,7 @@ task retrieve(type: Sync) {
 """
 
         def executer = version previous
-        if (previous.version == GradleVersion.version("1.12")) {
+        if (expectDeprecationWarningForGradle1_12 && previous.version == GradleVersion.version("1.12")) {
             executer.expectDeprecationWarning()
         }
         executer.requireOwnGradleUserHomeDir() withTasks 'retrieve' run()
