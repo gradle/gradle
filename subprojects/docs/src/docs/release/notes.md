@@ -63,6 +63,7 @@ We would like to thank the following community members for making contributions 
  - [Ian Kerins](https://github.com/CannedYerins) - Fix grammar error in logging documentation (#2482)
  - [Yannick Welsch](https://github.com/ywelsch) - Use GNU-style release flag for Java 9 compiler (#2474)
  - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Register classloaders as parallelCapable (#772)
+ - [Lance](https://github.com/uklance) - Fix Maven BOM evaluation order (#2282)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
