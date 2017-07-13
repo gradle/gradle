@@ -107,7 +107,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
         public InvocationContext mergeWith(InvocationContext invocationContext) {
             if (!getInvocationWorkingDir().equals(invocationContext.getInvocationWorkingDir())) {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Cannot merge an InvocationContext with a different invocation working directory (this: " + getInvocationWorkingDir() + ", other: " + invocationContext.getInvocationWorkingDir() + ").");
             }
 
             DaemonForkOptions mergedForkOptions = getDaemonForkOptions().mergeWith(invocationContext.getDaemonForkOptions());
