@@ -289,19 +289,21 @@ public class FindBugsExtension extends CodeQualityExtension {
     }
 
     /**
-     * Whether Findbugs' analysis progress should be printed on standard output.
+     * Indicates whether analysis progress should be rendered on standard output. Defaults to false.
      *
-     * @since 4.0
+     * @since 4.2
      */
+    @Incubating
     public boolean isShowProgress() {
         return showProgress;
     }
 
     /**
-     * Whether Findbugs' analysis progress should be printed on standard output.
+     * Indicates whether analysis progress should be rendered on standard output.
      *
-     * @since 4.0
+     * @since 4.2
      */
+    @Incubating
     public void setShowProgress(boolean showProgress) {
         this.showProgress = showProgress;
     }

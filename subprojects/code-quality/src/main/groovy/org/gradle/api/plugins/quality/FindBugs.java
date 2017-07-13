@@ -593,21 +593,22 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     }
 
     /**
-     * Whether Findbugs' analysis progress should be printed on standard output.
+     * Indicates whether analysis progress should be rendered on standard output. Defaults to false.
      *
-     * @since 4.0
+     * @since 4.2
      */
-    @Optional
-    @Internal
+    @Incubating
+    @Input
     public boolean getShowProgress() {
         return showProgress;
     }
 
     /**
-     * Whether Findbugs' analysis progress should be printed on standard output.
+     * Indicates whether analysis progress should be rendered on standard output.
      *
-     * @since 4.0
+     * @since 4.2
      */
+    @Incubating
     public void setShowProgress(boolean showProgress) {
         this.showProgress = showProgress;
     }

@@ -54,6 +54,7 @@ We would like to thank the following community members for making contributions 
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
  - [Marcin Erdmann](https://github.com/erdi) - Add compilationClasspath property to CodeNarc task (#2325)
+ - [Bo Zhang](https://github.com/blindpirate) - Add an option to FindBugs for toggling analysis progress (#2181)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

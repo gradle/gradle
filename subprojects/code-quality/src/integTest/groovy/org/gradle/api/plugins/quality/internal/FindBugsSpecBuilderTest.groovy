@@ -20,12 +20,13 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
-import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl
 import org.gradle.api.reporting.SingleFileReport
 import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl
 import org.gradle.api.resources.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class FindBugsSpecBuilderTest extends Specification {
@@ -270,11 +271,21 @@ class FindBugsSpecBuilderTest extends Specification {
         args.containsAll([ "abc", "def" ])
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1307")
     def "with showProgress"() {
         when:
         def args = builder.withShowProgress(true).build().arguments
 
         then:
         args.contains('-progress')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1307")
+    def "does not add progress arg by default"() {
+        when:
+        def args = builder.build().arguments
+
+        then:
+        !args.contains('-progress')
     }
 }
