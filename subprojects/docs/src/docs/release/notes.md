@@ -44,17 +44,17 @@ TBD - This release builds on the `Provider` concept added in Gradle 4.0 to add c
 
 ### Console displays parallel test execution
 
-With this release of Gradle, the console displays any test worker processes executed in parallel in the [work in-progress area](userguide/console.html#sec:console_work_in_progress_display). Every worker process can be identified by an ID e.g. `Gradle Test Executor 7`. Each test executor line also indicates the test class it is currently working on. At the moment only JVM-based test worker processes supported by Gradle core (that is JUnit and TestNG) are rendered in parallel in the console. The display of the overall test count of a `Test` task stays unchanged. 
+With this release of Gradle, the console displays any test worker processes executed in parallel in the [work in-progress area](userguide/console.html#sec:console_work_in_progress_display). Each test executor line indicates the test class it is currently working on. At the moment only JVM-based test worker processes supported by Gradle core (that is JUnit and TestNG) are rendered in parallel in the console. The display of the overall test count of a `Test` task stays unchanged. 
 
     <========-----> 69% EXECUTING [23s]
     > IDLE
     > :plugin:functionalTest > 127 completed, 2 skipped
     > :other:compileJava
-    > :plugin:functionalTest > Gradle Test Executor 7 > Executing test org.gradle.plugin.ConsoleFunctionalTest
+    > :plugin:functionalTest > Executing test org.gradle.plugin.ConsoleFunctionalTest
     > :fooBarBazQuux:test > 3 completed
-    > :plugin:functionalTest > Gradle Test Executor 8 > Executing test org.gradle.plugin.UiLayerFunctionalTest
+    > :plugin:functionalTest > Executing test org.gradle.plugin.UiLayerFunctionalTest
     > IDLE
-    > :fooBarBazQuux:test > Gradle Test Executor 6 > Executing test org.gradle.MyTest
+    > :fooBarBazQuux:test > Executing test org.gradle.MyTest
 
 ### Scala toolchain is now cacheable
 
