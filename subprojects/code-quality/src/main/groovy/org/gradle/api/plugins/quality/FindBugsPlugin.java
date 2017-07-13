@@ -155,6 +155,13 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
                 return extension.getExtraArgs();
             }
         });
+
+        taskMapping.map("showProgress", new Callable<Boolean>() {
+            @Override
+            public Boolean call() {
+                return extension.isShowProgress();
+            }
+        });
     }
 
     private void configureReportsConventionMapping(FindBugs task, final String baseName) {

@@ -96,6 +96,8 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     private Collection<String> extraArgs = new ArrayList<String>();
 
+    private boolean showProgress;
+
     @Nested
     private final FindBugsReportsInternal reports;
 
@@ -251,6 +253,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
             .withIncludeFilter(getIncludeFilter())
             .withExcludeBugsFilter(getExcludeBugsFilter())
             .withExtraArgs(getExtraArgs())
+            .withShowProgress(getShowProgress())
             .configureReports(getReports());
 
         return specBuilder.build();
@@ -589,4 +592,23 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         this.extraArgs = extraArgs;
     }
 
+    /**
+     * Whether Findbugs' analysis progress should be printed on standard output.
+     *
+     * @since 4.0
+     */
+    @Optional
+    @Internal
+    public boolean getShowProgress() {
+        return showProgress;
+    }
+
+    /**
+     * Whether Findbugs' analysis progress should be printed on standard output.
+     *
+     * @since 4.0
+     */
+    public void setShowProgress(boolean showProgress) {
+        this.showProgress = showProgress;
+    }
 }

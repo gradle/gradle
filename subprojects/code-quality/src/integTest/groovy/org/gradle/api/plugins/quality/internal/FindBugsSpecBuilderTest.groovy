@@ -269,4 +269,12 @@ class FindBugsSpecBuilderTest extends Specification {
         then:
         args.containsAll([ "abc", "def" ])
     }
+
+    def "with showProgress"() {
+        when:
+        def args = builder.withShowProgress(true).build().arguments
+
+        then:
+        args.contains('-progress')
+    }
 }

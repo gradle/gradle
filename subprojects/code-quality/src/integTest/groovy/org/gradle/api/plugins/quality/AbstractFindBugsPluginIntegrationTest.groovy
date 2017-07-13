@@ -532,6 +532,42 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         !result.error.contains("Wrong magic bytes")
     }
 
+    def "can disable progress output"() {
+        given:
+        buildFile << """
+            findbugs {
+                showProgress = false
+            }
+        """
+
+        and:
+        goodCode()
+
+        when:
+        run "findbugsMain"
+
+        then:
+        !output.contains("Scanning archives")
+    }
+
+    def "can enable progress output"() {
+        given:
+        buildFile << """
+            findbugs {
+                showProgress = true 
+            }
+        """
+
+        and:
+        goodCode()
+
+        when:
+        run "findbugsMain"
+
+        then:
+        output.contains("Scanning archives")
+    }
+  
     @Issue("https://github.com/gradle/gradle/issues/2326")
     @NotYetImplemented
     def "check task should not be up-to-date after clean if it only outputs to console"() {
