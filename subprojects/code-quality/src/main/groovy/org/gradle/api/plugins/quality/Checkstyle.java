@@ -87,7 +87,11 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
     }
 
+    /**
+     * @since 4.2
+     */
     @Inject
+    @Incubating
     public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
