@@ -245,7 +245,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         then:
         with(operations.log.descriptors) {
             size() == 1
-            get(0).displayName ==~ "Unpack $key .+"
+            get(0).displayName ==~ "Unpack build cache entry $key"
         }
     }
 
@@ -263,7 +263,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         then:
         with(operations.log.descriptors) {
             size() == 1
-            get(0).displayName ==~ "Pack $key .+"
+            get(0).displayName ==~ "Pack build cache entry $key"
         }
     }
 
@@ -281,7 +281,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         then:
         with(operations.log.descriptors) {
             size() == 1
-            get(0).displayName ==~ "Pack $key .+"
+            get(0).displayName ==~ "Pack build cache entry $key"
         }
     }
 
