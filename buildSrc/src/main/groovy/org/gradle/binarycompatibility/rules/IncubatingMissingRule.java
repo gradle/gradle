@@ -33,7 +33,7 @@ public class IncubatingMissingRule extends AbstractGradleViolationRule {
         if (member instanceof JApiMethod) {
             JApiMethod method = (JApiMethod) member;
             if (!isIncubating(method) && !isIncubating(method.getjApiClass())) {
-                return acceptOrReject(member, Violation.error(member, "New method is not annotated with @Incubating"));
+                return acceptOrReject(method.getjApiClass(), member, Violation.error(member, "New method is not annotated with @Incubating"));
             }
         }
         return null;
