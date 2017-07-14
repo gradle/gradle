@@ -44,6 +44,10 @@ repositories {
     }
 }
 
+ext {
+    compatibilityBaselineVersion = '4.0.1'
+}
+
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
 
 configurations {
@@ -56,10 +60,9 @@ configurations {
 
 Set publicProjects = pluginProjects + implementationPluginProjects + publicGroovyProjects - [project(':smokeTest'), project(':soak')]
 def projects = publicProjects.collect { it.archivesBaseName - 'gradle-' }
-def baselineVersion = project.findProperty('baselineVersion')?:releasedVersions.mostRecentFinalRelease
 
 dependencies {
-    baseline "gradle:gradle:${baselineVersion}@zip"
+    baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
 
     // This transform takes the Gradle zip distribution,
     // and unzips the Gradle jar files that it contains in a directory
@@ -87,7 +90,6 @@ dependencies {
     }
 }
 
-def acceptedViolations = loadBreakingChanges(project, baselineVersion)
 def baselineConfigurations = []
 projects.each { projectName ->
     def appendixName = projectName.split('-')*.capitalize().join('')
@@ -99,10 +101,10 @@ projects.each { projectName ->
 
 task checkBinaryCompatibility(type: JapicmpTask) {
     dependsOn publicProjects.jar
-    inputs.file(project.file("src/changes/changes-since-${baselineVersion}.txt"))
-          .withPropertyName('changes.since')
-          .withPathSensitivity(PathSensitivity.NONE)
-    inputs.property("baseline.version", baselineVersion)
+    ext.acceptedViolations = loadBreakingChanges(project.file("src/changes/accepted-violations.txt"))
+
+    inputs.property('acceptedViolations', acceptedViolations)
+    inputs.property("baseline.version", compatibilityBaselineVersion)
 
     oldClasspath = configurations.baselineClasspath
     newClasspath = files(publicProjects.configurations.runtimeClasspath)
@@ -114,7 +116,7 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
     richReport {
-        title = "Binary compatibility report for Gradle ${version} since ${baselineVersion}"
+        title = "Binary compatibility report for Gradle ${version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")
         reportName = "report.html"
         addRule(BinaryBreakingChangesRule, acceptedViolations)
@@ -138,8 +140,7 @@ static List<String> toPatterns(List<String> packages) {
     patterns
 }
 
-static Map<String, String> loadBreakingChanges(Project p, String since) {
-    def file = p.file("src/changes/changes-since-${since}.txt")
+static Map<String, String> loadBreakingChanges(File file) {
     def map = [:]
     if (file.exists()) {
         file.eachLine { line ->
