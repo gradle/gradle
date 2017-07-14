@@ -394,7 +394,7 @@ Allow a Java library to build for Java 9, and produce both modular and non-modul
 - Implementation forks `javac`
 - To compile Java source, select the closest compatible toolchain to compile the variant.
 
-TBD - alternatively, select the toolchain with the highest version and use bootstrap classpath or `-release` to cross compile.
+TBD - alternatively, select the toolchain with the highest version and use bootstrap classpath or `--release` to cross compile.
 
 TBD - fail or warn when source code is not compiled against exactly the target Java API. Currently, toolchain selection is lenient.
 
@@ -422,7 +422,7 @@ TBD - fail or warn when source code is not compiled against exactly the target J
 ## Backlog
 
 - Generate the module descriptor from the Gradle model.
-- Use Java 9 `-release` flag for compiling against older versions.
+- Use Java 9 `--release` flag for compiling against older versions.
 - Use bootstrap classpath for cross compilation against older versions.
 - Add a toolchain resolve that reuses JVM discovery code from test fixtures to locate installed JVMs.
 
@@ -501,7 +501,7 @@ In no particular order:
     - `JavaExec` task
     - daemon launcher
     - generated application start scripts
-- Use `-release` javac flag for JVM binary that target older Java platform versions
+- Use `--release` javac flag for JVM binary that target older Java platform versions
 - Extract or validate module dependencies declared in `module-info.java`
     - Infer API and runtime requirements based on required and exported modules
 - Extract or validate platform dependencies declared in `module-info.java`
