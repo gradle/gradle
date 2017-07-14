@@ -511,7 +511,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().fails "customTask"
         then:
         def expectedMessage = message.replace("PATH", file("build/output").path)
-        failure.assertHasCause(expectedMessage)
+        failure.assertHasCause("Could not pack property 'output': $expectedMessage")
 
         where:
         expected | actual | message
