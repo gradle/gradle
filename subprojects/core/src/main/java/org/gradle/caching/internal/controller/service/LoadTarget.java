@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.controller.service;
 
+import com.google.common.io.Closer;
 import com.google.common.io.Files;
 import org.gradle.caching.BuildCacheEntryReader;
 
@@ -34,11 +35,19 @@ public class LoadTarget implements BuildCacheEntryReader {
 
     @Override
     public void readFrom(InputStream input) throws IOException {
-        if (loaded) {
-            throw new IllegalStateException("Build cache entry has already been read");
+        Closer closer = Closer.create();
+        closer.register(input);
+        try {
+            if (loaded) {
+                throw new IllegalStateException("Build cache entry has already been read");
+            }
+            Files.asByteSink(file).writeFrom(input);
+            loaded = true;
+        } catch (Exception e) {
+            throw closer.rethrow(e);
+        } finally {
+            closer.close();
         }
-        Files.asByteSink(file).writeFrom(input);
-        loaded = true;
     }
 
     public boolean isLoaded() {

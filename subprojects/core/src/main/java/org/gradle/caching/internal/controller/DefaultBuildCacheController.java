@@ -161,7 +161,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Unpack " + command.getKey() + " build cache entry")
+                    return BuildOperationDescriptor.displayName("Unpack build cache entry " + command.getKey())
                         .details(new UnpackOperationDetails(command.getKey(), file.length()));
                 }
             });
@@ -226,7 +226,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Pack " + command.getKey() + " build cache entry")
+                    return BuildOperationDescriptor.displayName("Pack build cache entry " + command.getKey())
                         .details(new PackOperationDetails(command.getKey()));
                 }
             });

@@ -30,7 +30,6 @@ import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
 import org.gradle.caching.local.DirectoryBuildCache
-import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
@@ -50,7 +49,6 @@ class BuildCacheControllerFactoryTest extends Specification {
     }
 
     def buildOperationExecuter = new TestBuildOperationExecutor()
-    def tempFileStore = Mock(DefaultBuildCacheTempFileStore)
     def config = new DefaultBuildCacheConfiguration(DirectInstantiator.INSTANCE, [
         new DefaultBuildCacheServiceRegistration(DirectoryBuildCache, TestDirectoryBuildCacheServiceFactory),
         new DefaultBuildCacheServiceRegistration(TestOtherRemoteBuildCache, TestOtherRemoteBuildCacheServiceFactory),

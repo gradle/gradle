@@ -27,13 +27,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.io.NullOutputStream
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TextUtil
 import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-@LeaksFileHandles
 class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Shared
@@ -125,7 +123,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
                     }
                 }
             }
-
         """
     }
 

@@ -25,12 +25,10 @@ import org.gradle.caching.internal.controller.service.BuildCacheServicesConfigur
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
 
-@LeaksFileHandles
 class DefaultBuildCacheControllerTest extends Specification {
 
     def key = Mock(BuildCacheKey) {
@@ -50,9 +48,33 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def storeCommand = Stub(BuildCacheStoreCommand) {
         getKey() >> key
+        store(_) >> { OutputStream output ->
+            output.close()
+            new BuildCacheStoreCommand.Result() {
+                @Override
+                long getArtifactEntryCount() {
+                    return 0
+                }
+            }
+        }
     }
+
     def loadCommand = Stub(BuildCacheLoadCommand) {
         getKey() >> key
+        load(_) >> { InputStream input ->
+            input.close()
+            new BuildCacheLoadCommand.Result() {
+                @Override
+                long getArtifactEntryCount() {
+                    return 0
+                }
+
+                @Override
+                Object getMetadata() {
+                    return null
+                }
+            }
+        }
     }
 
     def operations = new TestBuildOperationExecutor()
@@ -247,7 +269,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         then:
         with(operations.log.descriptors) {
             size() == 1
-            get(0).displayName ==~ "Unpack $key .+"
+            get(0).displayName ==~ "Unpack build cache entry $key"
         }
     }
 
@@ -265,7 +287,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         then:
         with(operations.log.descriptors) {
             size() == 1
-            get(0).displayName ==~ "Pack $key .+"
+            get(0).displayName ==~ "Pack build cache entry $key"
         }
     }
 
@@ -283,7 +305,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         then:
         with(operations.log.descriptors) {
             size() == 1
-            get(0).displayName ==~ "Pack $key .+"
+            get(0).displayName ==~ "Pack build cache entry $key"
         }
     }
 
