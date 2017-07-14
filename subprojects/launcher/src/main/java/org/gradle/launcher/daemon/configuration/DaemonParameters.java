@@ -47,6 +47,7 @@ public class DaemonParameters {
     private final DaemonJvmOptions jvmOptions = new DaemonJvmOptions(new IdentityFileResolver());
     private Map<String, String> envVariables;
     private boolean enabled = true;
+    private boolean hasJvmArgs;
     private boolean userDefinedImmutableJvmArgs;
     private boolean foreground;
     private boolean stop;
@@ -125,7 +126,7 @@ public class DaemonParameters {
     }
 
     public void applyDefaultsFor(JavaVersion javaVersion) {
-        if (userDefinedImmutableJvmArgs) {
+        if (hasJvmArgs) {
             return;
         }
         if (javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0) {
@@ -150,6 +151,7 @@ public class DaemonParameters {
     }
 
     public void setJvmArgs(Iterable<String> jvmArgs) {
+        hasJvmArgs = true;
         List<String> immutableBefore = jvmOptions.getAllImmutableJvmArgs();
         jvmOptions.setAllJvmArgs(jvmArgs);
         List<String> immutableAfter = jvmOptions.getAllImmutableJvmArgs();

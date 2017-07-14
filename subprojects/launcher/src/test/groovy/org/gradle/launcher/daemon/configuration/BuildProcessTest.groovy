@@ -133,11 +133,26 @@ public class BuildProcessTest extends Specification {
         BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
 
         when:
-        def parametersWithDefaults = buildParameters()
-        parametersWithDefaults.applyDefaultsFor(JavaVersion.current())
+        def parametersWithDefaults = buildParameters((Iterable) null)
+        parametersWithDefaults.applyDefaultsFor(JavaVersion.VERSION_1_7)
 
         then:
+        parametersWithDefaults.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
         buildProcess.configureForBuild(parametersWithDefaults)
+    }
+
+    def "user can explicitly disable default daemon args by setting jvm args to empty"() {
+        given:
+        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+
+        def emptyBuildParameters = buildParameters([])
+        emptyBuildParameters.applyDefaultsFor(JavaVersion.VERSION_1_7)
+
+        when:
+        buildProcess.configureForBuild(emptyBuildParameters)
+
+        then:
+        !emptyBuildParameters.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
     }
 
     def "user-defined vm args that correspond to defaults are not ignored"() {
@@ -187,10 +202,10 @@ public class BuildProcessTest extends Specification {
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
 
         then:
-        buildProcess.configureForBuild(buildParameters())
+        buildProcess.configureForBuild(buildParameters([]))
     }
 
-    private DaemonParameters buildParameters(Iterable<String> jvmArgs = []) {
+    private DaemonParameters buildParameters(Iterable<String> jvmArgs) {
         return buildParameters(currentJvm, jvmArgs)
     }
 
@@ -201,7 +216,7 @@ public class BuildProcessTest extends Specification {
     private static DaemonParameters buildParameters(JavaInfo jvm, Iterable<String> jvmArgs = [], Map<String, String> extraSystemProperties = Collections.emptyMap()) {
         def parameters = new DaemonParameters(new BuildLayoutParameters(), extraSystemProperties)
         parameters.setJvm(jvm)
-        if (jvmArgs.iterator().hasNext()) {
+        if (jvmArgs != null) {
             parameters.setJvmArgs(jvmArgs)
         }
         return parameters
