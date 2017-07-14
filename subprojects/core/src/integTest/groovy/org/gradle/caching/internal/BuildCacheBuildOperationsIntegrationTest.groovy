@@ -123,7 +123,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
                     }
                 }
             }
-
         """
     }
 
