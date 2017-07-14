@@ -34,18 +34,20 @@ buildscript {
 }
 
 repositories {
-    ivy {
-        name 'Gradle distributions'
-        url 'https://services.gradle.org'
-        layout 'pattern', {
-            ivy '[module]-ivy.xml'
-            artifact '/distributions/[module]-[revision]-bin(.[ext])'
+    ['distributions', 'distributions-snapshots'].each { distUrl ->
+        ivy {
+            name 'Gradle distributions'
+            url 'https://services.gradle.org'
+            layout 'pattern', {
+                ivy '[module]-ivy.xml'
+                artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
+            }
         }
     }
 }
 
 ext {
-    compatibilityBaselineVersion = '4.0.1'
+    compatibilityBaselineVersion = '4.1-20170714074750+0000'
 }
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
