@@ -20,21 +20,38 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
- * Worker Executor.
+ * Allows work to be submitted for asynchronous execution.  Work should be submitted with a {@link Runnable} class
+ * representing the implementation of the unit of work and an action to configure the unit of work (via {@link WorkerConfiguration}.
+ *
+ * <pre>
+ *      workerExecutor.submit(WorkImplementation.class) { WorkerConfiguration conf ->
+ *          // Set the isolation mode for the worker
+ *          conf.isolationMode = IsolationMode.NONE
+ *
+ *          // Set up JVM options
+ *          conf.forkOptions.maxHeapSize = "512m"
+ *          conf.forkOptions.systemProperty("foo", "bar")
+ *
+ *          // Add to the classpath
+ *          conf.classpath configurations.fooLibrary
+ *
+ *          // Set up the constructor parameters for the unit of work
+ *          conf.params = [ "foo", file('bar') ]
+ *      }
+ * </pre>
  *
  * @since 3.5
  */
 @Incubating
 public interface WorkerExecutor {
     /**
-     * Submits a piece of work to be executed.
+     * Submits a piece of work to be executed asynchronously.
      *
      * Execution of the work may begin immediately.
      *
-     * Forked work will execute in an idle daemon that meets the requirements set on this builder.  If no
-     * idle daemons are available, a new daemon will be started.  Any errors will be thrown from  {@link #await()}.
-     *
-     * In the event that an error is thrown while submitting work, all uncompleted work will be canceled.
+     * Work configured with {@link IsolationMode#PROCESS} will execute in an idle daemon that meets the requirements set
+     * in the {@link WorkerConfiguration}.  If no idle daemons are available, a new daemon will be started.  Any errors
+     * will be thrown from {@link #await()} or from the surrounding task action if {@link #await()} is not used.
      */
     void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction);
 

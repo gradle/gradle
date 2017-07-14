@@ -305,4 +305,176 @@
             </sample>
         </section>
     </section>
+    <section id="worker_api">
+        <title>The Worker API</title>
+        <note>
+            <para>
+                The Worker API is an <link linkend="feature_lifecycle">incubating</link> feature.
+            </para>
+        </note>
+        <para>
+            As can be seen from the discussion of <link linkend="incremental_tasks">incremental tasks</link>, the work that a task performs can be viewed as discrete units (i.e. a subset of inputs that are transformed to a certain subset of outputs).  Many times, these units of work are highly independent of each other, meaning they can be performed in any order and simply aggregated together to form the overall action of the task.  In a single threaded execution, these units of work would execute in sequence, however if we have multiple processors, it would be desirable to perform independent units of work concurrently.  By doing so, we can maximize the resources available at build time and complete the activity of the task faster.
+        </para>
+        <para>
+            The Worker API provides a mechanism for doing exactly this.  It allows for safe, concurrent execution of multiple items of work during a task action.  But the benefits of the Worker API are not confined to parallelizing the work of a task.  You can also configure a desired level of isolation such that work can be executed in an isolated classloader or even in an isolated process.  Furthermore, the benefits extend beyond even the execution of a single task.  Using the Worker API, Gradle can begin to execute tasks in parallel by default.  In other words, once a task has submitted its work to be executed asynchronously, and has exited the task action, Gradle can then begin the execution of other independent tasks in parallel, even if those tasks are in the same project.
+        </para>
+        <section id="using-the-worker-api">
+            <title>Using the Worker API</title>
+            <para>
+                In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and a configuration for the unit of work.  The implementation is simply a class that extends <literal>java.lang.Runnable</literal>.  This class should have a constructor that is annotated with <literal>javax.inject.Inject</literal> and accepts parameters that configure the class for a single unit of work.  When a unit of work is submitted to the <apilink class="org.gradle.workers.WorkerExecutor" />, an instance of this class will be created and the parameters configured for the unit of work will be passed to the constructor.
+            </para>
+            <sample id="unitOfWork" dir="workerApi/noIsolation" title="Creating a unit of work implementation">
+                <sourcefile file="build.gradle" snippet="unit-of-work" />
+            </sample>
+            <para>
+                The configuration of the worker is represented by a <apilink class="org.gradle.workers.WorkerConfiguration" /> and is set by configuring an instance of this object at the time of submission.  However, in order to submit the unit of work, it is necessary to first acquire the <apilink class="org.gradle.workers.WorkerExecutor" />.  To do this, a getter must be provided on the custom task object that has a return type of <apilink class="org.gradle.workers.WorkerExecutor" /> and is annotated with <literal>javax.inject.Inject</literal>.  It is idiomatic to provide a stub implementation of this method that throws a <literal>java.lang.UnsupportedOperationException</literal>.  This exception will never be thrown, as Gradle will inject the method at runtime providing the appropriate <apilink class="org.gradle.workers.WorkerExecutor" /> object.
+            </para>
+            <sample id="workSubmission" dir="workerApi/noIsolation" title="Submitting a unit of work for execution">
+                <sourcefile file="build.gradle" snippet="task-implementation" />
+            </sample>
+            <para>
+                Note that one element of the <apilink class="org.gradle.workers.WorkerConfiguration" /> is the <literal>params</literal> property.  These are the parameters passed to the constructor of the unit of work implementation for each item of work submitted.  Any parameters provided to the unit of work <emphasis>must</emphasis> be <literal>java.io.Serializable</literal>.
+            </para>
+            <para>
+                Once all of the work for a task action has been submitted, it is safe to exit the task action.  The work will be executed asynchronously and in parallel (up to the setting of <literal>max-workers</literal>).  Of course, any tasks that are dependent on this task (and any subsequent task actions of this task) will not begin executing until all of the asynchronous work completes.  However, other independent tasks that have no relationship to this task can begin executing immediately.
+            </para>
+            <para>
+                If any failures occur while executing the asynchronous work, the task will fail and a <apilink class="org.gradle.workers.WorkerExecutionException" /> will be thrown detailing the failure for each failed work item.  This will be treated like any failure during task execution and will prevent any dependent tasks from executing.
+            </para>
+            <para>
+                In some cases, however, it might be desirable to wait for work to complete before exiting the task action.  This is possible using the <apilink class="org.gradle.workers.WorkerExecutor" method="await" /> method.  As in the case of allowing the work to complete asynchronously, any failures that occur while executing an item of work will be surfaced as a <apilink class="org.gradle.workers.WorkerExecutionException" /> thrown from the <apilink class="org.gradle.workers.WorkerExecutor" method="await" /> method.
+            </para>
+            <note>
+                <para>
+                    Note that Gradle will only begin running other independent tasks in parallel when a task has exited a task action and returned control of execution to Gradle.  When <apilink class="org.gradle.workers.WorkerExecutor" method="await" /> is used, execution does not leave the task action.  This means that Gradle will not allow other tasks to begin executing and will wait for the task action to complete before doing so.
+                </para>
+            </note>
+            <sample id="waitForCompletion" dir="workerApi/waitForCompletion" title="Waiting for asynchronous work to complete">
+                <sourcefile file="build.gradle" snippet="wait-for-completion" />
+            </sample>
+        </section>
+        <section id="isolation-modes">
+            <title>Isolation Modes</title>
+            <para>
+                Gradle provides three isolation modes that can be configured on a unit of work and are specified using the <apilink class="org.gradle.workers.IsolationMode" /> enum:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>IsolationMode.NONE</term>
+                    <listitem>
+                        <para>
+                            This states that the work should be run in a thread with a minimum of isolation.  For instance, it will share the same classloader that the task is loaded from.  This is the fastest level of isolation.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>IsolationMode.CLASSLOADER</term>
+                    <listitem>
+                        <para>
+                            This states that the work should be run in a thread with an isolated classloader.  The classloader will have the classpath from the classloader that the unit of work implementation class was loaded from as well as any additional classpath entries added through <apilink class="org.gradle.workers.WorkerConfiguration" method="classpath" />.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>IsolationMode.PROCESS</term>
+                    <listitem>
+                        <para>
+                            This states the the work should be run with a maximum level of isolation by executing the work in a separate process.  The classloader of the process will use the classpath from the classloader that the unit of work was loaded from as well as any additional classpath entries added through <apilink class="org.gradle.workers.WorkerConfiguration" method="classpath" />.  Furthermore, the process will be a <emphasis>Worker Daemon</emphasis> which will stay alive and can be reused for future work items that may have the same requirements.  This process can be configured with different settings than the Gradle JVM using <apilink class="org.gradle.workers.WorkerConfiguration" method="forkOptions" />.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+        <section id="worker-daemons">
+            <title>Worker Daemons</title>
+            <para>
+                When using <literal>IsolationMode.PROCESS</literal>, gradle will start a long-lived <emphasis>Worker Daemon</emphasis> process that can be reused for future work items.  When a unit of work for a Worker Daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists.  If so, it will send the unit of work to the idle daemon, marking it as busy.  If not, it will start a new daemon.  When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through <apilink class="org.gradle.workers.WorkerConfiguration" method="forkOptions" />.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>executable</term>
+                    <listitem>
+                        <para>
+                            A daemon is considered compatible only if it uses the same java executable.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>classpath</term>
+                    <listitem>
+                        <para>
+                            A daemon is considered compatible if its classpath contains all of the classpath entries requested.  Note that a daemon is considered compatible if it has more classpath entries in addition to those requested.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>heap settings</term>
+                    <listitem>
+                        <para>
+                            A daemon is considered compatible if it has at least the same heap size settings as requested.  In other words, a daemon that has higher heap settings than requested would be considered compatible.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>jvm arguments</term>
+                    <listitem>
+                        <para>
+                            A daemon is considered compatible if it has set all of the jvm arguments requested.  Note that a daemon is considered compatible if it has additional jvm arguments beyond those requested (except for arguments treated specially such as heap settings, assertions, debug, etc).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>system properties</term>
+                    <listitem>
+                        <para>
+                            A daemon is considered compatible if it has set all of the system properties requested with the same values.  Note that a daemon is considered compatible if it has additional system properties beyond those requested.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>environment variables</term>
+                    <listitem>
+                        <para>
+                            A daemon is considered compatible if it has set all of the environment variables requested with the same values.  Note that a daemon is considered compatible if it has more environment variables in addition to those requested.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>bootstrap classpath</term>
+                    <listitem>
+                        <para>
+                            A daemon is considered compatible if it contains all of the bootstrap classpath entries requested.  Note that a daemon is considered compatible if it has more bootstrap classpath entries in addition to those requested.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>debug</term>
+                    <listitem>
+                        <para>
+                            A daemon is considered compatible only if debug is set to the same value as requested (true or false).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>enable assertions</term>
+                    <listitem>
+                        <para>
+                            A daemon is considered compatible only if enable assertions is set to the same value as requested (true or false).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>default character encoding</term>
+                    <listitem>
+                        <para>
+                            A daemon is considered compatible only if the default character encoding is set to the same value as requested.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                Worker daemons will remain running until either the build daemon that started them is stopped, or system memory becomes scarce.  When available system memory is low, Gradle will begin stopping worker daemons in an attempt to free up memory.
+            </para>
+        </section>
+    </section>
 </chapter>
