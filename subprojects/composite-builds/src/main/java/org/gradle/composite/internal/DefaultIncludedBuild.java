@@ -28,16 +28,17 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
     private final Factory<GradleLauncher> gradleLauncherFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final WorkerLeaseRegistry.WorkerLease parentLease;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
 
     private DefaultDependencySubstitutions dependencySubstitutions;
@@ -45,10 +46,11 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private GradleLauncher gradleLauncher;
     private String name;
 
-    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
         this.projectDir = projectDir;
         this.gradleLauncherFactory = launcherFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.parentLease = parentLease;
     }
 
     public File getProjectDir() {
@@ -119,10 +121,9 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         final GradleLauncher launcher = getGradleLauncher();
         launcher.addListener(listener);
         launcher.scheduleTasks(tasks);
+        WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
         try {
-            // TODO:DAZ Should share the same worker lease as the main build, or avoid separate pool of task workers per build
-            WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
-            workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Runnable() {
+            workerLeaseService.withSharedLease(parentLease, new Runnable() {
                 @Override
                 public void run() {
                     launcher.executeTasks();
