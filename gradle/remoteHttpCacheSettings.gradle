@@ -27,7 +27,7 @@ if (remoteCacheUrl) {
         }
         remote(org.gradle.caching.http.HttpBuildCache) {
             url = remoteCacheUrl
-            push = true //isCiServer && remotePush
+            push = isCiServer && remotePush
             if (remoteCacheUsername && remoteCachePassword) {
                 credentials {
                     username = remoteCacheUsername
