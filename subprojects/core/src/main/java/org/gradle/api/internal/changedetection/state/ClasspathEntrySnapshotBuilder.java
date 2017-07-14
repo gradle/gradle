@@ -47,14 +47,12 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
     });
     private final SnapshotNormalizationStrategy normalizationStrategy;
     private final StringInterner stringInterner;
-    private final TaskFilePropertyCompareStrategy compareStrategy;
     private final Multimap<String, NormalizedFileSnapshot> normalizedSnapshots;
     private final ResourceHasher classpathResourceHasher;
 
     public ClasspathEntrySnapshotBuilder(ResourceHasher classpathResourceHasher, StringInterner stringInterner) {
         this.classpathResourceHasher = classpathResourceHasher;
         this.normalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.RELATIVE;
-        this.compareStrategy = TaskFilePropertyCompareStrategy.UNORDERED;
         this.stringInterner = stringInterner;
         this.normalizedSnapshots = MultimapBuilder.hashKeys().arrayListValues().build();
     }
@@ -84,7 +82,7 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
         }
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         Collection<NormalizedFileSnapshot> values = normalizedSnapshots.values();
-        compareStrategy.appendToHasher(hasher, values);
+        TaskFilePropertyCompareStrategy.UNORDERED.appendToHasher(hasher, values);
         return hasher.hash();
     }
 
