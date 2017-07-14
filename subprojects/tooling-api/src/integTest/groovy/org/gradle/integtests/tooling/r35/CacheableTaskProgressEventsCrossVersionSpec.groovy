@@ -25,7 +25,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
-import spock.lang.Ignore
 
 class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
@@ -57,19 +56,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     @ToolingApiVersion('>=3.3')
     @TargetGradleVersion('>=3.5')
-    @Ignore
     def "cacheable task generates build operations for load and store"() {
-        given:
-        def cacheDir = file("task-output-cache-2")
-        settingsFile << """
-            buildCache {
-                local.push = false
-                remote(DirectoryBuildCache) {
-                    push = true
-                    directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
-                }
-            }
-        """
         when:
         def pushToCacheEvents = ProgressEvents.create()
         runCacheableBuild(pushToCacheEvents)
@@ -87,8 +74,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     @ToolingApiVersion('>=3.3')
     @TargetGradleVersion('>=3.5')
-    @Ignore
-    def "cacheable task generates build operations when pushing to two caches"() {
+    def "cacheable task generates build operations when using remote cache"() {
         TestFile localCache = file('local-cache')
         TestFile remoteCache = file('remote-cache')
         settingsFile.text = """
@@ -124,7 +110,10 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private static List<Operation> writingOperations(ProgressEvents pushToCacheEvents) {
         def pushTaskOperation = pushToCacheEvents.operation("Task :cacheable")
-        def writingOperations = pushTaskOperation.children.findAll { it.descriptor.displayName =~ /Store entry .+ in (local|remote) build cache/ }
+        def writingOperations = pushTaskOperation.children.findAll {
+            it.descriptor.displayName =~ /Store entry .+ in (local|remote) build cache/ ||
+                it.descriptor.displayName =~ /Pack build cache entry .+/
+        }
         writingOperations.each {
             assert !it.children
         }
@@ -133,14 +122,17 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private static List<Operation> readingOperations(ProgressEvents pullFromCacheResults) {
         def pullTaskOperation = pullFromCacheResults.operation("Task :cacheable")
-        def pullOperations = pullTaskOperation.children.findAll { it.descriptor.displayName =~ /Load entry .+ from (local|remote) build cache/ }
+        def pullOperations = pullTaskOperation.children.findAll {
+            it.descriptor.displayName =~ /Load entry .+ from (local|remote) build cache/ ||
+                it.descriptor.displayName =~ /Unpack build cache entry .+/
+        }
         pullOperations.each {
             assert !it.children
         }
         return pullOperations
     }
 
-    private void runCacheableBuild(listener, String task="cacheable") {
+    private void runCacheableBuild(listener, String task = "cacheable") {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().withArguments("--build-cache").forTasks(task).addProgressListener(listener, EnumSet.of(OperationType.GENERIC, OperationType.TASK)).run()
