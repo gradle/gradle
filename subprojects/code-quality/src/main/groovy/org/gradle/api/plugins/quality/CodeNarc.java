@@ -92,11 +92,8 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
         setConfig(getProject().getResources().getText().fromFile(configFile));
     }
 
-    /**
-     * @since 4.2
-     */
-    @Inject
     @Incubating
+    @Inject
     public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }

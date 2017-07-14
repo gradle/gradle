@@ -126,9 +126,6 @@ public class Ear extends Jar {
         });
     }
 
-    /**
-     * @since 4.2
-     */
     @Incubating
     @Inject
     protected ObjectFactory getObjectFactory() {

@@ -71,9 +71,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
         reports = getObjectFactory().newInstance(PmdReportsImpl.class, this);
     }
 
-    /**
-     * @since 4.2
-     */
     @Incubating
     @Inject
     public ObjectFactory getObjectFactory() {

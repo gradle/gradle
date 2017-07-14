@@ -78,9 +78,6 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
         reports = getObjectFactory().newInstance(JDependReportsImpl.class, this);
     }
 
-    /**
-     * @since 4.2
-     */
     @Incubating
     @Inject
     public ObjectFactory getObjectFactory() {

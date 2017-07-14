@@ -105,9 +105,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         reports = getObjectFactory().newInstance(FindBugsReportsImpl.class, this);
     }
 
-    /**
-     * @since 4.2
-     */
     @Incubating
     @Inject
     public ObjectFactory getObjectFactory() {
