@@ -112,6 +112,10 @@ This change makes the selection behaviour consistent so that the `runtimeElement
 
 The default version of the [Scala Zinc compiler](https://github.com/typesafehub/zinc) has changed from 0.3.13 to 0.3.15.
 
+### Filters defined via command line option --tests never override filters from build script
+
+The `--tests` filters are now always applied on top of the filtering defined in build scripts. In previous Gradle versions, filters defined through `filter.includeTestsMatching` or `filter.includePatterns` were overridden, while other filters were not. The [Test filtering](userguide/java_plugin.html#test_filtering) documentation was adjusted to reflect the new behavior.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -120,6 +124,7 @@ We would like to thank the following community members for making contributions 
  - [Björn Kautler](https://github.com/Vampire) - Fix WTP component version (#2076)
  - [Bo Zhang](https://github.com/blindpirate) - Add support for 'console' output type of CodeNarc plugin (#2170)
  - [Bo Zhang](https://github.com/blindpirate) - Fix infinite loop when using `Path` for task property (#1973)
+ - [Bo Zhang](https://github.com/blindpirate) - Contributions to consistent --tests option handling (#2172)
  - [Marcin Zajączkowski](https://github.com/szpak) - Add `@since` tag to `Project.findProperty()` (#2403)
  - [Seth Jackson](https://github.com/sethjackson) - Fix the default daemon JVM args on Java 8 (#2310)
  - [Ismael Juma](https://github.com/ijuma) - Update default Zinc compiler version to 0.3.15 with preliminary Java 9 support (#2420)
