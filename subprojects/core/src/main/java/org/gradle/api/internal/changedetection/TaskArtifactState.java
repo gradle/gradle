@@ -52,6 +52,11 @@ public interface TaskArtifactState {
     void ensureSnapshotBeforeTask();
 
     /**
+     * Retakes output file snapshots and prevents the task from executing in an incremental fashion.
+     */
+    void afterOutputsRemovedBeforeTask();
+
+    /**
      * Called on completion of task execution.
      */
     void afterTask(Throwable failure);

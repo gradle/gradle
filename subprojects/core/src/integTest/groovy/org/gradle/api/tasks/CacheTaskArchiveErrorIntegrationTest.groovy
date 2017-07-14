@@ -21,9 +21,6 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
-import static org.gradle.util.Matchers.containsText
-import static org.gradle.util.Matchers.matchesRegexp
-
 class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def setup() {
@@ -50,12 +47,11 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
             }
         """
 
-        executer.withStackTraceChecksDisabled()
-
         then:
-        fails "customTask"
-        failure.assertThatDescription(matchesRegexp("Failed to store cache entry .+ for task :customTask"))
-        failure.assertThatCause(containsText("Could not pack property 'output'"))
+        executer.withStackTraceChecksDisabled()
+        succeeds "customTask"
+        output =~ /Failed to store cache entry .+ for task ':customTask'/
+        output =~ /Could not pack property 'output'/
         listCacheFiles().empty
         listCacheTempFiles().empty
 
@@ -94,11 +90,11 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
             }
         """
 
-        executer.withStackTraceChecksDisabled()
-
         then:
-        fails "customTask"
+        executer.withStackTraceChecksDisabled()
+        succeeds "customTask"
         listCacheFiles(remoteCacheDir).empty
+        output =~ /org.gradle.api.GradleException: Could not pack property 'output'/
     }
 
     TestFile enableRemote() {
@@ -138,12 +134,14 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         listCacheFiles()*.delete()
 
         then:
-        fails("clean", "customTask")
-        failure.assertThatDescription(matchesRegexp("Build cache entry .+ from remote build cache is invalid"))
-        failure.assertThatCause(containsText("java.util.zip.ZipException: Not in GZIP format"))
+        executer.withStackTraceChecksDisabled()
+        succeeds("clean", "customTask")
+        output =~ /Build cache entry .+ from remote build cache is invalid/
+        output =~ /java.util.zip.ZipException: Not in GZIP format/
 
         and:
-        listCacheFiles().empty
+        listCacheFiles().size() == 1
+        listCacheFiles().first().text != "corrupt"
 
         when:
         settingsFile << """
@@ -176,15 +174,18 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         listCacheFiles().size() == 1
 
         when:
-        listCacheFiles().first().text = "corrupt"
+        listCacheFiles().first().bytes = listCacheFiles().first().bytes[0..-100]
 
         then:
-        fails("clean", "customTask")
-        failure.assertThatDescription(matchesRegexp("Build cache entry .+ from local build cache is invalid"))
-        failure.assertThatCause(containsText("java.util.zip.ZipException: Not in GZIP format"))
+        executer.withStackTraceChecksDisabled()
+        succeeds("clean", "customTask")
+        output =~ /Cleaning outputs for task ':customTask' after failed load from cache/
+        output =~ /Failed to load cache entry for task ':customTask', falling back to executing task/
+        output =~ /Build cache entry .+ from local build cache is invalid/
+        output =~ /java.io.EOFException: Unexpected end of ZLIB input stream/
 
         and:
-        listCacheFiles().empty
+        listCacheFiles().size() == 1
         listCacheFailedFiles().size() == 1
 
         and:
@@ -206,7 +207,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
 
             task cacheable(type: CustomTask)
         """
-        withBuildCache().succeeds("cacheable")
+        succeeds("cacheable")
 
         then:
         def cacheFiles = listCacheFiles()
@@ -216,18 +217,19 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         file("build").deleteDir()
 
         and:
+        executer.withStackTraceChecksDisabled()
         corruptMetadata({ metadata -> metadata.text = "corrupt" })
-        withBuildCache().fails("cacheable")
+        succeeds("cacheable")
 
         then:
-        failure.assertHasCause("Cached result format error, corrupted origin metadata.")
+        output =~ /Cached result format error, corrupted origin metadata\./
         listCacheFailedFiles().size() == 1
 
         when:
         file("build").deleteDir()
 
         then:
-        withBuildCache().succeeds("cacheable")
+        succeeds("cacheable")
     }
 
 

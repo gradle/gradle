@@ -73,6 +73,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private final TaskInternal task;
         private final TaskHistoryRepository.History history;
         private boolean upToDate;
+        private boolean outputsRemoved;
         private TaskUpToDateState states;
         private IncrementalTaskInputsInternal taskInputs;
 
@@ -95,7 +96,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public IncrementalTaskInputs getInputChanges() {
             assert !upToDate : "Should not be here if the task is up-to-date";
 
-            if (canPerformIncrementalBuild()) {
+            if (!outputsRemoved && canPerformIncrementalBuild()) {
                 taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             } else {
                 taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
@@ -159,6 +160,15 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public void ensureSnapshotBeforeTask() {
             getStates();
+        }
+
+        @Override
+        public void afterOutputsRemovedBeforeTask() {
+            outputsRemoved = true;
+            // No need to retake snapshots if we never took any before
+            if (states != null) {
+                states.retakeOutputFileSnapshots();
+            }
         }
 
         @Override

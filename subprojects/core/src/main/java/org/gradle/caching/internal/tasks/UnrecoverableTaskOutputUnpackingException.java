@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.caching;
+package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.GradleException;
 
 /**
- * <p><code>BuildCacheException</code> is the base class of all exceptions thrown by a {@link BuildCacheService}.</p>
- *
- * @since 3.3
+ * Thrown after unpacking failed, when the attempt to clean up unpacked outputs also failed.
  */
-public class BuildCacheException extends GradleException {
-    public BuildCacheException() {
-        super();
-    }
-
-    public BuildCacheException(String message) {
+public class UnrecoverableTaskOutputUnpackingException extends GradleException {
+    public UnrecoverableTaskOutputUnpackingException(String message) {
         super(message);
     }
 
-    public BuildCacheException(String message, Throwable cause) {
+    public UnrecoverableTaskOutputUnpackingException(String message, Throwable cause) {
         super(message, cause);
     }
 }

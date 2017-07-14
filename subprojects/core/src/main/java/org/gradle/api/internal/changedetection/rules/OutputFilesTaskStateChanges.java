@@ -56,6 +56,11 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     }
 
     @Override
+    public void retakeSnapshots() {
+        super.retakeSnapshots();
+    }
+
+    @Override
     public void snapshotAfterTask() {
         final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties());
 

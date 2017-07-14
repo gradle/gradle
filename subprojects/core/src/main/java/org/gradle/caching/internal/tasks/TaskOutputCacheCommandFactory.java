@@ -16,7 +16,11 @@
 
 package org.gradle.caching.internal.tasks;
 
+import org.apache.commons.io.FileUtils;
+import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.logging.Logger;
@@ -28,6 +32,7 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.internal.time.Timer;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,8 +50,8 @@ public class TaskOutputCacheCommandFactory {
         this.taskOutputOriginFactory = taskOutputOriginFactory;
     }
 
-    public BuildCacheLoadCommand<TaskOutputOriginMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, Timer clock) {
-        return new LoadCommand(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock);
+    public BuildCacheLoadCommand<TaskOutputOriginMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
+        return new LoadCommand(cacheKey, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, clock);
     }
 
     public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
@@ -59,13 +64,15 @@ public class TaskOutputCacheCommandFactory {
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
         private final TaskInternal task;
         private final TaskOutputsGenerationListener taskOutputsGenerationListener;
+        private final TaskArtifactState taskArtifactState;
         private final Timer clock;
 
-        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, Timer clock) {
+        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
             this.task = task;
             this.taskOutputsGenerationListener = taskOutputsGenerationListener;
+            this.taskArtifactState = taskArtifactState;
             this.clock = clock;
         }
 
@@ -77,7 +84,20 @@ public class TaskOutputCacheCommandFactory {
         @Override
         public BuildCacheLoadCommand.Result<TaskOutputOriginMetadata> load(InputStream input) {
             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
-            final TaskOutputPacker.UnpackResult unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
+            final TaskOutputPacker.UnpackResult unpackResult;
+            try {
+                unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
+            } catch (RuntimeException e) {
+                LOGGER.warn("Cleaning outputs for {} after failed load from cache.", task);
+                try {
+                    cleanupOutputsAfterUnpackFailure();
+                    taskArtifactState.afterOutputsRemovedBeforeTask();
+                } catch (RuntimeException e2) {
+                    LOGGER.warn("Unrecoverable error during cleaning up after task output unpack failure", e2);
+                    throw new UnrecoverableTaskOutputUnpackingException(String.format("Failed to unpack outputs for %s, and then failed to clean up; see log above for details", task), e);
+                }
+                throw new GradleException(String.format("Failed to unpack outputs for %s", task), e);
+            }
             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
 
             return new BuildCacheLoadCommand.Result<TaskOutputOriginMetadata>() {
@@ -91,6 +111,23 @@ public class TaskOutputCacheCommandFactory {
                     return unpackResult.originMetadata;
                 }
             };
+        }
+
+        private void cleanupOutputsAfterUnpackFailure() {
+            for (ResolvedTaskOutputFilePropertySpec outputProperty : outputProperties) {
+                File outputFile = outputProperty.getOutputFile();
+                if (outputFile != null && outputFile.exists()) {
+                    try {
+                        if (outputFile.isDirectory()) {
+                            FileUtils.cleanDirectory(outputFile);
+                        } else {
+                            FileUtils.forceDelete(outputFile);
+                        }
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(String.format("Failed to clean up files for output property '%s' of %s: %s", outputProperty.getPropertyName(), task, outputFile), ex);
+                    }
+                }
+            }
         }
     }
 
@@ -115,7 +152,7 @@ public class TaskOutputCacheCommandFactory {
 
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
-            LOGGER.info("Packing {}", task.getPath());
+            LOGGER.info("Packing {}", task);
             final TaskOutputPacker.PackResult packResult = packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
             return new BuildCacheStoreCommand.Result() {
                 @Override

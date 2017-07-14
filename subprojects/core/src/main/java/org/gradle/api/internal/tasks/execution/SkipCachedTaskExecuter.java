@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -29,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
@@ -78,13 +78,22 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 // property values are locked in at this point.
                 outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
-                    TaskOutputOriginMetadata originMetadata = buildCache.load(
-                        buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock)
-                    );
-                    if (originMetadata != null) {
-                        state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
-                        context.setOriginBuildInvocationId(originMetadata.getBuildInvocationId());
-                        return;
+                    try {
+                        TaskOutputOriginMetadata originMetadata = buildCache.load(
+                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskOutputsGenerationListener, taskState, clock)
+                        );
+                        if (originMetadata != null) {
+                            state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
+                            context.setOriginBuildInvocationId(originMetadata.getBuildInvocationId());
+                            return;
+                        }
+                    } catch (UnrecoverableTaskOutputUnpackingException e) {
+                        // We didn't manage to recover from the unpacking error, there might be leftover
+                        // garbage among the task's outputs, thus we must fail the build
+                        throw e;
+                    } catch (Exception e) {
+                        // There was a failure during downloading, previous task outputs should bu unaffected
+                        LOGGER.warn("Failed to load cache entry for {}, falling back to executing task", task, e);
                     }
                 } else {
                     LOGGER.info("Not loading {} from cache because pulling from cache is disabled for this task", task);
@@ -102,7 +111,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                     try {
                         buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, task, clock));
                     } catch (Exception e) {
-                        throw new GradleException("Failed to store cache entry " + cacheKey + " for task " + task.getIdentityPath(), e);
+                        LOGGER.warn("Failed to store cache entry {} for {}", cacheKey, task, e);
                     }
                 } else {
                     LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
@@ -112,5 +121,4 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             }
         }
     }
-
 }
