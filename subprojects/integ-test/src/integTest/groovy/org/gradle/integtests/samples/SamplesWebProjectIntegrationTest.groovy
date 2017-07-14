@@ -23,15 +23,13 @@ import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 
 class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
-    static final String WEB_PROJECT_NAME = 'customized'
-
     @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/customized')
     @Rule ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def "can build war"() {
         when:
         sample sample
-        runWithExpectedDeprecationWarning('clean', 'assemble')
+        succeeds('clean', 'assemble')
 
         then:
         TestFile tmpDir = file('unjar')
@@ -50,9 +48,5 @@ class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
                 'WEB-INF/webapp.xml',
                 'WEB-INF/web.xml',
                 'webapp.html')
-    }
-
-    private void runWithExpectedDeprecationWarning(String... tasks) {
-        result = executer.withTasks(tasks).expectDeprecationWarning().run()
     }
 }

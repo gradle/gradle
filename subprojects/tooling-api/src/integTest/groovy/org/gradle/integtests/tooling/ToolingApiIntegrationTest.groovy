@@ -258,7 +258,6 @@ allprojects {
 
         when:
         GradleHandle handle = executer.inDirectory(projectDir)
-            .expectDeprecationWarning() // tapi on java 6
             .withTasks('run')
             .start()
 

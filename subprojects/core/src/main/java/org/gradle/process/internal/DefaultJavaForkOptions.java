@@ -16,16 +16,25 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.JavaForkOptions;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptions {
+import static com.google.common.base.Strings.nullToEmpty;
+
+public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
+    private final FileResolver resolver;
     private final JvmOptions options;
 
     public DefaultJavaForkOptions(FileResolver resolver) {
@@ -34,6 +43,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     public DefaultJavaForkOptions(FileResolver resolver, Jvm jvm) {
         super(resolver);
+        this.resolver = resolver;
         options = new JvmOptions(resolver);
         setExecutable(jvm.getJavaExecutable());
     }
@@ -147,5 +157,132 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         super.copyTo(target);
         options.copyTo(target);
         return this;
+    }
+
+    @Override
+    public JavaForkOptionsInternal mergeWith(JavaForkOptions options) {
+        JavaForkOptionsInternal mergedOptions = new DefaultJavaForkOptions(resolver);
+
+        if (!canBeMerged(getExecutable(), options.getExecutable())) {
+            throw new IllegalArgumentException("Cannot merge a fork options object with a different executable (this: " + getExecutable() + ", other: " + options.getExecutable() + ").");
+        } else {
+            mergedOptions.setExecutable(getExecutable() != null ? getExecutable() : options.getExecutable());
+        }
+
+        if (!canBeMerged(getWorkingDir(), options.getWorkingDir())) {
+            throw new IllegalArgumentException("Cannot merge a fork options object with a different working directory (this: " + getWorkingDir() + ", other: " + options.getWorkingDir() + ").");
+        } else {
+            mergedOptions.setWorkingDir(getWorkingDir() != null ? getWorkingDir() : options.getWorkingDir());
+        }
+
+        if (!canBeMerged(getDefaultCharacterEncoding(), options.getDefaultCharacterEncoding())) {
+            throw new IllegalArgumentException("Cannot merge a fork options object with a different default character encoding (this: " + getDefaultCharacterEncoding() + ", other: " + options.getDefaultCharacterEncoding() + ").");
+        } else {
+            mergedOptions.setDefaultCharacterEncoding(getDefaultCharacterEncoding() != null ? getDefaultCharacterEncoding() : options.getDefaultCharacterEncoding());
+        }
+
+        mergedOptions.setDebug(getDebug() || options.getDebug());
+        mergedOptions.setEnableAssertions(getEnableAssertions() || options.getEnableAssertions());
+
+        mergedOptions.setMinHeapSize(mergeHeapSize(getMinHeapSize(), options.getMinHeapSize()));
+        mergedOptions.setMaxHeapSize(mergeHeapSize(getMaxHeapSize(), options.getMaxHeapSize()));
+
+        Set<String> mergedJvmArgs = normalized(getJvmArgs());
+        mergedJvmArgs.addAll(normalized(options.getJvmArgs()));
+        mergedOptions.setJvmArgs(mergedJvmArgs);
+
+        Map<String, Object> mergedEnvironment = Maps.newHashMap(getEnvironment());
+        mergedEnvironment.putAll(options.getEnvironment());
+        mergedOptions.setEnvironment(mergedEnvironment);
+
+        Map<String, Object> mergedSystemProperties = Maps.newHashMap(getSystemProperties());
+        mergedSystemProperties.putAll(options.getSystemProperties());
+        mergedOptions.setSystemProperties(mergedSystemProperties);
+
+        mergedOptions.setBootstrapClasspath(new UnionFileCollection(getBootstrapClasspath(), options.getBootstrapClasspath()));
+
+        return mergedOptions;
+    }
+
+    @Override
+    public boolean isCompatibleWith(JavaForkOptions options) {
+        return getDebug() == options.getDebug()
+                && getEnableAssertions() == options.getEnableAssertions()
+                && normalized(getExecutable()).equals(normalized(options.getExecutable()))
+                && getWorkingDir().equals(options.getWorkingDir())
+                && normalized(getDefaultCharacterEncoding()).equals(normalized(options.getDefaultCharacterEncoding()))
+                && getHeapSizeMb(getMinHeapSize()) >= getHeapSizeMb(options.getMinHeapSize())
+                && getHeapSizeMb(getMaxHeapSize()) >= getHeapSizeMb(options.getMaxHeapSize())
+                && normalized(getJvmArgs()).containsAll(normalized(options.getJvmArgs()))
+                && containsAll(getSystemProperties(), options.getSystemProperties())
+                && containsAll(getEnvironment(), options.getEnvironment())
+                && getBootstrapClasspath().getFiles().containsAll(options.getBootstrapClasspath().getFiles());
+    }
+
+    private int getHeapSizeMb(String heapSize) {
+        if (heapSize == null) {
+            return -1; // unspecified
+        }
+
+        String normalized = heapSize.trim().toLowerCase();
+        try {
+            if (normalized.endsWith("m")) {
+                return Integer.parseInt(normalized.substring(0, normalized.length() - 1));
+            }
+            if (normalized.endsWith("g")) {
+                return Integer.parseInt(normalized.substring(0, normalized.length() - 1)) * 1024;
+            }
+        } catch (NumberFormatException e) {
+            throw new InvalidUserDataException("Cannot parse heap size: " + heapSize, e);
+        }
+        throw new InvalidUserDataException("Cannot parse heap size: " + heapSize);
+    }
+
+    private String mergeHeapSize(String heapSize1, String heapSize2) {
+        int mergedHeapSizeMb = Math.max(getHeapSizeMb(heapSize1), getHeapSizeMb(heapSize2));
+        return mergedHeapSizeMb == -1 ? null : String.valueOf(mergedHeapSizeMb) + "m";
+    }
+
+    private boolean canBeMerged(String left, String right) {
+        if (left == null || right == null) {
+            return true;
+        } else {
+            return normalized(left).equals(normalized(right));
+        }
+    }
+
+    private boolean canBeMerged(File left, File right) {
+        if (left == null || right == null) {
+            return true;
+        } else {
+            return left.equals(right);
+        }
+    }
+
+    private Set<String> normalized(Iterable<String> strings) {
+        Set<String> normalized = Sets.newLinkedHashSet();
+        for (String string : strings) {
+            normalized.add(normalized(string));
+        }
+        return normalized;
+    }
+
+    private String normalized(String string) {
+        return nullToEmpty(string).trim();
+    }
+
+    private boolean containsAll(Map<String, Object> left, Map<String, Object> right) {
+        for (String rightKey : right.keySet()) {
+            if (!normalized(left.keySet()).contains(normalized(rightKey))) {
+                return false;
+            } else {
+                for (String leftKey : left.keySet()) {
+                    if (normalized(leftKey).equals(normalized(rightKey)) && !left.get(leftKey).equals(right.get(rightKey))) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 }

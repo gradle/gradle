@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DefaultWorkInProgressFormatter {
-    private final static List<Span> IDLE_SPANS = Arrays.asList(new Span(Style.of(Style.Color.GREY), "> IDLE"));
+    private final static List<Span> IDLE_SPANS = Arrays.asList(new Span("> IDLE"));
     private final ConsoleMetaData consoleMetaData;
 
     public DefaultWorkInProgressFormatter(ConsoleMetaData consoleMetaData) {

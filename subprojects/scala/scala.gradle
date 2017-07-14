@@ -31,6 +31,8 @@ dependencies {
 }
 
 useTestFixtures(project: ":plugins") // includes core test fixtures
+useTestFixtures(project: ":languageJvm")
+useTestFixtures(project: ":languageScala")
 
 integTest {
     jvmArgs "-XX:MaxPermSize=1500m" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen

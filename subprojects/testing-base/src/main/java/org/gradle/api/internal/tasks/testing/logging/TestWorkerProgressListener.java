@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
-import org.gradle.api.internal.tasks.testing.worker.WorkerTestClassProcessor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -99,9 +98,7 @@ public class TestWorkerProgressListener implements TestListenerInternal {
     private String createProgressLoggerDescription(TestDescriptorInternal testDescriptor) {
         DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor)testDescriptor;
         DefaultTestClassDescriptor defaultTestClassDescriptor = (DefaultTestClassDescriptor)decoratingTestDescriptor.getDescriptor();
-        DecoratingTestDescriptor parent = (DecoratingTestDescriptor)testDescriptor.getParent();
-        WorkerTestClassProcessor.WorkerTestSuiteDescriptor workerTestSuiteDescriptor = (WorkerTestClassProcessor.WorkerTestSuiteDescriptor)parent.getDescriptor();
-        return workerTestSuiteDescriptor.getName() + " > Executing test " + defaultTestClassDescriptor.getClassName();
+        return "Executing test " + defaultTestClassDescriptor.getClassName();
     }
 
     Map<String, ProgressLogger> getTestWorkerProgressLoggers() {

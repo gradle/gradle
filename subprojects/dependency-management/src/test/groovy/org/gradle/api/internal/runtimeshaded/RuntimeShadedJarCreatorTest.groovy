@@ -163,6 +163,36 @@ org.gradle.api.internal.tasks.CompileServices
         outputJar.md5Hash == "8eb7b9c992e83362a1445585b00a4fd0"
     }
 
+    def "excludes module-info.class from jar"() {
+        given:
+
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        def jarFile1 = inputFilesDir.file('lib1.jar')
+        createJarFileWithClassFiles(jarFile1, ['org/gradle/MyClass'])
+        def jarFile2 = inputFilesDir.file('lib2.jar')
+        createJarFileWithClassFiles(jarFile2, ['org/gradle/MySecondClass', 'module-info'])
+        def inputDirectory = inputFilesDir.createDir('dir1')
+        writeClass(inputDirectory, "org/gradle/MyFirstClass")
+
+        when:
+        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, inputDirectory])
+
+        then:
+        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
+
+        TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
+        contents.length == 1
+        contents[0] == outputJar
+        handleAsJarFile(outputJar) { JarFile file ->
+            List<JarEntry> entries = file.entries() as List
+            assert entries*.name == [
+                'org/gradle/MyClass.class',
+                'org/gradle/MySecondClass.class',
+                'org/gradle/MyFirstClass.class',
+                'META-INF/.gradle-runtime-shaded']
+        }
+    }
+
     def "merges provider-configuration file with the same name"() {
         given:
         def inputFilesDir = tmpDir.createDir('inputFiles')
@@ -398,7 +428,7 @@ org.gradle.api.internal.tasks.CompileServices"""
     private static void writeClass(TestFile outputDir, String className) {
         TestFile classFile = outputDir.createFile("${className}.class")
         ClassNode classNode = new ClassNode()
-        classNode.version = Opcodes.V1_6
+        classNode.version = className=='module-info'?Opcodes.V1_9:Opcodes.V1_6
         classNode.access = Opcodes.ACC_PUBLIC
         classNode.name = className
         classNode.superName = 'java/lang/Object'

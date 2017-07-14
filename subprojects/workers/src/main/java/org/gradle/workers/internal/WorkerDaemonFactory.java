@@ -27,7 +27,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
-import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.IsolationMode;
 
 /**
@@ -40,16 +39,14 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     private final WorkerDaemonExpiration workerDaemonExpiration;
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final WorkerDirectoryProvider workerDirectoryProvider;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, WorkerDirectoryProvider workerDirectoryProvider) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
         this.clientsManager = clientsManager;
         this.memoryManager = memoryManager;
         this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, getTotalPhysicalMemory());
         memoryManager.addMemoryHolder(workerDaemonExpiration);
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.workerDirectoryProvider = workerDirectoryProvider;
     }
 
     @Override
@@ -60,11 +57,11 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
                 try {
                     WorkerDaemonClient<T> client = clientsManager.reserveIdleClient(forkOptions);
                     if (client == null) {
-                        client = clientsManager.reserveNewClient(workerImplementationClass, workerDirectoryProvider.getIdleWorkingDirectory(), forkOptions);
+                        client = clientsManager.reserveNewClient(workerImplementationClass, forkOptions);
                     }
 
                     try {
-                        return executeInClient(client, spec, parentWorkerWorkerLease, parentBuildOperation);
+                        return executeInClient(client, spec, parentBuildOperation);
                     } finally {
                         clientsManager.release(client);
                     }
@@ -78,7 +75,7 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
                 return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
 
-            private DefaultWorkResult executeInClient(final WorkerDaemonClient<T> client, final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+            private DefaultWorkResult executeInClient(final WorkerDaemonClient<T> client, final T spec, final BuildOperationState parentBuildOperation) {
                 return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
                     @Override
                     public DefaultWorkResult call(BuildOperationContext context) {

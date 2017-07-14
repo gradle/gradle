@@ -41,7 +41,7 @@ class OutputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
         then:
         1 * snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> fileCollectionSnapshotter
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        1 * fileCollectionSnapshotter.snapshot(_, _, _, _) >> { throw cause }
+        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> { throw cause }
         0 * _
 
         def e = thrown(UncheckedIOException)

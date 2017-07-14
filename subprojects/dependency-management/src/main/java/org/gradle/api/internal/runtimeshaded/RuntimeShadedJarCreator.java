@@ -239,12 +239,17 @@ class RuntimeShadedJarCreator {
         }
 
         if (name.endsWith(".class")) {
+            // do not include module-info files, as they would represent a bundled dependency module, instead of Gradle itself
             processClassFile(outputStream, inputStream, zipEntry, buffer);
         } else if (name.startsWith(SERVICES_DIR_PREFIX)) {
             processServiceDescriptor(inputStream, zipEntry, buffer, services);
         } else {
             copyEntry(outputStream, inputStream, zipEntry, buffer);
         }
+    }
+
+    private static boolean isModuleInfoClass(String name) {
+        return "module-info".equals(name);
     }
 
     private void processServiceDescriptor(InputStream inputStream, ZipEntry zipEntry, byte[] buffer, Map<String, List<String>> services) throws IOException {
@@ -325,6 +330,9 @@ class RuntimeShadedJarCreator {
 
     private void processClassFile(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
         String className = zipEntry.getName().substring(0, zipEntry.getName().length() - ".class".length());
+        if (isModuleInfoClass(className)) {
+            return;
+        }
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         byte[] remappedClass = remapClass(className, bytes);
 

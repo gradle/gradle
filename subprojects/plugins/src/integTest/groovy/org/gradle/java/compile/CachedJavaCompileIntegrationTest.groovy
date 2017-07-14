@@ -16,7 +16,7 @@
 
 package org.gradle.java.compile
 
-import org.gradle.AbstractCachedCompileIntegrationTest
+import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
 class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest implements IncrementalCompileMultiProjectTestFixture {

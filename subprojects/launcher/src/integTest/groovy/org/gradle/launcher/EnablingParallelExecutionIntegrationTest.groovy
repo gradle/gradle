@@ -23,10 +23,6 @@ import spock.lang.IgnoreIf
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
-        executer.expectDeprecationWarning()
-    }
-
     def "parallel mode enabled via gradle.properties"() {
         file("gradle.properties") << "org.gradle.parallel=true"
         buildFile << "assert gradle.startParameter.parallelProjectExecutionEnabled"

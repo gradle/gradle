@@ -112,6 +112,6 @@ task retrieve(type: Sync) {
 }
 """
 
-        version previous requireOwnGradleUserHomeDir() expectDeprecationWarning() withTasks 'retrieve' run()
+        version previous requireOwnGradleUserHomeDir() withTasks 'retrieve' run()
     }
 }

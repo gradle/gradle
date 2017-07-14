@@ -186,7 +186,7 @@ sourceSets.main.java {
 
     @Test
     public void canUseANonStandardBuildDir() {
-        executer.withTasks('build').run()
+        executer.expectDeprecationWarning().withTasks('build').run()
 
         file('build').assertDoesNotExist()
 

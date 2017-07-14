@@ -534,7 +534,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
@@ -560,7 +559,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
@@ -592,7 +590,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
@@ -615,7 +612,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
