@@ -31,15 +31,11 @@ import java.util.Collection;
 
 public abstract class TransformingClassLoader extends VisitableURLClassLoader {
     static {
-        /*
-         * This classloader is thread-safe and VisitableURLClassLoader is parallel capable,
-         * so register as such to reduce contention when running multithreaded builds.
-         * Notice, concrete classes extending this one still need to register as parallel capable
-        */
         try {
+            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
-            // Not using Java 7+, just ignore it
+            // Not supported on Java 6
         }
     }
 

@@ -32,14 +32,11 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
     private static final String ANNOTATION_DESCRIPTOR = Type.getType(GroovyASTTransformationClass.class).getDescriptor();
 
     static {
-        /*
-         * This classloader is thread-safe and TransformingClassLoader is parallel capable,
-         * so register as such to reduce contention when running multithreaded builds
-        */
         try {
+            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
-            // Not using Java 7+, just ignore it
+            // Not supported on Java 6
         }
     }
 

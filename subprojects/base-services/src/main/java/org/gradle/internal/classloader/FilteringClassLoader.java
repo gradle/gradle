@@ -56,15 +56,11 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         for (Package p : systemPackages) {
             SYSTEM_PACKAGES.add(p.getName());
         }
-
-        /*
-         * This classloader is thread-safe (all hashsets are read-only from here on) andClassLoader is parallel capable,
-         * so register as such to reduce contention when running multithreaded builds
-        */
         try {
+            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
-            // Not using Java 7+, just ignore it
+            // Not supported on Java 6
         }
     }
 
