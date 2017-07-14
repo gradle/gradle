@@ -27,6 +27,8 @@ public interface BuildCacheStoreCommand {
 
     /**
      * Called at-most-once to initiate writing the artifact to the output stream.
+     *
+     * The output stream will be closed by this method.
      */
     Result store(OutputStream outputStream) throws IOException;
 

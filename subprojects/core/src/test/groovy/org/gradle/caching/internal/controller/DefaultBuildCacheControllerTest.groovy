@@ -48,9 +48,33 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def storeCommand = Stub(BuildCacheStoreCommand) {
         getKey() >> key
+        store(_) >> { OutputStream output ->
+            output.close()
+            new BuildCacheStoreCommand.Result() {
+                @Override
+                long getArtifactEntryCount() {
+                    return 0
+                }
+            }
+        }
     }
+
     def loadCommand = Stub(BuildCacheLoadCommand) {
         getKey() >> key
+        load(_) >> { InputStream input ->
+            input.close()
+            new BuildCacheLoadCommand.Result() {
+                @Override
+                long getArtifactEntryCount() {
+                    return 0
+                }
+
+                @Override
+                Object getMetadata() {
+                    return null
+                }
+            }
+        }
     }
 
     def operations = new TestBuildOperationExecutor()
