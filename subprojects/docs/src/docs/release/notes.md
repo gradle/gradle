@@ -46,6 +46,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
+### FindBugs plugin does not render analysis progress anymore
+
+As observed by many users the FindBugs plugin renders a lot of progress information by default leading to longer, unmanageable logs. The output behavior changes with this release. By default the FindBugs plugin will render no more analysis progress. If you happen to post-process the output and relied on the pre-4.2 behavior, then you can enable the progressing logging with the property `FindBugsExtension.showProgress`.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -54,7 +58,7 @@ We would like to thank the following community members for making contributions 
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
  - [Marcin Erdmann](https://github.com/erdi) - Add compilationClasspath property to CodeNarc task (#2325)
- - [Bo Zhang](https://github.com/blindpirate) - Add an option to FindBugs for toggling analysis progress (#2181)
+ - [Bo Zhang](https://github.com/blindpirate) - Add an option to FindBugs for toggling logging of analysis progress (#2181)
  - [Josué Lima](https://github.com/josuelima) - Fix typo on S3 AwsImAuthentication log message (#2349)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
