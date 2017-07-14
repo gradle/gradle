@@ -134,8 +134,10 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
                     } catch (Exception e) {
                         // Try to move the file out of the way in case its permanently corrupt
                         // Don't delete, so that it can be potentially used for debugging
+                        File failedFile = new File(file.getAbsolutePath() + FAILED_READ_SUFFIX);
+                        GFileUtils.deleteQuietly(failedFile);
                         //noinspection ResultOfMethodCallIgnored
-                        file.renameTo(new File(file.getAbsolutePath() + FAILED_READ_SUFFIX));
+                        file.renameTo(failedFile);
 
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
