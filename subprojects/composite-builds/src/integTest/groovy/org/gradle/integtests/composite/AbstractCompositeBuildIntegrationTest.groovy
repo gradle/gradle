@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
-import org.gradle.internal.operations.BuildOperationType
-import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.file.TestFile
 /**
  * Tests for composite build.
@@ -132,76 +130,6 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
 
     void assertSingleBuildOperationsTree() {
         assert operations.roots().size() == 1
-    }
-
-    class TimePoint implements Comparable<TimePoint> {
-        private final boolean end
-        private final long time
-        private final BuildOperationRecord operation
-
-        TimePoint(BuildOperationRecord operation, long time) {
-            this(operation, time, false)
-        }
-
-        TimePoint(BuildOperationRecord operation, long time, boolean end) {
-            this.operation = operation
-            this.time = time
-            this.end = end
-        }
-
-        @Override
-        int compareTo(TimePoint o) {
-            if (o.time > time) {
-                return -1
-            }
-            else if (o.time < time) {
-                return 1
-            }
-            else {
-                if (end) {
-                    return -1
-                } else {
-                    return 0
-                }
-            }
-        }
-
-        @Override
-        String toString() {
-            if (end) {
-                time + "E"
-            } else {
-                time + "S"
-            }
-        }
-    }
-
-    void assertConcurrentOperationsDoNotExceed(Class<BuildOperationType> type, int maximumConcurrentOperations, boolean concurrencyExpected=false) {
-        def allOperations = operations.all(type)
-
-        List<TimePoint> points = []
-
-        allOperations.each {
-            points.add(new TimePoint(it, it.startTime))
-            points.add(new TimePoint(it, it.endTime, true))
-        }
-
-        def concurrencySeen = false
-        def concurrentOperations = []
-        points.sort().each {
-            if (it.end) {
-                concurrentOperations.remove(it.operation)
-            } else {
-                concurrentOperations.add(it.operation)
-            }
-            assert concurrentOperations.size() <= maximumConcurrentOperations
-            if (concurrentOperations.size() > 1) {
-                concurrencySeen = true
-            }
-        }
-        if (concurrencyExpected) {
-            assert concurrencySeen : "No operations were executed concurrently"
-        }
     }
 
     TestFile getRootDir() {

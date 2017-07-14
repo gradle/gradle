@@ -45,7 +45,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         }
         expect:
         execute(buildA, "delegate", "--parallel", "--max-workers=$maxWorkers")
-        assertConcurrentOperationsDoNotExceed(ExecuteTaskBuildOperationType, maxWorkers, maxWorkers != 1)
+        operations.assertConcurrentOperationsDoNotExceed(ExecuteTaskBuildOperationType, maxWorkers, maxWorkers != 1)
 
         where:
         maxWorkers << [ 1, 2, 4 ]
