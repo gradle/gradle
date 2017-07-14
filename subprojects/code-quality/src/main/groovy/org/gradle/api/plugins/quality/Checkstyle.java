@@ -87,6 +87,11 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
     @Incubating
     @Inject
     public ObjectFactory getObjectFactory() {

@@ -126,6 +126,11 @@ public class Ear extends Jar {
         });
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
     @Incubating
     @Inject
     protected ObjectFactory getObjectFactory() {

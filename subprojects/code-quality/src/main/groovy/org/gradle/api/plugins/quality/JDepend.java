@@ -78,6 +78,11 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
         reports = getObjectFactory().newInstance(JDependReportsImpl.class, this);
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
     @Incubating
     @Inject
     public ObjectFactory getObjectFactory() {

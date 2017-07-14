@@ -92,6 +92,11 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
         setConfig(getProject().getResources().getText().fromFile(configFile));
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
     @Incubating
     @Inject
     public ObjectFactory getObjectFactory() {

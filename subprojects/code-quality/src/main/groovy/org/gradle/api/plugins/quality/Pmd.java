@@ -71,6 +71,11 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
         reports = getObjectFactory().newInstance(PmdReportsImpl.class, this);
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
     @Incubating
     @Inject
     public ObjectFactory getObjectFactory() {
