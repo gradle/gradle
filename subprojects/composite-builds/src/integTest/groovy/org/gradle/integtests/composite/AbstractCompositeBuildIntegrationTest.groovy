@@ -151,8 +151,12 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
 
         @Override
         int compareTo(TimePoint o) {
-            if (o.time > time) return -1
-            else if (o.time < time) return 1
+            if (o.time > time) {
+                return -1
+            }
+            else if (o.time < time) {
+                return 1
+            }
             else {
                 if (end) {
                     return -1
@@ -164,8 +168,11 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
 
         @Override
         String toString() {
-            if (end) time + "E"
-            else time + "S"
+            if (end) {
+                time + "E"
+            } else {
+                time + "S"
+            }
         }
     }
 
