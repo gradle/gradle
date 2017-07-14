@@ -45,7 +45,7 @@ class StoreTargetTest extends Specification {
         }
     }
 
-    def "closes input"() {
+    def "closes output"() {
         given:
         def output = new TestOutputStream()
 
@@ -56,7 +56,7 @@ class StoreTargetTest extends Specification {
         output.closed
     }
 
-    def "closes input on subsequent use"() {
+    def "closes output on subsequent use"() {
         given:
         def output = new TestOutputStream()
 
@@ -69,16 +69,16 @@ class StoreTargetTest extends Specification {
         output.closed
     }
 
-    def "closes input on error"() {
+    def "closes output on error"() {
         given:
-        def input = new TestOutputStream(error: true)
+        def output = new TestOutputStream(error: true)
 
         when:
-        target.writeTo(input)
+        target.writeTo(output)
 
         then:
         thrown IOException
-        input.closed
+        output.closed
     }
 
 }
