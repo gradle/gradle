@@ -30,6 +30,8 @@ import java.io.OutputStream;
 public interface BuildCacheEntryWriter {
     /**
      * Writes a build cache entry to the given stream.
+     * <p>
+     * The given output stream will be closed by this method.
      *
      * @param output output stream to write build cache entry to
      * @throws IOException when an I/O error occurs when writing the cache entry to the given output stream

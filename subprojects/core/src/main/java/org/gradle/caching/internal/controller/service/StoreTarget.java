@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.controller.service;
 
+import com.google.common.io.Closer;
 import com.google.common.io.Files;
 import org.gradle.caching.BuildCacheEntryWriter;
 
@@ -34,11 +35,19 @@ public class StoreTarget implements BuildCacheEntryWriter {
 
     @Override
     public void writeTo(OutputStream output) throws IOException {
-        if (stored) {
-            throw new IllegalStateException("Build cache entry has already been stored");
+        Closer closer = Closer.create();
+        closer.register(output);
+        try {
+            if (stored) {
+                throw new IllegalStateException("Build cache entry has already been stored");
+            }
+            stored = true;
+            Files.asByteSource(file).copyTo(output);
+        } catch (Exception e) {
+            throw closer.rethrow(e);
+        } finally {
+            closer.close();
         }
-        stored = true;
-        Files.asByteSource(file).copyTo(output);
     }
 
     public boolean isStored() {
