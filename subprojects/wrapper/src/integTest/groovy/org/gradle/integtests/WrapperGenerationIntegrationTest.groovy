@@ -19,6 +19,8 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 
+import java.util.concurrent.TimeUnit
+
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
@@ -57,6 +59,20 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.2.1-bin.zip")
+    }
+
+    def "generated wrapper does not change unnecessarily"() {
+        def wrapperJar = file("gradle/wrapper/gradle-wrapper.jar")
+        def wrapperProperties = file("gradle/wrapper/gradle-wrapper.properties")
+        run "wrapper", "--gradle-version", "2.2.1"
+        when:
+        Thread.sleep(TimeUnit.SECONDS.toMillis(2) * 2) // Zip file time resolution is 2 seconds
+        run "wrapper", "--gradle-version", "2.2.1", "--rerun-tasks"
+
+        then:
+        result.assertTasksExecuted(":wrapper")
+        wrapperJar.md5Hash == old(wrapperJar.md5Hash)
+        wrapperProperties.text == old(wrapperProperties.text)
     }
 
     def "generated wrapper scripts for valid distribution types from command-line"() {

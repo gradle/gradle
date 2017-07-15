@@ -130,6 +130,7 @@ We would like to thank the following community members for making contributions 
  - [Ismael Juma](https://github.com/ijuma) - Update default Zinc compiler version to 0.3.15 with preliminary Java 9 support (#2420)
  - [Krzysztof Ropiak](https://github.com/krro) - Sets annotation processor classpath in Scala compilation task (#2281)
  - [Dave Brewster](https://github.com/dbrewster) - Add support for caching Scala compilation (#1958)
+ - [Steve Dougherty](https://github.com/Thynix) - Prevent spurious gradle-wrapper.jar changes (#2183)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
