@@ -17,9 +17,8 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
-
-import java.util.concurrent.TimeUnit
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "generated wrapper scripts use correct line separators"() {
@@ -65,8 +64,14 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         def wrapperJar = file("gradle/wrapper/gradle-wrapper.jar")
         def wrapperProperties = file("gradle/wrapper/gradle-wrapper.properties")
         run "wrapper", "--gradle-version", "2.2.1"
+        def testFile = file("modtime").touch()
+        def originalTime = testFile.lastModified()
         when:
-        Thread.sleep(TimeUnit.SECONDS.toMillis(2) * 2) // Zip file time resolution is 2 seconds
+        // Zip file time resolution is 2 seconds
+        ConcurrentTestUtil.poll {
+            testFile.touch()
+            assert (testFile.lastModified() - originalTime) >= 2000L
+        }
         run "wrapper", "--gradle-version", "2.2.1", "--rerun-tasks"
 
         then:
