@@ -142,7 +142,7 @@
     <section id="sec:sending_your_own_log_messages">
         <title>Writing your own log messages</title>
         <para>A simple option for logging in your build file is to write messages to standard output. Gradle redirects
-            anything written to standard output to it's logging system at the <literal>QUIET</literal> log level.</para>
+            anything written to standard output to its logging system at the <literal>QUIET</literal> log level.</para>
         <sample id="logging_to_stdout" dir="userguide/tutorial/logging" title="Using stdout to write log messages">
             <sourcefile file="build.gradle" snippet="use-println"/>
         </sample>
