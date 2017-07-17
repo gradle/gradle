@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.includedbuild.internal;
+package org.gradle.composite.internal;
 
-/**
- * A resource produced by a task in an included build.
- */
-public interface IncludedBuildTaskResource {
-    boolean isComplete();
+import org.gradle.api.artifacts.component.BuildIdentifier;
+
+public interface IncludedBuildTaskGraph {
+    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
+
+    void awaitCompletion(BuildIdentifier targetBuild, String taskPath);
+
+    boolean isComplete(BuildIdentifier targetBuild, String taskPath);
 }

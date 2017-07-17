@@ -35,7 +35,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.includedbuild.internal.IncludedBuildFactory;
+import org.gradle.composite.internal.IncludedBuildFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.scripts.ScriptFileResolver;

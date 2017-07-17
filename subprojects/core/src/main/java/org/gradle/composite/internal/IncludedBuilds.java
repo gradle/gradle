@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-/**
- * Classes for declaring and interacting with included builds in a composite.
- */
-@Incubating
-package org.gradle.includedbuild;
+package org.gradle.composite.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.initialization.IncludedBuild;
+
+public interface IncludedBuilds {
+    Iterable<IncludedBuild> getBuilds();
+    IncludedBuild getBuild(String name);
+}

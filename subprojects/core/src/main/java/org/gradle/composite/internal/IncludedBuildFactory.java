@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.includedbuild.internal;
+package org.gradle.composite.internal;
 
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 
-public interface IncludedBuilds {
-    Iterable<IncludedBuild> getBuilds();
-    IncludedBuild getBuild(String name);
+import java.io.File;
+
+public interface IncludedBuildFactory {
+    ConfigurableIncludedBuild createBuild(File buildDirectory);
 }

@@ -27,7 +27,6 @@ import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.includedbuild.internal.IncludedBuildController;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
