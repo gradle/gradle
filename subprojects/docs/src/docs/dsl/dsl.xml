@@ -240,6 +240,12 @@
             <tr>
                 <td>org.gradle.api.resources.TextResourceFactory</td>
             </tr>
+            <tr>
+                <td>org.gradle.workers.WorkerConfiguration</td>
+            </tr>
+            <tr>
+                <td>org.gradle.workers.WorkerExecutor</td>
+            </tr>
         </table>
     </section>
 

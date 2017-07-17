@@ -73,6 +73,30 @@ Given both a local and a remote cache, whenever a cached result is found remotel
 
 Errors like a broken HTTP connection, or corrupted data being downloaded do not fail the build anymore. Instead, the build cache is disabled for the duration of the current build.
 
+### New API for safe, concurrent work execution
+
+Gradle 4.1 introduces the [Worker API](userguide/custom_tasks.html#worker_api), a new API for safe, parallel, and asynchronous execution of units of work within a build.  This API allows for:
+
+- Parallel execution of multiple items of work within a task
+- Execution of work in a separate daemon process
+- Safe parallel execution of multiple tasks
+
+This API can be used within a custom task class to break up the work of the task and execute that work in parallel.  Once a 
+task has submitted all of its work to run asynchronously, and has exited the task action, Gradle can then start running other 
+independent tasks in parallel - even if those tasks are in the same project.  This allows Gradle to make maximum use of the 
+resources available and complete builds faster than ever.
+
+    source.files.each { file ->
+        // Create and submit a unit of work for each file
+        workerExecutor.submit(UnitOfWork.class) { config ->
+            config.isolationMode = IsolationMode.NONE
+            // Constructor parameters for the unit of work implementation
+            config.params = [ file, project.file("${outputDir}/${file.name}") ]
+        }
+    }
+
+To learn more about the Worker API, check out the [user guide](userguide/custom_tasks.html#worker_api) or watch the [presentation from the 2017 Gradle Summit](https://www.youtube.com/watch?v=kKyTqk2jSFo).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -149,6 +173,7 @@ We would like to thank the following community members for making contributions 
  - [Dave Brewster](https://github.com/dbrewster) - Add support for caching Scala compilation (#1958)
  - [Steve Dougherty](https://github.com/Thynix) - Prevent spurious gradle-wrapper.jar changes (#2183)
  - [Yannick Welsch](https://github.com/ywelsch) - Use GNU-style release flag for Java 9 compiler (#2474)
+ - [Mike Kobit](https://github.com/mkobit) - Add Worker API classes to JavaDocs (#2372)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
