@@ -334,7 +334,7 @@ the credentials the api:org.gradle.caching.http.HttpBuildCache[] uses to access 
 [[sec:build_cache_setup_http_backend]]
 === How to set up an HTTP build cache backend
 
-Gradle provides a docker image for a https://hub.docker.com/r/gradle/build-cache-node/[build cache node], which can connect with Gradle Enterprise for centralized management.
+Gradle provides a Docker image for a https://hub.docker.com/r/gradle/build-cache-node/[build cache node], which can connect with Gradle Enterprise for centralized management.
 The cache node can also be used without a Gradle Enterprise installation with restricted functionality.
 
 [[sec:build_cache_implement]]
