@@ -16,11 +16,12 @@
 
 package org.gradle.caching.internal.controller.service;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+
+import javax.annotation.Nullable;
 
 public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
