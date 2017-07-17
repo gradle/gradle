@@ -20,8 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
- * Allows work to be submitted for asynchronous execution.  Work should be submitted with a {@link Runnable} class
- * representing the implementation of the unit of work and an action to configure the unit of work (via {@link WorkerConfiguration}).
+ * Allows work to be submitted for asynchronous execution.  This api allows for safe, concurrent execution of work items and enables:
+ *
+ * <ul>
+ *     <li>Parallel execution of work items within a single task</li>
+ *     <li>Execution in isolated contexts such as an isolated classloader or even a separate process</li>
+ *     <li>Safe execution of multiple tasks in parallel</li>
+ * </ul>
+ *
+ * Work should be submitted with a {@link Runnable} class representing the implementation of the unit of work
+ * and an action to configure the unit of work (via {@link WorkerConfiguration}).
  *
  * <pre>
  *      workerExecutor.submit(RunnableWorkImpl.class) { WorkerConfiguration conf ->

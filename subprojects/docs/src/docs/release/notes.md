@@ -73,71 +73,29 @@ Given both a local and a remote cache, whenever a cached result is found remotel
 
 Errors like a broken HTTP connection, or corrupted data being downloaded do not fail the build anymore. Instead, the build cache is disabled for the duration of the current build.
 
-### New API for safe, fast concurrent work execution
+### New API for safe, concurrent work execution
 
 Gradle 4.1 introduces the [Worker API](userguide/custom_tasks.html#worker_api), a new API for safe, parallel, and asynchronous execution of units of work within a build.  This API allows for:
 
 - Parallel execution of multiple items of work within a task
 - Execution of work in a separate daemon process
-- Safe intra-project parallel execution of tasks
+- Safe parallel execution of multiple tasks
 
 This API can be used within a custom task class to break up the work of the task and execute that work in parallel.  Once a 
 task has submitted all of its work to run asynchronously, and has exited the task action, Gradle can then start running other 
 independent tasks in parallel - even if those tasks are in the same project.  This allows Gradle to make maximum use of the 
 resources available and complete builds faster than ever.
 
-    import javax.inject.Inject
-    
-    // The implementation of a single unit of work
-    class UnitOfWork implements Runnable {
-        File fileToReverse
-        File destinationFile
-        
-        @Inject
-        public UnitOfWork(File fileToReverse, File destinationFile) {
-            this.fileToReverse = fileToReverse
-            this.destinationFile = destinationFile
+    source.files.each { file ->
+        // Create and submit a unit of work for each file
+        workerExecutor.submit(UnitOfWork.class) { config ->
+            config.isolationMode = IsolationMode.NONE
+            // Constructor parameters for the unit of work implementation
+            config.params = [ file, project.file("${outputDir}/${file.name}") ]
         }
-        
-        @Override
-        public void run() {
-            destinationFile.text = fileToReverse.text.reverse()
-        }
-    }
-    
-    // A task that accepts a set of source files, creates units of work for each,
-    // and executes them concurrently.
-    class ReverseFiles extends SourceTask {
-        @OutputDirectory
-        File outputDir
-        
-        // The WorkerExecutor will be injected by Gradle at runtime 
-        // (i.e. the exception below is only a placeholder and will not be thrown)
-        @Inject
-        WorkerExecutor getWorkerExecutor() {
-            throw new UnsupportedOperationException()
-        }
-        
-        @TaskAction
-        void reverseFiles() {
-            source.files.each { file ->
-                // Create and submit a unit of work for each file
-                workerExecutor.submit(UnitOfWork.class) { config ->
-                    config.isolationMode = IsolationMode.NONE
-                    // Constructor parameters for the unit of work implementation
-                    config.params = [ file, project.file("${outputDir}/${file.name}") ]
-                }
-            }
-        }
-    }
-        
-    // An implementation of the task that reverses the files in the "sources" directory
-    task reverseFiles(type: ReverseFiles) {
-        outputDir = file("${buildDir}/reversed")
-        source("sources")
     }
 
-To learn more about the Worker API, check out the [user guide](userguide/custom_tasks.html#worker_api).
+To learn more about the Worker API, check out the [user guide](userguide/custom_tasks.html#worker_api) or watch the [presentation from the 2017 Gradle Summit](https://www.youtube.com/watch?v=kKyTqk2jSFo).
 
 ## Promoted features
 

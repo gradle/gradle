@@ -26,6 +26,6 @@ class WaitForCompletionWorkerExecutorSampleIntegrationTest extends AbstractWorke
 
     @Override
     void assertSampleSpecificOutcome() {
-        result.assertOutputContains("Succesfully processed ${workerExecutorSample.dir.file("sources").allDescendants().size()} files")
+        result.assertOutputContains("Created ${workerExecutorSample.dir.file("sources").allDescendants().size()} reversed files in build/reversed")
     }
 }

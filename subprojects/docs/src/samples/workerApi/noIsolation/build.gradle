@@ -1,13 +1,16 @@
 // START SNIPPET unit-of-work
+
+import org.gradle.workers.WorkerExecutor
+
 import javax.inject.Inject
 
 // The implementation of a single unit of work
-class UnitOfWork implements Runnable {
+class ReverseFile implements Runnable {
     File fileToReverse
     File destinationFile
 
     @Inject
-    public UnitOfWork(File fileToReverse, File destinationFile) {
+    public ReverseFile(File fileToReverse, File destinationFile) {
         this.fileToReverse = fileToReverse
         this.destinationFile = destinationFile
     }
@@ -21,20 +24,22 @@ class UnitOfWork implements Runnable {
 
 // START SNIPPET task-implementation
 class ReverseFiles extends SourceTask {
+    final WorkerExecutor workerExecutor
+
     @OutputDirectory
     File outputDir
 
     // The WorkerExecutor will be injected by Gradle at runtime
     @Inject
-    WorkerExecutor getWorkerExecutor() {
-        throw new UnsupportedOperationException()
+    public ReverseFiles(WorkerExecutor workerExecutor) {
+        this.workerExecutor = workerExecutor
     }
 
     @TaskAction
     void reverseFiles() {
         // Create and submit a unit of work for each file
         source.files.each { file ->
-            workerExecutor.submit(UnitOfWork.class) { WorkerConfiguration config ->
+            workerExecutor.submit(ReverseFile.class) { WorkerConfiguration config ->
                 // Use the minimum level of isolation
                 config.isolationMode = IsolationMode.NONE
 
