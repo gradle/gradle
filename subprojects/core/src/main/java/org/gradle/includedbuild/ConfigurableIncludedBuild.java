@@ -23,6 +23,8 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A build that is to be included in the composite.
+ *
+ * @since 4.1
  */
 @Incubating
 @HasInternalProtocol
