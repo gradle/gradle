@@ -58,10 +58,20 @@ With this release of Gradle, the console displays any test worker processes exec
     > IDLE
     > :fooBarBazQuux:test > Executing test org.gradle.MyTest
 
-### Scala toolchain is now cacheable
+### Build cache improvements
+
+#### Scala toolchain is now cacheable
 
 Tasks of types [ScalaCompile](dsl/org.gradle.api.tasks.scala.ScalaCompile.html) and [ScalaDoc](dsl/org.gradle.api.tasks.scala.ScalaDoc.html) provided by the [scala](userguide/scala_plugin.html) plugin are now cacheable.
 This means they will make use of the build cache when activated.
+
+#### Remote results are mirrored locally
+
+Given both a local and a remote cache, whenever a cached result is found remotely, it is also stored in the local cache. This way the next time the same result can be served from the local cache, without having to download it again.
+
+#### Build cache errors don't fail the build
+
+Errors like a broken HTTP connection, or corrupted data being downloaded do not fail the build anymore. Instead, the build cache is disabled for the duration of the current build.
 
 ## Promoted features
 
