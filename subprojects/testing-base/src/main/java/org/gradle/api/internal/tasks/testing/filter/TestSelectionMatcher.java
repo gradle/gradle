@@ -34,12 +34,11 @@ public class TestSelectionMatcher {
     }
 
     private List<Pattern> preparePatternList(Collection<String> includedTests) {
-        List<Pattern> buildScriptIncludePatterns;
-        buildScriptIncludePatterns = new ArrayList<Pattern>(includedTests.size());
+        List<Pattern> includePatterns = new ArrayList<Pattern>(includedTests.size());
         for (String includedTest : includedTests) {
-            buildScriptIncludePatterns.add(preparePattern(includedTest));
+            includePatterns.add(preparePattern(includedTest));
         }
-        return buildScriptIncludePatterns;
+        return includePatterns;
     }
 
     private Pattern preparePattern(String input) {
