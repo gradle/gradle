@@ -25,6 +25,18 @@ import java.util.Collection;
 import java.util.List;
 
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
+    static {
+        /*
+         * This classloader is thread-safe and URLClassLoader is parallel capable,
+         * so register as such to reduce contention when running multithreaded builds
+        */
+        try {
+            ClassLoader.registerAsParallelCapable();
+        } catch (NoSuchMethodError ignore) {
+            // Not using Java 7+, just ignore it
+        }
+    }
+
     public VisitableURLClassLoader(ClassLoader parent, Collection<URL> urls) {
         super(urls.toArray(new URL[0]), parent);
     }

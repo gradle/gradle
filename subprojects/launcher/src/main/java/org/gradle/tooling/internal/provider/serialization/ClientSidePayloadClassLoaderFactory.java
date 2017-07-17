@@ -52,6 +52,18 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
     }
 
     private static class MixInClassLoader extends TransformingClassLoader {
+        static {
+            /*
+             * This classloader is thread-safe and TransformingClassLoader is parallel capable,
+             * so register as such to reduce contention when running multithreaded builds
+            */
+            try {
+                ClassLoader.registerAsParallelCapable();
+            } catch (NoSuchMethodError ignore) {
+                // Not using Java 7+, just ignore it
+            }
+        }
+
         public MixInClassLoader(ClassLoader parent, List<URL> classPath) {
             super(parent, classPath);
         }
