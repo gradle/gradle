@@ -41,6 +41,28 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
     },
 
     /**
+     * Normalization strategy for output files.
+     *
+     * We use the absolute path of the files and ignore missing files and empty root directories.
+     */
+    OUTPUT {
+        @Override
+        public boolean isPathAbsolute() {
+            return true;
+        }
+
+        @Nullable
+        @Override
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
+            if ((fileSnapshot.getType() == FileType.Missing)
+                || (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory)) {
+                return null;
+            }
+            return new NonNormalizedFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
+        }
+    },
+
+    /**
      * Use the location of the file related to a hierarchy.
      */
     RELATIVE {

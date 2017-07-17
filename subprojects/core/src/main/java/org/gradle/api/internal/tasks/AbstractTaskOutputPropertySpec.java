@@ -49,7 +49,7 @@ abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDepreca
     }
 
     public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-        return snapshotNormalizationStrategy;
+        return TaskFilePropertySnapshotNormalizationStrategy.OUTPUT;
     }
 
     @Override
