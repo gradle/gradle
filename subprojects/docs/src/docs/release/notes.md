@@ -2,6 +2,8 @@ The Gradle team is pleased to announce the release of Gradle 4.1.
 
 This release now supports running Gradle on the most recent JDK 9 release (b170+). It also optimizes startup speed, positively affecting the execution time of every build.
 
+Gradle Kotlin DSL [v0.10.3](https://github.com/gradle/kotlin-dsl/releases/tag/v0.10.3) (included in this release) comes with the latest Kotlin release ([1.1.3](https://blog.jetbrains.com/kotlin/2017/06/kotlin-1-1-3-is-out/)) plus many improvements to usability, stability and performance.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -115,6 +117,11 @@ The default version of the [Scala Zinc compiler](https://github.com/typesafehub/
 ### Filters defined via command line option --tests never override filters from build script
 
 The `--tests` filters are now always applied on top of the filtering defined in build scripts. In previous Gradle versions, filters defined through `filter.includeTestsMatching` or `filter.includePatterns` were overridden, while other filters were not. The [Test filtering](userguide/java_plugin.html#test_filtering) documentation was adjusted to reflect the new behavior.
+
+### Changes to the Kotlin DSL
+
+The base package has been renamed from `org.gradle.script.lang.kotlin` to `org.gradle.kotlin.dsl` so any explicit imports need to be updated after upgrading.
+
 
 ## External contributions
 
