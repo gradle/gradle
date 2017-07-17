@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.RELATIVE;
+
 /**
  * Builds the snapshot of a classpath entry.
  * It can be either used on {@link RegularFileSnapshot}s or {@link ZipEntry}.
@@ -45,14 +47,12 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
             return input.getValue();
         }
     });
-    private final SnapshotNormalizationStrategy normalizationStrategy;
     private final StringInterner stringInterner;
     private final Multimap<String, NormalizedFileSnapshot> normalizedSnapshots;
     private final ResourceHasher classpathResourceHasher;
 
     public ClasspathEntrySnapshotBuilder(ResourceHasher classpathResourceHasher, StringInterner stringInterner) {
         this.classpathResourceHasher = classpathResourceHasher;
-        this.normalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.RELATIVE;
         this.stringInterner = stringInterner;
         this.normalizedSnapshots = MultimapBuilder.hashKeys().arrayListValues().build();
     }
@@ -61,7 +61,7 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
     public void visitFileSnapshot(RegularFileSnapshot file) {
         HashCode hash = classpathResourceHasher.hash(file);
         if (hash != null) {
-            normalizedSnapshots.put(file.getPath(), normalizationStrategy.getNormalizedSnapshot(file.withContentHash(hash), stringInterner));
+            normalizedSnapshots.put(file.getPath(), RELATIVE.getNormalizedSnapshot(file.withContentHash(hash), stringInterner));
         }
     }
 
