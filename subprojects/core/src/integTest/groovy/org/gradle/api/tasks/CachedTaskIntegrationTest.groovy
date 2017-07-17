@@ -56,31 +56,6 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         metadata.contains("userName=")
     }
 
-    def "corrupted cache provides useful error message"() {
-        buildFile << defineCacheableTask()
-        when:
-        withBuildCache().succeeds("cacheable")
-        then:
-        def cacheFiles = listCacheFiles()
-        cacheFiles.size() == 1
-
-        when:
-        file("build").deleteDir()
-        and:
-        corruptMetadata({ metadata -> metadata.text = "corrupt" })
-        withBuildCache().fails("cacheable")
-        then:
-        failure.assertHasDescription("Cached result format error, corrupted origin metadata.")
-
-        when:
-        file("build").deleteDir()
-        and:
-        corruptMetadata({ metadata -> metadata.delete() })
-        withBuildCache().fails("cacheable")
-        then:
-        failure.assertHasDescription("Cached result format error, no origin metadata was found.")
-    }
-
     def "task is cacheable after previous failure"() {
         buildFile << """
             task foo {
@@ -155,16 +130,4 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         """
     }
 
-    def corruptMetadata(Closure corrupter) {
-        def cacheFiles = listCacheFiles()
-        assert cacheFiles.size() == 1
-        def cacheEntry = cacheFiles[0]
-        def tgzCacheEntry = temporaryFolder.file("cache.tgz")
-        cacheEntry.copyTo(tgzCacheEntry)
-        cacheEntry.delete()
-        def extractDir = temporaryFolder.file("extract")
-        tgzCacheEntry.untarTo(extractDir)
-        corrupter(extractDir.file("METADATA"))
-        extractDir.tgzTo(cacheEntry)
-    }
 }

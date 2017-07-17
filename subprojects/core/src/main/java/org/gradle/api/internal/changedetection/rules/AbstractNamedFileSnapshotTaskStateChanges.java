@@ -55,6 +55,10 @@ abstract public class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
         this.title = title;
         this.fileProperties = fileProperties;
         this.normalizationStrategy = normalizationStrategy;
+        retakeSnapshots();
+    }
+
+    protected void retakeSnapshots() {
         this.currentSnapshots = buildSnapshots(taskName, snapshotterRegistry, title, fileProperties);
     }
 

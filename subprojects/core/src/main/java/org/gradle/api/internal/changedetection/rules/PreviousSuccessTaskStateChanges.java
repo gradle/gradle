@@ -17,10 +17,10 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.Iterators;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 
 public class PreviousSuccessTaskStateChanges implements TaskStateChanges {

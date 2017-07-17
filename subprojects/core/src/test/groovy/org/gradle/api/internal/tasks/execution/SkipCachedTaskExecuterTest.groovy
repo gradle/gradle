@@ -31,6 +31,7 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
+import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
 import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
@@ -47,14 +48,14 @@ class SkipCachedTaskExecuterTest extends Specification {
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
-    def buildCache = Mock(BuildCacheController)
+    def buildCacheController = Mock(BuildCacheController)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
     def taskOutputGenerationListener = Mock(TaskOutputsGenerationListener)
     def loadCommand = Mock(BuildCacheLoadCommand)
     def storeCommand = Mock(BuildCacheStoreCommand)
     def buildCacheCommandFactory = Mock(TaskOutputCacheCommandFactory)
 
-    def executer = new SkipCachedTaskExecuter(buildCache, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
+    def executer = new SkipCachedTaskExecuter(buildCacheController, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
 
     def "skip task when cached results exist"() {
         def originId = UniqueId.generate()
@@ -73,10 +74,10 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _, _) >> loadCommand
 
         then:
-        1 * buildCache.load(loadCommand) >> new TaskOutputOriginMetadata(originId)
+        1 * buildCacheController.load(loadCommand) >> new TaskOutputOriginMetadata(originId)
 
         then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
@@ -99,10 +100,10 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _, _) >> loadCommand
 
         then:
-        1 * buildCache.load(loadCommand) >> null
+        1 * buildCacheController.load(loadCommand) >> null
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -113,7 +114,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCacheCommandFactory.createStore(cacheKey, _, task, _) >> storeCommand
 
         then:
-        1 * buildCache.store(storeCommand)
+        1 * buildCacheController.store(storeCommand)
         0 * _
     }
 
@@ -142,7 +143,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCacheCommandFactory.createStore(cacheKey, _, task, _) >> storeCommand
 
         then:
-        1 * buildCache.store(storeCommand)
+        1 * buildCacheController.store(storeCommand)
         0 * _
     }
 
@@ -162,7 +163,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
-        1 * buildCache.load(_)
+        1 * buildCacheController.load(_)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -203,7 +204,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         0 * _
     }
 
-    def "fails when cache backend throws fatal exception while finding result"() {
+    def "stores result when cache backend throws recoverable exception while loading result"() {
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -219,16 +220,49 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
-        1 * buildCache.load(_) >> { throw new RuntimeException("unknown error") }
+        1 * buildCacheController.load(_) >> { throw new RuntimeException("unknown error") }
+
+        then:
+        1 * delegate.execute(task, taskState, taskContext)
+
+        then:
+        1 * taskState.getFailure() >> null
+        1 * cacheKey.isValid() >> true
+
+        then:
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, task, _) >> storeCommand
+
+        then:
+        1 * buildCacheController.store(storeCommand)
+        0 * _
+    }
+
+    def "fails when cache backend throws unrecoverable exception while finding result"() {
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        1 * taskContext.buildCacheKey >> cacheKey
+        interaction { cachingEnabled() }
+
+        then:
+        1 * cacheKey.isValid() >> true
+        1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+
+        then:
+        1 * buildCacheCommandFactory.createLoad(*_)
+        1 * buildCacheController.load(_) >> { throw new UnrecoverableTaskOutputUnpackingException("unknown error") }
 
         then:
         0 * _
         then:
-        RuntimeException e = thrown()
+        def e = thrown UnrecoverableTaskOutputUnpackingException
         e.message == "unknown error"
     }
 
-    def "fails when cache backend throws fatal exception while storing cached result"() {
+    def "does not fail when cache backend throws exception while storing cached result"() {
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -244,7 +278,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
-        1 * buildCache.load(_)
+        1 * buildCacheController.load(_)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -253,11 +287,10 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
         1 * taskState.getFailure() >> null
         1 * buildCacheCommandFactory.createStore(*_)
-        1 * buildCache.store(_) >> { throw new RuntimeException("unknown error") }
-        0 * _
+        1 * buildCacheController.store(_) >> { throw new RuntimeException("unknown error") }
+
         then:
-        RuntimeException e = thrown()
-        e.message == "unknown error"
+        0 * _
     }
 
     private void cachingEnabled() {
