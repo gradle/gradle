@@ -670,13 +670,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/java/main/io/example/Example.class").exists()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) //TODO investigate issue on Java9
     def "sourcepath is merged from compilerArgs, but deprecation warning is emitted"() {
         buildFile << '''
             apply plugin: 'java'
             
             compileJava {
-                options.compilerArgs = ['-sourcepath', 'sources1']
+                options.compilerArgs = ['-sourcepath', files('sources1').asPath]
                 options.sourcepath = files('sources2')
             }            
         '''
@@ -694,13 +693,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) //TODO investigate issue on Java9
     def "sourcepath is respected even when exclusively specified from compilerArgs, but deprecation warning is emitted"() {
         buildFile << '''
             apply plugin: 'java'
             
             compileJava {
-                options.compilerArgs = ['-sourcepath', 'sources1']
+                options.compilerArgs = ['-sourcepath', files('sources1').asPath]
             }            
         '''
         file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
