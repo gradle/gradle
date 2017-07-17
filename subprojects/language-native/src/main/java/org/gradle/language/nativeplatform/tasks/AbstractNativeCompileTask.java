@@ -182,6 +182,10 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     /**
+     * Sets the object file directory to output generated object file by the compilation process via a {@link Provider}.
+     *
+     * @param objectFileDir the object file directory provider to use
+     * @see #setObjectFileDir(File)
      * @since 4.1
      */
     public void setObjectFileDir(Provider<? extends Directory> objectFileDir) {

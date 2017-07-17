@@ -86,6 +86,8 @@ public class InstallExecutable extends DefaultTask {
 
     /**
      * The directory to install files into.
+     *
+     * @since 4.1
      */
     @OutputDirectory
     public DirectoryVar getInstallDirectory() {
@@ -101,12 +103,21 @@ public class InstallExecutable extends DefaultTask {
         this.destinationDir.set(destinationDir);
     }
 
+    /**
+     * Sets the destination directory to install the executable via a {@link Provider}
+     *
+     * @param destinationDir the destination directory provider to use
+     * @see #setDestinationDir(File)
+     * @since 4.1
+     */
     public void setDestinationDir(Provider<? extends Directory> destinationDir) {
         this.destinationDir.set(destinationDir);
     }
 
     /**
      * The executable file to install.
+     *
+     * @since 4.1
      */
     @InputFile
     public RegularFileVar getSourceFile() {
@@ -122,6 +133,13 @@ public class InstallExecutable extends DefaultTask {
         this.executable.set(executable);
     }
 
+    /**
+     * Sets the executable to install via a {@link Provider}
+     *
+     * @param executable the executable provider to use
+     * @see #setExecutable(File)
+     * @since 4.1
+     */
     public void setExecutable(Provider<? extends RegularFile> executable) {
         this.executable.set(executable);
     }
