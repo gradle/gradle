@@ -217,7 +217,7 @@ public class JavaCompilerArgumentsBuilder {
     }
 
     private boolean releaseOptionIsSet(List<String> compilerArgs) {
-        return compilerArgs != null && compilerArgs.contains("-release");
+        return compilerArgs != null && compilerArgs.contains("--release");
     }
 
     private void addClasspath() {
