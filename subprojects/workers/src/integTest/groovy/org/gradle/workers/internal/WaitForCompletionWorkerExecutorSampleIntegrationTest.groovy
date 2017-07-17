@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.util.TextUtil
 import org.junit.Rule
 
 
@@ -26,6 +27,6 @@ class WaitForCompletionWorkerExecutorSampleIntegrationTest extends AbstractWorke
 
     @Override
     void assertSampleSpecificOutcome() {
-        result.assertOutputContains("Created ${workerExecutorSample.dir.file("sources").allDescendants().size()} reversed files in build/reversed")
+        assert TextUtil.normaliseFileSeparators(result.output).contains("Created ${workerExecutorSample.dir.file("sources").allDescendants().size()} reversed files in build/reversed")
     }
 }
