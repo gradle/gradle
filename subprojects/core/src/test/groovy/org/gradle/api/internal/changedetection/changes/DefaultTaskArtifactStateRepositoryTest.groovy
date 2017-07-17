@@ -405,7 +405,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         repository.getStateFor(task).isUpToDate([])
     }
 
-    def "artifacts are up to date when output file which did not exist now exists"() {
+    def "artifacts are out of date when output file which did not exist now exists"() {
         given:
         execute(task)
 
@@ -413,10 +413,10 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         missingOutputFile.touch()
 
         then:
-        upToDate task
+        outOfDate task
     }
 
-    def "artifacts are up to date when output dir which was empty is no longer empty"() {
+    def "artifacts are out of date when output dir which was empty is no longer empty"() {
         given:
         execute(task)
 
@@ -424,7 +424,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         emptyOutputDir.file("some-file").touch()
 
         then:
-        upToDate task
+        outOfDate task
     }
 
     def "has empty task history when task has never been executed"() {
