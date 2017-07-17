@@ -17,11 +17,21 @@ Add-->
 
 The Gradle command line client now starts up ~200ms faster, speeding up every build.
 
-### Composite Build Improvements
+### Better Composite Builds
 
-#### Composite builds are now built in parallel
+#### Included build artifacts are constructed in parallel
 
-TODO, more information. Included builds are now executed in parallel. 
+Where possible, Gradle will now execute different included builds in parallel with each other. This behaviour is by default, and does not require any specific action by the user. Due to the independent nature of included builds, Gradle can safely execute them in parallel.
+
+The `max-workers` setting of the build invocation is honoured for all builds within a composite: this value defines the maximum number of  tasks that will run in parallel.
+
+If [declared substitutions](userguide/compositeBuilds.html#sec:included_build_declaring_substitutions) are used, each included build will also be _configured_ in parallel.
+
+#### Included builds are executed once only
+
+In previous versions of Gradle, an included build may have been executed multiple times in order to construct multiple dependent artifacts. This occurred for `compileOnly` artifact dependencies, and for `implementation` dependencies of a `java-library` project. Gradle now does more work to determine these dependencies up-front, so that in almost every case and included build will only be configured and executed a single time per build invocation. 
+
+The exception to this is where an included build provides multiple different artifacts, and one of these artifacts is required prior to task execution: either to provide a plugin implementation, or to satisfy a dependency resolved at configuration time.
 
 #### Continuous build now works with composite builds
 
