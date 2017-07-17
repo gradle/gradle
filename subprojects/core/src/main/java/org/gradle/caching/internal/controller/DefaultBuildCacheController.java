@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.controller;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheKey;
@@ -52,6 +53,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class DefaultBuildCacheController implements BuildCacheController {
 
@@ -161,10 +163,17 @@ public class DefaultBuildCacheController implements BuildCacheController {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
+                    InputStream input;
                     try {
-                        result = command.load(new FileInputStream(file));
+                        input = new FileInputStream(file);
                     } catch (FileNotFoundException e) {
                         throw UncheckedException.throwAsUncheckedException(e);
+                    }
+
+                    try {
+                        result = command.load(input);
+                    } finally {
+                        IOUtils.closeQuietly(input);
                     }
 
                     context.setResult(new UnpackOperationResult(
