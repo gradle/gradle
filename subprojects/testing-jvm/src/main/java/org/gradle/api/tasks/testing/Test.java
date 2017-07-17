@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.testing;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import org.apache.commons.io.IOUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -42,6 +44,7 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
+import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputAssociation;
@@ -613,6 +616,44 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Override
     public Test copyTo(JavaForkOptions target) {
         forkOptions.copyTo(target);
+        return this;
+    }
+
+    /**
+     * Filters tests to be executed based on which tests failed in the previous execution.
+     * <p>
+     * If there are no previous results, the previous results cannot be read or no tests failed in
+     * the last execution, no filters are applied and all tests will be executed.
+     * <p>
+     * This option will replace any existing filters.
+     *
+     * @since 4.1
+     */
+    @Option(option = "failed", description = "Filter tests based on tests that failed previously.")
+    public Test filterForFailed(boolean failed) {
+        if (failed) {
+            TestResultsProvider resultsProvider = null;
+            try {
+                resultsProvider = new BinaryResultBackedTestResultsProvider(getBinResultsDir());
+                final List<String> failedTestClasses = Lists.newArrayList();
+                resultsProvider.visitClasses(new Action<TestClassResult>() {
+                    @Override
+                    public void execute(TestClassResult testClassResult) {
+                        if (testClassResult.getFailuresCount() > 0) {
+                            failedTestClasses.add(testClassResult.getClassName());
+                        }
+                    }
+                });
+                if (!failedTestClasses.isEmpty()) {
+                    return setTestNameIncludePatterns(failedTestClasses);
+                }
+            } catch (Exception e) {
+                getLogger().debug("cannot find previously failed tests", e);
+            } finally {
+                IOUtils.closeQuietly(resultsProvider);
+            }
+            getLogger().warn("No tests failed previously, running all tests.");
+        }
         return this;
     }
 

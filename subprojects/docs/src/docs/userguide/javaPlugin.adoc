@@ -784,7 +784,8 @@ Test filtering feature has following characteristic:
 
 * Fully qualified class name or fully qualified method name is supported, e.g. “org.gradle.SomeTest”, “org.gradle.SomeTest.someMethod”
 * Wildcard '*' is supported for matching any characters
-* Command line option “--tests” is provided to conveniently set the test filter. Especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusion filters declared in the build script are ignored. It is possible to supply multiple “--tests” options and tests matching any of those patterns will be included.
+* Command line option `--tests` is provided to conveniently set the test filter. Especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusion filters declared in the build script are ignored. It is possible to supply multiple `--tests` options and tests matching any of those patterns will be included.
+* Command line option `--failed` is provided to set the test filter based on the results of the last execution. If there are no previous results, the previous results cannot be read or no tests failed in the last execution, no filters are applied and all tests will be executed.  This command-line option will replace any existing filters.
 * Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
 * Test filtering supersedes the file-based test selection. The latter may be completely replaced in future. We will grow the test filtering API and add more kinds of filters.
 
@@ -800,6 +801,7 @@ For more details and examples please see the api:org.gradle.api.tasks.testing.Te
 
 Some examples of using the command line option:
 
+* `gradle test --failed`
 * `gradle test --tests org.gradle.SomeTest.someSpecificFeature`
 * `gradle test --tests \*SomeTest.someSpecificFeature`
 * `gradle test --tests \*SomeSpecificTest`

@@ -16,6 +16,12 @@ While it is easy for a plugin author to extend the Gradle DSL to add top level b
 
 In this release of Gradle, API methods have been added to allow a plugin author to create nested DSL elements. See the [example in the user guide](userguide/custom_plugins.html#sec:nested_dsl_elements) section on custom plugins.
 
+### Filtering Java test execution based on test failures
+
+When executing `Test` tasks, you can now pass the [`--failed` command-line option](userguide/java_plugin.html#test_filtering). This option will filter test execution to only the test classes that failed in the last execution.
+
+If there are no previous results, the previous results cannot be read or no tests failed in the last execution, all tests will be executed instead.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
