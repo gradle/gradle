@@ -35,12 +35,10 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         buildScan.tag 'CACHED'
 
         ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
-            ':baseServices:classpathManifest',
-            ':core:compileTestGroovy'
+            ':baseServices:classpathManifest'
         ]
         ext.taskPropertiesWithFullFileSnapshot = [
-            ':baseServices:compileJava': ['classpath'],
-            ':core:compileTestGroovy': ['classpath'],
+            ':baseServices:compileJava': ['classpath']
         ]
 
         project.buildScan.buildFinished(new Action() {
