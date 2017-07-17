@@ -16,7 +16,7 @@
 
 package org.gradle.includedbuild.internal;
 
-import org.gradle.includedbuild.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 
 public interface IncludedBuilds {
     Iterable<IncludedBuild> getBuilds();

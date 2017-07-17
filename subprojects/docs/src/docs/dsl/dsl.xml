@@ -142,7 +142,7 @@
                 <td>org.gradle.api.initialization.Settings</td>
             </tr>
             <tr>
-                <td>org.gradle.includedbuild.IncludedBuild</td>
+                <td>org.gradle.api.initialization.IncludedBuild</td>
             </tr>
             <tr>
                 <td>org.gradle.api.Script</td>

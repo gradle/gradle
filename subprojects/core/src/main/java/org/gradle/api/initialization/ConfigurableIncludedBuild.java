@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.includedbuild;
+package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -24,7 +24,7 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * A build that is to be included in the composite.
  *
- * @since 4.1
+ * @since 3.1
  */
 @Incubating
 @HasInternalProtocol
@@ -38,8 +38,6 @@ public interface ConfigurableIncludedBuild extends IncludedBuild {
      *
      * @see org.gradle.api.artifacts.ResolutionStrategy#dependencySubstitution(Action)
      * @see DependencySubstitutions
-     * @since 2.5
      */
-    @Incubating
     void dependencySubstitution(Action<? super DependencySubstitutions> action);
 }

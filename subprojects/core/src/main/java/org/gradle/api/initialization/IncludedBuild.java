@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.includedbuild;
+package org.gradle.api.initialization;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.TaskReference;
@@ -25,7 +25,7 @@ import java.io.File;
 /**
  * A build that is included in the composite.
  *
- * @since 4.1
+ * @since 3.1
  */
 @Incubating
 @HasInternalProtocol

@@ -21,7 +21,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.includedbuild.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.internal.service.ServiceRegistry;

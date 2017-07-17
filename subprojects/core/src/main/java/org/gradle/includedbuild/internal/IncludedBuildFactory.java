@@ -16,7 +16,7 @@
 
 package org.gradle.includedbuild.internal;
 
-import org.gradle.includedbuild.ConfigurableIncludedBuild;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 
 import java.io.File;
 
