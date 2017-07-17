@@ -164,11 +164,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public void afterOutputsRemovedBeforeTask() {
-            outputsRemoved = true;
-            // No need to retake snapshots if we never took any before
-            if (states != null) {
-                states.retakeOutputFileSnapshots();
-            }
+            this.outputsRemoved = true;
         }
 
         @Override

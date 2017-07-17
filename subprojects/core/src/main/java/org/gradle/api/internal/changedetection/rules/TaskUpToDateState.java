@@ -92,13 +92,6 @@ public class TaskUpToDateState {
     }
 
     /**
-     * Update the state of output files after some modifications compared to the orignal.
-     */
-    public void retakeOutputFileSnapshots() {
-        outputFileChanges.retakeSnapshots();
-    }
-
-    /**
      * Returns any change to task inputs or outputs.
      */
     public TaskStateChanges getAllTaskChanges() {
