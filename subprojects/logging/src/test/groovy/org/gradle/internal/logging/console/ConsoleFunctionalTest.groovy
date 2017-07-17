@@ -363,7 +363,7 @@ class ConsoleFunctionalTest extends Specification {
 
     ProgressCompleteEvent completeEvent(Long id, status = 'STATUS') {
         long timestamp = timeProvider.currentTime
-        new ProgressCompleteEvent(new OperationIdentifier(id), timestamp, status)
+        new ProgressCompleteEvent(new OperationIdentifier(id), timestamp, status, false)
     }
 
     private ConsoleStub.TestableRedrawableLabel getStatusBar() {

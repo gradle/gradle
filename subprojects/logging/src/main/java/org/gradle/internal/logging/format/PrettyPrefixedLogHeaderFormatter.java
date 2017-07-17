@@ -24,18 +24,14 @@ import java.util.List;
 
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     @Override
-    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status) {
+    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status, boolean failing) {
         final String message = header != null ? header : description;
         if (message != null) {
             // Visually indicate group by adding surrounding lines
             return Lists.newArrayList(new StyledTextOutputEvent.Span(EOL), new StyledTextOutputEvent.Span(
-                isFailing(status) ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.Header, "> " + message), new StyledTextOutputEvent.Span(EOL));
+                failing ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.Header, "> " + message), new StyledTextOutputEvent.Span(EOL));
         } else {
             return Lists.newArrayList();
         }
-    }
-
-    private boolean isFailing(@Nullable String status) {
-        return "FAILED".equals(status);
     }
 }

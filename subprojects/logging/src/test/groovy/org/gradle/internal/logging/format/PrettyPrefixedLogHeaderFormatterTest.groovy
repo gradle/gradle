@@ -26,7 +26,7 @@ class PrettyPrefixedLogHeaderFormatterTest extends Specification {
         def formatter = new PrettyPrefixedLogHeaderFormatter()
 
         when:
-        def formattedText = formatter.format(":test", "", null, "FAILED")
+        def formattedText = formatter.format(":test", "", null, "XYZ", true)
 
         then:
         formattedText[1].style == StyledTextOutput.Style.FailureHeader
@@ -37,7 +37,7 @@ class PrettyPrefixedLogHeaderFormatterTest extends Specification {
         def formatter = new PrettyPrefixedLogHeaderFormatter()
 
         when:
-        def formattedText = formatter.format(":test", "", null, "SUCCESS")
+        def formattedText = formatter.format(":test", "", null, "XYZ", false)
 
         then:
         formattedText[1].style == StyledTextOutput.Style.Header
