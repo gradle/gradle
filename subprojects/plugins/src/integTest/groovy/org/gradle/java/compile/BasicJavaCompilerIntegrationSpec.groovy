@@ -147,7 +147,7 @@ public class FxApp extends Application {
         given:
         goodCode()
         buildFile << """
-compileJava.options.compilerArgs.addAll(['-release', '7'])
+compileJava.options.compilerArgs.addAll(['--release', '7'])
 """
 
         expect:
@@ -170,7 +170,7 @@ public class FailsOnJava7 {
 '''
 
         buildFile << """
-compileJava.options.compilerArgs.addAll(['-release', '7'])
+compileJava.options.compilerArgs.addAll(['--release', '7'])
 """
 
         expect:
