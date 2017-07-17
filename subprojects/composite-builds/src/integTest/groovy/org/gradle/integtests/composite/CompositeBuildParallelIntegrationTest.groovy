@@ -51,7 +51,6 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         maxWorkers << [ 1, 2, 4 ]
     }
 
-    @Unroll
     def "can build transitive dependency chain with --max-workers == 1"() {
         def previousBuild = buildA
         ['buildB', 'buildC', 'buildD'].each { buildName ->
