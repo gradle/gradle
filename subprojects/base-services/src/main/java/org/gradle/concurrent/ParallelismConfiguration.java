@@ -20,14 +20,16 @@ import org.gradle.api.Incubating;
 
 /**
  * A {@code ParallelismConfiguration} defines the parallel settings for a Gradle build.
+ *
+ * @since 4.1
  */
+@Incubating
 public interface ParallelismConfiguration {
     /**
      * Returns true if parallel project execution is enabled.
      *
      * @see #getMaxWorkerCount()
      */
-    @Incubating
     boolean isParallelProjectExecutionEnabled();
 
     /**
@@ -35,7 +37,6 @@ public interface ParallelismConfiguration {
      *
      * @see #isParallelProjectExecutionEnabled()
      */
-    @Incubating
     void setParallelProjectExecutionEnabled(boolean parallelProjectExecution);
 
     /**
@@ -54,7 +55,6 @@ public interface ParallelismConfiguration {
      * @return maximum number of concurrent workers, always >= 1.
      * @see java.lang.Runtime#availableProcessors()
      */
-    @Incubating
     int getMaxWorkerCount();
 
     /**
@@ -63,7 +63,6 @@ public interface ParallelismConfiguration {
      * @throws IllegalArgumentException if {@code maxWorkerCount} is &lt; 1
      * @see #getMaxWorkerCount()
      */
-    @Incubating
     void setMaxWorkerCount(int maxWorkerCount);
 
 }
