@@ -211,18 +211,13 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
                 resolution.append(' ');
             }
         }
-        boolean addedScanLink = false;
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             resolution.text("Run with ");
-            addedScanLink = maybeAddBuildScan(resolution);
             resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.STACKTRACE_LONG);
             resolution.text(" option to get the stack trace. ");
         }
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
             resolution.text("Run with ");
-            if (!addedScanLink) {
-                maybeAddBuildScan(resolution);
-            }
             if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
                 resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.INFO_LONG);
                 resolution.text(" or ");
@@ -230,16 +225,6 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
             resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
             resolution.text(" option to get more log output.");
         }
-    }
-
-    private boolean maybeAddBuildScan(BufferingStyledTextOutput resolution) {
-        // todo: replace this test with something which _effectively_ checks what the status of build scan generation is
-        if (gradle == null || gradle.getStartParameter().isNoBuildScan() || !gradle.getStartParameter().isBuildScan()) {
-            resolution.withStyle(UserInput).text("--scan");
-            resolution.text(" to generate a build scan, ");
-            return true;
-        }
-        return false;
     }
 
     private void writeGeneralTips(StyledTextOutput resolution) {
