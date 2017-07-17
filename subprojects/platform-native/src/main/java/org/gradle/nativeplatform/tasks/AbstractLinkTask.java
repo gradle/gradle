@@ -105,6 +105,8 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
     /**
      * The file where the linked binary will be located.
+     *
+     * @since 4.1
      */
     @OutputFile
     public RegularFileVar getBinaryFile() {
@@ -120,6 +122,9 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         this.outputFile.set(outputFile);
     }
 
+    /**
+     * @since 4.1
+     */
     public void setOutputFile(Provider<? extends RegularFile> outputFile) {
         this.outputFile.set(outputFile);
     }
