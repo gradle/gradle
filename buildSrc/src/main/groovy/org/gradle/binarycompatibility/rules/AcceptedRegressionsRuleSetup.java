@@ -18,6 +18,8 @@ package org.gradle.binarycompatibility.rules;
 
 import me.champeau.gradle.japicmp.report.SetupRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
+import org.gradle.binarycompatibility.AcceptedApiChanges;
+import org.gradle.binarycompatibility.ApiChange;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -25,17 +27,17 @@ import java.util.Set;
 
 public class AcceptedRegressionsRuleSetup implements SetupRule {
 
-    private final Set<String> declaredRegressions;
+    private final Set<ApiChange> acceptedApiChanges;
 
-    public AcceptedRegressionsRuleSetup(Map<String, String> regressions) {
-        declaredRegressions = regressions.keySet();
+    public AcceptedRegressionsRuleSetup(Map<String, String> acceptedApiChanges) {
+        this.acceptedApiChanges = AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges).keySet();
     }
 
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContext context) {
         Map<String, Object> userData = (Map<String, Object>) context.getUserData();
-        userData.put("declaredRegressions", declaredRegressions);
-        userData.put("seenRegressions", new HashSet<String>());
+        userData.put("acceptedApiChanges", acceptedApiChanges);
+        userData.put("seenApiChanges", new HashSet<ApiChange>());
     }
 
 }

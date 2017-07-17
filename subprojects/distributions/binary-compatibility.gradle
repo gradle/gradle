@@ -21,6 +21,7 @@ import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.attributes.Attribute
 import org.gradle.binarycompatibility.rules.*
 import org.gradle.binarycompatibility.transforms.*
+import org.gradle.binarycompatibility.AcceptedApiChanges
 
 buildscript {
     repositories {
@@ -45,7 +46,8 @@ repositories {
 }
 
 ext {
-    compatibilityBaselineVersion = '4.0.1'
+    acceptedViolations = AcceptedApiChanges.parse(project.file("src/changes/accepted-public-api-changes.json").text)
+    compatibilityBaselineVersion = acceptedViolations.baseVersion.version
 }
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
@@ -101,9 +103,8 @@ projects.each { projectName ->
 
 task checkBinaryCompatibility(type: JapicmpTask) {
     dependsOn publicProjects.jar
-    ext.acceptedViolations = loadBreakingChanges(project.file("src/changes/accepted-violations.txt"))
 
-    inputs.property('acceptedViolations', acceptedViolations)
+    inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
 
     oldClasspath = configurations.baselineClasspath
@@ -119,9 +120,9 @@ task checkBinaryCompatibility(type: JapicmpTask) {
         title = "Binary compatibility report for Gradle ${version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")
         reportName = "report.html"
-        addRule(BinaryBreakingChangesRule, acceptedViolations)
-        addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedViolations)
-        addSetupRule(AcceptedRegressionsRuleSetup, acceptedViolations)
+        addRule(BinaryBreakingChangesRule, acceptedViolations.toAcceptedChangesMap())
+        addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedViolations.toAcceptedChangesMap())
+        addSetupRule(AcceptedRegressionsRuleSetup, acceptedViolations.toAcceptedChangesMap())
         addPostProcessRule(AcceptedRegressionsRulePostProcess)
 
         includedClasses = toPatterns(publicApiIncludes)

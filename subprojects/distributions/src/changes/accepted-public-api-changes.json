@@ -1,0 +1,27 @@
+{
+    "baseVersion": "4.0.1",
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.initialization.ConfigurableIncludedBuild",
+            "member": "Implemented interface org.gradle.api.initialization.IncludedBuild",
+            "changes": ["Interface has been removed"],
+            "acceptation": "@Incubating interface has been removed"
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaCompile",
+            "member": "Method org.gradle.api.tasks.scala.ScalaCompile.getSource()",
+            "acceptation": "Overriding an existing method doesn't have to be marked as incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getSource()",
+            "acceptation": "Overriding an existing method doesn't have to be marked as incubating"
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Implemented interface org.gradle.initialization.ParallelismConfiguration",
+            "changes": ["Interface has been removed"],
+            "acceptation": "Interface was incubating"
+        }
+    ]
+}
