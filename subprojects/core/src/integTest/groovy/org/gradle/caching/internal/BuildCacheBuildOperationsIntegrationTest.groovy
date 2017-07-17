@@ -174,11 +174,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         """
 
         executer.withStackTraceChecksDisabled()
-        if (exceptionType == BuildCacheException) {
-            succeeds("t")
-        } else {
-            fails("t")
-        }
+        succeeds("t")
 
         then:
         def failedLoadOp = operations.only(BuildCacheRemoteLoadBuildOperationType)
@@ -187,7 +183,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         failedLoadOp.failure == "${exceptionType.name}: !"
 
         where:
-        exceptionType << [RuntimeException, BuildCacheException, IOException]
+        exceptionType << [RuntimeException, IOException]
     }
 
     def "records store failure"() {
@@ -228,7 +224,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         """
 
         executer.withStackTraceChecksDisabled()
-        fails("t")
+        succeeds("t")
 
         then:
         def failedLoadOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)

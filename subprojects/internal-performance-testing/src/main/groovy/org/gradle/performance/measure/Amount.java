@@ -15,8 +15,7 @@
  */
 package org.gradle.performance.measure;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;

@@ -19,9 +19,9 @@ package org.gradle.internal.classloader;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.internal.classpath.ClassPath;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;

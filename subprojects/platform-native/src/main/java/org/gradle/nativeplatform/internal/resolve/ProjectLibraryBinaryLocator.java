@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.model.ModelMap;
@@ -25,6 +24,8 @@ import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.platform.base.ComponentSpecContainer;
+
+import javax.annotation.Nullable;
 
 public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectModelResolver projectModelResolver;

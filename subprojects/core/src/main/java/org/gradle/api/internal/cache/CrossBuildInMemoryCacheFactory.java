@@ -17,11 +17,11 @@
 package org.gradle.api.internal.cache;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
 
+import javax.annotation.Nullable;
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
 import java.util.HashSet;

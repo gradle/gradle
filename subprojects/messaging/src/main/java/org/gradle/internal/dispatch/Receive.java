@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.dispatch;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A source for messages. Implementations do not have to be thread-safe.

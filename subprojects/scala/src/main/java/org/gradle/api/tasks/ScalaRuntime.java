@@ -15,12 +15,16 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.api.*;
+import org.gradle.api.Buildable;
+import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

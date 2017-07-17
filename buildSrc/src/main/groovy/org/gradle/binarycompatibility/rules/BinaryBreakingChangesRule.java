@@ -16,6 +16,7 @@
 
 package org.gradle.binarycompatibility.rules;
 
+import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiHasAnnotations;
 import me.champeau.gradle.japicmp.report.Violation;
@@ -24,21 +25,31 @@ import java.util.Map;
 
 public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
 
-    public BinaryBreakingChangesRule(Map<String, String> acceptedViolations) {
-        super(acceptedViolations);
+    public BinaryBreakingChangesRule(Map<String, String> acceptedApiChanges) {
+        super(acceptedApiChanges);
     }
+
+    private JApiClass currentClass;
 
     @Override
     @SuppressWarnings("unchecked")
     public Violation maybeViolation(final JApiCompatibility member) {
         if (!member.isBinaryCompatible()) {
+            if (member instanceof JApiClass) {
+                currentClass = (JApiClass) member;
+                if (member.getCompatibilityChanges().isEmpty()) {
+                    // A member of the class breaks binary compatibility.
+                    // That will be handled when the member is passed to `maybeViolation`.
+                    return null;
+                }
+            }
             if (member instanceof JApiHasAnnotations) {
                 if (isIncubating((JApiHasAnnotations) member)) {
                     return Violation.accept(member, "Removed member was incubating");
                 }
             }
 
-            return acceptOrReject(member, Violation.notBinaryCompatible(member));
+            return acceptOrReject(currentClass, member, Violation.notBinaryCompatible(member));
         }
         return null;
     }

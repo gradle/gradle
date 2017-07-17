@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource.metadata;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
 
+import javax.annotation.Nullable;
 import java.util.Date;
 
 public abstract class ExternalResourceMetaDataCompare {

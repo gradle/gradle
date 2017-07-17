@@ -17,11 +17,11 @@
 package org.gradle.internal.artifacts.repositories;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.authentication.Authentication;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public interface AuthenticationSupportedInternal extends AuthenticationSupported {

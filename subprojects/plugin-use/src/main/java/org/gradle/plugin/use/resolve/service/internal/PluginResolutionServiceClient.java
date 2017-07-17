@@ -17,9 +17,9 @@
 package org.gradle.plugin.use.resolve.service.internal;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 
 /**

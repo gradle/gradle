@@ -16,9 +16,10 @@
 
 package org.gradle.caching.internal.controller.service;
 
-import org.gradle.api.Nullable;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+
+import javax.annotation.Nullable;
 
 public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
 

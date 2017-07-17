@@ -22,10 +22,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.AbstractTrackedResourceLock;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -43,7 +43,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*;
-import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 
 public class DefaultWorkerLeaseService implements WorkerLeaseService, ParallelismConfigurationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
@@ -98,6 +98,17 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         Collection<? extends ResourceLock> operations = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
         LeaseHolder parent = operations.isEmpty() ? root : (DefaultWorkerLease) operations.toArray()[operations.size() - 1];
         return getWorkerLease(parent);
+    }
+
+    @Override
+    public void withSharedLease(WorkerLease sharedLease, Runnable action) {
+        workerLeaseLockRegistry.associateResourceLock(sharedLease);
+        try {
+            action.run();
+        } finally {
+            workerLeaseLockRegistry.unassociatResourceLock(sharedLease);
+            coordinationService.notifyStateChange();
+        }
     }
 
     @Override

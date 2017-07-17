@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface TaskExecutionContext {

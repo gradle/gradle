@@ -16,8 +16,7 @@
 
 package org.gradle.internal.resource;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 

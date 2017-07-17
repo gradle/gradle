@@ -16,8 +16,7 @@
 
 package org.gradle.internal.filewatch;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class FileWatcherEvent {

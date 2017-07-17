@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.fixtures.binaryinfo
 
 import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
-import org.gradle.api.Nullable
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -26,6 +25,8 @@ import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall
+
+import javax.annotation.Nullable
 
 class DumpbinBinaryInfo implements BinaryInfo {
     final File binaryFile

@@ -15,10 +15,11 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
+
+import javax.annotation.Nullable;
 
 /**
  * A daemon connector establishes a connection to a daemon.

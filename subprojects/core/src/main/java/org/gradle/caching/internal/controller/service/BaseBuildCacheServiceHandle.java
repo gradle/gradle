@@ -16,13 +16,12 @@
 
 package org.gradle.caching.internal.controller.service;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+
+import javax.annotation.Nullable;
 
 public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
@@ -60,7 +59,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
         try {
             loadInner(description, key, loadTarget);
         } catch (Exception e) {
-            failure("load", "from", key, e, !(e instanceof BuildCacheException));
+            failure("load", "from", key, e);
         }
     }
 
@@ -80,7 +79,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
         try {
             storeInner(description, key, storeTarget);
         } catch (Exception e) {
-            failure("store", "in", key, e, false);
+            failure("store", "in", key, e);
         }
     }
 
@@ -89,20 +88,16 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
         service.store(key, storeTarget);
     }
 
-    private void failure(String verb, String preposition, BuildCacheKey key, Throwable e, boolean propagate) {
+    private void failure(String verb, String preposition, BuildCacheKey key, Throwable e) {
         disabled = true;
 
         String description = "Could not " + verb + " entry " + key + " " + preposition + " " + role.getDisplayName() + " build cache";
         if (LOGGER.isWarnEnabled()) {
-            if (logStackTraces && !propagate) {
+            if (logStackTraces) {
                 LOGGER.warn(description, e);
             } else {
                 LOGGER.warn(description + ": " + e.getMessage());
             }
-        }
-
-        if (propagate) {
-            throw new GradleException(description, e);
         }
     }
 

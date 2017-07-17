@@ -17,13 +17,25 @@
 package org.gradle.model.internal.registry
 
 import com.google.common.base.Predicate
-import org.gradle.api.Nullable
 import org.gradle.model.RuleSource
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.ModelAction
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelNode
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelRegistration
+import org.gradle.model.internal.core.ModelRegistrations
+import org.gradle.model.internal.core.ModelView
+import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.core.NoInputsModelAction
+import org.gradle.model.internal.core.NodePredicate
+import org.gradle.model.internal.core.UnmanagedModelProjection
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 abstract class RegistrySpec extends Specification {
     protected static class TestNode extends ModelNodeInternal {

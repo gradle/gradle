@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations.notify;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
@@ -26,6 +25,7 @@ import org.gradle.internal.progress.OperationStartEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

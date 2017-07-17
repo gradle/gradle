@@ -17,11 +17,11 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

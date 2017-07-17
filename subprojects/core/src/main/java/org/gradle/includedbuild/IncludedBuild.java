@@ -24,6 +24,8 @@ import java.io.File;
 
 /**
  * A build that is included in the composite.
+ *
+ * @since 4.1
  */
 @Incubating
 @HasInternalProtocol

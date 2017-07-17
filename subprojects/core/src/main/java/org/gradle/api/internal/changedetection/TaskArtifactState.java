@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
@@ -50,6 +50,11 @@ public interface TaskArtifactState {
      * Ensure snapshot is taken of the task's inputs and outputs before it is executed.
      */
     void ensureSnapshotBeforeTask();
+
+    /**
+     * Retakes output file snapshots and prevents the task from executing in an incremental fashion.
+     */
+    void afterOutputsRemovedBeforeTask();
 
     /**
      * Called on completion of task execution.

@@ -16,14 +16,13 @@
 
 package org.gradle.caching.internal.controller
 
-import org.gradle.api.GradleException
+import org.gradle.api.Action
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration
 import org.gradle.caching.local.internal.LocalBuildCacheService
-import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
@@ -33,6 +32,7 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def key = Mock(BuildCacheKey) {
         getHashCode() >> "key"
+        toString() >> "key"
     }
 
     def local = Mock(Local) {
@@ -96,7 +96,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         )
     }
 
-    def "does not suppress exceptions from load"() {
+    def "does suppress exceptions from load"() {
         given:
         1 * remote.load(key, _) >> { throw new RuntimeException() }
 
@@ -104,10 +104,6 @@ class DefaultBuildCacheControllerTest extends Specification {
         controller.load(loadCommand)
 
         then:
-        def exception = thrown(GradleException)
-        exception.message.contains key.toString()
-
-        and:
         1 * local.load(key, _)
         0 * local.store(key, _)
     }
@@ -143,6 +139,21 @@ class DefaultBuildCacheControllerTest extends Specification {
 
         when:
         controller.store(storeCommand)
+
+        then:
+        0 * local.store(key, _)
+    }
+
+    def "local load does not stores to local"() {
+        given:
+        1 * local.load(key, _) >> { BuildCacheKey key, Action<File> action ->
+            def file = tmpDir.file("file")
+            file.text = "alma"
+            action.execute(file)
+        }
+
+        when:
+        controller.load(loadCommand)
 
         then:
         0 * local.store(key, _)
@@ -194,7 +205,9 @@ class DefaultBuildCacheControllerTest extends Specification {
         0 * local.store(key, _)
     }
 
-    def "stops calling through after defined number of read errors"() {
+    def "stops calling through after read error"() {
+        local = null
+
         when:
         def controller = getController()
         controller.load(loadCommand)
@@ -202,12 +215,14 @@ class DefaultBuildCacheControllerTest extends Specification {
         controller.store(storeCommand)
 
         then:
-        1 * remote.load(key, _)
-        1 * remote.load(key, _)
-        1 * remote.store(_, _)
+        1 * remote.load(key, _) >> { throw new RuntimeException() }
+        0 * remote.load(key, _)
+        0 * remote.store(key, _)
     }
 
-    def "stops calling through after defined number of write errors"() {
+    def "stops calling through after write error"() {
+        local = null
+
         when:
         def controller = getController()
         controller.store(storeCommand)
@@ -216,12 +231,10 @@ class DefaultBuildCacheControllerTest extends Specification {
 
         then:
         1 * remote.store(key, _) >> { BuildCacheKey key, BuildCacheEntryWriter writer ->
-            writer.writeTo(NullOutputStream.INSTANCE)
+            throw new RuntimeException()
         }
-        1 * remote.store(key, _) >> { BuildCacheKey key, BuildCacheEntryWriter writer ->
-            writer.writeTo(NullOutputStream.INSTANCE)
-        }
-        1 * remote.load(_, _)
+        0 * remote.load(key, _)
+        0 * remote.store(key, _)
     }
 
     def "close only closes once"() {
@@ -241,6 +254,21 @@ class DefaultBuildCacheControllerTest extends Specification {
         legacyLocal = Mock(BuildCacheService)
         1 * legacyLocal.load(key, _) // miss
         1 * remote.load(key, _) >> { BuildCacheKey key, BuildCacheEntryReader reader ->
+            reader.readFrom(new ByteArrayInputStream("foo".bytes))
+            true
+        }
+
+        when:
+        controller.load(loadCommand)
+
+        then:
+        0 * legacyLocal.store(key, _)
+    }
+
+    def "legacy local load does not store to legacy local"() {
+        given:
+        legacyLocal = Mock(BuildCacheService)
+        1 * legacyLocal.load(key, _) >> { BuildCacheKey key, BuildCacheEntryReader reader ->
             reader.readFrom(new ByteArrayInputStream("foo".bytes))
             true
         }

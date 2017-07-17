@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -24,6 +23,7 @@ import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.TaskDependency;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 

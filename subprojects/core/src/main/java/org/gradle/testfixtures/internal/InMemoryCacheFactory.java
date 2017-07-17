@@ -17,7 +17,6 @@ package org.gradle.testfixtures.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheValidator;
@@ -33,6 +32,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 public interface BuildOperationContext {
     /**

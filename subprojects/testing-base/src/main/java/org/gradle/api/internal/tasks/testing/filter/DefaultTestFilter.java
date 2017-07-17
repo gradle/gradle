@@ -20,12 +20,14 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFilter;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultTestFilter implements TestFilter {
 
     private Set<String> testNames = new HashSet<String>();
+    private Set<String> commandLineTestNames = new HashSet<String>();
     private boolean failOnNoMatching = true;
 
     private void validateName(String name) {
@@ -74,6 +76,20 @@ public class DefaultTestFilter implements TestFilter {
             validateName(name);
         }
         this.testNames = Sets.newHashSet(testNamePatterns);
+        return this;
+    }
+
+    @Input
+    public Set<String> getCommandLineIncludePatterns() {
+        return commandLineTestNames;
+    }
+
+    public TestFilter setCommandLineIncludePatterns(Collection<String> testNamePatterns) {
+        for (String name : testNamePatterns) {
+            validateName(name);
+        }
+        this.commandLineTestNames.clear();
+        this.commandLineTestNames.addAll(testNamePatterns);
         return this;
     }
 }

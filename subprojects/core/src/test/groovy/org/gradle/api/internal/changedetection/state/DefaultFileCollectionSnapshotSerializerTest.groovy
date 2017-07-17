@@ -46,7 +46,6 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
         out.snapshots['/3'].normalizedPath == "3"
         out.snapshots['/3'].snapshot instanceof FileHashSnapshot
         out.snapshots['/3'].snapshot.hash == hash
-        out.compareStrategy == UNORDERED
         out.pathIsAbsolute
     }
 

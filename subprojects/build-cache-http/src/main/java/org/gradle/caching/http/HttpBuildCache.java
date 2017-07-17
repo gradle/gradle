@@ -18,9 +18,9 @@ package org.gradle.caching.http;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;

@@ -16,12 +16,13 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+
+import javax.annotation.Nullable;
 
 /**
  * The result of resolving a module version selector to a particular component id. The result may optionally include the meta-data for the selected component, if it

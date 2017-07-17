@@ -254,9 +254,10 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
 
         when:
-        withBuildCache().fails "jar"
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().succeeds "jar"
         then:
-        failureCauseContains "response status 401: Unauthorized"
+        output.contains "response status 401: Unauthorized"
         // Make sure we don't log the password
         !output.contains("incorrect-pass")
         !errorOutput.contains("incorrect-pass")

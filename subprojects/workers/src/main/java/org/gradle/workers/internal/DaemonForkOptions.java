@@ -18,7 +18,6 @@ package org.gradle.workers.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
-
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsInternal;
 

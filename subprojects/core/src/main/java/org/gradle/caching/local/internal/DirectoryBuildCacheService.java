@@ -45,6 +45,8 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DirectoryBuildCacheService implements LocalBuildCacheService, BuildCacheService {
 
+    public static final String FAILED_READ_SUFFIX = ".failed";
+
     private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
     private final BuildCacheTempFileStore tempFileStore;
@@ -124,9 +126,21 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
             public Void create() {
                 LocallyAvailableResource resource = fileStore.get(key.getHashCode());
                 if (resource != null) {
-                    File file = resource.getFile();
+                    final File file = resource.getFile();
                     GFileUtils.touch(file); // Mark as recently used
-                    reader.execute(file);
+
+                    try {
+                        reader.execute(file);
+                    } catch (Exception e) {
+                        // Try to move the file out of the way in case its permanently corrupt
+                        // Don't delete, so that it can be potentially used for debugging
+                        File failedFile = new File(file.getAbsolutePath() + FAILED_READ_SUFFIX);
+                        GFileUtils.deleteQuietly(failedFile);
+                        //noinspection ResultOfMethodCallIgnored
+                        file.renameTo(failedFile);
+
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
                 }
                 return null;
             }

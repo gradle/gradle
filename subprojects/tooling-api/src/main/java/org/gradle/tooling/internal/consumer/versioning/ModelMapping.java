@@ -18,20 +18,25 @@ package org.gradle.tooling.internal.consumer.versioning;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import org.gradle.api.Nullable;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.InternalBasicIdeaProject;
+import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
+import org.gradle.tooling.internal.protocol.InternalGradleProject;
+import org.gradle.tooling.internal.protocol.InternalIdeaProject;
+import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
-import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.gradle.ProjectPublications;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 

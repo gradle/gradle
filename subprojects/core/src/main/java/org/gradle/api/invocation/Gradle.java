@@ -343,12 +343,16 @@ public interface Gradle extends PluginAware {
 
     /**
      * Returns the included builds for this build.
+     *
+     * @since 3.1
      */
     @Incubating
     Collection<IncludedBuild> getIncludedBuilds();
 
     /**
      * Returns the included build with the specified name for this build.
+     *
+     * @since 3.1
      */
     @Incubating
     IncludedBuild includedBuild(String name);

@@ -17,11 +17,11 @@
 package org.gradle.model.internal.manage.schema.cache;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;

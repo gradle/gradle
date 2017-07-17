@@ -16,10 +16,10 @@
 package org.gradle.internal.logging.format;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Nullable;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {

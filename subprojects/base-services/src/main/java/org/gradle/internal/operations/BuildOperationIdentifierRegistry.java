@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.operations;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 public class BuildOperationIdentifierRegistry {
     private static ThreadLocal<Object> localOperationId = new ThreadLocal<Object>();

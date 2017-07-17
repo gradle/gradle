@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -30,6 +29,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 

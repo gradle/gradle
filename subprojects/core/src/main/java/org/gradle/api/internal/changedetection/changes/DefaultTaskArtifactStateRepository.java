@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
@@ -40,6 +39,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 
@@ -73,6 +73,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private final TaskInternal task;
         private final TaskHistoryRepository.History history;
         private boolean upToDate;
+        private boolean outputsRemoved;
         private TaskUpToDateState states;
         private IncrementalTaskInputsInternal taskInputs;
 
@@ -95,7 +96,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public IncrementalTaskInputs getInputChanges() {
             assert !upToDate : "Should not be here if the task is up-to-date";
 
-            if (canPerformIncrementalBuild()) {
+            if (!outputsRemoved && canPerformIncrementalBuild()) {
                 taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             } else {
                 taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
@@ -159,6 +160,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public void ensureSnapshotBeforeTask() {
             getStates();
+        }
+
+        @Override
+        public void afterOutputsRemovedBeforeTask() {
+            this.outputsRemoved = true;
         }
 
         @Override

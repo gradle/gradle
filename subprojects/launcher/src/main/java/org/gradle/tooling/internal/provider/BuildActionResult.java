@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.Nullable;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class BuildActionResult implements Serializable {

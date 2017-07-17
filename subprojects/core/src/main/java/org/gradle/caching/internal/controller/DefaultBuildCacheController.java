@@ -17,8 +17,9 @@
 package org.gradle.caching.internal.controller;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
+import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.controller.operations.PackOperationDetails;
@@ -46,11 +47,13 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class DefaultBuildCacheController implements BuildCacheController {
 
@@ -96,7 +99,12 @@ public class DefaultBuildCacheController implements BuildCacheController {
         final Unpack<T> unpack = new Unpack<T>(command);
 
         if (local.canLoad()) {
-            local.load(command.getKey(), unpack);
+            try {
+                local.load(command.getKey(), unpack);
+            } catch (Exception e) {
+                throw new GradleException("Build cache entry " + command.getKey() + " from local build cache is invalid", e);
+            }
+
             if (unpack.result != null) {
                 return unpack.result.getMetadata();
             }
@@ -107,16 +115,24 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 @Override
                 public void execute(File file) {
                     LoadTarget loadTarget = new LoadTarget(file);
+                    BuildCacheServiceRole loadedRole = null;
                     if (legacyLocal.canLoad()) {
+                        loadedRole = BuildCacheServiceRole.LOCAL;
                         legacyLocal.load(command.getKey(), loadTarget);
                     }
 
                     if (remote.canLoad() && !loadTarget.isLoaded()) {
+                        loadedRole = BuildCacheServiceRole.REMOTE;
                         remote.load(command.getKey(), loadTarget);
                     }
 
                     if (loadTarget.isLoaded()) {
-                        unpack.execute(file);
+                        try {
+                            unpack.execute(file);
+                        } catch (Exception e) {
+                            @SuppressWarnings("ConstantConditions") String roleDisplayName = loadedRole.getDisplayName();
+                            throw new GradleException("Build cache entry " + command.getKey() + " from " + roleDisplayName + " build cache is invalid", e);
+                        }
                         if (local.canStore()) {
                             local.store(command.getKey(), file);
                         }
@@ -133,7 +149,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
     }
 
-    // TODO: what if this errors?
     private class Unpack<T> implements Action<File> {
         private final BuildCacheLoadCommand<T> command;
 
@@ -148,10 +163,17 @@ public class DefaultBuildCacheController implements BuildCacheController {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
+                    InputStream input;
                     try {
-                        result = command.load(new FileInputStream(file));
+                        input = new FileInputStream(file);
                     } catch (FileNotFoundException e) {
                         throw UncheckedException.throwAsUncheckedException(e);
+                    }
+
+                    try {
+                        result = command.load(input);
+                    } finally {
+                        IOUtils.closeQuietly(input);
                     }
 
                     context.setResult(new UnpackOperationResult(
@@ -199,7 +221,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
         });
     }
 
-    // TODO: what if this errors?
     private class Pack implements Action<File> {
 
         private final BuildCacheStoreCommand command;

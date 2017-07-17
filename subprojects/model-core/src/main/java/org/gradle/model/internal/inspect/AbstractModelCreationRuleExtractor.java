@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
@@ -25,6 +24,7 @@ import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.core.MutableModelNode;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 

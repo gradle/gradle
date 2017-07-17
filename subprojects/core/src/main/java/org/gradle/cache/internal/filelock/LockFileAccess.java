@@ -15,9 +15,11 @@
  */
 package org.gradle.cache.internal.filelock;
 
-import org.gradle.api.Nullable;
-
-import java.io.*;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 
 public class LockFileAccess {

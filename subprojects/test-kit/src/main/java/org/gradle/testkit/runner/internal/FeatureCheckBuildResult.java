@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
@@ -24,6 +23,7 @@ import org.gradle.testkit.runner.internal.feature.BuildResultOutputFeatureCheck;
 import org.gradle.testkit.runner.internal.feature.BuildResultTasksFeatureCheck;
 import org.gradle.testkit.runner.internal.feature.FeatureCheck;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class FeatureCheckBuildResult implements BuildResult {

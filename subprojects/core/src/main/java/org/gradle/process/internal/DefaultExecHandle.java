@@ -18,7 +18,6 @@ package org.gradle.process.internal;
 
 import com.google.common.base.Joiner;
 import net.rubygrapefruit.platform.ProcessLauncher;
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -31,6 +30,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
 import org.gradle.process.internal.streams.StreamsHandler;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;

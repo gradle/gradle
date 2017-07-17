@@ -22,11 +22,11 @@ import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.XmlParser;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.XmlProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
 
+import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;

@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.model;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Represents an element which belongs to some hierarchy.

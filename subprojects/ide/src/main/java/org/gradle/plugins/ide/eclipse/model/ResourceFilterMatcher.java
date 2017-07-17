@@ -18,8 +18,8 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 /**
  * The model of an Eclipse resource filter matcher.

@@ -624,8 +624,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
-        if (getFilter().isFailOnNoMatchingTests() && !getFilter().getIncludePatterns().isEmpty()) {
-            addTestListener(new NoMatchingTestsReporter("No tests found for given includes: " + getFilter().getIncludePatterns()));
+        if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
+            addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
         }
 
         File binaryResultsDir = getBinResultsDir();
@@ -711,6 +711,23 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         }
+    }
+
+    private String createNoMatchingTestErrorMessage() {
+        String msg = "No tests found for given includes: ";
+        if (!getIncludes().isEmpty()) {
+            msg += getIncludes() + "(include rules) ";
+        }
+        if (!getExcludes().isEmpty()) {
+            msg += getExcludes() + "(exclude rules) ";
+        }
+        if (!filter.getIncludePatterns().isEmpty()) {
+            msg += filter.getIncludePatterns() + "(filter.includeTestsMatching) ";
+        }
+        if (!filter.getCommandLineIncludePatterns().isEmpty()) {
+            msg += filter.getCommandLineIncludePatterns() + "(--tests filter) ";
+        }
+        return msg;
     }
 
     /**
@@ -908,7 +925,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
     @Incubating
     public Test setTestNameIncludePatterns(List<String> testNamePattern) {
-        filter.setIncludePatterns(testNamePattern.toArray(new String[]{}));
+        filter.setCommandLineIncludePatterns(testNamePattern);
         return this;
     }
 
