@@ -27,5 +27,5 @@ public interface LogHeaderFormatter {
      * Given a message, return possibly-styled output for displaying message meant to categorize
      * other messages "below" it, if any.
      */
-    List<StyledTextOutputEvent.Span> format(String logHeader, String description, String shortDescription, String status, boolean failing);
+    List<StyledTextOutputEvent.Span> format(String logHeader, String description, String shortDescription, String status, boolean failed);
 }
