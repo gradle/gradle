@@ -16,10 +16,10 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Nullable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public class ImmutableAttributeContainerWithErrorMessage implements AttributeContainerInternal {
