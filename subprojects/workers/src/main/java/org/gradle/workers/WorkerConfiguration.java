@@ -25,7 +25,28 @@ import org.gradle.process.JavaForkOptions;
 import java.io.File;
 
 /**
- * Represents the configuration of a worker.
+ * Represents the configuration of a worker.  Typically used when submitting an item of work
+ * to the {@link WorkerExecutor}.
+ *
+ * <pre>
+ *      workerExecutor.submit(RunnableWorkImpl.class) { WorkerConfiguration conf ->
+ *          // Set the isolation mode for the worker
+ *          conf.isolationMode = IsolationMode.PROCESS
+ *
+ *          // Set up the fork options
+ *          forkOptions { JavaForkOptions options ->
+ *              options.maxHeapSize = "512m"
+ *              options.systemProperty 'some.prop', 'value'
+ *              options.jvmArgs "-server"
+ *          }
+ *
+ *          // Add to the classpath of the worker
+ *          classpath configurations.fooLibrary
+ *
+ *          // Set up the constructor parameters for the unit of work
+ *          conf.params = [ "foo", file('bar') ]
+ *      }
+ * </pre>
  *
  * @since 3.5
  */

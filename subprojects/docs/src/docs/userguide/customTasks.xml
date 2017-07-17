@@ -388,7 +388,12 @@
         <section id="worker-daemons">
             <title>Worker Daemons</title>
             <para>
-                When using <literal>IsolationMode.PROCESS</literal>, gradle will start a long-lived <emphasis>Worker Daemon</emphasis> process that can be reused for future work items.  When a unit of work for a Worker Daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists.  If so, it will send the unit of work to the idle daemon, marking it as busy.  If not, it will start a new daemon.  When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through <apilink class="org.gradle.workers.WorkerConfiguration" method="forkOptions" />.
+                When using <literal>IsolationMode.PROCESS</literal>, gradle will start a long-lived <emphasis>Worker Daemon</emphasis> process that can be reused for future work items.
+            </para>
+            <sample id="workerDaemon" dir="workerApi/workerDaemon" title="Submitting an item of work to run in a worker daemon">
+                <sourcefile file="build.gradle" snippet="worker-daemon" />
+            </sample>
+            <para>When a unit of work for a Worker Daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists.  If so, it will send the unit of work to the idle daemon, marking it as busy.  If not, it will start a new daemon.  When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through <apilink class="org.gradle.workers.WorkerConfiguration" method="forkOptions" />.
             </para>
             <variablelist>
                 <varlistentry>
@@ -473,7 +478,7 @@
                 </varlistentry>
             </variablelist>
             <para>
-                Worker daemons will remain running until either the build daemon that started them is stopped, or system memory becomes scarce.  When available system memory is low, Gradle will begin stopping worker daemons in an attempt to free up memory.
+                Worker daemons will remain running until either the build daemon that started them is stopped, or system memory becomes scarce.  When available system memory is low, Gradle will begin stopping worker daemons in an attempt to minimize memory consumption.
             </para>
         </section>
     </section>

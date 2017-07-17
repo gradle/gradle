@@ -21,19 +21,12 @@ import org.gradle.api.Incubating;
 
 /**
  * Allows work to be submitted for asynchronous execution.  Work should be submitted with a {@link Runnable} class
- * representing the implementation of the unit of work and an action to configure the unit of work (via {@link WorkerConfiguration}.
+ * representing the implementation of the unit of work and an action to configure the unit of work (via {@link WorkerConfiguration}).
  *
  * <pre>
- *      workerExecutor.submit(WorkImplementation.class) { WorkerConfiguration conf ->
+ *      workerExecutor.submit(RunnableWorkImpl.class) { WorkerConfiguration conf ->
  *          // Set the isolation mode for the worker
  *          conf.isolationMode = IsolationMode.NONE
- *
- *          // Set up JVM options
- *          conf.forkOptions.maxHeapSize = "512m"
- *          conf.forkOptions.systemProperty("foo", "bar")
- *
- *          // Add to the classpath
- *          conf.classpath configurations.fooLibrary
  *
  *          // Set up the constructor parameters for the unit of work
  *          conf.params = [ "foo", file('bar') ]
