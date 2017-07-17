@@ -49,7 +49,9 @@ public interface WorkerExecutor {
     void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction);
 
     /**
-     * Blocks until all work associated with the current build operation is complete.
+     * Blocks until all work associated with the current build operation is complete.  Note that when using this method inside
+     * a task action, it will block completion of the task action until all submitted work is complete.  This means that other
+     * tasks from the same project cannot be run in parallel while the task action is still executing.
      *
      * @throws WorkerExecutionException when a failure occurs while executing the work.
      */
