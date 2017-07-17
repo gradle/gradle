@@ -116,16 +116,19 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
         long toReleaseMemory = requestedFreeMemory;
         if (freeMemory < requestedFreeMemory) {
             LOGGER.debug("{} memory requested, {} free", requestedFreeMemory, freeMemory);
+            List<MemoryHolder> memoryHolders;
             synchronized (holdersLock) {
-                for (MemoryHolder holder : new ArrayList<MemoryHolder>(holders)) {
-                    long released = holder.attemptToRelease(toReleaseMemory);
-                    toReleaseMemory -= released;
-                    freeMemory += released;
-                    if (freeMemory >= requestedFreeMemory) {
-                        break;
-                    }
+                memoryHolders = new ArrayList<MemoryHolder>(holders);
+            }
+            for (MemoryHolder holder : memoryHolders) {
+                long released = holder.attemptToRelease(toReleaseMemory);
+                toReleaseMemory -= released;
+                freeMemory += released;
+                if (freeMemory >= requestedFreeMemory) {
+                    break;
                 }
             }
+
             LOGGER.debug("{} memory requested, {} released, {} free", requestedFreeMemory, requestedFreeMemory - toReleaseMemory, freeMemory);
         }
         return freeMemory;
