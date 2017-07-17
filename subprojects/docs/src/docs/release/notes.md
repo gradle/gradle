@@ -148,6 +148,7 @@ We would like to thank the following community members for making contributions 
  - [Krzysztof Ropiak](https://github.com/krro) - Sets annotation processor classpath in Scala compilation task (#2281)
  - [Dave Brewster](https://github.com/dbrewster) - Add support for caching Scala compilation (#1958)
  - [Steve Dougherty](https://github.com/Thynix) - Prevent spurious gradle-wrapper.jar changes (#2183)
+ - [Yannick Welsch](https://github.com/ywelsch) - Use GNU-style release flag for Java 9 compiler (#2474)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
