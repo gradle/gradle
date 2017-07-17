@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.internal.logging.text.Style
+import org.gradle.internal.logging.text.StyledTextOutput
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -60,7 +60,7 @@ class ProgressBarTest extends Specification {
 
     def "formats successful progress green"() {
         expect:
-        progressBar.formatProgress(160, false, 0)[1].style.color == Style.Color.GREEN
+        progressBar.formatProgress(160, false, 0)[1].style == StyledTextOutput.Style.SuccessHeader
     }
 
     def "formats failed progress red"() {
@@ -69,6 +69,6 @@ class ProgressBarTest extends Specification {
         progressBar.update(2, 10, false)
 
         then:
-        progressBar.formatProgress(160, false, 0)[1].style.color == Style.Color.RED
+        progressBar.formatProgress(160, false, 0)[1].style == StyledTextOutput.Style.FailureHeader
     }
 }

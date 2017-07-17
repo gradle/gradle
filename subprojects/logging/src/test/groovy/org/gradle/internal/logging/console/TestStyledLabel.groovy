@@ -16,18 +16,18 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.internal.logging.text.Span
-import org.gradle.internal.logging.text.Style
+import org.gradle.internal.logging.events.StyledTextOutputEvent
+import org.gradle.internal.logging.text.StyledTextOutput
 
 class TestStyledLabel implements StyledLabel {
     String display = ""
-    Map<String, Style> stringToStyleMap = new HashMap<>()
+    Map<String, StyledTextOutput.Style> stringToStyleMap = new HashMap<>()
 
     String getDisplay() {
         display
     }
 
-    Style styleOf(String text) {
+    StyledTextOutput.Style styleOf(String text) {
         stringToStyleMap[text]
     }
 
@@ -37,9 +37,9 @@ class TestStyledLabel implements StyledLabel {
     }
 
     @Override
-    void setText(List<Span> spans) {
+    void setText(List<StyledTextOutputEvent.Span> spans) {
         String text = ""
-        for (Span span : spans) {
+        for (StyledTextOutputEvent.Span span : spans) {
             stringToStyleMap.put(span.text, span.style)
             text += span.text
         }
@@ -47,7 +47,7 @@ class TestStyledLabel implements StyledLabel {
     }
 
     @Override
-    void setText(Span... spans) {
+    void setText(StyledTextOutputEvent.Span... spans) {
         setText(Arrays.asList(spans))
     }
 }

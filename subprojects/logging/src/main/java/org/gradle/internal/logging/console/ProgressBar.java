@@ -17,9 +17,9 @@
 package org.gradle.internal.logging.console;
 
 import com.google.common.collect.Lists;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
-import org.gradle.internal.logging.text.Span;
-import org.gradle.internal.logging.text.Style;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.List;
 
@@ -52,7 +52,7 @@ public class ProgressBar {
         this.failing = this.failing || failing;
     }
 
-    public List<Span> formatProgress(int consoleCols, boolean timerEnabled, long elapsedTime) {
+    public List<StyledTextOutputEvent.Span> formatProgress(int consoleCols, boolean timerEnabled, long elapsedTime) {
         int completedWidth = (int) ((current * 1.0) / total * progressBarWidth);
         int remainingWidth = progressBarWidth - completedWidth;
 
@@ -63,9 +63,9 @@ public class ProgressBar {
             + (timerEnabled ? " [" + elapsedTimeFormatter.format(elapsedTime) + "]" : ""));
 
         return Lists.newArrayList(
-            new Span(Style.of(Style.Emphasis.BOLD), statusPrefix),
-            new Span(Style.of(Style.Emphasis.BOLD, failing ? Style.Color.RED : Style.Color.GREEN), coloredProgress),
-            new Span(Style.of(Style.Emphasis.BOLD), statusSuffix));
+            new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusPrefix),
+            new StyledTextOutputEvent.Span(failing ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.SuccessHeader, coloredProgress),
+            new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusSuffix));
     }
 
     private String trimToConsole(int cols, int prefixLength, String str) {

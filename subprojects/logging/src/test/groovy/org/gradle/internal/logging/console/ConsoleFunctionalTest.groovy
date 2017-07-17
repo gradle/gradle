@@ -23,7 +23,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.sink.OutputEventRenderer
-import org.gradle.internal.logging.text.Style
+import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.progress.BuildProgressLogger
@@ -316,7 +316,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.styleOf("==")?.color == Style.Color.GREEN
+            assert statusBar.styleOf("==") == StyledTextOutput.Style.SuccessHeader
         }
     }
 
@@ -329,7 +329,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.styleOf("==")?.color == Style.Color.RED
+            assert statusBar.styleOf("==") == StyledTextOutput.Style.FailureHeader
         }
     }
 
@@ -343,7 +343,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.styleOf("=====")?.color == Style.Color.RED
+            assert statusBar.styleOf("=====") == StyledTextOutput.Style.FailureHeader
         }
     }
 
