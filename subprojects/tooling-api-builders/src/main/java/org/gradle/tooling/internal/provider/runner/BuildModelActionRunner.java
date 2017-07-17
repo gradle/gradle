@@ -21,7 +21,6 @@ import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -47,6 +46,9 @@ public class BuildModelActionRunner implements BuildActionRunner {
         final GradleInternal gradle = buildController.getGradle();
         gradle.addBuildListener(new BuildResultAdapter(gradle, buildController, buildModelAction));
 
+        if (buildModelAction.isModelRequest()) {
+            gradle.getStartParameter().setConfigureOnDemand(false);
+        }
         if (buildModelAction.isRunTasks()) {
             buildController.run();
         } else {
@@ -65,12 +67,6 @@ public class BuildModelActionRunner implements BuildActionRunner {
             this.buildModelAction = buildModelAction;
         }
 
-        @Override
-        public void projectsLoaded(Gradle gradle) {
-            if (!buildModelAction.isRunTasks()) {
-                forceFullConfiguration((GradleInternal) gradle);
-            }
-        }
 
         @Override
         public void buildFinished(BuildResult result) {
@@ -80,6 +76,9 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         private static BuildActionResult buildResult(GradleInternal gradle, BuildModelAction buildModelAction) {
+            if (buildModelAction.isModelRequest()) {
+                forceFullConfiguration(gradle);
+            }
             PayloadSerializer serializer = gradle.getServices().get(PayloadSerializer.class);
             try {
                 Object model = buildModel(gradle, buildModelAction);

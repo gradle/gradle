@@ -20,7 +20,6 @@ import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.includedbuild.IncludedBuild;
@@ -44,22 +43,14 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         }
 
         final GradleInternal gradle = buildController.getGradle();
+        gradle.getStartParameter().setConfigureOnDemand(false);
 
         ClientProvidedBuildAction clientProvidedBuildAction = (ClientProvidedBuildAction) action;
         PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
         final InternalBuildAction<?> clientAction = (InternalBuildAction<?>) payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
-        final boolean isRunTasks = clientProvidedBuildAction.isRunTasks();
 
         gradle.addBuildListener(new BuildAdapter() {
-
-            @Override
-            public void projectsLoaded(Gradle gradle) {
-                if (!isRunTasks) {
-                    forceFullConfiguration((GradleInternal) gradle);
-                }
-            }
-
             @Override
             public void buildFinished(BuildResult result) {
                 if (result.getFailure() == null) {
@@ -68,7 +59,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
             }
         });
 
-        if (isRunTasks) {
+        if (clientProvidedBuildAction.isRunTasks()) {
             buildController.run();
         } else {
             buildController.configure();
@@ -76,6 +67,8 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
     }
 
     private BuildActionResult buildResult(InternalBuildAction<?> clientAction, GradleInternal gradle) {
+        forceFullConfiguration(gradle);
+
         InternalBuildController internalBuildController = new DefaultBuildController(gradle);
         Object model = null;
         Throwable failure = null;
