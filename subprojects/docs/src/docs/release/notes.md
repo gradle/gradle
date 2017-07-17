@@ -75,7 +75,7 @@ Errors like a broken HTTP connection, or corrupted data being downloaded do not 
 
 ### New API for safe, fast concurrent work execution
 
-Gradle 4.1 introduces the [Worker API](userguide/custom_tasks.html#worker_api), a new API for safe, parallel, and asynchronous execution of build logic.  This API allows for:
+Gradle 4.1 introduces the [Worker API](userguide/custom_tasks.html#worker_api), a new API for safe, parallel, and asynchronous execution of units of work within a build.  This API allows for:
 
 - Parallel execution of multiple items of work within a task
 - Execution of work in a separate daemon process
