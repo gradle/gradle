@@ -61,6 +61,7 @@ We would like to thank the following community members for making contributions 
  - [Bo Zhang](https://github.com/blindpirate) - Add an option to FindBugs for toggling logging of analysis progress (#2181)
  - [Josué Lima](https://github.com/josuelima) - Fix typo on S3 AwsImAuthentication log message (#2349)
  - [Ian Kerins](https://github.com/CannedYerins) - Fix grammar error in logging documentation (#2482)
+ - [Yannick Welsch](https://github.com/ywelsch) - Use GNU-style release flag for Java 9 compiler (#2474)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
