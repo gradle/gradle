@@ -33,6 +33,12 @@ class StageProject(model: CIBuildModel, number: Int, stage: Stage) : Project({
                 param("title", "Performance")
                 param("type", "BuildReportTab")
             }
+            feature {
+                type = "ReportTab"
+                param("startPage", "results/performance/build/performance-tests/scenario-report.html")
+                param("title", "Performance Failures")
+                param("type", "BuildReportTab")
+            }
         }
     }
 
