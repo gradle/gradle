@@ -1,6 +1,6 @@
-The Gradle team is pleased to announce the first release candidate for Gradle 4.1.
+The Gradle team is pleased to announce the release of Gradle 4.1.
 
-First and foremost, we are excited to announce the new [Worker API](userguide/custom_tasks.html#worker_api) for Gradle plugins, facilitating **safe parallel execution**. We encourage plugin authors to [read the new user guide section](userguide/custom_tasks.html#worker_api) as we plan to leverage this API to enable parallel execution by default in a future release. The [Gradle plugin for Android 3.0 alpha](https://developer.android.com/studio/preview/features/new-android-plugin.html) has already adopted this API, so plugin developers will be in good company.
+First and foremost, we are excited to announce the new [Worker API](userguide/custom_tasks.html#worker_api) for Gradle plugins, which facilitates **safe parallel execution**. We encourage plugin authors to [read the new user guide section](userguide/custom_tasks.html#worker_api) and implement tasks using this API because it provides parallel execution by default. Core plugins will adopt this API in future releases. Furthermore, the [Gradle plugin for Android 3.0 alpha](https://developer.android.com/studio/preview/features/new-android-plugin.html) has already adopted this API, so plugin developers will be in good company. More details are given [below](#worker-api-for-safe,-concurrent-work-execution).
 
 This release supports **running Gradle on the most recent JDK 9 release** (b170+). Read our [guide to building Java 9 modules](https://guides.gradle.org/building-java-9-modules) to learn how to produce and consume Java 9 modules with Gradle. 
 
@@ -121,7 +121,7 @@ This release builds on the `Provider` concept added in Gradle 4.0 to add conveni
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-The following are the features that have been promoted in this Gradle release.
+There are no promoted features in this release.
 
 <!--
 ### Example promoted
