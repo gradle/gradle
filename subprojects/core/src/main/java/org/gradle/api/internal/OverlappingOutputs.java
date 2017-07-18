@@ -39,10 +39,8 @@ public class OverlappingOutputs {
             String path = beforeSnapshot.getKey();
             NormalizedFileSnapshot fileSnapshot = beforeSnapshot.getValue();
             NormalizedFileSnapshot previousSnapshot = previousSnapshots.get(path);
-            // Missing files or just directories can be ignored
-            // It would be nice to consider directories too, but we can't distinguish between an existing _root_ directory of an output property
-            // and a directory inside the root directory.
-            if (fileSnapshot.getSnapshot().getType() == FileType.RegularFile) {
+            // Missing files can be ignored
+            if (fileSnapshot.getSnapshot().getType() != FileType.Missing) {
                 if (createdSincePreviousExecution(previousSnapshot) || changedSincePreviousExecution(fileSnapshot, previousSnapshot)) {
                     return new OverlappingOutputs(propertyName, fileSnapshot.getNormalizedPath());
                 }

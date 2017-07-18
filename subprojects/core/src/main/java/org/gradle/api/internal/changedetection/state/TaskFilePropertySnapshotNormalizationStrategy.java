@@ -54,7 +54,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         @Nullable
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-            if (fileSnapshot.getType() == FileType.Missing || fileSnapshot.getType() == FileType.Directory) {
+            if (fileSnapshot.getType() == FileType.Missing) {
                 return null;
             }
             return new NonNormalizedFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());

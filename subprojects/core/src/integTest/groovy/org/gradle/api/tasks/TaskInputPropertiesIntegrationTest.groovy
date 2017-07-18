@@ -136,10 +136,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 @OutputDirectory File outputs1
                 @OutputDirectory File outputs2
 
-                @TaskAction void action() {
-                    new File(outputs1, 'output1.txt').text = "output1"
-                    new File(outputs2, 'output2.txt').text = "output2"
-                }
+                @TaskAction void action() {}
             }
         """
 
@@ -176,8 +173,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':test'
-        outputContains "Output property 'outputs1' file ${file("build/output1/output1.txt")} has been removed."
-        outputContains "Output property 'outputs2' file ${file("build/output2/output2.txt")} has been removed."
+        outputContains "Output property 'outputs1' file ${file("build/output1")} has been removed."
+        outputContains "Output property 'outputs2' file ${file("build/output2")} has been removed."
 
         when:
         succeeds "test"

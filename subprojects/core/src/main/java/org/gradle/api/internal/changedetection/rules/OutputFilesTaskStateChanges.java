@@ -148,7 +148,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
      * </ul>
      */
     private static boolean isOutputEntry(String path, NormalizedFileSnapshot fileSnapshot, Map<String, NormalizedFileSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
-        if (fileSnapshot.getSnapshot().getType() == FileType.Directory || fileSnapshot.getSnapshot().getType() == FileType.Missing) {
+        if (fileSnapshot.getSnapshot().getType() == FileType.Missing) {
             return false;
         }
         NormalizedFileSnapshot beforeSnapshot = beforeSnapshots.get(path);
