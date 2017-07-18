@@ -32,16 +32,16 @@ import java.util.Set;
 
 public class DownloadingScalaToolChain implements ScalaToolChainInternal {
     private final File gradleUserHomeDir;
-    private final File rootProjectDir;
+    private final File daemonWorkingDir;
     private final WorkerDaemonFactory workerDaemonFactory;
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
     private final JavaVersion javaVersion;
     private final FileResolver fileResolver;
 
-    public DownloadingScalaToolChain(File gradleUserHomeDir, File rootProjectDir, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, FileResolver fileResolver) {
+    public DownloadingScalaToolChain(File gradleUserHomeDir, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, FileResolver fileResolver) {
         this.gradleUserHomeDir = gradleUserHomeDir;
-        this.rootProjectDir = rootProjectDir;
+        this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
@@ -66,7 +66,7 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
             Configuration zincClasspath = resolveDependency("com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
             Set<File> resolvedScalaClasspath = scalaClasspath.resolve();
             Set<File> resolvedZincClasspath = zincClasspath.resolve();
-            return new DefaultScalaToolProvider(gradleUserHomeDir, rootProjectDir, workerDaemonFactory, fileResolver, resolvedScalaClasspath, resolvedZincClasspath);
+            return new DefaultScalaToolProvider(gradleUserHomeDir, daemonWorkingDir, workerDaemonFactory, fileResolver, resolvedScalaClasspath, resolvedZincClasspath);
 
         } catch(ResolveException resolveException) {
             return new NotFoundScalaToolProvider(resolveException);
