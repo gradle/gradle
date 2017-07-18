@@ -215,9 +215,17 @@ publishing {
             }
         """)
 
-        includeBuild pluginBuild
 
         when:
+        execute(buildA, "tasks", ["--include-build", "../pluginBuild"])
+
+        then:
+        executed ":pluginBuild:jar"
+        outputContains("taskFromPluginBuild")
+
+
+        when:
+        includeBuild pluginBuild
         execute(buildA, "tasks")
 
         then:
@@ -230,9 +238,16 @@ publishing {
         publishPlugin()
         addPluginsBlock(buildA)
 
-        includeBuild pluginBuild
+        when:
+        execute(buildA, "tasks", ["--include-build", "../pluginBuild"])
+
+        then:
+        executed ":pluginBuild:jar"
+        outputContains("taskFromPluginBuild")
+
 
         when:
+        includeBuild pluginBuild
         execute(buildA, "tasks")
 
         then:
