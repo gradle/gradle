@@ -21,7 +21,6 @@ import spock.lang.Issue
 
 class UpToDateIntegTest extends AbstractIntegrationSpec {
 
-
     def "empty output directories created automatically are part of up-to-date checking"() {
         given:
         buildFile << '''
@@ -41,6 +40,7 @@ public class CreateEmptyDirectory extends DefaultTask {
     @TaskAction
     public void createDir() {
         println "did nothing: output dir is created automatically"
+        new File(directory, "file-in-dir.txt").text = "Can write file into created directory"
     }
 
     @OutputDirectory
