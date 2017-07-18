@@ -21,7 +21,7 @@ import org.junit.Assume
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
-    def "setting executable on java does not affect groovy compilation"() {
+    def "respects fork options settings and ignores executable"() {
         def differentJvm = JvmUtils.findAnotherJvm()
         Assume.assumeNotNull(differentJvm)
         def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.javacExecutable.absolutePath)
@@ -31,10 +31,25 @@ class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSp
         file("src/main/groovy/Thing.groovy") << "class Thing extends AbstractThing {}"
 
         buildFile << """
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
+            import org.gradle.internal.jvm.Jvm
+
             apply plugin: "groovy"
             repositories { mavenCentral() }
             tasks.withType(GroovyCompile) {
                 options.forkOptions.executable = "${differentJavaExecutablePath}"
+                options.forkOptions.memoryInitialSize = "128m"
+                options.forkOptions.memoryMaximumSize = "256m"
+                options.forkOptions.jvmArgs = ["-Dfoo=bar"]
+                
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).idleClients.find { 
+                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
+                        it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
+                        it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
+                    }
+                }
             }
         """
 

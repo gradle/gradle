@@ -19,6 +19,32 @@ import org.gradle.java.compile.JavaCompilerIntegrationSpec
 
 class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
 
+    def "respects fork options settings"() {
+        goodCode()
+        buildFile << """
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
+            import org.gradle.internal.jvm.Jvm
+            
+            tasks.withType(JavaCompile) { 
+                options.forkOptions.memoryInitialSize = "128m"
+                options.forkOptions.memoryMaximumSize = "256m"
+                options.forkOptions.jvmArgs = ["-Dfoo=bar"]
+                
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).idleClients.find { 
+                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
+                        it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
+                        it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "compileJava"
+    }
+
     def setup() {
         executer.withArguments("-d")
     }

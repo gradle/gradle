@@ -117,12 +117,15 @@ compileScala.scalaCompileOptions.failOnError = false
         scalaClassFile("").assertHasDescendants()
     }
 
-    def "setting executable on java does not affect scala compilation"() {
+    def "respects fork options settings and ignores executable"() {
         def differentJvm = JvmUtils.findAnotherJvm()
         Assume.assumeNotNull(differentJvm)
         def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.javacExecutable.absolutePath)
 
         file("build.gradle") << """
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
+            import org.gradle.internal.jvm.Jvm
+
             apply plugin: 'scala'
 
             repositories {
@@ -135,6 +138,18 @@ compileScala.scalaCompileOptions.failOnError = false
             
             tasks.withType(ScalaCompile) { 
                 options.forkOptions.executable = "${differentJavaExecutablePath}"
+                options.forkOptions.memoryInitialSize = "128m"
+                options.forkOptions.memoryMaximumSize = "256m"
+                options.forkOptions.jvmArgs = ["-Dfoo=bar"]
+                
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).idleClients.find { 
+                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
+                        it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
+                        it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
+                    }
+                }
             }
         """
 
