@@ -159,7 +159,7 @@
             interfaces is attributed to mutability. A <apilink class="org.gradle.api.provider.Provider"/> is immutable and can be created with the method
             <apilink class="org.gradle.api.Project" method="provider(java.util.concurrent.Callable)"/>. <apilink class="org.gradle.api.provider.PropertyState"/> extends the interface
             <apilink class="org.gradle.api.provider.Provider"/>, represents a mutable value and can be created with the method <apilink class="org.gradle.api.Project" method="property(java.lang.Class)"/>.
-            Please note that the provider types are not intended for for implementation by build script or plugin authors.
+            Please note that the provider types are not intended for implementation by build script or plugin authors.
         </para>
         <note>
             <para>
