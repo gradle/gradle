@@ -37,4 +37,12 @@ public interface BuildCacheEntryWriter {
      * @throws IOException when an I/O error occurs when writing the cache entry to the given output stream
      */
     void writeTo(OutputStream output) throws IOException;
+
+    /**
+     * Returns the size of the build cache entry to be written.
+     *
+     * @return the size of the build cache entry to be written.
+     * @since 4.1
+     */
+    long getSize();
 }
