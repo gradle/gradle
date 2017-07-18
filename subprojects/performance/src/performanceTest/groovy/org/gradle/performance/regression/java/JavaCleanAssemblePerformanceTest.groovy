@@ -21,6 +21,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_COMPOSITE_BUILD
 
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -32,7 +33,7 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.tasksToRun = ["clean", "assemble"]
-        runner.targetVersions = ["4.1-20170607235835+0000"]
+        runner.targetVersions = ["4.1-20170718061434+0000"]
 
         when:
         def result = runner.run()
@@ -44,5 +45,6 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         testProject                   | warmUpRuns | runs
         LARGE_MONOLITHIC_JAVA_PROJECT | 2          | 6
         LARGE_JAVA_MULTI_PROJECT      | 2          | 6
+        MEDIUM_JAVA_COMPOSITE_BUILD   | 2          | 6
     }
 }

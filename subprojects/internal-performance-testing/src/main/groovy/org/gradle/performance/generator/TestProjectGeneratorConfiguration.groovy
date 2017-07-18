@@ -27,6 +27,8 @@ class TestProjectGeneratorConfiguration {
     int subProjects
     int sourceFiles
     int minLinesOfCodePerSourceFile
+    boolean compositeBuild
+
     String daemonMemory
     String compilerMemory
     String testRunnerMemory

@@ -26,6 +26,7 @@ enum JavaTestProject {
 
     MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 10000, 0, '4g', false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),
     MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", 100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
+    MEDIUM_JAVA_COMPOSITE_BUILD("mediumJavaCompositeBuild", 100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
 
     MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", 100, 100, '256m', true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)]),
 
@@ -55,6 +56,7 @@ enum JavaTestProject {
         config.testForkEvery = 10000
         config.useTestNG = useTestNG
         config.fileToChangeByScenario = filesToUpdate
+        config.compositeBuild = projectName.contains("CompositeBuild")
     }
 
     private static String productionFile(String template, int project = 0, int pkg = 0, int file = 0) {
