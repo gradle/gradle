@@ -34,7 +34,6 @@ package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
-import org.gradle.api.internal.tasks.compile.ForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
@@ -64,26 +63,9 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
 
     @Override
     protected InvocationContext toInvocationContext(T spec) {
-        return createJavaInvocationContext(spec).mergeWith(createScalaInvocationContext(spec));
-    }
-
-    private InvocationContext createJavaInvocationContext(T spec) {
-        ForkOptions options = spec.getCompileOptions().getForkOptions();
-        JavaForkOptions javaForkOptions = new ForkOptionsConverter(fileResolver).transform(options);
-        File invocationWorkingDir = javaForkOptions.getWorkingDir();
-        javaForkOptions.setWorkingDir(daemonWorkingDir);
-
-        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
-            .javaForkOptions(javaForkOptions)
-            .keepAliveMode(KeepAliveMode.SESSION)
-            .build();
-
-        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
-    }
-
-    private InvocationContext createScalaInvocationContext(T spec) {
-        ScalaForkOptions options = spec.getScalaCompileOptions().getForkOptions();
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(options);
+        ForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
+        ScalaForkOptions scalaOptions = spec.getScalaCompileOptions().getForkOptions();
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(mergeForkOptions(javaOptions, scalaOptions));
         File invocationWorkingDir = javaForkOptions.getWorkingDir();
         javaForkOptions.setWorkingDir(daemonWorkingDir);
 

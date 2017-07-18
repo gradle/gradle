@@ -20,8 +20,12 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.ClassFile
+import org.gradle.integtests.fixtures.jvm.JvmUtils
 import org.gradle.util.VersionNumber
+import org.junit.Assume
 import org.junit.Rule
+
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 @TargetCoverage({ScalaCoverage.DEFAULT})
 class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
@@ -111,6 +115,38 @@ compileScala.scalaCompileOptions.failOnError = false
         succeeds("compileScala")
         errorOutput.contains("type mismatch")
         scalaClassFile("").assertHasDescendants()
+    }
+
+    def "setting executable on java does not affect scala compilation"() {
+        def differentJvm = JvmUtils.findAnotherJvm()
+        Assume.assumeNotNull(differentJvm)
+        def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.javacExecutable.absolutePath)
+
+        file("build.gradle") << """
+            apply plugin: 'scala'
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile 'org.scala-lang:scala-library:2.11.1'
+            }
+            
+            tasks.withType(ScalaCompile) { 
+                options.forkOptions.executable = "${differentJavaExecutablePath}"
+            }
+        """
+
+        file("src/main/scala/Person.java") << "public interface Person { String getName(); }"
+
+        file("src/main/scala/DefaultPerson.scala") << """class DefaultPerson(name: String) extends Person {
+            def getName(): String = name
+        }"""
+
+        expect:
+        succeeds("compileScala")
+
     }
 
     def compileWithSpecifiedEncoding() {

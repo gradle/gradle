@@ -16,12 +16,9 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.api.JavaVersion
-import org.gradle.api.specs.Spec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.jvm.JvmInstallation
 import org.gradle.internal.jvm.Jvm
+import org.gradle.integtests.fixtures.jvm.JvmUtils
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
@@ -132,7 +129,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
     }
 
     def "worker daemons honor different executable specified in fork options"() {
-        def differentJvm = findAnotherJvm()
+        def differentJvm = JvmUtils.findAnotherJvm()
         Assume.assumeNotNull(differentJvm)
         def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.getJavaExecutable().absolutePath)
 
@@ -242,17 +239,5 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
                 }
             }
         """
-    }
-
-    Jvm findAnotherJvm() {
-        def current = Jvm.current()
-        AvailableJavaHomes.getAvailableJdk(new Spec<JvmInstallation>() {
-            @Override
-            boolean isSatisfiedBy(JvmInstallation jvm) {
-                return jvm.javaHome != current.javaHome && 
-                    jvm.javaVersion >= JavaVersion.VERSION_1_7 &&
-                    Jvm.discovered(jvm.javaHome, jvm.javaVersion).jre != null
-            }
-        })
     }
 }
