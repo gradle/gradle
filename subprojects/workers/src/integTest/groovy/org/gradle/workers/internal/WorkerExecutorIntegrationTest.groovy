@@ -215,6 +215,9 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                             try {
                                 workerExecutor.submit(runnableClass) { config ->
                                     config.isolationMode = $isolationMode
+                                    if (isolationMode == IsolationMode.PROCESS) {
+                                        forkOptions.maxHeapSize = "64m"
+                                    }
                                     config.forkOptions(additionalForkOptions)
                                     config.classpath(additionalClasspath)
                                     config.params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]

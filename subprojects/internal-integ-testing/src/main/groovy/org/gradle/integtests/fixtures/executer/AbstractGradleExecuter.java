@@ -998,7 +998,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 boolean executionFailure = isExecutionFailure(executionResult);
 
                 // for tests using rich console standard out and error are combined in output of execution result
-                if (executionFailure && Strings.isNullOrEmpty(error)) {
+                if (executionFailure && isErrorOutEmpty(error)) {
                     normalizedOutput = removeExceptionStackTraceForFailedExecution(normalizedOutput);
                 }
 
@@ -1013,6 +1013,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 if (expectedDeprecationWarnings > 0) {
                     throw new AssertionError(String.format("Expected %d more deprecation warnings", expectedDeprecationWarnings));
                 }
+            }
+
+            private boolean isErrorOutEmpty(String error) {
+                //remove SLF4J error out like 'Class path contains multiple SLF4J bindings.'
+                //See: https://github.com/gradle/performance/issues/375#issuecomment-315103861
+                return Strings.isNullOrEmpty(error.replaceAll("(?m)^SLF4J: .*", "").trim());
             }
 
             private boolean isExecutionFailure(ExecutionResult executionResult) {

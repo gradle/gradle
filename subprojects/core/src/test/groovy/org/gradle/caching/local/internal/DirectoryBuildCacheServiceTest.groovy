@@ -19,6 +19,7 @@ package org.gradle.caching.local.internal
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
+import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -48,18 +49,26 @@ class DirectoryBuildCacheServiceTest extends Specification {
     def "does not store partial result"() {
         def hashCode = "1234abcd"
         when:
-        service.store(key) { OutputStream output ->
-            // Check that partial result file is created inside the cache directory
-            def cacheDirFiles = cacheDir.listFiles()
-            assert cacheDirFiles.length == 1
+        service.store(key, new BuildCacheEntryWriter() {
+            @Override
+            void writeTo(OutputStream output) throws IOException {
+                // Check that partial result file is created inside the cache directory
+                def cacheDirFiles = cacheDir.listFiles()
+                assert cacheDirFiles.length == 1
 
-            def partialCacheFile = cacheDirFiles[0]
-            assert partialCacheFile.name.startsWith(hashCode)
-            assert partialCacheFile.name.endsWith(".part")
+                def partialCacheFile = cacheDirFiles[0]
+                assert partialCacheFile.name.startsWith(hashCode)
+                assert partialCacheFile.name.endsWith(".part")
 
-            output << "abcd"
-            throw new RuntimeException("Simulated write error")
-        }
+                output << "abcd"
+                throw new RuntimeException("Simulated write error")
+            }
+
+            @Override
+            long getSize() {
+                return 100
+            }
+        })
         then:
         def ex = thrown RuntimeException
         ex.message == "Simulated write error"
