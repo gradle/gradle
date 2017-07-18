@@ -39,12 +39,11 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
         super(backingSet);
         this.displayName = displayName;
         this.clientConfiguration = clientConfiguration;
-        this.mutationValidator = clientConfiguration instanceof MutationValidator?new Action<ModuleDependency>() {
-            @Override
-            public void execute(ModuleDependency moduleDependency) {
-                ((MutationValidator) clientConfiguration).validateMutation(MutationValidator.MutationType.DEPENDENCIES);
-            }
-        }:Actions.<ModuleDependency>doNothing();
+        this.mutationValidator = toMutationValidator(clientConfiguration);
+    }
+
+    protected Action<ModuleDependency> toMutationValidator(final Configuration clientConfiguration) {
+        return clientConfiguration instanceof MutationValidator ? new MutationValidationAction(clientConfiguration) : Actions.<ModuleDependency>doNothing();
     }
 
     @Override
@@ -71,5 +70,18 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
             added |= add(dependency);
         }
         return added;
+    }
+
+    private static class MutationValidationAction implements Action<ModuleDependency> {
+        private final Configuration clientConfiguration;
+
+        public MutationValidationAction(Configuration clientConfiguration) {
+            this.clientConfiguration = clientConfiguration;
+        }
+
+        @Override
+        public void execute(ModuleDependency moduleDependency) {
+            ((MutationValidator) clientConfiguration).validateMutation(MutationValidator.MutationType.DEPENDENCIES);
+        }
     }
 }
