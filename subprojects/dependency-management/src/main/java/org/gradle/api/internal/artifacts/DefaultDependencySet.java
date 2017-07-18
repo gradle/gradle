@@ -60,7 +60,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
             Set<Class<?>> interfaces = collectInterfaces(o.getClass(), new HashSet<Class<?>>());
             interfaces.add(MutationValidatingDependency.class);
             final ModuleDependency mutationValidatingModule = (ModuleDependency) Proxy.newProxyInstance(
-                o.getClass().getClassLoader(),
+                this.getClass().getClassLoader(),
                 interfaces.toArray(new Class<?>[interfaces.size()]),
                 new InvocationHandler() {
                     @Override
