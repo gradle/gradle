@@ -42,7 +42,7 @@ class GcsClientIntegrationTest extends Specification {
     @Rule
     public final GcsServer server = new GcsServer(temporaryFolder)
 
-    def "should perform put get and list on an Gcs bucket"() {
+    def "should perform put, get and list on an Gcs bucket"() {
         setup:
         def fileContents = 'This is only a test'
         File file = temporaryFolder.createFile(FILE_NAME)
