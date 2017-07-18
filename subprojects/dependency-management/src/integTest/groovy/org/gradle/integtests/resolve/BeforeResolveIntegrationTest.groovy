@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Issue
 
@@ -79,5 +80,84 @@ task copyFiles(type:Copy) {
 
         then: // Currently fails: excluded dependency is copied as part of configuration
         file('libs').assertHasDescendants('direct-dep-1.0.jar')
+    }
+
+    @NotYetImplemented
+    def "should not fail with the Spring Dependency Management plugin"() {
+        given:
+        settingsFile << '''
+            include 'application', 'library'
+        '''
+        file('application/build.gradle') << """
+        buildscript {
+            repositories { jcenter() }
+            dependencies { classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE") }
+        }
+
+        apply plugin: 'java'
+        apply plugin: 'eclipse'
+        apply plugin: 'org.springframework.boot'
+        
+        sourceCompatibility = 1.8
+        
+        repositories { jcenter() }
+        
+        dependencies {
+            compile('org.springframework.boot:spring-boot-starter-actuator')
+            compile project(':library')
+        }
+        
+        """
+
+        file('library/build.gradle') << '''
+            buildscript {
+                repositories { 
+                    jcenter()
+                }
+            }
+            
+            plugins { id "io.spring.dependency-management" version "1.0.0.RELEASE" }
+            
+            ext { springBootVersion = '1.5.2.RELEASE' }
+            
+            apply plugin: 'java\'
+            apply plugin: 'eclipse\'
+            
+            jar {
+                baseName = 'gs-multi-module-library\'
+                version = '0.0.1-SNAPSHOT\'
+            }
+            sourceCompatibility = 1.8
+            
+            repositories {
+                jcenter()
+            }
+            
+            dependencies {
+                compile('org.springframework.boot:spring-boot-starter')
+                testCompile('org.springframework.boot:spring-boot-starter-test')
+            }
+            
+            dependencyManagement {
+                imports { mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}") }
+            }
+
+'''
+
+        buildFile << '''
+        subprojects {
+                task resolveDependencies {
+                    doLast {
+                        println configurations.compile.files
+                    }
+                }
+        }
+        '''
+
+        when:
+        run 'resolveDependencies'
+
+        then:
+        noExceptionThrown()
     }
 }
