@@ -32,7 +32,6 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
@@ -57,13 +56,13 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.BuildCacheTaskServices;
-import org.gradle.caching.internal.tasks.TaskBuildCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
+import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
@@ -86,7 +85,7 @@ public class TaskExecutionServices {
     }
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
-                                    TaskBuildCacheCommandFactory taskBuildCacheCommandFactory,
+                                    TaskOutputCacheCommandFactory taskOutputCacheCommandFactory,
                                     BuildCacheController buildCacheController,
                                     StartParameter startParameter,
                                     ListenerManager listenerManager,
@@ -111,7 +110,7 @@ public class TaskExecutionServices {
             executer = new SkipCachedTaskExecuter(
                 buildCacheController,
                 taskOutputsGenerationListener,
-                taskBuildCacheCommandFactory,
+                taskOutputCacheCommandFactory,
                 executer
             );
         }
@@ -145,8 +144,6 @@ public class TaskExecutionServices {
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter, BuildInvocationScopeId buildInvocationScopeId) {
-        OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter();
-
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
             snapshotter.registerSerializers(serializerRegistry);
@@ -168,7 +165,6 @@ public class TaskExecutionServices {
             new DefaultTaskArtifactStateRepository(
                 taskHistoryRepository,
                 instantiator,
-                outputFilesSnapshotter,
                 fileCollectionSnapshotterRegistry,
                 fileCollectionFactory,
                 classLoaderHierarchyHasher,
@@ -179,8 +175,8 @@ public class TaskExecutionServices {
     }
 
 
-    TaskPlanExecutor createTaskExecutorFactory(ParallelExecutionManager parallelExecutionManager, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
-        return new TaskPlanExecutorFactory(parallelExecutionManager, executorFactory, workerLeaseService).create();
+    TaskPlanExecutor createTaskExecutorFactory(ParallelismConfigurationManager parallelismConfigurationManager, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+        return new TaskPlanExecutorFactory(parallelismConfigurationManager, executorFactory, workerLeaseService).create();
     }
 
 }

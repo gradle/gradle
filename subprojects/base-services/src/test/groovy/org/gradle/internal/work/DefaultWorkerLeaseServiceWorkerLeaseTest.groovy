@@ -16,8 +16,7 @@
 
 package org.gradle.internal.work
 
-import org.gradle.initialization.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -148,6 +147,72 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
                     instant.child2Started
                     child.leaseFinish()
                     instant.child2Finished
+                }
+                thread.blockUntil.child2Finished
+                cl.leaseFinish()
+            }
+        }
+
+        then:
+        instant.child2Started > instant.child1Finished
+
+        cleanup:
+        registry?.stop()
+    }
+
+
+    def "action with shared lease borrows parent lease"() {
+        def registry = workerLeaseService(1)
+
+        expect:
+        async {
+            start {
+                def cl = registry.getWorkerLease().start()
+                def op = registry.currentWorkerLease
+                start {
+                    registry.withSharedLease(op) {
+                        assert registry.currentWorkerLease == op
+                        def child = registry.currentWorkerLease.startChild()
+                        child.leaseFinish()
+                        instant.child1Finished
+                    }
+                }
+                thread.blockUntil.child1Finished
+                cl.leaseFinish()
+            }
+        }
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "action with shared lease block until lease available when there is more than one child"() {
+        def registry = workerLeaseService(1)
+
+        when:
+        async {
+            start {
+                def cl = registry.getWorkerLease().start()
+                def op = registry.currentWorkerLease
+                start {
+                    registry.withSharedLease(op) {
+                        assert registry.currentWorkerLease == op
+                        def child = registry.currentWorkerLease.startChild()
+                        instant.child1Started
+                        thread.block()
+                        instant.child1Finished
+                        child.leaseFinish()
+                    }
+                }
+                start {
+                    registry.withSharedLease(op) {
+                        assert registry.currentWorkerLease == op
+                        thread.blockUntil.child1Started
+                        def child = registry.currentWorkerLease.startChild()
+                        instant.child2Started
+                        child.leaseFinish()
+                        instant.child2Finished
+                    }
                 }
                 thread.blockUntil.child2Finished
                 cl.leaseFinish()
@@ -293,12 +358,6 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
     }
 
     WorkerLeaseService workerLeaseService(int maxWorkers) {
-        return new DefaultWorkerLeaseService(coordinationService, parallelism(maxWorkers))
-    }
-
-    ParallelExecutionManager parallelism(int maxWorkers) {
-        return Stub(ParallelExecutionManager) {
-            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, maxWorkers)
-        }
+        return new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, maxWorkers))
     }
 }

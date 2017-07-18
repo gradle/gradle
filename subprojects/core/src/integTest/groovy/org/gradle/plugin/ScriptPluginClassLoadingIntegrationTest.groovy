@@ -27,7 +27,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3069")
-    def "second level and beyond script plugins have same class loader scope as original target"() {
+    def "second level and beyond script plugins have same base class loader scope as caller"() {
         when:
         file("buildSrc/src/main/java/pkg/Thing.java") << """
             package pkg;
@@ -280,5 +280,68 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains "not in script"
+    }
+
+    def "second level script plugin cannot access classes added by buildscript in applying script"() {
+        given:
+        def jar = file("plugin.jar")
+        pluginBuilder.addPlugin("project.task('hello')")
+        pluginBuilder.publishTo(executer, jar)
+
+        buildScript """
+            apply from: "script1.gradle"
+        """
+
+        file("script1.gradle") << """
+            buildscript {
+                dependencies { classpath files("plugin.jar") }
+            }
+
+            apply plugin: org.gradle.test.TestPlugin
+            ext.pluginClass = org.gradle.test.TestPlugin
+
+            apply from: "script2.gradle"
+        """
+
+        file("script2.gradle") << """
+            try {
+                getClass().classLoader.loadClass(pluginClass.name)
+                assert false
+            } catch (ClassNotFoundException ignore) {
+                println "not in script"
+            } finally {
+                getClass().classLoader.close()
+            }
+        """
+
+        when:
+        succeeds "hello"
+
+        then:
+        output.contains "not in script"
+    }
+
+    def "Can apply a script plugin to the buildscript block"() {
+        given:
+        def jar = file("plugin.jar")
+        pluginBuilder.addPlugin("project.task('hello')")
+        pluginBuilder.publishTo(executer, jar)
+
+        buildScript """
+            apply from: 'foo.gradle'
+        """
+
+        file("foo.gradle") << """
+            buildscript {
+                apply from: "repositories.gradle", to: buildscript
+                dependencies { classpath files("plugin.jar") }
+            }
+        """
+
+        file("repositories.gradle") << """
+        """
+
+        expect:
+        succeeds "help"
     }
 }

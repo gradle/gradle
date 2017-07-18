@@ -4,6 +4,8 @@ sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 dependencies {
     compile project(':core')
     compile libraries.jcip
+
+    integTestCompile project(':internalIntegTesting')
 }
 
 useTestFixtures(project: ":logging")

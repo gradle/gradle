@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -32,10 +33,11 @@ import org.gradle.execution.TaskFailureHandler
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.internal.resources.ResourceLockState
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.Path
 import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -52,10 +54,11 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     def workerLeaseService = Mock(WorkerLeaseService)
     def coordinationService = Mock(ResourceLockCoordinationService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
+    def gradle = Mock(GradleInternal)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory);
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService)
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal))
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true
@@ -985,6 +988,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         task.getProject() >> root
         task.name >> name
         task.path >> ':' + name
+        task.identityPath >> Path.path(':' + name)
         task.state >> state
         task.toString() >> "task $name"
         task.compareTo(_ as TaskInternal) >> { TaskInternal taskInternal ->

@@ -16,10 +16,10 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 import java.util.SortedSet;

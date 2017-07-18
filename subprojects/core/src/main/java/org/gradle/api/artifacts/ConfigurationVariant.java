@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.HasConfigurableAttributes;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Represents some variant of an outgoing configuration.
@@ -27,6 +28,7 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
  * @since 3.3
  */
 @Incubating
+@HasInternalProtocol
 public interface ConfigurationVariant extends Named, HasConfigurableAttributes<ConfigurationVariant> {
 
     /**

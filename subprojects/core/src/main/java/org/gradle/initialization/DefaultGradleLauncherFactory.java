@@ -37,9 +37,14 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
@@ -55,6 +60,7 @@ import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
@@ -77,7 +83,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class));
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
-
         return doNewInstance(startParameter, parent, cancellationToken, requestMetaData, buildEventConsumer, buildTreeScopeServices, servicesToStop);
     }
 
@@ -187,20 +192,76 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         @Override
-        public GradleLauncher nestedInstanceWithNewSession(StartParameter startParameter) {
+        public BuildController nestedBuildController(StartParameter startParameter) {
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
             BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY);
             BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
-            return createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
+            GradleLauncher childInstance = createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
                 @Override
                 public void stop() {
                     userHomeDirServiceRegistry.release(userHomeServices);
                 }
             }));
+            return new NestedBuildController(new GradleBuildController(childInstance));
         }
 
         public void setParent(DefaultGradleLauncher parent) {
             this.parent = parent;
+        }
+
+        private class NestedBuildController implements BuildController {
+            private final BuildController delegate;
+
+            NestedBuildController(BuildController delegate) {
+                this.delegate = delegate;
+            }
+
+            @Override
+            public void stop() {
+                delegate.stop();
+            }
+
+            @Override
+            public GradleInternal getGradle() {
+                return delegate.getGradle();
+            }
+
+            @Override
+            public GradleInternal run() {
+                BuildOperationExecutor executor = getGradle().getServices().get(BuildOperationExecutor.class);
+                return executor.call(new CallableBuildOperation<GradleInternal>() {
+                    @Override
+                    public GradleInternal call(BuildOperationContext context) {
+                        return delegate.run();
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Run nested build").parent(parent.getGradle().getBuildOperation());
+                    }
+                });
+            }
+
+            @Override
+            public GradleInternal configure() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean hasResult() {
+                return delegate.hasResult();
+            }
+
+            @Nullable
+            @Override
+            public Object getResult() {
+                return delegate.getResult();
+            }
+
+            @Override
+            public void setResult(@Nullable Object result) {
+                delegate.setResult(result);
+            }
         }
     }
 }

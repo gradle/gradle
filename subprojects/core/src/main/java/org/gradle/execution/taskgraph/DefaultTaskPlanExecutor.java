@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelismConfiguration;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
@@ -53,7 +53,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
 
     @Override
     public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
-        ManagedExecutor executor = executorFactory.create("Task worker");
+        ManagedExecutor executor = executorFactory.create("Task worker for '" + taskExecutionPlan.getDisplayName() + "'");
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);

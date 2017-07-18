@@ -41,9 +41,9 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                         def usage = Attribute.of('usage', String)
                         def flavor = Attribute.of('flavor', String)
                         p.dependencies.attributesSchema {
-                           attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                           attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
-                           attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                           attribute(buildType)
+                           attribute(usage)
+                           attribute(flavor)
                         }
                         def buildTypes = ['debug', 'release']
                         def flavors = ['free', 'paid']

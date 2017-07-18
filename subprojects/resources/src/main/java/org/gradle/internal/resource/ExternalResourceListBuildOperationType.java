@@ -26,7 +26,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.0
  */
-public final class ExternalResourceListBuildOperationType implements BuildOperationType<ExternalResourceListBuildOperationType.Details, Void> {
+public final class ExternalResourceListBuildOperationType implements BuildOperationType<ExternalResourceListBuildOperationType.Details, ExternalResourceListBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -38,6 +38,12 @@ public final class ExternalResourceListBuildOperationType implements BuildOperat
         String getLocation();
 
     }
+
+    public interface Result {
+
+    }
+
+
 
     private ExternalResourceListBuildOperationType() {
     }

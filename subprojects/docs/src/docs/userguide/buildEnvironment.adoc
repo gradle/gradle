@@ -1,0 +1,145 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[build_environment]]
+== The Build Environment
+
+
+[[sec:gradle_configuration_properties]]
+=== Configuring the build environment via gradle.properties
+
+Gradle provides several options that make it easy to configure the Java process that will be used to execute your build. While it's possible to configure these in your local environment via GRADLE_OPTS or JAVA_OPTS, certain settings like JVM memory settings, Java home, daemon on/off can be more useful if they can be versioned with the project in your VCS so that the entire team can work with a consistent environment. Setting up a consistent environment for your build is as simple as placing these settings into a `gradle.properties` file. The configuration is applied in following order (if an option is configured in multiple locations the last one wins):
+
+* from `gradle.properties` in project build dir.
+* from `gradle.properties` in `gradle user home`.
+* from system properties, e.g. when `-Dsome.property` is set on the command line.
+
+
+When setting these properties you should keep in mind that Gradle requires a Java JDK or JRE of version 7 or higher to run.
+
+The following properties can be used to configure the Gradle build environment:
+
+`org.gradle.daemon`::
+When set to `true` the Gradle daemon is used to run the build. For local developer builds this is our favorite property. The developer environment is optimized for speed and feedback so we nearly always run Gradle jobs with the daemon. We don't run CI builds with the daemon (i.e. a long running process) as the CI environment is optimized for consistency and reliability.
+`org.gradle.java.home`::
+Specifies the Java home for the Gradle build process. The value can be set to either a `jdk` or `jre` location, however, depending on what your build does, `jdk` is safer. A reasonable default is used if the setting is unspecified.
+`org.gradle.jvmargs`::
+Specifies the jvmargs used for the daemon process. The setting is particularly useful for tweaking memory settings. At the moment the default settings are pretty generous with regards to memory.
+`org.gradle.configureondemand`::
+Enables new incubating mode that makes Gradle selective when configuring projects. Only relevant projects are configured which results in faster builds for large multi-projects. See <<sec:configuration_on_demand>>.
+`org.gradle.parallel`::
+When configured, Gradle will run in incubating parallel mode.
+`org.gradle.workers.max`::
+When configured, Gradle will use a maximum of the given number of workers. See `--max-workers` for details.
+`org.gradle.logging.level`::
+When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. See <<sec:choosing_a_log_level>>.
+`org.gradle.debug`::
+When set to true, Gradle will run the build with remote debugging enabled, listening on port 5005. Note that this is the equivalent of adding `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` to the JVM command line and will suspend the virtual machine until a debugger is attached.
+`org.gradle.daemon.performance.enable-monitoring`::
+When set to false, Gradle will not monitor the memory usage of running daemons. See <<sec:what_can_go_wrong_with_daemon>>.
+`org.gradle.caching`::
+When set to true, Gradle will try to reuse outputs from previous builds. See <<sec:build_cache_intro>>.
+
+[[sec:forked_java_processes]]
+==== Forked Java processes
+
+Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle must launch a separate JVM process to execute the build after parsing the various `gradle.properties` files. When running with the daemon, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
+
+This launching of an extra JVM on every build execution is quite expensive, which is why if you are setting either `org.gradle.java.home` or `org.gradle.jvmargs` we highly recommend that you use the Gradle Daemon. See <<gradle_daemon>> for more details.
+
+[[sec:gradle_properties_and_system_properties]]
+=== Gradle properties and system properties
+
+Gradle offers a variety of ways to add properties to your build. With the `-D` command line option you can pass a system property to the JVM which runs Gradle. The `-D` option of the `gradle` command has the same effect as the `-D` option of the `java` command.
+
+You can also add properties to your project objects using properties files. You can place a `gradle.properties` file in the Gradle user home directory (defined by the “`GRADLE_USER_HOME`” environment variable, which if not set defaults to `__USER_HOME__/.gradle`) or in your project directory. For multi-project builds you can place `gradle.properties` files in any subproject directory. The properties set in a `gradle.properties` file can be accessed via the project object. The properties file in the user's home directory has precedence over property files in the project directories.
+
+You can also add properties directly to your project object via the `-P` command line option.
+
+Gradle can also set project properties when it sees specially-named system properties or environment variables. This feature is very useful when you don't have admin rights to a continuous integration server and you need to set property values that should not be easily visible, typically for security reasons. In that situation, you can't use the `-P` option, and you can't change the system-level configuration files. The correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern. This won't be visible to normal users on the system.footnote:[ _Jenkins_, _Teamcity_, or _Bamboo_ are some CI servers which offer this functionality.]
+
+If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`.
+
+You can also set system properties in the `gradle.properties` file. If a property name in such a file has the prefix “`systemProp.`”, like “`systemProp.propName`”, then the property and its value will be set as a system property, without the prefix. In a multi project build, “`systemProp.`” properties set in any project except the root will be ignored. That is, only the root project's `gradle.properties` file will be checked for properties that begin with the “`systemProp.`” prefix.
+
+++++
+<sample id="properties" dir="userguide/tutorial/properties" title="Setting properties with a gradle.properties file">
+            <sourcefile file="gradle.properties"/>
+            <sourcefile file="build.gradle"/>
+            <output args="-q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps"/>
+        </sample>
+++++
+
+
+[[sub:checking_for_project_properties]]
+==== Checking for project properties
+
+You can access a project property in your build script simply by using its name as you would use a variable. If this property does not exist, an exception will be thrown and the build will fail. If your build script relies on optional properties the user might set, perhaps in a `gradle.properties` file, you need to check for existence before you access them. You can do this by using the method `hasProperty('propertyName')` which returns `true` or `false`.
+
+[[sec:accessing_the_web_via_a_proxy]]
+=== Accessing the web via a proxy
+
+Configuring an HTTP or HTTPS proxy (for downloading dependencies, for example) is done via standard JVM system properties. These properties can be set directly in the build script; for example, setting the HTTP proxy host would be done with `System.setProperty('http.proxyHost', 'www.somehost.org')`. Alternatively, the properties can be specified in a gradle.properties file, either in the build's root directory or in the Gradle home directory.
+
+.Configuring an HTTP proxy
+====
+
+`gradle.properties`
+
+[source,properties]
+----
+
+systemProp.http.proxyHost=www.somehost.org
+systemProp.http.proxyPort=8080
+systemProp.http.proxyUser=userid
+systemProp.http.proxyPassword=password
+systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
+
+----
+
+
+====
+
+There are separate settings for HTTPS.
+
+.Configuring an HTTPS proxy
+====
+
+`gradle.properties`
+
+[source,properties]
+----
+
+systemProp.https.proxyHost=www.somehost.org
+systemProp.https.proxyPort=8080
+systemProp.https.proxyUser=userid
+systemProp.https.proxyPassword=password
+systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
+
+----
+
+
+====
+
+We could not find a good overview for all possible proxy settings. One place to look are the constants in a file from the Ant project. Here's a https://git-wip-us.apache.org/repos/asf?p=ant.git;a=blob;f=src/main/org/apache/tools/ant/util/ProxySetup.java;hb=HEAD[link] to the repository. The other is a http://download.oracle.com/javase/7/docs/technotes/guides/net/properties.html[Networking Properties page] from the JDK docs. If anyone knows of a better overview, please let us know via the mailing list.
+
+
+[[sub:ntlm_authentication]]
+==== NTLM Authentication
+
+If your proxy requires NTLM authentication, you may need to provide the authentication domain as well as the username and password. There are 2 ways that you can provide the domain for authenticating to a NTLM proxy:
+
+* Set the `http.proxyUser` system property to a value like `__domain__/__username__`.
+* Provide the authentication domain via the `http.auth.ntlm.domain` system property.
+

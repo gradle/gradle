@@ -16,9 +16,10 @@
 
 package org.gradle.model.internal.manage.binding;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
+
+import javax.annotation.Nullable;
 
 /**
  * Binds a method declared in a views to its actual implementation.

@@ -96,4 +96,8 @@ public class TestFiles {
     public static Factory<PatternSet> getPatternSetFactory() {
         return resolver().getPatternSetFactory();
     }
+
+    public static String systemSpecificAbsolutePath(String path) {
+        return new File(path).getAbsolutePath();
+    }
 }

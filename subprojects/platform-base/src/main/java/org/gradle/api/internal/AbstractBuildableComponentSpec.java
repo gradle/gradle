@@ -18,13 +18,13 @@ package org.gradle.api.internal;
 
 import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.CheckableComponentSpec;
-import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.platform.base.component.internal.AbstractComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 

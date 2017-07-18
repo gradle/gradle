@@ -17,6 +17,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.util.GradleVersion
 
 class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     final MavenFileRepository repo = new MavenFileRepository(file("maven-repo"))
@@ -30,7 +31,7 @@ class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
         projectPublishedUsingMavenPublishPlugin('java')
 
         expect:
-        consumePublicationWithPreviousVersion()
+        consumePublicationWithPreviousVersion(false)
 
         file('build/resolved').assertHasDescendants('published-1.9.jar', 'test-project-1.2.jar')
     }
@@ -40,7 +41,7 @@ class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
         projectPublishedUsingMavenPublishPlugin('web')
 
         expect:
-        consumePublicationWithPreviousVersion()
+        consumePublicationWithPreviousVersion(true)
 
         file('build/resolved').assertHasDescendants('published-1.9.war')
     }
@@ -78,7 +79,7 @@ publishing {
         version current withTasks 'publish' run()
     }
 
-    def consumePublicationWithPreviousVersion() {
+    def consumePublicationWithPreviousVersion(boolean expectDeprecationWarningForGradle11To112) {
         settingsFile.text = "rootProject.name = 'consumer'"
 
         buildFile.text = """
@@ -101,6 +102,10 @@ task retrieve(type: Sync) {
 }
 """
 
-        version previous requireOwnGradleUserHomeDir() expectDeprecationWarning() withTasks 'retrieve' run()
+        def executer = version previous
+        if (expectDeprecationWarningForGradle11To112 && GradleVersion.version("1.1") <= previous.version && previous.version <= GradleVersion.version("1.12")) {
+            executer.expectDeprecationWarning()
+        }
+        executer.requireOwnGradleUserHomeDir() withTasks 'retrieve' run()
     }
 }

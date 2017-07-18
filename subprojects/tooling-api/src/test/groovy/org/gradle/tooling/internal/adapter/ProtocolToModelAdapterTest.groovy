@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.adapter
 
+import nl.jqno.equalsverifier.EqualsVerifier
 import org.gradle.internal.serialize.Message
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.UnsupportedMethodException
@@ -593,6 +594,21 @@ class ProtocolToModelAdapterTest extends Specification {
 
         then:
         thrown(IllegalArgumentException)
+    }
+
+    def 'verify ViewKey equals contract'() {
+        expect:
+        EqualsVerifier.forClass(ProtocolToModelAdapter.ViewKey).usingGetClass().verify()
+    }
+
+    def 'verify InvocationHandlerImpl equals contract'() {
+        expect:
+        EqualsVerifier.forClass(ProtocolToModelAdapter.InvocationHandlerImpl).usingGetClass().withOnlyTheseFields("sourceObject").verify()
+    }
+
+    def 'verify NoOpDecoration equals contract'() {
+        expect:
+        EqualsVerifier.forClass(ProtocolToModelAdapter.NoOpDecoration).usingGetClass().verify()
     }
 }
 

@@ -16,7 +16,8 @@
 package org.gradle.api.artifacts.ivy;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * The metadata about an Ivy module that acts as an input to a component metadata rule.

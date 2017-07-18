@@ -63,7 +63,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  *       //you can configure the deployName:
  *       deployName = 'killerApp'
  *
- *       //you can alter the wb-resource elements. sourceDirs is a ConventionProperty.
+ *       //you can alter the wb-resource elements.
  *       //non-existing source dirs won't be added to the component file.
  *       sourceDirs += file('someExtraFolder')
  *
@@ -185,7 +185,7 @@ public class EclipseWtpComponent {
     }
 
     /**
-     * {@link org.gradle.api.dsl.ConventionProperty} for the source directories to be transformed into wb-resource elements.
+     * Source directories to be transformed into wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      * <p>
@@ -267,7 +267,7 @@ public class EclipseWtpComponent {
     }
 
     /**
-     * {@link org.gradle.api.dsl.ConventionProperty} for additional wb-resource elements.
+     * Additional wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      * <p>

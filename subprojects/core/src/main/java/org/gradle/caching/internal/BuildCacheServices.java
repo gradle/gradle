@@ -23,23 +23,32 @@ import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistr
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 import java.util.List;
 
 /**
  * Build scoped services for build cache usage.
  */
-public final class BuildCacheServices {
+public final class BuildCacheServices extends AbstractPluginServiceRegistry {
 
-    BuildCacheConfigurationInternal createBuildCacheConfiguration(
-        Instantiator instantiator,
-        List<BuildCacheServiceRegistration> allBuildCacheServiceFactories
-    ) {
-        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
-    }
+    @Override
+    public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new Object() {
 
-    BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
-        return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
+            BuildCacheConfigurationInternal createBuildCacheConfiguration(
+                Instantiator instantiator,
+                List<BuildCacheServiceRegistration> allBuildCacheServiceFactories
+            ) {
+                return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
+            }
+
+            BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
+                return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
+            }
+
+        });
     }
 
 }

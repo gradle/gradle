@@ -21,10 +21,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
 import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.Path;
@@ -113,7 +113,7 @@ public class IdeaProject {
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
     private final ProjectPathRegistry projectPathRegistry;
-    private final CompositeBuildIdeProjectResolver moduleToProjectMapper;
+    private final LocalComponentRegistry localComponentRegistry;
 
     private List<IdeaModule> modules;
     private String jdkName;
@@ -131,7 +131,7 @@ public class IdeaProject {
 
         ServiceRegistry services = ((ProjectInternal) project).getServices();
         this.projectPathRegistry = services.get(ProjectPathRegistry.class);
-        this.moduleToProjectMapper = CompositeBuildIdeProjectResolver.from(services);
+        this.localComponentRegistry = services.get(LocalComponentRegistry.class);
     }
 
     /**
@@ -181,7 +181,7 @@ public class IdeaProject {
     }
 
     /**
-     * A {@link org.gradle.api.dsl.ConventionProperty} that holds modules for the ipr file.
+     * Modules for the ipr file.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
@@ -342,18 +342,10 @@ public class IdeaProject {
                 // IDEA Module for project in current build: handled via `modules` model elements.
                 continue;
             }
-            File imlFile = moduleToProjectMapper.buildArtifactFile(otherProjectId, "iml");
-            if (imlFile != null) {
-                xmlProject.addModulePath(imlFile);
+            LocalComponentArtifactMetadata imlArtifact = localComponentRegistry.findAdditionalArtifact(otherProjectId, "iml");
+            if (imlArtifact != null) {
+                xmlProject.addModulePath(imlArtifact.getFile());
             }
         }
-    }
-
-    private static ProjectIdentifier getRoot(ProjectIdentifier projectIdentifier) {
-        ProjectIdentifier parent = projectIdentifier.getParentIdentifier();
-        if (parent == null) {
-            return projectIdentifier;
-        }
-        return getRoot(parent);
     }
 }

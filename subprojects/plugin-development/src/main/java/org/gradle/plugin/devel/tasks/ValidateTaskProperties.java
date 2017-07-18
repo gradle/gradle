@@ -51,7 +51,6 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -150,7 +149,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
                 }
                 ClassReader reader;
                 try {
-                    reader = new Java9ClassReader(Files.asByteSource(fileDetails.getFile()).read());
+                    reader = new ClassReader(Files.asByteSource(fileDetails.getFile()).read());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -355,7 +354,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
         private final Collection<String> classNames;
 
         public TaskNameCollectorVisitor(Collection<String> classNames) {
-            super(Opcodes.ASM5);
+            super(Opcodes.ASM6);
             this.classNames = classNames;
         }
 

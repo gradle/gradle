@@ -17,13 +17,13 @@ package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,7 +35,7 @@ public class DaemonParameters {
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
-    public static final List<String> DEFAULT_JVM_9_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
 
     private final File gradleUserHomeDir;
@@ -123,8 +123,8 @@ public class DaemonParameters {
         if (hasJvmArgs) {
             return;
         }
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
-            jvmOptions.jvmArgs(DEFAULT_JVM_9_ARGS);
+        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0) {
+            jvmOptions.jvmArgs(DEFAULT_JVM_8_ARGS);
         } else {
             jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
         }

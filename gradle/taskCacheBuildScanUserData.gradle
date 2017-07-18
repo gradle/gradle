@@ -34,85 +34,12 @@ pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.buildCacheEnabled) {
         buildScan.tag 'CACHED'
 
-        ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
-            'compileJava',
-            ':jar',
-            ':docs:test',
-            ':launcher:startScripts',
-            ':toolingApi:shadedJarWithoutVersion',
-            ':integTest',
-            ':test',
-            ':compileTestFixtures',
-            ':compileTestGroovy',
-            ':compileIntegTestGroovy',
-            'compileGroovy'
-        ]
         ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
-            ':baseServices:classpathManifest',
-            ':core:compileTestGroovy'
+            ':baseServices:classpathManifest'
         ]
         ext.taskPropertiesWithFullFileSnapshot = [
-            ':baseServices:compileJava': ['classpath'],
-            ':core:compileTestGroovy': ['classpath'],
+            ':baseServices:compileJava': ['classpath']
         ]
-
-        def cacheConfiguration = gradle.services.get(org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal)
-        publishCacheConfiguration('local', cacheConfiguration.local)
-        publishCacheConfiguration('remote', cacheConfiguration.remote)
-
-        def listener = new BuildOperationListener() {
-            private buildScan = project.buildScan
-            private Pattern storeToCache = Pattern.compile(/Store entry (.*) in (.*) build cache/)
-            def operationIdsToTaskPath = [:]
-
-            void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-                if (buildOperation.details instanceof ExecuteTaskBuildOperationType.Details) {
-                    operationIdsToTaskPath[buildOperation.id] = Path.path(buildOperation.details.buildPath).append(Path.path(buildOperation.details.taskPath)).path
-                }
-            }
-
-            void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-                def anyDetails = buildOperation.details
-                if (anyDetails instanceof org.gradle.internal.execution.ExecuteTaskBuildOperationType.Details) {
-                    operationIdsToTaskPath.remove(buildOperation.id)
-                } else if (anyDetails instanceof SnapshotTaskInputsBuildOperationType.Details) {
-                    String taskPath = operationIdsToTaskPath[buildOperation.parentId]
-                    SnapshotTaskInputsBuildOperationType.Result result = (SnapshotTaskInputsBuildOperationType.Result) finishEvent.result
-                    if (result.buildCacheKey) {
-                        buildScan.value "${taskPath}-build-cache-key", String.valueOf(result.buildCacheKey)
-                        buildScan.value "${taskPath}-classloader-hash", String.valueOf(result.classLoaderHash)
-                        int actionIndex = 0
-                        def implementationHashes = [result.actionClassNames, result.actionClassLoaderHashes].transpose()
-                        implementationHashes.each { className, classLoaderHash ->
-                            buildScan.value "${taskPath}-action-${actionIndex}-classname", String.valueOf(className)
-                            buildScan.value "${taskPath}-action-${actionIndex++}-classloader-hash", String.valueOf(classLoaderHash)
-                        }
-                        if (tasksToInvestigateForCache.any { taskPath.contains(it) }) {
-                            result.inputHashes.each { name, hash ->
-                                buildScan.value "${taskPath}-input-${name}", String.valueOf(hash)
-                            }
-                            if (result.outputPropertyNames) {
-                                buildScan.value "${taskPath}-output-property-names", String.valueOf((result.outputPropertyNames as List).join(', '))
-                            }
-                        }
-                    } else {
-                        buildScan.value "${taskPath}-build-cache-key", '<No cache key>'
-                    }
-                } else if (finishEvent.failure && storeToCache.matcher(buildOperation.name).matches()) {
-                    buildScan.tag "BUILD_CACHE_UPLOAD_FAILED"
-                }
-            }
-        }
-
-        def buildOperationListenerManager = gradle.services.get(org.gradle.internal.progress.BuildOperationListenerManager)
-        buildOperationListenerManager.addListener(listener)
-
-        gradle.addListener(new org.gradle.BuildAdapter() {
-            @Override
-            void buildFinished(BuildResult result) {
-                buildOperationListenerManager.removeListener(listener)
-            }
-        })
 
         project.buildScan.buildFinished(new Action() {
             public void execute(result) {
@@ -124,7 +51,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                         fileProperties.each { inputProperty ->
                             def name = inputProperty.propertyName
                             def snapshotter = gradle.services.get(inputProperty.snapshotter)
-                            def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getCompareStrategy(), inputProperty.getSnapshotNormalizationStrategy(), task.project.normalization.buildFinalStrategy())
+                            def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getSnapshotNormalizationStrategy(), task.project.normalization.buildFinalStrategy())
                             def prefix = "${task.path}-input-${name}"
                             if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
                                 publishPaths(inputProperty.propertyFiles, prefix)
@@ -182,21 +109,6 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         })
     }
 }
-
-def publishCacheConfiguration(String role, cache) {
-    if (cache?.enabled) {
-        buildScan.tag "PULL-FROM-${role.toUpperCase()}"
-        if (cache.push) {
-            buildScan.tag "PUSH-TO-${role.toUpperCase()}"
-        }
-    }
-    buildScan.value "build-cache-${role}-class", String.valueOf(cache?.getClass()?.superclass?.simpleName ?: "<no build cache>")
-    if (cache != null) {
-        buildScan.value "build-cache-${role}-enabled", String.valueOf(cache.enabled)
-        buildScan.value "build-cache-${role}-push", String.valueOf(cache.push)
-    }
-}
-
 
 class Visitor extends ClassLoaderVisitor {
     final buildScan

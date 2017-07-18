@@ -32,8 +32,11 @@ public class NotifyingSettingsLoader implements SettingsLoader {
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
         gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
-        buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
-        gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);
+        try {
+            buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
+        } finally {
+            gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);
+        }
         return settings;
     }
 }

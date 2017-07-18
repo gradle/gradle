@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.api.Nullable;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -25,6 +24,8 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
 
 /**
  * A Junit rule which copies a sample into the test directory before the test executes. Looks for a

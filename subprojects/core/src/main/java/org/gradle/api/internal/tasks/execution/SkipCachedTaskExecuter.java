@@ -26,8 +26,9 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.tasks.TaskBuildCacheCommandFactory;
+import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
@@ -42,12 +43,12 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final BuildCacheController buildCache;
     private final TaskExecuter delegate;
     private final TaskOutputsGenerationListener taskOutputsGenerationListener;
-    private final TaskBuildCacheCommandFactory buildCacheCommandFactory;
+    private final TaskOutputCacheCommandFactory buildCacheCommandFactory;
 
     public SkipCachedTaskExecuter(
         BuildCacheController buildCache,
         TaskOutputsGenerationListener taskOutputsGenerationListener,
-        TaskBuildCacheCommandFactory buildCacheCommandFactory,
+        TaskOutputCacheCommandFactory buildCacheCommandFactory,
         TaskExecuter delegate
     ) {
         this.taskOutputsGenerationListener = taskOutputsGenerationListener;
@@ -77,13 +78,22 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 // property values are locked in at this point.
                 outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
-                    TaskOutputOriginMetadata originMetadata = buildCache.load(
-                        buildCacheCommandFactory.load(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock)
-                    );
-                    if (originMetadata != null) {
-                        state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
-                        context.setOriginBuildInvocationId(originMetadata.getBuildInvocationId());
-                        return;
+                    try {
+                        TaskOutputOriginMetadata originMetadata = buildCache.load(
+                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskOutputsGenerationListener, taskState, clock)
+                        );
+                        if (originMetadata != null) {
+                            state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
+                            context.setOriginBuildInvocationId(originMetadata.getBuildInvocationId());
+                            return;
+                        }
+                    } catch (UnrecoverableTaskOutputUnpackingException e) {
+                        // We didn't manage to recover from the unpacking error, there might be leftover
+                        // garbage among the task's outputs, thus we must fail the build
+                        throw e;
+                    } catch (Exception e) {
+                        // There was a failure during downloading, previous task outputs should bu unaffected
+                        LOGGER.warn("Failed to load cache entry for {}, falling back to executing task", task, e);
                     }
                 } else {
                     LOGGER.info("Not loading {} from cache because pulling from cache is disabled for this task", task);
@@ -98,7 +108,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         if (taskOutputCachingEnabled) {
             if (cacheKey.isValid()) {
                 if (state.getFailure() == null) {
-                    buildCache.store(buildCacheCommandFactory.store(cacheKey, outputProperties, task, clock));
+                    try {
+                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, task, clock));
+                    } catch (Exception e) {
+                        LOGGER.warn("Failed to store cache entry {} for {}", cacheKey, task, e);
+                    }
                 } else {
                     LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
                 }
@@ -107,5 +121,4 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             }
         }
     }
-
 }

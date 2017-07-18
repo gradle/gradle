@@ -18,11 +18,11 @@ package org.gradle.platform.base.internal;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.Nullable;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ProjectDependencySpec;
 import org.gradle.platform.base.ProjectDependencySpecBuilder;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;

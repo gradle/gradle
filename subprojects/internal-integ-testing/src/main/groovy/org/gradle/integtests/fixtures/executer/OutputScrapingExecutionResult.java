@@ -23,6 +23,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
+import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
 import org.gradle.util.TextUtil;
 import org.hamcrest.core.StringContains;
 
@@ -41,7 +42,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
-    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?[\\w.$_]+\\.[\\w$_ =\\+\'-]+\\(.+?\\)");
+    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =\\+\'-]+\\(.+?\\)");
     private final String output;
     private final String error;
 
@@ -95,6 +96,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 i++;
             } else if (line.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)) {
                 // Remove the "Daemon will be shut down" message
+                i++;
+            } else if (line.contains(LowTenuredSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
+                // Remove the "Expiring Daemon" message
                 i++;
             } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));

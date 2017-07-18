@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.idea.model.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
@@ -50,7 +50,7 @@ public class IdeaDependenciesProvider {
 
     IdeaDependenciesProvider(IdeDependenciesExtractor dependenciesExtractor, ServiceRegistry serviceRegistry) {
         this.dependenciesExtractor = dependenciesExtractor;
-        moduleDependencyBuilder = new ModuleDependencyBuilder(CompositeBuildIdeProjectResolver.from(serviceRegistry));
+        moduleDependencyBuilder = new ModuleDependencyBuilder(serviceRegistry.get(LocalComponentRegistry.class));
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {

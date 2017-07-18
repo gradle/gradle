@@ -200,7 +200,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def java = events.operation("Apply plugin org.gradle.java to root project 'single'")
         def javaBase = events.operation("Apply plugin org.gradle.api.plugins.JavaBasePlugin to root project 'single'")
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
-        def rootProjectAction = rootOperation.child("Execute 'rootProject {}' action")
+        def rootProjectAction = rootOperation.descendant("Execute 'rootProject {}' action")
 
         java.parent == rootProjectAction.child("Cross-configure project :")
         javaBase.parent == java
@@ -233,7 +233,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def java = events.operation("Apply plugin org.gradle.java to root project 'single'")
         def javaBase = events.operation("Apply plugin org.gradle.api.plugins.JavaBasePlugin to root project 'single'")
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
-        def rootProjectAction = rootOperation.child("Execute 'rootProject {}' action")
+        def rootProjectAction = rootOperation.descendant("Execute 'rootProject {}' action")
 
         java.parent == rootProjectAction.child("Cross-configure project :").child("Execute 'allprojects {}' action").child("Cross-configure project :")
         javaBase.parent == java
@@ -431,7 +431,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         events.assertIsABuild()
 
         def buildSrc = events.operation("Build buildSrc")
-        def groovyPlugin = buildSrc.child("Apply plugin org.gradle.api.plugins.GroovyPlugin to project ':buildSrc'")
+        def groovyPlugin = buildSrc.descendant("Apply plugin org.gradle.api.plugins.GroovyPlugin to project ':buildSrc'")
         def configureBuildSrcBuild = buildSrc.child({ it.startsWith("Configure build") })
 
         def configureBuildSrcRoot = configureBuildSrcBuild.child("Configure project :buildSrc")

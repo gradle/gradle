@@ -61,7 +61,7 @@ task t {
         }
 
         then:
-        resultHandler.failure == null
+        resultHandler.assertNoFailure()
         output.toString().contains("finished")
     }
 }

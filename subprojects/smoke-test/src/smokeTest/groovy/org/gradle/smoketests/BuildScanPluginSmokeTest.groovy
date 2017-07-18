@@ -29,7 +29,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     private static final List<String> GRACEFULLY_UNSUPPORTED = [
         "1.6",
         "1.7",
-        "1.7.1",
+        "1.7.4",
     ]
 
     private static final List<String> SUPPORTED = [
@@ -61,7 +61,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         with(buildAndFail("--scan")) {
             output.contains("""
 > Failed to apply plugin [id 'com.gradle.build-scan']
-   > This version of Gradle requires version 1.7.4 of the build scan plugin or later.
+   > This version of Gradle requires version 1.8.0 of the build scan plugin or later.
      Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information.
 """)
         }

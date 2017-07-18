@@ -17,9 +17,10 @@
 package org.gradle.deployment.internal;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.concurrent.Stoppable;
+
+import javax.annotation.Nullable;
 
 /**
  * A registry of deployment handles.

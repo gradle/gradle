@@ -16,7 +16,7 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 public final class OperationFinishEvent {
     private final long startTime;

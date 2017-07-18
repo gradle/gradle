@@ -17,8 +17,9 @@
 package org.gradle.plugin.use;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.internal.HasInternalProtocol;
+
+import javax.annotation.Nullable;
 
 /**
  * A description of a plugin.

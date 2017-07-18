@@ -46,25 +46,19 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
         }
     };
 
-    private final boolean includeAdded;
-
-    public OrderInsensitiveTaskFilePropertyCompareStrategy(boolean includeAdded) {
-        this.includeAdded = includeAdded;
-    }
-
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute) {
+    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute, boolean includeAdded) {
         if (pathIsAbsolute) {
-            return iterateChangesForAbsolutePaths(current, previous, fileType);
+            return iterateChangesForAbsolutePaths(current, previous, fileType, includeAdded);
         } else {
-            return iterateChangesForRelativePaths(current, previous, fileType);
+            return iterateChangesForRelativePaths(current, previous, fileType, includeAdded);
         }
     }
 
     /**
      * A more efficient implementation when absolute paths are used.
      */
-    private Iterator<TaskStateChange> iterateChangesForAbsolutePaths(final Map<String, NormalizedFileSnapshot> current, final Map<String, NormalizedFileSnapshot> previous, final String fileType) {
+    private Iterator<TaskStateChange> iterateChangesForAbsolutePaths(final Map<String, NormalizedFileSnapshot> current, final Map<String, NormalizedFileSnapshot> previous, final String fileType, final boolean includeAdded) {
         final Set<String> unaccountedForPreviousSnapshots = new LinkedHashSet<String>(previous.keySet());
         final Iterator<Entry<String, NormalizedFileSnapshot>> currentEntries = current.entrySet().iterator();
         final List<String> added = new ArrayList<String>();
@@ -114,7 +108,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
         };
     }
 
-    private Iterator<TaskStateChange> iterateChangesForRelativePaths(final Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType) {
+    private Iterator<TaskStateChange> iterateChangesForRelativePaths(final Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType, final boolean includeAdded) {
         final ListMultimap<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys().linkedListValues().build();
         for (Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
@@ -196,11 +190,6 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
         for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
             normalizedSnapshot.appendToHasher(hasher);
         }
-    }
-
-    @Override
-    public boolean isIncludeAdded() {
-        return includeAdded;
     }
 
     private static class IncrementalFileSnapshotWithAbsolutePath {

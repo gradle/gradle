@@ -25,7 +25,7 @@ import org.gradle.util.Path;
  *
  * @since 4.0
  */
-public final class ConfigureProjectBuildOperationType implements BuildOperationType<ConfigureProjectBuildOperationType.Details, Void> {
+public final class ConfigureProjectBuildOperationType implements BuildOperationType<ConfigureProjectBuildOperationType.Details, ConfigureProjectBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -33,6 +33,10 @@ public final class ConfigureProjectBuildOperationType implements BuildOperationT
         String getProjectPath();
 
         String getBuildPath();
+
+    }
+
+    public interface Result {
 
     }
 
@@ -55,6 +59,9 @@ public final class ConfigureProjectBuildOperationType implements BuildOperationT
         }
 
     }
+
+    final static Result RESULT = new Result() {
+    };
 
     private ConfigureProjectBuildOperationType() {
     }

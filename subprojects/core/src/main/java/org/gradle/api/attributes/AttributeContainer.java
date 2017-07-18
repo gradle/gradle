@@ -17,9 +17,9 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**

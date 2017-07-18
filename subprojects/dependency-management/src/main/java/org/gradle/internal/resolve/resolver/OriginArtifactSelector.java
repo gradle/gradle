@@ -16,12 +16,13 @@
 
 package org.gradle.internal.resolve.resolver;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+
+import javax.annotation.Nullable;
 
 public interface OriginArtifactSelector {
     /**

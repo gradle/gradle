@@ -16,7 +16,7 @@
 
 package org.gradle.internal.installation;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Provides access to the current Gradle installation associated with the runtime.

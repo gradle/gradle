@@ -18,10 +18,11 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
+
+import javax.annotation.Nullable;
 
 public class DefaultLibraryComponentSelector implements LibraryComponentSelector {
     private final String projectPath;

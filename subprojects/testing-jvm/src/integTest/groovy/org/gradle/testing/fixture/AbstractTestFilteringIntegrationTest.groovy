@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Unroll
 
 abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrationSpec {
@@ -152,22 +153,48 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
 
         //by command line
         when: fails("test", "--tests", 'FooTest.missingMethod')
-        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
+        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod](--tests filter)")
 
         //by build script
         when:
         buildFile << "test.filter.includeTestsMatching 'FooTest.missingMethod'"
         fails("test")
-        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
+        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod](filter.includeTestsMatching)")
+    }
+
+    def "adds import/export rules to report about no matching methods found"() {
+        file("src/test/java/FooTest.java") << """import $imports;
+            public class FooTest {
+                @Test public void pass() {}
+            }
+        """
+
+        when:
+        buildFile << """
+            test {
+                include 'FooTest*'
+                exclude 'NotImportant*'
+            }
+        """
+        fails("test", "--tests", 'FooTest.missingMethod')
+        then: failure.assertHasCause("No tests found for given includes: [FooTest*](include rules) [NotImportant*](exclude rules) [FooTest.missingMethod](--tests filter)")
+    }
+
+    def "does not report when matching method has been filtered before via include/exclude"() { //current behavior, not necessarily desired
+        file("src/test/java/FooTest.java") << """import $imports;
+            public class FooTest {
+                @Test public void pass() {}
+            }
+        """
+
+        when:
+        buildFile << "test.include 'FooTest.missingMethod'"
+        then:
+        succeeds("test", "--tests", 'FooTest.missingMethod')
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    def "task is out of date when included methods change"() {
-        buildFile << """
-            test {
-              filter.includeTestsMatching 'FooTest.pass'
-            }
-        """
+    def "task is out of date when --tests argument changes"() {
         file("src/test/java/FooTest.java") << """import $imports;
             public class FooTest {
                 @Test public void pass() {}
@@ -175,10 +202,10 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
             }
         """
 
-        when: run("test")
+        when: run("test", "--tests", "FooTest.pass")
         then: new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass")
 
-        when: run("test")
+        when: run("test", "--tests", "FooTest.pass")
         then: result.skippedTasks.contains(":test") //up-to-date
 
         when:
@@ -239,11 +266,96 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         where:
         scenario         | command                                                  | classesExecuted                                  | foo1TestsExecuted | foo2TestsExecuted | barTestsExecuted | otherTestsExecuted
         "no options"     | ["test"]                                                 | ["Foo1Test", "Foo2Test", "BarTest", "OtherTest"] | ["bar", "pass1"]  | ["bar", "pass2"]  | ["bar"]          | ["bar", "pass3"]
-        "pass and Ohter" | ["test", "--tests", "*.pass1", "--tests", "*OtherTest*"] | ["Foo1Test", "OtherTest"]                        | ["pass1"]         | []                | []               | ["bar", "pass3"]
+        "pass and Other" | ["test", "--tests", "*.pass1", "--tests", "*OtherTest*"] | ["Foo1Test", "OtherTest"]                        | ["pass1"]         | []                | []               | ["bar", "pass3"]
         "pass and *ar"   | ["test", "--tests", "*.pass1", "--tests", "*arTest"]     | ["BarTest", "Foo1Test"]                          | ["pass1"]         | []                | ["bar"]          | []
     }
 
-    def String[] stringArrayOf(List<String> strings) {
+    @Issue("https://github.com/gradle/gradle/issues/1571")
+    @Unroll
+    def "option --tests filter in combined with #includeType"() {
+        given:
+        buildFile << """
+        test {
+            $includeConfig
+        }
+        """
+
+        when:
+        createTestABC()
+
+        then:
+        succeeds('test', '--tests', '*ATest*', '--tests', '*BTest*', '--info')
+
+        output.contains('ATest!')
+        !output.contains('BTest!')
+        !output.contains('CTest!')
+
+        where:
+        includeType                   | includeConfig
+        "include and exclude"         | "include '*Test*'; exclude '*BTest*'"
+        "filter.includeTestsMatching" | "filter { includeTestsMatching '*ATest*'; includeTestsMatching '*CTest*' }"
+        "filter.includePatterns"      | "filter { includePatterns = ['*ATest*', '*CTest*'] }"
+    }
+
+    def "invoking testNameIncludePatterns does not influence include/exclude filter"() {
+        given:
+        buildFile << """
+        test {
+            include '*ATest*', '*BTest*'
+            testNameIncludePatterns = [ '*BTest*', '*CTest*' ]
+        }
+        """
+
+        when:
+        createTestABC()
+
+        then:
+        succeeds('test', '--info')
+
+        !output.contains('ATest!')
+        output.contains('BTest!')
+        !output.contains('CTest!')
+    }
+
+    def "invoking filter.includePatterns not disable include/exclude filter"() {
+        given:
+        buildFile << """
+        test {
+            include '*ATest*', '*BTest*'
+            filter.includePatterns = [ '*BTest*', '*CTest*' ]
+        }
+        """
+
+        when:
+        createTestABC()
+
+        then:
+        succeeds('test', '--info')
+
+        !output.contains('ATest!')
+        output.contains('BTest!')
+        !output.contains('CTest!')
+    }
+
+    private createTestABC(){
+        file('src/test/java/ATest.java') << """import $imports;
+            public class ATest {
+                @Test public void test() { System.out.println("ATest!"); }
+            }
+        """
+        file('src/test/java/BTest.java') << """import $imports;
+            public class BTest {
+                @Test public void test() { System.out.println("BTest!"); }
+            }
+        """
+        file('src/test/java/CTest.java') << """import $imports;
+            public class CTest {
+                @Test public void test() { System.out.println("CTest!"); }
+            }
+        """
+    }
+
+    private String[] stringArrayOf(List<String> strings) {
         return strings.toArray()
     }
 }

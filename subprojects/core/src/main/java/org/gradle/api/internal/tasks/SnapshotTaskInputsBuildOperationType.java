@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 

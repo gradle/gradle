@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.console;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 public interface ConsoleDetector {
     /**

@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A predicate that selects model nodes.

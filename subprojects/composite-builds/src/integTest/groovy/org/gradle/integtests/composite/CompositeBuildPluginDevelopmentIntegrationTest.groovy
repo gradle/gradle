@@ -18,22 +18,23 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.util.Matchers
+import spock.lang.Ignore
 /**
  * Tests for plugin development scenarios within a composite build.
  */
 class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildB
     BuildTestFile pluginBuild
+    BuildTestFile pluginDependencyA
 
     def setup() {
-        buildB = singleProjectBuild("buildB") {
+        pluginDependencyA = singleProjectBuild("pluginDependencyA") {
             buildFile << """
                 apply plugin: 'java'
                 version "2.0"
 """
         }
 
-        pluginBuild = pluginProjectBuild("pluginC")
+        pluginBuild = pluginProjectBuild("pluginBuild")
     }
 
     def "can co-develop plugin and consumer with plugin as included build"() {
@@ -46,21 +47,22 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         execute(buildA, "tasks")
 
         then:
-        outputContains("taskFromPluginC")
+        executed ":pluginBuild:jar"
+        outputContains("taskFromPluginBuild")
     }
 
     def "can co-develop plugin and consumer with both plugin and consumer as included builds"() {
         given:
-        applyPlugin(buildB)
+        applyPlugin(pluginDependencyA)
 
         buildA.buildFile << """
             dependencies {
-                compile "org.test:buildB:1.0"
+                compile "org.test:pluginDependencyA:1.0"
             }
 """
 
-        includeBuild buildB, """
-            substitute module("org.test:buildB") with project(":")
+        includeBuild pluginDependencyA, """
+            substitute module("org.test:pluginDependencyA") with project(":")
 """
         includeBuild pluginBuild
 
@@ -68,13 +70,13 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         execute(buildA, "assemble")
 
         then:
-        executed ":pluginC:jar", ":buildB:jar", ":jar"
+        executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":jar"
     }
 
     def "can co-develop plugin and consumer where plugin uses previous version of itself to build"() {
         given:
         // Ensure that 'plugin' is published with older version
-        mavenRepo.module("org.test", "pluginC", "0.1").publish()
+        mavenRepo.module("org.test", "pluginBuild", "0.1").publish()
 
         pluginBuild.buildFile << """
             buildscript {
@@ -84,7 +86,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
                     }
                 }
                 dependencies {
-                    classpath 'org.test:pluginC:0.1'
+                    classpath 'org.test:pluginBuild:0.1'
                 }
             }
 """
@@ -93,34 +95,104 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         includeBuild pluginBuild, """
             // Only substitute version 1.0 with project dependency. This allows this project to build with the published dependency.
-            substitute module("org.test:pluginC:1.0") with project(":")
+            substitute module("org.test:pluginBuild:1.0") with project(":")
 """
 
         when:
         execute(buildA, "tasks")
 
         then:
-        outputContains("taskFromPluginC")
+        executed ":pluginBuild:jar"
+        outputContains("taskFromPluginBuild")
     }
 
+    def "can develop a transitive plugin dependency as included build"() {
+        given:
+        applyPlugin(buildA)
+        dependency(pluginBuild, "org.test:pluginDependencyA:1.0")
+
+        includeBuild pluginBuild
+        includeBuild pluginDependencyA
+
+        when:
+        execute(buildA, "taskFromPluginBuild")
+
+        then:
+        executed ":pluginDependencyA:jar", ":pluginBuild:jar", ":taskFromPluginBuild"
+    }
+
+
+    def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
+        given:
+        publishPluginWithDependency()
+
+        buildA.buildFile << """
+            buildscript {
+                repositories {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
+            }
+"""
+        applyPlugin(buildA)
+
+        when:
+        includeBuild pluginDependencyA
+        execute(buildA, "taskFromPluginBuild")
+
+        then:
+        executed ":pluginDependencyA:jar", ":taskFromPluginBuild"
+        notExecuted ":pluginBuild:jar"
+    }
+
+    private void publishPluginWithDependency() {
+        dependency pluginBuild, 'org.test:pluginDependencyA:1.0'
+        pluginBuild.buildFile << """
+publishing {
+    repositories {
+        maven {
+            url '${mavenRepo.uri}'
+        }
+    }
+}
+"""
+        executer.inDirectory(pluginBuild).withArguments('--include-build', pluginDependencyA.absolutePath).withTasks('publish').run()
+    }
+
+    private void publishPlugin() {
+        pluginBuild.buildFile << """
+publishing {
+    repositories {
+        maven {
+            url '${mavenRepo.uri}'
+        }
+    }
+}
+"""
+        executer.inDirectory(pluginBuild).withTasks('publish').run()
+    }
+
+// TODO:DAZ Fix this: https://builds.gradle.org/viewLog.html?buildId=4295932&buildTypeId=Gradle_Check_NoDaemon_Java8_Oracle_Linux_compositeBuilds
+    @Ignore("Cycle check is not parallel safe: test may hang or produce StackOverflowError")
     def "detects dependency cycle between included builds required for buildscript classpath"() {
         given:
-        def buildD = singleProjectBuild("buildD") {
+        def pluginDependencyB = singleProjectBuild("pluginDependencyB") {
             buildFile << """
                 apply plugin: 'java'
                 version "2.0"
 """
         }
 
-        dependency pluginBuild, "org.test:buildB:1.0"
-        dependency buildB, "org.test:buildD:1.0"
-        dependency buildD, "org.test:buildB:1.0"
+        dependency pluginBuild, "org.test:pluginDependencyA:1.0"
+        dependency pluginDependencyA, "org.test:pluginDependencyB:1.0"
+        dependency pluginDependencyB, "org.test:pluginDependencyA:1.0"
 
         applyPlugin(buildA)
 
         includeBuild pluginBuild
-        includeBuild buildB
-        includeBuild buildD
+        includeBuild pluginDependencyA
+        includeBuild pluginDependencyB
 
         when:
         fails(buildA, "tasks")
@@ -129,53 +201,75 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         failure
             .assertHasDescription("Could not determine the dependencies of task")
             .assertHasCause("Included build dependency cycle:")
-            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildD'"))
-            .assertThatCause(Matchers.containsText("build 'buildD' -> build 'buildB'"))
+            .assertThatCause(Matchers.containsText("build 'pluginDependencyA' -> build 'pluginDependencyB'"))
+            .assertThatCause(Matchers.containsText("build 'pluginDependencyB' -> build 'pluginDependencyA'"))
     }
 
-    def applyPlugin(BuildTestFile build) {
-        build.buildFile << """
-            buildscript {
-                dependencies {
-                    classpath 'org.test:pluginC:1.0'
+    def "can co-develop unpublished plugin applied via plugins block"() {
+        given:
+        addPluginsBlock(buildA, """
+            resolutionStrategy.eachPlugin {
+                if(requested.id.name == 'pluginBuild') {
+                    useModule('org.test:pluginBuild:1.0')
                 }
             }
-            apply plugin: 'org.test.plugin.pluginC'
-"""
+        """)
+
+
+        when:
+        execute(buildA, "tasks", ["--include-build", "../pluginBuild"])
+
+        then:
+        executed ":pluginBuild:jar"
+        outputContains("taskFromPluginBuild")
+
+
+        when:
+        includeBuild pluginBuild
+        execute(buildA, "tasks")
+
+        then:
+        executed ":pluginBuild:jar"
+        outputContains("taskFromPluginBuild")
     }
 
-    def pluginProjectBuild(String name) {
-        def className = name.capitalize()
-        singleProjectBuild(name) {
-            buildFile << """
-apply plugin: 'java-gradle-plugin'
+    def "can co-develop published plugin applied via plugins block"() {
+        given:
+        publishPlugin()
+        addPluginsBlock(buildA)
 
-gradlePlugin {
-    plugins {
-        ${name} {
-            id = "org.test.plugin.$name"
-            implementationClass = "org.test.$className"
-        }
-    }
-}
-"""
-            file("src/main/java/org/test/${className}.java") << """
-package org.test;
+        when:
+        execute(buildA, "tasks", ["--include-build", "../pluginBuild"])
 
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+        then:
+        executed ":pluginBuild:jar"
+        outputContains("taskFromPluginBuild")
 
-public class ${className} implements Plugin<Project> {
-    public void apply(Project project) {
-        Task task = project.task("taskFrom${className}");
-        task.setGroup("Plugin");
-    }
-}
-"""
-        }
 
+        when:
+        includeBuild pluginBuild
+        execute(buildA, "tasks")
+
+        then:
+        executed ":pluginBuild:jar"
+        outputContains("taskFromPluginBuild")
     }
 
+    def addPluginsBlock(BuildTestFile build, String resolutionStrategy = "") {
+        build.settingsFile.text = """
+            pluginManagement {
+                $resolutionStrategy
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+            }
+""" + build.settingsFile.text
+
+        build.buildFile.text = """
+            plugins {
+                id 'org.test.plugin.pluginBuild' version '1.0'
+            }
+""" + build.buildFile.text
+    }
 
 }

@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -47,6 +48,7 @@ import org.gradle.process.internal.worker.WorkerJvmMemoryInfoSerializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.ObjectInputStream;
 import java.util.concurrent.Callable;
 
@@ -81,11 +83,16 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         // Read whether process info should be published
         boolean shouldPublishJvmMemoryInfo = decoder.readBoolean();
 
+        // Read path to Gradle user home
+        String gradleUserHomeDirPath = decoder.readString();
+        File gradleUserHomeDir = new File(gradleUserHomeDirPath);
+
         // Read server address and start connecting
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
         MessagingServices messagingServices = new MessagingServices();
-        WorkerServices workerServices = new WorkerServices(messagingServices);
+        final WorkerServices workerServices = new WorkerServices(messagingServices, gradleUserHomeDir);
 
+        ObjectConnection connection = null;
         WorkerLogEventListener workerLogEventListener = null;
         try {
             // Read serialized worker
@@ -100,29 +107,34 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
 
-            final ObjectConnection connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
+            connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
             workerLogEventListener = configureLogging(loggingManager, connection);
             if (shouldPublishJvmMemoryInfo) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
             }
 
-            try {
-                action.execute(new WorkerContext() {
-                    public ClassLoader getApplicationClassLoader() {
-                        return ClassLoader.getSystemClassLoader();
-                    }
+            final ObjectConnection serverConnection = connection;
+            action.execute(new WorkerContext() {
+                public ClassLoader getApplicationClassLoader() {
+                    return ClassLoader.getSystemClassLoader();
+                }
 
-                    @Override
-                    public ObjectConnection getServerConnection() {
-                        return connection;
-                    }
-                });
-            } finally {
-                connection.stop();
-            }
+                @Override
+                public ObjectConnection getServerConnection() {
+                    return serverConnection;
+                }
+
+                @Override
+                public ServiceRegistry getServiceRegistry() {
+                    return workerServices;
+                }
+            });
         } finally {
             if (workerLogEventListener != null) {
                 loggingManager.removeOutputEventListener(workerLogEventListener);
+            }
+            if (connection != null) {
+                connection.stop();
             }
             messagingServices.close();
             loggingManager.stop();
@@ -157,8 +169,18 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     }
 
     private static class WorkerServices extends DefaultServiceRegistry {
-        public WorkerServices(ServiceRegistry parent) {
+        public WorkerServices(ServiceRegistry parent, final File gradleUserHomeDir) {
             super(parent);
+            addProvider(new Object() {
+                GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
+                    return new GradleUserHomeDirProvider() {
+                        @Override
+                        public File getGradleUserHomeDirectory() {
+                            return gradleUserHomeDir;
+                        }
+                    };
+                }
+            });
         }
 
         ListenerManager createListenerManager() {
@@ -175,6 +197,10 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
             return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
+        }
+
+        WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
+            return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
         }
     }
 }

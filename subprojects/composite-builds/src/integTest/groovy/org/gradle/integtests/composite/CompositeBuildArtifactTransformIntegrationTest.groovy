@@ -16,19 +16,16 @@
 
 package org.gradle.integtests.composite
 
-
 class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     def "can apply a transform to the outputs of included builds"() {
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
                 apply plugin: 'java'
-                group = 'test'
             """
         }
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
                 apply plugin: 'java'
-                group = 'test'
             """
         }
         includedBuilds << buildB
@@ -42,8 +39,8 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
             }
             
             dependencies {
-                compile 'test:buildB:1.2'
-                compile 'test:buildC:1.2'
+                compile 'org.test:buildB:1.2'
+                compile 'org.test:buildC:1.2'
                 
                 registerTransform {
                     from.attribute(Attribute.of("artifactType", String), "jar")
@@ -51,20 +48,10 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
                     artifactTransform(XForm)
                 }
             }
-            task resolve {
-                def artifacts = configurations.compileClasspath.incoming.artifactView { 
-                    attributes.attribute(Attribute.of("artifactType", String), "xform")
-                }.artifacts
-                inputs.files artifacts.artifactFiles
-                doLast {
-                    artifacts.each { println it }
-                }
-            }
-"""
-
+        """
         expect:
-        execute(buildA, "resolve")
-        result.assertOutputContains("buildB-1.0.jar (project :buildB)")
-        result.assertOutputContains("buildC-1.0.jar (project :buildC)")
+        execute(buildA, "assemble")
+        assertTaskExecuted(":buildB", ":jar")
+        assertTaskExecuted(":buildC", ":jar")
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.api.publication.maven.internal.pom;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.maven.project.MavenProject;
-import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.maven.MavenDeployer;
@@ -28,6 +27,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.tasks.Upload;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -35,7 +35,7 @@ import java.util.Set;
  * Given a project dependency, determines the artifact ID that the depended-on project
  * can be referred to from a Maven POM. Falls back to project.name if the artifact ID
  * used for publishing the depended-on project cannot be determined with certainty.
- * 
+ *
  * The main goal of this class is to fix GRADLE-443 without changing any other existing
  * behavior (e.g. when a project that gets published to a Maven repo depends on a
  * project published to an Ivy repo).

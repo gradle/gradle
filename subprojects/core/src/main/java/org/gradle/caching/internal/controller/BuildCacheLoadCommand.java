@@ -26,6 +26,8 @@ public interface BuildCacheLoadCommand<T> {
 
     /**
      * Called at-most-once to initiate loading the artifact from the input stream.
+     *
+     * The input stream will be closed by this method.
      */
     Result<T> load(InputStream inputStream);
 

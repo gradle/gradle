@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
+
+import javax.annotation.Nullable;
 
 public interface TaskOutputCachingState {
     /**

@@ -19,8 +19,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 

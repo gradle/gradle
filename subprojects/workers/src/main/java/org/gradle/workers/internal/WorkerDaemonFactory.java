@@ -18,14 +18,16 @@ package org.gradle.workers.internal;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
-
-import java.io.File;
+import org.gradle.workers.IsolationMode;
 
 /**
  * Controls the lifecycle of the worker daemon and provides access to it.
@@ -48,17 +50,23 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, final File workingDir, final DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
         return new Worker<T>() {
-            public DefaultWorkResult execute(T spec, WorkerLease parentWorkerWorkerLease, BuildOperationState parentBuildOperation) {
-                WorkerDaemonClient<T> client = clientsManager.reserveIdleClient(forkOptions);
-                if (client == null) {
-                    client = clientsManager.reserveNewClient(workerImplementationClass, workingDir, forkOptions);
-                }
+            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+                WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
                 try {
-                    return client.execute(spec, parentWorkerWorkerLease, parentBuildOperation);
+                    WorkerDaemonClient<T> client = clientsManager.reserveIdleClient(forkOptions);
+                    if (client == null) {
+                        client = clientsManager.reserveNewClient(workerImplementationClass, forkOptions);
+                    }
+
+                    try {
+                        return executeInClient(client, spec, parentBuildOperation);
+                    } finally {
+                        clientsManager.release(client);
+                    }
                 } finally {
-                    clientsManager.release(client);
+                    workerLease.leaseFinish();
                 }
             }
 
@@ -66,12 +74,30 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
             public DefaultWorkResult execute(T spec) {
                 return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
+
+            private DefaultWorkResult executeInClient(final WorkerDaemonClient<T> client, final T spec, final BuildOperationState parentBuildOperation) {
+                return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
+                    @Override
+                    public DefaultWorkResult call(BuildOperationContext context) {
+                        return client.execute(spec);
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
+                    }
+                });
+            }
         };
     }
 
     @Override
+    public IsolationMode getIsolationMode() {
+        return IsolationMode.PROCESS;
+    }
+
+    @Override
     public void stop() {
-        clientsManager.stop();
         memoryManager.removeMemoryHolder(workerDaemonExpiration);
     }
 

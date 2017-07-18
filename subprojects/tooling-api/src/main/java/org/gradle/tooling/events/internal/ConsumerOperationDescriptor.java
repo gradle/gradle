@@ -16,8 +16,9 @@
 
 package org.gradle.tooling.events.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.tooling.events.OperationDescriptor;
+
+import javax.annotation.Nullable;
 
 /**
  * Implementation of the {@link OperationDescriptor} interface, for those operations which are performed by the consumer.

@@ -15,11 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+
+import javax.annotation.Nullable;
 
 public abstract class AbstractRenderableDependencyResult implements RenderableDependency {
     @Override

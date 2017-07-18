@@ -62,7 +62,7 @@
                 The <literal>--include-build</literal> command-line argument turns the executed build into a composite, substituting dependencies from the included build into the executed build.
             </para>
             <sample id="compositeBuilds_basic_cli" dir="compositeBuilds/basic/my-app" title="Declaring a command-line composite">
-                <output args='--include-build ../my-utils run' ignoreExtraLines="true"/>
+                <output args='--include-build ../my-utils run' ignoreExtraLines="true" ignoreLineOrder="true"/>
             </sample>
         </section>
         <section id="settings_defined_composite">
@@ -189,7 +189,7 @@
     <section id="included_build_task_dependencies">
         <title>Depending on tasks in an included build</title>
         <para>
-            While included builds are isolated from one another and cannot declare direct dependencies, a composite build is able to declare task dependencies on it's included builds. The included builds are accessed using <apilink class="org.gradle.api.invocation.Gradle" method="getIncludedBuilds()"/> or <apilink class="org.gradle.api.invocation.Gradle" method="includedBuild(java.lang.String)"/>, and a task reference is obtained via the <apilink class="org.gradle.includedbuild.IncludedBuild" method="task(java.lang.String)"/> method.
+            While included builds are isolated from one another and cannot declare direct dependencies, a composite build is able to declare task dependencies on it's included builds. The included builds are accessed using <apilink class="org.gradle.api.invocation.Gradle" method="getIncludedBuilds()"/> or <apilink class="org.gradle.api.invocation.Gradle" method="includedBuild(java.lang.String)"/>, and a task reference is obtained via the <apilink class="org.gradle.api.initialization.IncludedBuild" method="task(java.lang.String)"/> method.
         </para>
         <para>
             Using these APIs, it is possible to declare a dependency on a task in a particular included build, or tasks with a certain path in all or some of the included builds.
@@ -219,7 +219,6 @@
             <itemizedlist>
                 <listitem><para>Better detection of dependency substitution, for build that publish with custom coordinates, builds that produce multiple components, etc. This will reduce the cases where dependency substitution needs to be explicitly declared for an included build.</para></listitem>
                 <listitem><para>The ability to target a task or tasks in an included build directly from the command line. We are currently exploring syntax options for allowing this functionality, which will remove many cases where a delegating task is required in the composite.</para></listitem>
-                <listitem><para>Execution of included builds in parallel.</para></listitem>
                 <listitem><para>Making the implicit <literal>buildSrc</literal> project an included build.</para></listitem>
                 <listitem><para>Supporting composite-of-composite builds.</para></listitem>
             </itemizedlist>

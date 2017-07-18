@@ -86,30 +86,6 @@ idea {
                 // set compiler heap space
                 compilerConfig.appendNode('option', [name: 'BUILD_PROCESS_HEAP_SIZE', value: '2048'])
 
-                // Nullability annotations
-                def nullableManager = node.component.find { it.'@name' == 'NullableNotNullManager' }
-                if (nullableManager) {
-                    nullableManager.parent().remove(nullableManager)
-                }
-
-                node.append(new XmlParser().parseText("""
-          <component name="NullableNotNullManager">
-            <option name="myDefaultNullable" value="org.gradle.api.Nullable" />
-            <option name="myDefaultNotNull" value="" />
-            <option name="myNullables">
-              <value>
-                <list size="1">
-                  <item index="0" class="java.lang.String" itemvalue="org.gradle.api.Nullable" />
-                </list>
-              </value>
-            </option>
-            <option name="myNotNulls">
-              <value>
-                <list size="0" />
-              </value>
-            </option>
-          </component>
-        """))
                 // license header
                 def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
                 copyrightManager.@default = "ASL2"
@@ -223,6 +199,8 @@ idea {
                 "-Dorg.gradle.integtest.versions=latest",
                 "-Dorg.gradle.integtest.multiversion=default",
                 "-Dorg.gradle.integtest.testkit.compatibility=current",
+                "-Dorg.gradle.public.api.includes=${publicApiIncludes.join(':')}",
+                "-Dorg.gradle.public.api.excludes=${publicApiExcludes.join(':')}",
                 "-ea",
                 "-Xmx512m"
         ]

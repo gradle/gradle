@@ -16,27 +16,19 @@
 
 package org.gradle.caching.internal.controller.operations;
 
-import org.gradle.caching.internal.BuildCacheLoadBuildOperationType;
-import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
-import org.gradle.caching.internal.controller.BuildCacheServiceRole;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType;
 
-public class LoadOperationDetails implements BuildCacheLoadBuildOperationType.Details {
+public class LoadOperationDetails implements BuildCacheRemoteLoadBuildOperationType.Details {
 
-    private final BuildCacheServiceRole role;
-    private final BuildCacheLoadCommand loadOp;
+    private final BuildCacheKey buildCacheKey;
 
-    public LoadOperationDetails(BuildCacheServiceRole role, BuildCacheLoadCommand loadOp) {
-        this.role = role;
-        this.loadOp = loadOp;
-    }
-
-    @Override
-    public String getRole() {
-        return role.getDisplayName();
+    public LoadOperationDetails(BuildCacheKey buildCacheKey) {
+        this.buildCacheKey = buildCacheKey;
     }
 
     @Override
     public String getCacheKey() {
-        return loadOp.getKey().getHashCode();
+        return buildCacheKey.getHashCode();
     }
 }

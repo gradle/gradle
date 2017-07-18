@@ -28,7 +28,6 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.BufferedOutputStream;
@@ -36,9 +35,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+
+import static java.util.Collections.emptyList;
+import static org.gradle.util.CollectionUtils.collect;
 
 /**
  * Custom task for generating the metadata for a plugin user test.
@@ -82,21 +83,29 @@ public class PluginUnderTestMetadata extends DefaultTask {
     public void generate() {
         Properties properties = new Properties();
 
-        if (!getPluginClasspath().isEmpty()) {
-            List<String> paths = getPaths();
-            StringBuilder implementationClasspath = new StringBuilder();
-            Joiner.on(File.pathSeparator).appendTo(implementationClasspath, paths);
-            properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath.toString());
-
-            // As these files are inputs into this task, they have just been snapshotted by the task up-to-date checking.
-            // We should be reusing those persistent snapshots to avoid reading into memory again.
-            ClasspathHasher classpathHasher = getServices().get(ClasspathHasher.class);
-            String hash = classpathHasher.hash(new DefaultClassPath(getPluginClasspath())).toString();
-            properties.setProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY, hash);
+        if (getPluginClasspath() != null && !getPluginClasspath().isEmpty()) {
+            properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath());
+            properties.setProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY, implementationClasspathHash());
         }
 
         File outputFile = new File(getOutputDirectory(), METADATA_FILE_NAME);
+        saveProperties(properties, outputFile);
+    }
 
+    private String implementationClasspath() {
+        StringBuilder implementationClasspath = new StringBuilder();
+        Joiner.on(File.pathSeparator).appendTo(implementationClasspath, getPaths());
+        return implementationClasspath.toString();
+    }
+
+    private String implementationClasspathHash() {
+        // As these files are inputs into this task, they have just been snapshotted by the task up-to-date checking.
+        // We should be reusing those persistent snapshots to avoid reading into memory again.
+        ClasspathHasher classpathHasher = getServices().get(ClasspathHasher.class);
+        return classpathHasher.hash(new DefaultClassPath(getPluginClasspath())).toString();
+    }
+
+    private void saveProperties(Properties properties, File outputFile) {
         try {
             OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
             GUtil.savePropertiesNoDateComment(properties, outputStream);
@@ -107,16 +116,19 @@ public class PluginUnderTestMetadata extends DefaultTask {
 
     @Input
     private List<String> getPaths() {
-        Iterable<File> classpathFiles = Collections.emptyList();
-        if (getPluginClasspath() != null) {
-            classpathFiles = getPluginClasspath();
-        }
-        return CollectionUtils.collect(classpathFiles, new Transformer<String, File>() {
+        return collect(classpathFiles(), new Transformer<String, File>() {
             @Override
             public String transform(File file) {
                 return file.getAbsolutePath().replaceAll("\\\\", "/");
             }
         });
+    }
+
+    private Iterable<File> classpathFiles() {
+        if (getPluginClasspath() != null) {
+            return getPluginClasspath();
+        }
+        return emptyList();
     }
 
 }

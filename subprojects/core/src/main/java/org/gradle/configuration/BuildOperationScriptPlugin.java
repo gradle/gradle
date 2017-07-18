@@ -16,7 +16,6 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -25,6 +24,7 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 
@@ -59,7 +59,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
                 @Override
                 public void run(BuildOperationContext context) {
                     decorated.apply(target);
-
+                    context.setResult(OPERATION_RESULT);
                 }
 
                 @Override
@@ -122,4 +122,8 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             return identifier == null ? null : identifier.getBuildPath();
         }
     }
+
+
+    private static final ApplyScriptPluginBuildOperationType.Result OPERATION_RESULT = new ApplyScriptPluginBuildOperationType.Result() {
+    };
 }

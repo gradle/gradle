@@ -16,10 +16,9 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -27,37 +26,30 @@ import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
-import java.io.File;
-
 public class WorkerDaemonStarter {
     private final static Logger LOG = Logging.getLogger(WorkerDaemonStarter.class);
     private final WorkerProcessFactory workerDaemonProcessFactory;
-    private final StartParameter startParameter;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final LoggingManager loggingManager;
 
-    public WorkerDaemonStarter(WorkerProcessFactory workerDaemonProcessFactory, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor) {
+    public WorkerDaemonStarter(WorkerProcessFactory workerDaemonProcessFactory, LoggingManager loggingManager) {
         this.workerDaemonProcessFactory = workerDaemonProcessFactory;
-        this.startParameter = startParameter;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.loggingManager = loggingManager;
     }
 
-    public <T extends WorkSpec> WorkerDaemonClient<T> startDaemon(Class<? extends WorkerProtocol<T>> workerProtocolImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> WorkerDaemonClient<T> startDaemon(Class<? extends WorkerProtocol<T>> workerProtocolImplementationClass, DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle worker daemon with fork options {}.", forkOptions);
         Timer clock = Timers.startTimer();
         MultiRequestWorkerProcessBuilder<WorkerDaemonProcess> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonProcess.class, WorkerProtocol.class, workerProtocolImplementationClass);
         builder.setBaseName("Gradle Worker Daemon");
-        builder.setLogLevel(startParameter.getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
+        builder.setLogLevel(loggingManager.getLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.applicationClasspath(forkOptions.getClasspath());
         builder.sharedPackages(forkOptions.getSharedPackages());
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
-        javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
-        javaCommand.setJvmArgs(forkOptions.getJvmArgs());
-        javaCommand.setWorkingDir(workingDir);
+        forkOptions.getJavaForkOptions().copyTo(javaCommand);
         WorkerDaemonProcess workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();
 
-        WorkerDaemonClient<T> client = new WorkerDaemonClient<T>(forkOptions, workerDaemonProcess, workerProcess, buildOperationExecutor);
+        WorkerDaemonClient<T> client = new WorkerDaemonClient<T>(forkOptions, workerDaemonProcess, workerProcess, loggingManager.getLevel());
 
         LOG.info("Started Gradle worker daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
 

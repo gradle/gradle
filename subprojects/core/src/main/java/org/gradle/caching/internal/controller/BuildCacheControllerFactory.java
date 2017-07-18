@@ -21,9 +21,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.GeneratedSubclasses;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -33,6 +31,8 @@ import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType;
+import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
+import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -42,6 +42,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -54,7 +55,6 @@ public final class BuildCacheControllerFactory {
         final BuildOperationExecutor buildOperationExecutor,
         final GradleInternal gradle,
         final BuildCacheConfigurationInternal buildCacheConfiguration,
-        final TemporaryFileProvider temporaryFileProvider,
         final Instantiator instantiator
     ) {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheController>() {
@@ -105,10 +105,15 @@ public final class BuildCacheControllerFactory {
                     LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
                     return NoOpBuildCacheController.INSTANCE;
                 } else {
+                    BuildCacheServicesConfiguration config = toConfiguration(
+                        local, localDescribedService == null ? null : localDescribedService.service,
+                        remote, remoteDescribedService == null ? null : remoteDescribedService.service
+                    );
+
                     return new DefaultBuildCacheController(
-                        toConfiguration(local, remote, localDescribedService, remoteDescribedService),
+                        config,
                         buildOperationExecutor,
-                        temporaryFileProvider,
+                        gradle.getGradleUserHomeDir(),
                         startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS
                     );
                 }
@@ -122,13 +127,10 @@ public final class BuildCacheControllerFactory {
         });
     }
 
-    private static BuildCacheServicesConfiguration toConfiguration(BuildCache local, BuildCache remote, DescribedBuildCacheService localDescribedService, DescribedBuildCacheService remoteDescribedService) {
-        return new BuildCacheServicesConfiguration(
-            localDescribedService == null ? null : localDescribedService.service,
-            local != null && local.isPush(),
-            remoteDescribedService == null ? null : remoteDescribedService.service,
-            remote != null && remote.isPush()
-        );
+    private static BuildCacheServicesConfiguration toConfiguration(BuildCache local, BuildCacheService localService, BuildCache remote, BuildCacheService remoteService) {
+        boolean remotePush = remote != null && remote.isPush();
+        boolean localPush = local != null && local.isPush();
+        return new BuildCacheServicesConfiguration(localService, localPush, remoteService, remotePush);
     }
 
 
@@ -149,7 +151,7 @@ public final class BuildCacheControllerFactory {
     }
 
     private static void logConfig(Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescription description) {
-        if (LOGGER.isLifecycleEnabled()) {
+        if (LOGGER.isInfoEnabled()) {
             StringBuilder config = new StringBuilder();
             boolean pullOnly = !description.isPush();
             if (!description.config.isEmpty() || pullOnly) {
@@ -183,7 +185,7 @@ public final class BuildCacheControllerFactory {
                 buildDescription = "build '" + buildIdentityPath + "'";
             }
 
-            LOGGER.lifecycle("Using {} {} build cache for {}{}.",
+            LOGGER.info("Using {} {} build cache for {}{}.",
                 role.getDisplayName(),
                 description.type == null ? description.className : description.type,
                 buildDescription,

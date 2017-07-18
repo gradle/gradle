@@ -26,8 +26,8 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.includedbuild.IncludedBuild;
-import org.gradle.includedbuild.internal.IncludedBuildController;
+import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -49,19 +48,38 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private final IncludedBuildInternal includedBuild;
 
     private final Map<String, TaskState> tasks = Maps.newLinkedHashMap();
+    private final Set<String> tasksAdded = Sets.newHashSet();
 
     // Fields guarded by lock
     private final Lock lock = new ReentrantLock();
     private final Condition taskQueued = lock.newCondition();
     private final Condition taskCompleted = lock.newCondition();
 
+    private final CountDownLatch started = new CountDownLatch(1);
+    private final AtomicBoolean stopRequested = new AtomicBoolean();
+    private final CountDownLatch stopped = new CountDownLatch(1);
+
     public DefaultIncludedBuildController(IncludedBuild includedBuild) {
         this.includedBuild = (IncludedBuildInternal) includedBuild;
     }
 
-    private final CountDownLatch started = new CountDownLatch(1);
-    private final AtomicBoolean stopRequested = new AtomicBoolean();
-    private final CountDownLatch stopped = new CountDownLatch(1);
+    @Override
+    public boolean populateTaskGraph() {
+        Set<String> tasksToExecute = Sets.newLinkedHashSet();
+        for (Map.Entry<String, TaskState> taskEntry : tasks.entrySet()) {
+            if (taskEntry.getValue().status == TaskStatus.QUEUED) {
+                String taskName = taskEntry.getKey();
+                if (tasksAdded.add(taskName)) {
+                    tasksToExecute.add(taskName);
+                }
+            }
+        }
+        if (tasksToExecute.isEmpty()) {
+            return false;
+        }
+        includedBuild.addTasks(tasksToExecute);
+        return true;
+    }
 
     @Override
     public void run() {
@@ -74,15 +92,21 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
             Set<String> tasksToExecute = getQueuedTasks();
             try {
                 doBuild(tasksToExecute);
-            } catch (Throwable e) {
+            } catch (ReportedException e) {
                 // Ignore: we record failure in the BuildListener during the build
             }
         }
         stopped.countDown();
     }
 
+    @Override
     public void startTaskExecution() {
         started.countDown();
+    }
+
+    @Override
+    public void stopTaskExecution() {
+        stop();
     }
 
     public void stop() {
@@ -97,10 +121,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
 
         try {
-            boolean didStop = stopped.await(10, TimeUnit.SECONDS);
-            if (!didStop) {
-                throw new RuntimeException("Timeout waiting to stop controller for " + includedBuild.getName());
-            }
+            stopped.await();
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -237,7 +258,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
         @Override
         public void graphPopulated(TaskExecutionGraph taskExecutionGraph) {
-            // TODO:DAZ There must be a better way to do this: this failure should occur during evaluation, not execution
+            // TODO:DAZ When scheduling tasks for included build, use an unambiguous task reference (rather than a string)
             for (String task : tasksToExecute) {
                 if (!taskExecutionGraph.hasTask(task)) {
                     throw new GradleException("Task '" + task + "' not found in build '" + includedBuild.getName() + "'.");

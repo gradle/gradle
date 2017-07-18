@@ -16,8 +16,7 @@
 
 package org.gradle.tooling.internal.provider.connection;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.io.File;
 
 public interface ProviderConnectionParameters {

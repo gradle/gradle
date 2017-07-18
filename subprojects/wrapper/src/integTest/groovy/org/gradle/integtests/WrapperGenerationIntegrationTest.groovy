@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
@@ -57,6 +58,26 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.2.1-bin.zip")
+    }
+
+    def "generated wrapper does not change unnecessarily"() {
+        def wrapperJar = file("gradle/wrapper/gradle-wrapper.jar")
+        def wrapperProperties = file("gradle/wrapper/gradle-wrapper.properties")
+        run "wrapper", "--gradle-version", "2.2.1"
+        def testFile = file("modtime").touch()
+        def originalTime = testFile.lastModified()
+        when:
+        // Zip file time resolution is 2 seconds
+        ConcurrentTestUtil.poll {
+            testFile.touch()
+            assert (testFile.lastModified() - originalTime) >= 2000L
+        }
+        run "wrapper", "--gradle-version", "2.2.1", "--rerun-tasks"
+
+        then:
+        result.assertTasksExecuted(":wrapper")
+        wrapperJar.md5Hash == old(wrapperJar.md5Hash)
+        wrapperProperties.text == old(wrapperProperties.text)
     }
 
     def "generated wrapper scripts for valid distribution types from command-line"() {

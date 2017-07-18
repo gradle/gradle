@@ -41,6 +41,10 @@
                 <td><literal>project.configurations.codenarc</literal></td>
             </tr>
             <tr>
+                <td>compilationClasspath</td>
+                <td>empty file collection</td>
+            </tr>
+            <tr>
                 <td>reports</td>
                 <td></td>
             </tr>

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -34,6 +33,7 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -57,6 +57,11 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     public FileResolver withBaseDir(Object path) {
         return new BaseDirFileResolver(fileSystem, resolve(path), patternSetFactory);
+    }
+
+    @Override
+    public FileResolver newResolver(File baseDir) {
+        return new BaseDirFileResolver(fileSystem, baseDir, patternSetFactory);
     }
 
     public File resolve(Object path) {

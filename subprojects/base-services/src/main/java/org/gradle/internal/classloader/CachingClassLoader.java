@@ -27,6 +27,15 @@ public class CachingClassLoader extends ClassLoader implements ClassLoaderHierar
     private final ConcurrentMap<String, Object> loadedClasses = new MapMaker().weakValues().makeMap();
     private final ClassLoader parent;
 
+    static {
+        try {
+            //noinspection Since15
+            ClassLoader.registerAsParallelCapable();
+        } catch (NoSuchMethodError ignore) {
+            // Not supported on Java 6
+        }
+    }
+
     public CachingClassLoader(ClassLoader parent) {
         super(parent);
         this.parent = parent;

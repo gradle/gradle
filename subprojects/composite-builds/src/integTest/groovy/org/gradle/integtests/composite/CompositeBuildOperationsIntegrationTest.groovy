@@ -16,17 +16,15 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
-
+import org.gradle.util.CollectionUtils
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
 class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
-    def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
@@ -54,7 +52,27 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         for (BuildOperationRecord operationRecord : allOps) {
             assertChildrenNotIn(operationRecord, operationRecord, allOps)
         }
+    }
 
+    def "configure, task graph and run tasks operations for included build are nested under outermost build"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+
+        when:
+        execute(buildA, ":jar", [])
+
+        then:
+        executed ":buildB:jar"
+        and:
+        def root = CollectionUtils.single(operations.roots())
+        assertHasChild(root, "Load build (buildB)")
+        assertHasChild(root, "Configure build (:buildB)")
+        assertHasChild(root, "Calculate task graph (:buildB)")
+        assertHasChild(root, "Run tasks (:buildB)")
+    }
+
+    void assertHasChild(BuildOperationRecord root, String displayName) {
+        assert root.children.collect { it.displayName }.contains(displayName)
     }
 
     def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {

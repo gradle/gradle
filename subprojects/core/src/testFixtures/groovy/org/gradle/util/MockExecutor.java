@@ -19,24 +19,41 @@ package org.gradle.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class MockExecutor implements ScheduledExecutorService {
-    final List<Runnable> actions = new CopyOnWriteArrayList<Runnable>();
+    private final List<Runnable> singleScheduledActions = new CopyOnWriteArrayList<Runnable>();
+    private final List<Runnable> fixedScheduledActions = new CopyOnWriteArrayList<Runnable>();
+    private boolean shutdownInitiated;
 
-    public void runNow() {
+    public void runSingleScheduledActionsNow() {
+        runNow(singleScheduledActions);
+    }
+
+    public void runFixedScheduledActionsNow() {
+        runNow(fixedScheduledActions);
+    }
+
+    private void runNow(List<Runnable> actions) {
         while (!actions.isEmpty()) {
             actions.remove(0).run();
         }
     }
 
     public void execute(Runnable command) {
-        actions.add(command);
+        singleScheduledActions.add(command);
     }
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        actions.add(command);
+        singleScheduledActions.add(command);
         return null;
     }
 
@@ -47,27 +64,33 @@ public class MockExecutor implements ScheduledExecutorService {
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        throw new UnsupportedOperationException();
+        fixedScheduledActions.add(command);
+        return null;
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        throw new UnsupportedOperationException();
+        fixedScheduledActions.add(command);
+        return null;
     }
 
     @Override
     public void shutdown() {
-
+        shutdownInitiated = true;
     }
 
     @Override
     public List<Runnable> shutdownNow() {
-        return new ArrayList<Runnable>(actions);
+        shutdownInitiated = true;
+        List<Runnable> allActions = new ArrayList<Runnable>();
+        allActions.addAll(singleScheduledActions);
+        allActions.addAll(fixedScheduledActions);
+        return allActions;
     }
 
     @Override
     public boolean isShutdown() {
-        throw new UnsupportedOperationException();
+        return shutdownInitiated;
     }
 
     @Override

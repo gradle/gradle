@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * @since 4.0

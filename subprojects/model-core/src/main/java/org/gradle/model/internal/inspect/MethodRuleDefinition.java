@@ -16,12 +16,12 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.List;
 

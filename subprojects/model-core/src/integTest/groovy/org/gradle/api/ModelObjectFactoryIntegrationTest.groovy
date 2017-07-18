@@ -135,4 +135,22 @@ class ModelObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("No such field: name for class: Thing\$Impl")
     }
+
+    def "cannot create instance with fields"() {
+        buildFile << """
+            class Thing implements Named { 
+                String name
+            }
+            
+            objects.named(Thing, "t1")
+"""
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("""Type Thing is not a valid Named implementation class:
+- Field name is not valid: A Named implementation class must not define any instance fields.""")
+    }
 }

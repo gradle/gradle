@@ -69,6 +69,10 @@
                 <td><literal>project.findbugs.excludeFilter</literal></td>
             </tr>
             <tr>
+                <td>showProgress</td>
+                <td><literal>project.findbugs.showProgress</literal></td>
+            </tr>
+            <tr>
                 <td>reports</td>
                 <td></td>
             </tr>

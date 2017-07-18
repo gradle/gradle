@@ -16,7 +16,6 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheValidator;
@@ -30,6 +29,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.serialize.Serializer;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.util.HashMap;

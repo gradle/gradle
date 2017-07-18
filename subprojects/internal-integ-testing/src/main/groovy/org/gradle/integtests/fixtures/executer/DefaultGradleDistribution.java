@@ -54,7 +54,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
-        return new ForkingGradleExecuter(this, testDirectoryProvider, version, buildContext);
+        return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext);
     }
 
     public boolean worksWith(Jvm jvm) {
@@ -145,7 +145,9 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public VersionNumber getArtifactCacheLayoutVersion() {
-        if (isSameOrNewer("3.2-rc-1")) {
+        if (isSameOrNewer("4.2-rc-1")) {
+            return VersionNumber.parse("2.24");
+        } else if (isSameOrNewer("3.2-rc-1")) {
             return VersionNumber.parse("2.23");
         } else if (isSameOrNewer("3.1-rc-1")) {
             return VersionNumber.parse("2.21");

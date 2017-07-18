@@ -164,7 +164,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }            
         """
         expect:
-        succeeds("help", "--build-cache", "--offline")
+        succeeds("help", "--build-cache", "--offline", "--info")
         result.output.contains("Remote build cache is disabled when running with --offline.")
     }
 
@@ -186,7 +186,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "emits a useful incubating message when using the build cache"() {
         when:
         executer.withBuildCacheEnabled()
-        succeeds("tasks")
+        succeeds("tasks", "--info")
         then:
         result.assertOutputContains("Using local directory build cache")
     }
@@ -208,7 +208,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         when:
         executer.withBuildCacheEnabled()
-        succeeds("tasks")
+        succeeds("tasks", "--info")
         then:
         result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${file("buildSrc/local-cache")})."
         result.assertOutputContains "Using local directory build cache for the root build (location = ${file("local-cache")})."
@@ -220,7 +220,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         executer.withArgument("--no-build-cache")
         when:
-        succeeds("tasks")
+        succeeds("tasks", "--info")
         then:
         !result.output.contains("Using local directory build cache")
     }
@@ -231,7 +231,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         executer.withArgument("--build-cache")
         when:
-        succeeds("tasks")
+        succeeds("tasks", "--info")
         then:
         result.assertOutputContains("Using local directory build cache")
     }
@@ -271,7 +271,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         executer.withBuildCacheEnabled()
-        succeeds("customTask")
+        succeeds("customTask", "--info")
         then:
         result.assertOutputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}).")
         and:

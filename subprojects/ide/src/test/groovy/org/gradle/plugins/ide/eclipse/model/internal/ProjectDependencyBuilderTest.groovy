@@ -17,9 +17,6 @@ package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
-import org.gradle.composite.internal.CompositeBuildIdeProjectResolver
-import org.gradle.initialization.DefaultBuildIdentity
-import org.gradle.includedbuild.internal.IncludedBuildTaskGraph
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
@@ -30,8 +27,7 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
     def ProjectComponentIdentifier projectId = newProjectId(":nested:project-name")
     def localComponentRegistry = Mock(LocalComponentRegistry)
-    def ideProjectResolver = new CompositeBuildIdeProjectResolver(localComponentRegistry, Stub(IncludedBuildTaskGraph), new DefaultBuildIdentity(projectId.build))
-    def ProjectDependencyBuilder builder = new ProjectDependencyBuilder(ideProjectResolver)
+    def ProjectDependencyBuilder builder = new ProjectDependencyBuilder(localComponentRegistry)
     def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(projectId)
 
     def "should create dependency using project name for project without eclipse plugin applied"() {
@@ -50,7 +46,7 @@ class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
         def projectArtifact = Stub(LocalComponentArtifactMetadata) {
             getName() >> new DefaultIvyArtifactName("foo", "eclipse.project", "project", null)
         }
-        localComponentRegistry.getAdditionalArtifacts(_) >> [projectArtifact]
+        localComponentRegistry.findAdditionalArtifact(projectId, "eclipse.project") >> projectArtifact
 
         when:
         def dependency = builder.build(ideProjectDependency)

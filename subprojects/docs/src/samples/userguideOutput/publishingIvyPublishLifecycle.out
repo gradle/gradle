@@ -6,6 +6,5 @@
 :publishIvyJavaPublicationToIvyRepository
 :publish
 
-BUILD SUCCESSFUL
-
-Total time: 1 secs
+BUILD SUCCESSFUL in 0s
+3 actionable tasks: 3 executed

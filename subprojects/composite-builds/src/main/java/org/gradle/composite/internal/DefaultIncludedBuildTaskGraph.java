@@ -20,9 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.includedbuild.internal.IncludedBuildController;
-import org.gradle.includedbuild.internal.IncludedBuildControllers;
-import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.Path;
@@ -52,7 +49,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     public void awaitCompletion(BuildIdentifier targetBuild, String taskPath) {
         // Start task execution if necessary: this is required for building plugin artifacts,
         // since these are built on-demand prior to the regular start signal for included builds.
-        includedBuilds.startTaskExecution();
+        includedBuilds.startTaskExecution(false);
 
         getBuildController(targetBuild).awaitCompletion(taskPath);
     }

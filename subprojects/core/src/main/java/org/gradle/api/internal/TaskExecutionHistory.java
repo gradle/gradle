@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
+
+import javax.annotation.Nullable;
 
 public interface TaskExecutionHistory {
     /**
@@ -28,27 +29,5 @@ public interface TaskExecutionHistory {
      * Returns if overlapping outputs were detected
      */
     @Nullable
-    OverlappingOutputs getOverlappingOutputDetection();
-
-    class OverlappingOutputs {
-        private final String propertyName;
-        private final String overlappedFilePath;
-
-        public OverlappingOutputs(String propertyName, String overlappedFilePath) {
-            this.propertyName = propertyName;
-            this.overlappedFilePath = overlappedFilePath;
-        }
-
-        public String getPropertyName() {
-            return propertyName;
-        }
-
-        public String getOverlappedFilePath() {
-            return overlappedFilePath;
-        }
-
-        public String toString() {
-            return String.format("output property '%s' with path '%s'", propertyName, overlappedFilePath);
-        }
-    }
+    OverlappingOutputs getOverlappingOutputs();
 }

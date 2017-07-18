@@ -17,8 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;

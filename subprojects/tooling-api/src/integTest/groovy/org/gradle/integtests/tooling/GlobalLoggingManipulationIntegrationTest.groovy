@@ -82,7 +82,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
             builder.standardOutput = outInstance
             builder.standardError = errInstance
             builder.get(handler)
-            sync.waitFor()
+            sync.waitFor(60)
             assert System.out.is(outInstance)
             assert System.err.is(errInstance)
             assert System.in.is(inInstance)

@@ -34,7 +34,7 @@ class ClassFile {
     }
 
     ClassFile(InputStream inputStream) {
-        def methodVisitor = new MethodVisitor(Opcodes.ASM5) {
+        def methodVisitor = new MethodVisitor(Opcodes.ASM6) {
             @Override
             void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
                 hasLocalVars = true
@@ -45,7 +45,7 @@ class ClassFile {
                 hasLineNumbers = true
             }
         }
-        def visitor = new ClassVisitor(Opcodes.ASM5) {
+        def visitor = new ClassVisitor(Opcodes.ASM6) {
             @Override
             void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 classFileVersion = version
@@ -62,15 +62,7 @@ class ClassFile {
             }
         }
         byte[] classData = inputStream.bytes
-        boolean isJava9 = JavaVersion.forClass(classData) == JavaVersion.VERSION_1_9
-        if (isJava9) {
-            // TODO:CC remove this fix once ASM 6 is out
-            classData[7] = 52
-        }
         new ClassReader(classData).accept(visitor, 0)
-        if (isJava9) {
-            classFileVersion = 53
-        }
     }
 
     JavaVersion getJavaVersion() {

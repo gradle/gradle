@@ -22,7 +22,6 @@ import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.plugins.AppliedPlugin;
@@ -37,10 +36,11 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 @NotThreadSafe
@@ -250,6 +250,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         @Override
         public void run(BuildOperationContext context) {
             addPlugin(adder, plugin, pluginId, pluginClass);
+            context.setResult(OPERATION_RESULT);
         }
 
         @Override
@@ -309,5 +310,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
+    private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
+    };
 }
 

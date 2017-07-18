@@ -65,7 +65,7 @@ task createLotsOfTasks(type: JvmProjectGeneratorTask) {
     numberOfExternalDependencies = 0
 }
 
-// === Gradle Script Kotlin ===
+// === Gradle Kotlin DSL ===
 task ktsManyProjects(type: KtsProjectGeneratorTask) {
     projects = 100
     sourceFiles = 0

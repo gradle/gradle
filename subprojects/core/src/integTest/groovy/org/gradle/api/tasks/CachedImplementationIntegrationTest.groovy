@@ -146,7 +146,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withBuildCacheEnabled()
-        succeeds "compileJava"
+        succeeds "compileJava", "--info"
         then:
         executedTasks.contains ":compileJava"
         output.contains "Build cache is an incubating feature."

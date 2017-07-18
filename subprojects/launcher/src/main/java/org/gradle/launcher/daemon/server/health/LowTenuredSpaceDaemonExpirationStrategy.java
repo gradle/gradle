@@ -28,6 +28,7 @@ public class LowTenuredSpaceDaemonExpirationStrategy implements DaemonExpiration
     private static final Logger LOG = Logging.getLogger(LowTenuredSpaceDaemonExpirationStrategy.class);
 
     public static final String EXPIRATION_REASON = "after running out of JVM memory";
+    public static final String EXPIRE_DAEMON_MESSAGE = "Expiring Daemon because JVM Tenured space is exhausted";
 
     public LowTenuredSpaceDaemonExpirationStrategy(DaemonMemoryStatus status) {
         this.status = status;
@@ -36,7 +37,7 @@ public class LowTenuredSpaceDaemonExpirationStrategy implements DaemonExpiration
     @Override
     public DaemonExpirationResult checkExpiration() {
         if (status.isTenuredSpaceExhausted()) {
-            LOG.warn("Expiring Daemon because JVM Tenured space is exhausted");
+            LOG.warn(EXPIRE_DAEMON_MESSAGE);
             return new DaemonExpirationResult(GRACEFUL_EXPIRE, EXPIRATION_REASON);
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;

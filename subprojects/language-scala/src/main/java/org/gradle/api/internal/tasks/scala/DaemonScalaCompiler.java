@@ -32,7 +32,13 @@ package org.gradle.api.internal.tasks.scala;
  * limitations under the License.
  */
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
+import org.gradle.api.internal.tasks.compile.ForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.workers.internal.DaemonForkOptionsBuilder;
+import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
@@ -46,26 +52,49 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     private static final Iterable<String> SHARED_PACKAGES =
             Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac", "sbt");
     private final Iterable<File> zincClasspath;
+    private final FileResolver fileResolver;
+    private final File daemonWorkingDir;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath) {
-        super(daemonWorkingDir, delegate, workerDaemonFactory);
+    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, FileResolver fileResolver) {
+        super(delegate, workerDaemonFactory);
         this.zincClasspath = zincClasspath;
+        this.fileResolver = fileResolver;
+        this.daemonWorkingDir = daemonWorkingDir;
     }
 
     @Override
-    protected DaemonForkOptions toDaemonOptions(T spec) {
-        return createJavaForkOptions(spec).mergeWith(createScalaForkOptions(spec));
+    protected InvocationContext toInvocationContext(T spec) {
+        return createJavaInvocationContext(spec).mergeWith(createScalaInvocationContext(spec));
     }
 
-    private DaemonForkOptions createJavaForkOptions(T spec) {
+    private InvocationContext createJavaInvocationContext(T spec) {
         ForkOptions options = spec.getCompileOptions().getForkOptions();
-        return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(), options.getJvmArgs());
+        JavaForkOptions javaForkOptions = new ForkOptionsConverter(fileResolver).transform(options);
+        File invocationWorkingDir = javaForkOptions.getWorkingDir();
+        javaForkOptions.setWorkingDir(daemonWorkingDir);
+
+        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
+            .javaForkOptions(javaForkOptions)
+            .keepAliveMode(KeepAliveMode.SESSION)
+            .build();
+
+        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 
-    private DaemonForkOptions createScalaForkOptions(T spec) {
+    private InvocationContext createScalaInvocationContext(T spec) {
         ScalaForkOptions options = spec.getScalaCompileOptions().getForkOptions();
-        return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
-                options.getJvmArgs(), zincClasspath, SHARED_PACKAGES);
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(options);
+        File invocationWorkingDir = javaForkOptions.getWorkingDir();
+        javaForkOptions.setWorkingDir(daemonWorkingDir);
+
+        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
+            .javaForkOptions(javaForkOptions)
+            .classpath(zincClasspath)
+            .sharedPackages(SHARED_PACKAGES)
+            .keepAliveMode(KeepAliveMode.SESSION)
+            .build();
+
+        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 }
 

@@ -40,4 +40,21 @@ class CppLibraryPluginTest extends Specification {
         def link = project.tasks.linkMain
         link instanceof LinkSharedLibrary
     }
+
+    def "output locations reflects changes to buildDir"() {
+        given:
+        project.pluginManager.apply(CppLibraryPlugin)
+
+        expect:
+        def compileCpp = project.tasks.compileCpp
+        compileCpp.objectFileDir == project.file("build/main/objs")
+
+        def link = project.tasks.linkMain
+        link.outputFile.parentFile == project.file("build/lib")
+
+        project.setBuildDir("output")
+
+        compileCpp.objectFileDir == project.file("output/main/objs")
+        link.outputFile.parentFile == project.file("output/lib")
+    }
 }

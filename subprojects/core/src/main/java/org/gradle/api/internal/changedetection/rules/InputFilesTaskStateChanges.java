@@ -17,12 +17,14 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
+
+import javax.annotation.Nullable;
+import java.util.Iterator;
 
 public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, InputNormalizationStrategy normalizationStrategy) {
@@ -33,11 +35,16 @@ public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
 
     @Override
     protected ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
-        return previous.getInputFilesSnapshot();
+        return previous == null ? null : previous.getInputFilesSnapshot();
     }
 
     @Override
-    public void saveCurrent() {
+    public Iterator<TaskStateChange> iterator() {
+        return getFileChanges(true);
+    }
+
+    @Override
+    public void snapshotAfterTask() {
         // Inputs have already been saved in constructor
     }
 }

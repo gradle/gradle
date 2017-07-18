@@ -19,7 +19,7 @@ package org.gradle.language.base.sources;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.platform.base.ModelInstantiationException;

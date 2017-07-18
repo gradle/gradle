@@ -10,6 +10,5 @@
 :api:check
 :api:build
 
-BUILD SUCCESSFUL
-
-Total time: 1 secs
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed

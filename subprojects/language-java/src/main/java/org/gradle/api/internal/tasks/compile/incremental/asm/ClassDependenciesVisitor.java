@@ -35,7 +35,7 @@ import java.util.Set;
 
 public class ClassDependenciesVisitor extends ClassVisitor {
 
-    private final static int API = Opcodes.ASM5;
+    private final static int API = Opcodes.ASM6;
     private static final MethodVisitor EMPTY_VISITOR = new MethodVisitor(API, null) {
     };
 

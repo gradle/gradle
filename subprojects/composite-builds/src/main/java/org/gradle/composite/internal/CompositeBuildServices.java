@@ -22,15 +22,13 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifac
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.includedbuild.internal.IncludedBuildControllers;
-import org.gradle.includedbuild.internal.IncludedBuildFactory;
-import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
-import org.gradle.includedbuild.internal.IncludedBuilds;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 
 public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -64,8 +62,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultCompositeContextBuilder(includedBuilds, projectRegistry, context);
         }
 
-        public IncludedBuildControllers createIncludedBuildControllers(IncludedBuilds includedBuilds) {
-            return new DefaultIncludedBuildControllers(includedBuilds);
+        public IncludedBuildControllers createIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuilds includedBuilds) {
+            return new DefaultIncludedBuildControllers(executorFactory, includedBuilds);
         }
 
         public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildControllers controllers) {
@@ -78,8 +76,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildBuildScopeServices {
-        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-            return new DefaultIncludedBuildFactory(instantiator, startParameter, nestedBuildFactory, moduleIdentifierFactory);
+        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, WorkerLeaseService workerLeaseService) {
+            return new DefaultIncludedBuildFactory(instantiator, startParameter, nestedBuildFactory, moduleIdentifierFactory, workerLeaseService);
         }
 
         public TaskReferenceResolver createResolver(IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {

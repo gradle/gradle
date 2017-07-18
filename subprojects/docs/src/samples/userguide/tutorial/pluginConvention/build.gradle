@@ -1,6 +1,6 @@
 apply plugin: 'java'
 
-sourceSets.main.output.classesDir = file("$buildDir/output/classes")
+sourceSets.main.java.outputDir = file("$buildDir/output/classes")
 
 task show {
     doLast {

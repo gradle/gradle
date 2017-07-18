@@ -1,5 +1,15 @@
 // only the projects that contribute runtime code
-ext.runtimeProjects = subprojects - [':docs', ':distributions', ':performance', ':soak'].collect { project(it) }
+ext.runtimeProjects = subprojects - [
+    ':buildScanPerformance',
+    ':docs',
+    ':distributions',
+    ':installationBeacon',
+    ':internalAndroidPerformanceTesting',
+    ':performance',
+    ':runtimeApiInfo',
+    ':smokeTest',
+    ':soak'
+].collect { project(it) }
 
 def runtimeProjectTasks = { String taskName ->
     runtimeProjects.collect { it.tasks.findByPath(taskName) }.findAll { it != null }
@@ -9,7 +19,7 @@ ext.testGroupings = [
     "runtimeTests": "test",
     "runtimeIntegTests": "integTest",
     "runtimeForkingIntegTests": "forkingIntegTest",
-    "runtimeDaemonIntegTests": "daemonIntegTest",
+    "runtimeNoDaemonIntegTests": "noDaemonIntegTest",
     "runtimeParallelIntegTests": "parallelIntegTest"
 ]
 

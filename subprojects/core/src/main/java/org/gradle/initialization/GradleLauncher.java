@@ -15,7 +15,6 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.concurrent.Stoppable;
@@ -26,31 +25,40 @@ import org.gradle.internal.concurrent.Stoppable;
 public interface GradleLauncher extends Stoppable {
 
     GradleInternal getGradle();
-    SettingsInternal getSettings();
 
     /**
-     * <p>Executes the build for this {@code GradleLauncher} instance and returns the result.</p>
+     * Evaluates the settings for this build.
      *
-     * @return The result. Never returns null.
      * @throws ReportedException On build failure. The failure will have been logged.
+     * @return The loaded settings instance.
      */
-    BuildResult run() throws ReportedException;
+    SettingsInternal getLoadedSettings();
 
     /**
-     * Evaluates the settings for this build. The information about available tasks and projects is accessible via the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
+     * Configures the build.
      *
-     * @return The result. Never returns null.
      * @throws ReportedException On build failure. The failure will have been logged.
+     * @return The configured Gradle build instance.
      */
-    BuildResult load() throws ReportedException;
+    GradleInternal getConfiguredBuild();
 
     /**
-     * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
-     *
-     * @return The result. Never returns null.
-     * @throws ReportedException On build failure. The failure will have been logged.
+     * Schedules the specified tasks for this build.
      */
-    BuildResult getBuildAnalysis() throws ReportedException;
+    void scheduleTasks(final Iterable<String> tasks);
+
+    /**
+     * Executes the tasks scheduled for this build.
+     *
+     * @throws ReportedException On build failure. The failure will have been logged.
+     * @return The configured Gradle build instance.
+     */
+    GradleInternal executeTasks();
+
+    /**
+     * Stops task execution threads and calls the `buildFinished` listener event.
+     */
+    void finishBuild();
 
     /**
      * <p>Adds a listener to this build instance. Receives events for this build only.

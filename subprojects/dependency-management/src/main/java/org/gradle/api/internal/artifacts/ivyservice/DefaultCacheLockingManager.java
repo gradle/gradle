@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -26,6 +25,7 @@ import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;

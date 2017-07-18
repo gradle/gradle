@@ -16,10 +16,10 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 public class SourceLocation {

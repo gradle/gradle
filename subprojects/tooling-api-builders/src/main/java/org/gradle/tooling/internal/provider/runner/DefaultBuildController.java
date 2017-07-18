@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.BuildCancelledException;
-import org.gradle.includedbuild.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.IncludedBuildInternal;

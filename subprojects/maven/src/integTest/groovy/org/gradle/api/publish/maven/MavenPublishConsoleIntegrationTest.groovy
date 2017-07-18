@@ -25,7 +25,7 @@ import static org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec.workI
 
 class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
-    BlockingHttpServer server = new BlockingHttpServer()
+    BlockingHttpServer server = new BlockingHttpServer(40000)
 
     def setup() {
         server.start()

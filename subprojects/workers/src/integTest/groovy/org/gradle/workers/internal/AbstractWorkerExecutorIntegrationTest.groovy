@@ -54,6 +54,7 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
 
     String getTaskTypeUsingWorker() {
         withParameterClassInBuildSrc()
+        withFileHelperClassInBuildSrc()
 
         return """
             import javax.inject.Inject
@@ -80,6 +81,9 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
                     workerExecutor.submit(runnableClass) {
                         isolationMode = this.isolationMode
                         displayName = this.displayName
+                        if (isolationMode == IsolationMode.PROCESS) {
+                            forkOptions.maxHeapSize = "64m"
+                        }
                         forkOptions(additionalForkOptions)
                         classpath(additionalClasspath)
                         params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
@@ -97,9 +101,7 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
             import java.io.File;
             import java.util.List;
             import org.gradle.other.Foo;
-            import java.io.PrintWriter;
-            import java.io.BufferedWriter;
-            import java.io.FileWriter;
+            import org.gradle.test.FileHelper;
             import java.util.UUID;
             import javax.inject.Inject;
 
@@ -117,22 +119,9 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
                 }
 
                 public void run() {
-                    outputDir.mkdirs();
-
                     for (String name : files) {
-                        PrintWriter out = null;
-                        try {
-                            File outputFile = new File(outputDir, name);
-                            outputFile.createNewFile();
-                            out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
-                            out.print(id);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        } finally {
-                            if (out != null) {
-                                out.close();
-                            }
-                        }
+                        File outputFile = new File(outputDir, name);
+                        FileHelper.write(id, outputFile);
                     }
                 }
             }
@@ -146,6 +135,12 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
             import java.io.Serializable;
 
             public class Foo implements Serializable { }
+        """
+    }
+
+    void withFileHelperClassInBuildSrc() {
+        file("buildSrc/src/main/java/org/gradle/test/FileHelper.java") << """
+            $fileHelperClass
         """
     }
 
@@ -177,9 +172,21 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
         builder.sourceFile("org/gradle/other/Foo.java") << """
             $parameterClass
         """
+        builder.sourceFile("org/gradle/test/FileHelper.java") << """
+            $fileHelperClass
+        """
         builder.buildJar(runnableJar)
 
         addImportToBuildScript("org.gradle.test.TestRunnable")
+    }
+
+    void withJava7CompatibleClasses() {
+        file('buildSrc/build.gradle') << """
+            tasks.withType(JavaCompile) {
+                sourceCompatibility = "1.7"
+                targetCompatibility = "1.7"
+            }
+        """
     }
 
     String getParameterClass() {
@@ -189,6 +196,35 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
             import java.io.Serializable;
 
             public class Foo implements Serializable { }
+        """
+    }
+
+    String getFileHelperClass() {
+        return """
+            package org.gradle.test;
+            
+            import java.io.File;
+            import java.io.PrintWriter;
+            import java.io.BufferedWriter;
+            import java.io.FileWriter;
+            
+            public class FileHelper {
+                static void write(String id, File outputFile) {
+                    PrintWriter out = null;
+                    try {
+                        outputFile.getParentFile().mkdirs();
+                        outputFile.createNewFile();
+                        out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
+                        out.print(id);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    } finally {
+                        if (out != null) {
+                            out.close();
+                        }
+                    }
+                }
+            }
         """
     }
 

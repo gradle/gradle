@@ -21,10 +21,10 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public final class DefaultResourceFilterMatcher implements ResourceFilterMatcher {

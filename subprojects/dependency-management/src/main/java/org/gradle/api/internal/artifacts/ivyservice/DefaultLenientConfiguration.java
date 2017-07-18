@@ -230,6 +230,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             @Override
             public void run(BuildOperationContext context) {
                 visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
+                context.setResult(ResolveArtifactsBuildOperationType.RESULT);
             }
 
             @Override

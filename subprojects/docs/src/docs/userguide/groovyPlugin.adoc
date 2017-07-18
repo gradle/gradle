@@ -101,22 +101,22 @@ The Groovy plugin assumes the project layout shown in <<groovylayout>>. All the 
 [cols="a,a,a", options="header"]
 |===
 | Directory
-| 
+|
 | Meaning
 
 include::javaProjectMainLayout.adoc[]
-|  `src/main/groovy` 
-| 
+|  `src/main/groovy`
+|
 | Production Groovy sources. May also contain Java sources for joint compilation.
 
 include::javaProjectTestLayout.adoc[]
-|  `src/test/groovy` 
-| 
+|  `src/test/groovy`
+|
 | Test Groovy sources. May also contain Java sources for joint compilation.
 
 include::javaProjectGenericLayout.adoc[]
-|  `src/__sourceSet__/groovy` 
-| 
+|  `src/__sourceSet__/groovy`
+|
 | Groovy sources for the given source set. May also contain Java sources for joint compilation.
 |===
 
@@ -203,17 +203,17 @@ The Groovy plugin adds the following convention properties to each source set in
 | Default value
 | Description
 
-|  `groovy` 
+|  `groovy`
 |  api:org.gradle.api.file.SourceDirectorySet[] (read-only)
 | Not null
 | The Groovy source files of this source set. Contains all `.groovy` and `.java` files found in the Groovy source directories, and excludes all other types of files.
 
-|  `groovy.srcDirs` 
+|  `groovy.srcDirs`
 |  `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-|  `[__projectDir__/src/__name__/groovy]` 
+|  `[__projectDir__/src/__name__/groovy]`
 | The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation.
 
-|  `allGroovy` 
+|  `allGroovy`
 |  api:org.gradle.api.file.FileTree[] (read-only)
 | Not null
 | All Groovy source files of this source set. Contains only the `.groovy` files found in the Groovy source directories.
@@ -229,10 +229,10 @@ The Groovy plugin also modifies some source set properties:
 | Property name
 | Change
 
-|  `allJava` 
+|  `allJava`
 | Adds all `.java` files found in the Groovy source directories.
 
-|  `allSource` 
+|  `allSource`
 | Adds all source files found in the Groovy source directories.
 |===
 
@@ -249,19 +249,19 @@ The Groovy plugin adds a api:org.gradle.api.tasks.compile.GroovyCompile[] task f
 | Type
 | Default Value
 
-|  `classpath` 
+|  `classpath`
 | api:org.gradle.api.file.FileCollection[]
 | `__sourceSet__.compileClasspath`
 
-|  `source` 
+|  `source`
 | api:org.gradle.api.file.FileTree[]. Can set using anything described in <<sec:specifying_multiple_files>>.
 | `__sourceSet__.groovy`
 
-|  `destinationDir` 
+|  `destinationDir`
 | `File`.
-| `__sourceSet__.output.classesDir`
+| `__sourceSet__.groovy.outputDir`
 
-|  `groovyClasspath` 
+|  `groovyClasspath`
 | api:org.gradle.api.file.FileCollection[]
 | `groovy` configuration if non-empty; Groovy library found on `classpath` otherwise
 |===
@@ -270,11 +270,10 @@ The Groovy plugin adds a api:org.gradle.api.tasks.compile.GroovyCompile[] task f
 [[sec:groovy_cross_compilation]]
 === Compiling and testing for Java 6
 
-The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6`. If you also have Java sources, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used. 
+The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6`. If you also have Java sources, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyCrossCompilation" dir="groovy/crossCompilation" title="Configure Java 6 build for Groovy">
                 <sourcefile file="gradle.properties"/>
                 <sourcefile file="build.gradle" snippet="groovy-cross-compilation"/>
             </sample>
 ++++
- 

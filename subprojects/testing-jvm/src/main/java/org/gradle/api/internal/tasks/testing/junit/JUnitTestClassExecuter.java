@@ -85,8 +85,8 @@ public class JUnitTestClassExecuter {
         Request request = Request.aClass(testClass);
         Runner runner = request.getRunner();
 
-        if (!options.getIncludedTests().isEmpty()) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests());
+        if (!options.getIncludedTests().isEmpty() || !options.getIncludedTestsCommandLine().isEmpty()) {
+            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests(), options.getIncludedTestsCommandLine());
 
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.

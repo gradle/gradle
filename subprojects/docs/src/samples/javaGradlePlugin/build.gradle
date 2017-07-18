@@ -16,7 +16,7 @@
 
 // START SNIPPET use-java-gradle-plugin-plugin
 plugins {
-    id "java-gradle-plugin"
+    id 'java-gradle-plugin'
 }
 // END SNIPPET use-java-gradle-plugin-plugin
 
@@ -24,8 +24,8 @@ plugins {
 gradlePlugin {
     plugins {
         simplePlugin {
-            id = "org.gradle.sample.simple-plugin"
-            implementationClass = "org.gradle.sample.SimplePlugin"
+            id = 'org.gradle.sample.simple-plugin'
+            implementationClass = 'org.gradle.sample.SimplePlugin'
         }
     }
 }

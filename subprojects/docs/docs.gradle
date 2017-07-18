@@ -143,6 +143,8 @@ tasks.withType(AsciidoctorTask) {
         }
     }
 
+    attributes website: 'http://www.gradle.org'
+
     doLast {
         outputDir.eachFile { File file ->
             def contents = file.getText("utf-8")
@@ -430,35 +432,12 @@ task javadocAll(type: Javadoc) {
     source publicGroovyProjects.collect {project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
     classpath = files(publicGroovyProjects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
-    include 'org/gradle/*'
-    include 'org/gradle/api/**'
-    include 'org/gradle/authentication/**'
-    include 'org/gradle/buildinit/**'
-    include 'org/gradle/caching/**'
-    include 'org/gradle/external/javadoc/**'
-    include 'org/gradle/ide/**'
-    include 'org/gradle/includedbuild/**'
-    include 'org/gradle/ivy/**'
-    include 'org/gradle/jvm/**'
-    include 'org/gradle/language/**'
-    include 'org/gradle/maven/**'
-    include 'org/gradle/nativeplatform/**'
-    include 'org/gradle/normalization/**'
-    include 'org/gradle/platform/**'
-    include 'org/gradle/play/**'
-    include 'org/gradle/plugin/devel/**'
-    include 'org/gradle/plugin/repository/*'
-    include 'org/gradle/plugin/use/*'
-    include 'org/gradle/plugin/management/*'
-    include 'org/gradle/plugins/**'
-    include 'org/gradle/process/**'
-    include 'org/gradle/testfixtures/**'
-    include 'org/gradle/testing/jacoco/**'
-    include 'org/gradle/tooling/**'
-    include 'org/gradle/model/**'
-    include 'org/gradle/testkit/**'
-    include 'org/gradle/testing/**'
-    exclude '**/internal/**'
+    publicApiIncludes.each {
+        include it
+    }
+    publicApiExcludes.each {
+        exclude it
+    }
     options.links(javaApiUrl, groovyApiUrl, mavenApiUrl)
     title = "Gradle API $version"
     ext.entryPoint = "$destinationDir/index.html"

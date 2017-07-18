@@ -31,7 +31,8 @@ libraries.ant = dependencies.module('org.apache.ant:ant:1.9.6') {
     dependency 'org.apache.ant:ant-launcher:1.9.6@jar'
 }
 
-libraries.asm =  'org.ow2.asm:asm-all:5.1'
+libraries.asm =  'org.ow2.asm:asm-debug-all:6.0_ALPHA'
+libraries.cglib = 'cglib:cglib:3.2.5'
 libraries.bndlib = dependencies.module('biz.aQute.bnd:biz.aQute.bndlib:3.2.0')
 libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
 libraries.commons_io = dependencies.module(versions.commons_io)
@@ -147,7 +148,7 @@ libraries.spock = [
     'org.spockframework:spock-core:1.0-groovy-2.4@jar',
     libraries.groovy,
     libraries.objenesis,
-    'cglib:cglib-nodep:3.2.5'
+    libraries.cglib
 ]
 libraries.jmock = [
     'org.jmock:jmock:2.5.1',
@@ -156,7 +157,7 @@ libraries.jmock = [
     dependencies.create('org.jmock:jmock-junit4:2.5.1') { exclude group: 'junit', module: 'junit-dep' }, //junit-dep pulls old definitions of core junit types.
     'org.jmock:jmock-legacy:2.5.1',
     libraries.objenesis,
-    'cglib:cglib-nodep:3.2.5'
+    libraries.cglib
 ]
 
 versions.findbugs = "2.0.1"
@@ -193,7 +194,7 @@ libraries.awsS3 = [
 ] + libraries.commons_httpclient + libraries.joda
 
 // keep in sync with ScalaLanguagePlugin code
-libraries.zinc = 'com.typesafe.zinc:zinc:0.3.13'
+libraries.zinc = 'com.typesafe.zinc:zinc:0.3.15'
 
 libraries.gcs = [
         dependencies.create('com.google.apis:google-api-services-storage:v1-rev78-1.22.0') {
@@ -211,6 +212,8 @@ allprojects {
                 details.useTarget(libraries.asm)
             } else if (details.requested.group == 'org.codehaus.groovy') {
                 details.useTarget(libraries.groovy)
+            } else if (details.requested.group == 'cglib') {
+                details.useTarget(libraries.cglib)
             }
         }
     }

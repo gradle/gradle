@@ -21,7 +21,8 @@ import spock.lang.Specification
 class TestSelectionMatcherTest extends Specification {
 
     def "knows if test matches class"() {
-        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, []).matchesTest(className, methodName) == match
+                new TestSelectionMatcher([], input).matchesTest(className, methodName) == match
 
         where:
         input                    | className                 | methodName            | match
@@ -52,7 +53,8 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "knows if test matches"() {
-        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, []).matchesTest(className, methodName) == match
+                new TestSelectionMatcher([], input).matchesTest(className, methodName) == match
 
         where:
         input                    | className                 | methodName            | match
@@ -77,7 +79,8 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "matches any of input"() {
-        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, []).matchesTest(className, methodName) == match
+                new TestSelectionMatcher([], input).matchesTest(className, methodName) == match
 
         where:
         input                               | className                 | methodName            | match
@@ -103,7 +106,8 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "regexp chars are handled"() {
-        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, []).matchesTest(className, methodName) == match
+                new TestSelectionMatcher([], input).matchesTest(className, methodName) == match
 
         where:
         input                               | className                 | methodName            | match
@@ -114,7 +118,8 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "handles null test method"() {
-        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, []).matchesTest(className, methodName) == match
+                new TestSelectionMatcher([], input).matchesTest(className, methodName) == match
 
         where:
         input                               | className                 | methodName            | match
@@ -125,5 +130,14 @@ class TestSelectionMatcherTest extends Specification {
         ["FooTest"]                         | "OtherTest"               | null                  | false
         ["FooTest.test"]                    | "FooTest"                 | null                  | false
         ["FooTest.null"]                    | "FooTest"                 | null                  | false
+    }
+
+    def "script includes and command line includes both have to match"() {
+        expect: new TestSelectionMatcher(input, inputCommandLine).matchesTest(className, methodName) == match
+
+        where:
+        input               | inputCommandLine | className  | methodName | match
+        ["FooTest", "Bar" ] | []               | "FooTest"  | "whatever" | true
+        ["FooTest"]         | ["Bar"]          | "FooTest"  | "whatever" | false
     }
 }

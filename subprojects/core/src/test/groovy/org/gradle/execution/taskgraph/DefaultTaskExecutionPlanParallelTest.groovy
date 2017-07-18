@@ -20,6 +20,7 @@ import com.google.common.collect.Queues
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.InputDirectory
@@ -27,8 +28,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -59,12 +59,13 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     ProjectInternal root
     def cancellationHandler = Mock(BuildCancellationToken)
     def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
+    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
     def parentWorkerLease = workerLeaseService.workerLease
+    def gradle = Mock(GradleInternal)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService)
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal))
         parentWorkerLease.start()
     }
 
@@ -737,11 +738,5 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     static class AsyncWithInputDirectory extends Async {
         @InputDirectory
         File inputDirectory
-    }
-
-    ParallelExecutionManager parallelExecutionManager() {
-        return Stub(ParallelExecutionManager) {
-            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 3)
-        }
     }
 }

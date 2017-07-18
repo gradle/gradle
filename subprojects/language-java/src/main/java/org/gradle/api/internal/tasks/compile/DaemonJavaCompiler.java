@@ -15,7 +15,11 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.workers.internal.DaemonForkOptionsBuilder;
+import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
@@ -26,16 +30,28 @@ import java.util.Collections;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
     private static final Iterable<String> SHARED_PACKAGES = Collections.singleton("com.sun.tools.javac");
+    private final FileResolver fileResolver;
+    private final File daemonWorkingDir;
 
-    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory workerDaemonFactory) {
-        super(daemonWorkingDir, delegate, workerDaemonFactory);
+    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver) {
+        super(delegate, workerDaemonFactory);
+        this.fileResolver = fileResolver;
+        this.daemonWorkingDir = daemonWorkingDir;
     }
 
     @Override
-    protected DaemonForkOptions toDaemonOptions(JavaCompileSpec spec) {
+    protected InvocationContext toInvocationContext(JavaCompileSpec spec) {
         ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
-        return new DaemonForkOptions(
-                forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(),
-                Collections.<File>emptyList(), SHARED_PACKAGES);
+        JavaForkOptions javaForkOptions = new ForkOptionsConverter(fileResolver).transform(forkOptions);
+        File invocationWorkingDir = javaForkOptions.getWorkingDir();
+        javaForkOptions.setWorkingDir(daemonWorkingDir);
+
+        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
+            .javaForkOptions(javaForkOptions)
+            .sharedPackages(SHARED_PACKAGES)
+            .keepAliveMode(KeepAliveMode.SESSION)
+            .build();
+
+        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 }

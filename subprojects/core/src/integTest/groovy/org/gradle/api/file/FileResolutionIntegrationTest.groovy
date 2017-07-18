@@ -26,11 +26,25 @@ def f = file(fAsPath)
 assert f == fAsPath.toFile()
 """
 
-        when:
+        expect:
+        succeeds()
+    }
+
+    def "file conversion works with Provider of supported types"() {
+        buildFile << """
+def provider = project.provider { $expression }
+def f = file(provider)
+assert f == file("testdir")
+"""
+
+        expect:
         succeeds()
 
-        then:
-        noExceptionThrown()
+        where:
+        expression                        | _
+        "new File(projectDir, 'testdir')" | _
+        "new File('testdir').toPath()"    | _
+        "'testdir'"                       | _
     }
 
     def "gives reasonable error message when value cannot be converted to file"() {
@@ -49,6 +63,34 @@ The following types/formats are supported:
   - A File instance.
   - A Path instance.
   - A URI or URL instance.""")
+    }
+
+    def "can construct file collection using java.nio.file.Path"() {
+        buildFile << """
+java.nio.file.Path fAsPath = buildDir.toPath().resolve('testdir').toAbsolutePath()
+def f = files(fAsPath)
+assert f.files as List == [fAsPath.toFile()]
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "can construct file collection using Provider of supported types"() {
+        buildFile << """
+def provider = project.provider { $expression }
+def f = files(provider)
+assert f.files as List == [file("testdir")]
+"""
+
+        expect:
+        succeeds()
+
+        where:
+        expression                        | _
+        "new File(projectDir, 'testdir')" | _
+        "new File('testdir').toPath()"    | _
+        "'testdir'"                       | _
     }
 
     def "gives reasonable error message when value cannot be converted to file collection"() {

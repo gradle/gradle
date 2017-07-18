@@ -28,7 +28,6 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.codehaus.groovy.runtime.metaclass.MultipleSetterProperty;
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.PropertySetTransformer;
@@ -36,6 +35,7 @@ import org.gradle.api.internal.coerce.StringToEnumTransformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

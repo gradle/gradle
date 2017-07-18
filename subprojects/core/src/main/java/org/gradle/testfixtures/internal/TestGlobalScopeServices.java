@@ -17,14 +17,17 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.DefaultBuildOperationExecutor;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -39,14 +42,18 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
         return new InMemoryCacheFactory();
     }
 
-    BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, WorkerLeaseService workerLeaseService, ProgressLoggerFactory progressLoggerFactory, ExecutorFactory executorFactory, ParallelExecutionManager parallelExecutionManager) {
-        return new ProjectBuilderBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, parallelExecutionManager);
+    BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, WorkerLeaseService workerLeaseService, ProgressLoggerFactory progressLoggerFactory, ExecutorFactory executorFactory, ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
+        return new ProjectBuilderBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, resourceLockCoordinationService, parallelismConfigurationManager);
+    }
+
+    LoggingManagerInternal createLoggingManager(Factory<LoggingManagerInternal> loggingManagerFactory) {
+        return loggingManagerFactory.create();
     }
 
     private static class ProjectBuilderBuildOperationExecutor extends DefaultBuildOperationExecutor {
 
-        public ProjectBuilderBuildOperationExecutor(BuildOperationListener broadcaster, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory, DefaultBuildOperationQueueFactory defaultBuildOperationQueueFactory, ExecutorFactory executorFactory, ParallelExecutionManager parallelExecutionManager) {
-            super(broadcaster, timeProvider, progressLoggerFactory, defaultBuildOperationQueueFactory, executorFactory, parallelExecutionManager);
+        public ProjectBuilderBuildOperationExecutor(BuildOperationListener broadcaster, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory, DefaultBuildOperationQueueFactory defaultBuildOperationQueueFactory, ExecutorFactory executorFactory, ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
+            super(broadcaster, timeProvider, progressLoggerFactory, defaultBuildOperationQueueFactory, executorFactory, resourceLockCoordinationService, parallelismConfigurationManager);
             createRunningRootOperation("ProjectBuilder");
         }
     }

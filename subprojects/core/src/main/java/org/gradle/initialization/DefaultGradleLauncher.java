@@ -18,6 +18,8 @@ package org.gradle.initialization;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
@@ -28,7 +30,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.includedbuild.internal.IncludedBuildControllers;
+import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -36,17 +38,15 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
-import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.Path;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultGradleLauncher implements GradleLauncher {
 
     private enum Stage {
-        Load, Configure, Build
+        Load, Configure, TaskGraph, Build, Finished
     }
 
     private final InitScriptHandler initScriptHandler;
@@ -92,89 +92,116 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     @Override
-    public SettingsInternal getSettings() {
+    public SettingsInternal getLoadedSettings() {
+        doBuildStages(Stage.Load);
         return settings;
     }
 
     @Override
-    public BuildResult run() {
-        return doBuild(Stage.Build);
+    public GradleInternal getConfiguredBuild() {
+        doBuildStages(Stage.Configure);
+        return gradle;
+    }
+
+    public GradleInternal executeTasks() {
+        doBuildStages(Stage.Build);
+        return gradle;
     }
 
     @Override
-    public BuildResult getBuildAnalysis() {
-        return doBuild(Stage.Configure);
+    public void finishBuild() {
+        if (stage != null) {
+            finishBuild(new BuildResult(stage.name(), gradle, null));
+        }
     }
-
-    @Override
-    public BuildResult load() throws ReportedException {
-        return doBuild(Stage.Load);
-    }
-
-    private BuildResult doBuild(final Stage upTo) {
-        // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
-        final AtomicReference<BuildResult> buildResult = new AtomicReference<BuildResult>();
-        WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
-        workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Runnable() {
-            @Override
-            public void run() {
-                Throwable failure = null;
-                try {
-                    buildListener.buildStarted(gradle);
-                    doBuildStages(upTo);
-                } catch (Throwable t) {
-                    failure = exceptionAnalyser.transform(t);
-                }
-                buildResult.set(new BuildResult(upTo.name(), gradle, failure));
-                buildListener.buildFinished(buildResult.get());
-                if (failure != null) {
-                    throw new ReportedException(failure);
-                }
-            }
-        });
-        return buildResult.get();
-    }
-
 
     private void doBuildStages(Stage upTo) {
-        if (stage == Stage.Build) {
-            throw new IllegalStateException("Cannot build with GradleLauncher multiple times");
+        try {
+            loadSettings();
+            if (upTo == Stage.Load) {
+                return;
+            }
+            configureBuild();
+            if (upTo == Stage.Configure) {
+                return;
+            }
+            constructTaskGraph();
+            if (upTo == Stage.TaskGraph) {
+                return;
+            }
+            runTasks();
+            finishBuild();
+        } catch (Throwable t) {
+            Throwable failure = exceptionAnalyser.transform(t);
+            finishBuild(new BuildResult(upTo.name(), gradle, failure));
+            throw new ReportedException(failure);
+        }
+    }
+
+    private void finishBuild(BuildResult result) {
+        if (stage == Stage.Finished) {
+            return;
         }
 
-        if (stage == null) {
-            // Evaluate init scripts
-            initScriptHandler.executeScripts(gradle);
+        buildListener.buildFinished(result);
+        if (!isNestedBuild()) {
+            gradle.getServices().get(IncludedBuildControllers.class).stopTaskExecution();
+        }
+        stage = Stage.Finished;
+    }
 
-            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-            settings = settingsLoader.findAndLoadSettings(gradle);
+    private void loadSettings() {
+        if (stage == null) {
+            buildListener.buildStarted(gradle);
+
+            buildOperationExecutor.run(new LoadBuild());
 
             stage = Stage.Load;
         }
+    }
 
-        if (upTo == Stage.Load) {
-            return;
-        }
-
+    private void configureBuild() {
         if (stage == Stage.Load) {
             buildOperationExecutor.run(new ConfigureBuild());
+
             stage = Stage.Configure;
         }
+    }
 
-        if (upTo == Stage.Configure) {
+    private void constructTaskGraph() {
+        if (stage == Stage.Configure) {
+            buildOperationExecutor.run(new CalculateTaskGraph());
+
+            stage = Stage.TaskGraph;
+        }
+    }
+
+    @Override
+    public void scheduleTasks(final Iterable<String> taskPaths) {
+        GradleInternal gradle = getConfiguredBuild();
+        Set<String> allTasks = Sets.newLinkedHashSet(gradle.getStartParameter().getTaskNames());
+        boolean added = allTasks.addAll(Lists.newArrayList(taskPaths));
+
+        if (!added) {
             return;
         }
 
-        // After this point, the GradleLauncher cannot be reused
-        stage = Stage.Build;
+        gradle.getStartParameter().setTaskNames(allTasks);
 
-        buildOperationExecutor.run(new CalculateTaskGraph());
+        // Force back to configure so that task graph will get reevaluated
+        stage = Stage.Configure;
 
-        if (!gradle.getIncludedBuilds().isEmpty()) {
-            IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
-            buildControllers.startTaskExecution();
+        doBuildStages(Stage.TaskGraph);
+    }
+
+    private void runTasks() {
+        if (stage != Stage.TaskGraph) {
+            throw new IllegalStateException("Cannot execute tasks: current stage = " + stage);
         }
 
         buildOperationExecutor.run(new ExecuteTasks());
+
+        stage = Stage.Build;
     }
 
     /**
@@ -196,6 +223,23 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
+    private class LoadBuild implements RunnableBuildOperation {
+        @Override
+        public void run(BuildOperationContext context) {
+            // Evaluate init scripts
+            initScriptHandler.executeScripts(gradle);
+
+            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
+            settings = settingsLoader.findAndLoadSettings(gradle);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName(contextualize("Load build")).
+                parent(getGradle().getBuildOperation());
+        }
+    }
+
     private class ConfigureBuild implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
@@ -210,7 +254,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Configure build"));
+            return BuildOperationDescriptor.displayName(contextualize("Configure build")).
+                parent(getGradle().getBuildOperation());
         }
     }
 
@@ -224,6 +269,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
             }
 
             final TaskGraphExecuter taskGraph = gradle.getTaskGraph();
+            taskGraph.populate();
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
                 public List<String> getRequestedTaskPaths() {
@@ -250,19 +296,24 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(contextualize("Calculate task graph"))
                 .details(new CalculateTaskGraphBuildOperationType.Details() {
-                });
+                }).parent(getGradle().getBuildOperation());
         }
     }
 
     private class ExecuteTasks implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
+            if (!isNestedBuild()) {
+                IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
+                buildControllers.startTaskExecution(true);
+            }
+
             buildExecuter.execute(gradle);
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Run tasks"));
+            return BuildOperationDescriptor.displayName(contextualize("Run tasks")).parent(getGradle().getBuildOperation());
         }
     }
 
@@ -277,7 +328,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private String contextualize(String descriptor) {
         if (isNestedBuild()) {
-            return descriptor + " (" + gradle.getIdentityPath() + ")";
+            Path contextPath = gradle.findIdentityPath();
+            String context = contextPath == null ? gradle.getStartParameter().getCurrentDir().getName() : contextPath.getPath();
+            return descriptor + " (" + context + ")";
         }
         return descriptor;
     }

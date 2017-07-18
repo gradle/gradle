@@ -25,7 +25,7 @@ import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import org.gradle.test.fixtures.server.http.HttpBuildCache
+import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -33,32 +33,32 @@ import spock.lang.Unroll
 class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
     @Rule
-    public HttpBuildCache buildCache = new HttpBuildCache(temporaryFolder)
+    public HttpBuildCacheServer buildCacheServer = new HttpBuildCacheServer(temporaryFolder)
     private String protocol
 
     def setup() {
-        buildCache.logRequests = false
+        buildCacheServer.logRequests = false
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 if (isRunWithCache(invocationInfo)) {
-                    if (!buildCache.isRunning()) {
-                        buildCache.start()
+                    if (!buildCacheServer.isRunning()) {
+                        buildCacheServer.start()
                     }
                     def settings = new TestFile(invocationInfo.projectDir).file('settings.gradle')
                     if (isFirstRunWithCache(invocationInfo)) {
-                        buildCache.cacheDir.deleteDir().mkdirs()
+                        buildCacheServer.cacheDir.deleteDir().mkdirs()
                         settings << remoteCacheSettingsScript
                     }
-                    assert buildCache.uri.toString().startsWith("${protocol}://")
-                    assert settings.text.contains(buildCache.uri.toString())
+                    assert buildCacheServer.uri.toString().startsWith("${protocol}://")
+                    assert settings.text.contains(buildCacheServer.uri.toString())
                 }
             }
 
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 if (isLastRun(invocationInfo)) {
-                    assert !buildCache.cacheDir.allDescendants().empty
+                    assert !buildCacheServer.cacheDir.allDescendants().empty
                 }
             }
         })
@@ -88,7 +88,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         protocol = "https"
 
         def keyStore = TestKeyStore.init(temporaryFolder.file('ssl-keystore'))
-        keyStore.enableSslWithServerCert(buildCache)
+        keyStore.enableSslWithServerCert(buildCacheServer)
 
         runner.addInvocationCustomizer(new InvocationCustomizer() {
             @Override
@@ -127,7 +127,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
                     enabled = false
                 }
                 remote(httpCacheClass) {
-                    url = '${buildCache.uri}/' 
+                    url = '${buildCacheServer.uri}/' 
                     push = true
                 }
             }

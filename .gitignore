@@ -21,6 +21,8 @@
 /out
 /subprojects/*/*.iml
 /subprojects/*/out
+/.teamcity/*.iml
+/.teamcity/target
 
 # Eclipse
 # -------
