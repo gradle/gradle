@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
@@ -24,25 +24,27 @@ import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
+import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Actions;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> implements DependencySet {
-    private static final Set<String> MUTATION_CHECK_METHODS = ImmutableSet.of("setTransitive", "exclude", "setTargetConfiguration");
-
     private final Describable displayName;
     private final Configuration clientConfiguration;
+    private final Action<? super ModuleDependency> mutationValidator;
 
-    public DefaultDependencySet(Describable displayName, Configuration clientConfiguration, DomainObjectSet<Dependency> backingSet) {
+    public DefaultDependencySet(Describable displayName, final Configuration clientConfiguration, DomainObjectSet<Dependency> backingSet) {
         super(backingSet);
         this.displayName = displayName;
         this.clientConfiguration = clientConfiguration;
+        this.mutationValidator = clientConfiguration instanceof MutationValidator?new Action<ModuleDependency>() {
+            @Override
+            public void execute(ModuleDependency moduleDependency) {
+                ((MutationValidator) clientConfiguration).validateMutation(MutationValidator.MutationType.DEPENDENCIES);
+            }
+        }:Actions.<ModuleDependency>doNothing();
     }
 
     @Override
@@ -56,52 +58,10 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
 
     @Override
     public boolean add(final Dependency o) {
-        if (o instanceof ModuleDependency && !(o instanceof MutationValidatingDependency)) {
-            Set<Class<?>> interfaces = collectInterfaces(o.getClass(), new HashSet<Class<?>>());
-            interfaces.add(MutationValidatingDependency.class);
-            final ModuleDependency mutationValidatingModule = (ModuleDependency) Proxy.newProxyInstance(
-                this.getClass().getClassLoader(),
-                interfaces.toArray(new Class<?>[interfaces.size()]),
-                new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        String methodName = method.getName();
-                        Class<?> declaringClass = method.getDeclaringClass();
-                        if (declaringClass == MutationValidatingDependency.class) {
-                            // getDelegate is the only one
-                            return o;
-                        }
-                        if (declaringClass == ModuleDependency.class && MUTATION_CHECK_METHODS.contains(methodName)) {
-                            ((MutationValidator) clientConfiguration).validateMutation(MutationValidator.MutationType.DEPENDENCIES);
-                        } else if ("equals".equals(methodName) && args.length==1) {
-                            Object arg = args[0];
-                            if (arg instanceof MutationValidatingDependency) {
-                                return method.invoke(o, ((MutationValidatingDependency)arg).getDelegate());
-                            }
-                        }
-                        return method.invoke(o, args);
-                    }
-                });
-            return super.add(mutationValidatingModule);
+        if (o instanceof AbstractModuleDependency) {
+            ((AbstractModuleDependency) o).addMutationValidator(mutationValidator);
         }
         return super.add(o);
-    }
-
-    private static Set<Class<?>> collectInterfaces(Class<?> clazz, Set<Class<?>> interfaces) {
-        if (clazz == null) {
-            return interfaces;
-        }
-        for (Class<?> intf : clazz.getInterfaces()) {
-            if (interfaces.add(intf)) {
-                collectInterfaces(intf, interfaces);
-            }
-        }
-        collectInterfaces(clazz.getSuperclass(), interfaces);
-        return interfaces;
-    }
-
-    private interface MutationValidatingDependency {
-        ModuleDependency getDelegate();
     }
 
     @Override

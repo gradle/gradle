@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExcludeRuleContainer;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
+import org.gradle.internal.Actions;
+import org.gradle.internal.ImmutableActionSet;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -33,6 +35,8 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
     private ExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
     private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
+    private Action<? super ModuleDependency> onMutate = Actions.doNothing();
+
     @Nullable
     private String configuration;
     private boolean transitive = true;
@@ -46,6 +50,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     public ModuleDependency setTransitive(boolean transitive) {
+        validateMutation();
         this.transitive = transitive;
         return this;
     }
@@ -56,10 +61,12 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     public void setTargetConfiguration(@Nullable String configuration) {
+        validateMutation();
         this.configuration = configuration;
     }
 
     public ModuleDependency exclude(Map<String, String> excludeProperties) {
+        validateMutation();
         excludeRuleContainer.add(excludeProperties);
         return this;
     }
@@ -69,6 +76,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     private void setExcludeRuleContainer(ExcludeRuleContainer excludeRuleContainer) {
+        validateMutation();
         this.excludeRuleContainer = excludeRuleContainer;
     }
 
@@ -138,5 +146,14 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
             return false;
         }
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    public void addMutationValidator(Action<? super ModuleDependency> action) {
+        this.onMutate = ImmutableActionSet.of(onMutate, action);
+    }
+
+    protected void validateMutation() {
+        onMutate.execute(this);
     }
 }
