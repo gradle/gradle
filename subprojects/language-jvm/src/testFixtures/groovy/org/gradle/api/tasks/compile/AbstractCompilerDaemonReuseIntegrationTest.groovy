@@ -16,10 +16,12 @@
 
 package org.gradle.api.tasks.compile
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Assume
 import spock.lang.IgnoreIf
 
 
@@ -87,6 +89,23 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertOneCompilerDaemonIsCreated()
     }
 
+    @NotYetImplemented
+    @IgnoreIf({GradleContextualExecuter.parallel})
+    def "reuses compiler daemons within a composite build"() {
+        Assume.assumeTrue(supportsCompositeBuilds())
+
+        withCompositeBuildSources()
+
+        when:
+        succeeds("compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
+
+        and:
+        assertOneCompilerDaemonIsCreated()
+    }
+
     @IgnoreIf({GradleContextualExecuter.parallel})
     def "starts a new daemon when different options are used"() {
         withMultiProjectSources()
@@ -129,6 +148,38 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
                 }
             }
         """
+    }
+
+    def withCompositeBuildSources() {
+        TestFile child = file("child").createDir()
+        component.writeSources(file("src/main"))
+        component.writeSources(child.file("src/main"))
+        child.file("build.gradle") << """
+            allprojects {
+                ${applyAndConfigure}
+
+                tasks.withType(${compileTaskType}) {
+                    options.fork = true
+                }
+
+                group = "org.test"
+                version = "1.0"
+            }
+        """
+        child.file("settings.gradle").touch()
+
+        buildFile << """
+            dependencies {
+                compile "org.test:child:1.0"
+            }
+        """
+        settingsFile << """
+            includeBuild "child"
+        """
+    }
+
+    boolean supportsCompositeBuilds() {
+        true
     }
 
     def withMultiProjectSources() {
