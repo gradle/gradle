@@ -5,6 +5,7 @@ import configurations.PerformanceTest
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v10.Project
 import model.CIBuildModel
+import model.SpecificBuild
 import model.Stage
 import model.TestType
 
@@ -15,6 +16,17 @@ class StageProject(model: CIBuildModel, number: Int, stage: Stage) : Project({
     this.description = stage.description
 
     buildType(StagePasses(model, number, stage))
+
+    features {
+        if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
+            feature {
+                type = "ReportTab"
+                param("startPage", "reports/subprojects/distributions/build/reports/binary-compatibility/report.html")
+                param("title", "API Compatibility Report")
+                param("type", "BuildReportTab")
+            }
+        }
+    }
 
     stage.specificBuilds.forEach {
         buildType(it.create(model))

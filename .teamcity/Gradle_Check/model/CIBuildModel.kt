@@ -1,10 +1,6 @@
 package model
 
-import configurations.BuildDistributions
-import configurations.ColonyCompatibility
-import configurations.Gradleception
-import configurations.SanityCheck
-import configurations.SmokeTests
+import configurations.*
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 data class CIBuildModel (
