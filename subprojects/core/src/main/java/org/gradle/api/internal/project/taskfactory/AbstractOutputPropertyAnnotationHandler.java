@@ -24,8 +24,6 @@ import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
-
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
     public void attachActions(final TaskPropertyActionContext context) {
@@ -40,7 +38,6 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
             public void update(TaskInternal task, final Callable<Object> futureValue) {
                 createPropertyBuilder(context, task, futureValue)
                     .withPropertyName(context.getName())
-                    .withPathSensitivity(getPathSensitivity(context))
                     .optional(context.isOptional());
                 task.prependParallelSafeAction(new Action<Task>() {
                     @Override
