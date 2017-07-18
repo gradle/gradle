@@ -29,19 +29,14 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
         super(acceptedApiChanges);
     }
 
-    private JApiClass currentClass;
-
     @Override
     @SuppressWarnings("unchecked")
     public Violation maybeViolation(final JApiCompatibility member) {
         if (!member.isBinaryCompatible()) {
-            if (member instanceof JApiClass) {
-                currentClass = (JApiClass) member;
-                if (member.getCompatibilityChanges().isEmpty()) {
-                    // A member of the class breaks binary compatibility.
-                    // That will be handled when the member is passed to `maybeViolation`.
-                    return null;
-                }
+            if ((member instanceof JApiClass) && (member.getCompatibilityChanges().isEmpty())) {
+                // A member of the class breaks binary compatibility.
+                // That will be handled when the member is passed to `maybeViolation`.
+                return null;
             }
             if (member instanceof JApiHasAnnotations) {
                 if (isIncubating((JApiHasAnnotations) member)) {
@@ -49,7 +44,7 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
                 }
             }
 
-            return acceptOrReject(currentClass, member, Violation.notBinaryCompatible(member));
+            return acceptOrReject(member, Violation.notBinaryCompatible(member));
         }
         return null;
     }
