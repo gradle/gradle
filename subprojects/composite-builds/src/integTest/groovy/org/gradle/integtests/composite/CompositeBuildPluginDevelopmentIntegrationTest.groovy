@@ -19,7 +19,6 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.util.Matchers
 import spock.lang.Ignore
-
 /**
  * Tests for plugin development scenarios within a composite build.
  */
@@ -161,6 +160,19 @@ publishing {
         executer.inDirectory(pluginBuild).withArguments('--include-build', pluginDependencyA.absolutePath).withTasks('publish').run()
     }
 
+    private void publishPlugin() {
+        pluginBuild.buildFile << """
+publishing {
+    repositories {
+        maven {
+            url '${mavenRepo.uri}'
+        }
+    }
+}
+"""
+        executer.inDirectory(pluginBuild).withTasks('publish').run()
+    }
+
 // TODO:DAZ Fix this: https://builds.gradle.org/viewLog.html?buildId=4295932&buildTypeId=Gradle_Check_NoDaemon_Java8_Oracle_Linux_compositeBuilds
     @Ignore("Cycle check is not parallel safe: test may hang or produce StackOverflowError")
     def "detects dependency cycle between included builds required for buildscript classpath"() {
@@ -192,4 +204,57 @@ publishing {
             .assertThatCause(Matchers.containsText("build 'pluginDependencyA' -> build 'pluginDependencyB'"))
             .assertThatCause(Matchers.containsText("build 'pluginDependencyB' -> build 'pluginDependencyA'"))
     }
+
+    def "can co-develop unpublished plugin applied via plugins block"() {
+        given:
+        addPluginsBlock(buildA, """
+            resolutionStrategy.eachPlugin {
+                if(requested.id.name == 'pluginBuild') {
+                    useModule('org.test:pluginBuild:1.0')
+                }
+            }
+        """)
+
+        includeBuild pluginBuild
+
+        when:
+        execute(buildA, "tasks")
+
+        then:
+        executed ":pluginBuild:jar"
+        outputContains("taskFromPluginBuild")
+    }
+
+    def "can co-develop published plugin applied via plugins block"() {
+        given:
+        publishPlugin()
+        addPluginsBlock(buildA)
+
+        includeBuild pluginBuild
+
+        when:
+        execute(buildA, "tasks")
+
+        then:
+        executed ":pluginBuild:jar"
+        outputContains("taskFromPluginBuild")
+    }
+
+    def addPluginsBlock(BuildTestFile build, String resolutionStrategy = "") {
+        build.settingsFile.text = """
+            pluginManagement {
+                $resolutionStrategy
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+            }
+""" + build.settingsFile.text
+
+        build.buildFile.text = """
+            plugins {
+                id 'org.test.plugin.pluginBuild' version '1.0'
+            }
+""" + build.buildFile.text
+    }
+
 }
