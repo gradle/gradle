@@ -81,6 +81,9 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
                     workerExecutor.submit(runnableClass) {
                         isolationMode = this.isolationMode
                         displayName = this.displayName
+                        if (isolationMode == IsolationMode.PROCESS) {
+                            forkOptions.maxHeapSize = "64m"
+                        }
                         forkOptions(additionalForkOptions)
                         classpath(additionalClasspath)
                         params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
