@@ -18,6 +18,8 @@ package org.gradle.performance.generator
 
 import groovy.transform.CompileStatic
 
+import static org.gradle.performance.generator.CompositeConfiguration.composite
+
 @CompileStatic
 enum JavaTestProject {
 
@@ -26,7 +28,8 @@ enum JavaTestProject {
 
     MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 10000, 0, '4g', false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),
     MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", 100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
-    MEDIUM_JAVA_COMPOSITE_BUILD("mediumJavaCompositeBuild", 100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
+    MEDIUM_JAVA_COMPOSITE_BUILD("mediumJavaCompositeBuild", composite(false),100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
+    MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD("mediumJavaPredefinedCompositeBuild", composite(true),100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
 
     MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", 100, 100, '256m', true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)]),
 
@@ -34,7 +37,7 @@ enum JavaTestProject {
 
     private TestProjectGeneratorConfiguration config
 
-    JavaTestProject(String projectName, int sourceFiles, int subProjects, String compilerMemory, boolean useTestNG, Map<String, String> filesToUpdate) {
+    JavaTestProject(String projectName, CompositeConfiguration compositeConfiguration=null, int sourceFiles, int subProjects, String compilerMemory, boolean useTestNG, Map<String, String> filesToUpdate) {
         this.config = new TestProjectGeneratorConfiguration()
         config.projectName = projectName
 
@@ -56,7 +59,7 @@ enum JavaTestProject {
         config.testForkEvery = 10000
         config.useTestNG = useTestNG
         config.fileToChangeByScenario = filesToUpdate
-        config.compositeBuild = projectName.contains("CompositeBuild")
+        config.compositeBuild = compositeConfiguration
     }
 
     private static String productionFile(String template, int project = 0, int pkg = 0, int file = 0) {

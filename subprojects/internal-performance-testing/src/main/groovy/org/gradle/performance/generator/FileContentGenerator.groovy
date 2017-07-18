@@ -89,9 +89,19 @@ class FileContentGenerator {
             if (!isRoot) {
                 return ""
             }
-            """
-            ${(0..config.subProjects - 1).collect { "includeBuild 'project$it'" }.join("\n")}
-            """
+            return (0..config.subProjects-1).collect {
+                if (config.compositeBuild.usePredefinedPublications()) {
+                    """
+                    includeBuild('project$it') {
+                        dependencySubstitution {
+                            substitute module('org.gradle.test.performance:project${it}') with project(':')
+                        }
+                    }
+                    """
+                } else {
+                    "includeBuild('project$it')"
+                }
+            }.join("\n")
         } else {
             if (!isRoot) {
                 return null
