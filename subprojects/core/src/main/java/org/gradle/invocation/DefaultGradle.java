@@ -38,7 +38,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.includedbuild.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.event.ListenerBroadcast;

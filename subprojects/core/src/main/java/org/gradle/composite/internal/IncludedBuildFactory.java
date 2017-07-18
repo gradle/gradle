@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.includedbuild.internal;
 
-public interface IncludedBuildController {
-    void queueForExecution(String taskPath);
+package org.gradle.composite.internal;
 
-    void awaitCompletion(String taskPath);
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 
-    boolean isComplete(String taskPath);
+import java.io.File;
 
-
-    void startTaskExecution();
-    void stopTaskExecution();
-
-    boolean populateTaskGraph();
+public interface IncludedBuildFactory {
+    ConfigurableIncludedBuild createBuild(File buildDirectory);
 }

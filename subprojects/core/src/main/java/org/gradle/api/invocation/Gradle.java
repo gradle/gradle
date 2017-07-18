@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.includedbuild.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.HasInternalProtocol;

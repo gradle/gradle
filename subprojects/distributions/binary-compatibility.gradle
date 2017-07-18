@@ -23,17 +23,6 @@ import org.gradle.binarycompatibility.rules.*
 import org.gradle.binarycompatibility.transforms.*
 import org.gradle.binarycompatibility.AcceptedApiChanges
 
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath 'me.champeau.gradle:japicmp-gradle-plugin:0.2.3'
-    }
-}
-
 repositories {
     ['distributions', 'distributions-snapshots'].each { distUrl ->
         ivy {

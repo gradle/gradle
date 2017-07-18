@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.composite.internal;
 
-package org.gradle.includedbuild.internal;
+public interface IncludedBuildController {
+    void queueForExecution(String taskPath);
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
+    void awaitCompletion(String taskPath);
 
-public interface IncludedBuildTaskGraph {
-    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
+    boolean isComplete(String taskPath);
 
-    void awaitCompletion(BuildIdentifier targetBuild, String taskPath);
 
-    boolean isComplete(BuildIdentifier targetBuild, String taskPath);
+    void startTaskExecution();
+    void stopTaskExecution();
+
+    boolean populateTaskGraph();
 }

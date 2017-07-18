@@ -43,7 +43,7 @@ dependencies {
 
     compile "org.pegdown:pegdown:1.6.0"
     compile "org.jsoup:jsoup:1.6.3"
-    compile 'me.champeau.gradle:japicmp-gradle-plugin:0.2.3'
+    compile 'me.champeau.gradle:japicmp-gradle-plugin:0.2.4'
 }
 
 ext.isCiServer = System.getenv().containsKey("CI")

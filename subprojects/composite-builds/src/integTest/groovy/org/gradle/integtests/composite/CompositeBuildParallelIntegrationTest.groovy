@@ -18,11 +18,14 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 @IgnoreIf({ GradleContextualExecuter.isParallel() })
 class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     @Unroll
     def "works when number of included builds exceeds max-workers --max-workers=#maxWorkers"() {
@@ -51,7 +54,6 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         maxWorkers << [ 1, 2, 4 ]
     }
 
-    @Unroll
     def "can build transitive dependency chain with --max-workers == 1"() {
         def previousBuild = buildA
         ['buildB', 'buildC', 'buildD'].each { buildName ->
@@ -67,6 +69,31 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
 
         expect:
         execute(buildA, "jar", "--max-workers=1")
+    }
+
+    def "constructs included build artifacts in parallel"() {
+        given:
+        server.start()
+
+        when:
+        def included = ['buildB', 'buildC', 'buildD']
+        included.each { buildName ->
+            def build = singleProjectBuild(buildName) {
+                buildFile << """
+                    apply plugin: 'java'
+                    compileJava.doLast {
+                        ${server.callFromBuild(buildName)}
+                    }
+"""
+            }
+            dependency "org.test:${buildName}:1.0"
+            includeBuild build
+        }
+
+        server.expectConcurrent(included)
+
+        then:
+        execute(buildA, "jar", "--max-workers=4")
     }
 
 }

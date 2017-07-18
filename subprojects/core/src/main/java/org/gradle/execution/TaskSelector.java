@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.execution.taskpath.TaskPathResolver;
-import org.gradle.includedbuild.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.util.NameMatcher;
 
 import javax.annotation.Nullable;

@@ -14,34 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.includedbuild;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.tasks.TaskReference;
-import org.gradle.internal.HasInternalProtocol;
-
-import java.io.File;
+package org.gradle.composite.internal;
 
 /**
- * A build that is included in the composite.
- *
- * @since 4.1
+ * A resource produced by a task in an included build.
  */
-@Incubating
-@HasInternalProtocol
-public interface IncludedBuild {
-    /**
-     * The name of the included build.
-     */
-    String getName();
-
-    /**
-     * The root directory of the included build.
-     */
-    File getProjectDir();
-
-    /**
-     * Produces a reference to a task in the included build.
-     */
-    TaskReference task(String path);
+public interface IncludedBuildTaskResource {
+    boolean isComplete();
 }
