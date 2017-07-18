@@ -71,7 +71,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     public ExternalModuleDependency setForce(boolean force) {
-        validateMutation();
+        validateMutation(this.force, force);
         this.force = force;
         return this;
     }
@@ -81,7 +81,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     public ExternalModuleDependency setChanging(boolean changing) {
-        validateMutation();
+        validateMutation(this.changing, changing);
         this.changing = changing;
         return this;
     }

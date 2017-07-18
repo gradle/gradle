@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.base.Objects;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ExcludeRuleContainer;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
 import org.gradle.internal.Actions;
@@ -33,7 +33,7 @@ import java.util.Set;
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
-    private ExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
+    private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
     private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
     private Action<? super ModuleDependency> onMutate = Actions.doNothing();
 
@@ -50,7 +50,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     public ModuleDependency setTransitive(boolean transitive) {
-        validateMutation();
+        validateMutation(this.transitive, transitive);
         this.transitive = transitive;
         return this;
     }
@@ -61,13 +61,14 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     public void setTargetConfiguration(@Nullable String configuration) {
-        validateMutation();
+        validateMutation(this.configuration, configuration);
         this.configuration = configuration;
     }
 
     public ModuleDependency exclude(Map<String, String> excludeProperties) {
-        validateMutation();
-        excludeRuleContainer.add(excludeProperties);
+        if (excludeRuleContainer.maybeAdd(excludeProperties)) {
+            validateMutation();
+        }
         return this;
     }
 
@@ -75,8 +76,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return excludeRuleContainer.getRules();
     }
 
-    private void setExcludeRuleContainer(ExcludeRuleContainer excludeRuleContainer) {
-        validateMutation();
+    private void setExcludeRuleContainer(DefaultExcludeRuleContainer excludeRuleContainer) {
         this.excludeRuleContainer = excludeRuleContainer;
     }
 
@@ -155,5 +155,11 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     protected void validateMutation() {
         onMutate.execute(this);
+    }
+
+    protected void validateMutation(Object currentValue, Object newValue) {
+        if (!Objects.equal(currentValue, newValue)) {
+            validateMutation();
+        }
     }
 }
