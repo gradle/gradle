@@ -53,7 +53,7 @@ throw new GradleException("should not run")
             resultHandler.finished()
         }
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
     }
 
     def "can cancel build after completion"() {
@@ -90,7 +90,7 @@ task thing
             resultHandler.finished()
         }
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
     }
 
     def "can cancel build after model retrieval"() {
@@ -126,6 +126,6 @@ task thing
             resultHandler.finished()
         }
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
     }
 }

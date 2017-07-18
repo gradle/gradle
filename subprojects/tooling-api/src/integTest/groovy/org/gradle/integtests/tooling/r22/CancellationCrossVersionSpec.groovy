@@ -76,7 +76,7 @@ throw new RuntimeException("should not run")
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
     }
 
     @TargetGradleVersion(">=2.2")
@@ -103,7 +103,7 @@ throw new RuntimeException("should not run")
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
 
         where:
         configureOnDemand << [true, false]
@@ -132,7 +132,7 @@ throw new RuntimeException("should not run")
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
 
         where:
         configureOnDemand << [true, false]
@@ -161,7 +161,7 @@ throw new RuntimeException("should not run")
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
 
         where:
         configureOnDemand << [true, false]
@@ -212,7 +212,7 @@ task notExecuted(dependsOn: hang) {
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
     }
 
     def "does not fail when build completes within the cancellation timeout"() {
@@ -284,7 +284,7 @@ task hang {
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
     }
 
     @TargetGradleVersion(">=2.2")
@@ -329,7 +329,7 @@ throw new RuntimeException("should not run")
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
     }
 
     def "can cancel action"() {
@@ -364,7 +364,7 @@ latch.await()
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.assertFailedWith(BuildCancelledException)
     }
 
     def setupCancelInConfigurationBuild() {
