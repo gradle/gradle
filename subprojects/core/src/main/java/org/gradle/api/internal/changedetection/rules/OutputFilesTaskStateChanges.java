@@ -27,6 +27,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import javax.annotation.Nullable;
@@ -147,6 +148,9 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
      * </ul>
      */
     private static boolean isOutputEntry(String path, NormalizedFileSnapshot fileSnapshot, Map<String, NormalizedFileSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
+        if (fileSnapshot.getSnapshot().getType() == FileType.Directory || fileSnapshot.getSnapshot().getType() == FileType.Missing) {
+            return false;
+        }
         NormalizedFileSnapshot beforeSnapshot = beforeSnapshots.get(path);
         // Was it created during execution?
         if (beforeSnapshot == null) {
