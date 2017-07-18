@@ -33,15 +33,6 @@ class StageProject(model: CIBuildModel, number: Int, stage: Stage) : Project({
                 param("title", "Performance")
                 param("type", "BuildReportTab")
             }
-            feature {
-                type = "ReportTab"
-                param("buildTypeId", stage.performanceTests.first().asId(model))
-                param("startPage", "results/performance/build/performance-tests/report/index.html")
-                param("revisionRuleName", "lastFinished")
-                param("revisionRuleRevision", "latest.lastFinished")
-                param("title", "Performance")
-                param("type", "ProjectReportTab")
-            }
         }
     }
 
