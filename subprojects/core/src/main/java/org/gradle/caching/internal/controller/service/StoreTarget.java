@@ -54,6 +54,7 @@ public class StoreTarget implements BuildCacheEntryWriter {
         return stored;
     }
 
+    @Override
     public long getSize() {
         return file.length();
     }
