@@ -23,7 +23,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNormalizationStrategy {
+public enum InputFileSnapshotNormalizationStrategy implements SnapshotNormalizationStrategy {
     /**
      * Use the absolute path of the files.
      */
@@ -36,27 +36,6 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         @Nonnull
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-            return new NonNormalizedFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
-        }
-    },
-
-    /**
-     * Normalization strategy for output files.
-     *
-     * We use the absolute path of the files and ignore missing files and empty root directories.
-     */
-    OUTPUT {
-        @Override
-        public boolean isPathAbsolute() {
-            return true;
-        }
-
-        @Nullable
-        @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-            if (fileSnapshot.getType() == FileType.Missing) {
-                return null;
-            }
             return new NonNormalizedFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
         }
     },
@@ -120,7 +99,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         }
     };
 
-    public static TaskFilePropertySnapshotNormalizationStrategy valueOf(PathSensitivity pathSensitivity) {
+    public static InputFileSnapshotNormalizationStrategy valueOf(PathSensitivity pathSensitivity) {
         switch (pathSensitivity) {
             case ABSOLUTE:
                 return ABSOLUTE;

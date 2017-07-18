@@ -18,14 +18,13 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.OutputFileSnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
     private boolean optional;
-    private SnapshotNormalizationStrategy snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
 
     @Override
     public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
@@ -49,18 +48,17 @@ abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDepreca
     }
 
     public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-        return TaskFilePropertySnapshotNormalizationStrategy.OUTPUT;
+        return OutputFileSnapshotNormalizationStrategy.getInstance();
     }
 
     @Override
     public TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
-        this.snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.valueOf(sensitivity);
-        return this;
+        throw new UnsupportedOperationException("Cannot change path sensitivity of output file property");
     }
 
     @Override
     public String toString() {
-        return getPropertyName() + " (" + snapshotNormalizationStrategy + ")";
+        return getPropertyName() + " (OUTPUT)";
     }
 
     public Class<? extends FileCollectionSnapshotter> getSnapshotter() {

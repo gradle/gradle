@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.*
+import static org.gradle.api.internal.changedetection.state.InputFileSnapshotNormalizationStrategy.*
 
-class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractSnapshotNormalizationStrategyTest {
+class InputFileSnapshotNormalizationStrategyTest extends AbstractSnapshotNormalizationStrategyTest {
 
     def "sensitivity NONE"() {
         def snapshots = normalizeWith NONE
@@ -30,6 +30,8 @@ class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractSnapshot
         snapshots[file("dir/resources/a/input-1.txt")] == "IGNORED"
         snapshots[file("dir/resources/b")]             == "NO SNAPSHOT"
         snapshots[file("dir/resources/b/input-2.txt")] == "IGNORED"
+        snapshots[file("empty-dir")] == "NO SNAPSHOT"
+        snapshots[file("missing-file")] == "IGNORED"
     }
 
     def "sensitivity NAME_ONLY"() {
@@ -42,6 +44,8 @@ class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractSnapshot
         snapshots[file("dir/resources/a/input-1.txt")] == "input-1.txt"
         snapshots[file("dir/resources/b")]             == "b"
         snapshots[file("dir/resources/b/input-2.txt")] == "input-2.txt"
+        snapshots[file("empty-dir")] == "IGNORED"
+        snapshots[file("missing-file")] == "missing-file"
     }
 
     def "sensitivity RELATIVE"() {
@@ -54,6 +58,8 @@ class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractSnapshot
         snapshots[file("dir/resources/a/input-1.txt")] == "a/input-1.txt"
         snapshots[file("dir/resources/b")]             == "b"
         snapshots[file("dir/resources/b/input-2.txt")] == "b/input-2.txt"
+        snapshots[file("empty-dir")] == "IGNORED"
+        snapshots[file("missing-file")] == "missing-file"
     }
 
     def "sensitivity ABSOLUTE"() {
@@ -66,5 +72,7 @@ class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractSnapshot
         snapshots[file("dir/resources/a/input-1.txt")] == file("dir/resources/a/input-1.txt").absolutePath
         snapshots[file("dir/resources/b")]             == file("dir/resources/b").absolutePath
         snapshots[file("dir/resources/b/input-2.txt")] == file("dir/resources/b/input-2.txt").absolutePath
+        snapshots[file("empty-dir")] == file("empty-dir").absolutePath
+        snapshots[file("missing-file")] == file("missing-file").absolutePath
     }
 }
