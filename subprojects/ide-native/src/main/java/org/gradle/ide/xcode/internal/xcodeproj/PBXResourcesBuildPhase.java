@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(":ide")
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingNative')
-    compile libraries.plist
-}
+package org.gradle.ide.xcode.internal.xcodeproj;
 
-useTestFixtures()
-useTestFixtures(project: ":platformNative")
-useClassycle()
+/**
+ * Lists the files to be copied into the output resources directory for the containing
+ * {@link PBXTarget}. Has no effect in library rules.
+ *
+ * A target should contain at most one of this build phase.
+ */
+public class PBXResourcesBuildPhase extends PBXBuildPhase {
+    @Override
+    public String isa() {
+        return "PBXResourcesBuildPhase";
+    }
+}
