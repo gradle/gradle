@@ -32,6 +32,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * RetryHttpInitializerWrapper will automatically retry upon RPC failures, preserving the
@@ -43,10 +44,10 @@ import java.io.IOException;
 final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
 
     private static final Logger LOG = Logging.getLogger(RetryHttpInitializerWrapper.class);
+    private static final long DEFAULT_READ_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(2);
 
     private final Supplier<Credential> credentialSupplier;
     private final Sleeper sleeper;
-    private static final int MILLIS_PER_MINUTE = 60 * 1000;
 
     RetryHttpInitializerWrapper(Supplier<Credential> credentialSupplier) {
         this(credentialSupplier, Sleeper.DEFAULT);
@@ -66,7 +67,7 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
         request.setCurlLoggingEnabled(loggingEnabled);
         disableHttpTransportLogging();
 
-        request.setReadTimeout(2 * MILLIS_PER_MINUTE); // 2 minutes read timeout
+        request.setReadTimeout((int) DEFAULT_READ_TIMEOUT_MILLIS);
         final HttpUnsuccessfulResponseHandler backoffHandler =
             new HttpBackOffUnsuccessfulResponseHandler(
                 new ExponentialBackOff()).setSleeper(sleeper);
@@ -74,8 +75,7 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
         request.setInterceptor(credential);
         request.setUnsuccessfulResponseHandler(new HttpUnsuccessfulResponseHandler() {
             @Override
-            public boolean handleResponse(final HttpRequest request, final HttpResponse response,
-                                          final boolean supportsRetry) throws IOException {
+            public boolean handleResponse(HttpRequest request, HttpResponse response, boolean supportsRetry) throws IOException {
                 // Turn off request logging unless debug mode is enabled
                 request.setLoggingEnabled(loggingEnabled);
                 request.setCurlLoggingEnabled(loggingEnabled);
