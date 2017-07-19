@@ -30,7 +30,9 @@ import com.google.api.services.storage.model.StorageObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,7 +160,7 @@ public class GcsClient {
         try {
             path = URLDecoder.decode(uri.getPath(), "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e); // fail fast, this should not happen
+            throw UncheckedException.throwAsUncheckedException(e); // fail fast, this should not happen
         }
         while (path.startsWith("/")) {
             path = path.substring(1);
@@ -175,7 +177,7 @@ public class GcsClient {
                     // Ensure we have a scope
                     return googleCredential.createScoped(singletonList("https://www.googleapis.com/auth/devstorage.read_write"));
                 } catch (IOException e) {
-                    throw new RuntimeException("Failed to get Google credentials for GCS connection", e);
+                    throw new UncheckedIOException("Failed to get Google credentials for GCS connection", e);
                 }
             }
         });

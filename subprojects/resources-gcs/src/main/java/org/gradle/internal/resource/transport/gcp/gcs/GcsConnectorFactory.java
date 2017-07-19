@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.gcp.gcs;
 
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
@@ -43,7 +44,7 @@ public class GcsConnectorFactory implements ResourceConnectorFactory {
         try {
             return new GcsResourceConnector(GcsClient.create(new GcsConnectionProperties()));
         } catch (Exception e) {
-            throw new RuntimeException("Google credentials must be set for GCS backed repository.", e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }
