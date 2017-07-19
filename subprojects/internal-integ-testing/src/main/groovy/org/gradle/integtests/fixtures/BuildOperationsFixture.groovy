@@ -159,10 +159,12 @@ class BuildOperationsFixture {
                 return 1
             }
             else {
-                if (end) {
+                if (end && o.end) {
+                    return 0
+                } else if (end) {
                     return -1
                 } else {
-                    return 0
+                    return 1
                 }
             }
         }
@@ -200,7 +202,9 @@ class BuildOperationsFixture {
             if (it.end) {
                 concurrentOperations.remove(it.operation)
             } else {
-                concurrentOperations.add(it.operation)
+                if ((it.operation.endTime - it.operation.startTime) > 0) {
+                    concurrentOperations.add(it.operation)
+                }
             }
             assert concurrentOperations.size() <= maximumConcurrentOperations
             if (concurrentOperations.size() > 1) {
