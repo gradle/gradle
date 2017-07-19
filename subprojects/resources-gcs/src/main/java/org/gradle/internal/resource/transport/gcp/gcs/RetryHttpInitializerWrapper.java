@@ -37,7 +37,8 @@ import java.util.logging.Logger;
  * RetryHttpInitializerWrapper will automatically retry upon RPC failures, preserving the
  * auto-refresh behavior of the Google Credentials.
  *
- * Adapted from https://github.com/GoogleCloudPlatform/java-docs-samples
+ * Adapted from https://github.com/GoogleCloudPlatform/java-docs-samples,
+ * available under <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a> license.
  */
 final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
 
