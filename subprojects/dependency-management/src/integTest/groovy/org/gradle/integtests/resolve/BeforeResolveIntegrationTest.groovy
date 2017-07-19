@@ -82,82 +82,44 @@ task copyFiles(type:Copy) {
         file('libs').assertHasDescendants('direct-dep-1.0.jar')
     }
 
+    // This emulates the behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
     @NotYetImplemented
-    def "should not fail with the Spring Dependency Management plugin"() {
+    def "can use beforeResolve hook to modify dependency excludes for configuration hierarchy"() {
+        mavenRepo.module('org.test', 'module1', '1.0').publish()
+        mavenRepo.module('org.test', 'module2', '1.0').publish()
+
         given:
-        settingsFile << '''
-            include 'application', 'library'
-        '''
-        file('application/build.gradle') << """
-        buildscript {
-            repositories { jcenter() }
-            dependencies { classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE") }
-        }
-
-        apply plugin: 'java'
-        apply plugin: 'eclipse'
-        apply plugin: 'org.springframework.boot'
-        
-        sourceCompatibility = 1.8
-        
-        repositories { jcenter() }
-        
-        dependencies {
-            compile('org.springframework.boot:spring-boot-starter-actuator')
-            compile project(':library')
-        }
-        
-        """
-
-        file('library/build.gradle') << '''
-            buildscript {
-                repositories { 
-                    jcenter()
-                }
+        buildFile << """            
+            plugins { 
+                id 'java'
             }
-            
-            plugins { id "io.spring.dependency-management" version "1.0.0.RELEASE" }
-            
-            ext { springBootVersion = '1.5.2.RELEASE' }
-            
-            apply plugin: 'java\'
-            apply plugin: 'eclipse\'
-            
-            jar {
-                baseName = 'gs-multi-module-library\'
-                version = '0.0.1-SNAPSHOT\'
-            }
-            sourceCompatibility = 1.8
             
             repositories {
-                jcenter()
+                maven { url '${mavenRepo.uri}' }
             }
             
             dependencies {
-                compile('org.springframework.boot:spring-boot-starter')
-                testCompile('org.springframework.boot:spring-boot-starter-test')
+                compile('org.test:module1:1.0')
+                testCompile('org.test:module2:1.0')
             }
             
-            dependencyManagement {
-                imports { mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}") }
-            }
-
-'''
-
-        buildFile << '''
-        subprojects {
-                task resolveDependencies {
-                    doLast {
-                        println configurations.compile.files
+            configurations.all { configuration ->
+                configuration.incoming.beforeResolve { resolvableDependencies ->
+                    resolvableDependencies.dependencies.each { dependency ->
+                        dependency.exclude module: 'excluded-dep'
                     }
                 }
-        }
-        '''
+            }
+            
+            task resolveDependencies {
+                doLast {
+                    configurations.compile.files
+                    configurations.testCompile.files
+                }
+            }
+"""
 
-        when:
-        run 'resolveDependencies'
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds 'resolveDependencies'
     }
 }
