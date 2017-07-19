@@ -105,6 +105,9 @@ public class GcsClient {
             Storage.Objects.Get getRequest = storage.objects().get(uri.getHost(), path);
             return getRequest.execute();
         } catch (GoogleJsonResponseException e) {
+            // When an artifact is being published it is first checked whether it is available.
+            // If a transport returns `null` then it is assumed that artifact does not exist.
+            // If we throw, an attempt to publish will fail altogether even if we use ResourceExceptions#getMissing(uri).
             if (e.getStatusCode() == 404) {
                 return null;
             }
