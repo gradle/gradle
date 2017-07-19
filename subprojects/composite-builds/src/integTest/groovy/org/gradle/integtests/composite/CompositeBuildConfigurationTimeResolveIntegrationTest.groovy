@@ -106,7 +106,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         result.assertOutputContains("[$buildBjar]")
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
 
-        configured("buildB") == 2
+        configured("buildB") >= 2
     }
 
     def "included build uses substituted dependency from preceding included build"() {
