@@ -15,14 +15,12 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Issue
 
 class BeforeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Issue("gradle/gradle#2480")
-    @NotYetImplemented
     def "can use beforeResolve hook to modify dependency excludes"() {
         def module1 = mavenRepo.module('org.test', 'excluded-dep', '1.0').publish()
         mavenRepo.module('org.test', 'direct-dep', '1.0').dependsOn(module1).publish()
@@ -46,14 +44,18 @@ configurations.conf.incoming.beforeResolve { resolvableDependencies ->
 
 task printFiles {
     doLast {
-        println configurations.conf.collect { it.name }
+        def files = configurations.conf.collect { it.name }
+        println files
+        assert files == ['direct-dep-1.0.jar']
     }
 }
 
 task printFilesWithConfigurationInput {
     dependsOn configurations.conf
     doLast {
-        println configurations.conf.collect { it.name }
+        def files = configurations.conf.collect { it.name }
+        println files
+        assert files == ['direct-dep-1.0.jar']
     }
 }
 
@@ -72,13 +74,50 @@ task copyFiles(type:Copy) {
         when:
         succeeds 'printFilesWithConfigurationInput'
 
-        then: // Currently fails: excluded dependency is reported as part of configuration
-        outputContains('[direct-dep-1.0.jar]')
-
-        when:
+        and:
         succeeds 'copyFiles'
 
         then: // Currently fails: excluded dependency is copied as part of configuration
         file('libs').assertHasDescendants('direct-dep-1.0.jar')
+    }
+
+    // This emulates the behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
+    def "can use beforeResolve hook to modify dependency excludes for configuration hierarchy"() {
+        mavenRepo.module('org.test', 'module1', '1.0').publish()
+        mavenRepo.module('org.test', 'module2', '1.0').publish()
+
+        given:
+        buildFile << """            
+            plugins { 
+                id 'java'
+            }
+            
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
+            
+            dependencies {
+                compile('org.test:module1:1.0')
+                testCompile('org.test:module2:1.0')
+            }
+            
+            configurations.all { configuration ->
+                configuration.incoming.beforeResolve { resolvableDependencies ->
+                    resolvableDependencies.dependencies.each { dependency ->
+                        dependency.exclude module: 'excluded-dep'
+                    }
+                }
+            }
+            
+            task resolveDependencies {
+                doLast {
+                    configurations.compile.files
+                    configurations.testCompile.files
+                }
+            }
+"""
+
+        expect:
+        succeeds 'resolveDependencies'
     }
 }

@@ -33,10 +33,14 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     }
 
     public void add(Map<String, String> args) {
+        maybeAdd(args);
+    }
+
+    public boolean maybeAdd(Map<String, String> args) {
         if (addedRules == null) {
             addedRules = new HashSet<ExcludeRule>();
         }
-        addedRules.add(ExcludeRuleNotationConverter.parser().parseNotation(args));
+        return addedRules.add(ExcludeRuleNotationConverter.parser().parseNotation(args));
     }
 
     public Set<ExcludeRule> getRules() {

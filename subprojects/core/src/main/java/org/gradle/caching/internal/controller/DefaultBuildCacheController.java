@@ -185,7 +185,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Unpack build cache entry " + command.getKey())
                         .details(new UnpackOperationDetails(command.getKey(), file.length()))
-                        .progressDisplayName("unpack build cache entry");
+                        .progressDisplayName("Unpacking build cache entry");
                 }
             });
         }
@@ -250,7 +250,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Pack build cache entry " + command.getKey())
                         .details(new PackOperationDetails(command.getKey()))
-                        .progressDisplayName("pack build cache entry");
+                        .progressDisplayName("Packing build cache entry");
                 }
             });
         }

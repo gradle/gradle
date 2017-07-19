@@ -155,6 +155,8 @@ Execution failed for task ':helloWorld'.
 * Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
 
+* Get more help at https://help.gradle.org
+
 BUILD FAILED"""
         String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
 

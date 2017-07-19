@@ -29,6 +29,10 @@ abstract class AbstractComponentCompilerDaemonReuseIntegrationTest extends Abstr
         """
     }
 
+    boolean supportsCompositeBuilds() {
+        false
+    }
+
     @Override
     String compileTaskPath(String sourceSet) {
         return ":compile${sourceSet.capitalize()}Jar${sourceSet.capitalize()}${component.languageName.capitalize()}"
