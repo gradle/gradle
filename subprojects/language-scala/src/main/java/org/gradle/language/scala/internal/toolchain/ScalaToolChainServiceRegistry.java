@@ -22,6 +22,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 public class ScalaToolChainServiceRegistry extends AbstractPluginServiceRegistry {
@@ -33,8 +34,8 @@ public class ScalaToolChainServiceRegistry extends AbstractPluginServiceRegistry
 
 
     private static class ProjectScopeCompileServices {
-        ScalaToolChainInternal createScalaToolChain(GradleInternal gradle, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, FileResolver fileResolver) {
-            return new DownloadingScalaToolChain(gradle.getGradleUserHomeDir(), gradle.getRootProject().getProjectDir(), workerDaemonFactory, configurationContainer, dependencyHandler, fileResolver);
+        ScalaToolChainInternal createScalaToolChain(GradleInternal gradle, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, FileResolver fileResolver, WorkerDirectoryProvider workerDirectoryProvider) {
+            return new DownloadingScalaToolChain(gradle.getGradleUserHomeDir(), workerDirectoryProvider.getIdleWorkingDirectory(), workerDaemonFactory, configurationContainer, dependencyHandler, fileResolver);
         }
     }
 }

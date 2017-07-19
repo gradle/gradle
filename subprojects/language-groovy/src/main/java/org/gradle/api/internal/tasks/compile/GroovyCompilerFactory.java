@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
@@ -54,7 +55,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         } else {
             workerFactory = inProcessWorkerFactory;
         }
-        groovyCompiler = new DaemonGroovyCompiler(project.getRootProject().getProjectDir(), groovyCompiler, project.getServices().get(ClassPathRegistry.class), workerFactory, fileResolver);
+        groovyCompiler = new DaemonGroovyCompiler(project.getServices().get(WorkerDirectoryProvider.class).getIdleWorkingDirectory(), groovyCompiler, project.getServices().get(ClassPathRegistry.class), workerFactory, fileResolver);
         return new NormalizingGroovyCompiler(groovyCompiler);
     }
 }
