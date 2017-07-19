@@ -745,11 +745,19 @@ When using an AWS S3 backed repository you need to authenticate using api:org.gr
             </sample>
 ++++
 
-You can also delegate all credentials to the AWS sdk by using the AwsImAuthentication. The following example shows how :
+You can also delegate all credentials to the AWS sdk by using the AwsImAuthentication. The following example shows how:
 
 ++++
 <sample id="mavenIvyS3RepositoriesAuthWithIam" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository using IAM">
                 <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository-with-iam"/>
+            </sample>
+++++
+
+When using a GCP GCS backed repository default application credentials will be used with no further configuration required:
+
+++++
+<sample id="mavenIvyGCSRepositoriesAuthDefault" dir="userguide/artifacts/defineRepository" title="Declaring a GCS backed Maven and Ivy repository using default application credentials">
+                <sourcefile file="build.gradle" snippet="maven-ivy-gcs-repository"/>
             </sample>
 ++++
 
@@ -824,6 +832,36 @@ Failing to specify the region-specific endpoint for buckets requiring V4 signatu
 * `Increased likelihood of transmission failures.`
 
 ====
+
+[[sub:gcs_configuration_properties]]
+===== GCS configuration properties
+
+The following system properties can be used to configure the interactions with gcs repositories:
+
+.GCS Configuration Properties
+[cols="a,a", options="header"]
+|===
+| Property
+| Description
+
+| org.gradle.gcs.endpoint
+| Used to override the GCP GCS endpoint when using a non GCP, GCS API compatible, storage service.
+
+| org.gradle.gcs.servicePath
+| Used to override the GCP GCS root service path which the GCS client builds requests from, defaults to `/`.
+
+|===
+
+
+[[sub:gcs_url_formats]]
+===== GCS URL formats
+
+GCS URL's are 'virtual-hosted-style' and must be in the following format `gcs://&lt;bucketName&gt;/&lt;objectKey&gt;`
+
+e.g. `gcs://myBucket/maven/release`
+
+* `myBucket` is the GCP GCS bucket name.
+* `/maven/release` is the GCP GCS key (unique identifier for an object within a bucket)
 
 
 [[sub:authentication_schemes]]
