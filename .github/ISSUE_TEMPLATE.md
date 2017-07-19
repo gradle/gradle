@@ -1,5 +1,5 @@
 <!--- Provide a brief summary of the issue in the title above -->
-<!--- We'd kindly ask you to open any issues related to the Gradle Android plugin or Android studio on the Google forum at `https://source.android.com/source/report-bugs` -->
+<!--- We'd kindly ask you to open any issues related to the Gradle Android plugin or Android Studio on the Android Issue Tracker at `https://source.android.com/source/report-bugs` -->
 
 ### Expected Behavior
 <!--- If you're describing a bug, tell us what should happen -->
