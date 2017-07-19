@@ -22,22 +22,10 @@ import org.gradle.play.platform.PlayPlatform;
 public class TwirlCompilerFactory {
 
     public static TwirlCompiler create(PlayPlatform playPlatform) {
-        switch (PlayMajorVersion.forPlatform(playPlatform)) {
-            case PLAY_2_6_X:
-                // TODO: create a TwirlJavaCompiler for Twirl 1.3.x that uses the Java compiler interface
-                // Rename TwirlCompiler to TwirlScalaCompiler
-                // Waiting for https://github.com/playframework/twirl/pull/136
-                // and https://github.com/gradle/gradle/pull/2062
-                // We don't want to use the legacy TwirlScalaCompiler for Twirl 3.0 because the interface is more
-                // complicated and it would be really frustrating to deal with typed parameters via reflection,
-                // to create Scala Seqs in Java, etc.
-                return new TwirlCompiler(new TwirlCompilerAdapterV10X("1.1.1", scalaCompatibilityVersion));
-            default:
-                return new TwirlCompiler(createScalaCompilerAdapter(playPlatform));
-        }
+        return new TwirlCompiler(createAdapter(playPlatform));
     }
 
-    public static VersionedTwirlCompilerAdapter createScalaCompilerAdapter(PlayPlatform playPlatform) {
+    public static VersionedTwirlCompilerAdapter createAdapter(PlayPlatform playPlatform) {
         String playVersion = playPlatform.getPlayVersion();
         String scalaCompatibilityVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
@@ -47,6 +35,15 @@ public class TwirlCompilerFactory {
                 return new TwirlCompilerAdapterV10X("1.0.4", scalaCompatibilityVersion);
             case PLAY_2_4_X:
             case PLAY_2_5_X:
+                return new TwirlCompilerAdapterV10X("1.1.1", scalaCompatibilityVersion);
+            case PLAY_2_6_X:
+                // TODO: create a TwirlJavaCompiler for Twirl 1.3.x that uses the Java compiler interface
+                // Rename TwirlCompiler to TwirlScalaCompiler
+                // Waiting for https://github.com/playframework/twirl/pull/136
+                // and https://github.com/gradle/gradle/pull/2062
+                // We don't want to use the legacy TwirlScalaCompiler for Twirl 3.0 because the interface is more
+                // complicated and it would be really frustrating to deal with typed parameters via reflection,
+                // to create Scala Seqs in Java, etc.
                 return new TwirlCompilerAdapterV10X("1.1.1", scalaCompatibilityVersion);
             default:
                 throw new RuntimeException("Could not create Twirl compile spec for Play version: " + playVersion);

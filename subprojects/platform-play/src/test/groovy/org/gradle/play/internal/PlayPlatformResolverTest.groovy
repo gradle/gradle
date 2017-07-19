@@ -69,7 +69,7 @@ class PlayPlatformResolverTest extends Specification {
         "2.3.4"     | "2.11.8"
         "2.4.8"     | "2.11.8"
         "2.5.4"     | "2.11.8"
-        "2.6.0-M5"     | "2.11.8"
+        "2.6.0"     | "2.11.8"
     }
 
     private void assertPlayPlatform(Map versions, PlayPlatform platform) {
