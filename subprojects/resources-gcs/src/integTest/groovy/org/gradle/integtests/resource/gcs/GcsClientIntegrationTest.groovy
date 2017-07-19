@@ -40,7 +40,7 @@ class GcsClientIntegrationTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     @Rule
-    public final GcsServer server = new GcsServer(temporaryFolder)
+    final GcsServer server = new GcsServer(temporaryFolder)
 
     def "should perform put, get and list on an Gcs bucket"() {
         setup:
