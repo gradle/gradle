@@ -121,6 +121,26 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginDependencyA:jar", ":pluginBuild:jar", ":taskFromPluginBuild"
     }
 
+    def "can develop a buildscript dependency that is also used by main build"() {
+        given:
+        buildA.buildFile << """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:pluginDependencyA:1.0'
+                }
+            }
+"""
+
+        dependency("org.test:pluginDependencyA:1.0")
+        includeBuild pluginDependencyA
+
+        when:
+        execute(buildA, "jar")
+
+        then:
+        executed ":pluginDependencyA:jar", ":jar"
+    }
+
 
     def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
         given:
