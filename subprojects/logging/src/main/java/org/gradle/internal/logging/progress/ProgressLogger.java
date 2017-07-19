@@ -96,6 +96,13 @@ public interface ProgressLogger {
     ProgressLogger start(String description, String shortDescription);
 
     /**
+     * Convenience method that sets descriptions, total progress and logs started() event.
+     *
+     * @return this logger instance
+     */
+    ProgressLogger start(String description, String shortDescription, int totalProgress);
+
+    /**
      * Logs the start of the operation, with no initial status.
      */
     void started();
@@ -106,6 +113,14 @@ public interface ProgressLogger {
      * @param status The initial status message. Can be null or empty.
      */
     void started(String status);
+
+    /**
+     * Logs the start of the operation, with the given status.
+     *
+     * @param status The initial status message. Can be null or empty.
+     * @param totalProgress total number of {@link #progress(String)}s calls that will be made (if known), 0 if unknown
+     */
+    void started(String status, int totalProgress);
 
     /**
      * Logs some progress, indicated by a new status.
@@ -119,7 +134,7 @@ public interface ProgressLogger {
      *
      * @param status The new status message. Can be null or empty.
      */
-    void progress(@Nullable  String status, int currentProgress, int totalProgress, boolean failing);
+    void progress(@Nullable  String status, boolean failing);
 
     /**
      * Logs the completion of the operation, with no final status

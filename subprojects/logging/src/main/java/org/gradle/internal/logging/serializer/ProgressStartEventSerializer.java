@@ -87,6 +87,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             encoder.writeString(loggingHeader);
         }
         encoder.writeString(event.getStatus());
+        encoder.writeInt(event.getTotalProgress());
         if (buildOperationId != null) {
             encoder.writeSmallLong(((OperationIdentifier) buildOperationId).getId());
         }
@@ -120,6 +121,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         }
 
         String status = decoder.readString();
+        int totalProgress = decoder.readInt();
 
         Object buildOperationId = null;
         if ((flags & BUILD_OPERATION_ID) != 0) {
@@ -141,6 +143,6 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             buildOperationCategory = BuildOperationCategory.UNCATEGORIZED;
         }
 
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, timestamp, category, description, shortDescription, loggingHeader, status, buildOperationId, parentBuildOperationId, buildOperationCategory);
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, timestamp, category, description, shortDescription, loggingHeader, status, totalProgress, buildOperationId, parentBuildOperationId, buildOperationCategory);
     }
 }

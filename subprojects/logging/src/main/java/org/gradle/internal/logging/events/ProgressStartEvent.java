@@ -29,6 +29,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
     private final String shortDescription;
     private final String loggingHeader;
     private final String status;
+    private final int totalProgress;
     private final Object buildOperationId;
     private final Object parentBuildOperationId;
     private BuildOperationCategory buildOperationCategory;
@@ -41,6 +42,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
                               @Nullable String shortDescription,
                               @Nullable String loggingHeader,
                               String status,
+                              int totalProgress,
                               @Nullable Object buildOperationId,
                               @Nullable Object parentBuildOperationId,
                               BuildOperationCategory buildOperationCategory) {
@@ -51,6 +53,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
         this.shortDescription = shortDescription;
         this.loggingHeader = loggingHeader;
         this.status = status;
+        this.totalProgress = totalProgress;
         this.buildOperationId = buildOperationId;
         this.parentBuildOperationId = parentBuildOperationId;
         this.buildOperationCategory = buildOperationCategory;
@@ -77,6 +80,10 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
 
     public String getStatus() {
         return status;
+    }
+
+    public int getTotalProgress() {
+        return totalProgress;
     }
 
     @Override

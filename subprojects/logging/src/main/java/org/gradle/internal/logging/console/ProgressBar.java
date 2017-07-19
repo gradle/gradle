@@ -37,18 +37,19 @@ public class ProgressBar {
     private int total;
     private boolean failing;
 
-    public ProgressBar(String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix) {
+    public ProgressBar(String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, int initialProgress, int totalProgress) {
         this.progressBarPrefix = progressBarPrefix;
         this.progressBarWidth = progressBarWidth;
         this.progressBarSuffix = progressBarSuffix;
         this.fillerChar = completeChar;
         this.incompleteChar = incompleteChar;
         this.suffix = suffix;
+        this.current = initialProgress;
+        this.total = totalProgress;
     }
 
-    public void update(int currentProgress, int totalProgress, boolean failing) {
-        this.current = currentProgress;
-        this.total = totalProgress;
+    public void update(boolean failing) {
+        this.current++;
         this.failing = this.failing || failing;
     }
 

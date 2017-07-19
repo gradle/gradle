@@ -32,8 +32,6 @@ public class BuildProgressLogger implements LoggerProvider {
     private boolean taskGraphPopulated;
 
     private ProgressLogger buildProgress;
-    private int totalProgress;
-    private int currentProgress;
 
     public BuildProgressLogger(ProgressLoggerFactory progressLoggerFactory) {
         this(new ProgressLoggerProvider(progressLoggerFactory, BuildProgressLogger.class));
@@ -44,7 +42,7 @@ public class BuildProgressLogger implements LoggerProvider {
     }
 
     public void buildStarted() {
-        buildProgress = loggerProvider.start(INITIALIZATION_PHASE_DESCRIPTION, INITIALIZATION_PHASE_SHORT_DESCRIPTION);
+        buildProgress = loggerProvider.start(INITIALIZATION_PHASE_DESCRIPTION, INITIALIZATION_PHASE_SHORT_DESCRIPTION, 0);
     }
 
     public void settingsEvaluated() {
@@ -52,40 +50,32 @@ public class BuildProgressLogger implements LoggerProvider {
     }
 
     public void projectsLoaded(int totalProjects) {
-        totalProgress = totalProjects;
-        currentProgress = 0;
-        buildProgress = loggerProvider.start(CONFIGURATION_PHASE_DESCRIPTION, CONFIGURATION_PHASE_SHORT_DESCRIPTION);
+        buildProgress = loggerProvider.start(CONFIGURATION_PHASE_DESCRIPTION, CONFIGURATION_PHASE_SHORT_DESCRIPTION, totalProjects);
     }
 
     public void beforeEvaluate(String projectPath) {}
 
     public void afterEvaluate(String projectPath) {
         if (!taskGraphPopulated) {
-            currentProgress++;
-            buildProgress.progress("", currentProgress, totalProgress, false);
+            buildProgress.progress("", false);
         }
     }
 
     public void graphPopulated(int totalTasks) {
         taskGraphPopulated = true;
         buildProgress.completed();
-        totalProgress = totalTasks;
-        currentProgress = 0;
-        buildProgress = loggerProvider.start(EXECUTION_PHASE_DESCRIPTION, EXECUTION_PHASE_SHORT_DESCRIPTION);
+        buildProgress = loggerProvider.start(EXECUTION_PHASE_DESCRIPTION, EXECUTION_PHASE_SHORT_DESCRIPTION, totalTasks);
     }
 
     public void beforeExecute() {}
 
     public void afterExecute(boolean taskFailed) {
-        currentProgress++;
-        buildProgress.progress("", currentProgress, totalProgress, taskFailed);
+        buildProgress.progress("", taskFailed);
     }
 
     public void beforeComplete() {
         buildProgress.completed(WAITING_PHASE_DESCRIPTION);
         buildProgress = null;
-        currentProgress = 0;
-        totalProgress = 0;
     }
 
     public ProgressLogger getLogger() {

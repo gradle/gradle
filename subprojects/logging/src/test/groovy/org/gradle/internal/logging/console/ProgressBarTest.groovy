@@ -32,7 +32,7 @@ class ProgressBarTest extends Specification {
     ProgressBar progressBar
 
     def setup() {
-        progressBar = new ProgressBar(PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE)
+        progressBar = new ProgressBar(PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10)
     }
 
     private getProgress() {
@@ -46,13 +46,13 @@ class ProgressBarTest extends Specification {
 
     def "fills completed progress"() {
         when:
-        progressBar.update(1, 10, false)
+        progressBar.update(false)
 
         then:
         progress == "[#         ] 10% EXECUTING"
 
         when:
-        progressBar.update(2, 10, false)
+        progressBar.update(false)
 
         then:
         progress == "[##        ] 20% EXECUTING"
@@ -65,8 +65,8 @@ class ProgressBarTest extends Specification {
 
     def "formats failed progress red"() {
         when:
-        progressBar.update(1, 10, true)
-        progressBar.update(2, 10, false)
+        progressBar.update(true)
+        progressBar.update(false)
 
         then:
         progressBar.formatProgress(160, false, 0)[1].style == StyledTextOutput.Style.FailureHeader

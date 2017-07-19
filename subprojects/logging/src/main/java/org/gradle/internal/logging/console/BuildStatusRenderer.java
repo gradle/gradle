@@ -34,6 +34,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     public static final String PROGRESS_BAR_SUFFIX = ">";
 
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
+
     private final BatchOutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
@@ -103,28 +104,28 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     private void phaseStarted(ProgressStartEvent progressStartEvent) {
         timerEnabled = true;
         currentPhaseProgressOperationId = progressStartEvent.getProgressOperationId().getId();
-        progressBar = newProgressBar(progressStartEvent.getShortDescription());
+        progressBar = newProgressBar(progressStartEvent.getShortDescription(), 0, progressStartEvent.getTotalProgress());
     }
 
     private void phaseProgressed(ProgressEvent progressEvent) {
         if (progressBar != null) {
-            progressBar.update(progressEvent.getCurrentProgress(), progressEvent.getTotalProgress(), progressEvent.isFailing());
+            progressBar.update(progressEvent.isFailing());
         }
 
     }
 
     private void phaseEnded(ProgressCompleteEvent progressCompleteEvent) {
-        progressBar = newProgressBar(progressCompleteEvent.getStatus());
+        progressBar = newProgressBar(progressCompleteEvent.getStatus(), 0, 1);
         timerEnabled = false;
     }
 
     @VisibleForTesting
-    public ProgressBar newProgressBar(String initialSuffix) {
+    public ProgressBar newProgressBar(String initialSuffix, int initialProgress, int totalProgress) {
         return new ProgressBar(PROGRESS_BAR_PREFIX,
             PROGRESS_BAR_WIDTH,
             PROGRESS_BAR_SUFFIX,
             PROGRESS_BAR_COMPLETE_CHAR,
             PROGRESS_BAR_INCOMPLETE_CHAR,
-            initialSuffix);
+            initialSuffix, initialProgress, totalProgress);
     }
 }
