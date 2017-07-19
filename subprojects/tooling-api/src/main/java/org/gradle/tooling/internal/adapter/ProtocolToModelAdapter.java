@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling.internal.adapter;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -264,8 +262,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
     }
 
-    @VisibleForTesting
-    static class ViewKey implements Serializable {
+    private static class ViewKey implements Serializable {
         private final Class<?> type;
         private final Object source;
         private final ViewDecoration viewDecoration;
@@ -278,26 +275,17 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || obj.getClass() != getClass()) {
-                return false;
-            }
             ViewKey other = (ViewKey) obj;
-            // source is compared using identity (==) instead of equality so that two separate
-            // but equal object instances will not share the same view.
-            return other.source == source && Objects.equal(other.type, type) && Objects.equal(other.viewDecoration, viewDecoration);
+            return other.source == source && other.type.equals(type) && other.viewDecoration.equals(viewDecoration);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(type, source, viewDecoration);
+            return type.hashCode() ^ System.identityHashCode(source) ^ viewDecoration.hashCode();
         }
     }
 
-    @VisibleForTesting
-    static class InvocationHandlerImpl implements InvocationHandler, Serializable {
+    private static class InvocationHandlerImpl implements InvocationHandler, Serializable {
         private final Class<?> targetType;
         private final Object sourceObject;
         private final ViewDecoration decoration;
@@ -344,12 +332,12 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
 
             InvocationHandlerImpl other = (InvocationHandlerImpl) o;
-            return Objects.equal(sourceObject, other.sourceObject);
+            return sourceObject.equals(other.sourceObject);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(sourceObject);
+            return sourceObject.hashCode();
         }
 
         public Object invoke(Object target, Method method, Object[] params) throws Throwable {
@@ -770,15 +758,14 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         ViewDecoration restrictTo(Set<Class<?>> viewTypes);
     }
 
-    @VisibleForTesting
-    static class NoOpDecoration implements ViewDecoration, Serializable {
+    private static class NoOpDecoration implements ViewDecoration, Serializable {
         @Override
         public void collectInvokers(Object sourceObject, Class<?> viewType, List<MethodInvoker> invokers) {
         }
 
         @Override
         public boolean equals(Object obj) {
-            return this == obj || obj != null && obj.getClass() == getClass();
+            return obj instanceof NoOpDecoration;
         }
 
         @Override
