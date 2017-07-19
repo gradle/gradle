@@ -27,12 +27,13 @@ import java.util.Set;
 import static java.lang.System.getProperty;
 
 @SuppressWarnings("Duplicates") // re-use not possible across modules currently
-final class GcsConnectionProperties {
+public final class GcsConnectionProperties {
 
-    private static final String GCS_ENDPOINT_PROPERTY = "org.gradle.gcs.endpoint";
-    private static final String GCS_SERVICE_PATH_PROPERTY = "org.gradle.gcs.servicePath";
+    public static final String GCS_ENDPOINT_PROPERTY = "org.gradle.gcs.endpoint";
+    public static final String GCS_SERVICE_PATH_PROPERTY = "org.gradle.gcs.servicePath";
     // Controls when to disable reading default authentication credentials, should be used in tests only
-    private static final String GCS_DISABLE_AUTH_PROPERTY = "org.gradle.gcs.disableAuthentication";
+    public static final String GCS_DISABLE_AUTH_PROPERTY = "org.gradle.gcs.disableAuthentication";
+
     private static final Set<String> SUPPORTED_SCHEMES = Sets.newHashSet("HTTP", "HTTPS");
 
     private final URI endpoint;

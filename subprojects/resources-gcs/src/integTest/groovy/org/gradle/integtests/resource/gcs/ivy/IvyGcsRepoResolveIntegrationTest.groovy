@@ -22,6 +22,10 @@ import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.junit.Rule
 
+import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_DISABLE_AUTH_PROPERTY
+import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_ENDPOINT_PROPERTY
+import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_SERVICE_PATH_PROPERTY
+
 class IvyGcsRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
@@ -33,9 +37,9 @@ class IvyGcsRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInteg
     }
 
     protected ExecutionResult succeeds(String... tasks) {
-        executer.withArgument("-Dorg.gradle.gcs.endpoint=${server.uri}")
-        executer.withArgument("-Dorg.gradle.gcs.servicePath=/")
-        executer.withArgument("-Dorg.gradle.gcs.disableAuthentication=true")
+        executer.withArgument("-D${GCS_ENDPOINT_PROPERTY}=${server.uri}")
+        executer.withArgument("-D${GCS_SERVICE_PATH_PROPERTY}=/")
+        executer.withArgument("-D${GCS_DISABLE_AUTH_PROPERTY}=true")
         result = executer.withTasks(*tasks).run()
     }
 
