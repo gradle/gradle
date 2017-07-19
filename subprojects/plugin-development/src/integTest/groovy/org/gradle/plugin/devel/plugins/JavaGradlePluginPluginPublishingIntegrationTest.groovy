@@ -183,7 +183,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
     }
 
     def plugin(String name, String pluginId) {
-        String implementationClass = name.capitalize();
+        String implementationClass = name.capitalize()
 
         file("src/main/java/com/xxx/${implementationClass}.java") << """
 package com.xxx;

@@ -18,7 +18,7 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.testing.Test
@@ -32,14 +32,14 @@ import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.TestKitAndP
 class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec {
 
     def setup() {
-        project.plugins.apply(JavaPlugin)
+        project.plugins.apply(JavaLibraryPlugin)
     }
 
     def "can configure with default conventions"() {
         given:
-        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-        SourceSet pluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        SourceSet testSourceSet = javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
+        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class)
+        SourceSet pluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+        SourceSet testSourceSet = javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME)
         GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project, pluginSourceSet, testSourceSet)
         PluginUnderTestMetadata pluginUnderTestMetadata = project.tasks.create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
         Action<Project> action = new TestKitAndPluginClasspathDependenciesAction(extension, pluginUnderTestMetadata)
@@ -143,7 +143,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec 
 
     private void assertTestKitDependency(Project project, SourceSet testSourceSet) {
         assert project.configurations
-                .getByName(testSourceSet.compileConfigurationName)
+                .getByName(testSourceSet.implementationConfigurationName)
                 .dependencies.find {
             it.files == project.dependencies.gradleTestKit().files
         }
@@ -151,7 +151,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec 
 
     private void assertInferredTaskDependency(PluginUnderTestMetadata pluginClasspathManifestTask, SourceSet testSourceSet) {
         project.configurations
-                .getByName(testSourceSet.runtimeConfigurationName)
+                .getByName(testSourceSet.runtimeOnlyConfigurationName)
                 .dependencies.find {
             it.files.containsAll(pluginClasspathManifestTask.outputs.files)
         }

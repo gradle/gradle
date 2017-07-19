@@ -36,7 +36,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
@@ -70,7 +70,7 @@ import java.util.concurrent.Callable;
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
-    static final String COMPILE_CONFIGURATION = "compile";
+    static final String API_CONFIGURATION = "api";
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
     static final String GRADLE_PLUGINS = "gradle-plugins";
@@ -116,7 +116,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION = "Validates task property annotations for the plugin.";
 
     public void apply(Project project) {
-        project.getPluginManager().apply(JavaPlugin.class);
+        project.getPluginManager().apply(JavaLibraryPlugin.class);
         applyDependencies(project);
         GradlePluginDevelopmentExtension extension = createExtension(project);
         configureJarTask(project, extension);
@@ -129,7 +129,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private void applyDependencies(Project project) {
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(COMPILE_CONFIGURATION, dependencies.gradleApi());
+        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
@@ -369,10 +369,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             Set<SourceSet> testSourceSets = extension.getTestSourceSets();
 
             for (SourceSet testSourceSet : testSourceSets) {
-                String compileConfigurationName = testSourceSet.getCompileConfigurationName();
-                dependencies.add(compileConfigurationName, dependencies.gradleTestKit());
-                String runtimeConfigurationName = testSourceSet.getRuntimeConfigurationName();
-                dependencies.add(runtimeConfigurationName, project.files(pluginClasspathTask));
+                dependencies.add(testSourceSet.getImplementationConfigurationName(), dependencies.gradleTestKit());
+                dependencies.add(testSourceSet.getRuntimeOnlyConfigurationName(), project.files(pluginClasspathTask));
             }
         }
     }
