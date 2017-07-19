@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.transport.gcp.gcs;
 
 import com.google.api.services.storage.model.StorageObject;
-import org.gradle.api.Nullable;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -26,6 +25,7 @@ import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
