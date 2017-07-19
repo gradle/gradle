@@ -16,6 +16,7 @@
 
 package org.gradle.binarycompatibility.rules
 
+import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
@@ -83,7 +84,28 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
             seenApiChanges.add(change)
             return Violation.accept(member, acceptationReason)
         }
-        return rejection
+        def acceptanceJson = new LinkedHashMap<String, Object>([
+            type: change.type,
+            member: change.member,
+            acceptation: '&lt;ADD YOUR CUSTOM REASON HERE&gt;'
+        ])
+        if (change.changes) {
+            acceptanceJson.changes = change.changes
+        }
+
+        def id = "accept" + (change.type + change.member).replaceAll('[^a-zA-Z0-9]', '_')
+        Violation violation = Violation.error(
+            member,
+            rejection.getHumanExplanation() + """
+                <a class="btn btn-info" role="button" data-toggle="collapse" href="#${id}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
+                <div class="collapse" id="${id}">
+                  <div class="well">
+                      In order to accept this change add the following to <code>subprojects/distributions/src/changes/accepted-public-api-changes.json</code>:
+                    <pre>${JsonOutput.prettyPrint(JsonOutput.toJson(acceptanceJson))}</pre>
+                  </div>
+                </div>""".stripIndent()
+        )
+        return violation
     }
 
 }
