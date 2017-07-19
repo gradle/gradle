@@ -19,6 +19,7 @@ package org.gradle.api.attributes;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.internal.changedetection.state.Scalars;
 
 /**
  * An attribute is a named entity with a type. It is used in conjunction with a {@link AttributeContainer}
@@ -66,6 +67,7 @@ public class Attribute<T> implements Named {
     }
 
     private Attribute(String name, Class<T> type) {
+        validateType(name, type);
         this.name = name;
         this.type = type;
         int hashCode = name.hashCode();
@@ -116,5 +118,31 @@ public class Attribute<T> implements Named {
     @Override
     public String toString() {
         return name;
+    }
+
+    private static <T> void validateType(String name, Class<T> clazz) {
+        if (clazz.isArray()) {
+            validateType(name, clazz.getComponentType());
+            return;
+        }
+        if (Scalars.isScalarType(clazz)) {
+            return;
+        }
+        if (Named.class.isAssignableFrom(clazz)) {
+            return;
+        }
+        throw new IllegalArgumentException("Cannot declare a attribute '" + name + "' with type " + clazz + ". Supported types are: \n" + supportedTypes());
+    }
+
+    private static String supportedTypes() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("   - primitive types (byte, boolean, char, short, int, long, float, double) and their wrapped types (Byte, ...)\n");
+        sb.append("   - an enum\n");
+        sb.append("   - an instance of String\n");
+        sb.append("   - an instance of File\n");
+        sb.append("   - an instance of BigInteger, BigDecimal, AtomicInteger, AtomicBoolean or AtomicLong\n");
+        sb.append("   - a Named instance\n");
+        sb.append("   - an array of the above\n");
+        return sb.toString();
     }
 }

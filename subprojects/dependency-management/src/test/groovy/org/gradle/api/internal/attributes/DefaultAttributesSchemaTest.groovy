@@ -17,28 +17,83 @@
 package org.gradle.api.internal.attributes
 
 import com.google.common.collect.LinkedListMultimap
+import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
+import org.gradle.api.internal.changedetection.state.Scalars
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.DefaultCandidateResult
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultAttributesSchemaTest extends Specification {
     def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
     def factory = new DefaultImmutableAttributesFactory()
 
-    def "fails if no strategy is declared for custom type"() {
+    @Unroll
+    def "can create an attribute of scalar type #type"() {
         when:
-        schema.getMatchingStrategy(Attribute.of('map', Map))
+        Attribute.of('foo', type)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        type << [
+            *Scalars.TYPES,
+            MyEnum,
+            Flavor
+        ]
+    }
+
+    @Unroll
+    def "can create an attribute of scalar type #type.name[]"() {
+        when:
+        Attribute.of('foo', Eval.me("${type.name}[]"))
+
+        then:
+        noExceptionThrown()
+
+        where:
+        type << [
+            *Scalars.TYPES,
+            MyEnum,
+            Flavor
+        ]
+    }
+
+    def "displays a reasonable error message if attribute type is unsupported"() {
+        when:
+        Attribute.of('attr', Date)
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == 'Unable to find matching strategy for map'
+
+        and:
+        e.message == '''Cannot declare a attribute 'attr' with type class java.util.Date. Supported types are: 
+   - primitive types (byte, boolean, char, short, int, long, float, double) and their wrapped types (Byte, ...)
+   - an enum
+   - an instance of String
+   - an instance of File
+   - an instance of BigInteger, BigDecimal, AtomicInteger, AtomicBoolean or AtomicLong
+   - a Named instance
+   - an array of the above
+'''
+    }
+
+    def "fails if no strategy is declared for custom type"() {
+        when:
+        schema.getMatchingStrategy(Attribute.of('flavor', Flavor))
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Unable to find matching strategy for flavor'
     }
 
     def "treats equal values as compatible when no rules defined"() {
@@ -108,57 +163,57 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "strategy is per attribute"() {
         given:
-        schema.attribute(Attribute.of('a', Map))
+        schema.attribute(Attribute.of('a', Flavor))
 
         when:
-        schema.getMatchingStrategy(Attribute.of('someOther', Map))
+        schema.getMatchingStrategy(Attribute.of('someOther', Flavor))
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == 'Unable to find matching strategy for someOther'
 
         when:
-        schema.getMatchingStrategy(Attribute.of('map', Map))
+        schema.getMatchingStrategy(Attribute.of('picard', Flavor))
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == 'Unable to find matching strategy for map'
+        e.message == 'Unable to find matching strategy for picard'
     }
 
-    static class CustomCompatibilityRule implements AttributeCompatibilityRule<Map> {
+    static class CustomCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
         @Override
-        void execute(CompatibilityCheckDetails<Map> details) {
+        void execute(CompatibilityCheckDetails<Flavor> details) {
             def producerValue = details.producerValue
             def consumerValue = details.consumerValue
-            if (producerValue.size() > consumerValue.size()) {
+            if (producerValue.name.length() > consumerValue.name.length()) {
                 // arbitrary, just for testing purposes
                 details.compatible()
             }
         }
     }
 
-    static class CustomSelectionRule implements AttributeDisambiguationRule<Map> {
+    static class CustomSelectionRule implements AttributeDisambiguationRule<Flavor> {
         @Override
-        void execute(MultipleCandidatesDetails<Map> details) {
+        void execute(MultipleCandidatesDetails<Flavor> details) {
             details.closestMatch(details.candidateValues.first())
         }
     }
 
     def "compatibility rules can mark values as compatible"() {
-        def attr = Attribute.of(Map)
+        def attr = Attribute.of(Flavor)
 
         given:
         schema.attribute(attr).compatibilityRules.add(CustomCompatibilityRule)
 
-        def value1 = [a: 'foo', b: 'bar']
-        def value2 = [c: 'foo', d: 'bar', e: 'nothing']
+        def value1 = flavor('value')
+        def value2 = flavor('otherValue')
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<Map>(value1, value2)
+        def details = new DefaultCompatibilityCheckResult<Flavor>(value1, value2)
         schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, details)
         details.isCompatible()
 
-        def details2 = new DefaultCompatibilityCheckResult<Map>(value2, value1)
+        def details2 = new DefaultCompatibilityCheckResult<Flavor>(value2, value1)
         schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, details2)
         !details2.isCompatible()
 
@@ -271,13 +326,13 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "custom rule can select best match"() {
-        def attr = Attribute.of(Map)
+        def attr = Attribute.of(Flavor)
 
         given:
         schema.attribute(attr).disambiguationRules.add(CustomSelectionRule)
 
-        def value1 = [a: 'foo', b: 'bar']
-        def value2 = [c: 'foo', d: 'bar']
+        def value1 = flavor('value1')
+        def value2 = flavor('value2')
 
         def candidates = LinkedListMultimap.create()
         candidates.put(value1, "item1")
@@ -285,7 +340,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
         when:
         def best = []
-        def candidateDetails = new DefaultCandidateResult(candidates, [requested: 'abc'], best)
+        def candidateDetails = new DefaultCandidateResult(candidates, flavor('requested'), best)
 
         schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
@@ -324,14 +379,14 @@ class DefaultAttributesSchemaTest extends Specification {
     def "uses the producers compatibility rules when the consumer does not express an opinion"() {
         def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
 
-        def attr = Attribute.of("a", Map)
+        def attr = Attribute.of("a", Flavor)
 
         schema.attribute(attr)
         producer.attribute(attr).compatibilityRules.add(CustomCompatibilityRule)
 
         expect:
         def merged = schema.mergeWith(producer)
-        def result = new DefaultCompatibilityCheckResult<Object>([a: 'value'], [a: 'value', b: 'value'])
+        def result = new DefaultCompatibilityCheckResult<Object>(flavor('value'), flavor('otherValue'))
         merged.matchValue(attr, result)
         result.compatible
     }
@@ -339,13 +394,13 @@ class DefaultAttributesSchemaTest extends Specification {
     def "uses the producers selection rules when the consumer does not express an opinion"() {
         def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
 
-        def attr = Attribute.of("a", Map)
+        def attr = Attribute.of("a", Flavor)
 
         schema.attribute(attr)
         producer.attribute(attr).disambiguationRules.add(CustomSelectionRule)
 
-        def value1 = [a: 'foo', b: 'bar']
-        def value2 = [c: 'foo', d: 'bar']
+        def value1 = flavor('value')
+        def value2 = flavor('otherValue')
 
         def candidates = LinkedListMultimap.create()
         candidates.put(value1, "item1")
@@ -353,11 +408,23 @@ class DefaultAttributesSchemaTest extends Specification {
 
         when:
         def best = []
-        def candidateDetails = new DefaultCandidateResult(candidates, [requested: 'abc'], best)
+        def candidateDetails = new DefaultCandidateResult(candidates, flavor('requested'), best)
 
         schema.mergeWith(producer).disambiguate(attr, candidateDetails)
 
         then:
         best == ["item1"]
     }
+
+    interface Flavor extends Named {}
+
+    enum MyEnum {
+        FOO,
+        BAR
+    }
+
+    static Flavor flavor(String name) {
+        NamedObjectInstantiator.INSTANCE.named(Flavor, name)
+    }
+
 }

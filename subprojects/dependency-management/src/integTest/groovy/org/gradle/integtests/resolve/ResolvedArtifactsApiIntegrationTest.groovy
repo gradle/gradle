@@ -663,7 +663,7 @@ ${showFailuresTask(expression)}
     def "reports failure to select configurations when artifacts are queried"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """
-def volume = Attribute.of('volume', Number)
+def volume = Attribute.of('volume', Integer)
 allprojects {
     dependencies.attributesSchema.attribute(volume)
 }
