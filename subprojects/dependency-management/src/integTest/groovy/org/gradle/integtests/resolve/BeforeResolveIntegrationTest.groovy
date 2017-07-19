@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Issue
 
@@ -83,7 +82,6 @@ task copyFiles(type:Copy) {
     }
 
     // This emulates the behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
-    @NotYetImplemented
     def "can use beforeResolve hook to modify dependency excludes for configuration hierarchy"() {
         mavenRepo.module('org.test', 'module1', '1.0').publish()
         mavenRepo.module('org.test', 'module2', '1.0').publish()

@@ -81,7 +81,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
 
         @Override
         public void execute(ModuleDependency moduleDependency) {
-            ((MutationValidator) clientConfiguration).validateMutation(MutationValidator.MutationType.DEPENDENCIES);
+            ((MutationValidator) clientConfiguration).validateMutation(MutationValidator.MutationType.DEPENDENCY_ATTRIBUTES);
         }
     }
 }
