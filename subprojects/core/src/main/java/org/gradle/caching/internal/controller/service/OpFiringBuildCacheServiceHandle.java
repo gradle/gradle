@@ -54,7 +54,7 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(description)
                     .details(new LoadOperationDetails(key))
-                    .progressDisplayName("load build cache entry");
+                    .progressDisplayName("Loading build cache entry");
             }
         });
     }
@@ -72,7 +72,7 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(description)
                     .details(new StoreOperationDetails(key, storeTarget.getSize()))
-                    .progressDisplayName("store build cache entry");
+                    .progressDisplayName("Storing build cache entry");
             }
         });
     }
