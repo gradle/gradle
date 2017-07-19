@@ -35,6 +35,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         publishedModuleB = mavenRepo.module("org.test", "buildC", "1.0").publish()
 
         buildA.buildFile << """
+            println "Configured buildA"
             task resolve(type: Copy) {
                 from configurations.compile
                 into 'libs'
@@ -43,6 +44,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
+                println "Configured buildB"
                 allprojects {
                     apply plugin: 'java'
                     repositories {
@@ -57,6 +59,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
 
         buildC = singleProjectBuild("buildC") {
             buildFile << """
+                println "Configured buildC"
                 apply plugin: 'java'
 """
         }
@@ -73,6 +76,22 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         then:
         executedInOrder ":buildB:jar", ":resolve"
         result.assertOutputContains "[$buildBjar]"
+
+        configured("buildB") == 1
+    }
+
+    def "uses substituted dependency when same root build dependency is resolved at both configuration and executiong time"() {
+        configurationTimeDependency 'org.test:buildB:1.0'
+        dependency 'org.test:buildB:1.0'
+
+        when:
+        execute buildA, ":resolve"
+
+        then:
+        executedInOrder ":buildB:jar", ":resolve"
+        result.assertOutputContains "[$buildBjar]"
+
+        configured("buildB") == 1
     }
 
     def "uses substituted dependency when root build dependencies are resolved at both configuration and execution time"() {
@@ -86,6 +105,8 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         executedInOrder ":buildB:jar", ":buildB:b1:jar", ":resolve"
         result.assertOutputContains("[$buildBjar]")
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
+
+        configured("buildB") == 2
     }
 
     def "included build uses substituted dependency from preceding included build"() {
@@ -98,6 +119,8 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         then:
         executedInOrder ":buildB:jar", ":help"
         result.assertOutputContains("[$buildBjar]")
+
+        configured("buildB") == 1
     }
 
     def "included build does not use substituted dependency from subsequent included build"() {
@@ -113,6 +136,8 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         executedInOrder ":help"
         notExecuted ":buildB:jar"
         result.assertOutputContains("[${publishedModuleB.artifactFile}]")
+
+        configured("buildB") == 1
     }
 
     private void configurationTimeDependency(BuildTestFile sourceBuild = buildA, String notation) {
@@ -143,6 +168,10 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         files.each {
             buildA.file('libs/' + it.name).assertIsCopyOf(it)
         }
+    }
+
+    private int configured(def build) {
+        result.output.count("Configured " + build)
     }
 
     private void executedInOrder(String... tasks) {
