@@ -183,6 +183,20 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
+     * Returns a JDK that has a different Java home to the current one, is supported byt the Gradle version under tests and a valid jre.
+     */
+    public static Jvm getDifferentJdkWithValidJre() {
+        return AvailableJavaHomes.getAvailableJdk(new Spec<JvmInstallation>() {
+            @Override
+            public boolean isSatisfiedBy(JvmInstallation jvm) {
+                return !jvm.getJavaHome().equals(Jvm.current().getJavaHome())
+                    && isSupportedVersion(jvm)
+                    && Jvm.discovered(jvm.getJavaHome(), jvm.getJavaVersion()).getJre() != null;
+            }
+        });
+    }
+
+    /**
      * Locates a JRE installation for the current JVM. Prefers a stand-alone JRE installation over one that is part of a JDK install.
      *
      * @return The JRE home directory, or null if not found

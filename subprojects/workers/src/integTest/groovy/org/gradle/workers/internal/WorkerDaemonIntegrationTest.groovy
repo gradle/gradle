@@ -16,9 +16,10 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
-import org.gradle.integtests.fixtures.jvm.JvmUtils
+
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
@@ -129,9 +130,9 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
     }
 
     def "worker daemons honor different executable specified in fork options"() {
-        def differentJvm = JvmUtils.findAnotherJvm()
+        def differentJvm = AvailableJavaHomes.differentJdkWithValidJre
         Assume.assumeNotNull(differentJvm)
-        def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.getJavaExecutable().absolutePath)
+        def differentJavacExecutablePath = normaliseFileSeparators(differentJvm.getJavaExecutable().absolutePath)
 
         withJava7CompatibleClasses()
         withRunnableClassInBuildSrc()
@@ -143,7 +144,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
                 isolationMode = IsolationMode.PROCESS
                 runnableClass = ExecutableVerifyingRunnable.class
                 additionalForkOptions = { options ->
-                    options.executable = new File('${differentJavaExecutablePath}')
+                    options.executable = new File('${differentJavacExecutablePath}')
                 }
             }
         """

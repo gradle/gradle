@@ -15,12 +15,13 @@
  */
 package org.gradle.scala.compile
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.integtests.fixtures.jvm.JvmUtils
+
 import org.gradle.util.VersionNumber
 import org.junit.Assume
 import org.junit.Rule
@@ -118,9 +119,9 @@ compileScala.scalaCompileOptions.failOnError = false
     }
 
     def "respects fork options settings and ignores executable"() {
-        def differentJvm = JvmUtils.findAnotherJvm()
+        def differentJvm = AvailableJavaHomes.differentJdkWithValidJre
         Assume.assumeNotNull(differentJvm)
-        def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.javacExecutable.absolutePath)
+        def differentJavacExecutablePath = normaliseFileSeparators(differentJvm.javacExecutable.absolutePath)
 
         file("build.gradle") << """
             import org.gradle.workers.internal.WorkerDaemonClientsManager
@@ -137,7 +138,7 @@ compileScala.scalaCompileOptions.failOnError = false
             }
             
             tasks.withType(ScalaCompile) { 
-                options.forkOptions.executable = "${differentJavaExecutablePath}"
+                options.forkOptions.executable = "${differentJavacExecutablePath}"
                 options.forkOptions.memoryInitialSize = "128m"
                 options.forkOptions.memoryMaximumSize = "256m"
                 options.forkOptions.jvmArgs = ["-Dfoo=bar"]

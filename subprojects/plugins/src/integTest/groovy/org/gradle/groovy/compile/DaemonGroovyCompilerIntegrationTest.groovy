@@ -15,16 +15,17 @@
  */
 package org.gradle.groovy.compile
 
-import org.gradle.integtests.fixtures.jvm.JvmUtils
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.junit.Assume
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
     def "respects fork options settings and ignores executable"() {
-        def differentJvm = JvmUtils.findAnotherJvm()
+        Jvm differentJvm = AvailableJavaHomes.differentJdkWithValidJre
         Assume.assumeNotNull(differentJvm)
-        def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.javacExecutable.absolutePath)
+        def differentJavacExecutablePath = normaliseFileSeparators(differentJvm.javacExecutable.absolutePath)
 
         file("src/main/groovy/JavaThing.java") << "public class JavaThing {}"
         file("src/main/groovy/AbstractThing.groovy") << "class AbstractThing {}"
@@ -37,7 +38,7 @@ class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSp
             apply plugin: "groovy"
             repositories { mavenCentral() }
             tasks.withType(GroovyCompile) {
-                options.forkOptions.executable = "${differentJavaExecutablePath}"
+                options.forkOptions.executable = "${differentJavacExecutablePath}"
                 options.forkOptions.memoryInitialSize = "128m"
                 options.forkOptions.memoryMaximumSize = "256m"
                 options.forkOptions.jvmArgs = ["-Dfoo=bar"]
