@@ -17,6 +17,7 @@
 package org.gradle.integtests.resource.gcs.fixtures.stub
 
 import groovy.transform.ToString
+import org.gradle.util.ConfigureUtil
 
 @ToString
 class HttpStub {
@@ -24,26 +25,16 @@ class HttpStub {
     StubResponse response
 
     static stubInteraction(Closure<?> closure) {
-        closure.resolveStrategy = Closure.DELEGATE_FIRST
-        HttpStub stub = new HttpStub()
-        closure.delegate = stub
-        closure()
-        stub
+        ConfigureUtil.configure(closure, new HttpStub())
     }
 
     def request(Closure<?> closure){
-        closure.resolveStrategy = Closure.DELEGATE_FIRST
-        StubRequest stubRequest = new StubRequest()
-        closure.delegate = stubRequest
-        closure()
-        request = stubRequest
+        request = new StubRequest()
+        ConfigureUtil.configure(closure, request)
     }
 
     def response(Closure<?> closure){
-        closure.resolveStrategy = Closure.DELEGATE_FIRST
-        StubResponse stubResponse= new StubResponse()
-        closure.delegate = stubResponse
-        closure()
-        response = stubResponse
+        response = new StubResponse()
+        ConfigureUtil.configure(closure, response)
     }
 }
