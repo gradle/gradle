@@ -18,7 +18,9 @@ package org.gradle.workers.internal;
 
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -34,12 +36,14 @@ public class SerializingActionExecutionSpec implements ActionExecutionSpec {
     private final Class<? extends Runnable> implementationClass;
     private final File executionWorkingDir;
     private final byte[] params;
+    private transient Instantiator instantiator;
 
-    public SerializingActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, File executionWorkingDir, Object[] params) {
+    public SerializingActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, File executionWorkingDir, Object[] params, Instantiator instantiator) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.executionWorkingDir = executionWorkingDir;
         this.params = serialize(params);
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -83,6 +87,12 @@ public class SerializingActionExecutionSpec implements ActionExecutionSpec {
         } catch (ClassNotFoundException e) {
             throw new ParameterSerializationException("Could not deserialize parameters", e);
         }
+    }
+
+    @Nullable
+    @Override
+    public Instantiator getActionInstantiator() {
+        return instantiator;
     }
 
     @Contextual
