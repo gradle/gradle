@@ -728,7 +728,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         if (resolvedState == ARTIFACTS_RESOLVED) {
-            throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
+            // TODO Deprecate and prevent modifying the dependency attributes of a parent configuration
+            if (type != MutationType.DEPENDENCY_ATTRIBUTES) {
+                throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
+            }
         } else if (resolvedState == GRAPH_RESOLVED) {
             if (type == MutationType.DEPENDENCIES) {
                 throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after task dependencies have been resolved", type, getDisplayName()));
@@ -739,6 +742,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void validateMutation(MutationType type) {
+        preventIllegalMutation(type);
+        markAsModifiedAndNotifyChildren(type);
+    }
+
+    private void preventIllegalMutation(MutationType type) {
+        // TODO Deprecate and eventually prevent these mutations
+        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
+            return;
+        }
+
         if (resolvedState == ARTIFACTS_RESOLVED) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
@@ -754,8 +767,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been included in dependency resolution.%s", type, getDisplayName(), extraMessage));
             }
         }
-
-        markAsModifiedAndNotifyChildren(type);
     }
 
     private void markAsModifiedAndNotifyChildren(MutationType type) {

@@ -32,6 +32,13 @@ public interface MutationValidator {
         DEPENDENCIES,
 
         /**
+         * The mutation of the attributes (other than coordinates) of a dependency.
+         * Theoretically these should be bundled under {@link MutationType#DEPENDENCIES}, but these mutations are not (yet)
+         * prevented on resolved configurations.
+         */
+        DEPENDENCY_ATTRIBUTES,
+
+        /**
          * The mutation of the artifacts of the configuration.
          */
         ARTIFACTS,
