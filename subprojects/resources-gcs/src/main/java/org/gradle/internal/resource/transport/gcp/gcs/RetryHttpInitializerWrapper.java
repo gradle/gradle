@@ -28,10 +28,10 @@ import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.client.util.Sleeper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * RetryHttpInitializerWrapper will automatically retry upon RPC failures, preserving the
@@ -42,7 +42,8 @@ import java.util.logging.Logger;
  */
 final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
 
-    private static final Logger LOG = Logger.getLogger(RetryHttpInitializerWrapper.class.getName());
+    private static final Logger LOG = Logging.getLogger(RetryHttpInitializerWrapper.class);
+
     private final Supplier<Credential> credentialSupplier;
     private final Sleeper sleeper;
     private static final int MILLIS_PER_MINUTE = 60 * 1000;
@@ -63,7 +64,7 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
         final boolean loggingEnabled = false;
         request.setLoggingEnabled(loggingEnabled);
         request.setCurlLoggingEnabled(loggingEnabled);
-        Logger.getLogger(HttpTransport.class.getName()).setLevel(Level.OFF);
+        disableHttpTransportLogging();
 
         request.setReadTimeout(2 * MILLIS_PER_MINUTE); // 2 minutes read timeout
         final HttpUnsuccessfulResponseHandler backoffHandler =
@@ -93,5 +94,9 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
         });
         request.setIOExceptionHandler(new HttpBackOffIOExceptionHandler(new ExponentialBackOff())
             .setSleeper(sleeper));
+    }
+
+    private static void disableHttpTransportLogging() {
+        java.util.logging.Logger.getLogger(HttpTransport.class.getName()).setLevel(java.util.logging.Level.OFF);
     }
 }
