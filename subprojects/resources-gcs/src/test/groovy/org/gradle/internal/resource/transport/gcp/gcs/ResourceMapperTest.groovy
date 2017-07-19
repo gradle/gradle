@@ -20,31 +20,31 @@ import com.google.api.client.util.DateTime
 import com.google.api.services.storage.model.StorageObject
 import spock.lang.Specification
 
-class GcsResourceTest extends Specification {
+class ResourceMapperTest extends Specification {
 
-    URI uri = new URI("http://somewhere")
+    URI uri = new URI("http://elsewhere")
 
-    def "should get metaData"() {
+    def "should map uri and storage object to external resource metadata"() {
         def lastModified = new DateTime(new Date())
-        def md5hash = '5ab81d4c80e1ee62e6f34e7b3271874e'
-        def contentType = 'text/plain'
+        def md5hash = '6b53d334d6959ff26af1a376c0fbd8ae'
+        def contentType = 'application/octet-stream'
         def storageObject = new StorageObject()
         storageObject.setUpdated(lastModified)
         storageObject.setMd5Hash(md5hash)
-        storageObject.setSize(BigInteger.ONE)
+        storageObject.setSize(BigInteger.TEN)
         storageObject.setContentType(contentType)
-        storageObject.setEtag(Integer.toString(5))
+        storageObject.setEtag(Integer.toString(16))
 
         when:
-        def metaData = new GcsResource(Mock(GcsClient), storageObject, uri).getMetaData()
+        def metaData = ResourceMapper.toExternalResourceMetaData(uri, storageObject)
 
         then:
         metaData != null
         metaData.location == uri
         metaData.lastModified == new Date(lastModified.value)
-        metaData.contentLength == BigInteger.ONE.longValue()
+        metaData.contentLength == BigInteger.TEN.longValue()
         metaData.contentType == contentType
-        metaData.etag == Integer.toString(5)
+        metaData.etag == Integer.toString(16)
         metaData.sha1 == null
     }
 }
