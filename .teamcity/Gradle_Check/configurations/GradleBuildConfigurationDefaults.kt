@@ -60,7 +60,7 @@ fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, t
     buildType.vcs {
         root(vcsRoot)
         checkoutMode = CheckoutMode.ON_AGENT
-        buildDefaultBranch = false
+        buildDefaultBranch = !vcsRoot.contains("Branches")
     }
 
     buildType.requirements {
