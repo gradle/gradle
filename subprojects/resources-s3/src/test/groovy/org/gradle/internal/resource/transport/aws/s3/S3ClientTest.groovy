@@ -33,6 +33,8 @@ class S3ClientTest extends Specification {
 
     def setup(){
         _ * s3ConnectionProperties.getEndpoint() >> Optional.absent()
+        _ * s3ConnectionProperties.getPartSize() >> 512
+        _ * s3ConnectionProperties.getMultipartThreshold() >> 1024
     }
 
     def "Should upload to s3"() {
