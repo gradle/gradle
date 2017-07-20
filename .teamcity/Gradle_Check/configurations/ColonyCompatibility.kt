@@ -2,6 +2,7 @@ package configurations
 
 import jetbrains.buildServer.configs.kotlin.v10.BuildStep
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import model.CIBuildModel
@@ -32,5 +33,12 @@ class ColonyCompatibility(model: CIBuildModel) : BuildType({
         }
     }
 
-    applyDefaultDependencies(model, this, true, "distributions/*-bin.zip => gradle-test/incoming-distributions/release\n-:distributions/*-test-bin.zip")
+    dependencies {
+        dependency("${model.projectPrefix}Stage3_Passes") {
+            snapshot {
+                onDependencyFailure = FailureAction.CANCEL
+                onDependencyCancel = FailureAction.CANCEL
+            }
+        }
+    }
 })
