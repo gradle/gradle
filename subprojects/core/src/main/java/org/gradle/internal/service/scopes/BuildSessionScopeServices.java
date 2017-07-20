@@ -59,6 +59,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -113,8 +114,12 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         addProvider(new ScopeIdsServices());
     }
 
-    DeploymentRegistry createDeploymentRegistry() {
-        return new DefaultDeploymentRegistry();
+    PendingChangesManager createPendingChangesManager(ListenerManager listenerManager) {
+        return new PendingChangesManager(listenerManager);
+    }
+
+    DeploymentRegistry createDeploymentRegistry(PendingChangesManager pendingChangesManager) {
+        return new DefaultDeploymentRegistry(pendingChangesManager);
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {

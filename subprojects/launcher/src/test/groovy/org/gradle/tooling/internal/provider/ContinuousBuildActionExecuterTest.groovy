@@ -25,9 +25,10 @@ import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
-import org.gradle.internal.filewatch.FileWatcherEventListenerFactory
+import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.ServiceRegistry
@@ -52,19 +53,22 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def actionParameters = Stub(BuildActionParameters)
     def waiterFactory = Mock(FileSystemChangeWaiterFactory)
-    def changeWatcherFactory = new FileWatcherEventListenerFactory()
     def waiter = Mock(FileSystemChangeWaiter)
     def inputsListener = new DefaultTaskInputsListener()
     @AutoCleanup("stop")
     def executorFactory = new DefaultExecutorFactory()
     def globalServices = Stub(ServiceRegistry)
+    def listenerManager = Stub(ListenerManager)
+    def pendingChangesListener = Mock(PendingChangesListener)
     def executer = executer()
 
     private File file = new File('file')
 
     def setup() {
+        globalServices.get(ListenerManager) >> listenerManager
+        listenerManager.getBroadcaster(PendingChangesListener) >> pendingChangesListener
         requestMetadata.getBuildTimeClock() >> clock
-        waiterFactory.createChangeWaiter(_) >> waiter
+        waiterFactory.createChangeWaiter(_, _) >> waiter
         waiter.isWatching() >> true
     }
 
@@ -181,6 +185,6 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(delegate, waiterFactory, changeWatcherFactory, inputsListener, new TestStyledTextOutputFactory(), executorFactory)
+        new ContinuousBuildActionExecuter(delegate, waiterFactory, inputsListener, new TestStyledTextOutputFactory(), executorFactory)
     }
 }

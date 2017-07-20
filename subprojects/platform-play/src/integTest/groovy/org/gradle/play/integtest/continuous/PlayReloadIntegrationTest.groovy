@@ -16,13 +16,21 @@
 
 package org.gradle.play.integtest.continuous
 
+import org.gradle.internal.filewatch.PendingChangesListener
+import org.gradle.internal.filewatch.PendingChangesManager
+import org.gradle.internal.filewatch.SingleFirePendingChangesListener
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest
 import org.gradle.play.integtest.fixtures.AdvancedRunningPlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
-import org.gradle.play.integtest.fixtures.PlayApp
+import org.gradle.play.tasks.PlayRun
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 
 class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegrationTest {
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
+
     RunningPlayApp runningApp = new AdvancedRunningPlayApp(testDirectory)
     PlayApp playApp = new AdvancedPlayApp()
 
@@ -41,22 +49,22 @@ class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegratio
         appIsRunningAndDeployed()
 
         when:
-        addHelloWorld()
+        addNewRoute()
 
         then:
         succeeds()
-        runningApp.playUrl('hello').text == 'Hello world'
+        runningApp.playUrl('hello').text == 'hello world'
     }
 
-    private void addHelloWorld() {
-        file("conf/routes") << "\nGET     /hello                   controllers.Application.hello"
+    private void addNewRoute(String route="hello") {
+        file("conf/routes") << "\nGET     /${route}                   controllers.Application.${route}"
         file("app/controllers/Application.scala").with {
-            text = text.replaceFirst(/(?s)\}\s*$/, '''
-  def hello = Action {
-    Ok("Hello world")
+            text = text.replaceFirst(/(?s)\}\s*$/, """
+  def ${route} = Action {
+    Ok("${route} world")
   }
 }
-''')
+""")
         }
     }
 
@@ -196,11 +204,132 @@ task otherTask {
         appIsRunningAndDeployed()
 
         when:
-        addHelloWorld()
+        addNewRoute()
 
         then:
         fails()
         !executedTasks.contains('runPlayBinary')
         errorPageHasTaskFailure("otherTask")
+    }
+
+    void addPendingChangesHook() {
+        buildFile << """
+            ext.pendingChanges = new java.util.concurrent.atomic.AtomicBoolean(false)
+
+            void addPendingChangeListener() {
+                def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
+                pendingChangesManager.addListener new ${SingleFirePendingChangesListener.canonicalName}({
+                    synchronized(pendingChanges) {
+                        println "Pending changes detected"
+                        pendingChanges.set(true)
+                        pendingChanges.notifyAll()
+                    }
+                } as ${PendingChangesListener.canonicalName})
+            }
+
+            void waitForPendingChanges() {
+                synchronized(pendingChanges) {
+                    while(!pendingChanges.get()) {
+                        pendingChanges.wait()
+                    }
+                }
+            }
+        """
+    }
+
+    def "wait for changes to be built when a request comes in during initial app startup and there are pending changes"() {
+        addPendingChangesHook()
+        // Prebuild so we don't timeout waiting for the 'rebuild' trigger
+        executer.withTasks("playBinary").run()
+
+        server.start()
+        buildFile << """
+            addPendingChangeListener()
+
+            tasks.withType(${PlayRun.name}) {
+                doLast {
+                    def routes = file('conf/routes').text
+                    if (!routes.contains("hello")) {
+                        // signal we're ready to modify
+                        ${server.callFromBuild("rebuild")}
+                        // test should have added the hello route, so wait until Gradle
+                        // detects this as a pending change
+                        waitForPendingChanges()
+                    }
+                }
+            }
+        """
+
+        when:
+        start("runPlayBinary")
+        def rebuild = server.expectAndBlock("rebuild")
+        rebuild.waitForAllPendingCalls()
+        // Trigger a change during the build
+        addNewRoute()
+        rebuild.releaseAll()
+        then:
+        appIsRunningAndDeployed()
+        runningApp.playUrl('hello').text == 'hello world'
+    }
+
+    def "wait for pending changes to be built if a request comes in during a build and there are pending changes"() {
+        server.start()
+        addPendingChangesHook()
+        buildFile << """
+            addPendingChangeListener()
+
+            tasks.withType(${PlayRun.name}) {
+                doLast {
+                    def routes = file('conf/routes').text
+                    if (routes.contains("hello") && !routes.contains("goodbye")) {
+                        // hello route is present, signal we're ready to modify again
+                        ${server.callFromBuild("rebuild")}
+                        // test should have added the goodbye route, so wait until Gradle
+                        // detects this as a pending change
+                        waitForPendingChanges()
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("runPlayBinary")
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        // Trigger a change
+        addNewRoute()
+        def rebuild = server.expectAndBlock("rebuild")
+        rebuild.waitForAllPendingCalls()
+        // Trigger another change during the build
+        addNewRoute("goodbye")
+        rebuild.releaseAll()
+        then:
+        // goodbye route is added by second change, so if it's available, we know we've blocked
+        runningApp.playUrl('goodbye').text == 'goodbye world'
+        runningApp.playUrl('hello').text == 'hello world'
+    }
+
+    def "wait for pending changes to be built when a request comes in after initial startup"() {
+        server.start()
+        settingsFile << """
+            gradle.projectsLoaded {
+                ${server.callFromBuild("buildStarted")}
+            }
+        """
+        when:
+        server.expect("buildStarted")
+        succeeds("runPlayBinary")
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        addNewRoute()
+        def buildStarted = server.expectAndBlock("buildStarted")
+        buildStarted.waitForAllPendingCalls()
+        buildStarted.releaseAll()
+        then:
+        runningApp.playUrl('hello').text == 'hello world'
     }
 }

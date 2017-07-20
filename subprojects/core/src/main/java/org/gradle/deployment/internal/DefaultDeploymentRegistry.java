@@ -22,17 +22,25 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.filewatch.PendingChangesListener;
+import org.gradle.internal.filewatch.PendingChangesManager;
 
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DefaultDeploymentRegistry implements DeploymentRegistry {
+public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingChangesListener {
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
 
     private final Lock lock = new ReentrantLock();
     private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
+    private final PendingChangesManager pendingChangesManager;
     private boolean stopped;
+
+    public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager) {
+        this.pendingChangesManager = pendingChangesManager;
+        pendingChangesManager.addListener(this);
+    }
 
     @Override
     public void register(String id, DeploymentHandle handle) {
@@ -72,6 +80,17 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
         }
     }
 
+    public void onPendingChanges() {
+        lock.lock();
+        try {
+            for (DeploymentHandle handle : handles.values()) {
+                handle.onPendingChanges();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
     @Override
     public void stop() {
         lock.lock();
@@ -84,6 +103,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
             handles.clear();
             lock.unlock();
         }
+        pendingChangesManager.removeListener(this);
     }
 
     private void failIfStopped() {

@@ -54,7 +54,7 @@ public class PlayApplicationRunnerToken {
         return !stopped.get();
     }
 
-    public void expectPendingChanges() {
-        workerServer.expectPendingChanges();
+    public void onPendingChanges() {
+        workerServer.onPendingChanges();
     }
 }

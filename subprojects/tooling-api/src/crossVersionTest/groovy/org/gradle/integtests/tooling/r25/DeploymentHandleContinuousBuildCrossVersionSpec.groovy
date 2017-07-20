@@ -55,6 +55,8 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
                 }
 
                 public void onNewBuild(Gradle gradle) {}
+                
+                public void onPendingChanges() {}
 
                 public void stop() {
                     running = false

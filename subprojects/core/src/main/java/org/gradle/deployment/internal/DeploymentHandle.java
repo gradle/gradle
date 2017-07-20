@@ -22,4 +22,5 @@ import org.gradle.internal.concurrent.Stoppable;
 public interface DeploymentHandle extends Stoppable {
     boolean isRunning();
     void onNewBuild(Gradle gradle);
+    void onPendingChanges();
 }

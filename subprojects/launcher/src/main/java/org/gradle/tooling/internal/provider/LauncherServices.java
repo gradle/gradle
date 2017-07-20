@@ -23,7 +23,6 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
-import org.gradle.internal.filewatch.FileWatcherEventListenerFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -69,7 +68,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                           LoggingManagerInternal loggingManager,
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
                                           FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory,
-                                          FileWatcherEventListenerFactory fileWatcherEventListenerFactory,
                                           ParallelismConfigurationManager parallelismConfigurationManager) {
             return new SetupLoggingActionExecuter(
                 new SessionFailureReportingActionExecuter(
@@ -88,7 +86,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                     registrations),
                                                 gradleLauncherFactory)),
                                         fileSystemChangeWaiterFactory,
-                                        fileWatcherEventListenerFactory,
                                         inputsListener,
                                         styledTextOutputFactory,
                                         executorFactory),
@@ -96,10 +93,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             parallelismConfigurationManager)),
                     styledTextOutputFactory),
                 loggingManager);
-        }
-
-        FileWatcherEventListenerFactory createFileWatcherEventListenerFactory() {
-            return new FileWatcherEventListenerFactory();
         }
 
         FileSystemChangeWaiterFactory createFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {

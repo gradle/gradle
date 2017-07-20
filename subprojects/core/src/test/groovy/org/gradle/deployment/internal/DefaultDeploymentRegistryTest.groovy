@@ -15,11 +15,13 @@
  */
 
 package org.gradle.deployment.internal
+
 import org.gradle.api.invocation.Gradle
+import org.gradle.internal.filewatch.PendingChangesManager
 import spock.lang.Specification
 
 class DefaultDeploymentRegistryTest extends Specification {
-    DefaultDeploymentRegistry registry = new DefaultDeploymentRegistry()
+    DefaultDeploymentRegistry registry = new DefaultDeploymentRegistry(Mock(PendingChangesManager))
 
     def "can register and retrieve a deployment handle" () {
         DeploymentHandle handle = Mock(DeploymentHandle)

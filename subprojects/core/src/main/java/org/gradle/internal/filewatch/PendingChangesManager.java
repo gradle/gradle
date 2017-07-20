@@ -16,11 +16,20 @@
 
 package org.gradle.internal.filewatch;
 
-import org.gradle.internal.Factory;
+import org.gradle.internal.event.ListenerManager;
 
-public class FileWatcherEventListenerFactory implements Factory<FileWatcherEventListener> {
-    @Override
-    public FileWatcherEventListener create() {
-        return new DefaultFileWatcherEventListener();
+public class PendingChangesManager {
+    private final ListenerManager listenerManager;
+
+    public PendingChangesManager(ListenerManager listenerManager) {
+        this.listenerManager = listenerManager;
+    }
+
+    public void addListener(PendingChangesListener listener) {
+        listenerManager.addListener(listener);
+    }
+
+    public void removeListener(PendingChangesListener listener) {
+        listenerManager.removeListener(listener);
     }
 }

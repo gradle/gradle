@@ -142,42 +142,19 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     public void buildSuccess() {
         reload.set(true);
         buildFailure = null;
-        pendingChanges.done();
+        pendingChanges.decrement();
     }
 
     @Override
     public void buildError(Throwable throwable) {
         buildFailure = throwable;
-        pendingChanges.done();
+        pendingChanges.decrement();
     }
 
     @Override
-    public void expectPendingChanges() {
-        pendingChanges.more();
+    public void onPendingChanges() {
+        pendingChanges.increment();
 
-    }
-
-    private static class PendingChanges implements Serializable {
-        private int pendingChanges;
-
-        synchronized void more() {
-            pendingChanges++;
-        }
-
-        synchronized void done() {
-            // Clamp to 0
-            pendingChanges = Math.max(0, pendingChanges-1);
-
-            if (pendingChanges == 0) {
-                notifyAll();
-            }
-        }
-
-        synchronized void waitForAll() throws InterruptedException {
-            while (pendingChanges > 0) {
-                wait();
-            }
-        }
     }
 
     @Override

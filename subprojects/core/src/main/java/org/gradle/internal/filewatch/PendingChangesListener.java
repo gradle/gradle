@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.gradle.internal.filewatch;
 
-import org.gradle.initialization.BuildCancellationToken;
-
-public interface FileSystemChangeWaiterFactory {
-    FileSystemChangeWaiter createChangeWaiter(PendingChangesListener listenerManager, BuildCancellationToken cancellationToken);
+public interface PendingChangesListener {
+    void onPendingChanges();
 }

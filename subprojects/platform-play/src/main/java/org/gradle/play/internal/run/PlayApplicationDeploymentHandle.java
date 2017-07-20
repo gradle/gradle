@@ -51,8 +51,12 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
                 reloadFromResult(result);
             }
         });
+    }
+
+    @Override
+    public void onPendingChanges() {
         if (isRunning()) {
-            runnerToken.expectPendingChanges();
+            runnerToken.onPendingChanges();
         }
     }
 
