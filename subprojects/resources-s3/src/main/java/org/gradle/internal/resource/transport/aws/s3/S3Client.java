@@ -153,7 +153,7 @@ public class S3Client {
             String bucketName = s3RegionalResource.getBucketName();
             String s3BucketKey = s3RegionalResource.getKey();
             configureClient(s3RegionalResource);
-            List<PartETag> partETags = new ArrayList<PartETag>();
+            List<PartETag> partETags = new ArrayList<>();
             InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(bucketName, s3BucketKey);
             InitiateMultipartUploadResult initResponse = amazonS3Client.initiateMultipartUpload(initRequest);
             try {
