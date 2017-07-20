@@ -99,8 +99,8 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     }
 
     @Override
-    public void rebuildInProgress() {
-        runAdapter.rebuildInProgress();
+    public void expectPendingChanges() {
+        runAdapter.expectPendingChanges();
     }
 
 }

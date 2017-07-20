@@ -152,7 +152,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     }
 
     @Override
-    public void rebuildInProgress() {
+    public void expectPendingChanges() {
         pendingChanges.more();
 
     }
@@ -166,7 +166,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
         synchronized void done() {
             pendingChanges--;
-            
+
             if (pendingChanges == 0) {
                 notifyAll();
             }
