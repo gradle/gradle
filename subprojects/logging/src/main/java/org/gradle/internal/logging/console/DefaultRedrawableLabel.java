@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.api.Action;
-import org.gradle.internal.logging.text.Span;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,8 +25,8 @@ import java.util.List;
 
 public class DefaultRedrawableLabel implements RedrawableLabel {
     private final Cursor writePos;  // Relative coordinate system
-    private List<Span> spans = Collections.EMPTY_LIST;
-    private List<Span> writtenSpans = Collections.EMPTY_LIST;
+    private List<StyledTextOutputEvent.Span> spans = Collections.EMPTY_LIST;
+    private List<StyledTextOutputEvent.Span> writtenSpans = Collections.EMPTY_LIST;
     private int absolutePositionRow;  // Absolute coordinate system
     private int previousWriteRow = absolutePositionRow;
     private boolean isVisible = true;
@@ -38,16 +38,16 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
 
     @Override
     public void setText(String text) {
-        setText(new Span(text));
+        setText(new StyledTextOutputEvent.Span(text));
     }
 
     @Override
-    public void setText(List<Span> spans) {
+    public void setText(List<StyledTextOutputEvent.Span> spans) {
         this.spans = spans;
     }
 
     @Override
-    public void setText(Span... spans) {
+    public void setText(StyledTextOutputEvent.Span... spans) {
         setText(Arrays.asList(spans));
     }
 
@@ -99,7 +99,7 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
 
     private void redrawText(AnsiContext ansi, int writtenTextLength) {
         int textLength = 0;
-        for (Span span : spans) {
+        for (StyledTextOutputEvent.Span span : spans) {
             ansi.withStyle(span.getStyle(), writeText(span.getText()));
 
             textLength += span.getText().length();

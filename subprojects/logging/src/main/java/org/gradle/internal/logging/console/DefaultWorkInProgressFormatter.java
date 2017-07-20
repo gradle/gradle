@@ -16,22 +16,22 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.text.Span;
-import org.gradle.internal.logging.text.Style;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class DefaultWorkInProgressFormatter {
-    private final static List<Span> IDLE_SPANS = Arrays.asList(new Span("> IDLE"));
+    private final static List<StyledTextOutputEvent.Span> IDLE_SPANS = Arrays.asList(new StyledTextOutputEvent.Span("> IDLE"));
     private final ConsoleMetaData consoleMetaData;
 
     public DefaultWorkInProgressFormatter(ConsoleMetaData consoleMetaData) {
         this.consoleMetaData = consoleMetaData;
     }
 
-    public List<Span> format(ProgressOperation op) {
+    public List<StyledTextOutputEvent.Span> format(ProgressOperation op) {
         StringBuilder builder = new StringBuilder();
         ProgressOperation current = op;
         while(current != null && !"org.gradle.internal.progress.BuildProgressLogger".equals(current.getCategory())) {
@@ -50,10 +50,10 @@ public class DefaultWorkInProgressFormatter {
             return IDLE_SPANS;
         }
 
-        return Arrays.asList(new Span(Style.of(Style.Emphasis.BOLD), trim(builder)));
+        return Arrays.asList(new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, trim(builder)));
     }
 
-    public List<Span> format() {
+    public List<StyledTextOutputEvent.Span> format() {
         return IDLE_SPANS;
     }
 

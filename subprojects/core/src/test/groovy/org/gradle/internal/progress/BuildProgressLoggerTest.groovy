@@ -31,7 +31,7 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.buildStarted()
 
         then:
-        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _) >> buildProgress
+        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _, 0) >> buildProgress
         0 * _
 
         when:
@@ -48,13 +48,13 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.settingsEvaluated()
 
         then:
-        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _) >> buildProgress
+        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _, 0) >> buildProgress
 
         when:
         buildProgressLogger.projectsLoaded(16)
 
         then:
-        1 * provider.start(BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, _) >> buildProgress
+        1 * provider.start(BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, _, 16) >> buildProgress
         0 * _
 
         when:
@@ -67,7 +67,7 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.afterEvaluate(":foo:bar")
 
         then:
-        1 * buildProgress.progress(_)
+        1 * buildProgress.progress(_,false)
         0 * _
 
         when:
@@ -83,14 +83,14 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.graphPopulated(10)
 
         then:
-        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _) >> buildProgress
-        1 * provider.start(BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, _) >> buildProgress
+        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _, 0) >> buildProgress
+        1 * provider.start(BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, _, 10) >> buildProgress
 
         when:
-        buildProgressLogger.afterExecute()
+        buildProgressLogger.afterExecute(false)
 
         then:
-        1 * buildProgress.progress(_)
+        1 * buildProgress.progress(_, false)
         0 * _
 
         when:
@@ -110,9 +110,9 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.graphPopulated(10)
 
         then:
-        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _) >> buildProgress
-        1 * provider.start(BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, _) >> buildProgress
-        1 * provider.start(BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, _) >> buildProgress
+        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _, 0) >> buildProgress
+        1 * provider.start(BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, _, 16) >> buildProgress
+        1 * provider.start(BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, _, 10) >> buildProgress
 
         when:
         buildProgressLogger.beforeEvaluate(":foo")
@@ -129,8 +129,8 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.projectsLoaded(16)
 
         then:
-        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _) >> buildProgress
-        1 * provider.start(BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, _) >> buildProgress
+        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _, 0) >> buildProgress
+        1 * provider.start(BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, _, 16) >> buildProgress
 
         when:
         buildProgressLogger.beforeComplete()
@@ -146,7 +146,7 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.beforeComplete()
 
         then:
-        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _) >> buildProgress
+        1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _, 0) >> buildProgress
         1 * buildProgress.completed({it.contains(BuildProgressLogger.WAITING_PHASE_DESCRIPTION)})
         0 * _
     }

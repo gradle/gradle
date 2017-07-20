@@ -45,38 +45,38 @@ class BuildStatusRendererTest extends OutputSpecification {
     }
 
     def "formats given message with an incrementing timer"() {
-        def event1 = startPhase(1, '<--> 0% INITIALIZING')
+        def event1 = startPhase(1, 'INITIALIZING')
         def event2 = event('2')
 
         when:
         renderer.onOutput([event1] as ArrayList<OutputEvent>)
 
         then:
-        statusBar.display == "<--> 0% INITIALIZING [0s]"
+        statusBar.display == "<-------------> 0% INITIALIZING [0s]"
 
         when:
         currentTimeMs += 1000
         renderer.onOutput([event2] as ArrayList<OutputEvent>)
 
         then:
-        statusBar.display == "<--> 0% INITIALIZING [1s]"
+        statusBar.display == "<-------------> 0% INITIALIZING [1s]"
     }
 
     def "hides timer between build phases"() {
         given:
-        def event1 = startPhase(1, '<--> 0% INITIALIZING')
+        def event1 = startPhase(1, 'INITIALIZING')
 
         when:
         renderer.onOutput([event1] as ArrayList<OutputEvent>)
 
         then:
-        statusBar.display == '<--> 0% INITIALIZING [0s]'
+        statusBar.display == '<-------------> 0% INITIALIZING [0s]'
 
         when:
-        renderer.onOutput([complete(1, '<--> 0% WAITING')] as ArrayList<OutputEvent>)
+        renderer.onOutput([complete(1, 'WAITING')] as ArrayList<OutputEvent>)
 
         then:
-        statusBar.display == '<--> 0% WAITING'
+        statusBar.display == '<-------------> 0% WAITING'
     }
 
     def startPhase(Long id, String description) {

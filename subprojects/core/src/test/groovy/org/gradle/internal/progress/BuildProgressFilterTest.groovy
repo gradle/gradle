@@ -22,6 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.tasks.TaskState
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -54,7 +55,7 @@ class BuildProgressFilterTest extends Specification {
         f.beforeEvaluate(project)
         f.afterEvaluate(project, null)
         f.graphPopulated(graph)
-        f.afterExecute(task, null)
+        f.afterExecute(task, Mock(TaskState))
         f.beforeComplete()
         f.buildFinished(result)
 
@@ -64,7 +65,7 @@ class BuildProgressFilterTest extends Specification {
         then: 1 * logger.beforeEvaluate(":foo:bar")
         then: 1 * logger.afterEvaluate(":foo:bar")
         then: 1 * logger.graphPopulated(3)
-        then: 1 * logger.afterExecute()
+        then: 1 * logger.afterExecute(false)
         then: 1 * logger.beforeComplete()
         then: 0 * logger._
     }

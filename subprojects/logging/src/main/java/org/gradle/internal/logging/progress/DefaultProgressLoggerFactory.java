@@ -120,10 +120,16 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             return this;
         }
 
+
         public ProgressLogger start(String description, String shortDescription) {
+            start(description, shortDescription, 0);
+            return this;
+        }
+
+        public ProgressLogger start(String description, String shortDescription, int totalProgress) {
             setDescription(description);
             setShortDescription(shortDescription);
-            started();
+            started(null, totalProgress);
             return this;
         }
 
@@ -132,6 +138,10 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         }
 
         public void started(String status) {
+            started(status, 0);
+        }
+
+        public void started(String status, int totalProgress) {
             if (!GUtil.isTrue(description)) {
                 throw new IllegalStateException("A description must be specified before this operation is started.");
             }
@@ -143,12 +153,16 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 parent.assertRunning();
             }
             current.set(this);
-            listener.started(new ProgressStartEvent(progressOperationId, parent == null ? null : parent.progressOperationId, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status), getBuildOperationId(), getParentBuildOperationId(), getBuildOperationCategory()));
+            listener.started(new ProgressStartEvent(progressOperationId, parent == null ? null : parent.progressOperationId, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, ensureNotNull(status), totalProgress, getBuildOperationId(), getParentBuildOperationId(), getBuildOperationCategory()));
         }
 
         public void progress(String status) {
+            progress(status, false);
+        }
+
+        public void progress(String status, boolean failing) {
             assertRunning();
-            listener.progress(new ProgressEvent(progressOperationId, toStatus(status)));
+            listener.progress(new ProgressEvent(progressOperationId, ensureNotNull(status), failing));
         }
 
         public void completed() {
@@ -159,10 +173,10 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertRunning();
             state = State.completed;
             current.set(parent);
-            listener.completed(new ProgressCompleteEvent(progressOperationId, timeProvider.getCurrentTime(), toStatus(status)));
+            listener.completed(new ProgressCompleteEvent(progressOperationId, timeProvider.getCurrentTime(), ensureNotNull(status)));
         }
 
-        private String toStatus(String status) {
+        private String ensureNotNull(String status) {
             return status == null ? "" : status;
         }
 

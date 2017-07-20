@@ -98,7 +98,7 @@ public class BuildProgressFilter implements RootBuildLifecycleListener, BuildLis
     @Override
     public void afterExecute(Task task, TaskState state) {
         if (task.getProject().getGradle() == gradle) {
-            logger.afterExecute();
+            logger.afterExecute(state.getFailure() != null);
         }
     }
 
