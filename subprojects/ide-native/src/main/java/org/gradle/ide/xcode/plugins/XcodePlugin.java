@@ -30,6 +30,7 @@ import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
+import org.gradle.language.swift.plugins.SwiftModulePlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import java.io.File;
@@ -91,12 +92,19 @@ public class XcodePlugin extends IdePlugin {
         project.getPlugins().withType(SwiftExecutablePlugin.class, new Action<SwiftExecutablePlugin>() {
             @Override
             public void execute(SwiftExecutablePlugin swiftExecutablePlugin) {
-                configureXcodeForSwift(project);
+                configureXcodeForSwift(project, PBXTarget.ProductType.TOOL);
+            }
+        });
+
+        project.getPlugins().withType(SwiftModulePlugin.class, new Action<SwiftModulePlugin>() {
+            @Override
+            public void execute(SwiftModulePlugin swiftModulePlugin) {
+                configureXcodeForSwift(project, PBXTarget.ProductType.DYNAMIC_LIBRARY);
             }
         });
     }
 
-    private void configureXcodeForSwift(Project project) {
+    private void configureXcodeForSwift(Project project, PBXTarget.ProductType productType) {
         if (project.getBuildFile().exists()) {
             xcode.getProject().getSources().add(project.getBuildFile());
         }
@@ -105,7 +113,7 @@ public class XcodePlugin extends IdePlugin {
         sourceTree.include("**/*.swift");
         xcode.getProject().getSources().addAll(sourceTree.getFiles());
 
-        XcodeTarget target = newTarget(project.getPath() + " Executable", toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree.getFiles());
+        XcodeTarget target = newTarget(project.getPath(), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree.getFiles());
         xcode.getProject().getTargets().add(target);
         xcode.getProject().getSchemes().add(newScheme(target));
     }
@@ -118,13 +126,13 @@ public class XcodePlugin extends IdePlugin {
         }
     }
 
-    private static XcodeTarget newTarget(String name, String gradleCommand, String taskName, File outputFile, Set<File> sources) {
-        XcodeTarget target = new XcodeTarget(name);
+    private static XcodeTarget newTarget(String name, PBXTarget.ProductType productType, String gradleCommand, String taskName, File outputFile, Set<File> sources) {
+        XcodeTarget target = new XcodeTarget(name + " " + toString(productType));
         target.setOutputFile(outputFile);
         target.setTaskName(taskName);
         target.setGradleCommand(gradleCommand);
-        target.setOutputFileType(FileTypes.MACH_O_EXECUTABLE);
-        target.setProductType(PBXTarget.ProductType.TOOL);
+        target.setOutputFileType(toFileType(productType));
+        target.setProductType(productType);
         target.setProductName(outputFile.getName());
         target.setSources(sources);
 
@@ -141,5 +149,25 @@ public class XcodePlugin extends IdePlugin {
 
     private static File toXcodeProjectPackageDir(Project project) {
         return project.file(project.getName() + ".xcodeproj");
+    }
+
+    private static String toString(PBXTarget.ProductType productType) {
+        if (PBXTarget.ProductType.TOOL.equals(productType)) {
+            return "Executable";
+        } else if (PBXTarget.ProductType.DYNAMIC_LIBRARY.equals(productType)) {
+            return "SharedLibrary";
+        } else {
+            return "";
+        }
+    }
+
+    private static String toFileType(PBXTarget.ProductType productType) {
+        if (PBXTarget.ProductType.TOOL.equals(productType)) {
+            return FileTypes.MACH_O_EXECUTABLE;
+        } else if (PBXTarget.ProductType.DYNAMIC_LIBRARY.equals(productType)) {
+            return FileTypes.MACH_O_DYNAMIC_LIBRARY;
+        } else {
+            return "compiled";
+        }
     }
 }
