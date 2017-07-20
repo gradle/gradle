@@ -52,7 +52,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     private static final Logger LOGGER = Logging.getLogger(DefaultVersionedPlayRunAdapter.class);
 
     private final AtomicBoolean reload = new AtomicBoolean();
-    private final AtomicBoolean ready = new AtomicBoolean(true);
+    private final PendingChanges pendingChanges = new PendingChanges();
+
     private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
     private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
     private volatile Throwable buildFailure;
@@ -73,12 +74,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                 if (method.getName().equals("projectPath")) {
                     return projectPath;
                 } else if (method.getName().equals("reload")) {
-                    // Wait for any rebuild that may be in progress
-                    synchronized (ready) {
-                        while (!ready.get()) {
-                            ready.wait();
-                        }
-                    }
+
+                    pendingChanges.waitForAll();
 
                     // We can't close replaced loaders immediately, because their classes may be used during shutdown,
                     // after the return of the reload() call that caused the loader to be swapped out.
@@ -145,24 +142,40 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     public void buildSuccess() {
         reload.set(true);
         buildFailure = null;
-        makeReady(true);
+        pendingChanges.done();
     }
 
     @Override
     public void buildError(Throwable throwable) {
         buildFailure = throwable;
-        makeReady(true);
+        pendingChanges.done();
     }
 
     @Override
     public void rebuildInProgress() {
-        makeReady(false);
+        pendingChanges.more();
+
     }
 
-    private void makeReady(boolean isReady) {
-        synchronized (ready) {
-            ready.set(isReady);
-            ready.notifyAll();
+    private static class PendingChanges {
+        private int pendingChanges;
+
+        synchronized void more() {
+            pendingChanges++;
+        }
+
+        synchronized void done() {
+            pendingChanges--;
+            
+            if (pendingChanges == 0) {
+                notifyAll();
+            }
+        }
+
+        synchronized void waitForAll() throws InterruptedException {
+            while (pendingChanges > 0) {
+                wait();
+            }
         }
     }
 
