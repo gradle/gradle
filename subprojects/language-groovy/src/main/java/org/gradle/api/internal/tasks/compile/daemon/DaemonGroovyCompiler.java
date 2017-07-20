@@ -20,7 +20,6 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
-import org.gradle.api.internal.tasks.compile.ForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
@@ -50,31 +49,14 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
     @Override
     protected InvocationContext toInvocationContext(GroovyJavaJointCompileSpec spec) {
-        return createJavaInvocationContext(spec).mergeWith(createGroovyInvocationContext(spec));
-    }
-
-    private InvocationContext createJavaInvocationContext(GroovyJavaJointCompileSpec spec) {
-        ForkOptions options = spec.getCompileOptions().getForkOptions();
-        JavaForkOptions javaForkOptions = new ForkOptionsConverter(fileResolver).transform(options);
-        File invocationWorkingDir = javaForkOptions.getWorkingDir();
-        javaForkOptions.setWorkingDir(daemonWorkingDir);
-
-        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
-            .javaForkOptions(javaForkOptions)
-            .keepAliveMode(KeepAliveMode.SESSION)
-            .build();
-
-        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
-    }
-
-    private InvocationContext createGroovyInvocationContext(GroovyJavaJointCompileSpec spec) {
-        GroovyForkOptions options = spec.getGroovyCompileOptions().getForkOptions();
+        ForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
+        GroovyForkOptions groovyOptions = spec.getGroovyCompileOptions().getForkOptions();
         // Ant is optional dependency of groovy(-all) module but mandatory dependency of Groovy compiler;
         // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
         // is compatible with Gradle's current Ant version.
         Collection<File> antFiles = classPathRegistry.getClassPath("ANT").getAsFiles();
         Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(options);
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(mergeForkOptions(javaOptions, groovyOptions));
         File invocationWorkingDir = javaForkOptions.getWorkingDir();
         javaForkOptions.setWorkingDir(daemonWorkingDir);
 

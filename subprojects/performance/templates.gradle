@@ -22,7 +22,7 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject',
- 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG',
+ 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject'].each { template ->
     tasks.create(template, JavaExec) {
         outputs.dir new File(buildDir, template)

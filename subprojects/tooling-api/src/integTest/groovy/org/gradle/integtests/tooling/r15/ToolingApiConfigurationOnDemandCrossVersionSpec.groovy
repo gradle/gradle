@@ -31,7 +31,7 @@ class ToolingApiConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecific
         given:
         file("settings.gradle") << "include 'api', 'impl', 'other'"
         file("build.gradle") << """
-            rootProject.description = 'Configure on demand: ' + gradle.startParameter.configureOnDemand + '. Projects configured: '
+            rootProject.description = 'Projects configured: '
             allprojects { afterEvaluate {
                 rootProject.description += project.path + ", "
             }}
@@ -41,7 +41,6 @@ class ToolingApiConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecific
         def op = withModel(GradleProject.class)
 
         then:
-        op.model.description.contains 'Configure on demand: true'
         op.model.description.contains 'Projects configured: :, :api, :impl, :other'
     }
 

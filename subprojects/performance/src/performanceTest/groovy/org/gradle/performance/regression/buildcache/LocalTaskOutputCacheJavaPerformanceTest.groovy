@@ -21,6 +21,8 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+
 @Unroll
 class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
@@ -78,6 +80,9 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         runner.tasksToRun = tasks.split(' ')
         runner.warmUpRuns = 6
         runner.runs = 8
+        if (testProject == LARGE_MONOLITHIC_JAVA_PROJECT) {
+            runner.targetVersions = ["4.1-20170719104011+0000"]
+        }
 
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override

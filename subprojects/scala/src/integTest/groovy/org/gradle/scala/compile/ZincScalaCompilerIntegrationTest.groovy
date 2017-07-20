@@ -15,13 +15,18 @@
  */
 package org.gradle.scala.compile
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.ClassFile
+
 import org.gradle.util.VersionNumber
+import org.junit.Assume
 import org.junit.Rule
+
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 @TargetCoverage({ScalaCoverage.DEFAULT})
 class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
@@ -111,6 +116,53 @@ compileScala.scalaCompileOptions.failOnError = false
         succeeds("compileScala")
         errorOutput.contains("type mismatch")
         scalaClassFile("").assertHasDescendants()
+    }
+
+    def "respects fork options settings and ignores executable"() {
+        def differentJvm = AvailableJavaHomes.differentJdkWithValidJre
+        Assume.assumeNotNull(differentJvm)
+        def differentJavacExecutablePath = normaliseFileSeparators(differentJvm.javacExecutable.absolutePath)
+
+        file("build.gradle") << """
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
+            import org.gradle.internal.jvm.Jvm
+
+            apply plugin: 'scala'
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile 'org.scala-lang:scala-library:2.11.1'
+            }
+            
+            tasks.withType(ScalaCompile) { 
+                options.forkOptions.executable = "${differentJavacExecutablePath}"
+                options.forkOptions.memoryInitialSize = "128m"
+                options.forkOptions.memoryMaximumSize = "256m"
+                options.forkOptions.jvmArgs = ["-Dfoo=bar"]
+                
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).idleClients.find { 
+                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
+                        it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
+                        it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
+                    }
+                }
+            }
+        """
+
+        file("src/main/scala/Person.java") << "public interface Person { String getName(); }"
+
+        file("src/main/scala/DefaultPerson.scala") << """class DefaultPerson(name: String) extends Person {
+            def getName(): String = name
+        }"""
+
+        expect:
+        succeeds("compileScala")
+
     }
 
     def compileWithSpecifiedEncoding() {

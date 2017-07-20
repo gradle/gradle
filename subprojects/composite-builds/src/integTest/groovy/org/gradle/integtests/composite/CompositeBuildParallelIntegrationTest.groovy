@@ -84,7 +84,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
                     compileJava.doLast {
                         ${server.callFromBuild(buildName)}
                     }
-"""
+                """
             }
             dependency "org.test:${buildName}:1.0"
             includeBuild build
@@ -94,6 +94,34 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
 
         then:
         execute(buildA, "jar", "--max-workers=4")
+    }
+
+    def "constructs included build artifacts in parallel with multi-project included build"() {
+        given:
+        def maxWorkers = 4
+        server.start()
+        when:
+        def expectedCalls = []
+        includedBuilds << multiProjectBuild("buildB", (1..maxWorkers).collect { "sub" + it }) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    compileJava.doLast {
+                        ${server.callFromBuildUsingExpression('project.name')}
+                    }
+                }
+            """
+        }
+        (1..maxWorkers).each {
+            dependency "org.test:sub${it}:1.0"
+            expectedCalls << 'sub' + it
+        }
+
+        server.expectConcurrent(expectedCalls)
+
+        then:
+        execute(buildA, "jar", "--parallel", "--max-workers=$maxWorkers")
+        operations.assertConcurrentOperationsDoNotExceed(ExecuteTaskBuildOperationType, maxWorkers, true)
     }
 
 }

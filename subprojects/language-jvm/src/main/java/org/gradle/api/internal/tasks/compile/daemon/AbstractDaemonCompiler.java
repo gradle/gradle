@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -31,6 +33,9 @@ import org.gradle.workers.internal.WorkerServer;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Set;
+
+import static org.gradle.process.internal.util.MergeOptionsUtil.*;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
     private final Compiler<T> delegate;
@@ -70,6 +75,16 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
             default:
                 throw new IllegalArgumentException("Unknown isolation mode: " + workerFactory.getIsolationMode());
         }
+    }
+
+    protected BaseForkOptions mergeForkOptions(BaseForkOptions left, BaseForkOptions right) {
+        BaseForkOptions merged = new BaseForkOptions();
+        merged.setMemoryInitialSize(mergeHeapSize(left.getMemoryInitialSize(), right.getMemoryInitialSize()));
+        merged.setMemoryMaximumSize(mergeHeapSize(left.getMemoryMaximumSize(), right.getMemoryMaximumSize()));
+        Set<String> mergedJvmArgs = normalized(left.getJvmArgs());
+        mergedJvmArgs.addAll(normalized(right.getJvmArgs()));
+        merged.setJvmArgs(Lists.newArrayList(mergedJvmArgs));
+        return merged;
     }
 
     private static class CompilerRunnable<T extends CompileSpec> implements Runnable {

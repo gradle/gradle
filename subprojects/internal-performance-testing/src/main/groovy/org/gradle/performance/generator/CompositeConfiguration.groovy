@@ -16,26 +16,21 @@
 
 package org.gradle.performance.generator
 
-class TestProjectGeneratorConfiguration {
-    String projectName
+import groovy.transform.CompileStatic
 
-    String[] plugins
-    String[] repositories
-    String[] externalApiDependencies
-    String[] externalImplementationDependencies
+@CompileStatic
+class CompositeConfiguration {
+    static CompositeConfiguration composite(boolean predefine) {
+        return new CompositeConfiguration(predefine)
+    }
 
-    int subProjects
-    int sourceFiles
-    int minLinesOfCodePerSourceFile
-    CompositeConfiguration compositeBuild
+    private final boolean predefine
 
-    String daemonMemory
-    String compilerMemory
-    String testRunnerMemory
-    boolean parallel
-    int maxWorkers
-    int maxParallelForks
-    int testForkEvery
-    boolean useTestNG
-    Map<String, String> fileToChangeByScenario = [:]
+    private CompositeConfiguration(boolean predefine) {
+        this.predefine = predefine
+    }
+
+    boolean usePredefinedPublications() {
+        predefine
+    }
 }
