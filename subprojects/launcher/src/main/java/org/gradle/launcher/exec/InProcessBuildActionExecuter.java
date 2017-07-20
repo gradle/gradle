@@ -30,7 +30,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     private final GradleLauncherFactory gradleLauncherFactory;
     private final BuildActionRunner buildActionRunner;
 
-    public InProcessBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, BuildActionRunner buildActionRunner) {
+    public InProcessBuildActionExecuter(BuildActionRunner buildActionRunner, GradleLauncherFactory gradleLauncherFactory) {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.buildActionRunner = buildActionRunner;
     }

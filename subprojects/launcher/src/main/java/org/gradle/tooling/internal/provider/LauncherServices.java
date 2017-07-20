@@ -77,12 +77,14 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                 new ServicesSetupBuildActionExecuter(
                                     new ContinuousBuildActionExecuter(
                                         new BuildTreeScopeBuildActionExecuter(
-                                            new InProcessBuildActionExecuter(gradleLauncherFactory,
+                                            new InProcessBuildActionExecuter(
                                                 new SubscribableBuildActionRunner(
                                                     new RunAsBuildOperationBuildActionRunner(
                                                         new ValidatingBuildActionRunner(
                                                             new ChainingBuildActionRunner(buildActionRunners))),
-                                                    buildOperationListenerManager, registrations))),
+                                                    buildOperationListenerManager,
+                                                    registrations),
+                                                gradleLauncherFactory)),
                                         new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory),
                                         new FileWatcherEventListenerFactory(),
                                         inputsListener,
