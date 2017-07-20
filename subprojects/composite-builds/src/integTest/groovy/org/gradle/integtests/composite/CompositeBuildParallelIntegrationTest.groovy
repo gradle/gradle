@@ -124,4 +124,35 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         operations.assertConcurrentOperationsDoNotExceed(ExecuteTaskBuildOperationType, maxWorkers, true)
     }
 
+    def "builds IDE metadata artifacts in parallel"() {
+        given:
+        server.start()
+
+        when:
+        buildA.buildFile << """
+            apply plugin: 'idea'
+        """
+
+        def included = ['buildB', 'buildC', 'buildD']
+        included.each { buildName ->
+            def build = singleProjectBuild(buildName) {
+                buildFile << """
+                    apply plugin: 'java'
+                    apply plugin: 'idea'
+
+                    ideaModule.doLast {
+                        ${server.callFromBuild(buildName)}
+                    }
+                """
+            }
+            dependency "org.test:${buildName}:1.0"
+            includeBuild build
+        }
+
+        server.expectConcurrent(included)
+
+        then:
+        execute(buildA, ":idea", "--max-workers=4")
+    }
+
 }
