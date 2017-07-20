@@ -84,9 +84,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     private String maxHeapSize;
 
-    private Collection<String> visitors = new ArrayList<String>();
+    private Collection<String> visitors = new ArrayList<>();
 
-    private Collection<String> omitVisitors = new ArrayList<String>();
+    private Collection<String> omitVisitors = new ArrayList<>();
 
     private TextResource includeFilterConfig;
 
@@ -94,12 +94,14 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     private TextResource excludeBugsFilterConfig;
 
-    private Collection<String> extraArgs = new ArrayList<String>();
+    private Collection<String> extraArgs = new ArrayList<>();
 
     private boolean showProgress;
 
     @Nested
     private final FindBugsReportsInternal reports;
+
+    private boolean validateClasspath;
 
     public FindBugs() {
         reports = getObjectFactory().newInstance(FindBugsReportsImpl.class, this);
@@ -148,7 +150,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @param closure The configuration
      * @return The reports container
      */
-    public FindBugsReports reports(Closure closure) {
+    public FindBugsReports reports(final Closure closure) {
         return reports(new ClosureBackedAction<FindBugsReports>(closure));
     }
 
@@ -171,7 +173,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @param configureAction The configuration
      * @return The reports container
      */
-    public FindBugsReports reports(Action<? super FindBugsReports> configureAction) {
+    public FindBugsReports reports(final Action<? super FindBugsReports> configureAction) {
         configureAction.execute(reports);
         return reports;
     }
@@ -181,14 +183,14 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      */
     @Internal
     public File getIncludeFilter() {
-        TextResource config = getIncludeFilterConfig();
+        final TextResource config = getIncludeFilterConfig();
         return config == null ? null : config.asFile();
     }
 
     /**
      * The filename of a filter specifying which bugs are reported.
      */
-    public void setIncludeFilter(File filter) {
+    public void setIncludeFilter(final File filter) {
         setIncludeFilterConfig(getProject().getResources().getText().fromFile(filter));
     }
 
@@ -197,14 +199,14 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      */
     @Internal
     public File getExcludeFilter() {
-        TextResource config = getExcludeFilterConfig();
+        final TextResource config = getExcludeFilterConfig();
         return config == null ? null : config.asFile();
     }
 
     /**
      * The filename of a filter specifying bugs to exclude from being reported.
      */
-    public void setExcludeFilter(File filter) {
+    public void setExcludeFilter(final File filter) {
         setExcludeFilterConfig(getProject().getResources().getText().fromFile(filter));
     }
 
@@ -213,39 +215,59 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      */
     @Internal
     public File getExcludeBugsFilter() {
-        TextResource config = getExcludeBugsFilterConfig();
+        final TextResource config = getExcludeBugsFilterConfig();
         return config == null ? null : config.asFile();
     }
 
     /**
      * The filename of a filter specifying baseline bugs to exclude from being reported.
      */
-    public void setExcludeBugsFilter(File filter) {
+    public void setExcludeBugsFilter(final File filter) {
         setExcludeBugsFilterConfig(getProject().getResources().getText().fromFile(filter));
     }
 
     @TaskAction
     public void run() throws IOException, InterruptedException {
-        new FindBugsClasspathValidator(JavaVersion.current()).validateClasspath(
-            Iterables.transform(getFindbugsClasspath().getFiles(), new Function<File, String>() {
-                @Override
-                public String apply(File input) {
-                    return input.getName();
-                }
-            }));
-        FindBugsSpec spec = generateSpec();
-        FindBugsWorkerManager manager = new FindBugsWorkerManager();
+        if (getValidateClasspath()) {
+            new FindBugsClasspathValidator(JavaVersion.current()).validateClasspath(
+                Iterables.transform(getFindbugsClasspath().getFiles(), new Function<File, String>() {
+                    @Override
+                    public String apply(final File input) {
+                        return input.getName();
+                    }
+                }));
+        }
+        final FindBugsSpec spec = generateSpec();
+        final FindBugsWorkerManager manager = new FindBugsWorkerManager();
 
         getLogging().captureStandardOutput(LogLevel.DEBUG);
         getLogging().captureStandardError(LogLevel.DEBUG);
 
-        FindBugsResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getFindbugsClasspath(), spec);
+        final FindBugsResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getFindbugsClasspath(), spec);
         evaluateResult(result);
+    }
+
+    /**
+     * Indicates whether the <code>findbugs</code> configuration classpath will be validated for compatibility with
+     * the current JDK. This is useful to disable when using <em>SpotBugs</em> which is FindBugs'
+     * successor.
+     * <p>
+     * <em>SpotBugs</em> currently uses the same package structure as <em>FindBugs</em> but is packaged in a different artifact name.
+     *
+     * @return true if classpath should be validated.
+     */
+    @Input
+    public boolean getValidateClasspath() {
+        return validateClasspath;
+    }
+
+    public void setValidateClasspath(final boolean validateClasspath) {
+        this.validateClasspath = validateClasspath;
     }
 
     @VisibleForTesting
     FindBugsSpec generateSpec() {
-        FindBugsSpecBuilder specBuilder = new FindBugsSpecBuilder(getClasses())
+        final FindBugsSpecBuilder specBuilder = new FindBugsSpecBuilder(getClasses())
             .withPluginsList(getPluginClasspath())
             .withSources(getSource())
             .withClasspath(getClasspath())
@@ -266,7 +288,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     }
 
     @VisibleForTesting
-    void evaluateResult(FindBugsResult result) {
+    void evaluateResult(final FindBugsResult result) {
         if (result.getException() != null) {
             throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.", result.getException());
         }
@@ -277,9 +299,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
         if (result.getBugCount() > 0) {
             String message = "FindBugs rule violations were found.";
-            SingleFileReport report = reports.getFirstEnabled();
+            final SingleFileReport report = reports.getFirstEnabled();
             if (report != null) {
-                String reportUrl = new ConsoleRenderer().asClickableFileUrl(report.getDestination());
+                final String reportUrl = new ConsoleRenderer().asClickableFileUrl(report.getDestination());
                 message += " See the report at: " + reportUrl;
             }
 
@@ -301,8 +323,8 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.6
      */
-    public FindBugs extraArgs(Iterable<String> arguments) {
-        for (String argument : arguments) {
+    public FindBugs extraArgs(final Iterable<String> arguments) {
+        for (final String argument : arguments) {
             extraArgs.add(argument);
         }
 
@@ -317,7 +339,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.6
      */
-    public FindBugs extraArgs(String... arguments) {
+    public FindBugs extraArgs(final String... arguments) {
         extraArgs.addAll(Arrays.asList(arguments));
         return this;
     }
@@ -355,7 +377,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * The class directories to be analyzed.
      */
-    public void setClasses(FileCollection classes) {
+    public void setClasses(final FileCollection classes) {
         this.classes = classes;
     }
 
@@ -370,7 +392,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Compile class path for the classes to be analyzed. The classes on this class path are used during analysis but aren't analyzed themselves.
      */
-    public void setClasspath(FileCollection classpath) {
+    public void setClasspath(final FileCollection classpath) {
         this.classpath = classpath;
     }
 
@@ -385,7 +407,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Class path holding the FindBugs library.
      */
-    public void setFindbugsClasspath(FileCollection findbugsClasspath) {
+    public void setFindbugsClasspath(final FileCollection findbugsClasspath) {
         this.findbugsClasspath = findbugsClasspath;
     }
 
@@ -400,7 +422,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Class path holding any additional FindBugs plugins.
      */
-    public void setPluginClasspath(FileCollection pluginClasspath) {
+    public void setPluginClasspath(final FileCollection pluginClasspath) {
         this.pluginClasspath = pluginClasspath;
     }
 
@@ -416,7 +438,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Whether to allow the build to continue if there are warnings.
      */
-    public void setIgnoreFailures(boolean ignoreFailures) {
+    public void setIgnoreFailures(final boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
 
@@ -434,7 +456,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The analysis effort level. The value specified should be one of {@code min}, {@code default}, or {@code max}. Higher levels increase precision and find more bugs at the expense of running time
      * and memory consumption.
      */
-    public void setEffort(String effort) {
+    public void setEffort(final String effort) {
         this.effort = effort;
     }
 
@@ -452,7 +474,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The priority threshold for reporting bugs. If set to {@code low}, all bugs are reported. If set to {@code medium} (the default), medium and high priority bugs are reported. If set to {@code
      * high}, only high priority bugs are reported.
      */
-    public void setReportLevel(String reportLevel) {
+    public void setReportLevel(final String reportLevel) {
         this.reportLevel = reportLevel;
     }
 
@@ -468,7 +490,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * The maximum heap size for the forked findbugs process (ex: '1g').
      */
-    public void setMaxHeapSize(String maxHeapSize) {
+    public void setMaxHeapSize(final String maxHeapSize) {
         this.maxHeapSize = maxHeapSize;
     }
 
@@ -486,7 +508,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The bug detectors which should be run. The bug detectors are specified by their class names, without any package qualification. By default, all detectors which are not disabled by default are
      * run.
      */
-    public void setVisitors(Collection<String> visitors) {
+    public void setVisitors(final Collection<String> visitors) {
         this.visitors = visitors;
     }
 
@@ -502,7 +524,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Similar to {@code visitors} except that it specifies bug detectors which should not be run. By default, no visitors are omitted.
      */
-    public void setOmitVisitors(Collection<String> omitVisitors) {
+    public void setOmitVisitors(final Collection<String> omitVisitors) {
         this.omitVisitors = omitVisitors;
     }
 
@@ -524,7 +546,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 2.2
      */
     @Incubating
-    public void setIncludeFilterConfig(TextResource includeFilterConfig) {
+    public void setIncludeFilterConfig(final TextResource includeFilterConfig) {
         this.includeFilterConfig = includeFilterConfig;
     }
 
@@ -546,7 +568,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 2.2
      */
     @Incubating
-    public void setExcludeFilterConfig(TextResource excludeFilterConfig) {
+    public void setExcludeFilterConfig(final TextResource excludeFilterConfig) {
         this.excludeFilterConfig = excludeFilterConfig;
     }
 
@@ -568,7 +590,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 2.4
      */
     @Incubating
-    public void setExcludeBugsFilterConfig(TextResource excludeBugsFilterConfig) {
+    public void setExcludeBugsFilterConfig(final TextResource excludeBugsFilterConfig) {
         this.excludeBugsFilterConfig = excludeBugsFilterConfig;
     }
 
@@ -594,7 +616,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.6
      */
-    public void setExtraArgs(Collection<String> extraArgs) {
+    public void setExtraArgs(final Collection<String> extraArgs) {
         this.extraArgs = extraArgs;
     }
 
@@ -615,7 +637,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 4.2
      */
     @Incubating
-    public void setShowProgress(boolean showProgress) {
+    public void setShowProgress(final boolean showProgress) {
         this.showProgress = showProgress;
     }
 }

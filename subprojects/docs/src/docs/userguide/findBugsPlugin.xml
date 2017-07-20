@@ -101,7 +101,24 @@
                 </td>
                 <td>The FindBugs libraries to use</td>
             </tr>
+            <tr>
+                <td>
+                    <filename>findbugsPlugins</filename>
+                </td>
+                <td>The FindBugs plugin libraries to use</td>
+            </tr>
         </table>
+        <para>
+            A common setup to include additional third-party FindBugs plugins such as the excellent "Find Security Bugs" would be defined as follows:
+            <programlisting>
+                dependencies {
+                    //Dependencies for FindBugs and FindBugs plugins
+                    findbugs 'com.google.code.findbugs:findbugs:3.0.1'
+                    findbugs configurations.findbugsPlugins.dependencies
+                    findbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.6.0'
+                }
+            </programlisting>
+        </para>
     </section>
 
     <section id="sec:findbugs_configuration">
@@ -121,6 +138,22 @@
         <para>
             <ulink url="https://github.com/findbugsproject/findbugs/tree/master/findbugs/src/xsl">View a sample FindBugs stylesheet.</ulink>
         </para>
+        <para>
+            The built-in FindBugs stylesheets may also be selected using the <code>extraArgs</code> property:
+            <programlisting>
+                extraArgs = ['-html:fancy-hist.xsl']
+            </programlisting>
+        </para>
+        <tip>
+            <title>Built-in FindBugs stylesheets</title>
+            <itemizedlist>
+                <listitem><filename>-html:default.xsl</filename></listitem>
+                <listitem><filename>-html:plain.xsl</filename></listitem>
+                <listitem><filename>-html:color.xsl</filename></listitem>
+                <listitem><filename>-html:fancy.xsl</filename></listitem>
+                <listitem><filename>-html:fancy-hist.xsl</filename></listitem>
+                <listitem><filename>-html:summary.xsl</filename></listitem>
+            </itemizedlist>
+        </tip>
     </section>
-
 </chapter>

@@ -65,8 +65,9 @@ public class FindBugsExtension extends CodeQualityExtension {
     private TextResource excludeBugsFilterConfig;
     private Collection<String> extraArgs;
     private boolean showProgress;
+    private boolean validateClasspath;
 
-    public FindBugsExtension(Project project) {
+    public FindBugsExtension(final Project project) {
         this.project = project;
     }
 
@@ -84,7 +85,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * The value specified should be one of {@code min}, {@code default}, or {@code max}.
      * Higher levels increase precision and find more bugs at the expense of running time and memory consumption.
      */
-    public void setEffort(String effort) {
+    public void setEffort(final String effort) {
         this.effort = effort;
     }
 
@@ -104,7 +105,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * If set to {@code medium} (the default), medium and high priority bugs are reported.
      * If set to {@code high}, only high priority bugs are reported.
      */
-    public void setReportLevel(String reportLevel) {
+    public void setReportLevel(final String reportLevel) {
         this.reportLevel = reportLevel;
     }
 
@@ -122,7 +123,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * The bug detectors are specified by their class names, without any package qualification.
      * By default, all detectors which are not disabled by default are run.
      */
-    public void setVisitors(Collection<String> visitors) {
+    public void setVisitors(final Collection<String> visitors) {
         this.visitors = visitors;
     }
 
@@ -138,7 +139,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * Similar to {@code visitors} except that it specifies bug detectors which should not be run.
      * By default, no visitors are omitted.
      */
-    public void setOmitVisitors(Collection<String> omitVisitors) {
+    public void setOmitVisitors(final Collection<String> omitVisitors) {
         this.omitVisitors = omitVisitors;
     }
 
@@ -158,7 +159,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
-    public void setIncludeFilterConfig(TextResource includeFilterConfig) {
+    public void setIncludeFilterConfig(final TextResource includeFilterConfig) {
         this.includeFilterConfig = includeFilterConfig;
     }
 
@@ -166,7 +167,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * The filename of a filter specifying which bugs are reported.
      */
     public File getIncludeFilter() {
-        TextResource includeFilterConfig = getIncludeFilterConfig();
+        final TextResource includeFilterConfig = getIncludeFilterConfig();
         if (includeFilterConfig == null) {
             return null;
         }
@@ -176,7 +177,7 @@ public class FindBugsExtension extends CodeQualityExtension {
     /**
      * The filename of a filter specifying which bugs are reported.
      */
-    public void setIncludeFilter(File filter) {
+    public void setIncludeFilter(final File filter) {
         setIncludeFilterConfig(project.getResources().getText().fromFile(filter));
     }
 
@@ -196,7 +197,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
-    public void setExcludeFilterConfig(TextResource excludeFilterConfig) {
+    public void setExcludeFilterConfig(final TextResource excludeFilterConfig) {
         this.excludeFilterConfig = excludeFilterConfig;
     }
 
@@ -204,7 +205,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * The filename of a filter specifying bugs to exclude from being reported.
      */
     public File getExcludeFilter() {
-        TextResource excludeFilterConfig = getExcludeFilterConfig();
+        final TextResource excludeFilterConfig = getExcludeFilterConfig();
         if (excludeFilterConfig == null) {
             return null;
         }
@@ -214,7 +215,7 @@ public class FindBugsExtension extends CodeQualityExtension {
     /**
      * The filename of a filter specifying bugs to exclude from being reported.
      */
-    public void setExcludeFilter(File filter) {
+    public void setExcludeFilter(final File filter) {
         setExcludeFilterConfig(project.getResources().getText().fromFile(filter));
     }
 
@@ -234,7 +235,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * @since 2.4
      */
     @Incubating
-    public void setExcludeBugsFilterConfig(TextResource excludeBugsFilterConfig) {
+    public void setExcludeBugsFilterConfig(final TextResource excludeBugsFilterConfig) {
         this.excludeBugsFilterConfig = excludeBugsFilterConfig;
     }
 
@@ -242,7 +243,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * The filename of a filter specifying baseline bugs to exclude from being reported.
      */
     public File getExcludeBugsFilter() {
-        TextResource excludeBugsFilterConfig = getExcludeBugsFilterConfig();
+        final TextResource excludeBugsFilterConfig = getExcludeBugsFilterConfig();
         if (excludeBugsFilterConfig == null) {
             return null;
         }
@@ -252,7 +253,7 @@ public class FindBugsExtension extends CodeQualityExtension {
     /**
      * The filename of a filter specifying baseline bugs to exclude from being reported.
      */
-    public void setExcludeBugsFilter(File filter) {
+    public void setExcludeBugsFilter(final File filter) {
         setExcludeBugsFilterConfig(project.getResources().getText().fromFile(filter));
     }
 
@@ -284,7 +285,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      *
      * @since 2.6
      */
-    public void setExtraArgs(Collection<String> extraArgs) {
+    public void setExtraArgs(final Collection<String> extraArgs) {
         this.extraArgs = extraArgs;
     }
 
@@ -304,7 +305,29 @@ public class FindBugsExtension extends CodeQualityExtension {
      * @since 4.2
      */
     @Incubating
-    public void setShowProgress(boolean showProgress) {
+    public void setShowProgress(final boolean showProgress) {
         this.showProgress = showProgress;
+    }
+
+    /**
+     * Indicates whether the <code>findbugs</code> configuration classpath will be validated for JDK compatibility. This
+     * is useful to disable when using <em>SpotBugs</em> which is FindBugs' successor. <em>SpotBugs</em> currently
+     * uses the same package structure as <em>FindBugs</em> but is packaged in a different artifact name.
+     *
+     * @since 4.2
+     */
+    public boolean isValidateClasspath() {
+        return validateClasspath;
+    }
+
+    /**
+     * Indicates whether the <code>findbugs</code> configuration classpath will be validated for JDK compatibility. This
+     * is useful to disable when using <em>SpotBugs</em> which is FindBugs' successor. <em>SpotBugs</em> currently
+     * uses the same package structure as <em>FindBugs</em> but is packaged in a different artifact name.
+     *
+     * @since 4.2
+     */
+    public void setValidateClasspath(final boolean validateClasspath) {
+        this.validateClasspath = validateClasspath;
     }
 }

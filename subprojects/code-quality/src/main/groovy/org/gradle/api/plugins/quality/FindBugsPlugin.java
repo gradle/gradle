@@ -65,7 +65,7 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     }
 
     private void configureFindBugsConfigurations() {
-        Configuration configuration = project.getConfigurations().create("findbugsPlugins");
+        final Configuration configuration = project.getConfigurations().create("findbugsPlugins");
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The FindBugs plugins to be used for this project.");
@@ -75,29 +75,30 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("findbugs", FindBugsExtension.class, project);
         extension.setToolVersion(DEFAULT_FINDBUGS_VERSION);
+        extension.setValidateClasspath(true);
         return extension;
     }
 
     @Override
-    protected void configureTaskDefaults(FindBugs task, String baseName) {
+    protected void configureTaskDefaults(final FindBugs task, final String baseName) {
         task.setPluginClasspath(project.getConfigurations().getAt("findbugsPlugins"));
-        Configuration configuration = project.getConfigurations().getAt("findbugs");
+        final Configuration configuration = project.getConfigurations().getAt("findbugs");
         configureDefaultDependencies(configuration);
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
     }
 
-    private void configureDefaultDependencies(Configuration configuration) {
+    private void configureDefaultDependencies(final Configuration configuration) {
         configuration.defaultDependencies(new Action<DependencySet>() {
             @Override
-            public void execute(DependencySet dependencies) {
+            public void execute(final DependencySet dependencies) {
                 dependencies.add(project.getDependencies().create("com.google.code.findbugs:findbugs:" + extension.getToolVersion()));
             }
         });
     }
 
-    private void configureTaskConventionMapping(Configuration configuration, FindBugs task) {
-        ConventionMapping taskMapping = task.getConventionMapping();
+    private void configureTaskConventionMapping(final Configuration configuration, final FindBugs task) {
+        final ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("findbugsClasspath", Callables.returning(configuration));
         taskMapping.map("ignoreFailures", new Callable<Boolean>() {
             @Override
@@ -162,13 +163,20 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
                 return extension.isShowProgress();
             }
         });
+
+        taskMapping.map("validateClasspath", new Callable<Boolean>() {
+            @Override
+            public Boolean call() {
+                return extension.isValidateClasspath();
+            }
+        });
     }
 
-    private void configureReportsConventionMapping(FindBugs task, final String baseName) {
+    private void configureReportsConventionMapping(final FindBugs task, final String baseName) {
         task.getReports().all(new Action<SingleFileReport>() {
             @Override
             public void execute(final SingleFileReport report) {
-                ConventionMapping reportMapping = conventionMappingOf(report);
+                final ConventionMapping reportMapping = conventionMappingOf(report);
                 reportMapping.map("enabled", new Callable<Boolean>() {
                     @Override
                     public Boolean call() {
@@ -186,10 +194,10 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     }
 
     @Override
-    protected void configureForSourceSet(final SourceSet sourceSet, FindBugs task) {
+    protected void configureForSourceSet(final SourceSet sourceSet, final FindBugs task) {
         task.setDescription("Run FindBugs analysis for " + sourceSet.getName() + " classes");
         task.setSource(sourceSet.getAllJava());
-        ConventionMapping taskMapping = task.getConventionMapping();
+        final ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("classes", new Callable<FileCollection>() {
             @Override
             public FileCollection call() {
