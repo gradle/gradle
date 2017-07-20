@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
@@ -25,8 +24,6 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
-
-import static org.gradle.api.JavaVersion.VERSION_1_9
 
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
@@ -644,7 +641,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':compileJava'
     }
 
-    @Requires(adhoc = {AvailableJavaHomes.getJdk(VERSION_1_9)})
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "compile a module"() {
         given:
         buildFile << '''
@@ -660,14 +657,110 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when:
-        executer.requireGradleDistribution()
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_9).javaHome
-        succeeds "compileJava"
+        run "compileJava"
 
         then:
         noExceptionThrown()
         file("build/classes/java/main/module-info.class").exists()
         file("build/classes/java/main/io/example/Example.class").exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2537")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile a module with --module-source-path"() {
+        given:
+        buildFile << '''
+            plugins {
+                id 'java'
+            }
+            
+            compileJava {
+                options.compilerArgs = ['--module-source-path', files('src/main/java', 'src/main/moreJava').asPath]
+            }
+        '''
+        file("src/main/java/example/module-info.java") << '''
+        module example {
+            exports io.example;
+            requires another;
+        }
+        '''
+        file("src/main/java/example/io/example/Example.java") << '''
+            package io.example;
+            
+            import io.another.BaseExample;
+            
+            public class Example extends BaseExample {}
+        '''
+        file("src/main/moreJava/another/module-info.java") << 'module another { exports io.another; }'
+        file("src/main/moreJava/another/io/another/BaseExample.java") << '''
+            package io.another;
+            
+            public class BaseExample {}
+        '''
+
+        when:
+        run "compileJava"
+
+        then:
+        noExceptionThrown()
+        file("build/classes/java/main/example/module-info.class").exists()
+        file("build/classes/java/main/example/io/example/Example.class").exists()
+        file("build/classes/java/main/another/module-info.class").exists()
+        file("build/classes/java/main/another/io/another/BaseExample.class").exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2537")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile a module with --module-source-path and sourcepath warns and removes sourcepath"() {
+        given:
+        buildFile << '''
+            plugins {
+                id 'java'
+            }
+            
+            compileJava {
+                options.compilerArgs = ['--module-source-path', files('src/main/java', 'src/main/moreJava').asPath]
+                options.sourcepath = files('src/main/ignoredJava')
+            }
+        '''
+        file("src/main/java/example/module-info.java") << '''
+        module example {
+            exports io.example;
+            requires another;
+        }
+        '''
+        file("src/main/java/example/io/example/Example.java") << '''
+            package io.example;
+            
+            import io.another.BaseExample;
+            
+            public class Example extends BaseExample {}
+        '''
+        file("src/main/moreJava/another/module-info.java") << 'module another { exports io.another; }'
+        file("src/main/moreJava/another/io/another/BaseExample.java") << '''
+            package io.another;
+            
+            public class BaseExample {}
+        '''
+        file("src/main/ignoredJava/ignored/module-info.java") << 'module ignored { exports io.ignored; }'
+        file("src/main/ignoredJava/ignored/io/ignored/IgnoredExample.java") << '''
+            package io.ignored;
+            
+            public class IgnoredExample {}
+        '''
+
+        when:
+        run "compileJava"
+
+        then:
+        noExceptionThrown()
+        result.output.contains("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Removing sourcepath.")
+        file("build/classes/java/main/example/module-info.class").exists()
+        file("build/classes/java/main/example/io/example/Example.class").exists()
+        file("build/classes/java/main/another/module-info.class").exists()
+        file("build/classes/java/main/another/io/another/BaseExample.class").exists()
+        !file("build/classes/java/main/ignored/module-info.class").exists()
+        !file("build/classes/java/main/ignored/io/ignored/IgnoredExample.class").exists()
     }
 
     def "sourcepath is merged from compilerArgs, but deprecation warning is emitted"() {
