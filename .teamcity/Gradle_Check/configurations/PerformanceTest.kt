@@ -15,7 +15,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildTyp
     applyDefaultSettings(this, timeout = type.timeout)
     artifactRules = "subprojects/*/build/performance-tests/** => results"
     detectHangingBuilds = false
-    maxRunningBuilds = 1
+    maxRunningBuilds = 2
 
     params {
         param("performance.baselines", type.defaultBaselines)
