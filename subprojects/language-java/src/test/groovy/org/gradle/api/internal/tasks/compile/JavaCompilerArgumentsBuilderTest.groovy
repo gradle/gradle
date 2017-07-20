@@ -349,6 +349,16 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.noEmptySourcePath().build() == expected
     }
 
+    def "removes sourcepath when module-source-path is provided"() {
+        given:
+        spec.compileOptions.compilerArgs = ['--module-source-path', '/src/other']
+        def expected = ["-g", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-source-path", "/src/other"]
+
+        expect:
+        builder.build() == expected
+        builder.noEmptySourcePath().build() == expected
+    }
+
     String defaultEmptySourcePathRefFolder() {
         new File(spec.tempDir, JavaCompilerArgumentsBuilder.EMPTY_SOURCE_PATH_REF_DIR).absolutePath
     }
