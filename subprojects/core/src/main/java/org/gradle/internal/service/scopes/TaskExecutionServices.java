@@ -94,7 +94,8 @@ public class TaskExecutionServices {
                                     TaskInputsListener inputsListener,
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker,
-                                    BuildOutputCleanupRegistry cleanupRegistry) {
+                                    BuildOutputCleanupRegistry cleanupRegistry,
+                                    TaskHistoryRepository taskHistoryRepository) {
 
         boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
@@ -122,7 +123,7 @@ public class TaskExecutionServices {
         if (verifyInputsEnabled || taskOutputCacheEnabled) {
             executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
         }
-        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, executer);
+        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, executer, taskHistoryRepository);
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
@@ -147,13 +148,13 @@ public class TaskExecutionServices {
         return new DefaultFileCollectionSnapshotterRegistry(snapshotters.build());
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter, BuildInvocationScopeId buildInvocationScopeId) {
+    TaskHistoryRepository createTaskHistoryRepository(TaskHistoryStore cacheAccess, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, StringInterner stringInterner, BuildInvocationScopeId buildInvocationScopeId) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
             snapshotter.registerSerializers(serializerRegistry);
         }
 
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
+        return new CacheBackedTaskHistoryRepository(
             cacheAccess,
             new CacheBackedFileSnapshotRepository(cacheAccess,
                 serializerRegistry.build(FileCollectionSnapshot.class),
@@ -162,6 +163,10 @@ public class TaskExecutionServices {
             stringInterner,
             buildInvocationScopeId
         );
+
+    }
+
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskHistoryRepository taskHistoryRepository, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {
 
         return new ShortCircuitTaskArtifactStateRepository(
             startParameter,

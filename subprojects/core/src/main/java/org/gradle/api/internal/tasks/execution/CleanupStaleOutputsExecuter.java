@@ -18,7 +18,9 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
@@ -30,11 +32,13 @@ import java.io.File;
 
 public class CleanupStaleOutputsExecuter implements TaskExecuter {
     private final TaskExecuter executer;
+    private final TaskHistoryRepository taskHistoryRepository;
     private final BuildOutputCleanupRegistry cleanupRegistry;
 
-    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskExecuter executer) {
+    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskExecuter executer, TaskHistoryRepository taskHistoryRepository) {
         this.cleanupRegistry = cleanupRegistry;
         this.executer = executer;
+        this.taskHistoryRepository = taskHistoryRepository;
     }
 
     @Override
@@ -42,7 +46,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
         for (TaskOutputFilePropertySpec outputFileSpec : task.getOutputs().getFileProperties()) {
             FileCollection files = outputFileSpec.getPropertyFiles();
             for (File file : files) {
-                if (file.exists() && !generatedByGradle(file, context.getTaskArtifactState()) && isSaveToDelete(file)) {
+                if (file.exists() && !generatedByGradle(file, task) && isSaveToDelete(file)) {
                     GFileUtils.forceDelete(file);
                 }
             }
@@ -55,7 +59,16 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
 //        return cleanupRegistry.getOutputs().contains(file);
     }
 
-    private boolean generatedByGradle(File file, TaskArtifactState taskArtifactState) {
-        return taskArtifactState.getExecutionHistory().getOutputFiles().contains(file);
+    private boolean generatedByGradle(File file, TaskInternal task) {
+        TaskExecution previousExecution = taskHistoryRepository.getHistory(task).getPreviousExecution();
+        if (previousExecution == null) {
+            return false;
+        }
+        for (FileCollectionSnapshot fileCollectionSnapshot : previousExecution.getOutputFilesSnapshot().values()) {
+            if (fileCollectionSnapshot.getElements().contains(file)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

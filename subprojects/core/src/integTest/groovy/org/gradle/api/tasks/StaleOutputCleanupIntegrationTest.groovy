@@ -98,4 +98,28 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
         staleOutputs.haveBeenRemoved()
     }
 
+    def "overlapping outputs still work"() {
+        def staleOutputs = new StaleOutputFixture(file('build'))
+        buildFile << """
+            task overlappingTask {
+                inputs.property('input') { 'some' }
+                outputs.dir('${staleOutputs.outputDir}').withPropertyName('outputDir')
+                outputs.file('${staleOutputs.outputFile}').withPropertyName('outputFile')
+                doLast {
+                    def outputDir = file('${staleOutputs.outputDir}')
+                    outputDir.mkdirs()
+                    new File(outputDir, 'other-overlapping-file.txt').text = "overlapping output"
+                    file('${staleOutputs.outputFile}').text = "another overlapping output"
+                }
+            }
+        """
+
+        when:
+        succeeds "overlappingTask", "task"
+
+        then:
+        file(staleOutputs.outputDir).allDescendants().contains('other-overlapping-file.txt')
+
+    }
+
 }
