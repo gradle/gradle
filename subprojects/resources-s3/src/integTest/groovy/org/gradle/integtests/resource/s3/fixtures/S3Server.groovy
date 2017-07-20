@@ -78,7 +78,9 @@ class S3Server extends HttpServer implements RepositoryServer {
         StubRequest stubRequest = httpStub.request
         String path = stubRequest.path
         assert path.startsWith('/')
-        boolean result = path == request.pathInfo && stubRequest.method == request.method
+        boolean result = path == request.pathInfo && stubRequest.method == request.method &&
+            stubRequest.params.every { request.getParameterMap().containsKey(it.key) } &&
+            request.getParameterMap().every { stubRequest.params.containsKey(it.key) }
         result
     }
 
@@ -287,7 +289,8 @@ class S3Server extends HttpServer implements RepositoryServer {
                 params = [
                     'prefix': [prefix],
                     'delimiter': ['/'],
-                    'max-keys': ["1000"]
+                    'max-keys': ["1000"],
+                    'encoding-type': ['url']
                 ]
             }
             response {
