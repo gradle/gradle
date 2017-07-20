@@ -38,6 +38,11 @@ public class FileChange implements TaskStateChange, InputFileDetails {
     }
 
     public static FileChange modified(String path, String title, FileType previousType, FileType currentType) {
+        assert previousType != null;
+        assert currentType != null;
+        assert !(previousType == FileType.Missing && currentType == FileType.Missing);
+        assert !(previousType == FileType.Directory && currentType == FileType.Directory);
+
         return new FileChange(path, ChangeType.MODIFIED, title, previousType, currentType);
     }
 
@@ -50,7 +55,18 @@ public class FileChange implements TaskStateChange, InputFileDetails {
     }
 
     public String getMessage() {
-        return fileType + " file " + path + " " + change.describe() + ".";
+        ChangeType displayedChange = change != ChangeType.MODIFIED ? change : displayedChangeType(previousType, currentType);
+        return fileType + " file " + path + " " + displayedChange.describe() + ".";
+    }
+
+    private static ChangeType displayedChangeType(FileType previous, FileType current) {
+        if (previous == FileType.Missing) {
+            return ChangeType.ADDED;
+        }
+        if (current == FileType.Missing) {
+            return ChangeType.REMOVED;
+        }
+        return ChangeType.MODIFIED;
     }
 
     @Override
@@ -93,11 +109,13 @@ public class FileChange implements TaskStateChange, InputFileDetails {
         FileChange that = (FileChange) o;
         return Objects.equal(path, that.path)
             && change == that.change
-            && Objects.equal(fileType, that.fileType);
+            && Objects.equal(fileType, that.fileType)
+            && Objects.equal(previousType, that.previousType)
+            && Objects.equal(currentType, that.currentType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(path, change, fileType);
+        return Objects.hashCode(path, change, fileType, previousType, currentType);
     }
 }
