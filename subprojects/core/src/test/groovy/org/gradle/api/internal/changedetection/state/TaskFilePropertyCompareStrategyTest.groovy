@@ -18,12 +18,11 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.Lists
 import com.google.common.hash.HashCode
-import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.FileChange
+import org.gradle.internal.nativeintegration.filesystem.FileType
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.changedetection.rules.ChangeType.*
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
 
 class TaskFilePropertyCompareStrategyTest extends Specification {
@@ -54,9 +53,9 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [new FileChange("one-new", ADDED, "test")]
+        ORDERED   | true         | [added("one-new")]
         ORDERED   | false        | []
-        UNORDERED | true         | [new FileChange("one-new", ADDED, "test")]
+        UNORDERED | true         | [added("one-new")]
         UNORDERED | false        | []
     }
 
@@ -70,9 +69,9 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [change("two-new", ADDED)]
+        ORDERED   | true         | [added("two-new")]
         ORDERED   | false        | []
-        UNORDERED | true         | [change("two-new", ADDED)]
+        UNORDERED | true         | [added("two-new")]
         UNORDERED | false        | []
     }
 
@@ -86,9 +85,9 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [change("two", ADDED)]
+        ORDERED   | true         | [added("two")]
         ORDERED   | false        | []
-        UNORDERED | true         | [change("two", ADDED)]
+        UNORDERED | true         | [added("two")]
         UNORDERED | false        | []
     }
 
@@ -98,7 +97,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             [:],
             ["one-old": snapshot("one")]
-        ) as List == [new FileChange("one-old", REMOVED, "test")]
+        ) as List == [removed("one-old")]
 
         where:
         strategy  | includeAdded
@@ -114,7 +113,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             ["one-new": snapshot("one")],
             ["one-old": snapshot("one"), "two-old": snapshot("two")]
-        ) == [change("two-old", REMOVED)]
+        ) == [removed("two-old")]
 
         where:
         strategy  | includeAdded
@@ -130,7 +129,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one")],
             ["one": snapshot("one"), "two": snapshot("two")]
-        ) == [change("two", REMOVED)]
+        ) == [removed("two")]
 
         where:
         strategy  | includeAdded
@@ -146,7 +145,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             ["one-new": snapshot("one"), "two-new": snapshot("two", "9876cafe")],
             ["one-old": snapshot("one"), "two-old": snapshot("two", "face1234")]
-        ) == [change("two-new", MODIFIED)]
+        ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
 
         where:
         strategy  | includeAdded
@@ -162,7 +161,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one"), "two": snapshot("two", "9876cafe")],
             ["one": snapshot("one"), "two": snapshot("two", "face1234")]
-        ) == [change("two", MODIFIED)]
+        ) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
 
         where:
         strategy  | includeAdded
@@ -182,10 +181,10 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [new FileChange("one-old", REMOVED, "test"), new FileChange("two-new", ADDED, "test")]
-        ORDERED   | false        | [new FileChange("one-old", REMOVED, "test")]
-        UNORDERED | true         | [new FileChange("one-old", REMOVED, "test"), new FileChange("two-new", ADDED, "test")]
-        UNORDERED | false        | [new FileChange("one-old", REMOVED, "test")]
+        ORDERED   | true         | [removed("one-old"), added("two-new")]
+        ORDERED   | false        | [removed("one-old")]
+        UNORDERED | true         | [removed("one-old"), added("two-new")]
+        UNORDERED | false        | [removed("one-old")]
     }
 
     @Unroll
@@ -198,10 +197,10 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [change("three-old", REMOVED), change("two-new", ADDED)]
-        ORDERED   | false        | [change("three-old", REMOVED)]
-        UNORDERED | true         | [change("three-old", REMOVED), change("two-new", ADDED)]
-        UNORDERED | false        | [change("three-old", REMOVED)]
+        ORDERED   | true         | [removed("three-old"), added("two-new")]
+        ORDERED   | false        | [removed("three-old")]
+        UNORDERED | true         | [removed("three-old"), added("two-new")]
+        UNORDERED | false        | [removed("three-old")]
     }
 
     @Unroll
@@ -214,10 +213,10 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [change("three", REMOVED), change("two", ADDED)]
-        ORDERED   | false        | [change("three", REMOVED)]
-        UNORDERED | true         | [change("three", REMOVED), change("two", ADDED)]
-        UNORDERED | false        | [change("three", REMOVED)]
+        ORDERED   | true         | [removed("three"), added("two")]
+        ORDERED   | false        | [removed("three")]
+        UNORDERED | true         | [removed("three"), added("two")]
+        UNORDERED | false        | [removed("three")]
     }
 
     @Unroll
@@ -230,8 +229,8 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [change("three-old", REMOVED), change("two-new", ADDED), change("two-old", REMOVED), change("three-new", ADDED)]
-        ORDERED   | false        | [change("three-old", REMOVED), change("two-old", REMOVED)]
+        ORDERED   | true         | [removed("three-old"), added("two-new"), removed("two-old"), added("three-new")]
+        ORDERED   | false        | [removed("three-old"), removed("two-old")]
         UNORDERED | true         | []
         UNORDERED | false        | []
     }
@@ -246,8 +245,8 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [change("three", REMOVED), change("two", ADDED), change("two", REMOVED), change("three", ADDED)]
-        ORDERED   | false        | [change("three", REMOVED), change("two", REMOVED)]
+        ORDERED   | true         | [removed("three"), added("two"), removed("two"), added("three")]
+        ORDERED   | false        | [removed("three"), removed("two")]
         UNORDERED | true         | []
         UNORDERED | false        | []
     }
@@ -292,7 +291,15 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         return new DefaultNormalizedFileSnapshot(normalizedPath, new FileHashSnapshot(HashCode.fromString(hashCode)))
     }
 
-    def change(String path, ChangeType type) {
-        new FileChange(path, type, "test")
+    def added(String path) {
+        FileChange.added(path, "test")
+    }
+
+    def removed(String path) {
+        FileChange.removed(path, "test")
+    }
+
+    def modified(String path, FileType previous, FileType current) {
+        FileChange.modified(path, "test", previous, current)
     }
 }

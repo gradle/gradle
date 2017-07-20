@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarChangeProcessor;
@@ -27,6 +26,7 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.util.Alignment;
 
 import java.io.File;
@@ -72,10 +72,10 @@ public class RecompilationSpecProvider {
         for (Alignment<File> fileAlignment : alignment) {
             switch (fileAlignment.getKind()) {
                 case added:
-                    jarChangeProcessor.processChange(new FileChange(fileAlignment.getCurrentValue().getAbsolutePath(), ChangeType.ADDED, "jar"), spec);
+                    jarChangeProcessor.processChange(FileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "jar"), spec);
                     break;
                 case removed:
-                    jarChangeProcessor.processChange(new FileChange(fileAlignment.getPreviousValue().getAbsolutePath(), ChangeType.REMOVED, "jar"), spec);
+                    jarChangeProcessor.processChange(FileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "jar"), spec);
                     break;
                 case transformed:
                     // If we detect a transformation in the classpath, we need to recompile, because we could typically be facing the case where
@@ -87,7 +87,7 @@ public class RecompilationSpecProvider {
                     JarSnapshot previousSnapshot = previousCompilationJarSnapshots.get(key);
                     JarSnapshot snapshot = currentJarSnapshots.getSnapshot(key);
                     if (!snapshot.getHash().equals(previousSnapshot.getHash())) {
-                        jarChangeProcessor.processChange(new FileChange(key.getAbsolutePath(), ChangeType.MODIFIED, "jar"), spec);
+                        jarChangeProcessor.processChange(FileChange.modified(key.getAbsolutePath(), "jar", FileType.RegularFile, FileType.RegularFile), spec);
                     }
                     break;
             }

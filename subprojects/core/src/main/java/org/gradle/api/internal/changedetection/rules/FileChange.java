@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.base.Objects;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.File;
 
@@ -25,11 +26,27 @@ public class FileChange implements TaskStateChange, InputFileDetails {
     private final String path;
     private final ChangeType change;
     private final String fileType;
+    private final FileType previousType;
+    private final FileType currentType;
 
-    public FileChange(String path, ChangeType change, String fileType) {
+    public static FileChange added(String path, String title) {
+        return new FileChange(path, ChangeType.ADDED, title, null, null);
+    }
+
+    public static FileChange removed(String path, String title) {
+        return new FileChange(path, ChangeType.REMOVED, title, null, null);
+    }
+
+    public static FileChange modified(String path, String title, FileType previousType, FileType currentType) {
+        return new FileChange(path, ChangeType.MODIFIED, title, previousType, currentType);
+    }
+
+    private FileChange(String path, ChangeType change, String fileType, FileType previousType, FileType currentType) {
         this.path = path;
         this.change = change;
         this.fileType = fileType;
+        this.previousType = previousType;
+        this.currentType = currentType;
     }
 
     public String getMessage() {

@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
-import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -79,7 +78,7 @@ public enum TaskFilePropertyCompareStrategy {
                         return emptyIterator();
                     case 1:
                         String path = previous.keySet().iterator().next();
-                        TaskStateChange change = new FileChange(path, ChangeType.REMOVED, fileType);
+                        TaskStateChange change = FileChange.removed(path, fileType);
                         return singletonIterator(change);
                     default:
                         return null;
@@ -90,7 +89,7 @@ public enum TaskFilePropertyCompareStrategy {
                     case 0:
                         if (includeAdded) {
                             String path = current.keySet().iterator().next();
-                            TaskStateChange change = new FileChange(path, ChangeType.ADDED, fileType);
+                            TaskStateChange change = FileChange.added(path, fileType);
                             return singletonIterator(change);
                         } else {
                             return emptyIterator();
@@ -116,7 +115,7 @@ public enum TaskFilePropertyCompareStrategy {
             FileContentSnapshot currentSnapshot = normalizedCurrent.getSnapshot();
             if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
                 String path = currentEntry.getKey();
-                TaskStateChange change = new FileChange(path, ChangeType.MODIFIED, fileType);
+                TaskStateChange change = FileChange.modified(path, fileType, previousSnapshot.getType(), currentSnapshot.getType());
                 return singletonIterator(change);
             } else {
                 return emptyIterator();
@@ -125,12 +124,12 @@ public enum TaskFilePropertyCompareStrategy {
             if (includeAdded) {
                 String previousPath = previousEntry.getKey();
                 String currentPath = currentEntry.getKey();
-                TaskStateChange remove = new FileChange(previousPath, ChangeType.REMOVED, fileType);
-                TaskStateChange add = new FileChange(currentPath, ChangeType.ADDED, fileType);
+                TaskStateChange remove = FileChange.removed(previousPath, fileType);
+                TaskStateChange add = FileChange.added(currentPath, fileType);
                 return Iterators.forArray(remove, add);
             } else {
                 String path = previousEntry.getKey();
-                TaskStateChange change = new FileChange(path, ChangeType.REMOVED, fileType);
+                TaskStateChange change = FileChange.removed(path, fileType);
                 return singletonIterator(change);
             }
         }

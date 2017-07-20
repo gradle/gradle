@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.AbstractIterator;
-import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -48,30 +47,32 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
                         Map.Entry<String, NormalizedFileSnapshot> current = currentEntries.next();
                         String absolutePath = current.getKey();
                         if (previousEntries.hasNext()) {
-                            Map.Entry<String, NormalizedFileSnapshot> other = previousEntries.next();
-                            NormalizedFileSnapshot normalizedSnapshot = current.getValue();
-                            NormalizedFileSnapshot otherNormalizedSnapshot = other.getValue();
-                            String normalizedPath = normalizedSnapshot.getNormalizedPath();
-                            String otherNormalizedPath = otherNormalizedSnapshot.getNormalizedPath();
-                            if (normalizedPath.equals(otherNormalizedPath)) {
-                                if (!normalizedSnapshot.getSnapshot().isContentUpToDate(otherNormalizedSnapshot.getSnapshot())) {
-                                    return new FileChange(absolutePath, ChangeType.MODIFIED, fileType);
+                            Map.Entry<String, NormalizedFileSnapshot> previous = previousEntries.next();
+                            NormalizedFileSnapshot currentNormalizedSnapshot = current.getValue();
+                            NormalizedFileSnapshot previousNormalizedSnapshot = previous.getValue();
+                            String currentNormalizedPath = currentNormalizedSnapshot.getNormalizedPath();
+                            String previousNormalizedPath = previousNormalizedSnapshot.getNormalizedPath();
+                            if (currentNormalizedPath.equals(previousNormalizedPath)) {
+                                if (!currentNormalizedSnapshot.getSnapshot().isContentUpToDate(previousNormalizedSnapshot.getSnapshot())) {
+                                    return FileChange.modified(absolutePath, fileType,
+                                        previousNormalizedSnapshot.getSnapshot().getType(),
+                                        currentNormalizedSnapshot.getSnapshot().getType());
                                 }
                             } else {
-                                String otherAbsolutePath = other.getKey();
+                                String otherAbsolutePath = previous.getKey();
                                 if (includeAdded) {
-                                    remaining = new FileChange(absolutePath, ChangeType.ADDED, fileType);
+                                    remaining = FileChange.added(absolutePath, fileType);
                                 }
-                                return new FileChange(otherAbsolutePath, ChangeType.REMOVED, fileType);
+                                return FileChange.removed(otherAbsolutePath, fileType);
                             }
                         } else {
                             if (includeAdded) {
-                                return new FileChange(absolutePath, ChangeType.ADDED, fileType);
+                                return FileChange.added(absolutePath, fileType);
                             }
                         }
                     } else {
                         if (previousEntries.hasNext()) {
-                            return new FileChange(previousEntries.next().getKey(), ChangeType.REMOVED, fileType);
+                            return FileChange.removed(previousEntries.next().getKey(), fileType);
                         } else {
                             return endOfData();
                         }
