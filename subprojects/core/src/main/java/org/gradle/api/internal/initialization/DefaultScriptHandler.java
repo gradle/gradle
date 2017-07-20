@@ -74,7 +74,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         if (classpathConfiguration == null) {
             return ClassPath.EMPTY;
         }
-        return new DefaultClassPath(compositeBuildClasspathResolver.buildAll(classpathConfiguration.getIncoming()));
+        return new DefaultClassPath(compositeBuildClasspathResolver.resolve(classpathConfiguration));
     }
 
     @Override

@@ -15,13 +15,14 @@
  */
 package org.gradle.composite.internal;
 
-import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.artifacts.Configuration;
+
+import java.io.File;
 
 /**
  * Resolves a build script classpath to a set of files in a composite build, ensuring that the
  * required tasks are executed to build artifacts in included builds.
  */
 public interface CompositeBuildClasspathResolver {
-    FileCollection buildAll(ResolvableDependencies dependencies);
+    Iterable<File> resolve(Configuration classpath);
 }

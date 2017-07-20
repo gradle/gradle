@@ -80,8 +80,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new IncludedBuildTaskReferenceResolver(includedBuilds, buildIdentity);
         }
 
-        public CompositeBuildClasspathResolver createIncludedBuildArtifactBuilder(IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
-            return new DefaultCompositeBuildClasspathResolver(includedBuildTaskGraph, serviceRegistry);
+        public CompositeBuildClasspathResolver createCompositeBuildClasspathResolver(IncludedBuilds includedBuilds, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
+            return new DefaultCompositeBuildClasspathResolver(includedBuilds, includedBuildTaskGraph, serviceRegistry);
         }
     }
 

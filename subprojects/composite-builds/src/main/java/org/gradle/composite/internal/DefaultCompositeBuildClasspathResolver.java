@@ -16,7 +16,7 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.ArtifactCollection;
-import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -29,17 +29,23 @@ import java.util.Set;
 public class DefaultCompositeBuildClasspathResolver implements CompositeBuildClasspathResolver {
     private final IncludedBuildTaskGraph includedBuildTaskGraph;
     private final ServiceRegistry serviceRegistry;
+    private final IncludedBuilds includedBuilds;
     private BuildIdentifier currentBuild;
 
-    public DefaultCompositeBuildClasspathResolver(IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
+    public DefaultCompositeBuildClasspathResolver(IncludedBuilds includedBuilds, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
+        this.includedBuilds = includedBuilds;
         this.includedBuildTaskGraph = includedBuildTaskGraph;
         this.serviceRegistry = serviceRegistry;
     }
 
     @Override
-    public FileCollection buildAll(final ResolvableDependencies dependencies) {
+    public FileCollection resolve(final Configuration classpath) {
+        if (includedBuilds.getBuilds().isEmpty()) {
+            return classpath;
+        }
+
         // Collect the included build artifacts
-        ArtifactCollection artifacts = dependencies.getArtifacts();
+        ArtifactCollection artifacts = classpath.getIncoming().getArtifacts();
         for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
             ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
             build(getCurrentBuild(), componentArtifactIdentifier);

@@ -18,7 +18,9 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.initialization.IncludedBuild;
 
+import java.util.Collection;
+
 public interface IncludedBuilds {
-    Iterable<IncludedBuild> getBuilds();
+    Collection<IncludedBuild> getBuilds();
     IncludedBuild getBuild(String name);
 }
