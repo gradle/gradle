@@ -62,7 +62,7 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
                 inputFile = file("input.txt")
                 input = "This is the text"
                 outputDir = file("\$buildDir/outputDir")
-                outputFile = file("\$buildDir/outputFile.txt")
+                outputFile = file("\$buildDir/outputFile")
             }
             
             class MyTask extends DefaultTask {
