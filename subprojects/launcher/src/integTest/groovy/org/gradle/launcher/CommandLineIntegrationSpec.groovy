@@ -18,7 +18,6 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.logging.sink.OutputEventRenderer
 import org.gradle.launcher.debug.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
@@ -118,33 +117,5 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         then:
         fails("tasks")
         errorOutput.contains("Command line switches '--scan' and '--no-scan' are mutually exclusive and must not be used together.")
-    }
-
-    @IgnoreIf({ GradleContextualExecuter.parallel })
-    @Unroll
-    def "set logging max worker count to #expectedMaxWorkerCount according to command line flags #flags"() {
-        buildFile << """
-            import ${OutputEventRenderer.canonicalName}
-
-            task assertExpectedMaxWorkerCount {
-                doLast {
-                    def outputRenderer = gradle.services.get(OutputEventRenderer)
-                    assert outputRenderer.maxWorkerCount.get() == ${expectedMaxWorkerCount}
-                }
-            }
-        """
-        expect:
-        executer.withArguments(flags)
-        succeeds("assertExpectedMaxWorkerCount")
-
-        where:
-        expectedMaxWorkerCount | flags
-        1                      | []
-        1                      | ['--max-workers=4']
-        1                      | ['-Dorg.gradle.parallel=false', '--max-workers=4']
-        4                      | ['--parallel', '--max-workers=4']
-        4                      | ['--parallel', '-Dorg.gradle.workers.max=4']
-        6                      | ['--parallel', '--max-workers=6', '-Dorg.gradle.workers.max=4']
-        4                      | ['-Dorg.gradle.parallel=true', '--max-workers=4']
     }
 }

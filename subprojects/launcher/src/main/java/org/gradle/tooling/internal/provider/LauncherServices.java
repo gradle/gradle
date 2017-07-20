@@ -88,7 +88,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                     userHomeServiceRegistry)),
                             parallelismConfigurationManager)),
                     styledTextOutputFactory),
-                loggingManager, parallelismConfigurationManager);
+                loggingManager);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
