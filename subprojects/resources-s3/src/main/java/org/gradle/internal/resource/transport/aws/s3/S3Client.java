@@ -127,7 +127,7 @@ public class S3Client {
         }
     }
 
-    protected void putSingleObject(InputStream inputStream, Long contentLength, URI destination) {
+    private void putSingleObject(InputStream inputStream, Long contentLength, URI destination) {
         try {
             S3RegionalResource s3RegionalResource = new S3RegionalResource(destination);
             String bucketName = s3RegionalResource.getBucketName();
@@ -147,7 +147,7 @@ public class S3Client {
         }
     }
 
-    protected void putMultiPartObject(InputStream inputStream, Long contentLength, URI destination) {
+    private void putMultiPartObject(InputStream inputStream, Long contentLength, URI destination) {
         try {
             S3RegionalResource s3RegionalResource = new S3RegionalResource(destination);
             String bucketName = s3RegionalResource.getBucketName();
