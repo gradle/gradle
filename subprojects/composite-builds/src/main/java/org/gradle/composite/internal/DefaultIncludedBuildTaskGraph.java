@@ -49,7 +49,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     public void awaitCompletion(BuildIdentifier targetBuild, String taskPath) {
         // Start task execution if necessary: this is required for building plugin artifacts,
         // since these are built on-demand prior to the regular start signal for included builds.
-        includedBuilds.startTaskExecution(false);
+        includedBuilds.startTaskExecution();
 
         getBuildController(targetBuild).awaitCompletion(taskPath);
     }
@@ -88,5 +88,4 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         cycleReport.append(cycle.get(0));
         return cycleReport.toString();
     }
-
 }

@@ -38,7 +38,9 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
@@ -93,6 +95,7 @@ import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
 import org.gradle.composite.internal.IncludedBuildFactory;
+import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -347,11 +350,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
+    protected ScriptClassPathResolver createScriptClassPathResolver(List<ScriptClassPathInitializer> initializers) {
+        return new DefaultScriptClassPathResolver(initializers);
+    }
+
     protected ScriptHandlerFactory createScriptHandlerFactory() {
         return new DefaultScriptHandlerFactory(
             get(DependencyManagementServices.class),
             get(FileResolver.class),
-            get(DependencyMetaDataProvider.class)
+            get(DependencyMetaDataProvider.class),
+            get(ScriptClassPathResolver.class)
         );
     }
 

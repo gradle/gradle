@@ -305,7 +305,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public void run(BuildOperationContext context) {
             if (!isNestedBuild()) {
                 IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
-                buildControllers.startTaskExecution(true);
+                buildControllers.startTaskExecution();
             }
 
             buildExecuter.execute(gradle);

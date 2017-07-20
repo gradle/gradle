@@ -57,12 +57,9 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void startTaskExecution(boolean prePopulateTaskGraph) {
+    public void startTaskExecution() {
         this.taskExecutionStarted = true;
-        // Don't pre-populate the task graph for build-on-demand
-        if (prePopulateTaskGraph) {
-            populateTaskGraphs();
-        }
+        populateTaskGraphs();
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.startTaskExecution();
         }

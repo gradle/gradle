@@ -18,7 +18,7 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
 public interface IncludedBuildControllers {
-    void startTaskExecution(boolean prePopulateTaskGraphs);
+    void startTaskExecution();
 
     void stopTaskExecution();
 

@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.initialization;
 
-package org.gradle.composite.internal;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 
-import org.gradle.api.initialization.IncludedBuild;
-
-import java.util.Collection;
-
-public interface IncludedBuilds {
-    Collection<IncludedBuild> getBuilds();
-    IncludedBuild getBuild(String name);
+public interface ScriptClassPathInitializer extends Action<Configuration> {
 }
