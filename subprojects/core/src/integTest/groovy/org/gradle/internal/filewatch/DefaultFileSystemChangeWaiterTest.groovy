@@ -19,6 +19,7 @@ package org.gradle.internal.filewatch
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -180,6 +181,11 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         @Override
         void onChange(FileWatcherEvent event) {
             logger.log(event)
+        }
+
+        @Override
+        void reportChanges(StyledTextOutput logger) {
+
         }
     }
 }

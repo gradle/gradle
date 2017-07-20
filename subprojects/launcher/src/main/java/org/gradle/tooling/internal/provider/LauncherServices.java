@@ -21,6 +21,8 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
+import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
+import org.gradle.internal.filewatch.FileWatcherEventListenerFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -81,7 +83,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                         new ValidatingBuildActionRunner(
                                                             new ChainingBuildActionRunner(buildActionRunners))),
                                                     buildOperationListenerManager, registrations))),
-                                        fileWatcherFactory,
+                                        new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory),
+                                        new FileWatcherEventListenerFactory(),
                                         inputsListener,
                                         styledTextOutputFactory,
                                         executorFactory),
