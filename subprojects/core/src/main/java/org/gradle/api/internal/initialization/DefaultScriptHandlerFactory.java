@@ -24,23 +24,22 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.composite.internal.CompositeBuildClasspathResolver;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final CompositeBuildClasspathResolver compositeBuildClasspathResolver;
+    private final ScriptClassPathResolver scriptClassPathResolver;
     private final FileResolver fileResolver;
     private final ProjectFinder projectFinder = new UnknownProjectFinder("Cannot use project dependencies in a script classpath definition.");
 
     public DefaultScriptHandlerFactory(DependencyManagementServices dependencyManagementServices,
                                        FileResolver fileResolver,
                                        DependencyMetaDataProvider dependencyMetaDataProvider,
-                                       CompositeBuildClasspathResolver compositeBuildClasspathResolver) {
+                                       ScriptClassPathResolver scriptClassPathResolver) {
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
-        this.compositeBuildClasspathResolver = compositeBuildClasspathResolver;
+        this.scriptClassPathResolver = scriptClassPathResolver;
     }
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope) {
@@ -49,7 +48,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
         DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, context);
-        return new DefaultScriptHandler(scriptSource, services, classLoaderScope, compositeBuildClasspathResolver);
+        return new DefaultScriptHandler(scriptSource, services, classLoaderScope, scriptClassPathResolver);
     }
 
 }

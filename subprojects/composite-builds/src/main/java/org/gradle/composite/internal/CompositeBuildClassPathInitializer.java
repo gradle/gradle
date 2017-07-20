@@ -20,37 +20,35 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.util.Set;
 
-public class DefaultCompositeBuildClasspathResolver implements CompositeBuildClasspathResolver {
+public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
     private final IncludedBuildTaskGraph includedBuildTaskGraph;
     private final ServiceRegistry serviceRegistry;
     private final IncludedBuilds includedBuilds;
     private BuildIdentifier currentBuild;
 
-    public DefaultCompositeBuildClasspathResolver(IncludedBuilds includedBuilds, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
+    public CompositeBuildClassPathInitializer(IncludedBuilds includedBuilds, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
         this.includedBuilds = includedBuilds;
         this.includedBuildTaskGraph = includedBuildTaskGraph;
         this.serviceRegistry = serviceRegistry;
     }
 
     @Override
-    public FileCollection resolve(final Configuration classpath) {
+    public void execute(Configuration classpath) {
         if (includedBuilds.getBuilds().isEmpty()) {
-            return classpath;
+            return;
         }
 
-        // Collect the included build artifacts
         ArtifactCollection artifacts = classpath.getIncoming().getArtifacts();
         for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
             ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
             build(getCurrentBuild(), componentArtifactIdentifier);
         }
-        return artifacts.getArtifactFiles();
     }
 
     private BuildIdentifier getBuildIdentifier(CompositeProjectComponentArtifactMetadata artifact) {

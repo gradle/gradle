@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
+import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.NestedBuildFactory;
@@ -80,8 +81,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new IncludedBuildTaskReferenceResolver(includedBuilds, buildIdentity);
         }
 
-        public CompositeBuildClasspathResolver createCompositeBuildClasspathResolver(IncludedBuilds includedBuilds, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
-            return new DefaultCompositeBuildClasspathResolver(includedBuilds, includedBuildTaskGraph, serviceRegistry);
+        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuilds includedBuilds, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
+            return new CompositeBuildClassPathInitializer(includedBuilds, includedBuildTaskGraph, serviceRegistry);
         }
     }
 

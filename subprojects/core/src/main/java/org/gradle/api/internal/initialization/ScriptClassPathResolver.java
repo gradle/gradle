@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.composite.internal;
+package org.gradle.api.internal.initialization;
 
 import org.gradle.api.artifacts.Configuration;
-
-import java.io.File;
+import org.gradle.internal.classpath.ClassPath;
 
 /**
  * Resolves a build script classpath to a set of files in a composite build, ensuring that the
  * required tasks are executed to build artifacts in included builds.
  */
-public interface CompositeBuildClasspathResolver {
-    Iterable<File> resolve(Configuration classpath);
+public interface ScriptClassPathResolver {
+    ClassPath resolveClassPath(Configuration classpath);
 }
