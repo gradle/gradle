@@ -20,6 +20,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.util.DeprecationLogger;
@@ -30,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class JavaCompilerArgumentsBuilder {
+    public static final Logger LOGGER = Logging.getLogger(JavaCompilerArgumentsBuilder.class);
     public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
     public static final String EMPTY_SOURCE_PATH_REF_DIR = "emptySourcePathRef";
 
@@ -159,7 +162,7 @@ public class JavaCompilerArgumentsBuilder {
         }
 
         FileCollection sourcepath = compileOptions.getSourcepath();
-        String userProvidedSourcepath = extractSourcepathFrom(compilerArgs);
+        String userProvidedSourcepath = extractSourcepathFrom(compilerArgs, false);
         if (allowEmptySourcePath || sourcepath != null && !sourcepath.isEmpty() || !userProvidedSourcepath.isEmpty()) {
             args.add("-sourcepath");
             args.add(sourcepath == null ? userProvidedSourcepath : Joiner.on(File.pathSeparator).skipNulls().join(sourcepath.getAsPath(), userProvidedSourcepath.isEmpty() ? null : userProvidedSourcepath));
@@ -191,19 +194,26 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
         if (compilerArgs != null) {
+            if (compilerArgs.contains("--module-source-path")) {
+                if (!extractSourcepathFrom(args, true).isEmpty()) {
+                    LOGGER.warn("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Removing sourcepath.");
+                }
+            }
             args.addAll(compilerArgs);
         }
     }
 
-    private String extractSourcepathFrom(List<String> compilerArgs) {
+    private String extractSourcepathFrom(List<String> compilerArgs, boolean silently) {
         Iterator<String> argIterator = compilerArgs.iterator();
         String userProvidedSourcepath = "";
         while (argIterator.hasNext()) {
             String current = argIterator.next();
             if (current.equals("-sourcepath") || current.equals("--source-path")) {
-                DeprecationLogger.nagUserOfDeprecated(
-                    "Specifying the source path in the CompilerOptions compilerArgs property",
-                    "Instead, use the CompilerOptions sourcepath property directly");
+                if (!silently) {
+                    DeprecationLogger.nagUserOfDeprecated(
+                        "Specifying the source path in the CompilerOptions compilerArgs property",
+                        "Instead, use the CompilerOptions sourcepath property directly");
+                }
                 argIterator.remove();
                 if (argIterator.hasNext()) {
                     // Only conditional in case the user didn't supply an argument to the -sourcepath option.
