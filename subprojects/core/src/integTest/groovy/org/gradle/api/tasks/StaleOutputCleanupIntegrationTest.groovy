@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 
 class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
 
@@ -102,16 +103,18 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
 
     def "overlapping outputs still work"() {
         def staleOutputs = new StaleOutputFixture(file('build'))
+        def outputDir = TextUtil.normaliseFileSeparators(staleOutputs.outputDir.absolutePath)
+        def outputFile = TextUtil.normaliseFileSeparators(staleOutputs.outputFile.absolutePath)
         buildFile << """
             task overlappingTask {
                 inputs.property('input') { 'some' }
-                outputs.dir('${staleOutputs.outputDir}').withPropertyName('outputDir')
-                outputs.file('${staleOutputs.outputFile}').withPropertyName('outputFile')
+                outputs.dir('${outputDir}').withPropertyName('outputDir')
+                outputs.file('${outputFile}').withPropertyName('outputFile')
                 doLast {
-                    def outputDir = file('${staleOutputs.outputDir}')
+                    def outputDir = file('${outputDir}')
                     outputDir.mkdirs()
                     new File(outputDir, 'other-overlapping-file.txt').text = "overlapping output"
-                    file('${staleOutputs.outputFile}').text = "another overlapping output"
+                    file('${outputFile}').text = "another overlapping output"
                 }
             }
         """

@@ -122,7 +122,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("compileJava")
         then:
-        javaClassFile("Main.class").assertExists()
+        javaClassFile("Main.class").assertExists().makeOlder()
 
         when:
         // Now that we track this, we can detect the situation where
@@ -132,15 +132,10 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
             gradle.version=1.0
         """
         and:
-        succeeds("help")
+        succeeds("compileJava")
+
         then:
         // It looks like the build may have been run with a different version of Gradle
-        // The build output has been removed
-        javaClassFile("Main.class").assertDoesNotExist()
-
-        when:
-        succeeds("compileJava")
-        then:
-        javaClassFile("Main.class").assertExists()
+        javaClassFile("Main.class").lastModified() != old(javaClassFile("Main.class").lastModified())
     }
 }

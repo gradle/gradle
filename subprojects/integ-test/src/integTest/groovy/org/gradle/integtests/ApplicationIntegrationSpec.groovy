@@ -284,14 +284,19 @@ class Main {
     }
 
     def "install task complains if install directory exists and doesn't look like previous install"() {
+        // TODO wolfs: buildDir is currently seen as an overlapping output and removed. This needs to be fixed.
+        // For example we could check if anything else is an output in that directory and then conclude that it is known to Gradle.
         file('build.gradle') << """
-installDist.destinationDir = buildDir
+installDist.destinationDir = file('some-dir')
 """
+        file('some-dir').create {
+            file('thats-not-an-installation.txt').text = "Nothing to see here"
+        }
         when:
-        runAndFail "installDist"
+        runAndFail "installDist", '--info'
 
         then:
-        result.assertThatCause(startsWith("The specified installation directory '${file('build')}' is neither empty nor does it contain an installation"))
+        result.assertThatCause(startsWith("The specified installation directory '${file('some-dir')}' is neither empty nor does it contain an installation"))
     }
 
     def "startScripts respect OS dependent line separators"() {
@@ -305,11 +310,11 @@ installDist.destinationDir = buildDir
         then:
         File generatedWindowsStartScript = file("build/scripts/application.bat")
         generatedWindowsStartScript.exists()
-        assertLineSeparators(generatedWindowsStartScript, TextUtil.windowsLineSeparator, 84);
+        assertLineSeparators(generatedWindowsStartScript, TextUtil.windowsLineSeparator, 84)
 
         File generatedLinuxStartScript = file("build/scripts/application")
         generatedLinuxStartScript.exists()
-        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 172);
+        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 172)
         assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
         file("build/scripts/application").exists()
@@ -422,7 +427,7 @@ class Main {
         distBase.file("docs/READ-ME.txt").text == "Read me!!!"
     }
 
-    private void checkApplicationImage(String applicationName, TestFile installDir) {
+    private static void checkApplicationImage(String applicationName, TestFile installDir) {
         installDir.file("bin/${applicationName}").assertIsFile()
         installDir.file("bin/${applicationName}.bat").assertIsFile()
         installDir.file("lib/application.jar").assertIsFile()
