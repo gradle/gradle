@@ -83,7 +83,9 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
                         from inputFile 
                     }
                 }
-            }
+            } 
+
+            project.getServices().get(org.gradle.internal.cleanup.BuildOutputCleanupRegistry.class).registerOutputs(file('build'))
         """
 
     }

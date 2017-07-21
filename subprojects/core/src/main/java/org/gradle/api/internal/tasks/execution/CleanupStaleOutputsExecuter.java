@@ -18,9 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
+import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
@@ -32,13 +30,13 @@ import java.io.File;
 
 public class CleanupStaleOutputsExecuter implements TaskExecuter {
     private final TaskExecuter executer;
-    private final TaskHistoryRepository taskHistoryRepository;
+    private final TaskOutputFilesRepository taskOutputFilesRepository;
     private final BuildOutputCleanupRegistry cleanupRegistry;
 
-    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskExecuter executer, TaskHistoryRepository taskHistoryRepository) {
+    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskExecuter executer, TaskOutputFilesRepository taskOutputFilesRepository) {
         this.cleanupRegistry = cleanupRegistry;
         this.executer = executer;
-        this.taskHistoryRepository = taskHistoryRepository;
+        this.taskOutputFilesRepository = taskOutputFilesRepository;
     }
 
     @Override
@@ -46,7 +44,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
         for (TaskOutputFilePropertySpec outputFileSpec : task.getOutputs().getFileProperties()) {
             FileCollection files = outputFileSpec.getPropertyFiles();
             for (File file : files) {
-                if (file.exists() && !generatedByGradle(file, task) && isSaveToDelete(file)) {
+                if (isSaveToDelete(file) && !taskOutputFilesRepository.isGeneratedByGradle(file) && file.exists()) {
                     GFileUtils.forceDelete(file);
                 }
             }
@@ -55,20 +53,13 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
     }
 
     private boolean isSaveToDelete(File file) {
-        return true;
-//        return cleanupRegistry.getOutputs().contains(file);
-    }
-
-    private boolean generatedByGradle(File file, TaskInternal task) {
-        TaskExecution previousExecution = taskHistoryRepository.getHistory(task).getPreviousExecution();
-        if (previousExecution == null) {
-            return false;
-        }
-        for (FileCollectionSnapshot fileCollectionSnapshot : previousExecution.getOutputFilesSnapshot().values()) {
-            if (fileCollectionSnapshot.getElements().contains(file)) {
+        String absolutePath = file.getAbsolutePath();
+        for (File saveToDeleteOutput : cleanupRegistry.getOutputs()) {
+            if (absolutePath.startsWith(saveToDeleteOutput.getAbsolutePath())) {
                 return true;
             }
         }
         return false;
     }
+
 }

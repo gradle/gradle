@@ -27,6 +27,7 @@ import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepo
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
+import org.gradle.api.internal.changedetection.state.DefaultTaskOutputFilesRepository;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
@@ -34,6 +35,7 @@ import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapsh
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
+import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.taskfactory.FileSnapshottingPropertyAnnotationHandler;
@@ -95,7 +97,7 @@ public class TaskExecutionServices {
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker,
                                     BuildOutputCleanupRegistry cleanupRegistry,
-                                    TaskHistoryRepository taskHistoryRepository) {
+                                    TaskOutputFilesRepository taskOutputFilesRepository) {
 
         boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
@@ -123,7 +125,7 @@ public class TaskExecutionServices {
         if (verifyInputsEnabled || taskOutputCacheEnabled) {
             executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
         }
-        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, executer, taskHistoryRepository);
+        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, executer, taskOutputFilesRepository);
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
@@ -166,7 +168,11 @@ public class TaskExecutionServices {
 
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskHistoryRepository taskHistoryRepository, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {
+    TaskOutputFilesRepository createTaskOutputFilesRepository(TaskHistoryStore cacheAccess) {
+        return new DefaultTaskOutputFilesRepository(cacheAccess);
+    }
+
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {
 
         return new ShortCircuitTaskArtifactStateRepository(
             startParameter,
@@ -178,7 +184,8 @@ public class TaskExecutionServices {
                 fileCollectionFactory,
                 classLoaderHierarchyHasher,
                 cacheKeyCalculator,
-                valueSnapshotter
+                valueSnapshotter,
+                taskOutputsRepository
             )
         );
     }
