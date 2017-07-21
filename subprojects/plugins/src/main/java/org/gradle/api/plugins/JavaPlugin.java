@@ -44,7 +44,6 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
 import javax.annotation.Nullable;
@@ -246,9 +245,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
 
-        configureSourceSets(javaConvention, buildOutputCleanupRegistry);
+        configureSourceSets(javaConvention);
         configureConfigurations(project);
 
         configureJavaDoc(javaConvention);
@@ -257,7 +255,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configureBuild(project);
     }
 
-    private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+    private void configureSourceSets(JavaPluginConvention pluginConvention) {
         Project project = pluginConvention.getProject();
 
         SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -265,14 +263,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         SourceSet test = pluginConvention.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
         test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
         test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
-
-        // Register the project's source set output directories
-        pluginConvention.getSourceSets().all(new Action<SourceSet>() {
-            @Override
-            public void execute(SourceSet sourceSet) {
-                buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput());
-            }
-        });
     }
 
     private void configureJavaDoc(JavaPluginConvention pluginConvention) {

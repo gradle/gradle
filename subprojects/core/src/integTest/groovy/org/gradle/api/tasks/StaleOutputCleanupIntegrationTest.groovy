@@ -57,6 +57,8 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
         }
 
         buildScript """
+            apply plugin: 'base'
+
             task task(type: MyTask) {
                 inputDir = file("inputs")
                 inputFile = file("input.txt")
@@ -84,8 +86,6 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             } 
-
-            project.getServices().get(org.gradle.internal.cleanup.BuildOutputCleanupRegistry.class).registerOutputs(file('build'))
         """
 
     }

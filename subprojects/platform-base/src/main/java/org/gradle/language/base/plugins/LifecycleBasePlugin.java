@@ -26,6 +26,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.language.base.internal.plugins.CleanRule;
 
 import java.io.File;
@@ -59,6 +60,13 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void addClean(final ProjectInternal project) {
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
+        buildOutputCleanupRegistry.registerOutputs(new Callable<File>() {
+            public File call() throws Exception {
+                return project.getBuildDir();
+            }
+        });
+
         addPlaceholderAction(project, CLEAN_TASK_NAME, Delete.class, new Action<Delete>() {
             @Override
             public void execute(Delete clean) {

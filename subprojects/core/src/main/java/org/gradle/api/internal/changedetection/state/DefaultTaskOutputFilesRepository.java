@@ -16,41 +16,85 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.util.GradleVersion;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
-@SuppressWarnings("Since15")
-public class DefaultTaskOutputFilesRepository implements TaskOutputFilesRepository {
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
+public class DefaultTaskOutputFilesRepository implements TaskOutputFilesRepository, Closeable {
+
+    private final static String CACHE_DISPLAY_NAME = "Build Output Cleanup Cache";
+
+    private final CacheRepository cacheRepository;
+    private final PersistentCache cacheAccess;
     private final PersistentIndexedCache<String, Boolean> outputFilesHistory;
 
-    public DefaultTaskOutputFilesRepository(TaskHistoryStore cacheAccess) {
-        outputFilesHistory = cacheAccess.createCache("outputFilesHistory", String.class, BaseSerializerFactory.BOOLEAN_SERIALIZER, 40000, false);
+    public DefaultTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle) {
+        this.cacheRepository = cacheRepository;
+        this.cacheAccess = createCache(gradle);
+        this.outputFilesHistory = cacheAccess.createCache("outputFilesHistory", String.class, BaseSerializerFactory.BOOLEAN_SERIALIZER);
     }
 
     @Override
-    public boolean isGeneratedByGradle(File file) {
-        do {
-            if (outputFilesHistory.get(file.getAbsolutePath()) != null) {
-                return true;
+    public boolean isGeneratedByGradle(final File file) {
+        return cacheAccess.useCache(new Factory<Boolean>() {
+            @Override
+            public Boolean create() {
+                File currentFile = file;
+                do {
+                    if (outputFilesHistory.get(currentFile.getAbsolutePath()) != null) {
+                        return true;
+                    }
+                    currentFile = currentFile.getParentFile();
+                } while (currentFile != null);
+                return false;
             }
-            file = file.getParentFile();
-        } while (file != null);
-        return false;
+        });
     }
 
     @Override
-    public void recordOutputs(TaskExecution taskExecution) {
-        for (FileCollectionSnapshot fileCollectionSnapshot : taskExecution.getOutputFilesSnapshot().values()) {
-            for (Map.Entry<String, NormalizedFileSnapshot> entry : fileCollectionSnapshot.getSnapshots().entrySet()) {
-                NormalizedFileSnapshot normalizedFileSnapshot = entry.getValue();
-                if (normalizedFileSnapshot.getSnapshot().getType() != FileType.Missing) {
-                    outputFilesHistory.put(entry.getKey(), Boolean.TRUE);
+    public void recordOutputs(final TaskExecution taskExecution) {
+        cacheAccess.useCache(new Runnable() {
+            @Override
+            public void run() {
+                for (FileCollectionSnapshot fileCollectionSnapshot : taskExecution.getOutputFilesSnapshot().values()) {
+                    for (Map.Entry<String, NormalizedFileSnapshot> entry : fileCollectionSnapshot.getSnapshots().entrySet()) {
+                        NormalizedFileSnapshot normalizedFileSnapshot = entry.getValue();
+                        if (normalizedFileSnapshot.getSnapshot().getType() != FileType.Missing) {
+                            outputFilesHistory.put(entry.getKey(), Boolean.TRUE);
+                        }
+                    }
                 }
             }
-        }
+        });
+    }
+
+    protected PersistentCache createCache(Gradle gradle) {
+        return cacheRepository
+                .cache(gradle, "buildOutputCleanup")
+                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+                .withDisplayName(CACHE_DISPLAY_NAME)
+                .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
+                .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
+                .open();
+    }
+
+    @Override
+    public void close() throws IOException {
+        cacheAccess.close();
     }
 }

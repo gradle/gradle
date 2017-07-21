@@ -67,7 +67,6 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
-import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -136,7 +135,7 @@ public class TaskExecutionServices {
         return executer;
     }
 
-    TaskHistoryStore createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, GradleBuildEnvironment environment) {
+    TaskHistoryStore createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         return new DefaultTaskHistoryStore(gradle, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
@@ -168,8 +167,8 @@ public class TaskExecutionServices {
 
     }
 
-    TaskOutputFilesRepository createTaskOutputFilesRepository(TaskHistoryStore cacheAccess) {
-        return new DefaultTaskOutputFilesRepository(cacheAccess);
+    TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle) {
+        return new DefaultTaskOutputFilesRepository(cacheRepository, gradle);
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {
