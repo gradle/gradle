@@ -165,7 +165,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
         }
 
         synchronized void done() {
-            pendingChanges--;
+            // Clamp to 0
+            pendingChanges = Math.max(0, pendingChanges-1);
 
             if (pendingChanges == 0) {
                 notifyAll();
