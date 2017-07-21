@@ -138,7 +138,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Scaladoc stylesheet deprecated
 
-The [ScalaDocOptions.styleSheet](javadoc/org/gradle/api/tasks/scala/ScalaDocOptions.html#setStyleSheet(java.io.File)) property has been deprecated.
+The <a href="javadoc/org/gradle/api/tasks/scala/ScalaDocOptions.html#setStyleSheet(java.io.File)">ScalaDocOptions.styleSheet</a> property has been deprecated.
 The current (Scala 2.11.8 and later) Scaladoc Ant task does not support this property any more. 
 
 <!--
