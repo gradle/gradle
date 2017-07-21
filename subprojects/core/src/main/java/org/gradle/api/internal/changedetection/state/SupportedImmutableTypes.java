@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Named;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -25,8 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class Scalars {
-    public final static List<Class<?>> TYPES = ImmutableList.<Class<?>>of(
+public class SupportedImmutableTypes {
+    public final static List<Class<?>> SCALAR_TYPES = ImmutableList.<Class<?>>of(
         // primitives and wrapped types
         Boolean.class,
         Boolean.TYPE,
@@ -57,7 +58,35 @@ public class Scalars {
         File.class
     );
 
-    public static boolean isScalarType(Class<?> modelType) {
-        return TYPES.contains(modelType) || modelType.isEnum();
+    static boolean isScalarType(Class<?> modelType) {
+        return SCALAR_TYPES.contains(modelType) || modelType.isEnum();
     }
+
+    static boolean isSupportedInterface(Class<?> clazz) {
+        return Named.class.isAssignableFrom(clazz) && clazz.isInterface();
+    }
+
+    public static void describeTo(StringBuilder sb) {
+        sb.append("   - primitive types (byte, boolean, char, short, int, long, float, double) and their wrapped types (Byte, ...)\n");
+        sb.append("   - an enum\n");
+        sb.append("   - an instance of String\n");
+        sb.append("   - an instance of File\n");
+        sb.append("   - an instance of BigInteger, BigDecimal, AtomicInteger, AtomicBoolean or AtomicLong\n");
+        sb.append("   - an interface extending Named\n");
+        sb.append("   - an array of the above\n");
+    }
+
+    public static <T> boolean isSupportedImmutableType(Class<T> clazz) {
+        if (clazz.isArray()) {
+            return isSupportedImmutableType(clazz.getComponentType());
+        }
+        if (isScalarType(clazz)) {
+            return true;
+        }
+        if (isSupportedInterface(clazz)) {
+            return true;
+        }
+        return false;
+    }
+
 }
