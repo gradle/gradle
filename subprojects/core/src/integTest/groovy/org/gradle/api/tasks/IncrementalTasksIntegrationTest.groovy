@@ -86,12 +86,19 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
+            if (!inputs.incremental) {
+                createOutputs()
+            }
+            
             touchOutputs()
 
             discoveredFiles = inputs.getDiscoveredInputs()
         }
 
         def touchOutputs() {
+        }
+
+        def createOutputs() {
         }
 
         def addedFiles = []
@@ -113,6 +120,12 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
         @OutputDirectory
         def File outputDir
+
+        @Override
+        def createOutputs() {
+            new File(outputDir, 'file1.txt').text = 'outputFile1'
+            new File(outputDir, 'file2.txt').text = 'outputFile2'
+        }
 
         @Override
         def touchOutputs() {
