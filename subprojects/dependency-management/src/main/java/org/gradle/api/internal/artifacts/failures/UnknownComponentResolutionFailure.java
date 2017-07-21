@@ -13,24 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts.failures;
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
-
-import org.gradle.api.Describable;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-
-import java.util.Set;
-
-/**
- * Represents some provider of {@link ResolvedVariant} instances to select from.
- */
-public interface ResolvedVariantSet {
-    Describable asDescribable();
-
-    AttributesSchemaInternal getSchema();
-
-    Set<ResolvedVariant> getVariants();
-
-    ComponentIdentifier getComponentIdentifier();
+public class UnknownComponentResolutionFailure extends AbstractResolutionFailure<Object> {
+    protected UnknownComponentResolutionFailure(Throwable problem) {
+        super(problem, null);
+    }
 }

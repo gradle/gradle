@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
+package org.gradle.api.internal.artifacts.failures;
 
-import org.gradle.api.Describable;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.failures.ResolutionFailureVisitor;
 
-import java.util.Set;
+public class DefaultComponentArtifactResolutionFailure extends AbstractResolutionFailure<ComponentArtifactIdentifier> {
 
-/**
- * Represents some provider of {@link ResolvedVariant} instances to select from.
- */
-public interface ResolvedVariantSet {
-    Describable asDescribable();
+    protected DefaultComponentArtifactResolutionFailure(ComponentArtifactIdentifier selector, Throwable problem) {
+        super(problem, selector);
+    }
 
-    AttributesSchemaInternal getSchema();
-
-    Set<ResolvedVariant> getVariants();
-
-    ComponentIdentifier getComponentIdentifier();
+    @Override
+    public void visit(ResolutionFailureVisitor visitor) {
+        visitor.visitComponentArtifact(id);
+        super.visit(visitor);
+    }
 }

@@ -936,6 +936,29 @@ task resolveLenient {
         assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
         assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
         assert lenientView.artifacts.failures.size() == 3
+        assert lenientView.artifacts.resolutionFailures.size() == 3
+        println lenientView.artifacts.resolutionFailures.id
+        def visitor = new AttemptedLocationVisitor() {
+            void visitProjectComponent(ProjectComponentIdentifier id) {
+                assert id.projectPath == ':a'
+            }
+            void visitModuleComponent(ModuleComponentIdentifier id) {
+                assert (id.module in ['missing-module', 'b'])
+            }
+            void visitComponentArtifact(ComponentArtifactIdentifier id) {
+                throw new AssertionError("Unexpected component artifact failure")
+            }
+            
+            void visitProblem(Throwable t) {
+                //t.printStackTrace()
+            }
+            
+            void visitAttemptedLocation(String location) {
+                assert location.endsWith('/repo/org/missing-module/1.0/missing-module-1.0.pom') ||
+                       location.endsWith('/repo/org/missing-module/1.0/missing-module-1.0.jar')
+            }
+        }
+        lenientView.artifacts.resolutionFailures*.visit(visitor)
     }
 }
 """

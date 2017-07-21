@@ -16,19 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.failures.ResolutionFailure;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
-    private final Throwable failure;
+    private final ResolutionFailure<?> resolutionFailure;
 
-    public BrokenResolvedArtifactSet(Throwable failure) {
-        this.failure = failure;
+    public BrokenResolvedArtifactSet(ResolutionFailure<?> resolutionFailure) {
+        this.resolutionFailure = resolutionFailure;
     }
 
     @Override
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        visitor.visitFailure(failure);
+        visitor.visitFailure(resolutionFailure.getProblem());
     }
 
     @Override
@@ -38,6 +39,7 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
 
     @Override
     public void visit(ArtifactVisitor visitor) {
-        visitor.visitFailure(failure);
+        visitor.visitFailure(resolutionFailure.getProblem());
+        visitor.visitResolutionFailure(resolutionFailure);
     }
 }

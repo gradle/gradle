@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.failures.ResolutionFailure;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -29,6 +30,7 @@ import java.util.Set;
 public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     private final Set<File> files = Sets.newLinkedHashSet();
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
+    private final Set<ResolutionFailure<?>> resolutionFailures = Sets.newLinkedHashSet();
 
     @Override
     public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
@@ -51,6 +53,11 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
+    public void visitResolutionFailure(ResolutionFailure<?> resolutionFailure) {
+        resolutionFailures.add(resolutionFailure);
+    }
+
+    @Override
     public boolean includeFiles() {
         return true;
     }
@@ -66,5 +73,9 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
 
     public Collection<Throwable> getFailures() {
         return failures;
+    }
+
+    public Collection<ResolutionFailure<?>> getResolutionFailures() {
+        return resolutionFailures;
     }
 }

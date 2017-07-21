@@ -15,32 +15,46 @@
  */
 package org.gradle.internal.resolve;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 public class ModuleVersionNotFoundException extends ModuleVersionResolveException {
+
+    private final List<String> attempted;
+
     /**
      * This is used by {@link ModuleVersionResolveException#withIncomingPaths(java.util.Collection)}.
      */
     @SuppressWarnings("UnusedDeclaration")
     public ModuleVersionNotFoundException(ComponentSelector selector, String message) {
         super(selector, message);
+        attempted = Collections.emptyList();
     }
 
     public ModuleVersionNotFoundException(ModuleVersionSelector selector, String message) {
         super(selector, message);
+        attempted = Collections.emptyList();
     }
 
     public ModuleVersionNotFoundException(ModuleVersionSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
         super(selector, format(selector, attemptedLocations, unmatchedVersions, rejectedVersions));
+        attempted = ImmutableList.copyOf(attemptedLocations);
     }
 
     public ModuleVersionNotFoundException(ModuleVersionIdentifier id, Collection<String> attemptedLocations) {
         super(id, format(id, attemptedLocations));
+        attempted = ImmutableList.copyOf(attemptedLocations);
+    }
+
+    public List<String> getAttemptedLocations() {
+        return attempted;
     }
 
     private static String format(ModuleVersionSelector selector, Collection<String> locations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {

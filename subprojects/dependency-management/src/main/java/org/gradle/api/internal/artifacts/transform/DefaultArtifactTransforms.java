@@ -19,9 +19,12 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.io.Files;
 import org.gradle.api.Buildable;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.failures.ResolutionFailure;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.failures.AbstractResolutionFailure;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
@@ -87,7 +90,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             try {
                 return doSelect(producer);
             } catch (Throwable t) {
-                return new BrokenResolvedArtifactSet(t);
+                ComponentIdentifier id = producer.getComponentIdentifier();
+                return new BrokenResolvedArtifactSet(AbstractResolutionFailure.of(id, t));
             }
         }
 
@@ -297,6 +301,11 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         @Override
         public void visitFailure(Throwable failure) {
             visitor.visitFailure(failure);
+        }
+
+        @Override
+        public void visitResolutionFailure(ResolutionFailure<?> resolutionFailure) {
+            visitor.visitResolutionFailure(resolutionFailure);
         }
 
         @Override

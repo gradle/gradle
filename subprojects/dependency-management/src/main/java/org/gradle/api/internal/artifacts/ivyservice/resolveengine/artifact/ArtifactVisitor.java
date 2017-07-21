@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.failures.ResolutionFailure;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 
@@ -51,4 +52,9 @@ public interface ArtifactVisitor {
      * Called when some problem occurs visiting some element of the set. Visiting may continue.
      */
     void visitFailure(Throwable failure);
+
+    /**
+     * Called when some problem occurs visiting a dependency. Visiting may continue.
+     */
+    void visitResolutionFailure(ResolutionFailure<?> resolutionFailure);
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.failures.ResolutionFailure;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -32,11 +33,17 @@ import java.util.Set;
 public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     private final Set<ResolvedArtifactResult> artifacts = Sets.newLinkedHashSet();
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
+    private final Set<ResolutionFailure<?>> resolutionFailures = Sets.newLinkedHashSet();
     private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<ComponentArtifactIdentifier>();
 
     @Override
     public void visitFailure(Throwable failure) {
         failures.add(failure);
+    }
+
+    @Override
+    public void visitResolutionFailure(ResolutionFailure<?> resolutionFailure) {
+        resolutionFailures.add(resolutionFailure);
     }
 
     @Override
@@ -75,5 +82,9 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
 
     public Set<Throwable> getFailures() {
         return failures;
+    }
+
+    public Set<ResolutionFailure<?>> getResolutionFailures() {
+        return resolutionFailures;
     }
 }

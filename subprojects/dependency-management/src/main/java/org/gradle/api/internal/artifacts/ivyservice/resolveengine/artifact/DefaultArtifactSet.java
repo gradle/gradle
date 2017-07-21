@@ -56,6 +56,11 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         this.schema = schema;
     }
 
+    @Override
+    public ComponentIdentifier getComponentIdentifier() {
+        return componentIdentifier;
+    }
+
     public static ArtifactSet multipleVariants(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry) {
         if (variants.size() == 1) {
             VariantMetadata variantMetadata = variants.iterator().next();

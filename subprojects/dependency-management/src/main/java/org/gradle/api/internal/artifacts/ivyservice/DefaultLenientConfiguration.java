@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.failures.ResolutionFailure;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -27,6 +29,7 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.failures.AbstractResolutionFailure;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -49,6 +52,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -123,8 +127,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             @Override
             public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
                 if (!unresolvedDependencies.isEmpty()) {
-                    for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                        visitor.visitFailure(unresolvedDependency.getProblem());
+                    for (final UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
+                        Throwable problem = unresolvedDependency.getProblem();
+                        visitor.visitFailure(problem);
+                        ModuleVersionSelector versionSelector = unresolvedDependency.getSelector();
+                        visitor.visitResolutionFailure(AbstractResolutionFailure.of(DefaultModuleComponentIdentifier.newId(versionSelector.getGroup(), versionSelector.getName(), versionSelector.getVersion()), problem));
                     }
                     if (!continueOnSelectionFailure) {
                         return;
@@ -311,6 +318,10 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         @Override
         public void visitFailure(Throwable failure) {
             throw UncheckedException.throwAsUncheckedException(failure);
+        }
+
+        @Override
+        public void visitResolutionFailure(ResolutionFailure<?> resolutionFailure) {
         }
 
         @Override

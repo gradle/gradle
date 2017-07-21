@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.internal;
 
+import org.gradle.api.artifacts.failures.ResolutionFailure;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -112,6 +113,10 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             @Override
             public void visitFailure(Throwable failure) {
                 throw UncheckedException.throwAsUncheckedException(failure);
+            }
+
+            @Override
+            public void visitResolutionFailure(ResolutionFailure<?> resolutionFailure) {
             }
 
             @Override
