@@ -29,6 +29,8 @@ Composite build is an <<feature_lifecycle,incubating>> feature. While useful for
 
 A composite build is simply a build that includes other builds. In many ways a composite build is similar to a Gradle multi-project build, except that instead of including single `projects`, complete `builds` are included.
 
+Composite builds allow you to:
+
 * combine builds that are usually developed independently, for instance when trying out a bug fix in a library that your application uses
 * decompose a large multi-project build into smaller, more isolated chunks that can be worked in independently or together as needed
 
@@ -130,7 +132,7 @@ There is not (yet) any means to directly execute a task from an included build v
 
 One of the most useful features of composite builds is IDE integration. By applying the <<idea_plugin,idea>> or <<eclipse_plugin,eclipse>> plugin to your build, it is possible to generate a single IDEA or Eclipse project that permits all builds in the composite to be developed together.
 
-In addition to these Gradle plugins, recent versions of <<https://www.jetbrains.com/idea/,IntelliJ IDEA>> and <<https://projects.eclipse.org/projects/tools.buildship,Eclipse Buildship>> support direct import of a composite build.
+In addition to these Gradle plugins, recent versions of https://www.jetbrains.com/idea/[IntelliJ IDEA] and https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship] support direct import of a composite build.
 
 Importing a composite build permits sources from separate Gradle builds to be easily developed together. For every included build, each sub-project is included as an IDEA Module or Eclipse Project. Source dependencies are configured, providing cross-build navigation and refactoring.
 
@@ -162,6 +164,7 @@ With this configuration, the "my-app" composite build will substitute any depend
 ==== Cases where included build substitutions must be declared
 
 Many builds that use the `uploadArchives` task to publish artifacts will function automatically as an included build, without declared substitutions. Here are some common cases where declared substitutions are required:
+
 * When the `archivesBaseName` property is used to set the name of the published artifact.
 * When a configuration other than `default` is published: this usually means a task other than `uploadArchives` is used.
 * When the `MavenPom.addFilter()` is used to publish artifacts that don't match the project name.
@@ -178,7 +181,8 @@ Here are some cases where the publish module metadata may be different from the 
 * When a configuration other than `default` is published.
 * When the `maven-publish` or `ivy-publish` plugins are used.
 * When the `POM` or `ivy.xml` file is tweaked as part of publication.
- Builds using these features function incorrectly when included in a composite build. We plan to improve this in the future.
+
+Builds using these features function incorrectly when included in a composite build. We plan to improve this in the future.
 
 [[included_build_task_dependencies]]
 === Depending on tasks in an included build

@@ -27,10 +27,12 @@ There are several places where you can put the source for the plugin.
 
 Build script::
 You can include the source for the plugin directly in the build script. This has the benefit that the plugin is automatically compiled and included in the classpath of the build script without you having to do anything. However, the plugin is not visible outside the build script, and so you cannot reuse the plugin outside the build script it is defined in.
+
 `buildSrc` project::
 You can put the source for the plugin in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script. The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
-
++
 See <<organizing_build_logic>> for more details about the `buildSrc` project.
+
 Standalone project::
 You can create a separate project for your plugin. This project produces and publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR might include some plugins, or bundle several related task classes into a single library. Or some combination of the two.
 
@@ -112,9 +114,9 @@ The example above uses instances of api:org.gradle.api.provider.Provider[] and a
 
 [NOTE]
 ====
- 
+
 The api:org.gradle.api.Project[] does not provide a specific method signature for creating a provider by passing in a `groovy.lang.Closure` as parameter. When writing a plugin implementation with Groovy, you can use the method signature accepting a `java.util.concurrent.Callable` parameter. Groovy's http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type[Closure to type coercion] will take of the rest.
- 
+
 ====
 
 
