@@ -33,12 +33,12 @@ class StringInternerTest extends Specification {
         given:
         def strings = (1..5).collect { new String('hello') }
         assert strings.collect { System.identityHashCode(it) }.unique().size() == 5
-        def firstInstance = strings.first()
         when:
         def internedStrings = strings.collect { stringInterner.intern(it) }
         then:
-        internedStrings.collect { System.identityHashCode(it) }.unique().size() == 1
-        internedStrings.every { it.is(firstInstance) }
+        internedStrings.collect { System.identityHashCode(it)}.unique().size() == 1
+        def firstInstance = internedStrings.first()
+	    internedStrings.every { it.is(firstInstance) }
     }
 
     def "should only intern similar strings"() {
