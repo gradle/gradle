@@ -188,7 +188,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (artifactNames.isEmpty()) {
             return Collections.emptySet();
         }
-        Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
+        Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<>();
         for (IvyArtifactName artifactName : artifactNames) {
             artifacts.add(toConfiguration.artifact(artifactName));
         }

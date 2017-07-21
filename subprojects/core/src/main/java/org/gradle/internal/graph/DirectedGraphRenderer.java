@@ -39,7 +39,7 @@ public class DirectedGraphRenderer<N> {
 
     public void renderTo(N root, StyledTextOutput output) {
         GraphRenderer renderer = new GraphRenderer(output);
-        Set<N> rendered = new HashSet<N>();
+        Set<N> rendered = new HashSet<>();
         omittedDetails = false;
         renderTo(root, renderer, rendered, false);
         if (omittedDetails) {
@@ -65,7 +65,7 @@ public class DirectedGraphRenderer<N> {
             return;
         }
 
-        List<N> children = new ArrayList<N>();
+        List<N> children = new ArrayList<>();
         graph.getNodeValues(node, new HashSet<Object>(), children);
         if (children.isEmpty()) {
             return;

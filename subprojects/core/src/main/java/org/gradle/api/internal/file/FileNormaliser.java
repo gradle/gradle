@@ -109,7 +109,7 @@ class FileNormaliser {
 
     private List<String> splitAndNormalisePath(String filePath) {
         String[] segments = splitPath(filePath);
-        List<String> path = new ArrayList<String>(segments.length);
+        List<String> path = new ArrayList<>(segments.length);
         for (String segment : segments) {
             if (segment.equals("..")) {
                 if (!path.isEmpty()) {

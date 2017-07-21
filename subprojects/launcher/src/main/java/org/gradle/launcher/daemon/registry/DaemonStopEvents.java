@@ -29,8 +29,8 @@ public class DaemonStopEvents {
     private static final int RECENTLY = 1;
 
     public static List<DaemonStopEvent> uniqueRecentDaemonStopEvents(final List<DaemonStopEvent> stopEvents) {
-        final Set<Long> uniqueStoppedPids = new HashSet<Long>(stopEvents.size());
-        final List<DaemonStopEvent> recentStopEvents = new ArrayList<DaemonStopEvent>(stopEvents.size());
+        final Set<Long> uniqueStoppedPids = new HashSet<>(stopEvents.size());
+        final List<DaemonStopEvent> recentStopEvents = new ArrayList<>(stopEvents.size());
 
         final List<DaemonStopEvent> sortedEvents = CollectionUtils.sort(stopEvents, new Comparator<DaemonStopEvent>() {
             @Override

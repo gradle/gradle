@@ -43,11 +43,11 @@ import java.util.jar.Manifest;
 public class DefaultManifest implements ManifestInternal {
     public static final String DEFAULT_CONTENT_CHARSET = "UTF-8";
 
-    private List<ManifestMergeSpec> manifestMergeSpecs = new ArrayList<ManifestMergeSpec>();
+    private List<ManifestMergeSpec> manifestMergeSpecs = new ArrayList<>();
 
     private DefaultAttributes attributes = new DefaultAttributes();
 
-    private Map<String, Attributes> sections = new LinkedHashMap<String, Attributes>();
+    private Map<String, Attributes> sections = new LinkedHashMap<>();
 
     private PathToFileResolver fileResolver;
 

@@ -217,7 +217,7 @@ public class CommandLineActionFactory {
                 buildLayoutConverter.convert(parsedCommandLine, buildLayout);
 
 
-                Map<String, String> properties = new HashMap<String, String>();
+                Map<String, String> properties = new HashMap<>();
                 // Read *.properties files
                 layoutToPropertiesConverter.convert(buildLayout, properties);
                 // Read -D command line flags
@@ -267,7 +267,7 @@ public class CommandLineActionFactory {
         }
 
         public void execute(ExecutionListener executionListener) {
-            List<CommandLineAction> actions = new ArrayList<CommandLineAction>();
+            List<CommandLineAction> actions = new ArrayList<>();
             actions.add(new BuiltInActions());
             createActionFactories(loggingServices, actions);
 

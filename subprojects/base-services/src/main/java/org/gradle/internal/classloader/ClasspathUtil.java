@@ -38,7 +38,7 @@ import java.util.Set;
 public class ClasspathUtil {
     public static void addUrl(URLClassLoader classLoader, Iterable<URL> classpathElements) {
         try {
-            Set<URI> original = new HashSet<URI>();
+            Set<URI> original = new HashSet<>();
             for (URL url : classLoader.getURLs()) {
                 original.add(toURI(url));
             }
@@ -54,7 +54,7 @@ public class ClasspathUtil {
     }
 
     public static ClassPath getClasspath(ClassLoader classLoader) {
-        final List<File> implementationClassPath = new ArrayList<File>();
+        final List<File> implementationClassPath = new ArrayList<>();
         new ClassLoaderVisitor() {
             @Override
             public void visitClassPath(URL[] classPath) {

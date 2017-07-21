@@ -101,7 +101,7 @@ class Trie {
         private final char c;
 
         private boolean terminal;
-        private List<Builder> transitions = new ArrayList<Builder>();
+        private List<Builder> transitions = new ArrayList<>();
 
         public Builder() {
             c = '\0';

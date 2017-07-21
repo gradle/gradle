@@ -88,7 +88,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
     }
 
     public ListIterator<String> segmentIterator() {
-        ArrayList<String> content = new ArrayList<String>(Arrays.asList(segments));
+        ArrayList<String> content = new ArrayList<>(Arrays.asList(segments));
         return content.listIterator();
     }
 

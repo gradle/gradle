@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class DefaultBuildOutcomeComparatorFactory implements BuildOutcomeComparatorFactory {
 
-    Map<Class<? extends BuildOutcome>, BuildOutcomeComparator<?, ?>> comparators = new HashMap<Class<? extends BuildOutcome>, BuildOutcomeComparator<?, ?>>();
+    Map<Class<? extends BuildOutcome>, BuildOutcomeComparator<?, ?>> comparators = new HashMap<>();
 
     public <T extends BuildOutcome> BuildOutcomeComparator<T, ?> getComparator(Class<T> outcomeType) {
         BuildOutcomeComparator<?, ?> comparator = comparators.get(outcomeType);

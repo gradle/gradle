@@ -38,7 +38,7 @@ public class JsHintWorker implements JsHintProtocol {
 
         String encoding = spec.getEncoding();
 
-        Map<File, Map<String, Object>> results = new LinkedHashMap<File, Map<String, Object>>();
+        Map<File, Map<String, Object>> results = new LinkedHashMap<>();
 
         for (File target : spec.getSource()) {
             LOGGER.info("Reading file: {}", target.getAbsolutePath());

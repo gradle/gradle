@@ -98,7 +98,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T findPlugin(Class<T> type) throws IllegalStateException {
-        List<T> values = new ArrayList<T>();
+        List<T> values = new ArrayList<>();
         for (Object object : plugins.values()) {
             if (type.isInstance(object)) {
                 values.add(type.cast(object));
@@ -257,8 +257,8 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
         @Override
         public Map<String, Object> getProperties() {
-            Map<String, Object> properties = new HashMap<String, Object>();
-            List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
+            Map<String, Object> properties = new HashMap<>();
+            List<Object> reverseOrder = new ArrayList<>(plugins.values());
             Collections.reverse(reverseOrder);
             for (Object object : reverseOrder) {
                 properties.putAll(asDynamicObject(object).getProperties());

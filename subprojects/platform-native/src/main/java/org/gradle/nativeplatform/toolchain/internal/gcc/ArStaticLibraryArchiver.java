@@ -80,7 +80,7 @@ class ArStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiverSpec
     private static class ArchiverSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
         @Override
         public List<String> transform(StaticLibraryArchiverSpec spec) {
-            List<String> args = new ArrayList<String>();
+            List<String> args = new ArrayList<>();
             // -r : Add files to static archive, creating if required
             // -c : Don't write message to standard error when creating archive
             // -s : Create an object file index (equivalent to running 'ranlib')

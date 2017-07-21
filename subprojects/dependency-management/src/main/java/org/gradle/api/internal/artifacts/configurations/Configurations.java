@@ -29,7 +29,7 @@ public class Configurations {
         } else if (configurations.size()==1) {
             return Collections.singleton(configurations.iterator().next().getName());
         }
-        Set<String> names = new LinkedHashSet<String>(configurations.size());
+        Set<String> names = new LinkedHashSet<>(configurations.size());
         for (Configuration configuration : configurations) {
             names.add(configuration.getName());
         }

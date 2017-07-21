@@ -35,7 +35,7 @@ public class DefaultBuildComparisonSpecBuilder implements BuildComparisonSpecBui
         this.source.add(from);
         this.target.add(to);
 
-        BuildOutcomeAssociation<A> outcomeAssociation = new DefaultBuildOutcomeAssociation<A>(from, to, type);
+        BuildOutcomeAssociation<A> outcomeAssociation = new DefaultBuildOutcomeAssociation<>(from, to, type);
         outcomeAssociations.add(outcomeAssociation);
 
         return outcomeAssociation;

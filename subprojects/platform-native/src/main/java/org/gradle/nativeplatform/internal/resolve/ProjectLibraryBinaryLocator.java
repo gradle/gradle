@@ -49,7 +49,7 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
             return null;
         }
         ModelMap<NativeBinarySpec> projectBinaries = library.getBinaries().withType(NativeBinarySpec.class);
-        DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
+        DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<>(NativeLibraryBinary.class);
         for (NativeBinarySpec nativeBinarySpec : projectBinaries.values()) {
             binaries.add((NativeLibraryBinary) nativeBinarySpec);
         }

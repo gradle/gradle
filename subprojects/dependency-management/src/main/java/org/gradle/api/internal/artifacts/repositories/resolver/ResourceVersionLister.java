@@ -50,7 +50,7 @@ public class ResourceVersionLister implements VersionLister {
 
     public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
         return new VersionPatternVisitor() {
-            final Set<ExternalResourceName> directories = new HashSet<ExternalResourceName>();
+            final Set<ExternalResourceName> directories = new HashSet<>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
                 ExternalResourceName versionListPattern = pattern.toVersionListPattern(module, artifact);
@@ -98,7 +98,7 @@ public class ResourceVersionLister implements VersionLister {
             }
 
             private List<String> filterMatchedValues(List<String> all, final Pattern p) {
-                List<String> ret = new ArrayList<String>(all.size());
+                List<String> ret = new ArrayList<>(all.size());
                 for (String path : all) {
                     Matcher m = p.matcher(path);
                     if (m.matches()) {

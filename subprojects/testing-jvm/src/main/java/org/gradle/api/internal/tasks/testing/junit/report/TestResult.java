@@ -25,7 +25,7 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType;
 public class TestResult extends TestResultModel implements Comparable<TestResult> {
     private final long duration;
     final ClassTestResults classResults;
-    final List<TestFailure> failures = new ArrayList<TestFailure>();
+    final List<TestFailure> failures = new ArrayList<>();
     final String name;
     boolean ignored;
 

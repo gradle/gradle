@@ -174,7 +174,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
 
-        final Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>();
+        final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
         result.allDependencies(new Action<DependencyResult>() {
             @Override
             public void execute(DependencyResult dependencyResult) {

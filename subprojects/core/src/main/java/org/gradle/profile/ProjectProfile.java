@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ProjectProfile extends Operation {
-    private HashMap<String, TaskExecution> tasks = new HashMap<String, TaskExecution>();
+    private HashMap<String, TaskExecution> tasks = new HashMap<>();
     private final ContinuousOperation configurationOperation;
     private String projectPath;
 

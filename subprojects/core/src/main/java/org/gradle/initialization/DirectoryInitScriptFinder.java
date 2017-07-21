@@ -28,7 +28,7 @@ public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
         if (!initScriptsDir.isDirectory()) {
             return;
         }
-        List<File> files = new ArrayList<File>();
+        List<File> files = new ArrayList<>();
         for (File file : initScriptsDir.listFiles()) {
             if (file.isFile() && hasExtension(file, ".gradle")) {
                 files.add(file);

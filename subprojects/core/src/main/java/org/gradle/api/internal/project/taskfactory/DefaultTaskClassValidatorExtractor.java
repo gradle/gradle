@@ -127,7 +127,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         boolean cacheable = type.isAnnotationPresent(CacheableTask.class);
         ImmutableSortedSet.Builder<TaskPropertyInfo> annotatedPropertiesBuilder = ImmutableSortedSet.naturalOrder();
         ImmutableList.Builder<TaskClassValidationMessage> validationMessages = ImmutableList.builder();
-        Queue<TypeEntry> queue = new ArrayDeque<TypeEntry>();
+        Queue<TypeEntry> queue = new ArrayDeque<>();
         queue.add(new TypeEntry(null, type));
         while (!queue.isEmpty()) {
             TypeEntry entry = queue.remove();

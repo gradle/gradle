@@ -60,9 +60,9 @@ public class JacocoTaskExtension {
     private boolean enabled = true;
     private final PropertyState<File> destinationFile;
     private boolean append = true;
-    private List<String> includes = new ArrayList<String>();
-    private List<String> excludes = new ArrayList<String>();
-    private List<String> excludeClassLoaders = new ArrayList<String>();
+    private List<String> includes = new ArrayList<>();
+    private List<String> excludes = new ArrayList<>();
+    private List<String> excludeClassLoaders = new ArrayList<>();
     private boolean includeNoLocationClasses;
     private String sessionId;
     private boolean dumpOnExit = true;

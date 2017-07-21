@@ -38,7 +38,7 @@ public class JarSnapshot {
     }
 
     public DependentsSet getAllClasses() {
-        final Set<String> result = new HashSet<String>();
+        final Set<String> result = new HashSet<>();
         for (Map.Entry<String, HashCode> cls : getHashes().entrySet()) {
             String className = cls.getKey();
             if (getAnalysis().isDependencyToAll(className)) {
@@ -74,7 +74,7 @@ public class JarSnapshot {
     }
 
     private DependentsSet affectedSince(JarSnapshot other) {
-        final Set<String> affected = new HashSet<String>();
+        final Set<String> affected = new HashSet<>();
         for (Map.Entry<String, HashCode> otherClass : other.getHashes().entrySet()) {
             String otherClassName = otherClass.getKey();
             HashCode otherClassBytes = otherClass.getValue();
@@ -93,7 +93,7 @@ public class JarSnapshot {
     }
 
     private Set<String> addedSince(JarSnapshot other) {
-        Set<String> addedClasses = new HashSet<String>(getClasses());
+        Set<String> addedClasses = new HashSet<>(getClasses());
         addedClasses.removeAll(other.getClasses());
         return addedClasses;
     }

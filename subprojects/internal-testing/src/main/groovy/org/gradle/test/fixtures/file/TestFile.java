@@ -123,7 +123,7 @@ public class TestFile extends File {
     }
 
     public List<TestFile> files(Object... paths) {
-        List<TestFile> files = new ArrayList<TestFile>();
+        List<TestFile> files = new ArrayList<>();
         for (Object path : paths) {
             files.add(file(path));
         }
@@ -202,7 +202,7 @@ public class TestFile extends File {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         for (Object key : properties.keySet()) {
             map.put(key.toString(), properties.getProperty(key.toString()));
         }
@@ -227,7 +227,7 @@ public class TestFile extends File {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(this));
             try {
-                List<String> lines = new ArrayList<String>();
+                List<String> lines = new ArrayList<>();
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (matcher.matches(line)) {
@@ -483,14 +483,14 @@ public class TestFile extends File {
      * Asserts that this file contains exactly the given set of descendants.
      */
     public TestFile assertHasDescendants(String... descendants) {
-        Set<String> actual = new TreeSet<String>();
+        Set<String> actual = new TreeSet<>();
         assertIsDir();
         visit(actual, "", this);
-        Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
+        Set<String> expected = new TreeSet<>(Arrays.asList(descendants));
 
-        Set<String> extras = new TreeSet<String>(actual);
+        Set<String> extras = new TreeSet<>(actual);
         extras.removeAll(expected);
-        Set<String> missing = new TreeSet<String>(expected);
+        Set<String> missing = new TreeSet<>(expected);
         missing.removeAll(actual);
 
         assertEquals(String.format("For dir: %s, extra files: %s, missing files: %s, expected: %s", this, extras, missing, expected), expected, actual);
@@ -503,12 +503,12 @@ public class TestFile extends File {
      */
     public TestFile assertContainsDescendants(String... descendants) {
         assertIsDir();
-        Set<String> actual = new TreeSet<String>();
+        Set<String> actual = new TreeSet<>();
         visit(actual, "", this);
 
-        Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
+        Set<String> expected = new TreeSet<>(Arrays.asList(descendants));
 
-        Set<String> missing = new TreeSet<String>(expected);
+        Set<String> missing = new TreeSet<>(expected);
         missing.removeAll(actual);
 
         assertTrue(String.format("For dir: %s, missing files: %s, expected: %s, actual: %s", this, missing, expected, actual), missing.isEmpty());
@@ -525,7 +525,7 @@ public class TestFile extends File {
     }
 
     public Set<String> allDescendants() {
-        Set<String> names = new TreeSet<String>();
+        Set<String> names = new TreeSet<>();
         if (isDirectory()) {
             visit(names, "", this);
         }

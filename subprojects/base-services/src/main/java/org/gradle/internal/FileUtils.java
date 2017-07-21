@@ -71,7 +71,7 @@ public class FileUtils {
      * @return the encompassing roots
      */
     public static Collection<? extends File> calculateRoots(Iterable<? extends File> files) {
-        List<File> roots = new LinkedList<File>();
+        List<File> roots = new LinkedList<>();
 
         files:
         for (File file : files) {

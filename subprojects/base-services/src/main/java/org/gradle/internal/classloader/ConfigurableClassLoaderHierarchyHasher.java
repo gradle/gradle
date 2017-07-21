@@ -31,7 +31,7 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
 
     public ConfigurableClassLoaderHierarchyHasher(Map<ClassLoader, String> knownClassLoaders, ClassLoaderHasher classLoaderHasher) {
         this.classLoaderHasher = classLoaderHasher;
-        Map<ClassLoader, byte[]> hashes = new WeakHashMap<ClassLoader, byte[]>();
+        Map<ClassLoader, byte[]> hashes = new WeakHashMap<>();
         for (Map.Entry<ClassLoader, String> entry : knownClassLoaders.entrySet()) {
             hashes.put(entry.getKey(), entry.getValue().getBytes(Charsets.UTF_8));
         }

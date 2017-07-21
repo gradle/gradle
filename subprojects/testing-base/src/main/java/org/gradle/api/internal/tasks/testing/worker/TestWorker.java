@@ -85,8 +85,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
         targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(),
                 workerProcessContext.getDisplayName(), testServices.get(TimeProvider.class));
-        ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(
-                TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
+        ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<>(TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
         processor = proxy.getSource();
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();

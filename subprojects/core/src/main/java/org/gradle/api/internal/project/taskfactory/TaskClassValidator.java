@@ -73,7 +73,7 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
 
     @Override
     public void validate(TaskInternal task, Collection<String> messages) {
-        List<TaskPropertyValue> propertyValues = new ArrayList<TaskPropertyValue>();
+        List<TaskPropertyValue> propertyValues = new ArrayList<>();
         for (TaskPropertyInfo property : annotatedProperties) {
             propertyValues.add(property.getValue(task));
         }

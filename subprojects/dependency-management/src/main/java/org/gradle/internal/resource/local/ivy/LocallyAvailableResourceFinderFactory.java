@@ -54,7 +54,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
     }
 
     public LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> create() {
-        List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders = new LinkedList<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>>();
+        List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders = new LinkedList<>();
 
         // Order is important here, because they will be searched in that order
 

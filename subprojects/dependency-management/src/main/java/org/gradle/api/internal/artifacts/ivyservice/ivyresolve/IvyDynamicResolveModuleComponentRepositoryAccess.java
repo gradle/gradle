@@ -63,7 +63,7 @@ class IvyDynamicResolveModuleComponentRepositoryAccess extends BaseModuleCompone
     private void transformDependencies(BuildableModuleComponentMetaDataResolveResult result) {
         ModuleComponentResolveMetadata metadata = result.getMetaData();
         MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
-        List<DependencyMetadata> transformed = new ArrayList<DependencyMetadata>();
+        List<DependencyMetadata> transformed = new ArrayList<>();
         for (DependencyMetadata dependency : metadata.getDependencies()) {
             transformed.add(dependency.withRequestedVersion(dependency.getDynamicConstraintVersion()));
         }

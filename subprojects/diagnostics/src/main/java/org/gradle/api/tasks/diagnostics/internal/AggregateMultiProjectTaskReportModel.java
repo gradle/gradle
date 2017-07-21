@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
-    private List<TaskReportModel> projects = new ArrayList<TaskReportModel>();
+    private List<TaskReportModel> projects = new ArrayList<>();
     private SetMultimap<String, TaskDetails> groups;
     private final boolean mergeTasksWithSameName;
     private final boolean detail;

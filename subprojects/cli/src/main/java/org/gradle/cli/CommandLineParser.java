@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
 public class CommandLineParser {
     private static final Pattern OPTION_NAME_PATTERN = Pattern.compile("(\\?|\\p{Alnum}[\\p{Alnum}-_]*)");
 
-    private Map<String, CommandLineOption> optionsByString = new HashMap<String, CommandLineOption>();
+    private Map<String, CommandLineOption> optionsByString = new HashMap<>();
     private boolean allowMixedOptions;
     private boolean allowUnknownOptions;
     private final PrintWriter deprecationPrinter;
@@ -163,7 +163,7 @@ public class CommandLineParser {
      * The parser ignores all but the last of these options.
      */
     public CommandLineParser allowOneOf(String... options) {
-        Set<CommandLineOption> commandLineOptions = new HashSet<CommandLineOption>();
+        Set<CommandLineOption> commandLineOptions = new HashSet<>();
         for (String option : options) {
             commandLineOptions.add(optionsByString.get(option));
         }
@@ -180,13 +180,13 @@ public class CommandLineParser {
      */
     public void printUsage(Appendable out) {
         Formatter formatter = new Formatter(out);
-        Set<CommandLineOption> orderedOptions = new TreeSet<CommandLineOption>(new OptionComparator());
+        Set<CommandLineOption> orderedOptions = new TreeSet<>(new OptionComparator());
         orderedOptions.addAll(optionsByString.values());
-        Map<String, String> lines = new LinkedHashMap<String, String>();
+        Map<String, String> lines = new LinkedHashMap<>();
         for (CommandLineOption option : orderedOptions) {
-            Set<String> orderedOptionStrings = new TreeSet<String>(new OptionStringComparator());
+            Set<String> orderedOptionStrings = new TreeSet<>(new OptionStringComparator());
             orderedOptionStrings.addAll(option.getOptions());
-            List<String> prefixedStrings = new ArrayList<String>();
+            List<String> prefixedStrings = new ArrayList<>();
             for (String optionString : orderedOptionStrings) {
                 if (optionString.length() == 1) {
                     prefixedStrings.add("-" + optionString);

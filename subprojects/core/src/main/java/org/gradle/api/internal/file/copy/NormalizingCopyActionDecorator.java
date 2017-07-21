@@ -47,7 +47,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
     }
 
     public WorkResult execute(final CopyActionProcessingStream stream) {
-        final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
+        final Set<RelativePath> visitedDirs = new HashSet<>();
         final ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs = ArrayListMultimap.create();
 
         WorkResult result = delegate.execute(new CopyActionProcessingStream() {
@@ -69,7 +69,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
                 });
 
                 for (RelativePath path : new LinkedHashSet<RelativePath>(pendingDirs.keySet())) {
-                    List<FileCopyDetailsInternal> detailsList = new ArrayList<FileCopyDetailsInternal>(pendingDirs.get(path));
+                    List<FileCopyDetailsInternal> detailsList = new ArrayList<>(pendingDirs.get(path));
                     for (FileCopyDetailsInternal details : detailsList) {
                         if (details.isIncludeEmptyDirs()) {
                             maybeVisit(path, details.isIncludeEmptyDirs(), action);

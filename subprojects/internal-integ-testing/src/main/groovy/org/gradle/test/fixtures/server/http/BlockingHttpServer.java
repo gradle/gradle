@@ -115,7 +115,7 @@ public class BlockingHttpServer extends ExternalResource {
      * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
     public void expectConcurrent(String... expectedRequests) {
-        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
+        List<ResourceExpectation> expectations = new ArrayList<>();
         for (String call : expectedRequests) {
             expectations.add(new SendFixedContent(call));
         }
@@ -126,7 +126,7 @@ public class BlockingHttpServer extends ExternalResource {
      * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
     public void expectConcurrent(Collection<String> expectedRequests) {
-        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
+        List<ResourceExpectation> expectations = new ArrayList<>();
         for (String call : expectedRequests) {
             expectations.add(new SendFixedContent(call));
         }
@@ -137,7 +137,7 @@ public class BlockingHttpServer extends ExternalResource {
      * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
     public void expectConcurrent(ExpectedRequest... expectedCalls) {
-        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
+        List<ResourceExpectation> expectations = new ArrayList<>();
         for (ExpectedRequest call : expectedCalls) {
             expectations.add((ResourceExpectation) call);
         }
@@ -210,7 +210,7 @@ public class BlockingHttpServer extends ExternalResource {
      * Is not considered "complete" until all expected calls have been received.
      */
     public BlockingHandler expectConcurrentAndBlock(int concurrent, String... expectedCalls) {
-        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
+        List<ResourceExpectation> expectations = new ArrayList<>();
         for (String call : expectedCalls) {
             expectations.add(new SendFixedContent(call));
         }
@@ -229,7 +229,7 @@ public class BlockingHttpServer extends ExternalResource {
      * Is not considered "complete" until all expected calls have been received.
      */
     public BlockingHandler expectConcurrentAndBlock(int concurrent, ExpectedRequest... expectedRequests) {
-        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
+        List<ResourceExpectation> expectations = new ArrayList<>();
         for (ExpectedRequest request : expectedRequests) {
             expectations.add((ResourceExpectation) request);
         }

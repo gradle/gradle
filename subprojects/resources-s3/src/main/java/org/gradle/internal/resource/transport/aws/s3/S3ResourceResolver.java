@@ -46,7 +46,7 @@ public class S3ResourceResolver {
     };
 
     public List<String> resolveResourceNames(ObjectListing objectListing) {
-        List<String> results = new ArrayList<String>();
+        List<String> results = new ArrayList<>();
 
         results.addAll(resolveFileResourceNames(objectListing));
         results.addAll(resolveDirectoryResourceNames(objectListing));

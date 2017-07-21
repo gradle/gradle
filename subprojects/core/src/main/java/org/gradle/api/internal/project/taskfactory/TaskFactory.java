@@ -65,7 +65,7 @@ public class TaskFactory implements ITaskFactory {
     }
 
     public TaskInternal createTask(Map<String, ?> args) {
-        Map<String, Object> actualArgs = new HashMap<String, Object>(args);
+        Map<String, Object> actualArgs = new HashMap<>(args);
         checkTaskArgsAndCreateDefaultValues(actualArgs);
 
         String name = actualArgs.get(Task.TASK_NAME).toString();

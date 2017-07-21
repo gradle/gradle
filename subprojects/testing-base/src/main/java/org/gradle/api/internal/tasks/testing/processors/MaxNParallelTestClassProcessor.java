@@ -39,8 +39,8 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     private final ActorFactory actorFactory;
     private TestResultProcessor resultProcessor;
     private int pos;
-    private List<TestClassProcessor> processors = new ArrayList<TestClassProcessor>();
-    private List<Actor> actors = new ArrayList<Actor>();
+    private List<TestClassProcessor> processors = new ArrayList<>();
+    private List<Actor> actors = new ArrayList<>();
     private Actor resultProcessorActor;
 
     public MaxNParallelTestClassProcessor(int maxProcessors, Factory<TestClassProcessor> factory, ActorFactory actorFactory) {

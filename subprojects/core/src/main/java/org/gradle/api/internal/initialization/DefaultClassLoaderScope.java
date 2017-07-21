@@ -80,7 +80,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         if (!classPath.isEmpty()) {
             numParents += 1;
         }
-        List<ClassLoader> parents = new ArrayList<ClassLoader>(numParents);
+        List<ClassLoader> parents = new ArrayList<>(numParents);
         parents.add(parent.getExportClassLoader());
         if (loaders != null) {
             parents.addAll(loaders);

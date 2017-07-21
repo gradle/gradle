@@ -111,7 +111,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     @Override
     protected Package[] getPackages() {
-        List<Package> packages = new ArrayList<Package>();
+        List<Package> packages = new ArrayList<>();
         for (Package p : super.getPackages()) {
             if (allowed(p)) {
                 packages.add(p);
@@ -200,13 +200,13 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     public static class Spec extends ClassLoaderSpec {
 
-        final Set<String> packageNames = new HashSet<String>();
-        final Set<String> packagePrefixes = new HashSet<String>();
-        final Set<String> resourcePrefixes = new HashSet<String>();
-        final Set<String> resourceNames = new HashSet<String>();
-        final Set<String> classNames = new HashSet<String>();
-        final Set<String> disallowedClassNames = new HashSet<String>();
-        final Set<String> disallowedPackagePrefixes = new HashSet<String>();
+        final Set<String> packageNames = new HashSet<>();
+        final Set<String> packagePrefixes = new HashSet<>();
+        final Set<String> resourcePrefixes = new HashSet<>();
+        final Set<String> resourceNames = new HashSet<>();
+        final Set<String> classNames = new HashSet<>();
+        final Set<String> disallowedClassNames = new HashSet<>();
+        final Set<String> disallowedPackagePrefixes = new HashSet<>();
 
         public Spec() {
         }

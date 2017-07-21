@@ -30,8 +30,8 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALI
 
 public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
 
-    private SetSerializer<String> stringSetSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
-    private SetSerializer<Integer> integerSetSerializer = new SetSerializer<Integer>(INTEGER_SERIALIZER, false);
+    private SetSerializer<String> stringSetSerializer = new SetSerializer<>(STRING_SERIALIZER, false);
+    private SetSerializer<Integer> integerSetSerializer = new SetSerializer<>(INTEGER_SERIALIZER, false);
 
     @Override
     public ClassAnalysis read(Decoder decoder) throws Exception {

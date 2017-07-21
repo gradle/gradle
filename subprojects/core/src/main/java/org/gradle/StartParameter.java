@@ -65,20 +65,20 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
     private final DefaultParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
-    private List<TaskExecutionRequest> taskRequests = new ArrayList<TaskExecutionRequest>();
-    private Set<String> excludedTaskNames = new LinkedHashSet<String>();
+    private List<TaskExecutionRequest> taskRequests = new ArrayList<>();
+    private Set<String> excludedTaskNames = new LinkedHashSet<>();
     private boolean buildProjectDependencies = true;
     private File currentDir;
     private File projectDir;
     private boolean searchUpwards;
-    private Map<String, String> projectProperties = new HashMap<String, String>();
-    private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
+    private Map<String, String> projectProperties = new HashMap<>();
+    private Map<String, String> systemPropertiesArgs = new HashMap<>();
     private File gradleUserHomeDir;
     private File gradleHomeDir;
     private File settingsFile;
     private boolean useEmptySettings;
     private File buildFile;
-    private List<File> initScripts = new ArrayList<File>();
+    private List<File> initScripts = new ArrayList<>();
     private boolean dryRun;
     private boolean rerunTasks;
     private boolean profile;
@@ -90,7 +90,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildCacheEnabled;
     private boolean configureOnDemand;
     private boolean continuous;
-    private List<File> includedBuilds = new ArrayList<File>();
+    private List<File> includedBuilds = new ArrayList<>();
     private boolean buildScan;
     private boolean noBuildScan;
 
@@ -514,7 +514,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir)
         );
 
-        List<File> scripts = new ArrayList<File>(getInitScripts());
+        List<File> scripts = new ArrayList<>(getInitScripts());
         initScriptFinder.findScripts(scripts);
         return Collections.unmodifiableList(scripts);
     }

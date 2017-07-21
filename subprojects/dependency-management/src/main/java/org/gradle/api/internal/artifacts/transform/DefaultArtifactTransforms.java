@@ -101,7 +101,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 throw new AmbiguousVariantSelectionException(producer.asDescribable().getDisplayName(), requested, matches, matcher);
             }
 
-            List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
+            List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<>();
             for (ResolvedVariant variant : producer.getVariants()) {
                 AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
                 ConsumerVariantMatchResult matchResult = new ConsumerVariantMatchResult();
@@ -139,8 +139,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-            Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformArtifactOperation>();
-            Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
+            Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<>();
+            Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<>();
             Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(artifactResults, actions, transform, listener, fileResults));
             return new TransformingResult(result, artifactResults, fileResults);
         }

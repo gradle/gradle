@@ -91,7 +91,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         if (!isManaged(publicType)) {
             throw new IllegalArgumentException(String.format("Type '%s' is not managed", publicType));
         }
-        final AtomicReference<ImplementationInfoImpl<S>> implementationInfo = new AtomicReference<ImplementationInfoImpl<S>>();
+        final AtomicReference<ImplementationInfoImpl<S>> implementationInfo = new AtomicReference<>();
         walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
             @Override
             protected void visitRegistration(TypeRegistration<? extends PUBLIC> registration) {

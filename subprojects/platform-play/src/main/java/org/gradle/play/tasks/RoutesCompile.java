@@ -57,7 +57,7 @@ public class RoutesCompile extends SourceTask {
     /**
      * Additional imports used for by generated files.
      */
-    private List<String> additionalImports = new ArrayList<String>();
+    private List<String> additionalImports = new ArrayList<>();
 
     private boolean namespaceReverseRouter;
     private boolean generateReverseRoutes = true;

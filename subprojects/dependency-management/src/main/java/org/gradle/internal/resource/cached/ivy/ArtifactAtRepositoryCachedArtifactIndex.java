@@ -116,7 +116,7 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
                 return new DefaultCachedArtifact(file, createTimestamp, hash);
             } else {
                 int size = decoder.readSmallInt();
-                List<String> attempted = new ArrayList<String>(size);
+                List<String> attempted = new ArrayList<>(size);
                 for (int i = 0; i < size; i++) {
                     attempted.add(decoder.readString());
                 }

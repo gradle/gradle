@@ -25,7 +25,7 @@ import java.util.Map;
  */
 public class ProcessBuilderFactory {
     public ProcessBuilder createProcessBuilder(ProcessSettings processSettings) {
-        List<String> commandWithArguments = new ArrayList<String>();
+        List<String> commandWithArguments = new ArrayList<>();
         commandWithArguments.add(processSettings.getCommand());
         commandWithArguments.addAll(processSettings.getArguments());
 

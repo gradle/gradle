@@ -147,7 +147,7 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
         }
 
         protected <T> void renderSamplesForExperiment(Iterable<MeasuredOperationList> experiments, Transformer<DataSeries<T>, MeasuredOperationList> transformer) {
-            List<DataSeries<T>> values = new ArrayList<DataSeries<T>>();
+            List<DataSeries<T>> values = new ArrayList<>();
             Amount<T> min = null;
             Amount<T> max = null;
             for (MeasuredOperationList testExecution : experiments) {

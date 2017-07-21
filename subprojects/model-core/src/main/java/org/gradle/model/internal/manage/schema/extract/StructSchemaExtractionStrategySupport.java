@@ -153,12 +153,10 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             WeaklyTypeReferencingMethod<?, ?> accessorMethod = WeaklyTypeReferencingMethod.of(accessor.getMostSpecificDeclaration());
             accessors.put(accessor.getAccessorType(), accessorMethod);
         }
-        ModelProperty<P> property = new ModelProperty<P>(
-            propertyType,
+        ModelProperty<P> property = new ModelProperty<>(propertyType,
             propertyContext.getPropertyName(),
             propertyContext.getDeclaredBy(),
-            accessors.build()
-        );
+            accessors.build());
         return new ModelPropertyExtractionResult<P>(property, propertyContext.getAccessors());
     }
 

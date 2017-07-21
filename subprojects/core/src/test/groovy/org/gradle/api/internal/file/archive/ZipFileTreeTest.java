@@ -105,7 +105,7 @@ public class ZipFileTreeTest {
     public void expectedFilePermissionsAreFound() {
         resources.findResource("permissions.zip").copyTo(zipFile);
 
-        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        final Map<String, Integer> expected = new HashMap<>();
         expected.put("file", 0644);
         expected.put("folder", 0755);
 
@@ -116,7 +116,7 @@ public class ZipFileTreeTest {
     public void expectedDefaultForNoModeZips() {
         resources.findResource("nomodeinfos.zip").copyTo(zipFile);
 
-        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        final Map<String, Integer> expected = new HashMap<>();
         expected.put("file.txt", 0644);
         expected.put("folder", 0755);
 

@@ -58,7 +58,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
     }
 
     private Map<String, String> getCurrentProperties() {
-        Map<String, String> currentProperties = new TreeMap<String, String>();
+        Map<String, String> currentProperties = new TreeMap<>();
         for (String prop : SSL_SYSTEM_PROPERTIES) {
             currentProperties.put(prop, System.getProperty(prop));
         }

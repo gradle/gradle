@@ -32,7 +32,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
     public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
         // Find the candidates with the highest base version
         Version baseVersion = null;
-        Map<Version, T> matches = new LinkedHashMap<Version, T>();
+        Map<Version, T> matches = new LinkedHashMap<>();
         for (T candidate : candidates) {
             Version version = VersionParser.INSTANCE.transform(candidate.getVersion());
             if (baseVersion == null || versionComparator.compare(version.getBaseVersion(), baseVersion) > 0) {
@@ -49,7 +49,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         }
 
         // Work backwards from highest version, return the first candidate with qualified version and release status, or candidate with unqualified version
-        List<Version> sorted = new ArrayList<Version>(matches.keySet());
+        List<Version> sorted = new ArrayList<>(matches.keySet());
         Collections.sort(sorted, Collections.reverseOrder(versionComparator));
         for (Version version : sorted) {
             T component = matches.get(version);

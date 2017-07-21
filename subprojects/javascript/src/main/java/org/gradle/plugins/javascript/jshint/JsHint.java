@@ -140,7 +140,7 @@ public class JsHint extends SourceTask {
         Logger logger = getLogger();
         boolean anyErrors = false;
 
-        Map<String, Map<?, ?>> reportData = new LinkedHashMap<String, Map<?, ?>>(result.getResults().size());
+        Map<String, Map<?, ?>> reportData = new LinkedHashMap<>(result.getResults().size());
         for (Map.Entry<File, Map<String, Object>> fileEntry: result.getResults().entrySet()) {
             File file = fileEntry.getKey();
             Map<String, Object> data = fileEntry.getValue();

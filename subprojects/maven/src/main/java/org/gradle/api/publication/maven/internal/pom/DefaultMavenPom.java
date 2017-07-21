@@ -46,7 +46,7 @@ public class DefaultMavenPom implements MavenPom {
     private PathToFileResolver fileResolver;
     private Model model = new MavenProject().getModel();
     private Conf2ScopeMappingContainer scopeMappings;
-    private MutableActionSet<MavenPom> whenConfiguredActions = new MutableActionSet<MavenPom>();
+    private MutableActionSet<MavenPom> whenConfiguredActions = new MutableActionSet<>();
     private XmlTransformer withXmlActions = new XmlTransformer();
     private ConfigurationContainer configurations;
 

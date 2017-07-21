@@ -118,11 +118,11 @@ import java.util.Set;
 public class EclipseClasspath {
     private Iterable<SourceSet> sourceSets;
 
-    private Collection<Configuration> plusConfigurations = new ArrayList<Configuration>();
+    private Collection<Configuration> plusConfigurations = new ArrayList<>();
 
-    private Collection<Configuration> minusConfigurations = new ArrayList<Configuration>();
+    private Collection<Configuration> minusConfigurations = new ArrayList<>();
 
-    private Set<String> containers = new LinkedHashSet<String>();
+    private Set<String> containers = new LinkedHashSet<>();
 
     private File defaultOutputDir;
 
@@ -132,7 +132,7 @@ public class EclipseClasspath {
 
     private XmlFileContentMerger file;
 
-    private Map<String, File> pathVariables = new HashMap<String, File>();
+    private Map<String, File> pathVariables = new HashMap<>();
 
     private boolean projectDependenciesOnly;
 

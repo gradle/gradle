@@ -129,7 +129,7 @@ public class ModelRuleExtractor {
         }
 
         // sort for determinism
-        Set<Method> methods = new TreeSet<Method>(Ordering.usingToString());
+        Set<Method> methods = new TreeSet<>(Ordering.usingToString());
         methods.addAll(Arrays.asList(source.getDeclaredMethods()));
 
         ImmutableList.Builder<ModelProperty<?>> implicitInputs = ImmutableList.builder();
@@ -457,7 +457,7 @@ public class ModelRuleExtractor {
 
         @Override
         public List<? extends Class<?>> getRequiredPlugins() {
-            List<Class<?>> plugins = new ArrayList<Class<?>>();
+            List<Class<?>> plugins = new ArrayList<>();
             for (ExtractedRuleDetails details : rules) {
                 plugins.addAll(details.rule.getRuleDependencies());
             }
@@ -511,7 +511,7 @@ public class ModelRuleExtractor {
             @Override
             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
                 WeaklyTypeReferencingMethod<Object, Object> method = Cast.uncheckedCast(methodRuleDefinition.getMethod());
-                ModelRuleInvoker<Object> invoker = new DefaultModelRuleInvoker<Object, Object>(method, factory);
+                ModelRuleInvoker<Object> invoker = new DefaultModelRuleInvoker<>(method, factory);
                 action.execute(invoker, modelNode, inputs.subList(0, action.getInputs().size()));
             }
         }
@@ -599,7 +599,7 @@ public class ModelRuleExtractor {
 
         @Override
         protected List<ModelReference<?>> withImplicitInputs(List<? extends ModelReference<?>> inputs) {
-            List<ModelReference<?>> allInputs = new ArrayList<ModelReference<?>>(inputs.size() + implicitInputs.size());
+            List<ModelReference<?>> allInputs = new ArrayList<>(inputs.size() + implicitInputs.size());
             allInputs.addAll(inputs);
             for (ModelProperty<?> property : implicitInputs) {
                 MutableModelNode backingNode = (MutableModelNode) values.get(property.getName());

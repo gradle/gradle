@@ -42,10 +42,10 @@ public class CommandLineConverterTestSupport {
     protected List<String> expectedTaskNames = WrapUtil.toList();
     protected Set<String> expectedExcludedTasks = WrapUtil.toSet();
     protected boolean buildProjectDependencies = true;
-    protected Map<String, String> expectedSystemProperties = new HashMap<String, String>();
-    protected Map<String, String> expectedProjectProperties = new HashMap<String, String>();
-    protected List<File> expectedInitScripts = new ArrayList<File>();
-    protected List<File> expectedParticipants = new ArrayList<File>();
+    protected Map<String, String> expectedSystemProperties = new HashMap<>();
+    protected Map<String, String> expectedProjectProperties = new HashMap<>();
+    protected List<File> expectedInitScripts = new ArrayList<>();
+    protected List<File> expectedParticipants = new ArrayList<>();
     protected boolean expectedSearchUpwards = true;
     protected boolean expectedDryRun;
     protected ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;

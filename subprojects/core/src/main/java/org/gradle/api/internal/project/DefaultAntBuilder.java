@@ -97,7 +97,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         File file = gradleProject.file(antBuildFile);
         final File baseDir = file.getParentFile();
 
-        Set<String> existingAntTargets = new HashSet<String>(getAntProject().getTargets().keySet());
+        Set<String> existingAntTargets = new HashSet<>(getAntProject().getTargets().keySet());
         File oldBaseDir = getAntProject().getBaseDir();
         getAntProject().setBaseDir(baseDir);
         try {
@@ -113,7 +113,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         getAntProject().getTargets().remove("");
 
         // Add an adapter for each newly added target
-        Set<String> newAntTargets = new HashSet<String>(getAntProject().getTargets().keySet());
+        Set<String> newAntTargets = new HashSet<>(getAntProject().getTargets().keySet());
         newAntTargets.removeAll(existingAntTargets);
         for (String name : newAntTargets) {
             final Target target = getAntProject().getTargets().get(name);

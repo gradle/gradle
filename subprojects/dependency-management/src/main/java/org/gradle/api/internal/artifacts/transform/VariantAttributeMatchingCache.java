@@ -56,7 +56,7 @@ public class VariantAttributeMatchingCache {
 
     private void findProducersFor(AttributeContainerInternal actual, AttributeContainerInternal requested, ConsumerVariantMatchResult result) {
         // Prefer direct transformation over indirect transformation
-        List<VariantTransformRegistry.Registration> candidates = new ArrayList<VariantTransformRegistry.Registration>();
+        List<VariantTransformRegistry.Registration> candidates = new ArrayList<>();
         for (VariantTransformRegistry.Registration transform : variantTransforms.getTransforms()) {
             if (matchAttributes(transform.getTo(), requested)) {
                 if (matchAttributes(actual, transform.getFrom())) {
@@ -81,7 +81,7 @@ public class VariantAttributeMatchingCache {
                 Transformer<List<File>, File> transformer = new Transformer<List<File>, File>() {
                     @Override
                     public List<File> transform(File file) {
-                        List<File> result = new ArrayList<File>();
+                        List<File> result = new ArrayList<>();
                         for (File intermediate : inputVariant.transformer.transform(file)) {
                             result.addAll(candidate.getArtifactTransform().transform(intermediate));
                         }

@@ -356,7 +356,7 @@ public class ModuleMetadataSerializer {
 
         private List<Configuration> readConfigurations() throws IOException {
             int len = readCount();
-            List<Configuration> configurations = new ArrayList<Configuration>(len);
+            List<Configuration> configurations = new ArrayList<>(len);
             for (int i = 0; i < len; i++) {
                 Configuration configuration = readConfiguration();
                 configurations.add(configuration);
@@ -503,7 +503,7 @@ public class ModuleMetadataSerializer {
 
         private List<String> readStringList() throws IOException {
             int size = readCount();
-            List<String> list = new ArrayList<String>(size);
+            List<String> list = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 list.add(readString());
             }
@@ -512,7 +512,7 @@ public class ModuleMetadataSerializer {
 
         private Set<String> readStringSet() throws IOException {
             int size = readCount();
-            Set<String> set = new LinkedHashSet<String>(size);
+            Set<String> set = new LinkedHashSet<>(size);
             for (int i = 0; i < size; i++) {
                 set.add(readString());
             }

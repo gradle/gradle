@@ -117,7 +117,7 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
     }
 
     private List<DaemonInfo> daemonInfosOfEntriesMatching(Spec<DaemonInfo> spec) {
-        List<DaemonInfo> matches = new ArrayList<DaemonInfo>();
+        List<DaemonInfo> matches = new ArrayList<>();
         for (DaemonInfo daemonInfo : daemonInfos.values()) {
             if (spec.isSatisfiedBy(daemonInfo)) {
                 matches.add(daemonInfo);

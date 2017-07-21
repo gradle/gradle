@@ -93,7 +93,7 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     }
 
     public List<String> getArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         for (Object argument : arguments) {
             args.add(argument.toString());
         }

@@ -52,7 +52,7 @@ public class MultilineStringsJavadocOptionFileOptionTest {
 
         linksOption.getValue().add(extDocUrl);
         context.checking(new Expectations() {{
-            final List<String> tempList = new ArrayList<String>();
+            final List<String> tempList = new ArrayList<>();
             tempList.add(extDocUrl);
             oneOf(writerContextMock).writeMultilineValuesOption(optionName, tempList);
         }});
@@ -62,7 +62,7 @@ public class MultilineStringsJavadocOptionFileOptionTest {
 
     @Test
     public void writeMultipleValues() throws IOException {
-        final List<String> tempList = new ArrayList<String>();
+        final List<String> tempList = new ArrayList<>();
         final String docUrl1 = "docUrl1";
         final String docUrl2 = "docUrl2";
 

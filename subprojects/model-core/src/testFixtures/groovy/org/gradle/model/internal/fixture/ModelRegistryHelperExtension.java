@@ -325,9 +325,7 @@ public class ModelRegistryHelperExtension {
             new Action<MutableModelNode>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode) {
-                    RuleAwarePolymorphicNamedEntityInstantiator<I> instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator<I>(
-                        new DefaultPolymorphicNamedEntityInstantiator<I>(itemType, "this collection")
-                    );
+                    RuleAwarePolymorphicNamedEntityInstantiator<I> instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator<>(new DefaultPolymorphicNamedEntityInstantiator<I>(itemType, "this collection"));
                     mutableModelNode.setPrivateData(instantiatorType, instantiator);
                 }
             })

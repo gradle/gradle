@@ -27,7 +27,7 @@ import java.util.List;
 public class FetchBuildEnvironments implements BuildAction<List<BuildEnvironment>> {
     @Override
     public List<BuildEnvironment> execute(BuildController controller) {
-        List<BuildEnvironment> environments = new ArrayList<BuildEnvironment>();
+        List<BuildEnvironment> environments = new ArrayList<>();
         GradleBuild build = controller.getBuildModel();
         environments.add(controller.getModel(build, BuildEnvironment.class));
         for (GradleBuild includedBuild : build.getIncludedBuilds()) {

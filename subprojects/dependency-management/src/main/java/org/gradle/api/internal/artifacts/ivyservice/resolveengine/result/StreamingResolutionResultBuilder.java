@@ -186,7 +186,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             Timer clock = Timers.startTimer();
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-                Map<Long, ComponentSelector> selectors = new HashMap<Long, ComponentSelector>();
+                Map<Long, ComponentSelector> selectors = new HashMap<>();
                 while (true) {
                     type = decoder.readByte();
                     valuesRead++;
@@ -209,7 +209,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                         case DEPENDENCY:
                             Long fromId = decoder.readSmallLong();
                             int size = decoder.readSmallInt();
-                            List<DependencyResult> deps = new ArrayList<DependencyResult>(size);
+                            List<DependencyResult> deps = new ArrayList<>(size);
                             for (int i = 0; i < size; i++) {
                                 deps.add(dependencyResultSerializer.read(decoder, selectors, failures));
                             }

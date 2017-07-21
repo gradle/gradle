@@ -54,7 +54,7 @@ public abstract class AbstractCompositeSpecTest {
     }
 
     protected Spec<Object>[] createAtomicElements(boolean... satisfies) {
-        List<Spec<Object>> result = new ArrayList<Spec<Object>>();
+        List<Spec<Object>> result = new ArrayList<>();
         for (final boolean satisfy : satisfies) {
             result.add(new Spec<Object>() {
                 public boolean isSatisfiedBy(Object o) {

@@ -33,7 +33,7 @@ public class BuildComparisonSpecFactory {
     public BuildComparisonSpec createSpec(Set<BuildOutcome> from, Set<BuildOutcome> to) {
         BuildComparisonSpecBuilder builder = new DefaultBuildComparisonSpecBuilder();
 
-        Set<BuildOutcome> toCopy = new HashSet<BuildOutcome>(to);
+        Set<BuildOutcome> toCopy = new HashSet<>(to);
 
         for (BuildOutcome fromBuildOutcome : from) {
             BuildOutcome toBuildOutcome = null;

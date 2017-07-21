@@ -81,7 +81,7 @@ class ConflictContainer<K, T> {
         Collection<? extends T> candidates = elements.get(replacedBy);
         assert candidates != null;
 
-        Set<K> participants = new LinkedHashSet<K>();
+        Set<K> participants = new LinkedHashSet<>();
         participants.addAll(targets);
         participants.add(replacedBy);
 

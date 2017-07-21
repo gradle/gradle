@@ -52,7 +52,7 @@ class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompile
 
     @Override
     protected List<String> getPCHArgs(T spec) {
-        List<String> pchArgs = new ArrayList<String>();
+        List<String> pchArgs = new ArrayList<>();
         if (spec.getPreCompiledHeader() != null && spec.getPreCompiledHeaderObjectFile() != null) {
             String lastHeader = spec.getPreCompiledHeader();
 

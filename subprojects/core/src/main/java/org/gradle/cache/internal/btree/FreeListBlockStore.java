@@ -120,7 +120,7 @@ public class FreeListBlockStore implements BlockStore {
     }
 
     public class FreeListBlock extends BlockPayload {
-        private List<FreeListEntry> entries = new ArrayList<FreeListEntry>();
+        private List<FreeListEntry> entries = new ArrayList<>();
         private int largestInNextBlock;
         private BlockPointer nextBlock = BlockPointer.start();
         // Transient fields

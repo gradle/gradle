@@ -27,7 +27,7 @@ import java.util.List;
 
 public class AnnouncingBuildListener extends BuildAdapter implements TaskExecutionListener {
     private final Announcer announcer;
-    private List<Task> failed = new ArrayList<Task>();
+    private List<Task> failed = new ArrayList<>();
     private Task lastFailed;
     private int taskCount;
 

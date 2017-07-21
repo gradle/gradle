@@ -52,7 +52,7 @@ public class IdeaProjectUtil {
     public static class AllProjects implements Serializable {
         public GradleBuild rootBuild;
         public IdeaProject rootIdeaProject;
-        public List<IdeaProject> allIdeaProjects = new ArrayList<IdeaProject>();
+        public List<IdeaProject> allIdeaProjects = new ArrayList<>();
         public final Map<GradleBuild, IdeaProject> includedBuildIdeaProjects = new LinkedHashMap<GradleBuild, IdeaProject>();
 
         public IdeaProject getIdeaProject(String name) {

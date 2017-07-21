@@ -49,7 +49,7 @@ public class GradleVersionSpec {
             };
         }
 
-        List<Spec<GradleVersion>> specs = new ArrayList<Spec<GradleVersion>>();
+        List<Spec<GradleVersion>> specs = new ArrayList<>();
         String[] patterns = trimmed.split("\\s+");
         for (String value : patterns) {
             if (value.startsWith(">=")) {

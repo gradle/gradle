@@ -66,7 +66,7 @@ public class ClassSetAnalysis {
         if (!constants.isEmpty()) {
             return DependencyToAll.INSTANCE;
         }
-        Set<String> result = new HashSet<String>();
+        Set<String> result = new HashSet<>();
         if (deps != null && !deps.isDependencyToAll()) {
             recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
         }

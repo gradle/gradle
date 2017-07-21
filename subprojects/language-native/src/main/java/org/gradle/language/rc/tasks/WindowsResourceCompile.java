@@ -62,8 +62,8 @@ public class WindowsResourceCompile extends DefaultTask {
     private File outputDir;
     private ConfigurableFileCollection includes;
     private ConfigurableFileCollection source;
-    private Map<String, String> macros = new LinkedHashMap<String, String>();
-    private List<String> compilerArgs = new ArrayList<String>();
+    private Map<String, String> macros = new LinkedHashMap<>();
+    private List<String> compilerArgs = new ArrayList<>();
 
     public WindowsResourceCompile() {
         includes = getProject().files();

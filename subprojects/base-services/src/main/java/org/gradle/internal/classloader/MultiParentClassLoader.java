@@ -100,7 +100,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
 
     @Override
     protected Package[] getPackages() {
-        Set<Package> packages = new LinkedHashSet<Package>();
+        Set<Package> packages = new LinkedHashSet<>();
         for (ClassLoader parent : parents) {
             Package[] parentPackages = GET_PACKAGES_METHOD.invoke(parent);
             packages.addAll(Arrays.asList(parentPackages));
@@ -121,7 +121,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
 
     @Override
     public Enumeration<URL> getResources(String name) throws IOException {
-        Set<URL> resources = new LinkedHashSet<URL>();
+        Set<URL> resources = new LinkedHashSet<>();
         for (ClassLoader parent : parents) {
             Enumeration<URL> parentResources = parent.getResources(name);
             while (parentResources.hasMoreElements()) {

@@ -101,7 +101,7 @@ class ClassTypeWrapper implements TypeWrapper {
     }
 
     private ArrayList<Class<?>> getEnclosingClassChain() {
-        ArrayList<Class<?>> classChain = new ArrayList<Class<?>>();
+        ArrayList<Class<?>> classChain = new ArrayList<>();
         Class<?> clazz = unwrap();
         do {
             classChain.add(clazz);

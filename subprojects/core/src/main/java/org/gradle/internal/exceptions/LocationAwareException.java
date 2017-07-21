@@ -110,7 +110,7 @@ public class LocationAwareException extends GradleException implements FailureRe
      * @return The causes. Never returns null, returns an empty list if this exception has no reportable causes.
      */
     public List<Throwable> getReportableCauses() {
-        final List<Throwable> causes = new ArrayList<Throwable>();
+        final List<Throwable> causes = new ArrayList<>();
         visitCauses(getCause(), new TreeVisitor<Throwable>(){
             @Override
             public void node(Throwable node) {

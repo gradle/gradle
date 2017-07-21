@@ -54,7 +54,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     @InputFiles
     @SkipWhenEmpty
     public FileTree getSource() {
-        ArrayList<Object> copy = new ArrayList<Object>(this.source);
+        ArrayList<Object> copy = new ArrayList<>(this.source);
         FileTree src = getProject().files(copy).getAsFileTree();
         return src == null ? getProject().files().getAsFileTree() : src.matching(patternSet);
     }

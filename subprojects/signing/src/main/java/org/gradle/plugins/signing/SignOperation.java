@@ -226,7 +226,7 @@ public class SignOperation implements SignatureSpec {
     }
 
     private ArrayList<File> collectSignatureFiles(Function<Signature, File> getFile) {
-        ArrayList<File> files = new ArrayList<File>(signatures.size());
+        ArrayList<File> files = new ArrayList<>(signatures.size());
         for (Signature signature : signatures) {
             File file = getFile.apply(signature);
             if (file != null) {

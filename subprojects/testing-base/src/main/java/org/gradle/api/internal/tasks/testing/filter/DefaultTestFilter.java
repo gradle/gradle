@@ -26,8 +26,8 @@ import java.util.Set;
 
 public class DefaultTestFilter implements TestFilter {
 
-    private Set<String> testNames = new HashSet<String>();
-    private Set<String> commandLineTestNames = new HashSet<String>();
+    private Set<String> testNames = new HashSet<>();
+    private Set<String> commandLineTestNames = new HashSet<>();
     private boolean failOnNoMatching = true;
 
     private void validateName(String name) {

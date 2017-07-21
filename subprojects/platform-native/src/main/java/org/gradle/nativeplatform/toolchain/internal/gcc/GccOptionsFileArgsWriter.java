@@ -46,7 +46,7 @@ class GccOptionsFileArgsWriter extends OptionsFileArgsWriter {
     }
 
     private List<String> getCommandLineOnlyArgs(List<String> allArgs) {
-        List<String> commandLineOnlyArgs = new ArrayList<String>(allArgs);
+        List<String> commandLineOnlyArgs = new ArrayList<>(allArgs);
         commandLineOnlyArgs.retainAll(CLI_ONLY_ARGS);
         return commandLineOnlyArgs;
     }

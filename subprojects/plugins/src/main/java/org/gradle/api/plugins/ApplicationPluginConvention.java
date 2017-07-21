@@ -27,7 +27,7 @@ import java.util.ArrayList;
 public class ApplicationPluginConvention {
     private String applicationName;
     private String mainClassName;
-    private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
+    private Iterable<String> applicationDefaultJvmArgs = new ArrayList<>();
     private CopySpec applicationDistribution;
 
     private final Project project;

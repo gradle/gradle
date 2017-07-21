@@ -34,7 +34,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
-    private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
+    private Set<DependencyArtifact> artifacts = new HashSet<>();
     private Action<? super ModuleDependency> onMutate = Actions.doNothing();
 
     @Nullable

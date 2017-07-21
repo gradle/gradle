@@ -116,14 +116,14 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     private Module loadOptionalModule(String moduleName) {
         File jarFile = findJar(moduleName);
         if (jarFile != null) {
-            Set<File> implementationClasspath = new LinkedHashSet<File>();
+            Set<File> implementationClasspath = new LinkedHashSet<>();
             implementationClasspath.add(jarFile);
             Properties properties = loadModuleProperties(moduleName, jarFile);
             return module(moduleName, properties, implementationClasspath);
         }
 
         String resourceName = moduleName + "-classpath.properties";
-        Set<File> implementationClasspath = new LinkedHashSet<File>();
+        Set<File> implementationClasspath = new LinkedHashSet<>();
         findImplementationClasspath(moduleName, implementationClasspath);
         for (File file : implementationClasspath) {
             if (file.isDirectory()) {
@@ -147,7 +147,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     }
 
     private Set<File> findDependencyJars(String moduleName, String[] jarNames) {
-        Set<File> runtimeClasspath = new LinkedHashSet<File>();
+        Set<File> runtimeClasspath = new LinkedHashSet<>();
         for (String jarName : jarNames) {
             runtimeClasspath.add(findDependencyJar(moduleName, jarName));
         }
@@ -155,7 +155,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     }
 
     private Set<Module> getModules(String[] projectNames) {
-        Set<Module> modules = new LinkedHashSet<Module>();
+        Set<Module> modules = new LinkedHashSet<>();
         for (String project : projectNames) {
             modules.add(getModule(project));
         }
@@ -174,7 +174,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     }
 
     private void findImplementationClasspath(String name, Collection<File> implementationClasspath) {
-        List<String> suffixes = new ArrayList<String>();
+        List<String> suffixes = new ArrayList<>();
         Matcher matcher = Pattern.compile("gradle-(.+)").matcher(name);
         matcher.matches();
         String projectDirName = matcher.group(1);
@@ -277,7 +277,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
             this.optionalProjects = optionalProjects;
             this.implementationClasspath = new DefaultClassPath(implementationClasspath);
             this.runtimeClasspath = new DefaultClassPath(runtimeClasspath);
-            Set<File> classpath = new LinkedHashSet<File>();
+            Set<File> classpath = new LinkedHashSet<>();
             classpath.addAll(implementationClasspath);
             classpath.addAll(runtimeClasspath);
             this.classpath = new DefaultClassPath(classpath);
@@ -309,7 +309,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         }
 
         public Set<Module> getAllRequiredModules() {
-            Set<Module> modules = new LinkedHashSet<Module>();
+            Set<Module> modules = new LinkedHashSet<>();
             collectRequiredModules(modules);
             return modules;
         }

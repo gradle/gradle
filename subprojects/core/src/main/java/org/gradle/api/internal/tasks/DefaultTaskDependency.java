@@ -55,7 +55,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         if (getValues().isEmpty()) {
             return;
         }
-        Deque<Object> queue = new ArrayDeque<Object>(getValues());
+        Deque<Object> queue = new ArrayDeque<>(getValues());
         while (!queue.isEmpty()) {
             Object dependency = queue.removeFirst();
             if (dependency instanceof Buildable) {
@@ -107,7 +107,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
             } else {
-                List<String> formats = new ArrayList<String>();
+                List<String> formats = new ArrayList<>();
                 if (resolver != null) {
                     formats.add("A String or CharSequence task name or path");
                     formats.add("A TaskReference instance");

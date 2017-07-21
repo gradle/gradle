@@ -50,14 +50,14 @@ import java.util.Set;
 public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer, TaskDependencyContainer {
     public Set<File> getFiles() {
         // Gather each of the backing Sets first, so we can set the initial capacity of the LinkedHashSet
-        List<Set<File>> fileSets = new LinkedList<Set<File>>();
+        List<Set<File>> fileSets = new LinkedList<>();
         int fileCount = 0;
         for (FileCollection collection : getSourceCollections()) {
             Set<File> files = collection.getFiles();
             fileCount += files.size();
             fileSets.add(files);
         }
-        Set<File> allFiles = new LinkedHashSet<File>(fileCount);
+        Set<File> allFiles = new LinkedHashSet<>(fileCount);
         for (Set<File> fileSet : fileSets) {
             allFiles.addAll(fileSet);
         }
@@ -93,7 +93,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
 
     @Override
     protected Collection<DirectoryFileTree> getAsFileTrees() {
-        List<DirectoryFileTree> fileTree = new ArrayList<DirectoryFileTree>();
+        List<DirectoryFileTree> fileTree = new ArrayList<>();
         for (FileCollection source : getSourceCollections()) {
             AbstractFileCollection collection = (AbstractFileCollection) source;
             fileTree.addAll(collection.getAsFileTrees());

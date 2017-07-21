@@ -25,7 +25,7 @@ import java.util.List;
  * An operation made up of other operations of type T.
  */
 public class CompositeOperation<T extends Operation> extends Operation implements Iterable<T> {
-    private List<T> children = new ArrayList<T>();
+    private List<T> children = new ArrayList<>();
 
     public CompositeOperation(Iterable<? extends T> children) {
         this.children = Lists.newArrayList(children);

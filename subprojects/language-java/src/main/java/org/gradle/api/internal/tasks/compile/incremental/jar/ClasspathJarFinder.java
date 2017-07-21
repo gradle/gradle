@@ -32,7 +32,7 @@ public class ClasspathJarFinder {
     }
 
     public Iterable<JarArchive> findJarArchives(Iterable<File> classpath) {
-        List<JarArchive> out = new LinkedList<JarArchive>();
+        List<JarArchive> out = new LinkedList<>();
         for (File file : classpath) {
             if (hasExtension(file, ".jar")) {
                 out.add(new JarArchive(file, fileOperations.zipTree(file)));

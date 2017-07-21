@@ -42,7 +42,7 @@ public class FlatteningNotationParser<T> implements NotationParser<Object, Set<T
     }
 
     public Set<T> parseNotation(Object notation) {
-        Set<T> out = new LinkedHashSet<T>();
+        Set<T> out = new LinkedHashSet<>();
         Collection notations = GUtil.collectionize(notation);
         for (Object n : notations) {
             out.add(delegate.parseNotation(n));

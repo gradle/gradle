@@ -28,7 +28,7 @@ public class NativePlatforms {
     private static final String ARCH_X86 = "x86";
 
     public Set<DefaultNativePlatform> defaultPlatformDefinitions() {
-        Set<DefaultNativePlatform> platforms = new LinkedHashSet<DefaultNativePlatform>();
+        Set<DefaultNativePlatform> platforms = new LinkedHashSet<>();
 
         OperatingSystemInternal windows = new DefaultOperatingSystem(OS_WINDOWS);
         OperatingSystemInternal linux = new DefaultOperatingSystem(OS_LINUX);

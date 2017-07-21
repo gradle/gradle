@@ -101,7 +101,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private void checkNoDuplicateArtifacts(MavenNormalizedPublication publication) {
-        Set<MavenArtifact> verified = new HashSet<MavenArtifact>();
+        Set<MavenArtifact> verified = new HashSet<>();
 
         for (MavenArtifact artifact : publication.getArtifacts()) {
             checkNotDuplicate(publication, verified, artifact.getExtension(), artifact.getClassifier());

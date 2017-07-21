@@ -26,12 +26,12 @@ public class DefaultGradleProject<T> implements Serializable, GradleProjectIdent
     private DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
     private File projectDirectory;
-    private List<T> tasks = new LinkedList<T>();
+    private List<T> tasks = new LinkedList<>();
     private String name;
     private String description;
     private DefaultProjectIdentifier projectIdentifier;
     private DefaultGradleProject<T> parent;
-    private List<? extends DefaultGradleProject<T>> children = new LinkedList<DefaultGradleProject<T>>();
+    private List<? extends DefaultGradleProject<T>> children = new LinkedList<>();
 
     public String getName() {
         return name;

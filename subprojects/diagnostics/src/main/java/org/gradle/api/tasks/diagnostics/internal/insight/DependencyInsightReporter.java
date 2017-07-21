@@ -39,7 +39,7 @@ import java.util.List;
 
 public class DependencyInsightReporter {
     public Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
-        LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
+        LinkedList<RenderableDependency> out = new LinkedList<>();
         List<DependencyEdge> dependencies = CollectionUtils.collect(input, new Transformer<DependencyEdge, DependencyResult>() {
             @Override
             public DependencyEdge transform(DependencyResult result) {
@@ -53,7 +53,7 @@ public class DependencyInsightReporter {
         Collection<DependencyEdge> sorted = DependencyResultSorter.sort(dependencies, versionSelectorScheme, versionComparator);
 
         //remember if module id was annotated
-        HashSet<ComponentIdentifier> annotated = new HashSet<ComponentIdentifier>();
+        HashSet<ComponentIdentifier> annotated = new HashSet<>();
         RequestedVersion current = null;
 
         for (DependencyEdge dependency : sorted) {

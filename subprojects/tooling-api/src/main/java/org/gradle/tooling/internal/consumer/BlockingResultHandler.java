@@ -52,7 +52,7 @@ public class BlockingResultHandler<T> implements ResultHandler<T> {
     }
 
     public static Throwable attachCallerThreadStackTrace(Throwable failure) {
-        List<StackTraceElement> adjusted = new ArrayList<StackTraceElement>();
+        List<StackTraceElement> adjusted = new ArrayList<>();
         adjusted.addAll(Arrays.asList(failure.getStackTrace()));
         List<StackTraceElement> currentThreadStack = Arrays.asList(Thread.currentThread().getStackTrace());
         if (!currentThreadStack.isEmpty()) {

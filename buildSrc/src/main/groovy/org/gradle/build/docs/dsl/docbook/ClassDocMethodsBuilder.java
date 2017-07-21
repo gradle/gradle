@@ -43,7 +43,7 @@ public class ClassDocMethodsBuilder extends ModelBuilderSupport {
      * Builds the methods and script blocks of the given class. Assumes properties have already been built.
      */
     public void build(ClassDoc classDoc) {
-        Set<String> signatures = new HashSet<String>();
+        Set<String> signatures = new HashSet<>();
 
         for (Element tr : children(classDoc.getMethodsTable(), "tr")) {
             List<Element> cells = children(tr, "td");

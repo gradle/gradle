@@ -89,7 +89,7 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
 
     private static class BrokenDependency {
         final ModuleVersionResolveException failure;
-        final List<DependencyGraphNode> requiredBy = new ArrayList<DependencyGraphNode>();
+        final List<DependencyGraphNode> requiredBy = new ArrayList<>();
 
         private BrokenDependency(ModuleVersionResolveException failure) {
             this.failure = failure;

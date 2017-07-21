@@ -51,7 +51,7 @@ class GccCompatibleNativeCompiler<T extends NativeCompileSpec> extends NativeCom
 
     @Override
     protected List<String> getPCHArgs(T spec) {
-        List<String> pchArgs = new ArrayList<String>();
+        List<String> pchArgs = new ArrayList<>();
         if (spec.getPrefixHeaderFile() != null) {
             pchArgs.add("-include");
             pchArgs.add(spec.getPrefixHeaderFile().getAbsolutePath());

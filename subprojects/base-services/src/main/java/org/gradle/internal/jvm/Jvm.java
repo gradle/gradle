@@ -367,7 +367,7 @@ public class Jvm implements JavaInfo {
          */
         @Override
         public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
-            Map<String, Object> vars = new HashMap<String, Object>();
+            Map<String, Object> vars = new HashMap<>();
             for (Map.Entry<String, ?> entry : envVars.entrySet()) {
                 if (entry.getKey().matches("APP_NAME_\\d+") || entry.getKey().matches("JAVA_MAIN_CLASS_\\d+")) {
                     continue;

@@ -107,7 +107,7 @@ public abstract class RhinoWorkerUtils {
     }
 
     public static Map<String, Object> toMap(Scriptable obj) {
-        Map<String, Object> map = new LinkedHashMap<String, Object>();
+        Map<String, Object> map = new LinkedHashMap<>();
 
         for (Object id : obj.getIds()) {
             String key;

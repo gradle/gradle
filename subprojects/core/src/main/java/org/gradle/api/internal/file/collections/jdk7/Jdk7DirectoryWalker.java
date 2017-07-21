@@ -52,7 +52,7 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
 
     @Override
     public void walkDir(final File rootDir, final RelativePath rootPath, final FileVisitor visitor, final Spec<? super FileTreeElement> spec, final AtomicBoolean stopFlag, final boolean postfix) {
-        final Deque<FileVisitDetails> directoryDetailsHolder = new LinkedList<FileVisitDetails>();
+        final Deque<FileVisitDetails> directoryDetailsHolder = new LinkedList<>();
 
         try {
             Files.walkFileTree(rootDir.toPath(), EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {

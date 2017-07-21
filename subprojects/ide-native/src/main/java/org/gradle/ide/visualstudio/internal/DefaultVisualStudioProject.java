@@ -92,7 +92,7 @@ public class DefaultVisualStudioProject extends AbstractBuildableComponentSpec i
     }
 
     public List<File> getSourceFiles() {
-        Set<File> allSource = new LinkedHashSet<File>();
+        Set<File> allSource = new LinkedHashSet<>();
         allSource.addAll(additionalFiles);
 
         for(LanguageSourceSet sourceSet : sources) {
@@ -105,7 +105,7 @@ public class DefaultVisualStudioProject extends AbstractBuildableComponentSpec i
     }
 
     public List<File> getResourceFiles() {
-        Set<File> allResources = new LinkedHashSet<File>();
+        Set<File> allResources = new LinkedHashSet<>();
 
         for(LanguageSourceSet sourceSet : sources) {
             if (sourceSet instanceof WindowsResourceSet) {
@@ -116,7 +116,7 @@ public class DefaultVisualStudioProject extends AbstractBuildableComponentSpec i
     }
 
     public List<File> getHeaderFiles() {
-        Set<File> allHeaders = new LinkedHashSet<File>();
+        Set<File> allHeaders = new LinkedHashSet<>();
 
         for(LanguageSourceSet sourceSet : sources) {
             if (sourceSet instanceof HeaderExportingSourceSet) {

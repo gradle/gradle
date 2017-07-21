@@ -26,9 +26,9 @@ import java.util.Set;
 class RelevantMethodsBuilder {
     final List<Method> remainingMethods;
     final Class<?> type;
-    final LinkedList<Method> decorators = new LinkedList<Method>();
-    final LinkedList<Method> factories = new LinkedList<Method>();
-    final LinkedList<Method> configurers = new LinkedList<Method>();
+    final LinkedList<Method> decorators = new LinkedList<>();
+    final LinkedList<Method> factories = new LinkedList<>();
+    final LinkedList<Method> configurers = new LinkedList<>();
 
     private final Set<String> seen = new HashSet<String>();
 

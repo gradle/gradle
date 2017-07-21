@@ -30,7 +30,7 @@ public class TestState {
     final TestStartEvent startEvent;
     private final Map<Object, TestState> executing;
     public boolean failedChild;
-    public List<Throwable> failures = new ArrayList<Throwable>();
+    public List<Throwable> failures = new ArrayList<>();
     public long testCount;
     public long successfulCount;
     public long failedCount;

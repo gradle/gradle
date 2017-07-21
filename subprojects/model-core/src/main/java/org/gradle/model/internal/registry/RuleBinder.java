@@ -83,7 +83,7 @@ public class RuleBinder {
         if (inputReferences.isEmpty()) {
             return Collections.emptyList();
         }
-        List<ModelBinding> bindings = new ArrayList<ModelBinding>(inputReferences.size());
+        List<ModelBinding> bindings = new ArrayList<>(inputReferences.size());
         for (BindingPredicate inputReference : inputReferences) {
             bindings.add(binding(inputReference, descriptor, false, inputBindAction));
         }

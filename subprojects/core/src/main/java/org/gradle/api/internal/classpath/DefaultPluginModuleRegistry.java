@@ -44,7 +44,7 @@ public class DefaultPluginModuleRegistry implements PluginModuleRegistry {
     }
 
     private Set<Module> loadModules(Properties properties) {
-        Set<Module> modules = new LinkedHashSet<Module>();
+        Set<Module> modules = new LinkedHashSet<>();
         for (String pluginModule : properties.getProperty("plugins").split(",")) {
             try {
                 modules.add(moduleRegistry.getModule(pluginModule));

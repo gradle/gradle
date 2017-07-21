@@ -98,15 +98,15 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void handlesUpdatesWhenBlockSizeDecreases() {
-        BTreePersistentIndexedCache<String, List<Integer>> cache = new BTreePersistentIndexedCache<String, List<Integer>>(tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>(), (short) 4, 100);
+        BTreePersistentIndexedCache<String, List<Integer>> cache = new BTreePersistentIndexedCache<>(tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>(), (short) 4, 100);
 
         List<Integer> values = Arrays.asList(3, 2, 11, 5, 7, 1, 10, 8, 9, 4, 6, 0);
-        Map<Integer, List<Integer>> updated = new LinkedHashMap<Integer, List<Integer>>();
+        Map<Integer, List<Integer>> updated = new LinkedHashMap<>();
 
         for (int i = 10; i > 0; i--) {
             for (Integer value : values) {
                 String key = String.format("key_%d", value);
-                List<Integer> newValue = new ArrayList<Integer>(i);
+                List<Integer> newValue = new ArrayList<>(i);
                 for (int j = 0; j < i * 2; j++) {
                     newValue.add(j);
                 }
@@ -134,15 +134,15 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void handlesUpdatesWhenBlockSizeIncreases() {
-        BTreePersistentIndexedCache<String, List<Integer>> cache = new BTreePersistentIndexedCache<String, List<Integer>>(tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>(), (short) 4, 100);
+        BTreePersistentIndexedCache<String, List<Integer>> cache = new BTreePersistentIndexedCache<>(tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>(), (short) 4, 100);
 
         List<Integer> values = Arrays.asList(3, 2, 11, 5, 7, 1, 10, 8, 9, 4, 6, 0);
-        Map<Integer, List<Integer>> updated = new LinkedHashMap<Integer, List<Integer>>();
+        Map<Integer, List<Integer>> updated = new LinkedHashMap<>();
 
         for (int i = 1; i < 10; i++) {
             for (Integer value : values) {
                 String key = String.format("key_%d", value);
-                List<Integer> newValue = new ArrayList<Integer>(i);
+                List<Integer> newValue = new ArrayList<>(i);
                 for (int j = 0; j < i * 2; j++) {
                     newValue.add(j);
                 }
@@ -205,7 +205,7 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void reusesEmptySpaceWhenPuttingEntries() {
-        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(cacheFile, stringSerializer, stringSerializer, (short) 4, 100);
+        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<>(cacheFile, stringSerializer, stringSerializer, (short) 4, 100);
 
         cache.put("key_1", "abcd");
         cache.put("key_2", "abcd");
@@ -237,7 +237,7 @@ public class BTreePersistentIndexedCacheTest {
     public void canHandleLargeNumberOfEntries() {
         createCache();
         int count = 2000;
-        List<Integer> values = new ArrayList<Integer>();
+        List<Integer> values = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             values.add(i);
         }
@@ -325,7 +325,7 @@ public class BTreePersistentIndexedCacheTest {
         cacheFile.createNewFile();
         cacheFile.write("some junk");
 
-        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
+        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<>(cacheFile, stringSerializer, integerSerializer);
 
         assertNull(cache.get("key_1"));
         cache.put("key_1", 99);
@@ -340,7 +340,7 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void handlesOpeningATruncatedCacheFile() throws IOException {
-        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
+        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<>(cacheFile, stringSerializer, integerSerializer);
 
         assertNull(cache.get("key_1"));
         cache.put("key_1", 99);
@@ -359,7 +359,7 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void canUseFileAsKey() {
-        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(cacheFile, new DefaultSerializer<File>(), integerSerializer);
+        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<>(cacheFile, new DefaultSerializer<File>(), integerSerializer);
 
         cache.put(new File("file"), 1);
         cache.put(new File("dir/file"), 2);
@@ -392,7 +392,7 @@ public class BTreePersistentIndexedCacheTest {
     }
 
     private Map<String, Integer> checkAdds(Iterable<Integer> values) {
-        Map<String, Integer> added = new LinkedHashMap<String, Integer>();
+        Map<String, Integer> added = new LinkedHashMap<>();
 
         for (Integer value : values) {
             String key = String.format("key_%d", value);
@@ -418,7 +418,7 @@ public class BTreePersistentIndexedCacheTest {
     }
 
     private Map<Integer, Integer> checkUpdates(Iterable<Integer> values) {
-        Map<Integer, Integer> updated = new LinkedHashMap<Integer, Integer>();
+        Map<Integer, Integer> updated = new LinkedHashMap<>();
 
         for (int i = 0; i < 10; i++) {
             for (Integer value : values) {
@@ -455,7 +455,7 @@ public class BTreePersistentIndexedCacheTest {
     private void checkAddsAndRemoves(Comparator<Integer> comparator, Collection<Integer> values) {
         checkAdds(values);
 
-        List<Integer> deleteValues = new ArrayList<Integer>(values);
+        List<Integer> deleteValues = new ArrayList<>(values);
         Collections.sort(deleteValues, comparator);
         for (Integer value : deleteValues) {
             String key = String.format("key_%d", value);

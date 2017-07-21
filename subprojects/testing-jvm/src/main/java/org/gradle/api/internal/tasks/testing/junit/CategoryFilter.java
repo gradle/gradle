@@ -50,7 +50,7 @@ class CategoryFilter extends Filter {
     }
 
     private boolean shouldRun(final Description description, final Description parent) {
-        final Set<Class<?>> categories = new HashSet<Class<?>>();
+        final Set<Class<?>> categories = new HashSet<>();
         Category annotation = description.getAnnotation(Category.class);
         if (annotation != null) {
             categories.addAll(Arrays.asList(annotation.value()));

@@ -69,7 +69,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final Collection<IncludedBuild> includedBuilds = Lists.newArrayList();
-    private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
+    private MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
     private BuildOperationState operation;

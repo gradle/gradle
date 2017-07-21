@@ -74,7 +74,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
             return metaData;
         }
 
-        List<MethodLinkMetaData> candidates = new ArrayList<MethodLinkMetaData>();
+        List<MethodLinkMetaData> candidates = new ArrayList<>();
         for (MethodLinkMetaData methodLinkMetaData : methods.values()) {
             if (methodLinkMetaData.name.equals(method)) {
                 candidates.add(methodLinkMetaData);

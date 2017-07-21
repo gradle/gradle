@@ -35,7 +35,7 @@ public class FormattingDiagnosticsVisitor implements DiagnosticsVisitor {
     }
 
     private List<String> format(Map<String, Candidate> candidates) {
-        List<String> formatted = new ArrayList<String>();
+        List<String> formatted = new ArrayList<>();
         for (Candidate candidate : candidates.values()) {
             if (candidate.examples.isEmpty()) {
                 formatted.add(candidate.description);
@@ -70,7 +70,7 @@ public class FormattingDiagnosticsVisitor implements DiagnosticsVisitor {
 
     private static class Candidate {
         final String description;
-        final List<String> examples = new ArrayList<String>();
+        final List<String> examples = new ArrayList<>();
 
         public Candidate(String description) {
             this.description = description;

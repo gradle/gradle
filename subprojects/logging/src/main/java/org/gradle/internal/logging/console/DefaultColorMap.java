@@ -101,7 +101,7 @@ public class DefaultColorMap implements ColorMap {
 
     @Override
     public Color getColourFor(Style style) {
-        List<Color> colors = new ArrayList<Color>();
+        List<Color> colors = new ArrayList<>();
         for (Style.Emphasis emphasis : style.getEmphasises()) {
             if (emphasis.equals(Style.Emphasis.BOLD)) {
                 colors.add(newBoldColor());

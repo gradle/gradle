@@ -102,7 +102,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
         final Timer clock = Timers.startTimer();
 
-        Set<Task> taskSet = new LinkedHashSet<Task>();
+        Set<Task> taskSet = new LinkedHashSet<>();
         for (Task task : tasks) {
             taskSet.add(task);
             requestedTasks.add(task);

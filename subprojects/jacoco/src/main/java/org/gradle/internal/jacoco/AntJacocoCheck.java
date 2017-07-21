@@ -83,7 +83,7 @@ public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRules
                             @SuppressWarnings("UnusedDeclaration")
                             public Object doCall(Object ignore) {
                                 for (JacocoLimit limit : rule.getLimits()) {
-                                    Map<String, Object> limitArgs = new HashMap<String, Object>();
+                                    Map<String, Object> limitArgs = new HashMap<>();
                                     limitArgs.put("counter", limit.getCounter());
                                     limitArgs.put("value", limit.getValue());
 

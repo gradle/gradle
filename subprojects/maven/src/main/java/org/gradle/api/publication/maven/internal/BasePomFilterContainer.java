@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BasePomFilterContainer implements PomFilterContainer {
-    private Map<String, PomFilter> pomFilters = new HashMap<String, PomFilter>();
+    private Map<String, PomFilter> pomFilters = new HashMap<>();
 
     private PomFilter defaultPomFilter;
 

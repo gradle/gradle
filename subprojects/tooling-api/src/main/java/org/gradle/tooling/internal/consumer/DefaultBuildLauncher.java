@@ -72,7 +72,7 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
     }
 
     public void run() {
-        BlockingResultHandler<Void> handler = new BlockingResultHandler<Void>(Void.class);
+        BlockingResultHandler<Void> handler = new BlockingResultHandler<>(Void.class);
         run(handler);
         handler.getResult();
     }

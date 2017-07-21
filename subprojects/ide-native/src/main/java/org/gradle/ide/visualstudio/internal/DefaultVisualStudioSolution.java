@@ -58,7 +58,7 @@ public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec 
     }
 
     public Set<VisualStudioProject> getProjects() {
-        Set<VisualStudioProject> projects = new LinkedHashSet<VisualStudioProject>();
+        Set<VisualStudioProject> projects = new LinkedHashSet<>();
 
         for (VisualStudioProjectConfiguration solutionConfig : getSolutionConfigurations()) {
             for (VisualStudioProjectConfiguration projectConfig : getProjectConfigurations(solutionConfig)) {
@@ -74,7 +74,7 @@ public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec 
     }
 
     public List<VisualStudioProjectConfiguration> getProjectConfigurations(VisualStudioProjectConfiguration solutionConfiguration) {
-        Set<VisualStudioProjectConfiguration> configurations = new LinkedHashSet<VisualStudioProjectConfiguration>();
+        Set<VisualStudioProjectConfiguration> configurations = new LinkedHashSet<>();
         configurations.add(solutionConfiguration);
         addDependentConfigurations(configurations, solutionConfiguration);
         return new ArrayList<VisualStudioProjectConfiguration>(configurations);

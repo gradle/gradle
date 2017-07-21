@@ -139,7 +139,7 @@ class ClientForwardingTestOperationListener implements TestListenerInternal, Bui
     }
 
     private static List<DefaultFailure> convertExceptions(List<Throwable> exceptions) {
-        List<DefaultFailure> failures = new ArrayList<DefaultFailure>(exceptions.size());
+        List<DefaultFailure> failures = new ArrayList<>(exceptions.size());
         for (Throwable exception : exceptions) {
             failures.add(DefaultFailure.fromThrowable(exception));
         }

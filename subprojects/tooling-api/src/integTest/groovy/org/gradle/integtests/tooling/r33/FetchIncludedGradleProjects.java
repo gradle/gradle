@@ -28,7 +28,7 @@ public class FetchIncludedGradleProjects implements BuildAction<List<GradleProje
 
     @Override
     public List<GradleProject> execute(BuildController controller) {
-        List<GradleProject> projects = new ArrayList<GradleProject>();
+        List<GradleProject> projects = new ArrayList<>();
         GradleBuild build = controller.getBuildModel();
         for (GradleBuild includedBuild : build.getIncludedBuilds()) {
             projects.add(controller.getModel(includedBuild, GradleProject.class));

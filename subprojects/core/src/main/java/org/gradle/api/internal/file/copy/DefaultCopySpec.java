@@ -268,7 +268,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         if (!patterns.iterator().hasNext()) {
             throw new InvalidUserDataException("must provide at least one pattern to match");
         }
-        List<Spec> matchers = new ArrayList<Spec>();
+        List<Spec> matchers = new ArrayList<>();
         for (String pattern : patterns) {
             matchers.add(PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern));
         }
@@ -285,7 +285,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         if (!patterns.iterator().hasNext()) {
             throw new InvalidUserDataException("must provide at least one pattern to not match");
         }
-        List<Spec> matchers = new ArrayList<Spec>();
+        List<Spec> matchers = new ArrayList<>();
         for (String pattern : patterns) {
             matchers.add(PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern));
         }
@@ -406,7 +406,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec rename(Transformer<String, String> renamer) {
-        ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class);
+        ChainingTransformer<String> transformer = new ChainingTransformer<>(String.class);
         transformer.add(renamer);
         appendCopyAction(new RenamingCopyAction(transformer));
         return this;
@@ -540,14 +540,14 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver == null) {
                 return copyActions;
             }
-            List<Action<? super FileCopyDetails>> allActions = new ArrayList<Action<? super FileCopyDetails>>();
+            List<Action<? super FileCopyDetails>> allActions = new ArrayList<>();
             allActions.addAll(parentResolver.getAllCopyActions());
             allActions.addAll(copyActions);
             return allActions;
         }
 
         public List<String> getAllIncludes() {
-            List<String> result = new ArrayList<String>();
+            List<String> result = new ArrayList<>();
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludes());
             }
@@ -556,7 +556,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         public List<String> getAllExcludes() {
-            List<String> result = new ArrayList<String>();
+            List<String> result = new ArrayList<>();
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludes());
             }
@@ -566,7 +566,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
 
         public List<Spec<FileTreeElement>> getAllExcludeSpecs() {
-            List<Spec<FileTreeElement>> result = new ArrayList<Spec<FileTreeElement>>();
+            List<Spec<FileTreeElement>> result = new ArrayList<>();
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludeSpecs());
             }
@@ -626,7 +626,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         public List<Spec<FileTreeElement>> getAllIncludeSpecs() {
-            List<Spec<FileTreeElement>> result = new ArrayList<Spec<FileTreeElement>>();
+            List<Spec<FileTreeElement>> result = new ArrayList<>();
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludeSpecs());
             }

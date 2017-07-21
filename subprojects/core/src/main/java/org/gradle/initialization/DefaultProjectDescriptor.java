@@ -39,7 +39,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private File dir;
     private File canonicalDir;
     private DefaultProjectDescriptor parent;
-    private Set<ProjectDescriptor> children = new LinkedHashSet<ProjectDescriptor>();
+    private Set<ProjectDescriptor> children = new LinkedHashSet<>();
     private ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     private String buildFileName;

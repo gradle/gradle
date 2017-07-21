@@ -43,7 +43,7 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
 
     private DefaultGradleBuild convert(Gradle gradle) {
         DefaultGradleBuild model = new DefaultGradleBuild();
-        Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<Project, BasicGradleProject>();
+        Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
 
         Project rootProject = gradle.getRootProject();
         BasicGradleProject convertedRootProject = convert(rootProject, convertedProjects);

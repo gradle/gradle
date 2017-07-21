@@ -26,7 +26,7 @@ public class SystemPropertiesHandler {
     static final String SYSTEM_PROP_PREFIX = "systemProp.";
 
     public static Map<String, String> getSystemProperties(File propertiesFile) {
-        Map<String, String> propertyMap = new HashMap<String, String>();
+        Map<String, String> propertyMap = new HashMap<>();
         if (!propertiesFile.isFile()) {
             return propertyMap;
         }

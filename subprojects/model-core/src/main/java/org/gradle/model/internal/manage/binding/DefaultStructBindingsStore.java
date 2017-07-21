@@ -115,7 +115,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         Iterable<StructSchema<?>> implementedSchemas = getStructSchemas(implementedViews);
         StructSchema<D> delegateSchema = delegateType == null ? null : getStructSchema(delegateType);
 
-        StructBindingExtractionContext<T> extractionContext = new StructBindingExtractionContext<T>(publicSchema, implementedSchemas, delegateSchema);
+        StructBindingExtractionContext<T> extractionContext = new StructBindingExtractionContext<>(publicSchema, implementedSchemas, delegateSchema);
 
         if (!(publicSchema instanceof RuleSourceSchema)) {
             validateTypeHierarchy(extractionContext, publicType);

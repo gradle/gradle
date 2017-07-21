@@ -65,7 +65,7 @@ public class PatternSetAntBuilderDelegate implements AntBuilderAware {
 
     private static Object addFilenames(Object node, Iterable<String> filenames, boolean caseSensitive) {
         GroovyObject groovyObject = (GroovyObject) node;
-        Map<String, Object> props = new HashMap<String, Object>(2);
+        Map<String, Object> props = new HashMap<>(2);
         props.put("casesensitive", caseSensitive);
         for (String filename : filenames) {
             props.put("name", AntUtil.maskFilename(filename));

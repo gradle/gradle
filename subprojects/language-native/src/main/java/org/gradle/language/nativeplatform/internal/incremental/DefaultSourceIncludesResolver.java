@@ -45,7 +45,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     private List<File> prependSourceDir(File sourceFile, List<File> includePaths) {
-        List<File> quotedSearchPath = new ArrayList<File>(includePaths.size() + 1);
+        List<File> quotedSearchPath = new ArrayList<>(includePaths.size() + 1);
         quotedSearchPath.add(sourceFile.getParentFile());
         quotedSearchPath.addAll(includePaths);
         return quotedSearchPath;

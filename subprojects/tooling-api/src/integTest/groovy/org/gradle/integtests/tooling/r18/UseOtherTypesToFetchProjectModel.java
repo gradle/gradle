@@ -42,7 +42,7 @@ public class UseOtherTypesToFetchProjectModel implements BuildAction<Map<String,
 
         // Use a GradleProject to reference a project
         GradleProject rootProject = controller.getModel(GradleProject.class);
-        Map<String, CustomModel> projects = new HashMap<String, CustomModel>();
+        Map<String, CustomModel> projects = new HashMap<>();
         visit(rootProject, controller, projects);
         return projects;
     }

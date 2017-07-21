@@ -84,7 +84,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     @Override
     public void onOutput(Iterable<OutputEvent> events) {
         Set<OperationIdentifier> completeEventOperationIds = toOperationIdSet(Iterables.filter(events, ProgressCompleteEvent.class));
-        Set<OperationIdentifier> operationIdsToSkip = new HashSet<OperationIdentifier>();
+        Set<OperationIdentifier> operationIdsToSkip = new HashSet<>();
 
         for (OutputEvent event : events) {
             if (event instanceof ProgressStartEvent && completeEventOperationIds.contains(((ProgressStartEvent) event).getProgressOperationId())) {

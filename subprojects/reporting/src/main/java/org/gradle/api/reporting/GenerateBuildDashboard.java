@@ -44,7 +44,7 @@ import java.util.Set;
  */
 @Incubating
 public class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
-    private Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
+    private Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<>();
 
     private final BuildDashboardReports reports;
 
@@ -60,7 +60,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
 
     @Input
     public Set<ReportState> getInputReports() {
-        Set<ReportState> inputs = new LinkedHashSet<ReportState>();
+        Set<ReportState> inputs = new LinkedHashSet<>();
         for (Report report : getEnabledInputReports()) {
             if (getReports().contains(report)) {
                 // A report to be generated, ignore

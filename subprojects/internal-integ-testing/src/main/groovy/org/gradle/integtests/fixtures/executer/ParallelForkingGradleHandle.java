@@ -56,7 +56,7 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
         @Override
         public ExecutionResult assertTasksExecuted(String... taskPaths) {
-            Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
+            Set<String> expectedTasks = new HashSet<>(Arrays.asList(taskPaths));
             assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), new HashSet<String>(getExecutedTasks()), equalTo(expectedTasks));
             return this;
         }

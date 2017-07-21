@@ -77,7 +77,7 @@ public class Specs {
     }
 
     private static <T> Spec<T> doIntersect(Collection<? extends Spec<? super T>> specs) {
-        List<Spec<? super T>> filtered = new ArrayList<Spec<? super T>>(specs.size());
+        List<Spec<? super T>> filtered = new ArrayList<>(specs.size());
         for (Spec<? super T> spec : specs) {
             if (spec == SATISFIES_NONE) {
                 return satisfyNone();
@@ -119,7 +119,7 @@ public class Specs {
     }
 
     private static <T> Spec<T> doUnion(Collection<? extends Spec<? super T>> specs) {
-        List<Spec<? super T>> filtered = new ArrayList<Spec<? super T>>(specs.size());
+        List<Spec<? super T>> filtered = new ArrayList<>(specs.size());
         for (Spec<? super T> spec : specs) {
             if (spec == SATISFIES_ALL) {
                 return satisfyAll();

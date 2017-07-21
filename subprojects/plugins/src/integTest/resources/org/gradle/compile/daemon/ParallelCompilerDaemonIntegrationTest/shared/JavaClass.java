@@ -35,7 +35,7 @@ public class JavaClass implements Serializable {
     }
 
     public Collection<URI> getAsURIs() {
-        List<URI> urls = new ArrayList<URI>();
+        List<URI> urls = new ArrayList<>();
         for (File file : files) {
             urls.add(file.toURI());
         }
@@ -52,7 +52,7 @@ public class JavaClass implements Serializable {
     }
 
     public Collection<URL> getAsURLs() {
-        List<URL> urls = new ArrayList<URL>();
+        List<URL> urls = new ArrayList<>();
         for (File file : files) {
             try {
                 urls.add(file.toURI().toURL());
@@ -81,7 +81,7 @@ public class JavaClass implements Serializable {
     }
 
     private Iterable<File> concat(List<File> files1, Collection<File> files2) {
-        List<File> result = new ArrayList<File>();
+        List<File> result = new ArrayList<>();
         result.addAll(files1);
         result.addAll(files2);
         return result;

@@ -35,7 +35,7 @@ public class ChainedVersionLister implements VersionLister {
     }
 
     public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result)  {
-        final List<VersionPatternVisitor> visitors = new ArrayList<VersionPatternVisitor>();
+        final List<VersionPatternVisitor> visitors = new ArrayList<>();
         for (VersionLister lister : versionListers) {
             visitors.add(lister.newVisitor(module, dest, result));
         }

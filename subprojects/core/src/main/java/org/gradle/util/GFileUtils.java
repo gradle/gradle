@@ -135,7 +135,7 @@ public class GFileUtils {
     }
 
     public static List<String> toPaths(Collection<File> files) {
-        List<String> paths = new ArrayList<String>();
+        List<String> paths = new ArrayList<>();
         for (File file : files) {
             paths.add(file.getAbsolutePath());
         }
@@ -292,7 +292,7 @@ public class GFileUtils {
             throw new UncheckedIOException(String.format("Cannot create directory '%s' as it already exists, but is not a directory", dir));
         }
 
-        List<File> toCreate = new LinkedList<File>();
+        List<File> toCreate = new LinkedList<>();
         File parent = dir.getParentFile();
         while (!parent.exists()) {
             toCreate.add(parent);

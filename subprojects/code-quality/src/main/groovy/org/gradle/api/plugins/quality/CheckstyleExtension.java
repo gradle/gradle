@@ -33,7 +33,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     private final Project project;
 
     private TextResource config;
-    private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
+    private Map<String, Object> configProperties = new LinkedHashMap<>();
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;

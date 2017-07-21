@@ -88,7 +88,7 @@ public class DefaultDaemonContext implements DaemonContext {
             Long pid = decoder.readBoolean() ? decoder.readLong() : null;
             Integer idle = decoder.readBoolean() ? decoder.readInt() : null;
             int daemonOptCount = decoder.readInt();
-            List<String> daemonOpts = new ArrayList<String>(daemonOptCount);
+            List<String> daemonOpts = new ArrayList<>(daemonOptCount);
             for (int i=0; i<daemonOptCount; i++) {
                 daemonOpts.add(decoder.readString());
             }

@@ -137,7 +137,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 builder.generateServiceRegistrySupportMethods();
             }
 
-            Set<PropertyMetaData> conventionProperties = new HashSet<PropertyMetaData>();
+            Set<PropertyMetaData> conventionProperties = new HashSet<>();
 
             for (PropertyMetaData property : classMetaData.properties.values()) {
                 if (SKIP_PROPERTIES.contains(property.name)) {
@@ -325,9 +325,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         private final boolean extensible;
         private final boolean conventionAware;
 
-        private List<Method> actionMethods = new ArrayList<Method>();
+        private List<Method> actionMethods = new ArrayList<>();
         private SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
-        private List<Method> setMethods = new ArrayList<Method>();
+        private List<Method> setMethods = new ArrayList<>();
         private boolean shouldImplementWithServiceRegistry;
 
         public ClassMetaData(boolean extensible, boolean conventionAware) {
@@ -391,9 +391,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected static class PropertyMetaData {
         final String name;
-        final List<Method> getters = new ArrayList<Method>();
-        final List<Method> setters = new ArrayList<Method>();
-        final List<Method> setMethods = new ArrayList<Method>();
+        final List<Method> getters = new ArrayList<>();
+        final List<Method> setters = new ArrayList<>();
+        final List<Method> setMethods = new ArrayList<>();
         boolean injector;
 
         private PropertyMetaData(String name) {

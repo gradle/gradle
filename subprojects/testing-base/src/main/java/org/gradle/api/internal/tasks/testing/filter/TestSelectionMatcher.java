@@ -34,7 +34,7 @@ public class TestSelectionMatcher {
     }
 
     private List<Pattern> preparePatternList(Collection<String> includedTests) {
-        List<Pattern> includePatterns = new ArrayList<Pattern>(includedTests.size());
+        List<Pattern> includePatterns = new ArrayList<>(includedTests.size());
         for (String includedTest : includedTests) {
             includePatterns.add(preparePattern(includedTest));
         }

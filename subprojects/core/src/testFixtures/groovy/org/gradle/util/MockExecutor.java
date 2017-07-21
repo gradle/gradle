@@ -82,7 +82,7 @@ public class MockExecutor implements ScheduledExecutorService {
     @Override
     public List<Runnable> shutdownNow() {
         shutdownInitiated = true;
-        List<Runnable> allActions = new ArrayList<Runnable>();
+        List<Runnable> allActions = new ArrayList<>();
         allActions.addAll(singleScheduledActions);
         allActions.addAll(fixedScheduledActions);
         return allActions;

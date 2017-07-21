@@ -36,7 +36,7 @@ public class GradleWorkerMain {
 
         // Read shared packages
         int sharedPackagesCount = instr.readInt();
-        List<String> sharedPackages = new ArrayList<String>(sharedPackagesCount);
+        List<String> sharedPackages = new ArrayList<>(sharedPackagesCount);
         for (int i = 0; i < sharedPackagesCount; i++) {
             sharedPackages.add(instr.readUTF());
         }

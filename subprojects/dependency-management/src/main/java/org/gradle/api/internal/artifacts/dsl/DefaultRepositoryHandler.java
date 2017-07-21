@@ -58,7 +58,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
-        Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
+        Map<String, Object> modifiedArgs = new HashMap<>(args);
         if (modifiedArgs.containsKey("dirs")) {
             modifiedArgs.put("dirs", flattenCollections(modifiedArgs.get("dirs")));
         }
@@ -78,7 +78,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
-        Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
+        Map<String, Object> modifiedArgs = new HashMap<>(args);
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<MavenArtifactRepository>(modifiedArgs));
     }
 

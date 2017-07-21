@@ -74,7 +74,7 @@ public class BuildExperimentRunner {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
             honestProfiler.setInitiallyStopped(invocation.getUseDaemon());
             final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
-            final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
+            final List<String> additionalArgs = new ArrayList<>(dataCollector.getAdditionalArgs(workingDirectory));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
@@ -238,7 +238,7 @@ public class BuildExperimentRunner {
     }
 
     protected List<String> createIterationInfoArguments(Phase phase, int iterationNumber, int iterationMax) {
-        List<String> args = new ArrayList<String>(3);
+        List<String> args = new ArrayList<>(3);
         args.add("-PbuildExperimentPhase=" + phase.toString().toLowerCase());
         args.add("-PbuildExperimentIterationNumber=" + iterationNumber);
         args.add("-PbuildExperimentIterationMax=" + iterationMax);

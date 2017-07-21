@@ -55,7 +55,7 @@ public class AntlrTask extends SourceTask {
     private boolean traceLexer;
     private boolean traceParser;
     private boolean traceTreeWalker;
-    private List<String> arguments = new ArrayList<String>();
+    private List<String> arguments = new ArrayList<>();
 
     private FileCollection antlrClasspath;
 
@@ -185,7 +185,7 @@ public class AntlrTask extends SourceTask {
 
     @TaskAction
     public void execute(IncrementalTaskInputs inputs) {
-        final Set<File> grammarFiles = new HashSet<File>();
+        final Set<File> grammarFiles = new HashSet<>();
         final Set<File> sourceFiles = getSource().getFiles();
         final AtomicBoolean cleanRebuild = new AtomicBoolean();
         inputs.outOfDate(

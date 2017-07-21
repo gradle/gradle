@@ -28,8 +28,8 @@ import java.util.*;
  */
 public class CachingDirectedGraphWalker<N, T> {
     private final DirectedGraphWithEdgeValues<N, T> graph;
-    private List<N> startNodes = new LinkedList<N>();
-    private Set<NodeDetails<N, T>> strongComponents = new LinkedHashSet<NodeDetails<N, T>>();
+    private List<N> startNodes = new LinkedList<>();
+    private Set<NodeDetails<N, T>> strongComponents = new LinkedHashSet<>();
     private final Map<N, Set<T>> cachedNodeValues = new HashMap<N, Set<T>>();
 
     public CachingDirectedGraphWalker(DirectedGraph<N, T> graph) {
@@ -72,9 +72,9 @@ public class CachingDirectedGraphWalker<N, T> {
      */
     public List<Set<N>> findCycles() {
         findValues();
-        List<Set<N>> result = new ArrayList<Set<N>>();
+        List<Set<N>> result = new ArrayList<>();
         for (NodeDetails<N, T> nodeDetails : strongComponents) {
-            Set<N> componentMembers = new LinkedHashSet<N>();
+            Set<N> componentMembers = new LinkedHashSet<>();
             for (NodeDetails<N, T> componentMember : nodeDetails.componentMembers) {
                 componentMembers.add(componentMember.node);
             }
@@ -85,9 +85,9 @@ public class CachingDirectedGraphWalker<N, T> {
 
     private Set<T> doSearch() {
         int componentCount = 0;
-        Map<N, NodeDetails<N, T>> seenNodes = new HashMap<N, NodeDetails<N, T>>();
-        Map<Integer, NodeDetails<N, T>> components = new HashMap<Integer, NodeDetails<N, T>>();
-        LinkedList<N> queue = new LinkedList<N>(startNodes);
+        Map<N, NodeDetails<N, T>> seenNodes = new HashMap<>();
+        Map<Integer, NodeDetails<N, T>> components = new HashMap<>();
+        LinkedList<N> queue = new LinkedList<>(startNodes);
 
         while (!queue.isEmpty()) {
             N node = queue.getFirst();
@@ -163,7 +163,7 @@ public class CachingDirectedGraphWalker<N, T> {
             }
         }
 
-        Set<T> values = new LinkedHashSet<T>();
+        Set<T> values = new LinkedHashSet<>();
         for (N startNode : startNodes) {
             values.addAll(cachedNodeValues.get(startNode));
         }
@@ -173,9 +173,9 @@ public class CachingDirectedGraphWalker<N, T> {
     private static class NodeDetails<N, T> {
         private final int component;
         private final N node;
-        private Set<T> values = new LinkedHashSet<T>();
-        private List<N> successors = new ArrayList<N>();
-        private Set<NodeDetails<N, T>> componentMembers = new LinkedHashSet<NodeDetails<N, T>>();
+        private Set<T> values = new LinkedHashSet<>();
+        private List<N> successors = new ArrayList<>();
+        private Set<NodeDetails<N, T>> componentMembers = new LinkedHashSet<>();
         private int minSeen;
         private boolean stronglyConnected;
         private boolean finished;
