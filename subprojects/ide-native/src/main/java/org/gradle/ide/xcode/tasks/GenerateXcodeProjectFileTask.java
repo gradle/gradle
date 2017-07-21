@@ -117,6 +117,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         target.setBuildToolPath(xcodeTarget.getGradleCommand());
         target.setBuildArgumentsString(xcodeTarget.getTaskName());
         target.setGlobalID(xcodeTarget.getId());
+        target.setProductReference(new PBXFileReference(xcodeTarget.getOutputFile().getName(), xcodeTarget.getOutputFile().getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
 
         return target;
     }
