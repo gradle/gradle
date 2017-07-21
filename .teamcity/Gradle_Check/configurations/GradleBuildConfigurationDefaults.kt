@@ -52,7 +52,7 @@ fun subProjectCheckLinux(subProject: String) : String {
     val subProjectFolder = subProject.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
     return """
         if [ ! -d "subprojects/$subProjectFolder" ]; then
-            echo "##teamcity[buildStatus status='SUCCESS' text='Ignored: Subproject $subProjectFolder does not exist']"
+            echo "##teamcity[buildStatus status='SUCCESS' text='Ignored: Subproject $subProject does not exist on this branch']"
         fi
     """.trimIndent()
 }
@@ -61,7 +61,7 @@ fun subProjectCheckWindows(subProject: String) : String {
     val subProjectFolder = subProject.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
     return """
         IF NOT EXIST subprojects\$subProjectFolder (
-            echo ##teamcity[buildStatus status='SUCCESS' text='Ignored: Subproject $subProjectFolder does not exist']
+            echo ##teamcity[buildStatus status='SUCCESS' text='Ignored: Subproject $subProject does not exist on this branch']
         )
     """.trimIndent()
 }
