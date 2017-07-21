@@ -326,7 +326,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
 
     /**
      * -windowtitle  title
-     * Specifies the title to be placed in the HTML <title> tag.
+     * Specifies the title to be placed in the HTML &lt;title&gt; tag.
      * This appears in the window title and in any browser bookmarks (favorite places) that someone creates for this page.
      * This title should not contain any HTML tags, as the browser will not properly interpret them.
      * Any internal quotation marks within title may have to be escaped. If -windowtitle is omitted,
