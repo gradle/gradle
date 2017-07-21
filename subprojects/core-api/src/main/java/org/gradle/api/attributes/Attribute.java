@@ -19,7 +19,7 @@ package org.gradle.api.attributes;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.internal.changedetection.state.Scalars;
+import org.gradle.api.internal.changedetection.state.SupportedImmutableTypes;
 
 /**
  * An attribute is a named entity with a type. It is used in conjunction with a {@link AttributeContainer}
@@ -75,6 +75,14 @@ public class Attribute<T> implements Named {
         this.hashCode = hashCode;
     }
 
+    private void validateType(String name, Class<T> type) {
+        if (!SupportedImmutableTypes.isSupportedImmutableType(type)) {
+            StringBuilder sb = new StringBuilder("Cannot declare a attribute '" + name + "' with type " + type + ". Supported types are: \n");
+            SupportedImmutableTypes.describeTo(sb);
+            throw new IllegalArgumentException(sb.toString());
+        }
+    }
+
     /**
      * Returns the name of the attribute.
      * @return the name of the attribute.
@@ -120,29 +128,5 @@ public class Attribute<T> implements Named {
         return name;
     }
 
-    private static <T> void validateType(String name, Class<T> clazz) {
-        if (clazz.isArray()) {
-            validateType(name, clazz.getComponentType());
-            return;
-        }
-        if (Scalars.isScalarType(clazz)) {
-            return;
-        }
-        if (Named.class.isAssignableFrom(clazz)) {
-            return;
-        }
-        throw new IllegalArgumentException("Cannot declare a attribute '" + name + "' with type " + clazz + ". Supported types are: \n" + supportedTypes());
-    }
 
-    private static String supportedTypes() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("   - primitive types (byte, boolean, char, short, int, long, float, double) and their wrapped types (Byte, ...)\n");
-        sb.append("   - an enum\n");
-        sb.append("   - an instance of String\n");
-        sb.append("   - an instance of File\n");
-        sb.append("   - an instance of BigInteger, BigDecimal, AtomicInteger, AtomicBoolean or AtomicLong\n");
-        sb.append("   - a Named instance\n");
-        sb.append("   - an array of the above\n");
-        return sb.toString();
-    }
 }

@@ -23,7 +23,7 @@ import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.internal.changedetection.state.Scalars
+import org.gradle.api.internal.changedetection.state.SupportedImmutableTypes
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.DefaultCandidateResult
@@ -46,7 +46,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
         where:
         type << [
-            *Scalars.TYPES,
+            *SupportedImmutableTypes.SCALAR_TYPES,
             MyEnum,
             Flavor
         ]
@@ -62,10 +62,29 @@ class DefaultAttributesSchemaTest extends Specification {
 
         where:
         type << [
-            *Scalars.TYPES,
+            *SupportedImmutableTypes.SCALAR_TYPES,
             MyEnum,
             Flavor
         ]
+    }
+
+    static String getSupportedImmutableDescription() {
+        def sb = new StringBuilder()
+        SupportedImmutableTypes.describeTo(sb)
+        sb.toString()
+    }
+
+    def "cannot create a Named attribute if it's not an interface type"() {
+        when:
+        Attribute.of('attr', ConcreteNamed)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+
+        and:
+        e.message == """Cannot declare a attribute 'attr' with type class org.gradle.api.internal.attributes.DefaultAttributesSchemaTest\$ConcreteNamed. Supported types are: 
+${supportedImmutableDescription}"""
+
     }
 
     def "displays a reasonable error message if attribute type is unsupported"() {
@@ -76,15 +95,8 @@ class DefaultAttributesSchemaTest extends Specification {
         def e = thrown(IllegalArgumentException)
 
         and:
-        e.message == '''Cannot declare a attribute 'attr' with type class java.util.Date. Supported types are: 
-   - primitive types (byte, boolean, char, short, int, long, float, double) and their wrapped types (Byte, ...)
-   - an enum
-   - an instance of String
-   - an instance of File
-   - an instance of BigInteger, BigDecimal, AtomicInteger, AtomicBoolean or AtomicLong
-   - a Named instance
-   - an array of the above
-'''
+        e.message == """Cannot declare a attribute 'attr' with type class java.util.Date. Supported types are: 
+${supportedImmutableDescription}"""
     }
 
     def "fails if no strategy is declared for custom type"() {
@@ -425,6 +437,10 @@ class DefaultAttributesSchemaTest extends Specification {
 
     static Flavor flavor(String name) {
         NamedObjectInstantiator.INSTANCE.named(Flavor, name)
+    }
+
+    static class ConcreteNamed implements Named {
+        String name
     }
 
 }
