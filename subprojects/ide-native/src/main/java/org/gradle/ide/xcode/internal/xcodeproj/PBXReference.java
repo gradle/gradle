@@ -19,6 +19,7 @@ package org.gradle.ide.xcode.internal.xcodeproj;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import org.gradle.api.Named;
 
 import javax.annotation.Nullable;
 
@@ -26,7 +27,7 @@ import javax.annotation.Nullable;
  * Superclass for file, directories, and groups. Xcode's virtual file hierarchy are made of these
  * objects.
  */
-public class PBXReference extends PBXContainerItem {
+public class PBXReference extends PBXContainerItem implements Named {
     private final String name;
     @Nullable
     private String path;
@@ -42,6 +43,7 @@ public class PBXReference extends PBXContainerItem {
         this.sourceTree = Preconditions.checkNotNull(sourceTree);
     }
 
+    @Override
     public String getName() {
         return name;
     }

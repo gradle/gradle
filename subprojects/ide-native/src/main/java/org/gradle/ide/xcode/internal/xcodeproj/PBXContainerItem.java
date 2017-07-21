@@ -25,10 +25,4 @@ public abstract class PBXContainerItem extends PBXObject {
     public String isa() {
         return "PBXContainerItem";
     }
-
-    @Override
-    public void serializeInto(XcodeprojSerializer s) {
-        super.serializeInto(s);
-
-    }
 }

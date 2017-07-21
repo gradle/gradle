@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+
 package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.dd.plist.NSDictionary;
 import com.google.common.base.Preconditions;
+import org.gradle.api.Named;
 
-public class PBXBuildStyle extends PBXProjectItem {
+public class PBXBuildStyle extends PBXProjectItem implements Named {
     private final String name;
     private NSDictionary buildSettings;
 
@@ -28,6 +30,7 @@ public class PBXBuildStyle extends PBXProjectItem {
         this.buildSettings = new NSDictionary();
     }
 
+    @Override
     public String getName() {
         return name;
     }

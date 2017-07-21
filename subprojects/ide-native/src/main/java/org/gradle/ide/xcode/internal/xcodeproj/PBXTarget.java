@@ -28,7 +28,6 @@ import java.util.List;
 public abstract class PBXTarget extends PBXProjectItem {
     private final String name;
     private final ProductType productType;
-    private final List<PBXTargetDependency> dependencies;
     private final List<PBXBuildPhase> buildPhases;
     private final XCConfigurationList buildConfigurationList;
     @Nullable
@@ -38,7 +37,6 @@ public abstract class PBXTarget extends PBXProjectItem {
     public PBXTarget(String name, ProductType productType) {
         this.name = Preconditions.checkNotNull(name);
         this.productType = Preconditions.checkNotNull(productType);
-        this.dependencies = Lists.newArrayList();
         this.buildPhases = Lists.newArrayList();
         this.buildConfigurationList = new XCConfigurationList();
     }
@@ -49,10 +47,6 @@ public abstract class PBXTarget extends PBXProjectItem {
 
     public ProductType getProductType() {
         return productType;
-    }
-
-    public List<PBXTargetDependency> getDependencies() {
-        return dependencies;
     }
 
     public List<PBXBuildPhase> getBuildPhases() {
@@ -105,7 +99,6 @@ public abstract class PBXTarget extends PBXProjectItem {
         if (productReference != null) {
             s.addField("productReference", productReference);
         }
-        s.addField("dependencies", dependencies);
         s.addField("buildPhases", buildPhases);
         if (buildConfigurationList != null) {
             s.addField("buildConfigurationList", buildConfigurationList);
@@ -128,7 +121,7 @@ public abstract class PBXTarget extends PBXProjectItem {
 
         public final String identifier;
 
-        private ProductType(String identifier) {
+        ProductType(String identifier) {
             this.identifier = identifier;
         }
 
