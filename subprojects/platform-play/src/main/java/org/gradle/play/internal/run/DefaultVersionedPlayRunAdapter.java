@@ -157,7 +157,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
     }
 
-    private static class PendingChanges {
+    private static class PendingChanges implements Serializable {
         private int pendingChanges;
 
         synchronized void more() {
