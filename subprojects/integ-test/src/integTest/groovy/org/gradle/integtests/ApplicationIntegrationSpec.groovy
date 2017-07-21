@@ -457,7 +457,7 @@ class Main {
     String firstLine = new BufferedReader(new InputStreamReader(
         ClassLoader.getSystemClassLoader().getResourceAsStream("${resourceFileName}"))).readLine();
     if (!firstLine.equals("bar")) {
-      throw new RuntimeException("Classpath provides wrong resource.properties with value '" + firstLine + "'");
+      throw new RuntimeException("Classpath provides wrong '${resourceFileName}' file with value '" + firstLine + "'");
     }
   }
 }
