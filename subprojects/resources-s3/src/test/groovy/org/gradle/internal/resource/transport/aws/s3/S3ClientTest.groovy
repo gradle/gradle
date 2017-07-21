@@ -102,7 +102,7 @@ class S3ClientTest extends Specification {
             assert uploadPartRequest.bucketName == bucketName
             assert uploadPartRequest.key == objectKey
             assert uploadPartRequest.partNumber == 2
-            assert uploadPartRequest.fileOffset == 7
+            assert uploadPartRequest.fileOffset == 0
             assert uploadPartRequest.partSize == 5
             uploadPartResult
         }

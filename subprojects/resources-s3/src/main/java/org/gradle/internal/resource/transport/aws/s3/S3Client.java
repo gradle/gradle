@@ -169,7 +169,6 @@ public class S3Client {
                         .withKey(s3BucketKey)
                         .withUploadId(initResponse.getUploadId())
                         .withPartNumber(partNumber)
-                        .withFileOffset(filePosition)
                         .withPartSize(partSize)
                         .withInputStream(inputStream);
                     partETags.add(amazonS3Client.uploadPart(uploadPartRequest).getPartETag());
