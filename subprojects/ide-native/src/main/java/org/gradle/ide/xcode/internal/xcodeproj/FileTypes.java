@@ -24,11 +24,11 @@ import com.google.common.collect.ImmutableSet;
  * File types used in Apple targets.
  */
 public final class FileTypes {
-
     /**
      * Apple UTI for executables.
      */
     public static final String MACH_O_EXECUTABLE = "compiled.mach-o.executable";
+
     /**
      * Map of file extension to Apple UTI (Uniform Type Identifier).
      */
@@ -95,6 +95,7 @@ public final class FileTypes {
             .put("y", "sourcecode.yacc")
             .put("zip", "archive.zip")
             .build();
+
     /**
      * Set of UTIs which only work as "lastKnownFileType" and not "explicitFileType"
      * in a PBXFileReference.
@@ -103,6 +104,7 @@ public final class FileTypes {
      */
     public static final ImmutableSet<String> EXPLICIT_FILE_TYPE_BROKEN_UTIS =
         ImmutableSet.of("file.xib");
+
     /**
      * Multimap of Apple UTI (Uniform Type Identifier) to file extension(s).
      */

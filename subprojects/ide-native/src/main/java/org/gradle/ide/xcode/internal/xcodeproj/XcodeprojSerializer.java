@@ -23,6 +23,7 @@ import com.dd.plist.NSString;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
 
 /**
@@ -33,7 +34,7 @@ import java.util.List;
  * referenced objects. Each object being visited calls back into this class ({@link #addField}) to
  * populate the plist representation with its fields.
  */
-//@NotThreadSafe
+@NotThreadSafe
 public class XcodeprojSerializer {
     private static final Logger LOG = Logging.getLogger(XcodeprojSerializer.class);
 

@@ -26,8 +26,6 @@ import com.google.common.base.Preconditions;
  * Contains a dictionary {@link #settings} which holds additional information to be interpreted by
  * the particular phase referencing this object, e.g.:
  *
- * - {@link PBXHeadersBuildPhase } may read <code>{"ATTRIBUTES": ["Public"]}</code> and interpret
- * the build file as a public (exported) header.
  * - {@link PBXSourcesBuildPhase } may read <code>{"COMPILER_FLAGS": "-foo"}</code> and interpret
  * that this file should be compiled with the additional flag {@code "-foo" }.
  */

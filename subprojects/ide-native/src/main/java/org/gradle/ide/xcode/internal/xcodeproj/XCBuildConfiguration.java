@@ -16,40 +16,17 @@
 
 package org.gradle.ide.xcode.internal.xcodeproj;
 
-import javax.annotation.Nullable;
-
 /**
  * Build configuration containing a file reference ton an xcconfig file and additional inline
  * settings.
  */
 public class XCBuildConfiguration extends PBXBuildStyle {
-    @Nullable
-    private PBXFileReference baseConfigurationReference;
-
     public XCBuildConfiguration(String name) {
         super(name);
-    }
-
-    @Nullable
-    public PBXFileReference getBaseConfigurationReference() {
-        return baseConfigurationReference;
-    }
-
-    public void setBaseConfigurationReference(PBXFileReference v) {
-        baseConfigurationReference = v;
     }
 
     @Override
     public String isa() {
         return "XCBuildConfiguration";
-    }
-
-    @Override
-    public void serializeInto(XcodeprojSerializer s) {
-        super.serializeInto(s);
-
-        if (baseConfigurationReference != null) {
-            s.addField("baseConfigurationReference", baseConfigurationReference);
-        }
     }
 }

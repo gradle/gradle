@@ -33,9 +33,7 @@ import java.util.List;
 public class PBXGroup extends PBXReference {
     private final List<PBXReference> children;
     private final LoadingCache<String, PBXGroup> childGroupsByName;
-    private final LoadingCache<String, PBXVariantGroup> childVariantGroupsByName;
-    private final LoadingCache<SourceTreePath, PBXFileReference> fileReferencesBySourceTreePath;
-    private final LoadingCache<SourceTreePath, XCVersionGroup> childVersionGroupsBySourceTreePath;
+
     // Unfortunately, we can't determine this at constructor time, because CacheBuilder
     // calls our constructor and it's not easy to pass arguments to it.
     private SortPolicy sortPolicy;
@@ -54,59 +52,10 @@ public class PBXGroup extends PBXReference {
                     return group;
                 }
             });
-
-        childVariantGroupsByName = CacheBuilder.newBuilder().build(
-            new CacheLoader<String, PBXVariantGroup>() {
-                @Override
-                public PBXVariantGroup load(String key) throws Exception {
-                    PBXVariantGroup group = new PBXVariantGroup(key, null, SourceTree.GROUP);
-                    children.add(group);
-                    return group;
-                }
-            });
-
-        fileReferencesBySourceTreePath = CacheBuilder.newBuilder().build(
-            new CacheLoader<SourceTreePath, PBXFileReference>() {
-                @Override
-                public PBXFileReference load(SourceTreePath key) throws Exception {
-                    PBXFileReference ref = new PBXFileReference(
-                        key.getPath().getFileName().toString(),
-                        key.getPath().toString(),
-                        key.getSourceTree());
-                    children.add(ref);
-                    return ref;
-                }
-            });
-
-        childVersionGroupsBySourceTreePath = CacheBuilder.newBuilder().build(
-            new CacheLoader<SourceTreePath, XCVersionGroup>() {
-                @Override
-                public XCVersionGroup load(SourceTreePath key) throws Exception {
-                    XCVersionGroup ref = new XCVersionGroup(
-                        key.getPath().getFileName().toString(),
-                        key.getPath().toString(),
-                        key.getSourceTree());
-                    children.add(ref);
-                    return ref;
-                }
-            });
     }
 
     public PBXGroup getOrCreateChildGroupByName(String name) {
         return childGroupsByName.getUnchecked(name);
-    }
-
-    public PBXVariantGroup getOrCreateChildVariantGroupByName(String name) {
-        return childVariantGroupsByName.getUnchecked(name);
-    }
-
-    public PBXFileReference getOrCreateFileReferenceBySourceTreePath(SourceTreePath sourceTreePath) {
-        return fileReferencesBySourceTreePath.getUnchecked(sourceTreePath);
-    }
-
-    public XCVersionGroup getOrCreateChildVersionGroupsBySourceTreePath(
-        SourceTreePath sourceTreePath) {
-        return childVersionGroupsBySourceTreePath.getUnchecked(sourceTreePath);
     }
 
     public List<PBXReference> getChildren() {
