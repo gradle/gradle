@@ -107,10 +107,10 @@ fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String
                 name = "LET_BUILDS_FOR_MISSING_SUBPROJECTS_SUCCEED"
                 executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
                 scriptContent = """
-                if [ ! -d "subprojects/$subProject" ]; then
-                    ##teamcity[buildStatus status='SUCCESS' text='{build.status.text} subproject $subProject does not exist']
-                fi
-            """
+                    if [ ! -d "subprojects/$subProject" ]; then
+                        echo "##teamcity[buildStatus status='SUCCESS' text='{build.status.text} subproject $subProject does not exist']"
+                    fi
+                """.trimIndent()
             }
         }
         if (model.tagBuilds) {
