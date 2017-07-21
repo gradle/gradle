@@ -48,6 +48,22 @@ val m2CleanScriptWindows = """
     )
 """.trimIndent()
 
+fun subProjectCheckLinux(subProject: String) : String {
+    return """
+        if [ ! -d "subprojects/$subProject" ]; then
+            echo "##teamcity[buildStatus status='SUCCESS' text='Ignored: Subproject $subProject does not exist']"
+        fi
+    """.trimIndent()
+}
+
+fun subProjectCheckWindows(subProject: String) : String {
+    return """
+        IF NOT EXIST subprojects\$subProject (
+            echo ##teamcity[buildStatus status='SUCCESS' text='Ignored: Subproject $subProject does not exist']
+        )
+    """.trimIndent()
+}
+
 fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     buildType.artifactRules = """
         **/build/reports/** => reports
@@ -106,11 +122,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String
             script {
                 name = "LET_BUILDS_FOR_MISSING_SUBPROJECTS_SUCCEED"
                 executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
-                scriptContent = """
-                    if [ ! -d "subprojects/$subProject" ]; then
-                        echo "##teamcity[buildStatus status='SUCCESS' text='{build.status.text} subproject $subProject does not exist']"
-                    fi
-                """.trimIndent()
+                scriptContent = if (runsOnWindows) subProjectCheckWindows(subProject) else subProjectCheckLinux(subProject)
             }
         }
         if (model.tagBuilds) {
