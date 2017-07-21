@@ -77,7 +77,7 @@ class CIConfigIntegrationTests {
         val subprojectsFromFolders = File("../subprojects").list().map { it.replace(Regex("-([a-z\\d])"), { it.groups[1]!!.value.toUpperCase()}) }.filter {
             !m.subProjectsWithoutTests.contains(it)
         }
-        assertEquals(m.subProjects, subprojectsFromFolders)
+        subprojectsFromFolders.forEach { assertTrue(m.subProjects.contains(it), "Not defined: $it") }
     }
 
     private fun printTree(project: Project, indent: String = "") {

@@ -12,7 +12,7 @@ class FunctionalTest(model: CIBuildModel, testCoverage : TestCoverage, subProjec
     name = testCoverage.asName() + if (!subProject.isEmpty()) " ($subProject)" else ""
     val testTask = testCoverage.testType.name + "Test" + if (!subProject.isEmpty()) subProject.capitalize() else ""
     val quickTest = testCoverage.testType == TestType.quick
-    applyDefaults(model, this, testTask, requiresDistribution = !quickTest,
+    applyDefaults(model, this, testTask, subProject = subProject, requiresDistribution = !quickTest,
             runsOnWindows = testCoverage.os == OS.windows, timeout = if (quickTest) 60 else 180)
 
     params {

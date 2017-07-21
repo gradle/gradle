@@ -73,7 +73,7 @@ fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, t
 }
 
 
-fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String, requiresDistribution: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
+fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String, subProject: String = "", requiresDistribution: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
     applyDefaultSettings(buildType, runsOnWindows, timeout)
 
     val java7HomeParameter = if (runsOnWindows) java7Windows else java7HomeLinux
@@ -101,6 +101,17 @@ fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String
             tasks = "verifyTestFilesCleanup"
             gradleParams = gradleParameterString
             useGradleWrapper = true
+        }
+        if (!subProject.isEmpty()) {
+            script {
+                name = "LET_BUILDS_FOR_MISSING_SUBPROJECTS_SUCCEED"
+                executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
+                scriptContent = """
+                if [ ! -d "subprojects/$subProject" ]; then
+                    ##teamcity[buildStatus status='SUCCESS' text='{build.status.text} subproject $subProject does not exist']
+                fi
+            """
+            }
         }
         if (model.tagBuilds) {
             gradle {

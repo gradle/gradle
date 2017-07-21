@@ -116,7 +116,8 @@ data class CIBuildModel (
             "toolingApi",
             "toolingApiBuilders",
             "workers",
-            "wrapper"
+            "wrapper",
+            "xMissingSubproject"
     )
 
     val  subProjectsWithoutTests = listOf(
