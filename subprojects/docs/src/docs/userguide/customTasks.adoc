@@ -31,13 +31,14 @@ There are several places where you can put the source for the task class.
 
 Build script::
 You can include the task class directly in the build script. This has the benefit that the task class is automatically compiled and included in the classpath of the build script without you having to do anything. However, the task class is not visible outside the build script, and so you cannot reuse the task class outside the build script it is defined in.
+
 `buildSrc` project::
 You can put the source for the task class in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the task class and making it available on the classpath of the build script. The task class is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the task class outside the build it is defined in. Using the `buildSrc` project approach separates the task declaration - that is, what the task should do - from the task implementation - that is, how the task does it.
-
++
 See <<organizing_build_logic>> for more details about the `buildSrc` project.
+
 Standalone project::
 You can create a separate project for your task class. This project produces and publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR might include some custom plugins, or bundle several related task classes into a single library. Or some combination of the two.
-
 
 In our examples, we will start with the task class in the build script, to keep things simple. Then we will look at creating a standalone project.
 
@@ -123,13 +124,13 @@ You can use the api:org.gradle.testfixtures.ProjectBuilder[] class to create api
 
 [NOTE]
 ====
- 
+
 Incremental tasks are an <<feature_lifecycle,incubating>> feature.
-  
+
 Since the introduction of the implementation described above (early in the Gradle 1.6 release cycle), discussions within the Gradle community have produced superior ideas for exposing the information about changes to task implementors to what is described below. As such, the API for this feature will almost certainly change in upcoming releases. However, please do experiment with the current implementation and share your experiences with the Gradle community.
-  
+
 The feature incubation process, which is part of the Gradle feature lifecycle (see <<feature_lifecycle>>), exists for this purpose of ensuring high quality final implementations through incorporation of early user feedback.
- 
+
 ====
 
 With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see <<sec:up_to_date_checks>>). However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs. This can be particularly useful for a transformer task, that converts input files to output files on a 1:1 basis.
@@ -249,9 +250,9 @@ When a task input property is modified, Gradle is unable to determine how this p
 
 [NOTE]
 ====
- 
+
 The Worker API is an <<feature_lifecycle,incubating>> feature.
- 
+
 ====
 
 As can be seen from the discussion of <<incremental_tasks,incremental tasks>>, the work that a task performs can be viewed as discrete units (i.e. a subset of inputs that are transformed to a certain subset of outputs). Many times, these units of work are highly independent of each other, meaning they can be performed in any order and simply aggregated together to form the overall action of the task. In a single threaded execution, these units of work would execute in sequence, however if we have multiple processors, it would be desirable to perform independent units of work concurrently. By doing so, we can fully utilize the available resources at build time and complete the activity of the task faster.
@@ -288,9 +289,9 @@ In some cases, however, it might be desirable to wait for work to complete befor
 
 [NOTE]
 ====
- 
+
 Note that Gradle will only begin running other independent tasks in parallel when a task has exited a task action and returned control of execution to Gradle. When api:org.gradle.workers.WorkerExecutor#await[] is used, execution does not leave the task action. This means that Gradle will not allow other tasks to begin executing and will wait for the task action to complete before doing so.
- 
+
 ====
 
 ++++
