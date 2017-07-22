@@ -16,9 +16,8 @@
 
 package org.gradle.internal.cleanup
 
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -37,7 +36,8 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         given:
         def dir1 = new File('dir1')
         File file1 = new File('someDir/test1.txt')
-        def outputFiles = Mock(FileCollection)
+        File file2 = new File('someDir/test2.txt')
+        def outputFiles = new SimpleFileCollection(file2)
 
 
         when:
@@ -46,9 +46,10 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         registry.registerOutputs(outputFiles)
 
         then:
-        1 * fileResolver.resolveFiles(dir1) >> Mock(FileCollectionInternal)
-        1 * fileResolver.resolveFiles(file1) >> Mock(FileCollectionInternal)
-        1 * fileResolver.resolveFiles(outputFiles) >> Mock(FileCollectionInternal)
-        registry.outputs.sources.size() == 3
+        1 * fileResolver.resolveFiles(dir1) >> new SimpleFileCollection(dir1)
+        1 * fileResolver.resolveFiles(file1) >> new SimpleFileCollection(file1)
+        1 * fileResolver.resolveFiles(outputFiles) >> outputFiles
+        registry.outputs.size() == 3
     }
+
 }

@@ -17,16 +17,20 @@
 package org.gradle.internal.cleanup;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 
+import java.io.File;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
 
     private final FileResolver fileResolver;
     private final Set<FileCollection> outputs = Sets.newHashSet();
+    private Set<File> resolvedFiles;
 
     public DefaultBuildOutputCleanupRegistry(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
@@ -34,11 +38,24 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     @Override
     public void registerOutputs(Object files) {
+        if (resolvedFiles != null) {
+            throw new GradleException("Cannot cleanup targets after execution started.");
+        }
         this.outputs.add(fileResolver.resolveFiles(files));
     }
 
     @Override
     public FileCollection getOutputs() {
-        return new UnionFileCollection(outputs);
+        return new SimpleFileCollection(getResolvedFiles());
+    }
+
+    private synchronized Set<File> getResolvedFiles() {
+        if (resolvedFiles == null) {
+            resolvedFiles = new LinkedHashSet<File>();
+            for (FileCollection output : outputs) {
+                resolvedFiles.addAll(output.getFiles());
+            }
+        }
+        return resolvedFiles;
     }
 }
