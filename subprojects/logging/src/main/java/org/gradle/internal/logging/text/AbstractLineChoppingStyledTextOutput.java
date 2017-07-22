@@ -122,7 +122,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
                     data = text.substring(start, pos);
                 }
 
-                if (!data.isEmpty()) {
+                if (data.length() > 0) {
                     doLineText(data);
                 }
             }
