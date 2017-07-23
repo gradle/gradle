@@ -17,7 +17,6 @@
 package org.gradle.internal.cleanup;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -37,9 +36,9 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     }
 
     @Override
-    public void registerOutputs(Object files) {
+    public synchronized void registerOutputs(Object files) {
         if (resolvedFiles != null) {
-            throw new GradleException("Cannot cleanup targets after execution started.");
+            resolvedFiles = null;
         }
         this.outputs.add(fileResolver.resolveFiles(files));
     }
