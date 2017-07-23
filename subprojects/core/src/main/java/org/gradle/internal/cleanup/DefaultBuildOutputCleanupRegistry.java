@@ -19,7 +19,6 @@ package org.gradle.internal.cleanup;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -44,17 +43,30 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     }
 
     @Override
-    public FileCollection getOutputs() {
-        return new SimpleFileCollection(getResolvedFiles());
-    }
-
-    private synchronized Set<File> getResolvedFiles() {
-        if (resolvedFiles == null) {
-            resolvedFiles = new LinkedHashSet<File>();
-            for (FileCollection output : outputs) {
-                resolvedFiles.addAll(output.getFiles());
+    public boolean isSaveToDelete(File file) {
+        String absolutePath = file.getAbsolutePath();
+        for (File saveToDeleteOutput : getResolvedFiles()) {
+            if (absolutePath.startsWith(saveToDeleteOutput.getAbsolutePath())) {
+                return true;
             }
         }
+        return false;
+    }
+
+    private Set<File> getResolvedFiles() {
+        if (resolvedFiles == null) {
+            createResolvedFiles();
+        }
         return resolvedFiles;
+    }
+
+    private synchronized void createResolvedFiles() {
+        if (resolvedFiles == null) {
+            Set<File> set = new LinkedHashSet<File>();
+            for (FileCollection output : outputs) {
+                set.addAll(output.getFiles());
+            }
+            resolvedFiles = set;
+        }
     }
 }

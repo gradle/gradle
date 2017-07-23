@@ -31,6 +31,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 
 public class CleanupStaleOutputsExecuter implements TaskExecuter {
+
     private final Logger logger = Logging.getLogger(CleanupStaleOutputsExecuter.class);
     private final TaskExecuter executer;
     private final TaskOutputFilesRepository taskOutputFilesRepository;
@@ -47,23 +48,13 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
         for (TaskOutputFilePropertySpec outputFileSpec : task.getOutputs().getFileProperties()) {
             FileCollection files = outputFileSpec.getPropertyFiles();
             for (File file : files) {
-                if (isSaveToDelete(file) && !taskOutputFilesRepository.isGeneratedByGradle(file) && file.exists()) {
+                if (cleanupRegistry.isSaveToDelete(file) && !taskOutputFilesRepository.isGeneratedByGradle(file) && file.exists()) {
                     logger.info("Deleting overlapping output file: {}", file.getAbsolutePath());
                     GFileUtils.forceDelete(file);
                 }
             }
         }
         executer.execute(task, state, context);
-    }
-
-    private boolean isSaveToDelete(File file) {
-        String absolutePath = file.getAbsolutePath();
-        for (File saveToDeleteOutput : cleanupRegistry.getOutputs()) {
-            if (absolutePath.startsWith(saveToDeleteOutput.getAbsolutePath())) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

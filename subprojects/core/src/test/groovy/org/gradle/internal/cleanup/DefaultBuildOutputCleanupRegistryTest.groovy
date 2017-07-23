@@ -27,11 +27,6 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def registry = new DefaultBuildOutputCleanupRegistry(fileResolver)
 
-    def "no outputs are registered by default"() {
-        expect:
-        registry.outputs.empty
-    }
-
     def "can register files, directories and file collections"() {
         given:
         def dir1 = new File('dir1')
@@ -49,7 +44,9 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         1 * fileResolver.resolveFiles(dir1) >> new SimpleFileCollection(dir1)
         1 * fileResolver.resolveFiles(file1) >> new SimpleFileCollection(file1)
         1 * fileResolver.resolveFiles(outputFiles) >> outputFiles
-        registry.outputs.size() == 3
+        registry.isSaveToDelete(dir1)
+        registry.isSaveToDelete(file1)
+        registry.isSaveToDelete(file2)
     }
 
 }

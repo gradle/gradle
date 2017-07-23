@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cleanup;
 
-import org.gradle.api.file.FileCollection;
+import java.io.File;
 
 public interface BuildOutputCleanupRegistry {
 
@@ -26,7 +26,7 @@ public interface BuildOutputCleanupRegistry {
     void registerOutputs(Object files);
 
     /**
-     * Returns all registered outputs.
+     * Determines if a file can be cleaned up.
      */
-    FileCollection getOutputs();
+    boolean isSaveToDelete(File file);
 }
