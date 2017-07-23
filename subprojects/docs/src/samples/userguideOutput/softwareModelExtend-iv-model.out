@@ -46,7 +46,7 @@ Root project
           | Rules:
              ⤷ copyToTaskContainer
     + clean
-          | Type:   	org.gradle.api.tasks.Delete
+          | Type:   	org.gradle.language.base.internal.plugins.Clean
           | Value:  	task ':clean'
           | Creator: 	tasks.addPlaceholderAction(clean)
           | Rules:
