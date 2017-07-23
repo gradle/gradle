@@ -23,30 +23,30 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.util.GradleVersion;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Collections;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-@SuppressWarnings("Since15")
 public class DefaultTaskOutputFilesRepository implements TaskOutputFilesRepository, Closeable {
 
     private final static String CACHE_DISPLAY_NAME = "Build Output Cleanup Cache";
 
     private final CacheRepository cacheRepository;
     private final PersistentCache cacheAccess;
+    private final FileSystemMirror fileSystemMirror;
     private final PersistentIndexedCache<String, Boolean> outputFilesHistory;
 
-    public DefaultTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle) {
+    public DefaultTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, FileSystemMirror fileSystemMirror) {
         this.cacheRepository = cacheRepository;
         this.cacheAccess = createCache(gradle);
+        this.fileSystemMirror = fileSystemMirror;
         this.outputFilesHistory = cacheAccess.createCache("outputFilesHistory", String.class, BaseSerializerFactory.BOOLEAN_SERIALIZER);
     }
 
@@ -73,7 +73,9 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
             @Override
             public void run() {
                 for (String outputFilePath : taskExecution.getDeclaredOutputFilePaths()) {
-                    if (Files.exists(Paths.get(outputFilePath))) {
+                    FileSnapshot fileSnapshot = fileSystemMirror.getFile(outputFilePath);
+                    boolean exists = fileSnapshot == null ? new File(outputFilePath).exists() : fileSnapshot.getType() != FileType.Missing;
+                    if (exists) {
                         outputFilesHistory.put(outputFilePath, Boolean.TRUE);
                     }
                 }
@@ -83,12 +85,12 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
 
     protected PersistentCache createCache(Gradle gradle) {
         return cacheRepository
-                .cache(gradle, "buildOutputCleanup")
-                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                .withDisplayName(CACHE_DISPLAY_NAME)
-                .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
-                .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
-                .open();
+            .cache(gradle, "buildOutputCleanup")
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .withDisplayName(CACHE_DISPLAY_NAME)
+            .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
+            .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
+            .open();
     }
 
     @Override
