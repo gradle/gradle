@@ -284,19 +284,14 @@ class Main {
     }
 
     def "install task complains if install directory exists and doesn't look like previous install"() {
-        // TODO wolfs: buildDir is currently seen as an overlapping output and removed. This needs to be fixed.
-        // For example we could check if anything else is an output in that directory and then conclude that it is known to Gradle.
         file('build.gradle') << """
-installDist.destinationDir = file('some-dir')
+installDist.destinationDir = buildDir
 """
-        file('some-dir').create {
-            file('thats-not-an-installation.txt').text = "Nothing to see here"
-        }
         when:
-        runAndFail "installDist", '--info'
+        runAndFail "installDist"
 
         then:
-        result.assertThatCause(startsWith("The specified installation directory '${file('some-dir')}' is neither empty nor does it contain an installation"))
+        result.assertThatCause(startsWith("The specified installation directory '${file('build')}' is neither empty nor does it contain an installation"))
     }
 
     def "startScripts respect OS dependent line separators"() {

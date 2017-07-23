@@ -41,13 +41,15 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
     private final CacheRepository cacheRepository;
     private final PersistentCache cacheAccess;
     private final FileSystemMirror fileSystemMirror;
-    private final PersistentIndexedCache<String, Boolean> outputFilesHistory;
+    private final PersistentIndexedCache<String, Boolean> outputFiles;
+    private final PersistentIndexedCache<String, Boolean> outputFileParents;
 
     public DefaultTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, FileSystemMirror fileSystemMirror) {
         this.cacheRepository = cacheRepository;
         this.cacheAccess = createCache(gradle);
         this.fileSystemMirror = fileSystemMirror;
-        this.outputFilesHistory = cacheAccess.createCache("outputFilesHistory", String.class, BaseSerializerFactory.BOOLEAN_SERIALIZER);
+        this.outputFiles = cacheAccess.createCache("outputFiles", String.class, BaseSerializerFactory.BOOLEAN_SERIALIZER);
+        this.outputFileParents = cacheAccess.createCache("outputFileParents", String.class, BaseSerializerFactory.BOOLEAN_SERIALIZER);
     }
 
     @Override
@@ -55,16 +57,25 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
         return cacheAccess.useCache(new Factory<Boolean>() {
             @Override
             public Boolean create() {
-                File currentFile = file;
-                do {
-                    if (outputFilesHistory.get(currentFile.getAbsolutePath()) != null) {
-                        return true;
-                    }
-                    currentFile = currentFile.getParentFile();
-                } while (currentFile != null);
-                return false;
+                File absoluteFile = file.getAbsoluteFile();
+                return isContainedInAnOutput(absoluteFile) || containsFilesGeneratedByGradle(absoluteFile);
             }
         });
+    }
+
+    private Boolean isContainedInAnOutput(File file) {
+        File currentFile = file;
+        do {
+            if (outputFiles.get(currentFile.getPath()) != null) {
+                return true;
+            }
+            currentFile = currentFile.getParentFile();
+        } while (currentFile != null);
+        return false;
+    }
+
+    private boolean containsFilesGeneratedByGradle(final File file) {
+        return outputFileParents.get(file.getPath()) != null;
     }
 
     @Override
@@ -74,9 +85,19 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
             public void run() {
                 for (String outputFilePath : taskExecution.getDeclaredOutputFilePaths()) {
                     FileSnapshot fileSnapshot = fileSystemMirror.getFile(outputFilePath);
-                    boolean exists = fileSnapshot == null ? new File(outputFilePath).exists() : fileSnapshot.getType() != FileType.Missing;
+                    File outputFile = new File(outputFilePath);
+                    boolean exists = fileSnapshot == null ? outputFile.exists() : fileSnapshot.getType() != FileType.Missing;
                     if (exists) {
-                        outputFilesHistory.put(outputFilePath, Boolean.TRUE);
+                        outputFiles.put(outputFilePath, Boolean.TRUE);
+                        File outputFileParent = outputFile.getParentFile();
+                        while (outputFileParent != null) {
+                            String parentPath = outputFileParent.getPath();
+                            if (outputFileParents.get(parentPath) != null) {
+                                break;
+                            }
+                            outputFileParents.put(parentPath, Boolean.TRUE);
+                            outputFileParent = outputFileParent.getParentFile();
+                        }
                     }
                 }
             }
