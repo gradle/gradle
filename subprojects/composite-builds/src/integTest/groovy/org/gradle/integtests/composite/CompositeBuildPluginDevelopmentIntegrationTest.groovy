@@ -31,7 +31,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             buildFile << """
                 apply plugin: 'java'
                 version "2.0"
-"""
+            """
         }
 
         pluginBuild = pluginProjectBuild("pluginBuild")
@@ -59,11 +59,11 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             dependencies {
                 compile "org.test:pluginDependencyA:1.0"
             }
-"""
+        """
 
         includeBuild pluginDependencyA, """
             substitute module("org.test:pluginDependencyA") with project(":")
-"""
+        """
         includeBuild pluginBuild
 
         when:
@@ -89,14 +89,14 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
                     classpath 'org.test:pluginBuild:0.1'
                 }
             }
-"""
+        """
 
         applyPlugin(buildA)
 
         includeBuild pluginBuild, """
             // Only substitute version 1.0 with project dependency. This allows this project to build with the published dependency.
             substitute module("org.test:pluginBuild:1.0") with project(":")
-"""
+        """
 
         when:
         execute(buildA, "tasks")
@@ -129,7 +129,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
                     classpath 'org.test:pluginDependencyA:1.0'
                 }
             }
-"""
+        """
 
         dependency("org.test:pluginDependencyA:1.0")
         includeBuild pluginDependencyA
@@ -141,6 +141,36 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginDependencyA:jar", ":jar"
     }
 
+    def "can use an included build that provides both a buildscript dependency and a compile dependency"() {
+        given:
+        def buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
+            buildFile << """
+                println "Configured buildB"
+                allprojects {
+                    apply plugin: 'java'
+                }
+            """
+        }
+        includedBuilds << buildB
+
+        buildA.buildFile << """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:b1:1.0'
+                }
+            }
+        """
+
+        dependency("org.test:b2:1.0")
+
+        when:
+        execute(buildA, "jar")
+
+        then:
+        executed ":buildB:b1:jar", ":buildB:b2:jar", ":jar"
+
+        output.count("Configured buildB") == 2
+    }
 
     def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
         given:
@@ -154,7 +184,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
                     }
                 }
             }
-"""
+        """
         applyPlugin(buildA)
 
         when:
@@ -169,27 +199,27 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     private void publishPluginWithDependency() {
         dependency pluginBuild, 'org.test:pluginDependencyA:1.0'
         pluginBuild.buildFile << """
-publishing {
-    repositories {
-        maven {
-            url '${mavenRepo.uri}'
-        }
-    }
-}
-"""
+            publishing {
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
+                }
+            }
+        """
         executer.inDirectory(pluginBuild).withArguments('--include-build', pluginDependencyA.absolutePath).withTasks('publish').run()
     }
 
     private void publishPlugin() {
         pluginBuild.buildFile << """
-publishing {
-    repositories {
-        maven {
-            url '${mavenRepo.uri}'
-        }
-    }
-}
-"""
+            publishing {
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
+                }
+            }
+        """
         executer.inDirectory(pluginBuild).withTasks('publish').run()
     }
 
@@ -201,7 +231,7 @@ publishing {
             buildFile << """
                 apply plugin: 'java'
                 version "2.0"
-"""
+            """
         }
 
         dependency pluginBuild, "org.test:pluginDependencyA:1.0"
@@ -283,13 +313,13 @@ publishing {
                     maven { url '${mavenRepo.uri}' }
                 }
             }
-""" + build.settingsFile.text
+        """ + build.settingsFile.text
 
         build.buildFile.text = """
             plugins {
                 id 'org.test.plugin.pluginBuild' version '1.0'
             }
-""" + build.buildFile.text
+        """ + build.buildFile.text
     }
 
 }
