@@ -192,6 +192,7 @@ We would like to thank the following community members for making contributions 
  - [Seth Jackson](https://github.com/sethjackson) - Fix the default daemon JVM args on Java 8 (gradle/gradle#2310)
  - [Steve Dougherty](https://github.com/Thynix) - Prevent spurious gradle-wrapper.jar changes (gradle/gradle#2183)
  - [Marcin Zajączkowski](https://github.com/szpak) - Add `@since` tag to `Project.findProperty()` (gradle/gradle#2403)
+ - [Bo Zhang](https://github.com/blindpirate) - Fix `StringIndexOutOfBoundsException` on Windows (#2291)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
