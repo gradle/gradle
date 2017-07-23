@@ -21,14 +21,16 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@SuppressWarnings("Since15")
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
 
     private final FileResolver fileResolver;
     private final Set<FileCollection> outputs = Sets.newHashSet();
-    private Set<File> resolvedFiles;
+    private Set<Path> resolvedFiles;
 
     public DefaultBuildOutputCleanupRegistry(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
@@ -44,27 +46,31 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     @Override
     public boolean isSaveToDelete(File file) {
-        String absolutePath = file.getAbsolutePath();
-        for (File saveToDeleteOutput : getResolvedFiles()) {
-            if (absolutePath.startsWith(saveToDeleteOutput.getAbsolutePath())) {
+        Set<Path> safeToDelete = getResolvedPaths();
+        Path absolutePath = file.toPath().toAbsolutePath();
+        do {
+            if (safeToDelete.contains(absolutePath)) {
                 return true;
             }
-        }
+            absolutePath = absolutePath.getParent();
+        } while (absolutePath != null);
         return false;
     }
 
-    private Set<File> getResolvedFiles() {
+    private Set<Path> getResolvedPaths() {
         if (resolvedFiles == null) {
-            createResolvedFiles();
+            doResolvePaths();
         }
         return resolvedFiles;
     }
 
-    private synchronized void createResolvedFiles() {
+    private synchronized void doResolvePaths() {
         if (resolvedFiles == null) {
-            Set<File> set = new LinkedHashSet<File>();
+            Set<Path> set = new LinkedHashSet<Path>();
             for (FileCollection output : outputs) {
-                set.addAll(output.getFiles());
+                for (File file : output.getFiles()) {
+                    set.add(file.toPath().toAbsolutePath());
+                }
             }
             resolvedFiles = set;
         }

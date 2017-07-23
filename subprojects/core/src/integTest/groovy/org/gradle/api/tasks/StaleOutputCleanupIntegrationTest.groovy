@@ -44,6 +44,12 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
             assert !outputDir.allDescendants().contains("first-file")
             assert !outputDir.allDescendants().contains("second-file")
         }
+
+        void areStillPresent() {
+            assert outputFile.text == "leftover file"
+            assert outputDir.allDescendants().contains("first-file")
+            assert outputDir.allDescendants().contains("second-file")
+        }
     }
 
     def setup() {
@@ -99,6 +105,16 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         staleOutputs.haveBeenRemoved()
+    }
+
+    def "unregistered stale files are not removed before task executes"() {
+        def staleOutputs = new StaleOutputFixture(file('not-safe-to-delete'))
+        when:
+        staleOutputs.createOutputs()
+        succeeds("task")
+
+        then:
+        staleOutputs.areStillPresent()
     }
 
     def "overlapping outputs still work"() {
