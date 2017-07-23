@@ -441,4 +441,51 @@ class Main {
         assert testFile.text.split(lineSeparator).length == expectedLineCount
         true
     }
+
+    def checkClasspathOrderInStartScript() {
+        def resourceFileName = "resource.properties"
+        file('src/main/java/org/gradle/test/Main.java') << """
+package org.gradle.test;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+class Main {
+
+  public static void main(String[] args) throws IOException {
+    String firstLine = new BufferedReader(new InputStreamReader(
+        ClassLoader.getSystemClassLoader().getResourceAsStream("${resourceFileName}"))).readLine();
+    if (!firstLine.equals("bar")) {
+      throw new RuntimeException("Classpath provides wrong '${resourceFileName}' file with value '" + firstLine + "'");
+    }
+  }
+}
+"""
+
+        def testResources = file("resources")
+        def resourceFile = testResources.file(resourceFileName)
+        resourceFile.text = "bar"
+        testResources.zipTo(file("libs/bar.jar"))
+        resourceFile.text = "foo"
+        testResources.zipTo(file("libs/foo.jar"))
+        buildFile << """
+            dependencies {
+                compile files("libs/bar.jar")
+                compile files("libs/foo.jar")
+            }
+        """
+
+        when:
+        run 'installDist'
+
+        def builder = new ScriptExecuter()
+        builder.workingDir file('build/install/application/bin')
+        builder.executable "application"
+        def result = builder.run()
+
+        then:
+        result.assertNormalExitValue()
+    }
+
 }
