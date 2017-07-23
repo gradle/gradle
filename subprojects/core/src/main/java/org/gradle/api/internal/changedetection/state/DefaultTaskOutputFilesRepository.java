@@ -23,18 +23,19 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.util.GradleVersion;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.Map;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
+@SuppressWarnings("Since15")
 public class DefaultTaskOutputFilesRepository implements TaskOutputFilesRepository, Closeable {
 
     private final static String CACHE_DISPLAY_NAME = "Build Output Cleanup Cache";
@@ -71,12 +72,9 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
         cacheAccess.useCache(new Runnable() {
             @Override
             public void run() {
-                for (FileCollectionSnapshot fileCollectionSnapshot : taskExecution.getOutputFilesSnapshot().values()) {
-                    for (Map.Entry<String, NormalizedFileSnapshot> entry : fileCollectionSnapshot.getSnapshots().entrySet()) {
-                        NormalizedFileSnapshot normalizedFileSnapshot = entry.getValue();
-                        if (normalizedFileSnapshot.getSnapshot().getType() != FileType.Missing) {
-                            outputFilesHistory.put(entry.getKey(), Boolean.TRUE);
-                        }
+                for (String outputFilePath : taskExecution.getDeclaredOutputFilePaths()) {
+                    if (Files.exists(Paths.get(outputFilePath))) {
+                        outputFilesHistory.put(outputFilePath, Boolean.TRUE);
                     }
                 }
             }
