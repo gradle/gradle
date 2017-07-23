@@ -19,10 +19,10 @@ package org.gradle.api.internal.filestore.ivy;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
+import org.gradle.internal.resource.local.DefaultGroupedAndNamedUniqueFileStore;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 
-public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier> {
+public class ArtifactIdentifierFileStore extends DefaultGroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier> {
     private static final Transformer<String, ModuleComponentArtifactIdentifier> GROUP = new Transformer<String, ModuleComponentArtifactIdentifier>() {
         @Override
         public String transform(ModuleComponentArtifactIdentifier artifactId) {

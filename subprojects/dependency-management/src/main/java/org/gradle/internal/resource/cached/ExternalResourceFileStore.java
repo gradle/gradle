@@ -17,12 +17,12 @@ package org.gradle.internal.resource.cached;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
+import org.gradle.internal.resource.local.DefaultGroupedAndNamedUniqueFileStore;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 
 import java.io.File;
 
-public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<String> {
+public class ExternalResourceFileStore extends DefaultGroupedAndNamedUniqueFileStore<String> {
 
     private static final Transformer<String, String> GROUPER = new Transformer<String, String>() {
         @Override

@@ -55,4 +55,9 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementBuildScopeServices());
     }
+
+    @Override
+    public void registerSettingsServices(ServiceRegistration registration) {
+        registration.addProvider(new DependencyManagementSettingsScopeServices());
+    }
 }
