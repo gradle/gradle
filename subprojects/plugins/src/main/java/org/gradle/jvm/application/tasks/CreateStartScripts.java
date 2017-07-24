@@ -16,9 +16,11 @@
 
 package org.gradle.jvm.application.tasks;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+
 import org.gradle.api.Incubating;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
@@ -30,7 +32,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -276,12 +277,14 @@ public class CreateStartScripts extends ConventionTask {
 
     @Input
     private Iterable<String> getRelativeClasspath() {
-        return CollectionUtils.collect(getClasspath().getFiles(), new Transformer<String, File>() {
+        //a list instance is needed here, as org.gradle.api.internal.changedetection.state.ValueSnapshotter.processValue() does not support
+        //serializing Iterators directly
+        return Lists.newArrayList(Iterables.transform(getClasspath().getFiles(), new Function<File, String>() {
             @Override
-            public String transform(File input) {
+            public String apply(File input) {
                 return "lib/" + input.getName();
             }
-        });
+        }));
     }
 
 }
