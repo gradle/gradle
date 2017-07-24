@@ -30,144 +30,19 @@ import spock.lang.Specification
 import java.nio.charset.Charset
 
 @UsesNativeServices
-public class BuildProcessTest extends Specification {
+class BuildProcessTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule
     final SetSystemProperties systemPropertiesSet = new SetSystemProperties()
 
-    private FileResolver fileResolver = Mock()
+    private def fileResolver = Mock(FileResolver)
     private def currentJvm = Stub(JavaInfo)
-    private JvmOptions currentJvmOptions = new JvmOptions(fileResolver)
 
-    def "can only run build with identical java home"() {
-        when:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        then:
-        buildProcess.configureForBuild(buildParameters(currentJvm))
-        !buildProcess.configureForBuild(buildParameters(Stub(JavaInfo)))
-    }
-
-    def "all immutable jvm arguments or all immutable system properties need to match"() {
-        when:
-        def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
-        currentJvmOptions.setAllJvmArgs(["-Dfile.encoding=$notDefaultEncoding", "-Xmx100m", "-XX:SomethingElse"])
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        then:
-        buildProcess.configureForBuild(buildParameters([]))
-        !buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding"])) //only properties match
-        !buildProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse"])) //only jvm argument match
-        buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding", "-Xmx100m", "-XX:SomethingElse"])) //both match
-        !buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=${Charset.defaultCharset().name()}", "-Xmx100m", "-XX:SomethingElse"]))
-        !buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding", "-Xmx120m", "-XX:SomethingElse"]))
-        buildProcess.configureForBuild(buildParameters(["-Dfoo=bar"]))
-    }
-
-    def "debug is handled as immutable argument"() {
-        when:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-        def debugEnabled = buildParameters([])
-        debugEnabled.setDebug(true)
-        def debugDisabled = buildParameters([])
-        debugDisabled.setDebug(false)
-
-        then:
-        !buildProcess.configureForBuild(debugEnabled)
-        buildProcess.configureForBuild(debugDisabled)
-    }
-
-    def "immutable system properties passed into the daemon parameter constructor are handled"() {
-        when:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-        def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
-
-        then:
-        buildProcess.configureForBuild(buildParameters([], [ "file.encoding" : Charset.defaultCharset().name() ]))
-        !buildProcess.configureForBuild(buildParameters([], [ "file.encoding" : notDefaultEncoding.toString() ]))
-    }
-
-    def "can only run build when no immutable jvm arguments specified that do not match the current immutable jvm arguments"() {
-        when:
-        currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-
-        then:
-        buildProcess.configureForBuild(buildParameters([]))
-        buildProcess.configureForBuild(buildParameters(['-Dfoo=bar']))
-
-        and:
-        !buildProcess.configureForBuild(buildParameters(["-Xms10m"]))
-        !buildProcess.configureForBuild(buildParameters(["-XX:SomethingElse"]))
-        buildProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"]))
-        buildProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse"]))
-        def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
-        !buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding"]))
-        def notDefaultLanguage = ["es", "jp"].find { it != Locale.default.language }
-        !buildProcess.configureForBuild(buildParameters(["-Duser.language=$notDefaultLanguage"]))
-        buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=${Charset.defaultCharset().name()}"]))
-        buildProcess.configureForBuild(buildParameters(["-Duser.language=${Locale.default.language}"]))
-        !buildProcess.configureForBuild(buildParameters(["-Dcom.sun.management.jmxremote"]))
-        !buildProcess.configureForBuild(buildParameters(["-Djava.io.tmpdir=/some/custom/folder"]))
-    }
-
-    def "sets all mutable system properties before running build"() {
-        when:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-        def parameters = buildParameters(["-Dfoo=bar", "-Dbaz"])
-
-        then:
-        buildProcess.configureForBuild(parameters)
-
-        and:
-        System.getProperty('foo') == 'bar'
-        System.getProperty('baz') != null
-    }
-
-    def "defaults in required vm args are ignored"() {
-        //if the user does not configure any jvm args Gradle uses some defaults
-        //however, we don't want those defaults to influence the decision whether to use existing process or not
-        given:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        when:
-        def parametersWithDefaults = buildParameters((Iterable) null)
-        parametersWithDefaults.applyDefaultsFor(JavaVersion.VERSION_1_7)
-
-        then:
-        parametersWithDefaults.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
-        buildProcess.configureForBuild(parametersWithDefaults)
-    }
-
-    def "user can explicitly disable default daemon args by setting jvm args to empty"() {
-        given:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        def emptyBuildParameters = buildParameters([])
-        emptyBuildParameters.applyDefaultsFor(JavaVersion.VERSION_1_7)
-
-        when:
-        buildProcess.configureForBuild(emptyBuildParameters)
-
-        then:
-        !emptyBuildParameters.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
-    }
-
-    def "user-defined vm args that correspond to defaults are not ignored"() {
-        given:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        when:
-        def parametersWithDefaults = buildParameters(DaemonParameters.DEFAULT_JVM_ARGS)
-
-        then:
-        !buildProcess.configureForBuild(parametersWithDefaults)
-    }
 
     def "current and requested build vm match if vm arguments match"() {
         given:
+        def currentJvmOptions = new JvmOptions(fileResolver)
         BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
 
         when:
@@ -181,6 +56,7 @@ public class BuildProcessTest extends Specification {
 
     def "current and requested build vm do not match if vm arguments differ"() {
         given:
+        def currentJvmOptions = new JvmOptions(fileResolver)
         BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
 
         when:
@@ -192,17 +68,169 @@ public class BuildProcessTest extends Specification {
         !buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError"]))
     }
 
-    def "current and requested build vm match if no arguments were set for requested vm"() {
+    def "current and requested build vm match if java home matches"() {
+        when:
+        BuildProcess buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+
+        then:
+        buildProcess.configureForBuild(buildParameters(currentJvm))
+        !buildProcess.configureForBuild(buildParameters(Stub(JavaInfo)))
+    }
+
+    def "all requested immutable jvm arguments and all immutable system properties need to match"() {
         given:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+        def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
+        def currentJvmOptions = new JvmOptions(fileResolver)
+        currentJvmOptions.setAllJvmArgs(["-Dfile.encoding=$notDefaultEncoding", "-Xmx100m", "-XX:SomethingElse"])
 
         when:
+        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+
+        then:
+        !buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding"])) //only properties match
+        !buildProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse"])) //only jvm argument match
+        !buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=${Charset.defaultCharset().name()}", "-Xmx100m", "-XX:SomethingElse"])) //encoding does not match
+        !buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding", "-Xmx120m", "-XX:SomethingElse"])) //memory does not match
+        buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding", "-Xmx100m", "-XX:SomethingElse"])) //both match
+    }
+
+    def "current and requested build vm match if no arguments are requested"() {
+        given:
+        def currentJvmOptions = new JvmOptions(fileResolver)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
+        def emptyRequest = buildParameters([])
+
+        when:
+        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
 
         then:
-        buildProcess.configureForBuild(buildParameters([]))
+        buildProcess.configureForBuild(emptyRequest)
+    }
+
+    def "current and requested build vm match if no arguments are requested even if the daemon defaults are applied"() {
+        //if the user does not configure any jvm args Gradle uses some defaults
+        //however, we don't want those defaults to influence the decision whether to use existing process or not
+        given:
+        def requestWithDefaults = buildParameters((Iterable) null)
+
+        when:
+        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+
+        then:
+        requestWithDefaults.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
+        buildProcess.configureForBuild(requestWithDefaults)
+    }
+
+    def "current and requested build vm match if only mutable arguments are requested"() {
+        given:
+        def currentJvmOptions = new JvmOptions(fileResolver)
+        currentJvmOptions.minHeapSize = "16m"
+        currentJvmOptions.maxHeapSize = "1024m"
+        currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
+        def requestWithMutableArgument = buildParameters(["-Dfoo=bar"])
+
+        when:
+        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+
+        then:
+        buildProcess.configureForBuild(requestWithMutableArgument)
+    }
+
+    def "current and requested build vm match if only mutable arguments vary"() {
+        given:
+        def currentJvmOptions = new JvmOptions(fileResolver)
+        currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
+
+        when:
+        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+
+        then:
+        !buildProcess.configureForBuild(buildParameters(["-Xms10m", "-Dfoo=bar", "-Dbaz"]))
+        !buildProcess.configureForBuild(buildParameters(["-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"]))
+        buildProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"]))
+        buildProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse"]))
+    }
+
+    def "debug is an immutable argument"() {
+        given:
+        def debugEnabled = buildParameters([])
+        debugEnabled.setDebug(true)
+        def debugDisabled = buildParameters([])
+        debugDisabled.setDebug(false)
+
+        when:
+        BuildProcess buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+
+        then:
+        !buildProcess.configureForBuild(debugEnabled)
+        buildProcess.configureForBuild(debugDisabled)
+    }
+
+    def "immutable system properties are treated as immutable"() {
+        given:
+        def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
+        def notDefaultLanguage = ["es", "jp"].find { it != Locale.default.language }
+        def currentJvmOptions = new JvmOptions(fileResolver)
+        currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
+
+        when:
+        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+
+        then:
+        buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=${Charset.defaultCharset().name()}"]))
+        buildProcess.configureForBuild(buildParameters(["-Duser.language=${Locale.default.language}"]))
+        !buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding"]))
+        !buildProcess.configureForBuild(buildParameters(["-Duser.language=$notDefaultLanguage"]))
+        !buildProcess.configureForBuild(buildParameters(["-Dcom.sun.management.jmxremote"]))
+        !buildProcess.configureForBuild(buildParameters(["-Djava.io.tmpdir=/some/custom/folder"]))
+    }
+
+    def "immutable system properties passed into the daemon parameter constructor are handled"() {
+        given:
+        def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
+
+        when:
+        BuildProcess buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+
+        then:
+        buildProcess.configureForBuild(buildParameters([], [ "file.encoding" : Charset.defaultCharset().name() ]))
+        !buildProcess.configureForBuild(buildParameters([], [ "file.encoding" : notDefaultEncoding.toString() ]))
+    }
+
+    def "sets all mutable system properties before running build"() {
+        when:
+        def parameters = buildParameters(["-Dfoo=bar", "-Dbaz"])
+
+        then:
+        new BuildProcess(currentJvm, new JvmOptions(fileResolver)).configureForBuild(parameters)
+
+        and:
+        System.getProperty('foo') == 'bar'
+        System.getProperty('baz') != null
+    }
+
+    def "user can explicitly disable default daemon args by setting jvm args to empty"() {
+        given:
+        def emptyBuildParameters = buildParameters([])
+
+        when:
+        new BuildProcess(currentJvm, new JvmOptions(fileResolver)).configureForBuild(emptyBuildParameters)
+
+        then:
+        !emptyBuildParameters.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
+    }
+
+    def "user-defined vm args that correspond to daemon default are considered during matching"() {
+        given:
+        def parametersWithDefaults = buildParameters(DaemonParameters.DEFAULT_JVM_ARGS)
+
+        when:
+        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+
+        then:
+        !buildProcess.configureForBuild(parametersWithDefaults)
     }
 
     private DaemonParameters buildParameters(Iterable<String> jvmArgs) {
@@ -219,6 +247,7 @@ public class BuildProcessTest extends Specification {
         if (jvmArgs != null) {
             parameters.setJvmArgs(jvmArgs)
         }
+        parameters.applyDefaultsFor(JavaVersion.VERSION_1_7)
         return parameters
     }
 }
