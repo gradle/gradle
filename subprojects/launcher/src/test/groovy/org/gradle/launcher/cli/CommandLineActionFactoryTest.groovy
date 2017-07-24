@@ -22,22 +22,21 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Factory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.internal.logging.text.StreamingStyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.ExecutionListener
-import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.logging.text.StreamingStyledTextOutput
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule
@@ -115,30 +114,6 @@ class CommandLineActionFactoryTest extends Specification {
         1 * actionFactory1.configureCommandLineParser(!null)
         1 * actionFactory2.configureCommandLineParser(!null)
         1 * actionFactory1.createAction(!null, !null) >> rawAction
-    }
-
-    @Unroll
-    def "set logging max worker count to #expectedMaxWorkerCount according to command line flags #flags"() {
-        when:
-        def action = factory.convert(flags)
-
-        then:
-        action
-
-        when:
-        action.execute(executionListener)
-
-        then:
-        1 * loggingManager.setMaxWorkerCount(expectedMaxWorkerCount)
-
-        where:
-        expectedMaxWorkerCount | flags
-        1                      | ['-Dorg.gradle.parallel='] // This is an ugly hack to disable --parallel, required because the running environment pollutes this test
-        1                      | ['-Dorg.gradle.parallel=', '--max-workers=4']
-        4                      | ['--parallel', '--max-workers=4']
-        4                      | ['--parallel', '-Dorg.gradle.workers.max=4']
-        6                      | ['--parallel', '--max-workers=6', '-Dorg.gradle.workers.max=4']
-        4                      | ['-Dorg.gradle.parallel=true', '--max-workers=4']
     }
 
     def "reports command-line parse failure"() {
