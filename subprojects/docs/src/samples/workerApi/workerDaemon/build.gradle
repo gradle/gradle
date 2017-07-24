@@ -67,7 +67,7 @@ class ReverseFiles extends SourceTask {
                 }
 
                 // Constructor parameters for the unit of work implementation
-                config.params = [ file, project.file("${outputDir}/${file.name}") ]
+                config.params file, project.file("${outputDir}/${file.name}")
             }
             // END SNIPPET worker-daemon
         }

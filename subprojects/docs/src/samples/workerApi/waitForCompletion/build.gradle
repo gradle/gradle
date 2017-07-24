@@ -57,7 +57,7 @@ class ReverseFiles extends SourceTask {
             workerExecutor.submit(ReverseFile.class) { config ->
                 config.isolationMode = IsolationMode.NONE
                 // Constructor parameters for the unit of work implementation
-                config.params = [ file, project.file("${outputDir}/${file.name}") ]
+                config.params file, project.file("${outputDir}/${file.name}")
             }
         }
 
