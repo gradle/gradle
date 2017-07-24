@@ -18,15 +18,13 @@ package org.gradle.ide.xcode.fixtures
 
 import org.gradle.test.fixtures.file.TestFile
 
-class SchemeFile {
-    final TestFile file
-    final String name
-    final Node schemeXml
+class XcodeWorkspacePackage {
+    final TestFile dir
+    final WorkspaceFile contentFile
 
-    SchemeFile(TestFile schemeFile) {
-        schemeFile.assertIsFile()
-        file = schemeFile
-        name = file.name.replace(".xcscheme", "")
-        schemeXml = new XmlParser().parse(file)
+    XcodeWorkspacePackage(TestFile xcodeWorkspacePackage) {
+        xcodeWorkspacePackage.assertIsDir()
+        dir = xcodeWorkspacePackage
+        contentFile = new WorkspaceFile(xcodeWorkspacePackage.file("contents.xcworkspacedata"))
     }
 }
