@@ -120,4 +120,56 @@ task copyFiles(type:Copy) {
         expect:
         succeeds 'resolveDependencies'
     }
+
+    // This emulates the behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
+    def "can use beforeResolve hook to modify excludes for a dependency shared with an already-resolved configuration"() {
+        mavenRepo.module('org.test', 'module1', '1.0').publish()
+        mavenRepo.module('org.test', 'module2', '1.0')
+            .dependsOn('org.test', 'module1', '1.0')
+            .publish()
+        mavenRepo.module('org.test', 'module3', '1.0')
+            .dependsOn('org.test', 'module2', '1.0')
+            .publish()
+
+        given:
+        buildFile << """
+plugins {
+    id 'io.spring.dependency-management' version '1.0.3.RELEASE'
+}
+
+configurations {
+   aOnly
+   shared
+   a.extendsFrom shared
+   b.extendsFrom shared
+}
+
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+
+configurations.b.incoming.beforeResolve { resolvableDependencies ->
+    resolvableDependencies.dependencies.each { dependency ->
+        if (dependency.name == 'module3') {
+            dependency.exclude module: 'module1'
+        }
+    }
+}
+
+dependencies {
+    shared 'org.test:module3:1.0'
+}
+
+task resolveDependencies {
+    doLast {
+        configurations.a.incoming.resolutionResult
+        configurations.b.incoming.resolutionResult
+        configurations.a.incoming.resolutionResult
+    }
+}
+"""
+
+        expect:
+        succeeds 'resolveDependencies'
+    }
 }
