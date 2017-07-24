@@ -780,6 +780,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (MutationValidator validator : childMutationValidators) {
             validator.validateMutation(type);
         }
+        // TODO: Should not be ignoring DEPENDENCY_ATTRIBUTE modifications after resolve
+        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
+            return;
+        }
         if (type != MutationType.STRATEGY) {
             dependenciesModified = true;
         }
