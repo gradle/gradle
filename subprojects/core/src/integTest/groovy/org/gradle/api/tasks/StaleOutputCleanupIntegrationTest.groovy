@@ -53,10 +53,6 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def setup() {
-        executer.beforeExecute {
-            executer.withArgument('--info')
-        }
-
         file("input.txt").text = "input file"
         file("inputs").create {
             file("inputFile1.txt").text = "input 1 in dir"
@@ -141,6 +137,25 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
         then:
         file(staleOutputs.outputDir).allDescendants().contains('other-overlapping-file.txt')
 
+    }
+
+    def "directory containing outputs is not deleted"() {
+        buildFile << """
+            task writeDirectlyToBuild {
+                outputs.dir(buildDir)
+                
+                doLast {
+                    file("\$buildDir/new-output.txt").text = "new output"
+                }
+            }
+        """
+
+        when:
+        succeeds "task", "writeDirectlyToBuild"
+
+        then:
+        file('build/outputDir/input.txt').text == "input file"
+        file('build/new-output.txt').text == "new output"
     }
 
 }
