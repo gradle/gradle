@@ -26,6 +26,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = [ task ]
         runner.args += ["--parallel", "--max-workers=4"]
+        runner.gradleOpts = ["-Xms3g", "-Xmx3g"]
         runner.targetVersions = ["4.1-20170607235835+0000"]
 
         when:
@@ -50,6 +51,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = [ "$subprojectPath:dependentComponents" ]
         runner.args += ["--parallel", "--max-workers=4"]
+        runner.gradleOpts = ["-Xms3g", "-Xmx3g"]
         runner.targetVersions = ["4.1-20170607235835+0000"]
 
         when:
