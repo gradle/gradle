@@ -98,7 +98,7 @@ public class TestWorkerProgressListener implements TestListenerInternal {
     private String createProgressLoggerDescription(TestDescriptorInternal testDescriptor) {
         DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor)testDescriptor;
         DefaultTestClassDescriptor defaultTestClassDescriptor = (DefaultTestClassDescriptor)decoratingTestDescriptor.getDescriptor();
-        return "Executing test " + defaultTestClassDescriptor.getClassName();
+        return "Executing tests in " + defaultTestClassDescriptor.getClassName();
     }
 
     Map<String, ProgressLogger> getTestWorkerProgressLoggers() {

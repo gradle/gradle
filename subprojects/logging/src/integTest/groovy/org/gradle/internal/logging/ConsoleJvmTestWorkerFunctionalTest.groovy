@@ -48,8 +48,8 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
         then:
         ConcurrentTestUtil.poll {
-            assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Executing test org\\.gradle\\.Test1.*")
-            assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Executing test org\\.gradle\\.Test2.*")
+            assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Executing tests in org\\.gradle\\.Test1.*")
+            assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Executing tests in org\\.gradle\\.Test2.*")
         }
 
         testExecution.releaseAll()
@@ -75,8 +75,8 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
         then:
         ConcurrentTestUtil.poll {
-            assert matchesOutput(gradleHandle.standardOutput, ".*> :project1:test > Executing test org\\.gradle\\.Test1.*")
-            assert matchesOutput(gradleHandle.standardOutput, ".*> :project2:test > Executing test org\\.gradle\\.Test2.*")
+            assert matchesOutput(gradleHandle.standardOutput, ".*> :project1:test > Executing tests in org\\.gradle\\.Test1.*")
+            assert matchesOutput(gradleHandle.standardOutput, ".*> :project2:test > Executing tests in org\\.gradle\\.Test2.*")
         }
 
         testExecution.releaseAll()
