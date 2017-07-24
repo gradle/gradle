@@ -236,8 +236,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-1501")
     def "production sources files are removed in a multi-project build executed when a single project is built #description"(String singleTask, List arguments, String description) {
         given:
-        Assume.assumeFalse("This doesn't work with configure on demand since not all projects are configured, so not all outputs are registered.", arguments.contains("--configure-on-demand"))
-
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
