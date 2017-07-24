@@ -41,7 +41,6 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * If you want to refer to the artifacts declared in this configuration
  * please use {@link #getArtifacts()} or {@link #getAllArtifacts()}.
  * Read more about declaring artifacts in the configuration in docs for {@link org.gradle.api.artifacts.dsl.ArtifactHandler}
- * <p>
  */
 @HasInternalProtocol
 public interface Configuration extends FileCollection, HasConfigurableAttributes<Configuration> {

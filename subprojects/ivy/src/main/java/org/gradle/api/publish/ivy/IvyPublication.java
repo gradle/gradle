@@ -38,13 +38,13 @@ import org.gradle.api.publish.Publication;
  *
  * <p>
  * The Ivy module identifying attributes of the publication are mapped as follows:
+ * </p>
  * <ul>
  * <li>{@code module} - {@code project.name}</li>
  * <li>{@code organisation} - {@code project.group}</li>
  * <li>{@code revision} - {@code project.version}</li>
  * <li>{@code status} - {@code project.status}</li>
  * </ul>
- * </p>
  *
  * <p>
  * For certain common use cases, it's often sufficient to specify the component to publish, using ({@link #from(org.gradle.api.component.SoftwareComponent)}.

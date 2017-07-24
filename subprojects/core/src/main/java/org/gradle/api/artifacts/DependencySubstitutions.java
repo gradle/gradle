@@ -32,7 +32,7 @@ public interface DependencySubstitutions {
      * Adds a dependency substitution rule that is triggered for every dependency (including transitive)
      * when the configuration is being resolved. The action receives an instance of {@link DependencySubstitution}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     * <p/>
+     * <p>
      * Example:
      * <pre autoTested=''>
      * configurations { main }
@@ -74,7 +74,7 @@ public interface DependencySubstitutions {
 
     /**
      * DSL-friendly mechanism to construct a dependency substitution for dependencies matching the provided selector.
-     * <p/>
+     * <p>
      * Examples:
      * <pre autoTested=''>
      * configurations { main }

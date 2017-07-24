@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * A visual studio solution, representing one or more {@link org.gradle.nativeplatform.NativeBinarySpec} instances
  * from the same {@link org.gradle.nativeplatform.NativeComponentSpec}.
- * <p/>
+ * <p>
  *
  * The content and location of the generate solution file can be modified by the supplied methods:
  *

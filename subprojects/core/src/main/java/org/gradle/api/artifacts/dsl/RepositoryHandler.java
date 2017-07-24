@@ -49,14 +49,13 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *     <td>Specifies a list of rootDirs where to look for dependencies. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}</td></tr>
      * </table>
      *
-     * <p>Examples:
+     * <p>Examples:</p>
      * <pre autoTested=''>
      * repositories {
      *     flatDir name: 'libs', dirs: "$projectDir/libs"
      *     flatDir dirs: ["$projectDir/libs1", "$projectDir/libs2"]
      * }
      * </pre>
-     * </p>
      *
      * @param args The arguments used to configure the repository.
      * @return the added resolver
@@ -143,14 +142,13 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * The provided values are evaluated as per {@link org.gradle.api.Project#uri(Object)}.</td></tr>
      * </table>
      *
-     * <p>Examples:
+     * <p>Examples:</p>
      * <pre autoTested="">
      * repositories {
      *     mavenCentral artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
      *     mavenCentral name: "nonDefaultName", artifactUrls: ["http://www.mycompany.com/artifacts1"]
      * }
      * </pre>
-     * </p>
      *
      * @param args A list of urls of repositories to look for artifacts only.
      * @return the added repository
@@ -162,13 +160,12 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
-     * <p>Examples:
+     * <p>Examples:</p>
      * <pre autoTested="">
      * repositories {
      *     mavenCentral()
      * }
      * </pre>
-     * </p>
      *
      * @return the added resolver
      * @see #mavenCentral(java.util.Map)
@@ -179,22 +176,21 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * Adds a repository which looks in the local Maven cache for dependencies. The name of the repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
      *
-     * <p>Examples:
+     * <p>Examples:</p>
      * <pre autoTested="">
      * repositories {
      *     mavenLocal()
      * }
      * </pre>
-     * </p>
      * <p>
      * The location for the repository is determined as follows (in order of precedence):
+     * </p>
      * <ol>
      * <li>The value of system property 'maven.repo.local' if set;</li>
      * <li>The value of element &lt;localRepository&gt; of <code>~/.m2/settings.xml</code> if this file exists and element is set;</li>
      * <li>The value of element &lt;localRepository&gt; of <code>$M2_HOME/conf/settings.xml</code> (where <code>$M2_HOME</code> is the value of the environment variable with that name) if this file exists and element is set;</li>
      * <li>The path <code>~/.m2/repository</code>.</li>
      * </ol>
-     * </p>
      *
      * @return the added resolver
      */

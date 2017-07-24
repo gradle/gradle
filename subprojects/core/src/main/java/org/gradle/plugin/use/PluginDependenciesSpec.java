@@ -89,7 +89,7 @@ public interface PluginDependenciesSpec {
 
     /**
      * Add a dependency on the plugin with the given id.
-     * <p>
+     *
      * <pre>
      * plugins {
      *     id "org.company.myplugin"

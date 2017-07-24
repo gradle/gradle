@@ -263,8 +263,7 @@ public interface ResolutionStrategy {
     /**
      * Configures the set of dependency substitution rules for this configuration.  The action receives an instance of {@link DependencySubstitutions} which
      * can then be configured with substitution rules.
-     * <p/>
-     * Examples:
+     * <p>Examples:</p>
      * <pre autoTested=''>
      * // add dependency substitution rules
      * configurations.all {

@@ -67,8 +67,9 @@ public interface Script {
      *
      * <li>{@code plugin}: The id or implementation class of the plugin to apply to the delegate object.</li>
      *
-     * <li>{@code to}: The target delegate object or objects.</li></ul> <p/> <p>For more detail, see {@link
-     * org.gradle.api.plugins.ObjectConfigurationAction}.</p>
+     * <li>{@code to}: The target delegate object or objects.</li></ul>
+     *
+     * <p>For more detail, see {@link org.gradle.api.plugins.ObjectConfigurationAction}.</p>
      *
      * @param options The options to use to configure the {@code ObjectConfigurationAction}.
      */

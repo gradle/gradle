@@ -101,33 +101,34 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      * <h4>'gradle'</h4>
      * <p>
      * A Repository Layout that applies the following patterns:
+     * </p>
      * <ul>
      *     <li>Artifacts: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#GRADLE_ARTIFACT_PATTERN}</code></li>
      *     <li>Ivy: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#GRADLE_IVY_PATTERN}</code></li>
      * </ul>
-     * </p>
      * <h4>'maven'</h4>
      * <p>
      * A Repository Layout that applies the following patterns:
+     * </p>
      * <ul>
      *     <li>Artifacts: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#MAVEN_ARTIFACT_PATTERN}</code></li>
      *     <li>Ivy: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#MAVEN_IVY_PATTERN}</code></li>
      * </ul>
-     * </p>
      * <p>
      * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
      * </p>
      * <h4>'ivy'</h4>
      * <p>
      * A Repository Layout that applies the following patterns:
+     * </p>
      * <ul>
      *     <li>Artifacts: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</code></li>
      *     <li>Ivy: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</code></li>
      * </ul>
-     * </p>
      * <h4>'pattern'</h4>
      * <p>
      * A repository layout that allows custom patterns to be defined. eg:
+     * </p>
      * <pre>
      * repositories {
      *     ivy {
@@ -138,7 +139,6 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      *     }
      * }
      * </pre>
-     * </p>
      * <p>The available pattern tokens are listed as part of <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">Ivy's Main Concepts documentation</a>.</p>
      *
      * @param layoutName The name of the layout to use.
