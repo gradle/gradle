@@ -90,7 +90,7 @@ class StaleOutputJavaProject {
     }
 
     TestFile getCustomOutputDir() {
-        testDir.file("out")
+        testDir.file("build/out")
     }
 
     TestFile getMainClassFileAlternate() {
