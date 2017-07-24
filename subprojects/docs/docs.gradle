@@ -426,7 +426,7 @@ task javadocAll(type: Javadoc) {
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
     if (!java7Home && javaVersion.isJava8Compatible()) {
-        options.addStringOption 'Xdoclint:none', '-quiet'
+        options.addStringOption 'Xdoclint:syntax', '-quiet'
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source publicGroovyProjects.collect {project -> project.sourceSets.main.allJava }

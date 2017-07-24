@@ -74,7 +74,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  *       rootConfigurations += [ configurations.someInterestingConfiguration ]
  *
  *       // dependencies to exclude from wtp deployment
- *       minusConfigurations << configurations.anotherConfiguration
+ *       minusConfigurations &lt;&lt; configurations.anotherConfiguration
  *
  *       //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
  *       //if sourcePath points to non-existing folder it will *not* be added.
@@ -112,13 +112,13 @@ import static org.gradle.util.ConfigureUtil.configure;
  *
  *         //closure executed after wtp component file content is loaded from existing file
  *         //but before gradle build information is merged
- *         beforeMerged { wtpComponent ->
+ *         beforeMerged { wtpComponent -&gt;
  *           //tinker with {@link WtpComponent} here
  *         }
  *
  *         //closure executed after wtp component file content is loaded from existing file
  *         //and after gradle build information is merged
- *         whenMerged { wtpComponent ->
+ *         whenMerged { wtpComponent -&gt;
  *           //you can tinker with the {@link WtpComponent} here
  *         }
  *       }

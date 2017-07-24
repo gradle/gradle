@@ -85,7 +85,6 @@ public interface Manifest {
      * The merge is not happening instantaneously. It happens either before writing or when {@link #getEffectiveManifest()}
      * is called.
      *
-     * @param mergePath
      * @return this
      */
     Manifest from(Object... mergePath);
@@ -99,8 +98,6 @@ public interface Manifest {
      *
      * The closure configures the underlying {@link org.gradle.api.java.archives.ManifestMergeSpec}.
      *
-     * @param mergePath
-     * @param closure
      * @return this
      */
     Manifest from(Object mergePath, Closure<?> closure);

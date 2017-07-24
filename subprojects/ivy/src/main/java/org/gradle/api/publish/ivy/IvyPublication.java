@@ -239,7 +239,7 @@ public interface IvyPublication extends Publication {
      *         // These values will be used instead of the values from the task. The task values will not be updated.
      *         classifier "src"
      *         extension "zip"
-     *         conf "runtime->default"
+     *         conf "runtime-&gt;default"
      *       }
      *       artifact("my-docs-file.htm") {
      *         type "documentation"

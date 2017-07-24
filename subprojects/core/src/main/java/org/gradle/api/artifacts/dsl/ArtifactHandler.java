@@ -27,11 +27,11 @@ import org.gradle.api.artifacts.PublishArtifact;
  *
  * <p>To create an publish artifact and assign it to a configuration you can use the following syntax:</p>
  *
- * <code>&lt;configurationName> &lt;artifact-notation>, &lt;artifact-notation> ...</code>
+ * <code>&lt;configurationName&gt; &lt;artifact-notation&gt;, &lt;artifact-notation&gt; ...</code>
  *
  * or
  *
- * <code>&lt;configurationName> &lt;artifact-notation> { ... some code to configure the artifact }</code>
+ * <code>&lt;configurationName&gt; &lt;artifact-notation&gt; { ... some code to configure the artifact }</code>
  *
  * <p>The notation can be one of the following types:</p>
  *

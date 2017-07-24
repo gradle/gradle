@@ -129,14 +129,14 @@ import static org.gradle.util.ConfigureUtil.configure;
  *
  *       //closure executed after *.iml content is loaded from existing file
  *       //but before gradle build information is merged
- *       beforeMerged { module ->
+ *       beforeMerged { module -&gt;
  *         //if you want skip merging exclude dirs
  *         module.excludeFolders.clear()
  *       }
  *
  *       //closure executed after *.iml content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { module ->
+ *       whenMerged { module -&gt;
  *         //you can tinker with {@link Module}
  *       }
  *     }

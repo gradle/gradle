@@ -158,7 +158,7 @@ public interface ExtraPropertiesExtension {
      * assert project.ext.properties.containsKey("foo")
      * assert project.ext.properties.foo == project.ext.foo
      *
-     * assert project.ext.properties.every { key, value -> project.properties[key] == value }
+     * assert project.ext.properties.every { key, value -&gt; project.properties[key] == value }
      * </pre>
      *
      * @return All of the registered properties and their current values as a map.

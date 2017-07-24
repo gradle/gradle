@@ -351,7 +351,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * This method is useful for specifying default dependencies for a configuration:
      * <pre autoTested='true'>
      * configurations { conf }
-     * configurations['conf'].defaultDependencies { dependencies ->
+     * configurations['conf'].defaultDependencies { dependencies -&gt;
      *      dependencies.add(owner.project.dependencies.create("org.gradle:my-util:1.0"))
      * }
      * </pre>

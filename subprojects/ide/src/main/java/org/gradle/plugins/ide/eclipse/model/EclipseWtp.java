@@ -71,8 +71,6 @@ public class EclipseWtp {
      * Configures wtp component.
      * <p>
      * For examples see docs for {@link EclipseWtpComponent}
-     *
-     * @param action
      */
     public void component(Closure action) {
         configure(action, component);
@@ -83,7 +81,6 @@ public class EclipseWtp {
      * <p>
      * For examples see docs for {@link EclipseWtpComponent}
      *
-     * @param action
      * @since 3.5
      */
     public void component(Action<? super EclipseWtpComponent> action) {
@@ -107,8 +104,6 @@ public class EclipseWtp {
      * Configures wtp facet.
      * <p>
      * For examples see docs for {@link EclipseWtpFacet}
-     *
-     * @param action
      */
     public void facet(Closure action) {
         configure(action, facet);
@@ -119,7 +114,6 @@ public class EclipseWtp {
      * <p>
      * For examples see docs for {@link EclipseWtpFacet}
      *
-     * @param action
      * @since 3.5
      */
     public void facet(Action<? super EclipseWtpFacet> action) {

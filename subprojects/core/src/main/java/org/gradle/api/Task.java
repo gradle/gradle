@@ -123,7 +123,7 @@ import java.util.Set;
  * the task's {@link Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
  *
  * <li>The <em>extra properties</em> of the task. Each task object maintains a map of additional properties. These
- * are arbitrary name -> value pairs which you can use to dynamically add properties to a task object.  Once defined, the properties
+ * are arbitrary name -&gt; value pairs which you can use to dynamically add properties to a task object.  Once defined, the properties
  * of this scope are readable and writable.</li>
  *
  * </ul>
@@ -271,7 +271,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <p>You may add multiple such predicates. The task is skipped if any of the predicates return false.</p>
      *
      * <p>Typical usage (from Java):</p>
-     * <pre>myTask.onlyIf(new Spec&lt;Task>() {
+     * <pre>myTask.onlyIf(new Spec&lt;Task&gt;() {
      *    boolean isSatisfiedBy(Task task) {
      *       return task.dependsOnTaskDidWork();
      *    }

@@ -119,8 +119,6 @@ public class EclipseModel {
      * Configures eclipse project information
      * <p>
      * For examples see docs for {@link EclipseProject}
-     *
-     * @param closure
      */
     public void project(Closure closure) {
         configure(closure, project);
@@ -131,7 +129,6 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseProject}
      *
-     * @param action
      * @since 3.5
      */
     public void project(Action<? super EclipseProject> action) {
@@ -142,8 +139,6 @@ public class EclipseModel {
      * Configures eclipse classpath information
      * <p>
      * For examples see docs for {@link EclipseClasspath}
-     *
-     * @param closure
      */
     public void classpath(Closure closure) {
         configure(closure, classpath);
@@ -154,7 +149,6 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseClasspath}
      *
-     * @param action
      * @since 3.5
      */
     public void classpath(Action<? super EclipseClasspath> action) {
@@ -165,8 +159,6 @@ public class EclipseModel {
      * Configures eclipse wtp information
      * <p>
      * For examples see docs for {@link EclipseWtp}
-     *
-     * @param closure
      */
     public void wtp(Closure closure) {
         configure(closure, wtp);
@@ -177,7 +169,6 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseWtp}
      *
-     * @param action
      * @since 3.5
      */
     public void wtp(Action<? super EclipseWtp> action) {
@@ -188,8 +179,6 @@ public class EclipseModel {
      * Configures eclipse java compatibility information (jdt)
      * <p>
      * For examples see docs for {@link EclipseProject}
-     *
-     * @param closure
      */
     public void jdt(Closure closure) {
         configure(closure, jdt);
@@ -200,7 +189,6 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseProject}
      *
-     * @param action
      * @since 3.5
      */
     public void jdt(Action<? super EclipseJdt> action) {
@@ -215,7 +203,7 @@ public class EclipseModel {
      * <p>
      * For example see docs for {@link EclipseModel}
      *
-     * @param pathVariables A map with String->File pairs.
+     * @param pathVariables A map with String-&gt;File pairs.
      */
     public void pathVariables(Map<String, File> pathVariables) {
         Preconditions.checkNotNull(pathVariables);

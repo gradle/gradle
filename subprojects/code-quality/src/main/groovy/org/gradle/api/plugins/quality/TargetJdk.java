@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.quality;
 
 /**
- * Represents the PMD targetjdk property available for PMD < 5.0
+ * Represents the PMD targetjdk property available for PMD &lt; 5.0
  */
 public enum TargetJdk {
     VERSION_1_3,

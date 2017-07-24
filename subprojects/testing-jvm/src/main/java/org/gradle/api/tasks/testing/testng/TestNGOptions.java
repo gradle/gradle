@@ -229,7 +229,7 @@ public class TestNGOptions extends TestFrameworkOptions {
      *     useTestNG() {
      *         // creates emailable HTML file
      *         // this reporter typically ships with TestNG library
-     *         listeners << 'org.testng.reporters.EmailableReporter'
+     *         listeners &lt;&lt; 'org.testng.reporters.EmailableReporter'
      *     }
      * }
      * </pre>

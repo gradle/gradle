@@ -19,7 +19,7 @@ import org.gradle.api.Incubating;
 
 /**
  * Represents a {@link Launchable} that uses task name to select tasks executed from a given project and its sub-projects. This is
- * roughly equivalent to running `gradle &lt;task-name>` from the command-line.
+ * roughly equivalent to running `gradle &lt;task-name&gt;` from the command-line.
  *
  * @since 1.12
  */

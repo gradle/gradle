@@ -386,7 +386,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Specifies the title to be placed near the top of the overview summary file. The title will be placed as a centered,
      * level-one heading directly beneath the upper navigation bar. The title may contain HTML tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within title may have to be escaped.
-     * javadoc -doctitle "Java&lt;sup>&lt;font size=\"-2\">TM&lt;/font>&lt;/sup>" com.mypackage
+     * javadoc -doctitle "Java&lt;sup&gt;&lt;font size=\"-2\"&gt;TM&lt;/font&gt;&lt;/sup&gt;" com.mypackage
      */
     @Optional @Input
     public String getDocTitle() {
@@ -454,7 +454,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * you want to link to. Examples are shown below.
      * The package-list file must be found in this directory (otherwise, use -linkoffline).
      * The Javadoc tool reads the package names from the package-list file and then links to those packages at that URL.
-     * When the Javadoc tool is run, the extdocURL value is copied literally into the &lt;A HREF> links that are created.
+     * When the Javadoc tool is run, the extdocURL value is copied literally into the &lt;A HREF&gt; links that are created.
      * Therefore, extdocURL must be the URL to the directory, not to a file.
      * You can use an absolute link for extdocURL to enable your docs to link to a document on any website,
      * or can use a relative link to link only to a relative location. If relative,
@@ -497,7 +497,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * then you can run javadoc again on only a smaller set of changed packages,
      * so that the updated files can be inserted back into the original set. Examples are given below.
      * <p/>
-     * The -linkoffline option takes two arguments -- the first for the string to be embedded in the &lt;a href> links,
+     * The -linkoffline option takes two arguments -- the first for the string to be embedded in the &lt;a href&gt; links,
      * the second telling it where to find package-list:
      * <p/>
      * extdocURL is the absolute or relative URL of the directory containing the external javadoc-generated documentation you want to link to.

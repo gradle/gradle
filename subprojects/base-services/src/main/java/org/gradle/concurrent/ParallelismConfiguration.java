@@ -52,7 +52,7 @@ public interface ParallelismConfiguration {
      *
      * Defaults to the number of processors available to the Java virtual machine.
      *
-     * @return maximum number of concurrent workers, always >= 1.
+     * @return maximum number of concurrent workers, always &gt;= 1.
      * @see java.lang.Runtime#availableProcessors()
      */
     int getMaxWorkerCount();

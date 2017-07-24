@@ -53,7 +53,6 @@ public interface MavenPom {
      * }
      * </pre>
      *
-     * @param pom
      * @return this
      */
     MavenPom project(Closure pom);
@@ -75,7 +74,7 @@ public interface MavenPom {
 
     /**
      * Returns the artifact id for this POM.
-     * 
+     *
      * @see org.apache.maven.model.Model#getArtifactId()
      */
     String getArtifactId();
@@ -128,7 +127,7 @@ public interface MavenPom {
 
     /**
      * Returns the dependencies for this POM.
-     * 
+     *
      * @see org.apache.maven.model.Model#getDependencies()
      */
     List<?> getDependencies();
@@ -146,9 +145,8 @@ public interface MavenPom {
     /**
      * Sets the underlying native Maven {@link org.apache.maven.model.Model} object.
      *
-     * @param model
      * @return this
-     * @see #getModel() 
+     * @see #getModel()
      */
     MavenPom setModel(Object model);
 

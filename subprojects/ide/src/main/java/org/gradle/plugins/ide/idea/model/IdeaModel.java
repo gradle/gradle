@@ -131,7 +131,7 @@ public class IdeaModel {
     /**
      * Adds path variables to be used for replacing absolute paths in resulting files (*.iml, etc.). <p> For example see docs for {@link IdeaModule}.
      *
-     * @param pathVariables A map with String->File pairs.
+     * @param pathVariables A map with String-&gt;File pairs.
      */
     public void pathVariables(Map<String, File> pathVariables) {
         Preconditions.checkNotNull(pathVariables);

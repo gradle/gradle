@@ -40,12 +40,12 @@ import org.gradle.api.NonExtensible;
  *          if (!inputs.incremental)
  *              project.delete(outputDir.listFiles())
  *
- *          inputs.outOfDate { change ->
+ *          inputs.outOfDate { change -&gt;
  *              def targetFile = project.file("$outputDir/${change.file.name}")
  *              targetFile.text = change.file.text.reverse()
  *          }
  *
- *          inputs.removed { change ->
+ *          inputs.removed { change -&gt;
  *              def targetFile = project.file("$outputDir/${change.file.name}")
  *              if (targetFile.exists()) {
  *                  targetFile.delete()

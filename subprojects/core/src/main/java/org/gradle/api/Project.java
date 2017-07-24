@@ -144,7 +144,7 @@ import java.util.concurrent.Callable;
  * of the corresponding getter or setter method.</li>
  *
  * <li>The <em>extra</em> properties of the project.  Each project maintains a map of extra properties, which
- * can contain any arbitrary name -> value pair.  Once defined, the properties of this scope are readable and writable.
+ * can contain any arbitrary name -&gt; value pair.  Once defined, the properties of this scope are readable and writable.
  * See <a href="#extraproperties">extra properties</a> for more details.</li>
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
@@ -1224,7 +1224,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
-     * <p>Returns the {@link Convention} for this project.</p> <p/> <p>You can access this property in your build file
+     * <p>Returns the {@link Convention} for this project.</p> <p>You can access this property in your build file
      * using <code>convention</code>. You can also can also access the properties and methods of the convention object
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *
@@ -1430,7 +1430,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Configures an object via a closure, with the closure's delegate set to the supplied object. This way you don't
-     * have to specify the context of a configuration statement multiple times. <p/> Instead of:</p>
+     * have to specify the context of a configuration statement multiple times. <p> Instead of:</p>
      * <pre>
      * MyType myType = new MyType()
      * myType.doThis()
@@ -1447,7 +1447,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>The object being configured is also passed to the closure as a parameter, so you can access it explicitly if
      * required:</p>
      * <pre>
-     * configure(someObj) { obj -> obj.doThis() }
+     * configure(someObj) { obj -&gt; obj.doThis() }
      * </pre>
      *
      * @param object The object to configure

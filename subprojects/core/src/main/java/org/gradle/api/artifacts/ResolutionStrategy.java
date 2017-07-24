@@ -162,13 +162,13 @@ public interface ResolutionStrategy {
      * <pre autoTested=''>
      * configurations {
      *   compile.resolutionStrategy {
-     *     eachDependency { DependencyResolveDetails details ->
+     *     eachDependency { DependencyResolveDetails details -&gt;
      *       //specifying a fixed version for all libraries with 'org.gradle' group
      *       if (details.requested.group == 'org.gradle') {
      *         details.useVersion '1.4'
      *       }
      *     }
-     *     eachDependency { details ->
+     *     eachDependency { details -&gt;
      *       //multiple actions can be specified
      *       if (details.requested.name == 'groovy-all') {
      *          //changing the name:
@@ -201,7 +201,7 @@ public interface ResolutionStrategy {
     /**
      * Sets the length of time that dynamic versions will be cached.
      *
-     * <p>Gradle keeps a cache of dynamic version => resolved version (ie 2.+ => 2.3). By default, these cached values are kept for 24 hours, after which the cached entry is expired
+     * <p>Gradle keeps a cache of dynamic version =&gt; resolved version (ie 2.+ =&gt; 2.3). By default, these cached values are kept for 24 hours, after which the cached entry is expired
      * and the dynamic version is resolved again.</p>
      * <p>Use this method to provide a custom expiry time after which the cached value for any dynamic version will be expired.</p>
      * @param value The number of time units

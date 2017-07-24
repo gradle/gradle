@@ -94,13 +94,13 @@ import static org.gradle.util.ConfigureUtil.configure;
  *
  *       //closure executed after *.ipr content is loaded from existing file
  *       //but before gradle build information is merged
- *       beforeMerged { project ->
+ *       beforeMerged { project -&gt;
  *         //you can tinker with {@link Project}
  *       }
  *
  *       //closure executed after *.ipr content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { project ->
+ *       whenMerged { project -&gt;
  *         //you can tinker with {@link Project}
  *       }
  *     }
