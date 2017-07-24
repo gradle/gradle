@@ -27,6 +27,24 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Support for Google Cloud Storage backed repositories
+
+It is now possible to consume dependencies from, and publish to, [Google Cloud Storage](https://cloud.google.com/storage/) buckets when using [`MavenArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html) or [`IvyArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html).
+
+    repositories {
+        maven {
+            url "gcs://someGcsBucket/maven2"
+        }
+    
+        ivy {
+            url "gcs://someGcsBucket/ivy"
+        }
+    }
+
+Downloading dependencies from Google Cloud Storage is supported for Maven and Ivy type repositories as shown above. Publishing to Google Cloud Storage is supported with both the [Ivy Publishing](userguide/publishing_ivy.html) and [Maven Publishing](userguide/publishing_maven.html) plugins, as well as when using an `IvyArtifactRepository` with an `Upload` task (see section [publishing artifacts of the user guide](userguide/artifact_management.html#sec:publishing_artifacts)).
+
+Please see the [repositories section of the dependency management chapter](userguide/dependency_management.html#sec:repositories) in the user guide for more information on configuring Google Cloud Storage repository access.
+
 ## Fixed issues
 
 ## Deprecations

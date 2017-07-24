@@ -85,7 +85,7 @@ class GcsClientIntegrationTest extends Specification {
     }
 
     /**
-     * Allows for quickly making real aws requests during development
+     * Allows for quickly making real Google Cloud Storage requests during development
      */
     @Ignore
     def "should interact with real Gcs"() {

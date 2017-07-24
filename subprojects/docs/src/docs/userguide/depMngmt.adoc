@@ -753,10 +753,10 @@ You can also delegate all credentials to the AWS sdk by using the AwsImAuthentic
             </sample>
 ++++
 
-When using a GCP GCS backed repository default application credentials will be used with no further configuration required:
+When using a Google Cloud Storage backed repository default application credentials will be used with no further configuration required:
 
 ++++
-<sample id="mavenIvyGCSRepositoriesAuthDefault" dir="userguide/artifacts/defineRepository" title="Declaring a GCS backed Maven and Ivy repository using default application credentials">
+<sample id="mavenIvyGCSRepositoriesAuthDefault" dir="userguide/artifacts/defineRepository" title="Declaring a Google Cloud Storage backed Maven and Ivy repository using default application credentials">
                 <sourcefile file="build.gradle" snippet="maven-ivy-gcs-repository"/>
             </sample>
 ++++
@@ -834,34 +834,34 @@ Failing to specify the region-specific endpoint for buckets requiring V4 signatu
 ====
 
 [[sub:gcs_configuration_properties]]
-===== GCS configuration properties
+===== Google Cloud Storage configuration properties
 
-The following system properties can be used to configure the interactions with gcs repositories:
+The following system properties can be used to configure the interactions with Google Cloud Storage repositories:
 
-.GCS Configuration Properties
+.Google Cloud Storage Configuration Properties
 [cols="a,a", options="header"]
 |===
 | Property
 | Description
 
 | org.gradle.gcs.endpoint
-| Used to override the GCP GCS endpoint when using a non GCP, GCS API compatible, storage service.
+| Used to override the Google Cloud Storage endpoint when using a non-Google Cloud Platform, Google Cloud Storage API compatible, storage service.
 
 | org.gradle.gcs.servicePath
-| Used to override the GCP GCS root service path which the GCS client builds requests from, defaults to `/`.
+| Used to override the Google Cloud Storage root service path which the Google Cloud Storage client builds requests from, defaults to `/`.
 
 |===
 
 
 [[sub:gcs_url_formats]]
-===== GCS URL formats
+===== Google Cloud Storage URL formats
 
-GCS URL's are 'virtual-hosted-style' and must be in the following format `gcs://&lt;bucketName&gt;/&lt;objectKey&gt;`
+Google Cloud Storage URL's are 'virtual-hosted-style' and must be in the following format `gcs://&lt;bucketName&gt;/&lt;objectKey&gt;`
 
 e.g. `gcs://myBucket/maven/release`
 
-* `myBucket` is the GCP GCS bucket name.
-* `/maven/release` is the GCP GCS key (unique identifier for an object within a bucket)
+* `myBucket` is the Google Cloud Storage bucket name.
+* `/maven/release` is the Google Cloud Storage key (unique identifier for an object within a bucket)
 
 
 [[sub:authentication_schemes]]
