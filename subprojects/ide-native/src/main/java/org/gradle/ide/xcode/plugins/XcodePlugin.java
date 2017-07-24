@@ -22,11 +22,9 @@ import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.tasks.Delete;
 import org.gradle.ide.xcode.internal.DefaultXcodeExtension;
-import org.gradle.ide.xcode.internal.xcodeproj.FileTypes;
-import org.gradle.ide.xcode.internal.GradleBuildTarget;
-import org.gradle.ide.xcode.internal.IndexingSwiftTarget;
 import org.gradle.ide.xcode.internal.XcodeScheme;
 import org.gradle.ide.xcode.internal.XcodeTarget;
+import org.gradle.ide.xcode.internal.xcodeproj.FileTypes;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
@@ -107,9 +105,7 @@ public class XcodePlugin extends IdePlugin {
         sourceTree.include("**/*.swift");
         xcode.getProject().getSources().addAll(sourceTree.getFiles());
 
-        xcode.getProject().getTargets().add(newIndexingTarget("[INDEXING ONLY] " + project.getPath() + " Executable", sourceTree.getFiles(), project.getName()));
-
-        XcodeTarget target = newGradleTarget(project.getPath() + " Executable", toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()));
+        XcodeTarget target = newTarget(project.getPath() + " Executable", toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree.getFiles());
         xcode.getProject().getTargets().add(target);
         xcode.getProject().getSchemes().add(newScheme(target));
     }
@@ -122,24 +118,16 @@ public class XcodePlugin extends IdePlugin {
         }
     }
 
-    private static XcodeTarget newGradleTarget(String name, String gradleCommand, String taskName, File outputFile) {
-        GradleBuildTarget target = new GradleBuildTarget(name);
+    private static XcodeTarget newTarget(String name, String gradleCommand, String taskName, File outputFile, Set<File> sources) {
+        XcodeTarget target = new XcodeTarget(name);
         target.setOutputFile(outputFile);
         target.setTaskName(taskName);
         target.setGradleCommand(gradleCommand);
         target.setOutputFileType(FileTypes.MACH_O_EXECUTABLE);
         target.setProductType(PBXTarget.ProductType.TOOL);
         target.setProductName(outputFile.getName());
-
-        return target;
-    }
-
-    private static XcodeTarget newIndexingTarget(String name, Set<File> sources, String productName) {
-        IndexingSwiftTarget target = new IndexingSwiftTarget(name);
         target.setSources(sources);
-        target.setOutputFileType(FileTypes.MACH_O_EXECUTABLE);
-        target.setProductType(PBXTarget.ProductType.TOOL);
-        target.setProductName(productName);
+
         return target;
     }
 
