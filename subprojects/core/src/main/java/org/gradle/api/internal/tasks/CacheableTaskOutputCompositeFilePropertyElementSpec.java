@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 
 import java.io.File;
@@ -59,7 +59,7 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     }
 
     @Override
-    public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
+    public PathNormalizationStrategy getSnapshotNormalizationStrategy() {
         return parentProperty.getSnapshotNormalizationStrategy();
     }
 

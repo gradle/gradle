@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.OutputFileSnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
@@ -47,8 +47,8 @@ abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDepreca
         return this;
     }
 
-    public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-        return OutputFileSnapshotNormalizationStrategy.getInstance();
+    public PathNormalizationStrategy getSnapshotNormalizationStrategy() {
+        return OutputPathNormalizationStrategy.getInstance();
     }
 
     @Override

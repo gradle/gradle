@@ -38,7 +38,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
     private final byte[] jarHasherConfigurationHash;
 
     public AbstractClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(TaskFilePropertyCompareStrategy.ORDERED, InputFileSnapshotNormalizationStrategy.NONE, stringInterner);
+        super(TaskFilePropertyCompareStrategy.ORDERED, InputPathNormalizationStrategy.NONE, stringInterner);
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
         this.classpathResourceHasher = classpathResourceHasher;

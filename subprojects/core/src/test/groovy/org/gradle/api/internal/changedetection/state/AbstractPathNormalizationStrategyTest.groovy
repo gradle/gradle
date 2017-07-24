@@ -24,7 +24,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSpec {
+class AbstractPathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     StringInterner interner
     FileCollectionInternal files
 
@@ -53,7 +53,7 @@ class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSp
         project.file(path)
     }
 
-    protected def normalizeWith(SnapshotNormalizationStrategy type) {
+    protected def normalizeWith(PathNormalizationStrategy type) {
         List<FileSnapshot> fileTreeElements = []
         files.each { f ->
             if (f.file) {

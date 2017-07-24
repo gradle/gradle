@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import static org.gradle.api.internal.changedetection.state.InputFileSnapshotNormalizationStrategy.*
+import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.*
 
-class InputFileSnapshotNormalizationStrategyTest extends AbstractSnapshotNormalizationStrategyTest {
+class InputPathNormalizationStrategyTest extends AbstractPathNormalizationStrategyTest {
 
     def "sensitivity NONE"() {
         def snapshots = normalizeWith NONE

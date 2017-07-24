@@ -23,7 +23,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public enum InputFileSnapshotNormalizationStrategy implements SnapshotNormalizationStrategy {
+public enum InputPathNormalizationStrategy implements PathNormalizationStrategy {
     /**
      * Use the absolute path of the files.
      */
@@ -99,7 +99,7 @@ public enum InputFileSnapshotNormalizationStrategy implements SnapshotNormalizat
         }
     };
 
-    public static InputFileSnapshotNormalizationStrategy valueOf(PathSensitivity pathSensitivity) {
+    public static InputPathNormalizationStrategy valueOf(PathSensitivity pathSensitivity) {
         switch (pathSensitivity) {
             case ABSOLUTE:
                 return ABSOLUTE;

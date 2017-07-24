@@ -35,9 +35,9 @@ public interface FileCollectionSnapshotter {
      * Creates a snapshot of the contents of the given collection.
      *
      * @param files The files to snapshot.
-     * @param snapshotNormalizationStrategy How to normalize file snapshots.
+     * @param pathNormalizationStrategy How to normalize file snapshot paths.
      * @param normalizationStrategy The input normalization strategy to take into account.
      * @return The snapshot.
      */
-    FileCollectionSnapshot snapshot(FileCollection files, SnapshotNormalizationStrategy snapshotNormalizationStrategy, InputNormalizationStrategy normalizationStrategy);
+    FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy normalizationStrategy);
 }

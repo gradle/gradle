@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.TaskPropertyBuilder;
 
@@ -48,7 +48,7 @@ public class NonCacheableTaskOutputPropertySpec extends AbstractTaskOutputsDepre
     }
 
     @Override
-    public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
+    public PathNormalizationStrategy getSnapshotNormalizationStrategy() {
         return parent.getSnapshotNormalizationStrategy();
     }
 

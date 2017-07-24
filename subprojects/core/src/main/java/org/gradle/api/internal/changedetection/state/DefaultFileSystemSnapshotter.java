@@ -97,7 +97,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             public Snapshot create() {
                 Snapshot snapshot = fileSystemMirror.getContent(path);
                 if (snapshot == null) {
-                    FileCollectionSnapshot fileCollectionSnapshot = snapshotter.snapshot(new SimpleFileCollection(file), InputFileSnapshotNormalizationStrategy.ABSOLUTE, InputNormalizationStrategy.NOT_CONFIGURED);
+                    FileCollectionSnapshot fileCollectionSnapshot = snapshotter.snapshot(new SimpleFileCollection(file), InputPathNormalizationStrategy.ABSOLUTE, InputNormalizationStrategy.NOT_CONFIGURED);
                     DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
                     fileCollectionSnapshot.appendToHasher(hasher);
                     HashCode hashCode = hasher.hash();

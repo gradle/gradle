@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 
-import static org.gradle.api.internal.changedetection.state.InputFileSnapshotNormalizationStrategy.RELATIVE;
+import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.RELATIVE;
 
 /**
  * Builds the snapshot of a classpath entry.

@@ -22,15 +22,15 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 import javax.annotation.Nullable;
 
 /**
- * Normalization strategy for output files.
+ * Path normalization strategy for output files.
  *
  * We use the absolute path of the files and ignore missing files and empty root directories.
  */
-public class OutputFileSnapshotNormalizationStrategy implements SnapshotNormalizationStrategy {
+public class OutputPathNormalizationStrategy implements PathNormalizationStrategy {
 
-    private static final OutputFileSnapshotNormalizationStrategy INSTANCE = new OutputFileSnapshotNormalizationStrategy();
+    private static final OutputPathNormalizationStrategy INSTANCE = new OutputPathNormalizationStrategy();
 
-    public static OutputFileSnapshotNormalizationStrategy getInstance() {
+    public static OutputPathNormalizationStrategy getInstance() {
         return INSTANCE;
     }
 

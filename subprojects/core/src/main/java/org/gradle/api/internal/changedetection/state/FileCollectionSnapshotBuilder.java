@@ -27,11 +27,11 @@ import java.util.Map;
  */
 public class FileCollectionSnapshotBuilder implements FileSnapshotVisitor {
     private final Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
-    private final SnapshotNormalizationStrategy snapshotNormalizationStrategy;
+    private final PathNormalizationStrategy snapshotNormalizationStrategy;
     private final StringInterner stringInterner;
     private final TaskFilePropertyCompareStrategy compareStrategy;
 
-    public FileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, StringInterner stringInterner) {
+    public FileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy compareStrategy, PathNormalizationStrategy snapshotNormalizationStrategy, StringInterner stringInterner) {
         this.snapshotNormalizationStrategy = snapshotNormalizationStrategy;
         this.stringInterner = stringInterner;
         this.compareStrategy = compareStrategy;

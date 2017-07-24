@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state
 
-class OutputFileSnapshotNormalizationStrategyTest extends AbstractSnapshotNormalizationStrategyTest {
+class OutputPathNormalizationStrategyTest extends AbstractPathNormalizationStrategyTest {
 
     def "output file normalization"() {
-        def snapshots = normalizeWith OutputFileSnapshotNormalizationStrategy.instance
+        def snapshots = normalizeWith OutputPathNormalizationStrategy.instance
         expect:
         snapshots[file("dir/libs/library-a.jar")] == file("dir/libs/library-a.jar").absolutePath
         snapshots[file("dir/libs/library-b.jar")] == file("dir/libs/library-b.jar").absolutePath
