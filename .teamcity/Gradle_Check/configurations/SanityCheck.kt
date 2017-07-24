@@ -9,5 +9,9 @@ class SanityCheck(model: CIBuildModel) : BuildType({
     name = "Sanity Check"
     description = "Static code analysis, checkstyle, release notes verification, etc."
 
+    params {
+        param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+    }
+
     applyDefaults(model, this, "compileAll sanityCheck", extraParameters = "-DenableCodeQuality=true --parallel")
 })
