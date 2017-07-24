@@ -89,11 +89,11 @@ With this release of Gradle, the console displays any test worker processes exec
     > IDLE
     > :plugin:functionalTest > 127 completed, 2 skipped
     > :other:compileJava
-    > :plugin:functionalTest > Executing test org.gradle.plugin.ConsoleFunctionalTest
+    > :plugin:functionalTest > Executing tests in org.gradle.plugin.ConsoleFunctionalTest
     > :fooBarBazQuux:test > 3 completed
-    > :plugin:functionalTest > Executing test org.gradle.plugin.UiLayerFunctionalTest
+    > :plugin:functionalTest > Executing tests in org.gradle.plugin.UiLayerFunctionalTest
     > IDLE
-    > :fooBarBazQuux:test > Executing test org.gradle.MyTest
+    > :fooBarBazQuux:test > Executing tests in org.gradle.MyTest
 
 ### Faster Gradle startup
 

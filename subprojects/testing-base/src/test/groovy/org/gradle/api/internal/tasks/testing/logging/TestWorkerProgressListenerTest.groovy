@@ -206,7 +206,7 @@ class TestWorkerProgressListenerTest extends Specification {
         String testClassName
 
         String getProgressLoggerDescription() {
-            "Executing test $testClassName".toString()
+            "Executing tests in $testClassName".toString()
         }
     }
 }
