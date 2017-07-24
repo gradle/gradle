@@ -109,7 +109,7 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
             .cache(gradle, "buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName(CACHE_DISPLAY_NAME)
-            .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
+            .withLockOptions(mode(FileLockManager.LockMode.None))
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
             .open();
     }
