@@ -32,6 +32,9 @@ import java.util.Map;
 
 public class TestWorkerProgressListener implements TestListenerInternal {
 
+    private static final int MAX_TEST_NAME_LENGTH = 60;
+    private static final char PACKAGE_SEPARATOR = '.';
+
     private final ProgressLoggerFactory factory;
     private final ProgressLogger parentProgressLogger;
     private final Map<String, ProgressLogger> testWorkerProgressLoggers = new HashMap<String, ProgressLogger>();
@@ -98,7 +101,39 @@ public class TestWorkerProgressListener implements TestListenerInternal {
     private String createProgressLoggerDescription(TestDescriptorInternal testDescriptor) {
         DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor)testDescriptor;
         DefaultTestClassDescriptor defaultTestClassDescriptor = (DefaultTestClassDescriptor)decoratingTestDescriptor.getDescriptor();
-        return "Executing test " + defaultTestClassDescriptor.getClassName();
+        return "Executing test " + abbreviateJavaPackage(defaultTestClassDescriptor.getClassName());
+    }
+
+    protected String abbreviateJavaPackage(String qualifiedClassName) {
+        if (qualifiedClassName == null || qualifiedClassName.length() <= MAX_TEST_NAME_LENGTH || qualifiedClassName.indexOf(PACKAGE_SEPARATOR) == -1) {
+            return qualifiedClassName;
+        }
+
+        final int maxLengthWithoutEllipsis = MAX_TEST_NAME_LENGTH - 3;
+        int beginIdx = 0;
+        // We always want to include className, even if longer than max length
+        int endIdx = qualifiedClassName.lastIndexOf(PACKAGE_SEPARATOR);
+        int iterations = 0;
+
+        while(beginIdx + (qualifiedClassName.length() - endIdx) <= maxLengthWithoutEllipsis) {
+            // Alternate appending packages at beginning and end until we reach max length
+            if (iterations % 2 == 0) {
+                int tmp = qualifiedClassName.indexOf(PACKAGE_SEPARATOR, beginIdx + 1);
+                if (tmp == -1 || tmp + (qualifiedClassName.length() - endIdx) > maxLengthWithoutEllipsis) {
+                    break;
+                }
+                beginIdx = tmp;
+            } else {
+                int tmp = qualifiedClassName.lastIndexOf(PACKAGE_SEPARATOR, endIdx - 1);
+                if (tmp == -1 || beginIdx + (qualifiedClassName.length() - tmp) > maxLengthWithoutEllipsis) {
+                    break;
+                }
+                endIdx = tmp;
+            }
+            iterations++;
+        }
+
+        return qualifiedClassName.substring(0, beginIdx) + "..." + qualifiedClassName.substring(endIdx + 1);
     }
 
     Map<String, ProgressLogger> getTestWorkerProgressLoggers() {
