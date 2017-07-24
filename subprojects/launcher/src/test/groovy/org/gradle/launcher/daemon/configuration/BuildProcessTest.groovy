@@ -43,12 +43,12 @@ class BuildProcessTest extends Specification {
     def "current and requested build vm match if vm arguments match"() {
         given:
         def currentJvmOptions = new JvmOptions(fileResolver)
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        when:
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "256m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
+
+        when:
+        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
 
         then:
         buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError"]))
@@ -57,12 +57,12 @@ class BuildProcessTest extends Specification {
     def "current and requested build vm do not match if vm arguments differ"() {
         given:
         def currentJvmOptions = new JvmOptions(fileResolver)
-        BuildProcess buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
-
-        when:
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
+
+        when:
+        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
 
         then:
         !buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError"]))
@@ -70,7 +70,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm match if java home matches"() {
         when:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
 
         then:
         buildProcess.configureForBuild(buildParameters(currentJvm))
