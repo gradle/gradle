@@ -39,7 +39,7 @@ public interface PluginManager {
      * <p>
      * Plugins in the {@code "org.gradle"} namespace can be applied directly via name.
      * That is, the following two lines are equivalent…
-     * <pre autoTested='true'>
+     * <pre class='autoTested'>
      * pluginManager.apply "org.gradle.java"
      * pluginManager.apply "java"
      * </pre>
@@ -55,7 +55,7 @@ public interface PluginManager {
      * The given class should implement the {@link org.gradle.api.Plugin} interface, and be parameterized for a compatible type of {@code this}.
      * <p>
      * The following two lines are equivalent…
-     * <pre autoTested='true'>
+     * <pre class='autoTested'>
      * pluginManager.apply org.gradle.api.plugins.JavaPlugin
      * pluginManager.apply "org.gradle.java"
      * </pre>

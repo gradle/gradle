@@ -143,7 +143,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * <p>
      * A repository layout that allows custom patterns to be defined. eg:
      * </p>
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * repositories {
      *     ivy {
      *         layout 'pattern' , {

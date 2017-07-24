@@ -27,7 +27,7 @@ import org.gradle.api.NonExtensible;
  * The task can then provide an action to execute for all input files that are out of date with respect to the previous execution of the task,
  * and a separate action for all input files that have been removed since the previous execution.
  *
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  * class IncrementalReverseTask extends DefaultTask {
  *      {@literal @}InputDirectory
  *      def File inputDir

@@ -60,7 +60,7 @@ import javax.inject.Inject;
 /**
  * Compiles Java source files.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  *     apply plugin: 'java'
  *
  *     tasks.withType(JavaCompile) {

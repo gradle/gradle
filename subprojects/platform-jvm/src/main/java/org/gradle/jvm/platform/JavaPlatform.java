@@ -24,7 +24,7 @@ import org.gradle.platform.base.Platform;
 /**
  * Defines and configures a Java SE runtime environment, consisting of a JVM runtime and a set of class libraries.
  *
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  * plugins {
  *   id "jvm-component"
  *   id "java-lang"

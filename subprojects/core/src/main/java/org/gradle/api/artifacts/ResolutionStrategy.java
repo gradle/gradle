@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * For example, forcing certain dependency versions, substitutions, conflict resolutions or snapshot timeouts.
  * <p>
  * Examples:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java' //so that there are some configurations
  *
  * configurations.all {
@@ -69,7 +69,7 @@ public interface ResolutionStrategy {
      * multiple different versions of the same dependency (group and name are equal) in the same {@link Configuration}.
      * The check includes both first level and transitive dependencies. See example below:
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java' //so that there are some configurations
      *
      * configurations.all {
@@ -87,7 +87,7 @@ public interface ResolutionStrategy {
      * The default is <b>by version number</b>.<p>
      * This applies to both first level and transitive dependencies. See example below:
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java' //so that there are some configurations
      *
      * configurations.all {
@@ -111,7 +111,7 @@ public interface ResolutionStrategy {
      *   <li>any collection or array of above will be automatically flattened</li>
      * </ul>
      * Example:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java' //so that there are some configurations
      *
      * configurations.all {
@@ -132,7 +132,7 @@ public interface ResolutionStrategy {
      * For information on notations see {@link #force(Object...)}
      * <p>
      * Example:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java' //so that there are some configurations
      *
      * configurations.all {
@@ -159,7 +159,7 @@ public interface ResolutionStrategy {
      * when the configuration is being resolved. The action receives an instance of {@link DependencyResolveDetails}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
      * Example:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * configurations {
      *   compile.resolutionStrategy {
      *     eachDependency { DependencyResolveDetails details -&gt;
@@ -264,7 +264,7 @@ public interface ResolutionStrategy {
      * Configures the set of dependency substitution rules for this configuration.  The action receives an instance of {@link DependencySubstitutions} which
      * can then be configured with substitution rules.
      * <p>Examples:</p>
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * // add dependency substitution rules
      * configurations.all {
      *   resolutionStrategy.dependencySubstitution {

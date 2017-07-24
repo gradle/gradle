@@ -45,7 +45,7 @@ import java.util.Set;
  * Keep in mind that all properties have sensible defaults; only configure them explicitly
  * if the defaults don't match your needs.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  *
@@ -86,7 +86,7 @@ import java.util.Set;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  *

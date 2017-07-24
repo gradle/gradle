@@ -30,7 +30,7 @@ import java.util.Map;
  * An important feature of extra properties extensions is that all of its properties are exposed for reading and writing via the {@link ExtensionAware}
  * object that owns the extension.
  *
- * <pre autoTested="">
+ * <pre class='autoTested'>
  * project.ext.set("myProp", "myValue")
  * assert project.myProp == "myValue"
  *
@@ -43,7 +43,7 @@ import java.util.Map;
  * {@code extension.«name» = "value"}. <b>Wherever possible, the Groovy property syntax should be preferred over the
  * {@link #get(String)} and {@link #set(String, Object)} methods.</b>
  *
- * <pre autoTested="">
+ * <pre class='autoTested'>
  * project.ext {
  *   myprop = "a"
  * }
@@ -57,7 +57,7 @@ import java.util.Map;
  *
  * You can also use the Groovy accessor syntax to get and set properties on an extra properties extension.
  *
- * <pre autoTested="">
+ * <pre class='autoTested'>
  * project.ext["otherProp"] = "a"
  * assert project.otherProp == "a"
  * assert project.ext["otherProp"] == "a"
@@ -78,7 +78,7 @@ public interface ExtraPropertiesExtension {
     /**
      * Returns whether or not the extension has a property registered via the given name.
      *
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * assert project.ext.has("foo") == false
      * assert project.hasProperty("foo") == false
      *
@@ -99,7 +99,7 @@ public interface ExtraPropertiesExtension {
      * When using an extra properties extension from Groovy, you can also get properties via Groovy's property syntax.
      * All of the following lines of code are equivalent.
      *
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * project.ext { foo = "bar" }
      *
      * assert project.ext.get("foo") == "bar"
@@ -126,7 +126,7 @@ public interface ExtraPropertiesExtension {
      * When using an extra properties extension from Groovy, you can also set properties via Groovy's property syntax.
      * All of the following lines of code are equivalent.
      *
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * project.ext.set("foo", "bar")
      * project.ext.foo = "bar"
      * project.ext["foo"] = "bar"
@@ -147,7 +147,7 @@ public interface ExtraPropertiesExtension {
      * The returned map is detached from the extension. That is, any changes made to the map do not
      * change the extension from which it originated.
      *
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * project.version = "1.0"
      *
      * assert project.hasProperty("version")

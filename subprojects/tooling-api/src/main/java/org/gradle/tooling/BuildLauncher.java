@@ -32,7 +32,7 @@ import org.gradle.tooling.model.Task;
  * </ul>
  *
  * Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * ProjectConnection connection = GradleConnector.newConnector()
  *    .forProjectDirectory(new File("someFolder"))
  *    .connect();

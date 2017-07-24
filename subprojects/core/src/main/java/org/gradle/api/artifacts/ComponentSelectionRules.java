@@ -27,7 +27,7 @@ import org.gradle.internal.HasInternalProtocol;
  * or rejected by rule.  Components that are neither accepted or rejected will be subject to
  * the default version matching strategies.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  *     configurations {
  *         conf {
  *             resolutionStrategy {

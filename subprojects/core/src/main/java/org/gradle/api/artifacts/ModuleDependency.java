@@ -49,7 +49,7 @@ public interface ModuleDependency extends Dependency {
      * because you don't like the version it pulls in to the configuration
      * then consider using forced versions' feature: {@link ResolutionStrategy#force(Object...)}.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java' //so that I can declare 'compile' dependencies
      *
      * dependencies {

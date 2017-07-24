@@ -26,7 +26,7 @@ import org.gradle.util.ConfigureUtil;
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  *

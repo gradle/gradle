@@ -41,7 +41,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Example of use with a blend of all possible properties.
  * Typically you don't have to configure IDEA module directly because Gradle configures it for you.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * import org.gradle.plugins.ide.idea.model.*
  *
  * apply plugin: 'java'
@@ -79,7 +79,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *

@@ -26,7 +26,7 @@ import java.util.concurrent.Callable;
  * <p>
  * An instance of the factory can be injected into a task or plugin by annotating a public constructor or method with {@code javax.inject.Inject}.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * public class MyTask extends DefaultTask {
  *   // injection into a constructor
  *   {@literal @}javax.inject.Inject

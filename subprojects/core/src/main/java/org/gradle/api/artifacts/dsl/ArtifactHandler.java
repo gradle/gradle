@@ -53,7 +53,7 @@ import org.gradle.api.artifacts.PublishArtifact;
  * <h2>Examples</h2>
  * <p>An example showing how to associate an archive task with a configuration via the artifact handler.
  * This way the archive can be published or referred in other projects via the configuration.
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * configurations {
  *   //declaring new configuration that will be used to associate with artifacts
  *   schema

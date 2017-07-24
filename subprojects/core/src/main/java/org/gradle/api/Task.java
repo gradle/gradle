@@ -591,7 +591,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Specifies that this task must run after all of the supplied tasks.</p>
      *
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * task taskY {
      *     mustRunAfter "taskX"
      * }
@@ -613,7 +613,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Specifies the set of tasks that this task must run after.</p>
      *
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * task taskY {
      *     mustRunAfter = ["taskX1", "taskX2"]
      * }
@@ -642,7 +642,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Adds the given finalizer tasks for this task.</p>
      *
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * task taskY {
      *     finalizedBy "taskX"
      * }
@@ -661,7 +661,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Specifies the set of finalizer tasks for this task.</p>
      *
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * task taskY {
      *     finalizedBy = ["taskX1", "taskX2"]
      * }
@@ -687,7 +687,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Specifies that this task should run after all of the supplied tasks.</p>
      *
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * task taskY {
      *     shouldRunAfter "taskX"
      * }
@@ -709,7 +709,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Specifies the set of tasks that this task should run after.</p>
      *
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * task taskY {
      *     shouldRunAfter = ["taskX1", "taskX2"]
      * }

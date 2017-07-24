@@ -50,7 +50,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * </table>
      *
      * <p>Examples:</p>
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * repositories {
      *     flatDir name: 'libs', dirs: "$projectDir/libs"
      *     flatDir dirs: ["$projectDir/libs1", "$projectDir/libs2"]
@@ -87,7 +87,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * The behavior of this repository is otherwise the same as those added by {@link #maven(org.gradle.api.Action)}.
      * <p>
      * Examples:
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * repositories {
      *   jcenter {
      *     artifactUrls = ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
@@ -111,7 +111,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * The behavior of this repository is otherwise the same as those added by {@link #maven(org.gradle.api.Action)}.
      * <p>
      * Examples:
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * repositories {
      *     jcenter()
      * }
@@ -143,7 +143,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * </table>
      *
      * <p>Examples:</p>
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * repositories {
      *     mavenCentral artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
      *     mavenCentral name: "nonDefaultName", artifactUrls: ["http://www.mycompany.com/artifacts1"]
@@ -161,7 +161,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
      * <p>Examples:</p>
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * repositories {
      *     mavenCentral()
      * }
@@ -177,7 +177,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
      *
      * <p>Examples:</p>
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * repositories {
      *     mavenLocal()
      * }
@@ -202,7 +202,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * The URL used to access this repository is {@literal "https://dl.google.com/dl/android/maven2/"}.
      * <p>
      * Examples:
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * repositories {
      *     google()
      * }

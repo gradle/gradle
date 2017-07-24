@@ -34,7 +34,7 @@ public interface DependencySubstitutions {
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
      * <p>
      * Example:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * configurations { main }
      * // add dependency substitution rules
      * configurations.main.resolutionStrategy.dependencySubstitution {
@@ -76,7 +76,7 @@ public interface DependencySubstitutions {
      * DSL-friendly mechanism to construct a dependency substitution for dependencies matching the provided selector.
      * <p>
      * Examples:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * configurations { main }
      * configurations.main.resolutionStrategy.dependencySubstitution {
      *   // Substitute project and module dependencies

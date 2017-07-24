@@ -193,7 +193,7 @@ public interface PatternFilterable {
      * Adds an exclude spec. This method may be called multiple times to append new specs.The given closure is passed a
      * {@link org.gradle.api.file.FileTreeElement} as its parameter. The closure should return true or false. Example:
      *
-     * <pre autoTested='true'>
+     * <pre class='autoTested'>
      * copySpec {
      *   from 'source'
      *   into 'destination'

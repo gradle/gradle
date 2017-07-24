@@ -30,7 +30,7 @@ import java.util.Collection;
  * <p>Below is a full configuration example. Since all properties have sensible defaults,
  * typically only selected properties will be configured.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  *     apply plugin: "java"
  *     apply plugin: "findbugs"
  *

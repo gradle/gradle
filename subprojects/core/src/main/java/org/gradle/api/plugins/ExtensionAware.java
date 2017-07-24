@@ -18,7 +18,7 @@ package org.gradle.api.plugins;
 /**
  * Objects that can be extended at runtime with other objects.
  *
- * <pre autoTested="">
+ * <pre class='autoTested'>
  * // Extensions are just plain objects, there is no interface/type
  * class MyExtension {
  *   String foo

@@ -41,7 +41,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Example of use with a blend of all possible properties.
  * Bear in mind that usually you don't have to configure them directly because Gradle configures it for free!
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'war' //or 'ear' or 'java'
  * apply plugin: 'eclipse-wtp'
  *
@@ -95,7 +95,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'war'
  * apply plugin: 'eclipse-wtp'
  *

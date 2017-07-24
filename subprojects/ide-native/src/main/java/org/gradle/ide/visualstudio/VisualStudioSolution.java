@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * The content and location of the generate solution file can be modified by the supplied methods:
  *
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  *  apply plugin: "visual-studio"
  *  model {
  *      visualStudio {

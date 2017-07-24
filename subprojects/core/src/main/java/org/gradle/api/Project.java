@@ -783,7 +783,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def myTree = fileTree("src")
      * myTree.include "**&#47;*.java"
      * myTree.builtBy "someTask"
@@ -803,7 +803,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * as per {@link #file(Object)}. The closure will be used to configure the new file tree.
      * The file tree is passed to the closure as its delegate.  Example:</p>
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def myTree = fileTree('src') {
      *    exclude '**&#47;.data/**'
      *    builtBy 'someTask'
@@ -828,7 +828,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as per {@link #file(Object)}. The action will be used to configure the new file tree. Example:</p>
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def myTree = fileTree('src') {
      *    exclude '**&#47;.data/**'
      *    builtBy 'someTask'
@@ -854,7 +854,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
      * properties on the new file tree.  Example:</p>
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def myTree = fileTree(dir:'src', excludes:['**&#47;ignore/**', '**&#47;.data/**'])
      *
      * task copy(type: Copy) {
@@ -901,7 +901,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * You can combine this method with the {@link #copy(groovy.lang.Closure)}
      * method to untar a TAR file:
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * task untar(type: Copy) {
      *   from tarTree('someCompressedTar.gzip')
      *
@@ -1062,7 +1062,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * <p>Returns the <code>AntBuilder</code> for this project. You can use this in your build file to execute ant
      * tasks. See example below.</p>
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * task printChecksum {
      *   doLast {
      *     ant {
@@ -1092,7 +1092,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </pre>
      *
      * Here's how it would look like in gradle. Observe how the ant XML is represented in groovy by the ant builder
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * task printChecksum {
      *   doLast {
      *     ant {
@@ -1174,7 +1174,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * ArtifactHandler} is passed to the closure as the closure's delegate.
      *
      * <p>Example:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * configurations {
      *   //declaring new configuration that will be used to associate with artifacts
      *   schema
@@ -1201,7 +1201,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>This method executes the given action against the {@link ArtifactHandler} for this project.
      *
      * <p>Example:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * configurations {
      *   //declaring new configuration that will be used to associate with artifacts
      *   schema
@@ -1578,7 +1578,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given closure is used
      * to configure the {@link CopySpec} before it is returned by this method.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def baseSpec = copySpec {
      *    from "source"
      *    include "**&#47;*.java"

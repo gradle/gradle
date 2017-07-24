@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ComponentModuleMetadata;
  * Allows to modify the metadata of depended-on software components.
  *
  * <p> Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * dependencies {
  *     modules {
  *         //Configuring component module metadata for the entire "google-collections" module,
@@ -45,7 +45,7 @@ public interface ComponentModuleMetadataHandler {
      * Enables configuring component module metadata.
      * This metadata applies to the entire component module (e.g. "group:name", like "org.gradle:gradle-core") regardless of the component version.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * //declaring that google collections are replaced by guava
      * //so that conflict resolution can take advantage of this information:
      * dependencies.modules.module('com.google.collections:google-collections') { replacedBy('com.google.guava:guava') }

@@ -33,7 +33,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * <p>
  * Advanced configuration closures beforeMerged and whenMerged receive {@link WtpFacet} object as parameter.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'war' //or 'ear' or 'java'
  * apply plugin: 'eclipse-wtp'
  *

@@ -27,7 +27,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * <p>
  * More interesting examples you will find in docs for {@link EclipseWtpComponent} and {@link EclipseWtpFacet}
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'war' //or 'ear' or 'java'
  * apply plugin: 'eclipse-wtp'
  *

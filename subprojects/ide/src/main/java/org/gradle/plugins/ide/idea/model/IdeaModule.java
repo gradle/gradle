@@ -44,7 +44,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Example of use with a blend of most possible properties.
  * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
@@ -110,7 +110,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
@@ -242,7 +242,7 @@ public class IdeaModule {
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java'
      * apply plugin: 'idea'
      *

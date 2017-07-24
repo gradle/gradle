@@ -27,7 +27,7 @@ import org.gradle.nativeplatform.NativeComponentSpec;
  *
  * The content and location of the generate project file can be modified by the supplied methods:
  *
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  *  apply plugin: "visual-studio"
  *  model {
  *      visualStudio {

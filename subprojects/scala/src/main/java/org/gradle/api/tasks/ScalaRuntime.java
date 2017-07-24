@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  *
  * <p>Example usage:
  *
- * <pre autoTested="">
+ * <pre class='autoTested'>
  *     apply plugin: "scala"
  *
  *     repositories {

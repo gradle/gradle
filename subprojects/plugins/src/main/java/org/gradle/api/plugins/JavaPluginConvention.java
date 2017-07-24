@@ -70,7 +70,7 @@ public class JavaPluginConvention {
      * See the example below how {@link org.gradle.api.tasks.SourceSet} 'main' is accessed and how the {@link org.gradle.api.file.SourceDirectorySet} 'java'
      * is configured to exclude some package from compilation.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java'
      *
      * sourceSets {

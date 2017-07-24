@@ -115,7 +115,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
  * The sample below shows various configuration options.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java' // adds 'test' task
  *
  * test {
@@ -817,7 +817,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Adds a closure to be notified when output from the test received. A {@link org.gradle.api.tasks.testing.TestDescriptor} and {@link org.gradle.api.tasks.testing.TestOutputEvent} instance are
      * passed to the closure as a parameter.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java'
      *
      * test {
@@ -972,7 +972,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Sets the directories to scan for compiled test sources.
      *
      * Typically, this would be configured to use the output of a source set:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java'
      *
      * sourceSets {
@@ -1283,7 +1283,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Allows to set options related to which test events are logged to the console, and on which detail level. For example, to show more information about exceptions use:
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java'
      *
      * test.testLogging {
@@ -1304,7 +1304,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java'
      *
      * // makes the standard streams (err and out) visible at console when running tests
@@ -1322,7 +1322,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java'
      *
      * // makes the standard streams (err and out) visible at console when running tests

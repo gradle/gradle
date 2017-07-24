@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
  * </ul>
  *
  * <p> Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * dependencies {
  *     components {
  *         // Set the status and status scheme for every component belonging to a module in the group "org.foo"

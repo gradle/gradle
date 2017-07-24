@@ -54,7 +54,7 @@ public interface AuthenticationSupported {
      * Configures the username and password credentials for this repository using the supplied action.
      * <p>
      * If no credentials have been assigned to this repository, an empty set of username and password credentials is assigned to this repository and passed to the action.
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * repositories {
      *     maven {
      *         url "${url}"
@@ -75,7 +75,7 @@ public interface AuthenticationSupported {
      * <p>
      * If no credentials have been assigned to this repository, an empty set of credentials of the specified type will be assigned to this repository and given to the configuration action.
      * If credentials have already been specified for this repository, they will be passed to the given configuration action.
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * repositories {
      *     maven {
      *         url "${url}"
@@ -107,7 +107,7 @@ public interface AuthenticationSupported {
      * <p>
      * If no authentication schemes have been assigned to this repository, a default set of authentication schemes are used based on the repository's transport scheme.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * repositories {
      *     maven {
      *         url "${url}"

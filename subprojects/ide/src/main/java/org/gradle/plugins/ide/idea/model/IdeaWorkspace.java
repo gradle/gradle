@@ -26,7 +26,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * <p>
  * At the moment, the only practical way of manipulating the resulting content is via the withXml hook:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *

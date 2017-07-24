@@ -31,7 +31,7 @@ import org.gradle.util.Configurable;
  * <p>The resolvers in a container are accessible as read-only properties of the container, using the name of the
  * resolver as the property name. For example:</p>
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * repositories.maven { name 'myResolver' }
  * repositories.myResolver.url = 'some-url'
  * </pre>
@@ -39,7 +39,7 @@ import org.gradle.util.Configurable;
  * <p>A dynamic method is added for each resolver which takes a configuration closure. This is equivalent to calling
  * {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * repositories.maven { name 'myResolver' }
  * repositories.myResolver {
  *     url 'some-url'

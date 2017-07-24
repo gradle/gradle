@@ -27,7 +27,7 @@ import java.util.Map;
  * <p>
  * Provides output information of the source set. Allows configuring the default output dirs and specify additional output dirs.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * sourceSets {
@@ -50,7 +50,7 @@ import java.util.Map;
  * <p>
  * An example how to work with generated resources:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * def generatedResources = "$buildDir/generated-resources/main"

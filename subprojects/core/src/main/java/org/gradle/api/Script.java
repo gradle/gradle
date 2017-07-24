@@ -231,7 +231,7 @@ public interface Script {
      * You can combine this method with the {@link #copy(groovy.lang.Closure)}
      * method to untar a TAR file:
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * task untar(type: Copy) {
      *   from tarTree('someCompressedTar.gzip')
      *

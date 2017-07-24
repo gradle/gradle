@@ -39,7 +39,7 @@ import java.io.File;
  * Creates start scripts for launching JVM applications.
  * <p>
  * Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * task createStartScripts(type: CreateStartScripts) {
  *   outputDir = file('build/sample')
  *   mainClassName = 'org.gradle.test.Main'
@@ -54,7 +54,7 @@ import java.io.File;
  * The actual generation is implemented by the {@link #getWindowsStartScriptGenerator()} and {@link #getUnixStartScriptGenerator()} properties, of type {@link ScriptGenerator}.
  * <p>
  * Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * task createStartScripts(type: CreateStartScripts) {
  *   unixStartScriptGenerator = new CustomUnixStartScriptGenerator()
  *   windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()

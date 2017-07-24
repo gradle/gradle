@@ -19,7 +19,7 @@ package org.gradle.api.tasks.application;
  * Creates start scripts for launching JVM applications.
  * <p>
  * Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * task createStartScripts(type: CreateStartScripts) {
  *   outputDir = file('build/sample')
  *   mainClassName = 'org.gradle.test.Main'
@@ -35,7 +35,7 @@ package org.gradle.api.tasks.application;
  * {@link org.gradle.jvm.application.scripts.ScriptGenerator}.
  * <p>
  * Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * task createStartScripts(type: CreateStartScripts) {
  *   unixStartScriptGenerator = new CustomUnixStartScriptGenerator()
  *   windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()

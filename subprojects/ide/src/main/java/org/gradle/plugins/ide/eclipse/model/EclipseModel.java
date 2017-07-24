@@ -29,7 +29,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * DSL-friendly model of the Eclipse project information.
  * First point of entry for customizing Eclipse project generation.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  * apply plugin: 'eclipse-wtp' //for web projects only
