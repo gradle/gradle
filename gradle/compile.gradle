@@ -31,9 +31,6 @@ if (java7Home) {
             forkOptions.javaHome = jvmForCompilation.javaHome
         }
     }
-    tasks.withType(Javadoc) {
-        executable = jvmForCompilation.javadocExecutable
-    }
 }
 
 rootProject.ext.java7HomeSet = java7Home as boolean
