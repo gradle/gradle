@@ -24,6 +24,9 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Schemes.html">XCode Scheme Concept</a>
+ */
 public class XcodeTarget implements Named {
     private static final UUIDGenerator ID_GENERATOR = new UUIDGenerator();
     private final Set<File> sources = new HashSet<File>();

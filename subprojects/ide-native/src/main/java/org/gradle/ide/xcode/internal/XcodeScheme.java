@@ -21,6 +21,9 @@ import org.gradle.api.Named;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Targets.html">XCode Target Concept</a>
+ */
 public class XcodeScheme implements Named {
     private final String name;
     private List<BuildEntry> buildEntries = new ArrayList<BuildEntry>();
