@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts;
 
+import org.gradle.internal.resource.EmptyFileTextResource;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -58,10 +59,10 @@ public class UriScriptSourceTest {
     @Test
     public void canConstructSourceFromFile() throws IOException {
         scriptFile.createNewFile();
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
+        ScriptSource source = forFile(scriptFile);
         assertThat(source.getResource(), instanceOf(UriTextResource.class));
-        assertThat(source.getResource().getFile(), equalTo(scriptFile));
-        assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getFile(), equalTo(this.scriptFile));
+        assertThat(source.getResource().getLocation().getFile(), equalTo(this.scriptFile));
         assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
     }
 
@@ -83,7 +84,7 @@ public class UriScriptSourceTest {
     @Test
     public void convenienceMethodReplacesFileThatDoesNotExistWithEmptyScript() {
         ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
-        assertThat(source, instanceOf(NonExistentFileScriptSource.class));
+        assertThat(source.getResource(), instanceOf(EmptyFileTextResource.class));
         assertNull(source.getResource().getFile());
         assertNull(source.getResource().getCharset());
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
@@ -97,18 +98,18 @@ public class UriScriptSourceTest {
     @Test
     public void canConstructSourceFromFileURI() throws IOException {
         scriptFile.createNewFile();
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
+        ScriptSource source = forUri(scriptFileUri);
         assertThat(source.getResource(), instanceOf(UriTextResource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getCharset(), equalTo(Charset.forName("utf-8")));
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
-        assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
+        assertThat(source.getResource().getLocation().getURI(), equalTo(this.scriptFileUri));
     }
 
     @Test
     public void canConstructSourceFromJarURI() throws URISyntaxException {
         URI uri = createJar();
-        UriScriptSource source = new UriScriptSource("<file-type>", uri);
+        ScriptSource source = forUri(uri);
         assertThat(source.getResource(), instanceOf(UriTextResource.class));
         assertNull(source.getResource().getFile());
         assertNull(source.getResource().getCharset());
@@ -118,90 +119,99 @@ public class UriScriptSourceTest {
 
     @Test
     public void usesScriptFileNameToBuildDescription() {
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
+        ScriptSource source = forFile(scriptFile);
         assertThat(source.getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
     }
 
     @Test
     public void usesScriptFileNameToBuildDescriptionWhenUsingFileUri() {
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
+        ScriptSource source = forUri(scriptFileUri);
         assertThat(source.getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
     }
 
     @Test
     public void usesScriptFileNameToBuildDescriptionWhenUsingHttpUri() throws URISyntaxException {
-        UriScriptSource source = new UriScriptSource("<file-type>", new URI("http://www.gradle.org/unknown.txt"));
+        ScriptSource source = forUri(new URI("http://www.gradle.org/unknown.txt"));
         assertThat(source.getDisplayName(), equalTo(String.format("<file-type> 'http://www.gradle.org/unknown.txt'")));
     }
 
     @Test
     public void usesScriptFilePathForFileNameUsingFile() {
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
+        ScriptSource source = forFile(scriptFile);
         assertThat(source.getFileName(), equalTo(scriptFile.getAbsolutePath()));
     }
 
     @Test
     public void usesScriptFilePathForFileNameUsingFileUri() {
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
+        ScriptSource source = forUri(scriptFileUri);
         assertThat(source.getFileName(), equalTo(scriptFile.getAbsolutePath()));
     }
 
     @Test
     public void usesScriptUriForFileNameUsingHttpUri() throws URISyntaxException {
-        UriScriptSource source = new UriScriptSource("<file-type>", new URI("http://www.gradle.org/unknown.txt"));
+        ScriptSource source = forUri(new URI("http://www.gradle.org/unknown.txt"));
         assertThat(source.getFileName(), equalTo("http://www.gradle.org/unknown.txt"));
     }
-    
+
     @Test
     public void generatesClassNameFromFileNameByRemovingExtensionAndAddingHashOfFileURL() {
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
+        ScriptSource source = forFile(scriptFile);
         assertThat(source.getClassName(), matchesRegexp("build_[0-9a-z]+"));
     }
 
     @Test
     public void generatesClassNameFromFileNameByRemovingExtensionAndAddingHashOfJarURL() throws Exception {
-        UriScriptSource source = new UriScriptSource("<file-type>", createJar());
+        ScriptSource source = forUri(createJar());
         assertThat(source.getClassName(), matchesRegexp("build_[0-9a-z]+"));
     }
 
     @Test
     public void truncatesClassNameAt30Characters() {
-        UriScriptSource source = new UriScriptSource("<file-type>", new File(testDir, "a-long-file-name-12345678901234567890.gradle"));
+        ScriptSource source = forFile(new File(testDir, "a-long-file-name-12345678901234567890.gradle"));
         assertThat(source.getClassName(), matchesRegexp("a_long_file_name_1234567890123_[0-9a-z]+"));
     }
 
     @Test
     public void encodesReservedCharactersInClassName() {
-        UriScriptSource source = new UriScriptSource("<file-type>", new File(testDir, "name-+.chars.gradle"));
+        ScriptSource source = forFile(new File(testDir, "name-+.chars.gradle"));
         assertThat(source.getClassName(), matchesRegexp("name___chars_[0-9a-z]+"));
     }
 
     @Test
     public void prefixesClassNameWhenFirstCharacterIsNotValidIdentifierStartChar() {
-        UriScriptSource source = new UriScriptSource("<file-type>", new File(testDir, "123"));
+        ScriptSource source = forFile(new File(testDir, "123"));
         assertThat(source.getClassName(), matchesRegexp("_123_[0-9a-z]+"));
 
-        source = new UriScriptSource("<file-type>", new File(testDir, "-"));
+        source = forFile(new File(testDir, "-"));
         assertThat(source.getClassName(), matchesRegexp("__[0-9a-z]+"));
     }
 
     @Test
     public void filesWithSameNameAndDifferentPathHaveDifferentClassName() {
-        ScriptSource source1 = new UriScriptSource("<file-type>", new File(testDir, "build.gradle"));
-        ScriptSource source2 = new UriScriptSource("<file-type>", new File(testDir, "subdir/build.gradle"));
+        ScriptSource source1 = forFile(new File(testDir, "build.gradle"));
+        ScriptSource source2 = forFile(new File(testDir, "subdir/build.gradle"));
         assertThat(source1.getClassName(), not(equalTo(source2.getClassName())));
 
-        ScriptSource source3 = new UriScriptSource("<file-type>", new File(testDir, "build.gradle"));
+        ScriptSource source3 = forFile(new File(testDir, "build.gradle"));
         assertThat(source1.getClassName(), equalTo(source3.getClassName()));
     }
-    
+
     @Test
     public void filesWithSameNameAndUriHaveDifferentClassName() throws URISyntaxException {
-        ScriptSource source1 = new UriScriptSource("<file-type>", new File(testDir, "build.gradle"));
-        ScriptSource source2 = new UriScriptSource("<file-type>", new URI("http://localhost/build.gradle"));
+        ScriptSource source1 = forFile(new File(testDir, "build.gradle"));
+        ScriptSource source2 = forUri(new URI("http://localhost/build.gradle"));
         assertThat(source1.getClassName(), not(equalTo(source2.getClassName())));
 
-        ScriptSource source3 = new UriScriptSource("<file-type>", new File(testDir, "build.gradle"));
+        ScriptSource source3 = forFile(new File(testDir, "build.gradle"));
         assertThat(source1.getClassName(), equalTo(source3.getClassName()));
     }
+
+    private ScriptSource forFile(File scriptFile) {
+        return UriScriptSource.file("<file-type>", scriptFile);
+    }
+
+    private ScriptSource forUri(URI scriptFileUri) {
+        return UriScriptSource.uri("<file-type>", scriptFileUri);
+    }
+
 }

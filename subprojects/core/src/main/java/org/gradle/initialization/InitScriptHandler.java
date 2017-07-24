@@ -48,7 +48,7 @@ public class InitScriptHandler {
             @Override
             public void run(BuildOperationContext context) {
                 for (File script : initScripts) {
-                    processor.process(new UriScriptSource("initialization script", script), gradle);
+                    processor.process(UriScriptSource.file("initialization script", script), gradle);
                 }
             }
 

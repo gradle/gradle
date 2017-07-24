@@ -94,7 +94,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
-        ScriptSource scriptSource = new UriScriptSource("script", scriptUri);
+        ScriptSource scriptSource = UriScriptSource.uri("script", scriptUri);
         ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri.toString());
         ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild);
         ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, classLoaderScopeChild, classLoaderScope, false);
