@@ -102,6 +102,10 @@ open class AbstractIntegrationTest {
             .build()
 
     protected
+    fun BuildResult.outcomeOf(taskPath: String) =
+        task(taskPath)!!.outcome!!
+
+    protected
     fun buildFailureOutput(vararg arguments: String): String =
         buildAndFail(*arguments).output
 

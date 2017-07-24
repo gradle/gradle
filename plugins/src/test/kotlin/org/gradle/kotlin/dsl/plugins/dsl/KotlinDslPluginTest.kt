@@ -35,7 +35,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         val result = buildWithPlugin("classes")
 
-        assertThat(result.task(":compileKotlin").outcome, equalTo(TaskOutcome.SUCCESS))
+        assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.SUCCESS))
     }
 
     @Test
@@ -69,6 +69,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         val result = buildWithPlugin("classes")
 
-        assertThat(result.task(":compileKotlin").outcome, equalTo(TaskOutcome.SUCCESS))
+        assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.SUCCESS))
     }
 }
