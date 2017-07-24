@@ -16,12 +16,19 @@
 
 package org.gradle.ide.xcode.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.ide.xcode.XcodeWorkspace;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeWorkspace;
 import org.gradle.ide.xcode.tasks.internal.XcodeWorkspaceFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
+/**
+ * Task for generating a workspace file.
+ *
+ * @since 4.2
+ */
+@Incubating
 public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorkspaceFile> {
     private DefaultXcodeWorkspace xcodeWorkspace;
 

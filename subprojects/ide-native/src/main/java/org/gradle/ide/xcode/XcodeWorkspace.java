@@ -16,11 +16,14 @@
 
 package org.gradle.ide.xcode;
 
+import org.gradle.api.Incubating;
+
 /**
  * A xcode workspace, aggregate one or more xcode project.
  *
  * @since 4.2
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Workspace.html">XCode Workspace Concept</a>
  */
+@Incubating
 public interface XcodeWorkspace {
 }
