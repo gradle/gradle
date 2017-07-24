@@ -39,11 +39,11 @@ public class BuildProcess extends CurrentProcess {
     public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
         boolean javaHomeMatch = getJvm().equals(requiredBuildParameters.getEffectiveJvm());
 
-        boolean noChangeToImmutableJvmArgsRequired = true;
+        boolean immutableJvmArgsMatch = true;
         if (requiredBuildParameters.hasUserDefinedImmutableJvmArgs()) {
-            noChangeToImmutableJvmArgsRequired = getJvmOptions().getAllImmutableJvmArgs().equals(requiredBuildParameters.getEffectiveSingleUseJvmArgs());
+            immutableJvmArgsMatch = getJvmOptions().getAllImmutableJvmArgs().equals(requiredBuildParameters.getEffectiveSingleUseJvmArgs());
         }
-        if (javaHomeMatch && noChangeToImmutableJvmArgsRequired) {
+        if (javaHomeMatch && immutableJvmArgsMatch) {
             // Set the system properties and use this process
             Properties properties = new Properties();
             properties.putAll(requiredBuildParameters.getEffectiveSystemProperties());
