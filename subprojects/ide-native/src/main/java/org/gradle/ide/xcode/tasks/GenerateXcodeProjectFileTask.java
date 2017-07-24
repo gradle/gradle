@@ -23,10 +23,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
-import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
-import org.gradle.ide.xcode.internal.GradleBuildTarget;
-import org.gradle.ide.xcode.internal.IndexingSwiftTarget;
 import org.gradle.ide.xcode.internal.XcodeTarget;
+import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXBuildFile;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXFileReference;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXLegacyTarget;
@@ -71,13 +69,12 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         }
 
         for (XcodeTarget target : xcodeProject.getTargets()) {
-            project.getTargets().add(toPbxTarget(target));
+            project.getTargets().add(toGradlePbxTarget(target));
+            project.getTargets().add(toIndexPbxTarget(target));
 
-            if (target instanceof GradleBuildTarget) {
-                PBXFileReference fileReference = new PBXFileReference(target.getOutputFile().getName(), target.getOutputFile().getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
-                fileReference.setExplicitFileType(Optional.of(target.getOutputFileType()));
-                project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
-            }
+            PBXFileReference fileReference = new PBXFileReference(target.getOutputFile().getName(), target.getOutputFile().getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
+            fileReference.setExplicitFileType(Optional.of(target.getOutputFileType()));
+            project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
         }
 
         XcodeprojSerializer serializer = new XcodeprojSerializer(new GidGenerator(Collections.<String>emptySet()), project);
@@ -97,17 +94,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         return new XcodeProjectFile(getPropertyListTransformer());
     }
 
-    private PBXTarget toPbxTarget(XcodeTarget target) {
-        if (target instanceof IndexingSwiftTarget) {
-            return toPbxTarget((IndexingSwiftTarget) target);
-        } else if (target instanceof GradleBuildTarget) {
-            return toPbxTarget((GradleBuildTarget) target);
-        }
-
-        throw new IllegalArgumentException("XCode target need to be of type XcodeIndexingTarget or XcodeGradleTarget");
-    }
-
-    private PBXTarget toPbxTarget(GradleBuildTarget xcodeTarget) {
+    private PBXTarget toGradlePbxTarget(XcodeTarget xcodeTarget) {
         PBXLegacyTarget target = new PBXLegacyTarget(xcodeTarget.getName(), xcodeTarget.getProductType());
         target.setProductName(xcodeTarget.getProductName());
 
@@ -122,14 +109,14 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         return target;
     }
 
-    private PBXTarget toPbxTarget(IndexingSwiftTarget xcodeTarget) {
+    private PBXTarget toIndexPbxTarget(XcodeTarget xcodeTarget) {
         PBXSourcesBuildPhase buildPhase = new PBXSourcesBuildPhase();
         for (File file : xcodeTarget.getSources()) {
             PBXFileReference fileReference = pathToFileReference.get(file.getAbsolutePath());
             buildPhase.getFiles().add(new PBXBuildFile(fileReference));
         }
 
-        PBXNativeTarget target = new PBXNativeTarget(xcodeTarget.getName(), xcodeTarget.getProductType());
+        PBXNativeTarget target = new PBXNativeTarget("[INDEXING ONLY] " + xcodeTarget.getName(), xcodeTarget.getProductType());
         target.setProductName(xcodeTarget.getProductName());
 
         NSDictionary buildSettings = new NSDictionary();

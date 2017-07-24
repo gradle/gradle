@@ -21,11 +21,17 @@ import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 import org.gradle.internal.id.UUIDGenerator;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
-public abstract class XcodeTarget implements Named {
+public class XcodeTarget implements Named {
     private static final UUIDGenerator ID_GENERATOR = new UUIDGenerator();
-    private final String name;
+    private final Set<File> sources = new HashSet<File>();
     private final String id = ID_GENERATOR.generateId().toString();
+    private final String name;
+    private String taskName;
+    private String gradleCommand;
+
     private File outputFile;
     private PBXTarget.ProductType productType;
     private String productName;
@@ -74,5 +80,29 @@ public abstract class XcodeTarget implements Named {
 
     public void setProductName(String productName) {
         this.productName = productName;
+    }
+
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
+
+    public String getGradleCommand() {
+        return gradleCommand;
+    }
+
+    public void setGradleCommand(String gradleCommand) {
+        this.gradleCommand = gradleCommand;
+    }
+
+    public Set<File> getSources() {
+        return sources;
+    }
+
+    public void setSources(Set<File> sources) {
+        this.sources.addAll(sources);
     }
 }
