@@ -27,5 +27,5 @@ import org.gradle.api.Incubating;
 public interface XcodeExtension {
     XcodeProject getProject();
 
-    // TODO - Handle workspace here
+    XcodeWorkspace getWorkspace();
 }

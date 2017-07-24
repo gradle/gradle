@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.xcode.internal;
+package org.gradle.ide.xcode;
 
-import org.gradle.ide.xcode.XcodeExtension;
-
-public class DefaultXcodeExtension implements XcodeExtension {
-    private final DefaultXcodeProject project = new DefaultXcodeProject();
-    private final DefaultXcodeWorkspace workspace = new DefaultXcodeWorkspace();
-
-    @Override
-    public DefaultXcodeProject getProject() {
-        return project;
-    }
-
-    @Override
-    public DefaultXcodeWorkspace getWorkspace() {
-        return workspace;
-    }
+/**
+ * A xcode workspace, aggregate one or more xcode project.
+ *
+ * @since 4.2
+ * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Workspace.html">XCode Workspace Concept</a>
+ */
+public interface XcodeWorkspace {
 }

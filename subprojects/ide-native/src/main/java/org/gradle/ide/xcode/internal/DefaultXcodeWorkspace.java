@@ -16,19 +16,15 @@
 
 package org.gradle.ide.xcode.internal;
 
-import org.gradle.ide.xcode.XcodeExtension;
+import org.gradle.ide.xcode.XcodeWorkspace;
 
-public class DefaultXcodeExtension implements XcodeExtension {
-    private final DefaultXcodeProject project = new DefaultXcodeProject();
-    private final DefaultXcodeWorkspace workspace = new DefaultXcodeWorkspace();
+import java.util.HashSet;
+import java.util.Set;
 
-    @Override
-    public DefaultXcodeProject getProject() {
-        return project;
-    }
+public class DefaultXcodeWorkspace implements XcodeWorkspace {
+    private final Set<DefaultXcodeProject> projects = new HashSet<DefaultXcodeProject>();
 
-    @Override
-    public DefaultXcodeWorkspace getWorkspace() {
-        return workspace;
+    public Set<DefaultXcodeProject> getProjects() {
+        return projects;
     }
 }

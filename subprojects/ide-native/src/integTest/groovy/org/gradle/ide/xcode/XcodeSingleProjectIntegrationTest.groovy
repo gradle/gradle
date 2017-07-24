@@ -42,7 +42,7 @@ rootProject.name = "${PROJECT_NAME}"
         succeeds("xcode")
 
         then: 'tasks are executed as expected'
-        executedAndNotSkipped(":xcodeProject", ":xcodeScheme: Executable", ":xcodeWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme: Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         def project = xcodeProject("${PROJECT_NAME}.xcodeproj").projectFile
 
         and: 'source files are properly attached to the project'

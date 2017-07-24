@@ -56,7 +56,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
 
     @Override
     protected void configure(XcodeProjectFile projectFile) {
-        PBXProject project = new PBXProject(getProject().getName());
+        PBXProject project = new PBXProject(getProject().getPath());
 
         // Required for making think the project isn't corrupted...
         XCBuildConfiguration buildConfiguration = project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug");

@@ -28,6 +28,7 @@ public class DefaultXcodeProject implements XcodeProject {
     private final List<XcodeTarget> targets = new ArrayList<XcodeTarget>();
     private final List<XcodeScheme> schemes = new ArrayList<XcodeScheme>();
     private final Set<File> sources = new HashSet<File>();
+    private File locationDir;
 
     public Set<File> getSources() {
         return sources;
@@ -39,5 +40,13 @@ public class DefaultXcodeProject implements XcodeProject {
 
     public List<XcodeScheme> getSchemes() {
         return schemes;
+    }
+
+    public File getLocationDir() {
+        return locationDir;
+    }
+
+    public void setLocationDir(File locationDir) {
+        this.locationDir = locationDir;
     }
 }
