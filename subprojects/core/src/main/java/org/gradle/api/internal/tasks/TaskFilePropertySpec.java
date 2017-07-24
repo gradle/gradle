@@ -23,5 +23,5 @@ import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 public interface TaskFilePropertySpec extends TaskPropertySpec {
     FileCollection getPropertyFiles();
     Class<? extends FileCollectionSnapshotter> getSnapshotter();
-    PathNormalizationStrategy getSnapshotNormalizationStrategy();
+    PathNormalizationStrategy getPathNormalizationStrategy();
 }

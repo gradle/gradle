@@ -35,7 +35,7 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
     private final TaskPropertyFileCollection files;
     private boolean skipWhenEmpty;
     private boolean optional;
-    private PathNormalizationStrategy snapshotNormalizationStrategy = ABSOLUTE;
+    private PathNormalizationStrategy pathNormalizationStrategy = ABSOLUTE;
     private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
 
     public DefaultTaskInputPropertySpec(String taskName, FileResolver resolver, Object paths) {
@@ -84,18 +84,18 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
     }
 
     @Override
-    public PathNormalizationStrategy getSnapshotNormalizationStrategy() {
-        return snapshotNormalizationStrategy;
+    public PathNormalizationStrategy getPathNormalizationStrategy() {
+        return pathNormalizationStrategy;
     }
 
     @Override
     public TaskInputFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity) {
-        return withSnapshotNormalizationStrategy(InputPathNormalizationStrategy.valueOf(sensitivity));
+        return withPathNormalizationStrategy(InputPathNormalizationStrategy.valueOf(sensitivity));
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal withSnapshotNormalizationStrategy(PathNormalizationStrategy snapshotNormalizationStrategy) {
-        this.snapshotNormalizationStrategy = snapshotNormalizationStrategy;
+    public TaskInputFilePropertyBuilderInternal withPathNormalizationStrategy(PathNormalizationStrategy pathNormalizationStrategy) {
+        this.pathNormalizationStrategy = pathNormalizationStrategy;
         return this;
     }
 
@@ -112,7 +112,7 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
 
     @Override
     public String toString() {
-        return getPropertyName() + " (" + snapshotNormalizationStrategy + ")";
+        return getPropertyName() + " (" + pathNormalizationStrategy + ")";
     }
 
     // --- See CompatibilityAdapterForTaskInputs for an explanation for why these methods are here

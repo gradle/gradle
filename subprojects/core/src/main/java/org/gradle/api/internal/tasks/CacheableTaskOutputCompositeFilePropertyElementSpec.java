@@ -59,8 +59,8 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     }
 
     @Override
-    public PathNormalizationStrategy getSnapshotNormalizationStrategy() {
-        return parentProperty.getSnapshotNormalizationStrategy();
+    public PathNormalizationStrategy getPathNormalizationStrategy() {
+        return parentProperty.getPathNormalizationStrategy();
     }
 
     @Override

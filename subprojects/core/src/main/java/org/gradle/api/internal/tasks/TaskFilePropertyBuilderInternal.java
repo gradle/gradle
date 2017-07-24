@@ -22,7 +22,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskFilePropertyBuilder;
 
 public interface TaskFilePropertyBuilderInternal extends TaskFilePropertyBuilder {
-    TaskFilePropertyBuilderInternal withSnapshotNormalizationStrategy(PathNormalizationStrategy snapshotNormalizationStrategy);
+    TaskFilePropertyBuilderInternal withPathNormalizationStrategy(PathNormalizationStrategy pathNormalizationStrategy);
 
     TaskFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter);
 

@@ -27,12 +27,12 @@ import java.util.Map;
  */
 public class FileCollectionSnapshotBuilder implements FileSnapshotVisitor {
     private final Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
-    private final PathNormalizationStrategy snapshotNormalizationStrategy;
+    private final PathNormalizationStrategy pathNormalizationStrategy;
     private final StringInterner stringInterner;
     private final TaskFilePropertyCompareStrategy compareStrategy;
 
-    public FileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy compareStrategy, PathNormalizationStrategy snapshotNormalizationStrategy, StringInterner stringInterner) {
-        this.snapshotNormalizationStrategy = snapshotNormalizationStrategy;
+    public FileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy compareStrategy, PathNormalizationStrategy pathNormalizationStrategy, StringInterner stringInterner) {
+        this.pathNormalizationStrategy = pathNormalizationStrategy;
         this.stringInterner = stringInterner;
         this.compareStrategy = compareStrategy;
     }
@@ -62,7 +62,7 @@ public class FileCollectionSnapshotBuilder implements FileSnapshotVisitor {
     protected void collectFileSnapshot(FileSnapshot fileSnapshot) {
         String absolutePath = fileSnapshot.getPath();
         if (!snapshots.containsKey(absolutePath)) {
-            NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
+            NormalizedFileSnapshot normalizedSnapshot = pathNormalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
             collectNormalizedFileSnapshot(absolutePath, normalizedSnapshot);
         }
     }
@@ -77,6 +77,6 @@ public class FileCollectionSnapshotBuilder implements FileSnapshotVisitor {
         if (snapshots.isEmpty()) {
             return FileCollectionSnapshot.EMPTY;
         }
-        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
+        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, pathNormalizationStrategy.isPathAbsolute());
     }
 }

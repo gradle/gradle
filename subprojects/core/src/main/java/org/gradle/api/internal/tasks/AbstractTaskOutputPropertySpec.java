@@ -47,7 +47,7 @@ abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDepreca
         return this;
     }
 
-    public PathNormalizationStrategy getSnapshotNormalizationStrategy() {
+    public PathNormalizationStrategy getPathNormalizationStrategy() {
         return OutputPathNormalizationStrategy.getInstance();
     }
 

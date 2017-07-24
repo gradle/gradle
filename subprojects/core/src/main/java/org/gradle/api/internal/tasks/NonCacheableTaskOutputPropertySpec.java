@@ -48,8 +48,8 @@ public class NonCacheableTaskOutputPropertySpec extends AbstractTaskOutputsDepre
     }
 
     @Override
-    public PathNormalizationStrategy getSnapshotNormalizationStrategy() {
-        return parent.getSnapshotNormalizationStrategy();
+    public PathNormalizationStrategy getPathNormalizationStrategy() {
+        return parent.getPathNormalizationStrategy();
     }
 
     @Override

@@ -23,7 +23,7 @@ import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
 public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePropertyBuilder, TaskFilePropertyBuilderInternal {
     @Override
-    TaskInputFilePropertyBuilderInternal withSnapshotNormalizationStrategy(PathNormalizationStrategy snapshotNormalizationStrategy);
+    TaskInputFilePropertyBuilderInternal withPathNormalizationStrategy(PathNormalizationStrategy pathNormalizationStrategy);
 
     @Override
     TaskInputFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter);

@@ -54,7 +54,7 @@ abstract class AbstractTaskStateChangesTest extends Specification {
             return new PropertySpec(
                 propertyName: entry.key,
                 propertyFiles: new SimpleFileCollection([new File(entry.value)]),
-                snapshotNormalizationStrategy: InputPathNormalizationStrategy.ABSOLUTE
+                pathNormalizationStrategy: InputPathNormalizationStrategy.ABSOLUTE
             )
         })
     }
@@ -62,7 +62,7 @@ abstract class AbstractTaskStateChangesTest extends Specification {
     protected static class PropertySpec implements TaskInputFilePropertySpec {
         String propertyName
         FileCollection propertyFiles
-        PathNormalizationStrategy snapshotNormalizationStrategy
+        PathNormalizationStrategy pathNormalizationStrategy
         Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter
 
         @Override
