@@ -28,7 +28,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
-import org.gradle.language.base.internal.plugins.Clean;
 import org.gradle.language.base.internal.plugins.CleanRule;
 
 import java.io.File;
@@ -68,23 +67,16 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
             }
         };
 
-        addPlaceholderAction(project, CLEAN_TASK_NAME, Clean.class, new Action<Delete>() {
-            @Override
-            public void execute(Delete clean) {
-                clean.setDescription("Deletes the build directory.");
-                clean.setGroup(BUILD_GROUP);
-                clean.delete(buildDir);
-            }
-        });
-
         // Register at least the project buildDir as a directory to be deleted.
         final BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
         buildOutputCleanupRegistry.registerOutputs(buildDir);
 
-        // Register custom targets to be deleted, if configured.
-        project.getTasks().withType(Clean.class, new Action<Clean>() {
+        addPlaceholderAction(project, CLEAN_TASK_NAME, Delete.class, new Action<Delete>() {
             @Override
-            public void execute(final Clean clean) {
+            public void execute(final Delete clean) {
+                clean.setDescription("Deletes the build directory.");
+                clean.setGroup(BUILD_GROUP);
+                clean.delete(buildDir);
                 buildOutputCleanupRegistry.registerOutputs(new Callable<FileCollection>() {
                     @Override
                     public FileCollection call() throws Exception {

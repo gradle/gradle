@@ -30,7 +30,7 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     private final FileResolver fileResolver;
     private final Set<FileCollection> outputs = Sets.newHashSet();
-    private Set<Path> resolvedFiles;
+    private Set<Path> resolvedPaths;
 
     public DefaultBuildOutputCleanupRegistry(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
@@ -38,14 +38,14 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     @Override
     public synchronized void registerOutputs(Object files) {
-        if (resolvedFiles != null) {
-            resolvedFiles = null;
+        if (resolvedPaths != null) {
+            resolvedPaths = null;
         }
         this.outputs.add(fileResolver.resolveFiles(files));
     }
 
     @Override
-    public boolean isSaveToDelete(File file) {
+    public boolean isSafeToDelete(File file) {
         Set<Path> safeToDelete = getResolvedPaths();
         Path absolutePath = file.toPath().toAbsolutePath();
         do {
@@ -58,21 +58,21 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     }
 
     private Set<Path> getResolvedPaths() {
-        if (resolvedFiles == null) {
+        if (resolvedPaths == null) {
             doResolvePaths();
         }
-        return resolvedFiles;
+        return resolvedPaths;
     }
 
     private synchronized void doResolvePaths() {
-        if (resolvedFiles == null) {
-            Set<Path> set = new LinkedHashSet<Path>();
+        if (resolvedPaths == null) {
+            Set<Path> result = new LinkedHashSet<Path>();
             for (FileCollection output : outputs) {
                 for (File file : output.getFiles()) {
-                    set.add(file.toPath().toAbsolutePath());
+                    result.add(file.toPath().toAbsolutePath());
                 }
             }
-            resolvedFiles = set;
+            resolvedPaths = result;
         }
     }
 }

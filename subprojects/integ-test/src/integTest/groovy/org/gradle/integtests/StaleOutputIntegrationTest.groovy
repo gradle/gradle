@@ -110,32 +110,69 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains(':test')
     }
 
+    def "custom clean targets are removed"() {
+        given:
+        buildFile << """
+            apply plugin: 'base'
+            
+            task myTask {
+                outputs.dir "external/output"
+                outputs.file "customFile"
+                outputs.dir "build/dir"
+                doLast {}
+            }
+            
+            clean {
+                delete "customFile"
+            }
+        """
+        def dirInBuildDir = file("build/dir").createDir()
+        def customFile = file("customFile").touch()
+        def myTaskDir = file("external/output").createDir()
+
+        when:
+        succeeds("myTask")
+        then:
+        dirInBuildDir.assertDoesNotExist()
+        customFile.assertDoesNotExist()
+        buildFile.assertExists()
+        // We should improve this eventually.  We currently don't delete _all_ outputs from every task
+        // because we don't configure every clean task and we don't know if it's safe to remove all outputs.
+        myTaskDir.assertExists()
+    }
+
     def "stale outputs are removed after Gradle version change"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            apply plugin: 'base'
+
+            task myTask {
+                outputs.file "build/file"
+                outputs.dir "build/dir"
+                doLast {
+                    assert !file("build/file").exists()
+                    file("build/file").text = "Created"
+                    assert !file("build/dir").exists() 
+                    assert file("build/dir").mkdirs()
+                }
+            }
         """
-        file("src/main/java/Main.java") << """
-            public class Main {}
-        """
+        def dirInBuildDir = file("build/dir").createDir()
+        def fileInBuildDir = file("build/file").touch()
+
+        expect:
+        succeeds("myTask")
 
         when:
-        succeeds("compileJava")
-        then:
-        javaClassFile("Main.class").assertExists().makeOlder()
-
-        when:
-        // Now that we track this, we can detect the situation where
-        // someone builds with Gradle 3.4, then 3.5 and then 3.4 again.
-        // Simulate building with a different version of Gradle
+        // Now that we produce this, we can detect the situation where
+        // someone builds with Gradle 4.3, then 4.2 and then 4.3 again.
         file(".gradle/buildOutputCleanup/cache.properties").text = """
             gradle.version=1.0
         """
-        and:
-        succeeds("compileJava")
-
+        // recreate the output
+        dirInBuildDir.createDir()
+        fileInBuildDir.touch()
         then:
-        // It looks like the build may have been run with a different version of Gradle
-        javaClassFile("Main.class").lastModified() != old(javaClassFile("Main.class").lastModified())
+        succeeds("myTask")
     }
 }

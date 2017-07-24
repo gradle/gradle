@@ -57,7 +57,7 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
     }
 
     @Override
-    public boolean isGeneratedByGradle(final File file) {
+    public boolean isGeneratedByGradle(File file) {
         File absoluteFile = file.getAbsoluteFile();
         return isContainedInAnOutput(absoluteFile) || containsFilesGeneratedByGradle(absoluteFile);
     }
@@ -73,12 +73,12 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
         return false;
     }
 
-    private boolean containsFilesGeneratedByGradle(final File file) {
+    private boolean containsFilesGeneratedByGradle(File file) {
         return outputFileParents.get(file.getPath()) != null;
     }
 
     @Override
-    public void recordOutputs(final TaskExecution taskExecution) {
+    public void recordOutputs(TaskExecution taskExecution) {
         for (String outputFilePath : taskExecution.getDeclaredOutputFilePaths()) {
             FileSnapshot fileSnapshot = fileSystemMirror.getFile(outputFilePath);
             File outputFile = new File(outputFilePath);

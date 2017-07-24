@@ -31,7 +31,7 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
             outputFile = buildDir.file("outputFile")
         }
 
-        void createOutputs() {
+        void createLeftoverOutputs() {
             outputDir.create {
                 file("first-file").text = "leftover file"
                 file("second-file").text = "leftover file"
@@ -96,7 +96,7 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
     def "stale files are removed before task executes"() {
         def staleOutputs = new StaleOutputFixture(file('build'))
         when:
-        staleOutputs.createOutputs()
+        staleOutputs.createLeftoverOutputs()
         succeeds("task")
 
         then:
@@ -106,14 +106,14 @@ class StaleOutputCleanupIntegrationTest extends AbstractIntegrationSpec {
     def "unregistered stale files are not removed before task executes"() {
         def staleOutputs = new StaleOutputFixture(file('not-safe-to-delete'))
         when:
-        staleOutputs.createOutputs()
+        staleOutputs.createLeftoverOutputs()
         succeeds("task")
 
         then:
         staleOutputs.areStillPresent()
     }
 
-    def "overlapping outputs still work"() {
+    def "overlapping outputs are not cleaned up"() {
         def staleOutputs = new StaleOutputFixture(file('build'))
         def outputDir = TextUtil.normaliseFileSeparators(staleOutputs.outputDir.absolutePath)
         def outputFile = TextUtil.normaliseFileSeparators(staleOutputs.outputFile.absolutePath)

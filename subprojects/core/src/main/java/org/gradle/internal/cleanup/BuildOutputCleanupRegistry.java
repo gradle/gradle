@@ -27,6 +27,8 @@ public interface BuildOutputCleanupRegistry {
 
     /**
      * Determines if a file can be cleaned up.
+     *
+     * A file can be cleaned up if it is registered as an output or within a directory registered as an output.
      */
-    boolean isSaveToDelete(File file);
+    boolean isSafeToDelete(File file);
 }

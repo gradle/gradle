@@ -128,12 +128,6 @@ class StaleOutputJavaProject {
         result.assertTaskSkipped(getJarTaskPath())
     }
 
-    void assertDoesNotHaveCleanupMessage(ExecutionResult result) {
-    }
-
-    void assertHasCleanupMessage(ExecutionResult result) {
-    }
-
     boolean assertJarHasDescendants(String... relativePaths) {
         new JarTestFixture(jarFile).hasDescendants(relativePaths)
     }

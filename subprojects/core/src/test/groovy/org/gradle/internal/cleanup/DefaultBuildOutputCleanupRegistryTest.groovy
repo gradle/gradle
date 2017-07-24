@@ -31,8 +31,8 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         given:
         def dir1 = new File('dir1')
         File file1 = new File('someDir/test1.txt')
-        File file2 = new File('someDir/test2.txt')
-        def outputFiles = new SimpleFileCollection(file2)
+        File outputFile = new File('someDir/test2.txt')
+        def outputFiles = new SimpleFileCollection(outputFile)
 
 
         when:
@@ -44,9 +44,9 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         1 * fileResolver.resolveFiles(dir1) >> new SimpleFileCollection(dir1)
         1 * fileResolver.resolveFiles(file1) >> new SimpleFileCollection(file1)
         1 * fileResolver.resolveFiles(outputFiles) >> outputFiles
-        registry.isSaveToDelete(dir1)
-        registry.isSaveToDelete(file1)
-        registry.isSaveToDelete(file2)
+        registry.isSafeToDelete(dir1)
+        registry.isSafeToDelete(file1)
+        registry.isSafeToDelete(outputFile)
     }
 
 }
