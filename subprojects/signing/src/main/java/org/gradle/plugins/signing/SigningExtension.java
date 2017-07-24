@@ -387,7 +387,7 @@ public class SigningExtension {
      * uploadArchives {
      *   repositories {
      *     mavenDeployer {
-     *       beforeDeployment { MavenDeployment deployment ->
+     *       beforeDeployment { MavenDeployment deployment -&gt;
      *         signing.signPom(deployment)
      *       }
      *     }
@@ -435,7 +435,7 @@ public class SigningExtension {
      * uploadArchives {
      *   repositories {
      *     mavenDeployer {
-     *       beforeDeployment { MavenDeployment deployment ->
+     *       beforeDeployment { MavenDeployment deployment -&gt;
      *         signing.signPom(deployment)
      *       }
      *     }

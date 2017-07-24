@@ -50,7 +50,7 @@ import org.gradle.util.ConfigureUtil;
  *
  *       //withProperties allows addition of properties not currently
  *       //modeled by Gradle
- *       withProperties { properties ->
+ *       withProperties { properties -&gt;
  *           //you can tinker with the {@link java.util.Properties} here
  *       }
  *     }

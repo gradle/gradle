@@ -59,7 +59,7 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
 
     /**
      * Returns the contents of this collection as a platform-specific path. This can be used, for example, in an Ant
-     * <path> element.
+     * &lt;path&gt; element.
      *
      * @return The path. Returns an empty string if this collection is empty.
      */

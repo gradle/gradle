@@ -356,7 +356,6 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
 
     /**
      * {@inheritDoc}
-     * @param transformer
      */
     CopySpec filter(Transformer<String, String> transformer);
 

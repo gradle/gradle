@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.NativeComponentSpec;
 /**
  * A visual studio project, created from one or more {@link org.gradle.nativeplatform.NativeBinary} instances.
  *
- * <p/>
+ * <p>
  *
  * The content and location of the generate project file can be modified by the supplied methods:
  *

@@ -101,13 +101,13 @@ import java.util.Set;
  *
  *       //closure executed after .classpath content is loaded from existing file
  *       //but before gradle build information is merged
- *       beforeMerged { classpath ->
+ *       beforeMerged { classpath -&gt;
  *         //you can tinker with the {@link Classpath} here
  *       }
  *
  *       //closure executed after .classpath content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { classpath ->
+ *       whenMerged { classpath -&gt;
  *         //you can tinker with the {@link Classpath} here
  *       }
  *     }

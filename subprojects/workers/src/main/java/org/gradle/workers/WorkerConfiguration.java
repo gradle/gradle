@@ -29,10 +29,10 @@ import java.io.File;
  * to the {@link WorkerExecutor}.
  *
  * <pre>
- *      workerExecutor.submit(RunnableWorkImpl.class) { WorkerConfiguration conf ->
+ *      workerExecutor.submit(RunnableWorkImpl.class) { WorkerConfiguration conf -&gt;
  *          conf.isolationMode = IsolationMode.PROCESS
  *
- *          forkOptions { JavaForkOptions options ->
+ *          forkOptions { JavaForkOptions options -&gt;
  *              options.maxHeapSize = "512m"
  *              options.systemProperty 'some.prop', 'value'
  *              options.jvmArgs "-server"

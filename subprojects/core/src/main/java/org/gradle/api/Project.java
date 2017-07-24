@@ -119,7 +119,7 @@ import java.util.concurrent.Callable;
  * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec plugins script block}.
  * </p>
  *
- * <a name="properties"/> <h3>Properties</h3>
+ * <a name="properties"></a> <h3>Properties</h3>
  *
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
  * property or method which your script uses is delegated through to the associated <code>Project</code> object.  This
@@ -144,7 +144,7 @@ import java.util.concurrent.Callable;
  * of the corresponding getter or setter method.</li>
  *
  * <li>The <em>extra</em> properties of the project.  Each project maintains a map of extra properties, which
- * can contain any arbitrary name -> value pair.  Once defined, the properties of this scope are readable and writable.
+ * can contain any arbitrary name -&gt; value pair.  Once defined, the properties of this scope are readable and writable.
  * See <a href="#extraproperties">extra properties</a> for more details.</li>
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
@@ -167,7 +167,7 @@ import java.util.concurrent.Callable;
  * <p>When writing a property, the project searches the above scopes in order, and sets the property in the first scope
  * it finds the property in. If not found, an exception is thrown. See {@link #setProperty(String, Object)} for more details.</p>
  *
- * <a name="extraproperties"/> <h4>Extra Properties</h4>
+ * <a name="extraproperties"></a> <h4>Extra Properties</h4>
  *
  * All extra properties must be defined through the &quot;ext&quot; namespace. Once an extra property has been defined,
  * it is available directly on the owning object (in the below case the Project, Task, and sub-projects respectively) and can
@@ -508,7 +508,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * closure is executed to configure the task.</p> <p/> <p>After the task is added to the project, it is made
+     * closure is executed to configure the task.</p> <p>After the task is added to the project, it is made
      * available as a property of the project, so that you can reference the task by name in your build file.  See <a
      * href="#properties">here</a> for more details</p>
      *
@@ -1224,7 +1224,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
-     * <p>Returns the {@link Convention} for this project.</p> <p/> <p>You can access this property in your build file
+     * <p>Returns the {@link Convention} for this project.</p> <p>You can access this property in your build file
      * using <code>convention</code>. You can also can also access the properties and methods of the convention object
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *
@@ -1430,13 +1430,13 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Configures an object via a closure, with the closure's delegate set to the supplied object. This way you don't
-     * have to specify the context of a configuration statement multiple times. <p/> Instead of:</p>
+     * have to specify the context of a configuration statement multiple times. <p> Instead of:</p>
      * <pre>
      * MyType myType = new MyType()
      * myType.doThis()
      * myType.doThat()
      * </pre>
-     * <p/> you can do:
+     * <p> you can do:
      * <pre>
      * MyType myType = configure(new MyType()) {
      *     doThis()
@@ -1447,7 +1447,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>The object being configured is also passed to the closure as a parameter, so you can access it explicitly if
      * required:</p>
      * <pre>
-     * configure(someObj) { obj -> obj.doThis() }
+     * configure(someObj) { obj -&gt; obj.doThis() }
      * </pre>
      *
      * @param object The object to configure
@@ -1657,7 +1657,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ProjectState getState();
 
     /**
-     * <p>Creates a container for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.<p>
+     * <p>Creates a container for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.</p>
      *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *

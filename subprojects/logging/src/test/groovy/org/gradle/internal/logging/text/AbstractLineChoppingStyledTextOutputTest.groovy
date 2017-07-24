@@ -18,6 +18,7 @@ package org.gradle.internal.logging.text
 import org.gradle.internal.SystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -145,6 +146,43 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
         then:
         result.toString() == "[a][---][a][---][a]"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2077")
+    def "can append consecutive return character on Windows"() {
+        System.setProperty("line.separator", "\r\n")
+        def output = output()
+
+        when:
+        output.text('\r')
+        output.text("\r\na")
+
+        then:
+        result.toString() == "[\r]{eol}{start}[a]"
+    }
+
+    def "can append data after a carriage return on Windows"() {
+        System.setProperty("line.separator", "\r\n")
+        def output = output()
+
+        when:
+        output.text('\r')
+        output.text('a')
+
+        then:
+        result.toString() == "[\ra]"
+    }
+
+    def "can append new line after multiple carriage return followed by data on Windows"() {
+        System.setProperty("line.separator", "\r\n")
+        def output = output()
+
+        when:
+        output.text('\r\r\r')
+        output.text('\r\r\r\na')
+
+        then:
+        result.toString() == "[\r\r][\r\r\r]{eol}{start}[a]"
     }
 
     def "can split eol across style changes"() {

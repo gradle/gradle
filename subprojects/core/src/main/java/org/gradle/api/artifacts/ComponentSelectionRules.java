@@ -32,19 +32,19 @@ import org.gradle.internal.HasInternalProtocol;
  *         conf {
  *             resolutionStrategy {
  *                 componentSelection {
- *                     all { ComponentSelection selection ->
- *                         if (selection.candidate.module == 'someModule' && selection.candidate.version == '1.1') {
+ *                     all { ComponentSelection selection -&gt;
+ *                         if (selection.candidate.module == 'someModule' &amp;&amp; selection.candidate.version == '1.1') {
  *                             selection.reject("bad version '1.1' for 'someModule'")
  *                         }
  *                     }
- *                     all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
- *                         if (selection.candidate.module == 'someModule' && descriptor.branch == 'testing') {
+ *                     all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata -&gt;
+ *                         if (selection.candidate.module == 'someModule' &amp;&amp; descriptor.branch == 'testing') {
  *                             if (metadata.status != 'milestone') {
  *                                 selection.reject("only use milestones for someModule:testing")
  *                             }
  *                         }
  *                     }
- *                     withModule("org.sample:api") { ComponentSelection selection ->
+ *                     withModule("org.sample:api") { ComponentSelection selection -&gt;
  *                         if (selection.candidate.version == "1.1") {
  *                             selection.reject("known bad version")
  *                         }

@@ -29,6 +29,7 @@ import org.gradle.caching.configuration.BuildCache;
  * </p>
  * <p>
  * In {@literal settings.gradle}:
+ * </p>
  *
  * <pre>
  *     buildCache {
@@ -40,7 +41,6 @@ import org.gradle.caching.configuration.BuildCache;
  *         }
  *     }
  * </pre>
- * </p>
  *
  * @param <T> the type of build cache configuration this factory can handle.
  * @since 3.5

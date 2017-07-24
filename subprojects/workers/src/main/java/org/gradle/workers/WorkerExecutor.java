@@ -32,7 +32,7 @@ import org.gradle.api.Incubating;
  * and an action to configure the unit of work (via {@link WorkerConfiguration}).
  *
  * <pre>
- *      workerExecutor.submit(RunnableWorkImpl.class) { WorkerConfiguration conf ->
+ *      workerExecutor.submit(RunnableWorkImpl.class) { WorkerConfiguration conf -&gt;
  *          // Set the isolation mode for the worker
  *          conf.isolationMode = IsolationMode.NONE
  *

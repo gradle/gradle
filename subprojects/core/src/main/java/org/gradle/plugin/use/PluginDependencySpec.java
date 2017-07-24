@@ -34,7 +34,7 @@ public interface PluginDependencySpec {
 
     /**
      * Specify the version of the plugin to depend on.
-     * <p/>
+     *
      * <pre>
      * plugins {
      *     id "org.company.myplugin" version "1.0"
@@ -54,10 +54,9 @@ public interface PluginDependencySpec {
     /**
      * Specifies whether the plugin should be applied to the current project. Otherwise it is only put
      * on the project's classpath.
-     * <p/>
+     * <p>
      * This is useful when reusing classes from a plugin or to apply a plugin to sub-projects:
      *
-     * <p>
      * <pre>
      * plugins {
      *     id "org.company.myplugin" version "1.0" apply false
@@ -69,7 +68,6 @@ public interface PluginDependencySpec {
      *     }
      * }
      * </pre>
-     * </p>
      *
      * @param apply whether to apply the plugin to the current project or not. Defaults to true
      * @return this

@@ -30,7 +30,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
- * idea.workspace.iws.withXml { provider ->
+ * idea.workspace.iws.withXml { provider -&gt;
  *     provider.asNode().appendNode('gradleRocks', 'true')
  * }
  * </pre>

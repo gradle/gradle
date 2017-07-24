@@ -58,7 +58,7 @@ package org.gradle.api.plugins;
  *
  * Many Gradle objects are extension aware. This includes; projects, tasks, configurations, dependencies etc.
  * <p>
- * For more on adding & creating extensions, see {@link ExtensionContainer}.
+ * For more on adding &amp; creating extensions, see {@link ExtensionContainer}.
  * <p>
  * For more on extra properties, see {@link ExtraPropertiesExtension}.
  * <p>
@@ -74,7 +74,7 @@ package org.gradle.api.plugins;
  * If <code>propertyMissing()</code> always returns a value for any property, <em>Gradle will not search the rest of the scopes below.</em></li>
  *
  * <li>The <em>extra</em> properties of the object.  Each object maintains a map of extra properties, which
- * can contain any arbitrary name -> value pair.  Once defined, the properties of this scope are readable and writable.</li>
+ * can contain any arbitrary name -&gt; value pair.  Once defined, the properties of this scope are readable and writable.</li>
  *
  * <li>The <em>extensions</em> added to the object by plugins. Each extension is available as a read-only property with the same name as the extension.</li>
  * </ul>

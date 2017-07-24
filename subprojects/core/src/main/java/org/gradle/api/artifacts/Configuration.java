@@ -41,7 +41,6 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * If you want to refer to the artifacts declared in this configuration
  * please use {@link #getArtifacts()} or {@link #getAllArtifacts()}.
  * Read more about declaring artifacts in the configuration in docs for {@link org.gradle.api.artifacts.dsl.ArtifactHandler}
- * <p>
  */
 @HasInternalProtocol
 public interface Configuration extends FileCollection, HasConfigurableAttributes<Configuration> {
@@ -351,7 +350,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * This method is useful for specifying default dependencies for a configuration:
      * <pre autoTested='true'>
      * configurations { conf }
-     * configurations['conf'].defaultDependencies { dependencies ->
+     * configurations['conf'].defaultDependencies { dependencies -&gt;
      *      dependencies.add(owner.project.dependencies.create("org.gradle:my-util:1.0"))
      * }
      * </pre>

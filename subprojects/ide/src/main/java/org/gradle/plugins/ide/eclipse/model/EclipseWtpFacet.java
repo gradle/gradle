@@ -55,13 +55,13 @@ import static org.gradle.util.ConfigureUtil.configure;
  *
  *         //closure executed after wtp facet file content is loaded from existing file
  *         //but before gradle build information is merged
- *         beforeMerged { wtpFacet ->
+ *         beforeMerged { wtpFacet -&gt;
  *           //tinker with {@link WtpFacet} here
  *         }
  *
  *         //closure executed after wtp facet file content is loaded from existing file
  *         //and after gradle build information is merged
- *         whenMerged { wtpFacet ->
+ *         whenMerged { wtpFacet -&gt;
  *           //you can tinker with the {@link WtpFacet} here
  *         }
  *       }

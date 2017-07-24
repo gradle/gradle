@@ -34,8 +34,10 @@ public interface ExtensionContainer {
      * Adds a new extension to this container.
      *
      * Adding an extension of name 'foo' will:
+     * <ul>
      * <li> add 'foo' dynamic property
      * <li> add 'foo' dynamic method that accepts a closure that is a configuration script block
+     * </ul>
      *
      * The extension will be exposed as {@code publicType}.
      *
@@ -52,8 +54,10 @@ public interface ExtensionContainer {
      * Adds a new extension to this container.
      *
      * Adding an extension of name 'foo' will:
+     * <ul>
      * <li> add 'foo' dynamic property
      * <li> add 'foo' dynamic method that accepts a closure that is a configuration script block
+     * </ul>
      *
      * The extension will be exposed as {@code publicType}.
      *
@@ -70,8 +74,10 @@ public interface ExtensionContainer {
      * Adds a new extension to this container.
      *
      * Adding an extension of name 'foo' will:
+     * <ul>
      * <li> add 'foo' dynamic property
      * <li> add 'foo' dynamic method that accepts a closure that is a configuration script block
+     * </ul>
      *
      * The extension will be exposed as {@code extension.getClass()} unless the extension itself declares a preferred public type via the {@link org.gradle.api.reflect.HasPublicType} protocol.
      *

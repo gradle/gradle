@@ -26,7 +26,9 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
  *
  * <p>Automatically includes the {@link AssemblerLangPlugin} for core Assembler support and the {@link NativeComponentPlugin} for native component support.</p>
  *
+ * <ul>
  * <li>Creates a {@link org.gradle.language.assembler.tasks.Assemble} task for each {@link org.gradle.language.assembler.AssemblerSourceSet} to assemble the sources.</li>
+ * </ul>
  */
 @Incubating
 public class AssemblerPlugin implements Plugin<Project> {

@@ -144,21 +144,22 @@ public class GroovyCompileOptions extends AbstractOptions {
      * A Groovy script file that configures the compiler, allowing extensive control over how the code is compiled.
      * <p>
      * The script is executed as Groovy code, with the following context:
+     * </p>
      * <ul>
      * <li>The instance of <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a> available as the {@code configuration} variable.</li>
      * <li>All static members of <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a> pre imported.</li>
      * </ul>
-     * </p>
      * <p>
      * This facilitates the following pattern:
+     * </p>
      * <pre>
      * withConfig(configuration) {
      *   // use compiler configuration DSL here
      * }
      * </pre>
-     * </p>
      * <p>
      * For example, to activate type checking for all Groovy classes…
+     * </p>
      * <pre>
      * import groovy.transform.TypeChecked
      *
@@ -166,7 +167,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      *     ast(TypeChecked)
      * }
      * </pre>
-     * </p>
      * <p>
      * Please see <a href="http://docs.groovy-lang.org/latest/html/documentation/#compilation-customizers">the Groovy compiler customization builder documentation</a>
      * for more information about the compiler configuration DSL.

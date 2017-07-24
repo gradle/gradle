@@ -60,7 +60,7 @@ public interface NativeBinarySpec extends BinarySpec {
 
     /**
      * Adds a library as input to this binary.
-     * <p/>
+     * <p>
      * This method accepts the following types:
      *
      * <ul>

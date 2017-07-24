@@ -40,12 +40,12 @@ import org.gradle.api.NonExtensible;
  *          if (!inputs.incremental)
  *              project.delete(outputDir.listFiles())
  *
- *          inputs.outOfDate { change ->
+ *          inputs.outOfDate { change -&gt;
  *              def targetFile = project.file("$outputDir/${change.file.name}")
  *              targetFile.text = change.file.text.reverse()
  *          }
  *
- *          inputs.removed { change ->
+ *          inputs.removed { change -&gt;
  *              def targetFile = project.file("$outputDir/${change.file.name}")
  *              if (targetFile.exists()) {
  *                  targetFile.delete()
@@ -79,18 +79,18 @@ public interface IncrementalTaskInputs {
      * This is <em>not</em> possible in the case of no previous execution, changed input properties, output files, etc.
      * <p>
      * When <code>true</code>:
+     * </p>
      * <ul>
      *     <li>Any input file that has been added or modified since previous execution will be considered 'out-of-date' and reported to {@link #outOfDate}.</li>
      *     <li>Any input files that has been removed since previous execution will be reported to {@link #removed}.</li>
      * </ul>
-     * </p>
      * <p>
      * When <code>false</code>:
+     * </p>
      * <ul>
      *     <li>Every input file will be considered to be 'out-of-date' and will be reported to {@link #outOfDate}.</li>
      *     <li>No input files will be reported to {@link #removed}.</li>
      * </ul>
-     * </p>
      */
     boolean isIncremental();
 
