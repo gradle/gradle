@@ -33,7 +33,7 @@ public class PBXProject extends PBXContainer {
     private final List<PBXTarget> targets;
     private final XCConfigurationList buildConfigurationList;
     private final String compatibilityVersion;
-    private String name;
+    private final String name;
 
     public PBXProject(String name) {
         this.name = Preconditions.checkNotNull(name);
@@ -45,10 +45,6 @@ public class PBXProject extends PBXContainer {
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String v) {
-        name = v;
     }
 
     public PBXGroup getMainGroup() {
