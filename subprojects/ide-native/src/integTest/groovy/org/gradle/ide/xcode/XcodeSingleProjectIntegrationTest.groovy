@@ -61,6 +61,43 @@ rootProject.name = "${PROJECT_NAME}"
         indexTargets.size() == 1
     }
 
+    def "create xcode project Swift module"() {
+        given:
+        buildFile << """
+apply plugin: 'swift-module'
+apply plugin: 'xcode'
+"""
+
+        settingsFile << """
+rootProject.name = "${PROJECT_NAME}"
+"""
+
+        def app = new SwiftHelloWorldApp()
+        app.library.writeSources(file('src/main'))
+
+        when:
+        succeeds("xcode")
+
+        then: 'tasks are executed as expected'
+        executedAndNotSkipped(":xcodeProject", ":xcodeScheme: SharedLibrary", ":xcodeWorkspaceSettings", ":xcode")
+        def project = xcodeProject("${PROJECT_NAME}.xcodeproj").projectFile
+
+        and: 'source files are properly attached to the project'
+        project.mainGroup.children.size() == app.library.sourceFiles.size() + 2
+        project.mainGroup.children*.name == ['Products', 'build.gradle', 'hello.swift', 'sum.swift']
+
+        and: 'targets are properly created'
+        project.targets.size() == 2
+        project.targets*.productType == [PBXTarget.ProductType.DYNAMIC_LIBRARY.identifier] * 2
+        project.targets*.productName == [PROJECT_NAME] * 2
+
+        def gradleTargets = project.targets.findAll(gradleTargets())
+        gradleTargets.size() == 1
+
+        def indexTargets = project.targets.findAll(indexTargets())
+        indexTargets.size() == 1
+    }
+
     private XcodeProjectPackage xcodeProject(String path) {
         new XcodeProjectPackage(file(path))
     }
