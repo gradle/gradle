@@ -445,20 +445,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void resolveGraphIfRequired(final InternalState requestedState) {
-        if (resolvedState == ARTIFACTS_RESOLVED) {
+        if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
             if (dependenciesModified) {
+                // TODO:DAZ I'm not sure we can ever get into this state, now that we prevent modification of resolved configuration
                 throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
             }
             return;
-        }
-        if (resolvedState == GRAPH_RESOLVED) {
-            if (!dependenciesModified) {
-                return;
-            }
-            throw new InvalidUserDataException(String.format("Resolved %s again after modification", getDisplayName()));
-        }
-        if (resolvedState != UNRESOLVED) {
-            throw new IllegalStateException("Graph resolution already performed");
         }
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
@@ -733,27 +725,34 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return;
         }
 
+        preventIllegalParentMutation(type);
+        markAsModified(type);
+        notifyChildren(type);
+    }
+
+    public void validateMutation(MutationType type) {
+        preventIllegalMutation(type);
+        markAsModified(type);
+        notifyChildren(type);
+    }
+
+    private void preventIllegalParentMutation(MutationType type) {
+        // TODO Deprecate and eventually prevent these mutations in parent when already resolved
+        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
+            return;
+        }
+
         if (resolvedState == ARTIFACTS_RESOLVED) {
-            // TODO Deprecate and prevent modifying the dependency attributes of a parent configuration
-            if (type != MutationType.DEPENDENCY_ATTRIBUTES) {
-                throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
-            }
+            throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
         } else if (resolvedState == GRAPH_RESOLVED) {
             if (type == MutationType.DEPENDENCIES) {
                 throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after task dependencies have been resolved", type, getDisplayName()));
             }
         }
-
-        markAsModifiedAndNotifyChildren(type);
-    }
-
-    public void validateMutation(MutationType type) {
-        preventIllegalMutation(type);
-        markAsModifiedAndNotifyChildren(type);
     }
 
     private void preventIllegalMutation(MutationType type) {
-        // TODO Deprecate and eventually prevent these mutations
+        // TODO: Deprecate and eventually prevent these mutations when already resolved
         if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
             return;
         }
@@ -775,17 +774,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void markAsModifiedAndNotifyChildren(MutationType type) {
-        // Notify child configurations
-        for (MutationValidator validator : childMutationValidators) {
-            validator.validateMutation(type);
-        }
+    private void markAsModified(MutationType type) {
         // TODO: Should not be ignoring DEPENDENCY_ATTRIBUTE modifications after resolve
         if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
             return;
         }
-        if (type != MutationType.STRATEGY) {
-            dependenciesModified = true;
+        // Strategy mutations will not require a re-resolve
+        if (type == MutationType.STRATEGY) {
+            return;
+        }
+        dependenciesModified = true;
+    }
+
+    private void notifyChildren(MutationType type) {
+        // Notify child configurations
+        for (MutationValidator validator : childMutationValidators) {
+            validator.validateMutation(type);
         }
     }
 
