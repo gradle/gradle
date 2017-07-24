@@ -32,6 +32,8 @@ import java.util.Map;
 
 public class TestWorkerProgressListener implements TestListenerInternal {
 
+    private static final int MAX_TEST_NAME_LENGTH = 60;
+
     private final ProgressLoggerFactory factory;
     private final ProgressLogger parentProgressLogger;
     private final Map<String, ProgressLogger> testWorkerProgressLoggers = new HashMap<String, ProgressLogger>();
@@ -98,7 +100,7 @@ public class TestWorkerProgressListener implements TestListenerInternal {
     private String createProgressLoggerDescription(TestDescriptorInternal testDescriptor) {
         DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor)testDescriptor;
         DefaultTestClassDescriptor defaultTestClassDescriptor = (DefaultTestClassDescriptor)decoratingTestDescriptor.getDescriptor();
-        return "Executing test " + defaultTestClassDescriptor.getClassName();
+        return "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(defaultTestClassDescriptor.getClassName(), MAX_TEST_NAME_LENGTH);
     }
 
     Map<String, ProgressLogger> getTestWorkerProgressLoggers() {
