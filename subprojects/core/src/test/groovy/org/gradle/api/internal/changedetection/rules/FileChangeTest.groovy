@@ -45,15 +45,4 @@ class FileChangeTest extends Specification {
         FileChange.removed("somePath", "test") | "has been removed"
         FileChange.added("somePath", "test")   | "has been added"
     }
-
-    def "change cannot be from #type to #type"() {
-        when:
-        FileChange.modified("somePath", "test", type, type)
-
-        then:
-        thrown(AssertionError)
-
-        where:
-        type << [FileType.Missing, FileType.Directory]
-    }
 }

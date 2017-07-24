@@ -25,45 +25,42 @@ import java.io.File;
 public class FileChange implements TaskStateChange, InputFileDetails {
     private final String path;
     private final ChangeType change;
-    private final String fileType;
-    private final FileType previousType;
-    private final FileType currentType;
+    private final String title;
+    private final FileType previousFileType;
+    private final FileType currentFileType;
 
     public static FileChange added(String path, String title) {
-        return new FileChange(path, ChangeType.ADDED, title, null, null);
+        return new FileChange(path, ChangeType.ADDED, title, FileType.Missing, FileType.RegularFile);
     }
 
     public static FileChange removed(String path, String title) {
-        return new FileChange(path, ChangeType.REMOVED, title, null, null);
+        return new FileChange(path, ChangeType.REMOVED, title, FileType.RegularFile, FileType.Missing);
     }
 
     public static FileChange modified(String path, String title, FileType previousType, FileType currentType) {
-        assert previousType != null;
-        assert currentType != null;
-        assert !(previousType == FileType.Missing && currentType == FileType.Missing);
-        assert !(previousType == FileType.Directory && currentType == FileType.Directory);
-
         return new FileChange(path, ChangeType.MODIFIED, title, previousType, currentType);
     }
 
-    private FileChange(String path, ChangeType change, String fileType, FileType previousType, FileType currentType) {
+    private FileChange(String path, ChangeType change, String title, FileType previousFileType, FileType currentFileType) {
         this.path = path;
         this.change = change;
-        this.fileType = fileType;
-        this.previousType = previousType;
-        this.currentType = currentType;
+        this.title = title;
+        this.previousFileType = previousFileType;
+        this.currentFileType = currentFileType;
     }
 
     public String getMessage() {
-        ChangeType displayedChange = change != ChangeType.MODIFIED ? change : displayedChangeType(previousType, currentType);
-        return fileType + " file " + path + " " + displayedChange.describe() + ".";
+        return title + " file " + path + " " + getDisplayedChangeType().describe() + ".";
     }
 
-    private static ChangeType displayedChangeType(FileType previous, FileType current) {
-        if (previous == FileType.Missing) {
+    private ChangeType getDisplayedChangeType() {
+        if (change != ChangeType.MODIFIED) {
+            return change;
+        }
+        if (previousFileType == FileType.Missing) {
             return ChangeType.ADDED;
         }
-        if (current == FileType.Missing) {
+        if (currentFileType == FileType.Missing) {
             return ChangeType.REMOVED;
         }
         return ChangeType.MODIFIED;
@@ -109,13 +106,13 @@ public class FileChange implements TaskStateChange, InputFileDetails {
         FileChange that = (FileChange) o;
         return Objects.equal(path, that.path)
             && change == that.change
-            && Objects.equal(fileType, that.fileType)
-            && Objects.equal(previousType, that.previousType)
-            && Objects.equal(currentType, that.currentType);
+            && Objects.equal(title, that.title)
+            && Objects.equal(previousFileType, that.previousFileType)
+            && Objects.equal(currentFileType, that.currentFileType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(path, change, fileType, previousType, currentType);
+        return Objects.hashCode(path, change, title, previousFileType, currentFileType);
     }
 }
