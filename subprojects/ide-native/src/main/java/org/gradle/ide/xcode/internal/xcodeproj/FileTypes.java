@@ -30,6 +30,11 @@ public final class FileTypes {
     public static final String MACH_O_EXECUTABLE = "compiled.mach-o.executable";
 
     /**
+     * Apple UTI for dynamic libraries.
+     */
+    public static final String MACH_O_DYNAMIC_LIBRARY = "compiled.mach-o.dylib";
+
+    /**
      * Map of file extension to Apple UTI (Uniform Type Identifier).
      */
     public static final ImmutableMap<String, String> FILE_EXTENSION_TO_UTI =
