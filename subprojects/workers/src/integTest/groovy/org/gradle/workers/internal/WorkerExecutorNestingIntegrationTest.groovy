@@ -47,15 +47,15 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     @Unroll
     def "workers with classpath isolation cannot spawn more work with #nestedIsolationMode"() {
         buildFile << """
-            ${getRunnableWithNesting("IsolationMode.CLASSPATH", nestedIsolationMode)}
+            ${getRunnableWithNesting("IsolationMode.CLASSLOADER", nestedIsolationMode)}
             task runInWorker(type: NestingWorkerTask)
         """.stripIndent()
 
-        when:
-        def gradle = executer.withTasks("runInWorker").start()
+        expect:
+        fails("runInWorker")
 
-        then:
-        gradle.waitForFailure()
+        and:
+        failure.assertHasCause("No service of type WorkerExecutor available in DefaultServiceRegistry.")
 
         where:
         nestedIsolationMode << ISOLATION_MODES
@@ -72,11 +72,11 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
             task runInWorker(type: NestingWorkerTask)
         """.stripIndent()
 
-        when:
-        def gradle = executer.withTasks("runInWorker").start()
+        expect:
+        fails("runInWorker")
 
-        then:
-        gradle.waitForFailure()
+        and:
+        failure.assertHasCause("No service of type WorkerExecutor available in DefaultServiceRegistry.")
 
         where:
         nestedIsolationMode << ISOLATION_MODES

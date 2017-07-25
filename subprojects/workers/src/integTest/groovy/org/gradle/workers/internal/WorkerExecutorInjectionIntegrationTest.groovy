@@ -29,14 +29,11 @@ class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorInteg
             task runInWorker(type: InjectingWorkerTask)
         """.stripIndent()
 
-        when:
-        def gradle = executer.withTasks("runInWorker").start()
-
-        then:
-        gradle.waitForFailure()
+        expect:
+        fails("runInWorker")
 
         and:
-        gradle.errorOutput.contains("No service of type $forbiddenType.simpleName")
+        failure.assertHasCause("No service of type $forbiddenType.simpleName")
 
         where:
         forbiddenType << [Project, FileResolver]
