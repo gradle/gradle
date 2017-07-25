@@ -60,6 +60,10 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         cleanup = false;
     }
 
+    public boolean isCleanup() {
+        return cleanup;
+    }
+
     public Statement apply(final Statement base, Description description) {
         Class<?> testClass = description.getTestClass();
         init(description.getMethodName(), testClass.getSimpleName());
