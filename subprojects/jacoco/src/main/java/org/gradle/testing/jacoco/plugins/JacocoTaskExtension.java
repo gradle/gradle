@@ -263,13 +263,19 @@ public class JacocoTaskExtension {
     /**
      * Gets all properties in the format expected of the agent JVM argument.
      *
+     * @param useAbsolutePaths return all paths as absolute paths
+     *
      * @return state of extension in a JVM argument
      */
-    public String getAsJvmArg() {
+    public String getAsJvmArg(boolean useAbsolutePaths) {
         StringBuilder builder = new StringBuilder();
-        ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());
+        ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir(), useAbsolutePaths);
         builder.append("-javaagent:");
-        builder.append(GFileUtils.relativePath(task.getWorkingDir(), agent.getJar()));
+        if (useAbsolutePaths) {
+            builder.append(agent.getJar().getAbsoluteFile());
+        } else {
+            builder.append(GFileUtils.relativePath(task.getWorkingDir(), agent.getJar()));
+        }
         builder.append('=');
         argument.append("destfile", getDestinationFile());
         argument.append("append", isAppend());
@@ -293,15 +299,26 @@ public class JacocoTaskExtension {
         return builder.toString();
     }
 
+    /**
+     * Gets all properties in the format expected of the agent JVM argument. Paths are specified as relative.
+     *
+     * @return state of extension in a JVM argument
+     */
+    public String getAsJvmArg() {
+        return getAsJvmArg(false);
+    }
+
     private static class ArgumentAppender {
 
         private final StringBuilder builder;
         private final File workingDirectory;
+        private final boolean useAbsolutePaths;
         private boolean anyArgs;
 
-        public ArgumentAppender(StringBuilder builder, File workingDirectory) {
+        public ArgumentAppender(StringBuilder builder, File workingDirectory, boolean useAbsolutePaths) {
             this.builder = builder;
             this.workingDirectory = workingDirectory;
+            this.useAbsolutePaths = useAbsolutePaths;
         }
 
         public void append(String name, Object value) {
@@ -316,7 +333,11 @@ public class JacocoTaskExtension {
                 if (value instanceof Collection) {
                     builder.append(Joiner.on(':').join((Collection) value));
                 } else if (value instanceof File) {
-                    builder.append(GFileUtils.relativePath(workingDirectory, (File) value));
+                    if (useAbsolutePaths) {
+                        builder.append(((File) value).getAbsolutePath());
+                    } else {
+                        builder.append(GFileUtils.relativePath(workingDirectory, (File) value));
+                    }
                 } else {
                     builder.append(value);
                 }

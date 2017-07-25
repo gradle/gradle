@@ -48,7 +48,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
     @Requires(TestPrecondition.ONLINE)
     @Unroll
     @Issue("GRADLE-3498")
-    def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {
+    def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue absolutePaths: #absolutePaths'() {
         given:
         project.apply plugin: 'java'
         project.repositories.jcenter()
@@ -72,8 +72,16 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
             jmx = true
         }
 
+        def buildDir
+        if (absolutePaths) {
+            buildDir = project.file('build').toString()
+        } else {
+            buildDir = 'build';
+        }
+
+
         def expected = new StringBuilder().with { builder ->
-            builder << "destfile=build/jacoco/fake.exec,"
+            builder << "destfile=${buildDir}/jacoco/fake.exec,"
             builder << "append=false,"
             builder << "includes=org.*:*.?acoco*,"
             builder << "excludes=org.?joberstar,"
@@ -84,17 +92,18 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
             builder << "output=tcpserver,"
             builder << "address=1.1.1.1,"
             builder << "port=100,"
-            builder << "classdumpdir=build/jacoco-dump,"
+            builder << "classdumpdir=${buildDir}/jacoco-dump,"
             builder << "jmx=true"
             builder.toString()
         }
 
         then:
-        def jvmArg = extension.asJvmArg
+        def jvmArg = extension.getAsJvmArg(absolutePaths)
         jvmArg.replaceFirst(/-javaagent:[^=]*\.jar=/, '') == expected
 
         where:
         includeNoLocationClassesValue << [true, false]
+        absolutePaths << [true, false]
     }
 
     def "declares task property values for group and description"() {
