@@ -21,7 +21,6 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
-import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -77,7 +76,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                         NormalizedFileSnapshot previousNormalizedSnapshot = previous.get(currentAbsolutePath);
                         FileContentSnapshot previousSnapshot = previousNormalizedSnapshot.getSnapshot();
                         if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
-                            return new FileChange(currentAbsolutePath, ChangeType.MODIFIED, fileType);
+                            return FileChange.modified(currentAbsolutePath, fileType, previousSnapshot.getType(), currentSnapshot.getType());
                         }
                         // else, unchanged; check next file
                     } else {
@@ -90,7 +89,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                 }
                 if (unaccountedForPreviousSnapshotsIterator.hasNext()) {
                     String previousAbsolutePath = unaccountedForPreviousSnapshotsIterator.next();
-                    return new FileChange(previousAbsolutePath, ChangeType.REMOVED, fileType);
+                    return FileChange.removed(previousAbsolutePath, fileType, previous.get(previousAbsolutePath).getSnapshot().getType());
                 }
 
                 if (includeAdded) {
@@ -98,8 +97,8 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                         addedIterator = added.iterator();
                     }
                     if (addedIterator.hasNext()) {
-                        String newAbsolutePath = addedIterator.next();
-                        return new FileChange(newAbsolutePath, ChangeType.ADDED, fileType);
+                        String currentAbsolutePath = addedIterator.next();
+                        return FileChange.added(currentAbsolutePath, fileType, current.get(currentAbsolutePath).getSnapshot().getType());
                     }
                 }
 
@@ -136,7 +135,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                         IncrementalFileSnapshotWithAbsolutePath previousSnapshotWithAbsolutePath = previousSnapshotsForNormalizedPath.remove(0);
                         FileContentSnapshot previousSnapshot = previousSnapshotWithAbsolutePath.getSnapshot();
                         if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
-                            return new FileChange(currentAbsolutePath, ChangeType.MODIFIED, fileType);
+                            return FileChange.modified(currentAbsolutePath, fileType, previousSnapshot.getType(), currentSnapshot.getType());
                         }
                     }
                 }
@@ -154,15 +153,16 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
 
                 if (unaccountedForPreviousSnapshotsIterator.hasNext()) {
                     Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshotEntry = unaccountedForPreviousSnapshotsIterator.next();
-                    String normalizedPath = unaccountedForPreviousSnapshotEntry.getKey().getNormalizedPath();
+                    NormalizedFileSnapshot previousSnapshot = unaccountedForPreviousSnapshotEntry.getKey();
+                    String normalizedPath = previousSnapshot.getNormalizedPath();
                     List<IncrementalFileSnapshotWithAbsolutePath> addedFilesForNormalizedPath = addedFiles.get(normalizedPath);
                     if (!addedFilesForNormalizedPath.isEmpty()) {
                         // There might be multiple files with the same normalized path, here we choose one of them
                         IncrementalFileSnapshotWithAbsolutePath modifiedSnapshot = addedFilesForNormalizedPath.remove(0);
-                        return new FileChange(modifiedSnapshot.getAbsolutePath(), ChangeType.MODIFIED, fileType);
+                        return FileChange.modified(modifiedSnapshot.getAbsolutePath(), fileType, previousSnapshot.getSnapshot().getType(), modifiedSnapshot.getSnapshot().getType());
                     } else {
                         IncrementalFileSnapshotWithAbsolutePath removedSnapshot = unaccountedForPreviousSnapshotEntry.getValue();
-                        return new FileChange(removedSnapshot.getAbsolutePath(), ChangeType.REMOVED, fileType);
+                        return FileChange.removed(removedSnapshot.getAbsolutePath(), fileType, removedSnapshot.getSnapshot().getType());
                     }
                 }
 
@@ -174,7 +174,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
 
                     if (addedFilesIterator.hasNext()) {
                         IncrementalFileSnapshotWithAbsolutePath addedFile = addedFilesIterator.next();
-                        return new FileChange(addedFile.getAbsolutePath(), ChangeType.ADDED, fileType);
+                        return FileChange.added(addedFile.getAbsolutePath(), fileType, addedFile.getSnapshot().getType());
                     }
                 }
 
