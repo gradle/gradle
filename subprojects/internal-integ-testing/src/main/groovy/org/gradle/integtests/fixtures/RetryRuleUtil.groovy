@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.testing.internal.util.RetryRule
-import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
@@ -29,20 +28,14 @@ class RetryRuleUtil {
 
     static RetryRule retryCrossVersionTestOnIssueWithReleasedGradleVersion(Specification specification) {
         RetryRule.retryIf(specification) { t ->
-            def daemonFixture = specification.hasProperty("daemonsFixture") ? specification.daemonsFixture : null
+            def daemonsFixture = specification.hasProperty("daemonsFixture") ? specification.daemonsFixture : null
             Throwable failure = t
 
-            def retry = shouldRetry(specification, failure, daemonFixture)
-            if (retry) {
-                daemonFixture?.daemons?.each {
-                    print tailDaemonLog(it.logFile, it.context?.toString())
-                }
-            }
-            return retry
+            return shouldRetry(specification, failure, daemonsFixture)
         }
     }
 
-    private static boolean shouldRetry(Specification specification, Throwable failure, daemonFixture) {
+    private static boolean shouldRetry(Specification specification, Throwable failure, daemonsFixture) {
         String releasedGradleVersion = specification.hasProperty("releasedGradleVersion") ? specification.releasedGradleVersion : null
         def caughtGradleConnectionException = specification.hasProperty("caughtGradleConnectionException") ? specification.caughtGradleConnectionException : null
 
@@ -55,6 +48,8 @@ class RetryRuleUtil {
             println "Failure (caught during test): " + failure
             println "Cause   (caught during test): " + failure?.cause
         }
+
+        println "Daemons (potentially used): ${daemonsFixture?.daemons?.collect { "$it.context.pid (Port $it.port)"}} - ${daemonsFixture.daemonBaseDir}"
 
         if (releasedGradleVersion == null) {
             println "Can not retry cross version test because 'gradleVersion' is unknown"
@@ -104,7 +99,7 @@ class RetryRuleUtil {
         }
 
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
-        didSocketDisappearOnWindows(failure, specification, daemonFixture)
+        didSocketDisappearOnWindows(failure, specification, daemonsFixture)
     }
 
     static RetryRule retryToolingAPIOnWindowsSocketDisappearance(Specification specification) {
@@ -127,14 +122,14 @@ class RetryRuleUtil {
         }
     }
 
-    static private boolean didSocketDisappearOnWindows(Throwable failure, Specification specification, daemonFixture) {
+    static private boolean didSocketDisappearOnWindows(Throwable failure, Specification specification, daemonsFixture) {
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): gradle/gradle#1111
-        if (runsOnWindowsAndJava7or8() && daemonFixture != null) {
+        if (runsOnWindowsAndJava7or8() && daemonsFixture != null) {
             if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
                 getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine" ||
                 getRootCauseMessage(failure) == "Connection refused: no further information") {
 
-                for (def daemon : daemonFixture.daemons) {
+                for (def daemon : daemonsFixture.daemons) {
                     if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket:")
                         || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")
                         || daemon.log.contains("java.io.IOException: An existing connection was forcibly closed by the remote host")) {
@@ -160,13 +155,6 @@ class RetryRuleUtil {
             throwable = throwable.cause
         }
         list
-    }
-
-    static String tailDaemonLog(File logFile, String context) {
-        def lines = 1000
-        String tail = GFileUtils.tail(logFile, lines)
-
-        return "----- $context -----\n----- Last $lines lines from daemon log file - ${logFile.name} -----\n$tail----- End of the daemon log -----\n"
     }
 
     static boolean runsOnWindowsAndJava7or8() {
