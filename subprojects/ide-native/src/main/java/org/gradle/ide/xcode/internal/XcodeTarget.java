@@ -17,21 +17,18 @@
 package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.Named;
+import org.gradle.api.file.FileCollection;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
-import org.gradle.internal.id.UUIDGenerator;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Schemes.html">XCode Scheme Concept</a>
  */
 public class XcodeTarget implements Named {
-    private static final UUIDGenerator ID_GENERATOR = new UUIDGenerator();
-    private final Set<File> sources = new HashSet<File>();
-    private final String id = ID_GENERATOR.generateId().toString();
+    private final String id;
     private final String name;
+    private FileCollection sources;
     private String taskName;
     private String gradleCommand;
 
@@ -40,8 +37,9 @@ public class XcodeTarget implements Named {
     private String productName;
     private String outputFileType;
 
-    public XcodeTarget(String name) {
+    public XcodeTarget(String name, String id) {
         this.name = name;
+        this.id = id;
     }
 
     public String getId() {
@@ -101,11 +99,11 @@ public class XcodeTarget implements Named {
         this.gradleCommand = gradleCommand;
     }
 
-    public Set<File> getSources() {
+    public FileCollection getSources() {
         return sources;
     }
 
-    public void setSources(Set<File> sources) {
-        this.sources.addAll(sources);
+    public void setSources(FileCollection sources) {
+        this.sources = sources;
     }
 }

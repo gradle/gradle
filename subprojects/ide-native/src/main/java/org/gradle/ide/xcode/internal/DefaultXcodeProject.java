@@ -16,30 +16,52 @@
 
 package org.gradle.ide.xcode.internal;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.ide.xcode.XcodeProject;
+import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.rc.WindowsResourceSet;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultXcodeProject implements XcodeProject {
-    private final List<XcodeTarget> targets = new ArrayList<XcodeTarget>();
-    private final List<XcodeScheme> schemes = new ArrayList<XcodeScheme>();
-    private final Set<File> sources = new HashSet<File>();
+    private final GidGenerator gidGenerator = new GidGenerator(Collections.<String>emptySet());
+    private final List<File> additionalFiles = new ArrayList<File>();
+    private XcodeTarget target;
+    private FileCollection sources;
     private File locationDir;
 
-    public Set<File> getSources() {
+    public void addSourceFile(File sourceFile) {
+        additionalFiles.add(sourceFile);
+    }
+
+    public FileCollection getSources() {
         return sources;
     }
 
-    public List<XcodeTarget> getTargets() {
-        return targets;
+    public void setSources(FileCollection sources) {
+        this.sources = sources;
     }
 
-    public List<XcodeScheme> getSchemes() {
-        return schemes;
+    public List<File> getSourceFiles() {
+        Set<File> allSource = new LinkedHashSet<File>();
+        allSource.addAll(additionalFiles);
+        allSource.addAll(sources.getFiles());
+
+        return new ArrayList<File>(allSource);
+    }
+
+    public XcodeTarget getTarget() {
+        return target;
+    }
+
+    public void setTarget(XcodeTarget target) {
+        this.target = target;
     }
 
     public File getLocationDir() {
@@ -48,5 +70,9 @@ public class DefaultXcodeProject implements XcodeProject {
 
     public void setLocationDir(File locationDir) {
         this.locationDir = locationDir;
+    }
+
+    public GidGenerator getGidGenerator() {
+        return gidGenerator;
     }
 }

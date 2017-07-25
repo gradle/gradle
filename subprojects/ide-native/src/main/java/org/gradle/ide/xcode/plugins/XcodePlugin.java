@@ -21,15 +21,16 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Delete;
 import org.gradle.ide.xcode.XcodeExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
-import org.gradle.ide.xcode.internal.XcodeScheme;
 import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.FileTypes;
+import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
@@ -40,10 +41,11 @@ import org.gradle.language.swift.plugins.SwiftModulePlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * A plugin for creating a XCode project for a gradle project.
+ *
+ * @since 4.2
  */
 @Incubating
 public class XcodePlugin extends IdePlugin {
@@ -72,11 +74,7 @@ public class XcodePlugin extends IdePlugin {
         getCleanTask().setDescription("Cleans XCode project files (xcodeproj)");
 
         xcode = project.getExtensions().create("xcode", DefaultXcodeExtension.class);
-        String filename = project.getPath();
-        if (isRoot(project)) {
-            filename = project.getName();
-        }
-        xcode.getProject().setLocationDir(project.file(filename + ".xcodeproj"));
+        xcode.getProject().setLocationDir(project.file(projectName(project) + ".xcodeproj"));
 
         configureForSwiftPlugin(project);
 
@@ -113,13 +111,10 @@ public class XcodePlugin extends IdePlugin {
                 workspaceSettingsFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings"));
                 getLifecycleTask().dependsOn(workspaceSettingsFileTask);
 
-                for (XcodeScheme scheme : xcode.getProject().getSchemes()) {
-                    // TODO - Ensure scheme.getName() give something sensible
-                    GenerateSchemeFileTask schemeFileTask = project.getTasks().create("xcodeScheme" + scheme.getName(), GenerateSchemeFileTask.class);
-                    schemeFileTask.setScheme(scheme);
-                    schemeFileTask.setOutputFile(new File(xcodeProjectPackageDir, "xcshareddata/xcschemes/" + scheme.getName() + ".xcscheme"));
-                    getLifecycleTask().dependsOn(schemeFileTask);
-                }
+                GenerateSchemeFileTask schemeFileTask = project.getTasks().create("xcodeScheme" + xcode.getProject().getTarget().getName(), GenerateSchemeFileTask.class);
+                schemeFileTask.setXcodeProject(xcode.getProject());
+                schemeFileTask.setOutputFile(new File(xcodeProjectPackageDir, "xcshareddata/xcschemes/" + xcode.getProject().getTarget().getName() + ".xcscheme"));
+                getLifecycleTask().dependsOn(schemeFileTask);
             }
         });
     }
@@ -175,17 +170,17 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeForSwift(Project project, PBXTarget.ProductType productType) {
-        if (project.getBuildFile().exists()) {
-            xcode.getProject().getSources().add(project.getBuildFile());
-        }
-
+        // TODO - Reuse the logic from `swift-executable` or `swift-module`
         ConfigurableFileTree sourceTree = project.fileTree("src/main/swift");
         sourceTree.include("**/*.swift");
-        xcode.getProject().getSources().addAll(sourceTree.getFiles());
+        xcode.getProject().setSources(sourceTree);
 
-        XcodeTarget target = newTarget(project.getPath(), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree.getFiles());
-        xcode.getProject().getTargets().add(target);
-        xcode.getProject().getSchemes().add(newScheme(target));
+        if (project.getBuildFile().exists()) {
+            xcode.getProject().addSourceFile(project.getBuildFile());
+        }
+
+        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), xcode.getProject().getGidGenerator(), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
+        xcode.getProject().setTarget(target);
     }
 
     private static String toGradleCommand(Project project) {
@@ -196,8 +191,9 @@ public class XcodePlugin extends IdePlugin {
         }
     }
 
-    private static XcodeTarget newTarget(String name, PBXTarget.ProductType productType, String gradleCommand, String taskName, File outputFile, Set<File> sources) {
-        XcodeTarget target = new XcodeTarget(name + " " + toString(productType));
+    private static XcodeTarget newTarget(String name, GidGenerator gidGenerator, PBXTarget.ProductType productType, String gradleCommand, String taskName, File outputFile, FileCollection sources) {
+        String id = gidGenerator.generateGid("PBXLegacyTarget", name.hashCode());
+        XcodeTarget target = new XcodeTarget(name, id);
         target.setOutputFile(outputFile);
         target.setTaskName(taskName);
         target.setGradleCommand(gradleCommand);
@@ -207,14 +203,6 @@ public class XcodePlugin extends IdePlugin {
         target.setSources(sources);
 
         return target;
-    }
-
-    private static XcodeScheme newScheme(XcodeTarget target) {
-        XcodeScheme scheme = new XcodeScheme(target.getName());
-        scheme.getBuildEntries().add(new XcodeScheme.BuildEntry(target));
-        scheme.setBuildConfiguration("Debug");
-
-        return scheme;
     }
 
     private static File toXcodeWorkspacePackageDir(Project project) {
@@ -233,9 +221,9 @@ public class XcodePlugin extends IdePlugin {
 
     private static String toFileType(PBXTarget.ProductType productType) {
         if (PBXTarget.ProductType.TOOL.equals(productType)) {
-            return FileTypes.MACH_O_EXECUTABLE;
+            return FileTypes.MACH_O_EXECUTABLE.identifier;
         } else if (PBXTarget.ProductType.DYNAMIC_LIBRARY.equals(productType)) {
-            return FileTypes.MACH_O_DYNAMIC_LIBRARY;
+            return FileTypes.MACH_O_DYNAMIC_LIBRARY.identifier;
         } else {
             return "compiled";
         }
@@ -243,5 +231,13 @@ public class XcodePlugin extends IdePlugin {
 
     private static boolean isRoot(Project project) {
         return project.getParent() == null;
+    }
+
+    private static String projectName(Project project) {
+        String projectPath = project.getPath();
+        if (":".equals(projectPath)) {
+            return "__root__";  // TODO - What name should the root project have
+        }
+        return projectPath.substring(1).replace(":", "_");
     }
 }

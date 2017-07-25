@@ -18,97 +18,50 @@ package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * File types used in Apple targets.
  */
-public final class FileTypes {
+public enum FileTypes {
     /**
      * Apple UTI for executables.
      */
-    public static final String MACH_O_EXECUTABLE = "compiled.mach-o.executable";
+    MACH_O_EXECUTABLE("", "compiled.mach-o.executable"),
 
     /**
      * Apple UTI for dynamic libraries.
      */
-    public static final String MACH_O_DYNAMIC_LIBRARY = "compiled.mach-o.dylib";
+    MACH_O_DYNAMIC_LIBRARY("dylib", "compiled.mach-o.dylib"),
+
+    C_SOURCE_CODE("c", "sourcecode.c.c"),
+    CC_SOURCE_CODE("cc", "sourcecode.cpp.cpp"),
+    CPP_SOURCE_CODE("cpp", "sourcecode.cpp.cpp"),
+    CXX_SOURCE_CODE("cxx", "sourcecode.cpp.cpp"),
+    H_SOURCE_CODE("h", "sourcecode.c.h"),
+    SWIFT_SOURCE_CODE("swift", "sourcecode.swift"),
+    XCODE_PROJECT_WRAPPER("xcodeproj", "wrapper.pb-project");
+
+    public final String fileExtension;
+    public final String identifier;
+    FileTypes(String fileExtension, String identifier) {
+        this.fileExtension = fileExtension;
+        this.identifier = identifier;
+    }
+
 
     /**
      * Map of file extension to Apple UTI (Uniform Type Identifier).
      */
-    public static final ImmutableMap<String, String> FILE_EXTENSION_TO_UTI =
-        ImmutableMap.<String, String>builder()
-            .put("a", "archive.ar")
-            .put("app", "wrapper.application")
-            .put("appex", "wrapper.app-extension")
-            .put("bdic", "file")
-            .put("bin", "archive.macbinary")
-            .put("bmp", "image.bmp")
-            .put("bundle", "wrapper.cfbundle")
-            .put("c", "sourcecode.c.c")
-            .put("cc", "sourcecode.cpp.cpp")
-            .put("cpp", "sourcecode.cpp.cpp")
-            .put("css", "text.css")
-            .put("cxx", "sourcecode.cpp.cpp")
-            .put("dart", "sourcecode")
-            .put("dylib", "compiled.mach-o.dylib")
-            .put("exp", "sourcecode.exports")
-            .put("framework", "wrapper.framework")
-            .put("fsh", "sourcecode.glsl")
-            .put("gyp", "sourcecode")
-            .put("gypi", "text")
-            .put("h", "sourcecode.c.h")
-            .put("hxx", "sourcecode.cpp.h")
-            .put("icns", "image.icns")
-            .put("java", "sourcecode.java")
-            .put("jar", "archive.jar")
-            .put("jpeg", "image.jpeg")
-            .put("jpg", "image.jpeg")
-            .put("js", "sourcecode.javascript")
-            .put("json", "text.json")
-            .put("m", "sourcecode.c.objc")
-            .put("mm", "sourcecode.cpp.objcpp")
-            .put("nib", "wrapper.nib")
-            .put("o", "compiled.mach-o.objfile")
-            .put("octest", "wrapper.cfbundle")
-            .put("pdf", "image.pdf")
-            .put("pl", "text.script.perl")
-            .put("plist", "text.plist.xml")
-            .put("pm", "text.script.perl")
-            .put("png", "image.png")
-            .put("proto", "text")
-            .put("py", "text.script.python")
-            .put("r", "sourcecode.rez")
-            .put("rez", "sourcecode.rez")
-            .put("rtf", "text.rtf")
-            .put("s", "sourcecode.asm")
-            .put("storyboard", "file.storyboard")
-            .put("strings", "text.plist.strings")
-            .put("tif", "image.tiff")
-            .put("tiff", "image.tiff")
-            .put("tcc", "sourcecode.cpp.cpp")
-            .put("ttf", "file")
-            .put("vsh", "sourcecode.glsl")
-            .put("xcassets", "folder.assetcatalog")
-            .put("xcconfig", "text.xcconfig")
-            .put("xcodeproj", "wrapper.pb-project")
-            .put("xcdatamodel", "wrapper.xcdatamodel")
-            .put("xcdatamodeld", "wrapper.xcdatamodeld")
-            .put("xctest", "wrapper.cfbundle")
-            .put("xib", "file.xib")
-            .put("y", "sourcecode.yacc")
-            .put("zip", "archive.zip")
-            .build();
+    public static final ImmutableMap<String, String> FILE_EXTENSION_TO_UTI;
 
-    /**
-     * Set of UTIs which only work as "lastKnownFileType" and not "explicitFileType"
-     * in a PBXFileReference.
-     *
-     * Yes, really. Because Xcode.
-     */
-    public static final ImmutableSet<String> EXPLICIT_FILE_TYPE_BROKEN_UTIS =
-        ImmutableSet.of("file.xib");
+    static {
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        for (FileTypes fileType : FileTypes.values()) {
+            builder.put(fileType.fileExtension, fileType.identifier);
+        }
+
+        FILE_EXTENSION_TO_UTI = builder.build();
+    }
 
     /**
      * Multimap of Apple UTI (Uniform Type Identifier) to file extension(s).
@@ -123,9 +76,5 @@ public final class FileTypes {
             builder.put(entry.getValue(), entry.getKey());
         }
         UTI_TO_FILE_EXTENSIONS = builder.build();
-    }
-
-    // Utility class. Do not instantiate.
-    private FileTypes() {
     }
 }

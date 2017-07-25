@@ -62,22 +62,20 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         XCBuildConfiguration buildConfiguration = project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug");
         buildConfiguration.setBuildSettings(new NSDictionary());
 
-        for (File source : xcodeProject.getSources()) {
-            PBXFileReference fileReference = new PBXFileReference(source.getName(), source.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
+        for (File source : xcodeProject.getSourceFiles()) {
+            PBXFileReference fileReference = toFileReference(source);
             pathToFileReference.put(source.getAbsolutePath(), fileReference);
             project.getMainGroup().getChildren().add(fileReference);
         }
 
-        for (XcodeTarget target : xcodeProject.getTargets()) {
-            project.getTargets().add(toGradlePbxTarget(target));
-            project.getTargets().add(toIndexPbxTarget(target));
+        XcodeTarget target = xcodeProject.getTarget();
+        project.getTargets().add(toGradlePbxTarget(target));
+        project.getTargets().add(toIndexPbxTarget(target));
+        PBXFileReference fileReference = new PBXFileReference(target.getOutputFile().getName(), target.getOutputFile().getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
+        fileReference.setExplicitFileType(Optional.of(target.getOutputFileType()));
+        project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
 
-            PBXFileReference fileReference = new PBXFileReference(target.getOutputFile().getName(), target.getOutputFile().getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
-            fileReference.setExplicitFileType(Optional.of(target.getOutputFileType()));
-            project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
-        }
-
-        XcodeprojSerializer serializer = new XcodeprojSerializer(new GidGenerator(Collections.<String>emptySet()), project);
+        XcodeprojSerializer serializer = new XcodeprojSerializer(xcodeProject.getGidGenerator(), project);
         final NSDictionary rootObject = serializer.toPlist();
 
         projectFile.transformAction(new Action<NSDictionary>() {
@@ -92,6 +90,10 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     @Override
     protected XcodeProjectFile create() {
         return new XcodeProjectFile(getPropertyListTransformer());
+    }
+
+    private PBXFileReference toFileReference(File file) {
+        return new PBXFileReference(file.getName(), file.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
     }
 
     private PBXTarget toGradlePbxTarget(XcodeTarget xcodeTarget) {

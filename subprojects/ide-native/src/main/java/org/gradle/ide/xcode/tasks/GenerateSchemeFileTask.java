@@ -19,7 +19,8 @@ package org.gradle.ide.xcode.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
-import org.gradle.ide.xcode.internal.XcodeScheme;
+import org.gradle.ide.xcode.XcodeProject;
+import org.gradle.ide.xcode.internal.DefaultXcodeProject;
 import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.tasks.internal.XcodeSchemeFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
@@ -31,15 +32,15 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask;
  */
 @Incubating
 public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
-    public XcodeScheme scheme;
+    public DefaultXcodeProject xcodeProject;
 
     @Internal
-    public XcodeScheme getScheme() {
-        return scheme;
+    public XcodeProject getXcodeProject() {
+        return xcodeProject;
     }
 
-    public void setScheme(XcodeScheme scheme) {
-        this.scheme = scheme;
+    public void setXcodeProject(XcodeProject xcodeProject) {
+        this.xcodeProject = (DefaultXcodeProject) xcodeProject;
     }
 
     @Override
@@ -53,40 +54,38 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
     }
 
     private void configureBuildAction(XcodeSchemeFile.BuildAction action) {
-        for (final XcodeScheme.BuildEntry entry : scheme.getBuildEntries()) {
-            action.entry(new Action<XcodeSchemeFile.BuildActionEntry>() {
-                @Override
-                public void execute(XcodeSchemeFile.BuildActionEntry buildActionEntry) {
-                    buildActionEntry.setBuildForAnalysing(true);
-                    buildActionEntry.setBuildForArchiving(true);
-                    buildActionEntry.setBuildForProfiling(true);
-                    buildActionEntry.setBuildForRunning(true);
-                    buildActionEntry.setBuildForTesting(true);
-                    buildActionEntry.setBuildableReference(toBuildableReference(entry.getTarget()));
-                }
-            });
-        }
+        action.entry(new Action<XcodeSchemeFile.BuildActionEntry>() {
+            @Override
+            public void execute(XcodeSchemeFile.BuildActionEntry buildActionEntry) {
+                buildActionEntry.setBuildForAnalysing(true);
+                buildActionEntry.setBuildForArchiving(true);
+                buildActionEntry.setBuildForProfiling(true);
+                buildActionEntry.setBuildForRunning(true);
+                buildActionEntry.setBuildForTesting(true);
+                buildActionEntry.setBuildableReference(toBuildableReference(xcodeProject.getTarget()));
+            }
+        });
     }
 
     private void configureTestAction(XcodeSchemeFile.TestAction action) {
-        action.setBuildConfiguration(scheme.getBuildConfiguration());
+        action.setBuildConfiguration("Debug");
     }
 
     private void configureLaunchAction(XcodeSchemeFile.LaunchAction action) {
-        action.setBuildConfiguration(scheme.getBuildConfiguration());
-        action.setRunnablePath(scheme.getBuildEntries().get(0).getTarget().getOutputFile().getAbsolutePath());
+        action.setBuildConfiguration("Debug");
+        action.setRunnablePath(xcodeProject.getTarget().getOutputFile().getAbsolutePath());
     }
 
     private void configureArchiveAction(XcodeSchemeFile.ArchiveAction action) {
-        action.setBuildConfiguration(scheme.getBuildConfiguration());
+        action.setBuildConfiguration("Debug");
     }
 
     private void configureProfileAction(XcodeSchemeFile.ProfileAction action) {
-        action.setBuildConfiguration(scheme.getBuildConfiguration());
+        action.setBuildConfiguration("Debug");
     }
 
     private void configureAnalyzeAction(XcodeSchemeFile.AnalyzeAction action) {
-        action.setBuildConfiguration(scheme.getBuildConfiguration());
+        action.setBuildConfiguration("Debug");
     }
 
     @Override
