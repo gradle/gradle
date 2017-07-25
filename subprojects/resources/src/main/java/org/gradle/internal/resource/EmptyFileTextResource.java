@@ -21,7 +21,7 @@ import java.io.StringReader;
 import java.nio.charset.Charset;
 
 public class EmptyFileTextResource extends UriTextResource {
-    public EmptyFileTextResource(String description, File sourceFile) {
+    EmptyFileTextResource(String description, File sourceFile) {
         super(description, sourceFile);
     }
 

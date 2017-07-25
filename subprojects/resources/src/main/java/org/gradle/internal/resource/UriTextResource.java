@@ -42,13 +42,13 @@ public class UriTextResource implements TextResource {
     private final String description;
     private String displayName;
 
-    public UriTextResource(String description, File sourceFile) {
+    UriTextResource(String description, File sourceFile) {
         this.description = description;
         this.sourceFile = FileUtils.canonicalize(sourceFile);
         this.sourceUri = sourceFile.toURI();
     }
 
-    public UriTextResource(String description, URI sourceUri) {
+    UriTextResource(String description, URI sourceUri) {
         this.description = description;
         this.sourceFile = sourceUri.getScheme().equals("file") ? FileUtils.canonicalize(new File(sourceUri.getPath())) : null;
         this.sourceUri = sourceUri;
@@ -265,7 +265,6 @@ public class UriTextResource implements TextResource {
             return sourceFile;
         }
 
-        @Nullable
         @Override
         public URI getURI() {
             return sourceUri;

@@ -17,6 +17,8 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.internal.resource.EmptyFileTextResource;
+import org.gradle.internal.resource.StringTextResource;
+import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -34,7 +36,8 @@ import static org.gradle.util.Matchers.matchesRegexp;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-public class UriScriptSourceTest {
+public class TextResourceScriptSourceTest {
+    private final BasicTextResourceLoader resourceLoader = new BasicTextResourceLoader();
     private TestFile testDir;
     private File scriptFile;
     private URI scriptFileUri;
@@ -69,8 +72,8 @@ public class UriScriptSourceTest {
     @Test
     public void convenienceMethodScriptForFileThatHasContent() {
         new TestFile(scriptFile).write("content");
-        ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
-        assertThat(source, instanceOf(UriScriptSource.class));
+        ScriptSource source = forFile(scriptFile);
+        assertThat(source, instanceOf(TextResourceScriptSource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getCharset(), equalTo(Charset.forName("utf-8")));
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
@@ -83,7 +86,7 @@ public class UriScriptSourceTest {
 
     @Test
     public void convenienceMethodReplacesFileThatDoesNotExistWithEmptyScript() {
-        ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
+        ScriptSource source = forFile(scriptFile);
         assertThat(source.getResource(), instanceOf(EmptyFileTextResource.class));
         assertNull(source.getResource().getFile());
         assertNull(source.getResource().getCharset());
@@ -206,12 +209,23 @@ public class UriScriptSourceTest {
         assertThat(source1.getClassName(), equalTo(source3.getClassName()));
     }
 
+    @Test
+    public void canConstructSourceFromStringResource() throws IOException {
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("<string>", "resource content"));
+        assertThat(source.getResource(), instanceOf(StringTextResource.class));
+        assertThat(source.getResource().getFile(), nullValue());
+        assertThat(source.getResource().getLocation().getFile(), nullValue());
+        assertThat(source.getResource().getLocation().getURI(), nullValue());
+        assertThat(source.getDisplayName(), equalTo("<string>"));
+        assertThat(source.getClassName(), equalTo("script_5z2up7fl2zfks7lm6sqlalp1q"));
+    }
+
     private ScriptSource forFile(File scriptFile) {
-        return UriScriptSource.file("<file-type>", scriptFile);
+        return new TextResourceScriptSource(resourceLoader.loadFile("<file-type>", scriptFile));
     }
 
     private ScriptSource forUri(URI scriptFileUri) {
-        return UriScriptSource.uri("<file-type>", scriptFileUri);
+        return new TextResourceScriptSource(resourceLoader.loadUri("<file-type>", scriptFileUri));
     }
 
 }

@@ -81,7 +81,9 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex;
@@ -198,6 +200,10 @@ class DependencyManagementBuildScopeServices {
 
     ExternalResourceFileStore createExternalResourceFileStore(CacheScopeMapping cacheScopeMapping) {
         return new ExternalResourceFileStore(cacheScopeMapping.getBaseDirectory(null, "external-resources", VersionStrategy.SharedCache), new TmpDirTemporaryFileProvider());
+    }
+
+    TextResourceLoader createDefaultCachingUrlRequester() {
+        return new BasicTextResourceLoader();
     }
 
     MavenSettingsProvider createMavenSettingsProvider() {

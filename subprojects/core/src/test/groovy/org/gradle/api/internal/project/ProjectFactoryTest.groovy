@@ -19,7 +19,7 @@ package org.gradle.api.internal.project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.groovy.scripts.UriScriptSource
+import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.EmptyFileTextResource
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -58,7 +58,7 @@ class ProjectFactoryTest extends Specification {
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof UriScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof TextResourceScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * projectRegistry.addProject(project)
     }
 
