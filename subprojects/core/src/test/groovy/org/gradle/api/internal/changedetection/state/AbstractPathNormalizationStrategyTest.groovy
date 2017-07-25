@@ -24,7 +24,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSpec {
+class AbstractPathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     StringInterner interner
     FileCollectionInternal files
 
@@ -38,8 +38,9 @@ class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSp
         createFile("dir/resources/input.txt") << "main input"
         createFile("dir/resources/a/input-1.txt") << "input #1"
         createFile("dir/resources/b/input-2.txt") << "input #2"
+        file("empty-dir").mkdirs()
 
-        files = project.files("dir/libs/library-a.jar", "dir/libs/library-b.jar", "dir/resources")
+        files = project.files("dir/libs/library-a.jar", "dir/libs/library-b.jar", "dir/resources", "missing-file", "empty-dir")
     }
 
     private def createFile(String path) {
@@ -52,12 +53,12 @@ class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSp
         project.file(path)
     }
 
-    protected def normalizeWith(SnapshotNormalizationStrategy type) {
+    protected def normalizeWith(PathNormalizationStrategy type) {
         List<FileSnapshot> fileTreeElements = []
         files.each { f ->
             if (f.file) {
                 fileTreeElements.add(new RegularFileSnapshot(f.path, new RelativePath(true, f.name), true, new FileHashSnapshot(HashCode.fromInt(1))))
-            } else {
+            } else if (f.directory) {
                 fileTreeElements.add(new DirectoryFileSnapshot(f.path, new RelativePath(false, f.name), true))
                 project.fileTree(f).visit(new FileVisitor() {
                     @Override
@@ -70,6 +71,8 @@ class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSp
                         fileTreeElements.add(new RegularFileSnapshot(fileDetails.file.path, fileDetails.relativePath, false, new FileHashSnapshot(HashCode.fromInt(1))))
                     }
                 })
+            } else {
+                fileTreeElements.add(new MissingFileSnapshot(f.path, new RelativePath(true, f.name)))
             }
         }
 

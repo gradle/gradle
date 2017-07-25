@@ -27,6 +27,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import javax.annotation.Nullable;
@@ -59,14 +60,19 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     public void snapshotAfterTask() {
         final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties());
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> results = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(getCurrent(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
-            @Override
-            public FileCollectionSnapshot transformEntry(String propertyName, FileCollectionSnapshot beforeExecution) {
-                FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
-                FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-                return createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
-            }
-        }));
+        ImmutableSortedMap<String, FileCollectionSnapshot> results;
+        if (current.getDetectedOverlappingOutputs() == null) {
+            results = outputFilesAfter;
+        } else {
+            results = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(getCurrent(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
+                @Override
+                public FileCollectionSnapshot transformEntry(String propertyName, FileCollectionSnapshot beforeExecution) {
+                    FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
+                    FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
+                    return createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
+                }
+            }));
+        }
         current.setOutputFilesSnapshot(results);
         currentSnapshots = results;
     }
@@ -142,6 +148,9 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
      * </ul>
      */
     private static boolean isOutputEntry(String path, NormalizedFileSnapshot fileSnapshot, Map<String, NormalizedFileSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
+        if (fileSnapshot.getSnapshot().getType() == FileType.Missing) {
+            return false;
+        }
         NormalizedFileSnapshot beforeSnapshot = beforeSnapshots.get(path);
         // Was it created during execution?
         if (beforeSnapshot == null) {

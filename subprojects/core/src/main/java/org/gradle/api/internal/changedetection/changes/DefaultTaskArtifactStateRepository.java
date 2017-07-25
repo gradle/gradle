@@ -164,7 +164,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public void afterOutputsRemovedBeforeTask() {
-            this.outputsRemoved = true;
+            outputsRemoved = true;
         }
 
         @Override

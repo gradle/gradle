@@ -27,10 +27,4 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface TaskFilePropertyBuilder extends TaskPropertyBuilder {
-    /**
-     * Sets which part of the path of files should be considered during up-to-date checks.
-     *
-     * @since 3.1
-     */
-    TaskFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 }

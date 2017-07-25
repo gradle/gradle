@@ -119,7 +119,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         """
             @CacheableTask
             class CustomTask extends DefaultTask {
-                @OutputDirectory File outputDir = temporaryDir
+                @OutputDirectory File outputDir = new File(temporaryDir, 'output')
                 @TaskAction
                 void generate() {
                     new File(outputDir, "output").text = "OK"

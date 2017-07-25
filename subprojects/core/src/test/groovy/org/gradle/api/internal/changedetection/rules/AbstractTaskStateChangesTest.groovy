@@ -24,8 +24,8 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
+import org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy
+import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
@@ -54,7 +54,7 @@ abstract class AbstractTaskStateChangesTest extends Specification {
             return new PropertySpec(
                 propertyName: entry.key,
                 propertyFiles: new SimpleFileCollection([new File(entry.value)]),
-                snapshotNormalizationStrategy: TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
+                pathNormalizationStrategy: InputPathNormalizationStrategy.ABSOLUTE
             )
         })
     }
@@ -62,7 +62,7 @@ abstract class AbstractTaskStateChangesTest extends Specification {
     protected static class PropertySpec implements TaskInputFilePropertySpec {
         String propertyName
         FileCollection propertyFiles
-        SnapshotNormalizationStrategy snapshotNormalizationStrategy
+        PathNormalizationStrategy pathNormalizationStrategy
         Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter
 
         @Override

@@ -18,14 +18,12 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
-import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
     private boolean optional;
-    private SnapshotNormalizationStrategy snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
 
     @Override
     public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
@@ -48,19 +46,13 @@ abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDepreca
         return this;
     }
 
-    public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-        return snapshotNormalizationStrategy;
-    }
-
-    @Override
-    public TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
-        this.snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.valueOf(sensitivity);
-        return this;
+    public PathNormalizationStrategy getPathNormalizationStrategy() {
+        return OutputPathNormalizationStrategy.getInstance();
     }
 
     @Override
     public String toString() {
-        return getPropertyName() + " (" + snapshotNormalizationStrategy + ")";
+        return getPropertyName() + " (OUTPUT)";
     }
 
     public Class<? extends FileCollectionSnapshotter> getSnapshotter() {

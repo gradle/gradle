@@ -60,6 +60,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Removed `TaskFilePropertyBuilder.withPathSensitivity` and `TaskOutputFilePropertyBuilder.withPathSensitivity`
+
+These methods where not meant to be used, since Gradle does not allow to customize the PathSensitivity for output files.
+
 <!--
 ### Example breaking change
 -->

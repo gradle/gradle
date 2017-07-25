@@ -530,10 +530,6 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         taskType << [ "OutputDirectoryTask", "OutputFileTask" ]
     }
 
-    // We don't consider just empty directories as being an "overlapping" output
-    // because if the root directory exists before task execution, we would count that
-    // as an overlapping output, even though it doesn't effect the output.
-    @NotYetImplemented
     def "overlapping directory with external process that creates a directory"() {
         buildFile << """
             task someTask(type: OutputDirectoryTask)

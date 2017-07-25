@@ -61,11 +61,10 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputFilePropertyBuilder optional(boolean optional);
 
     /**
-     * {@inheritDoc}
+     * Sets which part of the path of files should be considered during up-to-date checks.
      *
      * @since 3.1
      */
-    @Override
     TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 
     /**
