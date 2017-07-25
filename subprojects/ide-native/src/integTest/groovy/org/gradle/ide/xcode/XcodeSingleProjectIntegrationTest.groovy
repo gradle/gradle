@@ -98,6 +98,31 @@ rootProject.name = "${PROJECT_NAME}"
         indexTargets.size() == 1
     }
 
+    def "create empty xcode project when no language plugins are applied"() {
+        given:
+        buildFile << """
+apply plugin: 'xcode'
+"""
+
+        settingsFile << """
+rootProject.name = "${PROJECT_NAME}"
+"""
+
+        when:
+        succeeds("xcode")
+
+        then: 'tasks are executed as expected'
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcode")
+        def project = xcodeProject("${PROJECT_NAME}.xcodeproj").projectFile
+
+        and: 'only the build script is attached to the project'
+        project.mainGroup.children.size() == 1
+        project.mainGroup.children*.name == ['build.gradle']
+
+        and: 'no targets are created'
+        project.targets.size() == 0
+    }
+
     private XcodeProjectPackage xcodeProject(String path) {
         new XcodeProjectPackage(file(path))
     }
