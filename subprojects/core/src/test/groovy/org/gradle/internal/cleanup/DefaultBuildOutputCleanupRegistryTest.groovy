@@ -44,9 +44,9 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         1 * fileResolver.resolveFiles(dir1) >> new SimpleFileCollection(dir1)
         1 * fileResolver.resolveFiles(file1) >> new SimpleFileCollection(file1)
         1 * fileResolver.resolveFiles(outputFiles) >> outputFiles
-        registry.isSafeToDelete(dir1)
-        registry.isSafeToDelete(file1)
-        registry.isSafeToDelete(outputFile)
+        registry.isOutputOwnedByBuild(dir1)
+        registry.isOutputOwnedByBuild(file1)
+        registry.isOutputOwnedByBuild(outputFile)
     }
 
 }

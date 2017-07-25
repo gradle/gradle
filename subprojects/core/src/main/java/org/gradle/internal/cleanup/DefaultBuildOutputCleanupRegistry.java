@@ -45,7 +45,7 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     }
 
     @Override
-    public boolean isSafeToDelete(File file) {
+    public boolean isOutputOwnedByBuild(File file) {
         Set<Path> safeToDelete = getResolvedPaths();
         Path absolutePath = file.toPath().toAbsolutePath();
         do {

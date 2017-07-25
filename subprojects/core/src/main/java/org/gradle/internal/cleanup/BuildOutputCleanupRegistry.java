@@ -26,9 +26,9 @@ public interface BuildOutputCleanupRegistry {
     void registerOutputs(Object files);
 
     /**
-     * Determines if a file can be cleaned up.
+     * Determines if an output file is owned by this build and therefore can be safely removed.
      *
-     * A file can be cleaned up if it is registered as an output or within a directory registered as an output.
+     * A file is owned by the build if it is registered as an output directly or within a directory registered as an output.
      */
-    boolean isSafeToDelete(File file);
+    boolean isOutputOwnedByBuild(File file);
 }
