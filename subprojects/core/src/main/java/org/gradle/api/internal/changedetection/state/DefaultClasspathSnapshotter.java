@@ -35,8 +35,8 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy normalizationStrategy) {
-        ResourceHasher classpathResourceHasher = normalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceHasher();
+    public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
+        ResourceHasher classpathResourceHasher = inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceHasher();
         return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathResourceHasher, cacheService, getStringInterner()));
     }
 }
