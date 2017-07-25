@@ -11,6 +11,12 @@ class FunctionalTestProject(model: CIBuildModel, testConfig : TestCoverage) : Pr
     this.name = testConfig.asName()
 
     model.subProjects.forEach { subProject ->
-        buildType(FunctionalTest(model, testConfig, subProject))
+        if (subProject.unitTests && testConfig.testType.unitTests) {
+            buildType(FunctionalTest(model, testConfig, subProject.name))
+        } else if (subProject.functionalTests && testConfig.testType.functionalTests) {
+            buildType(FunctionalTest(model, testConfig, subProject.name))
+        } else if (subProject.crossVersionTests && testConfig.testType.crossVersionTests) {
+            buildType(FunctionalTest(model, testConfig, subProject.name))
+        }
     }
 })

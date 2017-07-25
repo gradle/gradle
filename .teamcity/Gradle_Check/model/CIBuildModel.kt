@@ -1,6 +1,10 @@
 package model
 
-import configurations.*
+import configurations.BuildDistributions
+import configurations.ColonyCompatibility
+import configurations.Gradleception
+import configurations.SanityCheck
+import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 data class CIBuildModel (
@@ -53,84 +57,89 @@ data class CIBuildModel (
                             PerformanceTestType.historical)))
     ) {
 
-    //TODO generate these lists in the Gradle build instead of maintaining them manually (see testGroupings.gradle and buildSplits.gradle)
     val subProjects = listOf(
-            "announce",
-            "antlr",
-            "baseServices",
-            "baseServicesGroovy",
-            "buildCacheHttp",
-            "buildComparison",
-            "buildInit",
-            "cli",
-            "codeQuality",
-            "compositeBuilds",
-            "core",
-            "dependencyManagement",
-            "diagnostics",
-            "ear",
-            "ide",
-            "ideNative",
-            "idePlay",
-            "integTest",
-            "internalIntegTesting",
-            "internalPerformanceTesting",
-            "internalTesting",
-            "ivy",
-            "jacoco",
-            "javascript",
-            "jvmServices",
-            "languageGroovy",
-            "languageJava",
-            "languageJvm",
-            "languageNative",
-            "languageScala",
-            "launcher",
-            "logging",
-            "maven",
-            "messaging",
-            "modelCore",
-            "modelGroovy",
-            "native",
-            "osgi",
-            "platformBase",
-            "platformJvm",
-            "platformNative",
-            "platformPlay",
-            "pluginDevelopment",
-            "pluginUse",
-            "plugins",
-            "processServices",
-            "publish",
-            "reporting",
-            "resources",
-            "resourcesGcs",
-            "resourcesHttp",
-            "resourcesS3",
-            "resourcesSftp",
-            "scala",
-            "signing",
-            "testKit",
-            "testingBase",
-            "testingJvm",
-            "testingNative",
-            "toolingApi",
-            "toolingApiBuilders",
-            "workers",
-            "wrapper"
-    )
+            GradleSubproject("announce"),
+            GradleSubproject("antlr"),
+            GradleSubproject("baseServices"),
+            GradleSubproject("baseServicesGroovy"),
+            GradleSubproject("buildCacheHttp"),
+            GradleSubproject("buildComparison"),
+            GradleSubproject("buildInit"),
+            GradleSubproject("cli", functionalTests = false),
+            GradleSubproject("docs"),
+            GradleSubproject("codeQuality"),
+            GradleSubproject("compositeBuilds"),
+            GradleSubproject("core", crossVersionTests = true),
+            GradleSubproject("dependencyManagement", crossVersionTests = true),
+            GradleSubproject("diagnostics"),
+            GradleSubproject("ear"),
+            GradleSubproject("ide"),
+            GradleSubproject("ideNative"),
+            GradleSubproject("idePlay", crossVersionTests = true),
+            GradleSubproject("integTest", crossVersionTests = true),
+            GradleSubproject("internalIntegTesting"),
+            GradleSubproject("internalPerformanceTesting", crossVersionTests = true),
+            GradleSubproject("internalTesting", functionalTests = false),
+            GradleSubproject("ivy", crossVersionTests = true),
+            GradleSubproject("jacoco"),
+            GradleSubproject("javascript"),
+            GradleSubproject("jvmServices", functionalTests = false),
+            GradleSubproject("languageGroovy"),
+            GradleSubproject("languageJava"),
+            GradleSubproject("languageJvm"),
+            GradleSubproject("languageNative"),
+            GradleSubproject("languageScala"),
+            GradleSubproject("launcher"),
+            GradleSubproject("logging"),
+            GradleSubproject("maven", crossVersionTests = true),
+            GradleSubproject("messaging"),
+            GradleSubproject("modelCore"),
+            GradleSubproject("modelGroovy"),
+            GradleSubproject("native"),
+            GradleSubproject("osgi"),
+            GradleSubproject("platformBase"),
+            GradleSubproject("platformJvm"),
+            GradleSubproject("platformNative"),
+            GradleSubproject("platformPlay"),
+            GradleSubproject("pluginDevelopment"),
+            GradleSubproject("pluginUse", crossVersionTests = true),
+            GradleSubproject("plugins"),
+            GradleSubproject("processServices"),
+            GradleSubproject("publish"),
+            GradleSubproject("reporting"),
+            GradleSubproject("resources"),
+            GradleSubproject("resourcesGcs"),
+            GradleSubproject("resourcesHttp"),
+            GradleSubproject("resourcesS3"),
+            GradleSubproject("resourcesSftp"),
+            GradleSubproject("scala"),
+            GradleSubproject("signing"),
+            GradleSubproject("testKit"),
+            GradleSubproject("testingBase"),
+            GradleSubproject("testingJvm"),
+            GradleSubproject("testingNative"),
+            GradleSubproject("toolingApi", crossVersionTests = true),
+            GradleSubproject("toolingApiBuilders", functionalTests = false),
+            GradleSubproject("workers"),
+            GradleSubproject("wrapper", crossVersionTests = true),
 
-    val  subProjectsWithoutTests = listOf(
-            "buildScanPerformance",
-            "distributions",
-            "docs",
-            "installationBeacon",
-            "internalAndroidPerformanceTesting",
-            "performance",
-            "runtimeApiInfo",
-            "smokeTest",
-            "soak"
+            GradleSubproject("soak", unitTests = false, functionalTests = false),
+
+            GradleSubproject("buildScanPerformance", unitTests = false, functionalTests = false),
+            GradleSubproject("distributions", unitTests = false, functionalTests = false),
+            GradleSubproject("docs", unitTests = false, functionalTests = false),
+            GradleSubproject("installationBeacon", unitTests = false, functionalTests = false),
+            GradleSubproject("internalAndroidPerformanceTesting", unitTests = false, functionalTests = false),
+            GradleSubproject("performance", unitTests = false, functionalTests = false),
+            GradleSubproject("runtimeApiInfo", unitTests = false, functionalTests = false),
+            GradleSubproject("smokeTest", unitTests = false, functionalTests = false)
     )
+}
+
+data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
+    fun asDirectoryName(): String {
+        return name.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
+    }
 }
 
 data class Stage(val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
@@ -158,9 +167,12 @@ enum class JvmVersion {
     java7, java8
 }
 
-enum class TestType {
-    quick, platform, parallel, noDaemon, crossVersion, quickFeedbackCrossVersion, soak, java9Smoke,
-    daemon /* only for <4.1 Gradle versions*/
+enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
+    quick(true, true, false), platform(true, true, false),
+    crossVersion(false, false, true), quickFeedbackCrossVersion(false, false, true),
+    parallel(false, true, false), noDaemon(false, true, false), java9Smoke(false, true, false),
+    soak(false, false, false),
+    daemon(false, true, false) /* only for <4.1 Gradle versions*/
 }
 
 enum class JvmVendor {
