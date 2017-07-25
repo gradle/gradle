@@ -16,9 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.reflect.Instantiator;
-
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class SimpleActionExecutionSpec implements ActionExecutionSpec {
@@ -52,11 +49,5 @@ public class SimpleActionExecutionSpec implements ActionExecutionSpec {
     @Override
     public Object[] getParams(ClassLoader classLoader) {
         return params;
-    }
-
-    @Nullable
-    @Override
-    public Instantiator getActionInstantiator() {
-        return null;
     }
 }

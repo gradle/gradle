@@ -24,11 +24,11 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.workers.internal.ActionExecutionSpec;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
+import org.gradle.workers.internal.DefaultWorkerServer;
 import org.gradle.workers.internal.SimpleActionExecutionSpec;
 import org.gradle.workers.internal.Worker;
 import org.gradle.workers.internal.WorkerDaemonServer;
 import org.gradle.workers.internal.WorkerFactory;
-import org.gradle.workers.internal.WorkerProtocol;
 import org.gradle.workers.internal.WorkerServer;
 
 import javax.inject.Inject;
@@ -65,11 +65,11 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
     protected abstract InvocationContext toInvocationContext(T spec);
 
-    private Class<? extends WorkerProtocol<ActionExecutionSpec>> getServerImplementation() {
+    private Class<? extends WorkerServer<ActionExecutionSpec>> getServerImplementation() {
         switch(workerFactory.getIsolationMode()) {
             case NONE:
             case CLASSLOADER:
-                return WorkerServer.class;
+                return DefaultWorkerServer.class;
             case PROCESS:
                 return WorkerDaemonServer.class;
             default:

@@ -22,7 +22,7 @@ import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 
 import javax.inject.Inject;
 
-public class WorkerDaemonServer extends WorkerServer {
+public class WorkerDaemonServer extends DefaultWorkerServer {
     private final WorkerDirectoryProvider workerDirectoryProvider;
 
     @Inject

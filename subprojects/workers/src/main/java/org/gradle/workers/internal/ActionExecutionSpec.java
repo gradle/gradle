@@ -16,15 +16,8 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.reflect.Instantiator;
-
-import javax.annotation.Nullable;
-
 public interface ActionExecutionSpec extends WorkSpec {
     Class<? extends Runnable> getImplementationClass();
-
-    @Nullable
-    Instantiator getActionInstantiator();
 
     @Override
     String getDisplayName();

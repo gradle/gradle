@@ -102,7 +102,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         // Serialize parameters in this thread prior to starting work in a separate thread
         ActionExecutionSpec spec;
         try {
-            spec = new SerializingActionExecutionSpec(actionClass, description, configuration.getForkOptions().getWorkingDir(), configuration.getParams(), actionInstantiator);
+            spec = new SerializingActionExecutionSpec(actionClass, description, configuration.getForkOptions().getWorkingDir(), configuration.getParams());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
@@ -119,7 +119,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 try {
                     WorkerFactory workerFactory = getWorkerFactory(isolationMode);
                     Worker<ActionExecutionSpec> worker = workerFactory.getWorker(getWorkerServer(isolationMode), daemonForkOptions);
-                    return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation);
+                    return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation, actionInstantiator);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);
                 }
@@ -150,12 +150,12 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
-    private Class<? extends WorkerProtocol<ActionExecutionSpec>> getWorkerServer(IsolationMode isolationMode) {
+    private Class<? extends WorkerServer<ActionExecutionSpec>> getWorkerServer(IsolationMode isolationMode) {
         switch(isolationMode) {
             case AUTO:
             case CLASSLOADER:
             case NONE:
-                return WorkerServer.class;
+                return DefaultWorkerServer.class;
             case PROCESS:
                 return WorkerDaemonServer.class;
             default:

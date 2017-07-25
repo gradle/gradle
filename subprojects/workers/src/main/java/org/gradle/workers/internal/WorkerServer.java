@@ -16,28 +16,10 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 
-public class WorkerServer implements WorkerProtocol<ActionExecutionSpec> {
-    private static final Instantiator DEFAULT_INSTANTIATOR = new DefaultInstantiatorFactory(new AsmBackedClassGenerator()).inject();
+import javax.annotation.Nullable;
 
-    @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
-        try {
-            Class<? extends Runnable> implementationClass = spec.getImplementationClass();
-            Instantiator instantiator = spec.getActionInstantiator() != null ? spec.getActionInstantiator() : DEFAULT_INSTANTIATOR;
-            Runnable runnable = instantiator.newInstance(implementationClass, spec.getParams(implementationClass.getClassLoader()));
-            runnable.run();
-            return new DefaultWorkResult(true, null);
-        } catch (Throwable t) {
-            return new DefaultWorkResult(true, t);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "WorkerServer{}";
-    }
+public interface WorkerServer<T extends WorkSpec> extends WorkerProtocol<T> {
+    DefaultWorkResult execute(T spec, @Nullable Instantiator instantiator);
 }

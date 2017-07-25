@@ -22,6 +22,7 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.workers.IsolationMode;
@@ -38,15 +39,15 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerServer<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
         return new Worker<T>() {
             @Override
             public DefaultWorkResult execute(T spec) {
-                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
+                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation(), null);
             }
 
             @Override
-            public DefaultWorkResult execute(final T spec, WorkerLeaseRegistry.WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+            public DefaultWorkResult execute(final T spec, WorkerLeaseRegistry.WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation, final Instantiator instantiator) {
                 WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
 
                 try {
@@ -55,7 +56,8 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                         public DefaultWorkResult call(BuildOperationContext context) {
                             DefaultWorkResult result;
                             try {
-                                result = DirectInstantiator.INSTANCE.newInstance(workerImplementationClass).execute(spec);
+                                WorkerServer<T> workerServer = DirectInstantiator.INSTANCE.newInstance(workerImplementationClass);
+                                result = workerServer.execute(spec, instantiator);
                             } finally {
                                 //TODO the async work tracker should wait for children of an operation to finish first.
                                 //It should not be necessary to call it here.
