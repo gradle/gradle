@@ -58,3 +58,5 @@ apply from: '../gradle/taskCacheBuildScanUserData.gradle'
 if (!isCiServer || (isCiServer && Boolean.getBoolean('enableCodeQuality'))) {
     apply from: '../gradle/codeQuality.gradle'
 }
+
+apply from: "../gradle/ciReporting.gradle"

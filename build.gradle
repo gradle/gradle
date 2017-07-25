@@ -258,10 +258,6 @@ subprojects {
     }
 
     apply from: "$rootDir/gradle/codeQuality.gradle"
-
-    if (isCiServer) {
-        reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}"
-    }
 }
 
 configurations {
@@ -387,29 +383,4 @@ gradle.buildFinished { result ->
     }
 }
 
-/*
- * When run from a Continuous Integration environment HTML test reports will usually only be inspected
- * if the build failed e.g. due to failed or flaky tests.
- *
- * Deletes HTML test reports so they are not archived on TeamCity and use up unnecessary disk space.
- */
-if (isCiServer) {
-    gradle.buildFinished { buildResult ->
-        if (!buildResult.failure) {
-            logger.quiet "Deleting HTML test reports..."
-
-            subprojects {
-                def htmlTestReportDirs = tasks.withType(Test).collect { it.reports.html.destination }.unique()
-
-                htmlTestReportDirs.each { htmlReportDir ->
-                    logger.info "Deleting test reports directory '$htmlReportDir'."
-                    def success = htmlReportDir.deleteDir()
-
-                    if (!success) {
-                        logger.warn "Unable to delete test report directory '$htmlReportDir'."
-                    }
-                }
-            }
-        }
-    }
-}
+apply from: "gradle/ciReporting.gradle"
