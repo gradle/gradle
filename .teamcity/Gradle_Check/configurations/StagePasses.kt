@@ -51,7 +51,6 @@ class StagePasses(model: CIBuildModel, stageNumber: Int, stage: Stage) : BuildTy
             triggerBuild = always()
             withPendingChangesOnly = true
             param("revisionRule", "lastFinished")
-            triggerRules = triggerExcludes
             param("branchFilter", masterReleaseFiler)
         }
 
