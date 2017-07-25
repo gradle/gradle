@@ -61,18 +61,19 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
                             } else {
                                 String previousAbsolutePath = previous.getKey();
                                 if (includeAdded) {
-                                    remaining = FileChange.added(currentAbsolutePath, fileType);
+                                    remaining = FileChange.added(currentAbsolutePath, fileType, currentNormalizedSnapshot.getSnapshot().getType());
                                 }
-                                return FileChange.removed(previousAbsolutePath, fileType);
+                                return FileChange.removed(previousAbsolutePath, fileType, previousNormalizedSnapshot.getSnapshot().getType());
                             }
                         } else {
                             if (includeAdded) {
-                                return FileChange.added(currentAbsolutePath, fileType);
+                                return FileChange.added(currentAbsolutePath, fileType, current.getValue().getSnapshot().getType());
                             }
                         }
                     } else {
                         if (previousEntries.hasNext()) {
-                            return FileChange.removed(previousEntries.next().getKey(), fileType);
+                            Map.Entry<String, NormalizedFileSnapshot> previousEntry = previousEntries.next();
+                            return FileChange.removed(previousEntry.getKey(), fileType, previousEntry.getValue().getSnapshot().getType());
                         } else {
                             return endOfData();
                         }

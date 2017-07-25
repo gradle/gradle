@@ -41,8 +41,10 @@ class FileChangeTest extends Specification {
         fileChange.message == "test file somePath ${message}."
 
         where:
-        fileChange                             | message
-        FileChange.removed("somePath", "test") | "has been removed"
-        FileChange.added("somePath", "test")   | "has been added"
+        fileChange                                                   | message
+        FileChange.removed("somePath", "test", FileType.RegularFile) | "has been removed"
+        FileChange.removed("somePath", "test", FileType.Directory)   | "has been removed"
+        FileChange.added("somePath", "test", FileType.RegularFile)   | "has been added"
+        FileChange.added("somePath", "test", FileType.Directory)     | "has been added"
     }
 }

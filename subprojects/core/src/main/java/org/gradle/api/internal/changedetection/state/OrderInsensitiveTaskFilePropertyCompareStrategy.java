@@ -89,7 +89,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                 }
                 if (unaccountedForPreviousSnapshotsIterator.hasNext()) {
                     String previousAbsolutePath = unaccountedForPreviousSnapshotsIterator.next();
-                    return FileChange.removed(previousAbsolutePath, fileType);
+                    return FileChange.removed(previousAbsolutePath, fileType, previous.get(previousAbsolutePath).getSnapshot().getType());
                 }
 
                 if (includeAdded) {
@@ -97,8 +97,8 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                         addedIterator = added.iterator();
                     }
                     if (addedIterator.hasNext()) {
-                        String newAbsolutePath = addedIterator.next();
-                        return FileChange.added(newAbsolutePath, fileType);
+                        String currentAbsolutePath = addedIterator.next();
+                        return FileChange.added(currentAbsolutePath, fileType, current.get(currentAbsolutePath).getSnapshot().getType());
                     }
                 }
 
@@ -162,7 +162,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                         return FileChange.modified(modifiedSnapshot.getAbsolutePath(), fileType, previousSnapshot.getSnapshot().getType(), modifiedSnapshot.getSnapshot().getType());
                     } else {
                         IncrementalFileSnapshotWithAbsolutePath removedSnapshot = unaccountedForPreviousSnapshotEntry.getValue();
-                        return FileChange.removed(removedSnapshot.getAbsolutePath(), fileType);
+                        return FileChange.removed(removedSnapshot.getAbsolutePath(), fileType, removedSnapshot.getSnapshot().getType());
                     }
                 }
 
@@ -174,7 +174,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
 
                     if (addedFilesIterator.hasNext()) {
                         IncrementalFileSnapshotWithAbsolutePath addedFile = addedFilesIterator.next();
-                        return FileChange.added(addedFile.getAbsolutePath(), fileType);
+                        return FileChange.added(addedFile.getAbsolutePath(), fileType, addedFile.getSnapshot().getType());
                     }
                 }
 

@@ -29,16 +29,16 @@ public class FileChange implements TaskStateChange, InputFileDetails {
     private final FileType previousFileType;
     private final FileType currentFileType;
 
-    public static FileChange added(String path, String title) {
-        return new FileChange(path, ChangeType.ADDED, title, FileType.Missing, FileType.RegularFile);
+    public static FileChange added(String path, String title, FileType currentFileType) {
+        return new FileChange(path, ChangeType.ADDED, title, FileType.Missing, currentFileType);
     }
 
-    public static FileChange removed(String path, String title) {
-        return new FileChange(path, ChangeType.REMOVED, title, FileType.RegularFile, FileType.Missing);
+    public static FileChange removed(String path, String title, FileType previousFileType) {
+        return new FileChange(path, ChangeType.REMOVED, title, previousFileType, FileType.Missing);
     }
 
-    public static FileChange modified(String path, String title, FileType previousType, FileType currentType) {
-        return new FileChange(path, ChangeType.MODIFIED, title, previousType, currentType);
+    public static FileChange modified(String path, String title, FileType previousFileType, FileType currentFileType) {
+        return new FileChange(path, ChangeType.MODIFIED, title, previousFileType, currentFileType);
     }
 
     private FileChange(String path, ChangeType change, String title, FileType previousFileType, FileType currentFileType) {

@@ -77,8 +77,8 @@ public enum TaskFilePropertyCompareStrategy {
                     case 0:
                         return emptyIterator();
                     case 1:
-                        String path = previous.keySet().iterator().next();
-                        TaskStateChange change = FileChange.removed(path, fileType);
+                        Entry<String, NormalizedFileSnapshot> entry = previous.entrySet().iterator().next();
+                        TaskStateChange change = FileChange.removed(entry.getKey(), fileType, entry.getValue().getSnapshot().getType());
                         return singletonIterator(change);
                     default:
                         return null;
@@ -88,8 +88,8 @@ public enum TaskFilePropertyCompareStrategy {
                 switch (previous.size()) {
                     case 0:
                         if (includeAdded) {
-                            String path = current.keySet().iterator().next();
-                            TaskStateChange change = FileChange.added(path, fileType);
+                            Entry<String, NormalizedFileSnapshot> entry = current.entrySet().iterator().next();
+                            TaskStateChange change = FileChange.added(entry.getKey(), fileType, entry.getValue().getSnapshot().getType());
                             return singletonIterator(change);
                         } else {
                             return emptyIterator();
@@ -124,12 +124,12 @@ public enum TaskFilePropertyCompareStrategy {
             if (includeAdded) {
                 String previousPath = previousEntry.getKey();
                 String currentPath = currentEntry.getKey();
-                TaskStateChange remove = FileChange.removed(previousPath, fileType);
-                TaskStateChange add = FileChange.added(currentPath, fileType);
+                TaskStateChange remove = FileChange.removed(previousPath, fileType, normalizedPrevious.getSnapshot().getType());
+                TaskStateChange add = FileChange.added(currentPath, fileType, normalizedCurrent.getSnapshot().getType());
                 return Iterators.forArray(remove, add);
             } else {
                 String path = previousEntry.getKey();
-                TaskStateChange change = FileChange.removed(path, fileType);
+                TaskStateChange change = FileChange.removed(path, fileType, previousEntry.getValue().getSnapshot().getType());
                 return singletonIterator(change);
             }
         }

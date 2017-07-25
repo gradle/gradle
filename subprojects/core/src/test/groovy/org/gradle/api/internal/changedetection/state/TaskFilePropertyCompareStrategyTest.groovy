@@ -292,11 +292,11 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     def added(String path) {
-        FileChange.added(path, "test")
+        FileChange.added(path, "test", FileType.RegularFile)
     }
 
     def removed(String path) {
-        FileChange.removed(path, "test")
+        FileChange.removed(path, "test", FileType.RegularFile)
     }
 
     def modified(String path, FileType previous, FileType current) {
