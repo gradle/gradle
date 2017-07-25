@@ -66,7 +66,6 @@ data class CIBuildModel (
             GradleSubproject("buildComparison"),
             GradleSubproject("buildInit"),
             GradleSubproject("cli", functionalTests = false),
-            GradleSubproject("docs"),
             GradleSubproject("codeQuality"),
             GradleSubproject("compositeBuilds"),
             GradleSubproject("core", crossVersionTests = true),
