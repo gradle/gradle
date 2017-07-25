@@ -45,7 +45,7 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
                 while (true) {
                     if (currentEntries.hasNext()) {
                         Map.Entry<String, NormalizedFileSnapshot> current = currentEntries.next();
-                        String absolutePath = current.getKey();
+                        String currentAbsolutePath = current.getKey();
                         if (previousEntries.hasNext()) {
                             Map.Entry<String, NormalizedFileSnapshot> previous = previousEntries.next();
                             NormalizedFileSnapshot currentNormalizedSnapshot = current.getValue();
@@ -54,20 +54,20 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
                             String previousNormalizedPath = previousNormalizedSnapshot.getNormalizedPath();
                             if (currentNormalizedPath.equals(previousNormalizedPath)) {
                                 if (!currentNormalizedSnapshot.getSnapshot().isContentUpToDate(previousNormalizedSnapshot.getSnapshot())) {
-                                    return FileChange.modified(absolutePath, fileType,
+                                    return FileChange.modified(currentAbsolutePath, fileType,
                                         previousNormalizedSnapshot.getSnapshot().getType(),
                                         currentNormalizedSnapshot.getSnapshot().getType());
                                 }
                             } else {
-                                String otherAbsolutePath = previous.getKey();
+                                String previousAbsolutePath = previous.getKey();
                                 if (includeAdded) {
-                                    remaining = FileChange.added(absolutePath, fileType);
+                                    remaining = FileChange.added(currentAbsolutePath, fileType);
                                 }
-                                return FileChange.removed(otherAbsolutePath, fileType);
+                                return FileChange.removed(previousAbsolutePath, fileType);
                             }
                         } else {
                             if (includeAdded) {
-                                return FileChange.added(absolutePath, fileType);
+                                return FileChange.added(currentAbsolutePath, fileType);
                             }
                         }
                     } else {
