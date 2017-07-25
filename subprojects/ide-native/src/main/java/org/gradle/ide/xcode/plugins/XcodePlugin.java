@@ -148,11 +148,12 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeForSwift(Project project, PBXTarget.ProductType productType) {
-        // TODO - Reuse the logic from `swift-executable` or `swift-module`
+        // TODO - Reuse the logic from `swift-executable` or `swift-module` to find the sources
         ConfigurableFileTree sourceTree = project.fileTree("src/main/swift");
         sourceTree.include("**/*.swift");
         xcode.getProject().setSources(sourceTree);
 
+        // TODO - Reuse the logic from `swift-executable` or `swift-module` to find the build task
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), xcode.getProject().getGidGenerator(), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
         xcode.getProject().setTarget(target);
 
