@@ -49,7 +49,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
             FileCollection files = outputFileSpec.getPropertyFiles();
             for (File file : files) {
                 if (cleanupRegistry.isOutputOwnedByBuild(file) && !taskOutputFilesRepository.isGeneratedByGradle(file) && file.exists()) {
-                    logger.info("Deleting overlapping output file: {}", file.getAbsolutePath());
+                    logger.info("Deleting stale output file: {}", file.getAbsolutePath());
                     GFileUtils.forceDelete(file);
                 }
             }

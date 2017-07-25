@@ -62,12 +62,12 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
 
     private Boolean isContainedInAnOutput(File file) {
         File currentFile = file;
-        do {
+        while (currentFile != null) {
             if (outputFiles.get(currentFile.getPath()) == Boolean.TRUE) {
                 return true;
             }
             currentFile = currentFile.getParentFile();
-        } while (currentFile != null);
+        }
         return false;
     }
 
