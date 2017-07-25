@@ -38,7 +38,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fooClassFile.exists()
-        nonSkippedTasks.contains(':compileJava')
+        executedAndNotSkipped(':compileJava')
 
         when:
         fooJavaFile.delete()
@@ -50,7 +50,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         then:
         !fooClassFile.exists()
         !barClassFile.exists()
-        nonSkippedTasks.contains(':compileJava')
+        executedAndNotSkipped(':compileJava')
 
         and:
         succeeds('compileJava')
@@ -58,56 +58,92 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         then:
         !fooClassFile.exists()
         !barClassFile.exists()
-        skippedTasks.contains(':compileJava')
+        skipped(':compileJava')
     }
 
     @Issue(['GRADLE-2440', 'GRADLE-2579'])
     def 'stale output file is removed after input source directory is emptied.'() {
-        def inputFile = file("src/data/input.txt")
-        inputFile << "input"
-        def outputFile = file("build/output/data/input.txt")
+        def taskWithSources = new TaskWithSources()
+        taskWithSources.createInputs()
+        buildFile << taskWithSources.buildScript
 
+        when:
+        succeeds(taskWithSources.taskPath)
+
+        then:
+        taskWithSources.outputFile.exists()
+        executedAndNotSkipped(taskWithSources.taskPath)
+
+        when:
+        taskWithSources.removeInputs()
+
+        and:
+        succeeds(taskWithSources.taskPath)
+
+        then:
+        !taskWithSources.outputFile.exists()
+        executedAndNotSkipped(taskWithSources.taskPath)
+
+        and:
+        succeeds(taskWithSources.taskPath)
+
+        then:
+        !taskWithSources.outputFile.exists()
+        skipped(taskWithSources.taskPath)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/973")
+    def "only files owned by the build are deleted"() {
+        def taskWithSources = new TaskWithSources(outputDir: 'unsafe-dir/output')
+        taskWithSources.createInputs()
+        buildFile << taskWithSources.buildScript
+
+        when:
+        succeeds(taskWithSources.taskPath)
+
+        then:
+        taskWithSources.outputFile.exists()
+        executedAndNotSkipped(taskWithSources.taskPath)
+
+        when:
+        taskWithSources.removeInputs()
+        succeeds(taskWithSources.taskPath)
+
+        then:
+        taskWithSources.outputFile.exists()
+        skipped(taskWithSources.taskPath)
+    }
+
+    def "the output directory is not deleted if there are overlapping outputs"() {
+        def taskWithSources = new TaskWithSources()
+        taskWithSources.createInputs()
+        def overlappingOutputFile = file("${taskWithSources.outputDir}/overlapping.txt")
+        buildFile << taskWithSources.buildScript
         buildFile << """
-            task test {
-                def sources = files("src")
-                inputs.dir sources skipWhenEmpty()
-                outputs.dir "build/output"
+            task taskWithOverlap {
+                outputs.file('${taskWithSources.outputDir}/overlapping.txt')
                 doLast {
-                    file("build/output").mkdirs()
-                    sources.asFileTree.visit { details ->
-                        if (!details.directory) {
-                            def output = file("build/output/\$details.relativePath")
-                            output.parentFile.mkdirs()
-                            output.text = details.file.text
-                        }
-                    }
+                    file('${taskWithSources.outputDir}/overlapping.txt').text = "overlapping file"
                 }
             }
-        """
+        """.stripIndent()
 
         when:
-        succeeds('test')
+        succeeds(taskWithSources.taskPath, "taskWithOverlap")
 
         then:
-        outputFile.exists()
-        nonSkippedTasks.contains(':test')
+        taskWithSources.outputFile.exists()
+        overlappingOutputFile.exists()
+        executedAndNotSkipped(taskWithSources.taskPath, ":taskWithOverlap")
 
         when:
-        inputFile.parentFile.deleteDir()
-
-        and:
-        succeeds('test')
+        taskWithSources.removeInputs()
+        succeeds(taskWithSources.taskPath)
 
         then:
-        !outputFile.exists()
-        nonSkippedTasks.contains(':test')
-
-        and:
-        succeeds('test')
-
-        then:
-        !outputFile.exists()
-        skippedTasks.contains(':test')
+        overlappingOutputFile.exists()
+        !taskWithSources.outputFile.exists()
+        executedAndNotSkipped(taskWithSources.taskPath)
     }
 
     def "custom clean targets are removed"() {
@@ -175,4 +211,49 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds("myTask")
     }
+
+    class TaskWithSources {
+        String outputDir = "build/output"
+        File inputFile = file('src/data/input.txt')
+        String taskName = 'test'
+
+        String getBuildScript() {
+            """       
+                apply plugin: 'base'
+
+                task ${taskName} {
+                    def sources = files("src")
+                    inputs.dir sources skipWhenEmpty()
+                    outputs.dir "${outputDir}"
+                    doLast {
+                        file("${outputDir}").mkdirs()
+                        sources.asFileTree.visit { details ->
+                            if (!details.directory) {
+                                def output = file("${outputDir}/\$details.relativePath")
+                                output.parentFile.mkdirs()
+                                output.text = details.file.text
+                            }
+                        }
+                    }
+                }
+            """.stripIndent()
+        }
+
+        File getOutputFile() {
+            file("${outputDir}/data/input.txt")
+        }
+
+        String getTaskPath() {
+            ":${taskName}"
+        }
+
+        void removeInputs() {
+            inputFile.parentFile.deleteDir()
+        }
+
+        void createInputs() {
+            inputFile.text = "input"
+        }
+    }
+
 }

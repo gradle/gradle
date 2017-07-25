@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 
 import java.io.File;
 import java.util.Set;
@@ -38,10 +39,12 @@ import java.util.Set;
 public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(SkipEmptySourceFilesTaskExecuter.class);
     private final TaskInputsListener taskInputsListener;
+    private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
     private final TaskExecuter executer;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, TaskExecuter executer) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, TaskExecuter executer) {
         this.taskInputsListener = taskInputsListener;
+        this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
         this.executer = executer;
     }
 
@@ -61,7 +64,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 boolean deletedFiles = false;
                 boolean debugEnabled = LOGGER.isDebugEnabled();
                 for (File file : outputFileSet) {
-                    if (file.isFile()) {
+                    if (buildOutputCleanupRegistry.isOutputOwnedByBuild(file) && file.isFile()) {
                         if (file.delete()) {
                             if (debugEnabled) {
                                 LOGGER.debug("Deleted stale output file '{}'.", file.getAbsolutePath());

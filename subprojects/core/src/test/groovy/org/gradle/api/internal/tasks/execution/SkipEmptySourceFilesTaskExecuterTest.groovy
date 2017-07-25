@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -42,8 +43,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskContext = Mock(TaskExecutionContext)
     final taskArtifactState = Mock(TaskArtifactState)
     final taskExecutionHistory = Mock(TaskExecutionHistory)
+    final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     final outputFiles = Mock(FileCollection)
-    final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, target)
+    final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, target)
 
     def 'skips task when sourceFiles are empty and no previous output existed'() {
         when:
@@ -124,6 +126,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * outputFiles.files >> previousFiles
 
         then: 'deleting the file succeeds'
+        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
         _ * previousFile.exists() >> true
         _ * previousFile.isFile() >> true
         1 * previousFile.delete() >> true
@@ -131,6 +134,42 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
+
+        then:
+        1 * taskInputsListener.onExecute(task, sourceFiles)
+
+        then:
+        0 * _
+    }
+
+    def 'does not delete previous output when they are not safe to delete'() {
+        given:
+        def previousFile = Mock(File)
+        Set<File> previousFiles = [previousFile]
+
+        when:
+        executer.execute(task, state, taskContext)
+
+        then:
+        _ * task.inputs >> taskInputs
+        1 * taskInputs.sourceFiles >> sourceFiles
+        1 * taskInputs.hasSourceFiles >> true
+        1 * sourceFiles.empty >> true
+
+        then:
+        1 * taskContext.taskArtifactState >> taskArtifactState
+        1 * taskArtifactState.executionHistory >> taskExecutionHistory
+        1 * taskExecutionHistory.outputFiles >> outputFiles
+
+        then: 'if previous output files existed...'
+        1 * outputFiles.empty >> false
+        1 * outputFiles.files >> previousFiles
+
+        then: 'deleting the file succeeds'
+        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> false
+
+        then:
+        1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -163,6 +202,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * outputFiles.files >> previousFiles
 
         then: 'deleting the previous file fails'
+        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
         _ * previousFile.exists() >> true
         _ * previousFile.isFile() >> true
         1 * previousFile.delete() >> false
