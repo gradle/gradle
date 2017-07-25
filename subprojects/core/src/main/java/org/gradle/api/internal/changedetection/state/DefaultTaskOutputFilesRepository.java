@@ -37,21 +37,14 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
 
     private final static String CACHE_DISPLAY_NAME = "Build Output Cleanup Cache";
 
-    private final CacheRepository cacheRepository;
     private final PersistentCache cacheAccess;
     private final FileSystemMirror fileSystemMirror;
     private final PersistentIndexedCache<String, Boolean> outputFiles; // The value is true if it is an output file, false if it is a parent of an output file
 
     public DefaultTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, FileSystemMirror fileSystemMirror, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        this.cacheRepository = cacheRepository;
-        this.cacheAccess = createCache(gradle);
         this.fileSystemMirror = fileSystemMirror;
+        this.cacheAccess = createCacheAccess(cacheRepository, gradle);
         this.outputFiles = cacheAccess.createCache(cacheParameters(inMemoryCacheDecoratorFactory));
-    }
-
-    private static PersistentIndexedCacheParameters<String, Boolean> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new PersistentIndexedCacheParameters<String, Boolean>("outputFiles", String.class, Boolean.class)
-            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
     }
 
     @Override
@@ -96,7 +89,12 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
         }
     }
 
-    protected PersistentCache createCache(Gradle gradle) {
+    private static PersistentIndexedCacheParameters<String, Boolean> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return new PersistentIndexedCacheParameters<String, Boolean>("outputFiles", String.class, Boolean.class)
+            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
+    }
+
+    private static PersistentCache createCacheAccess(CacheRepository cacheRepository, Gradle gradle) {
         return cacheRepository
             .cache(gradle, "buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

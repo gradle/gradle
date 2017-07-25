@@ -48,12 +48,12 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     public boolean isOutputOwnedByBuild(File file) {
         Set<Path> safeToDelete = getResolvedPaths();
         Path absolutePath = file.toPath().toAbsolutePath();
-        do {
+        while (absolutePath != null) {
             if (safeToDelete.contains(absolutePath)) {
                 return true;
             }
             absolutePath = absolutePath.getParent();
-        } while (absolutePath != null);
+        }
         return false;
     }
 
