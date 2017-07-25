@@ -49,7 +49,10 @@ public class DefaultXcodeProject implements XcodeProject {
     public List<File> getSourceFiles() {
         Set<File> allSource = new LinkedHashSet<File>();
         allSource.addAll(additionalFiles);
-        allSource.addAll(sources.getFiles());
+
+        if (sources != null) {
+            allSource.addAll(sources.getFiles());
+        }
 
         return new ArrayList<File>(allSource);
     }

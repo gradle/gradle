@@ -59,7 +59,7 @@ rootProject.name = "${WORKSPACE_NAME}"
         def workspaceXml = xcodeWorkspace("${WORKSPACE_NAME}.xcworkspace").contentFile.contentXml
 
         and:
-        workspaceXml.FileRef.size() == 2
+        workspaceXml.FileRef.size() == 3
         workspaceXml.FileRef*.@location*.replaceAll('absolute:', '').containsAll([file('app/app.xcodeproj'), file('greeter/greeter.xcodeproj')]*.absolutePath)
     }
 

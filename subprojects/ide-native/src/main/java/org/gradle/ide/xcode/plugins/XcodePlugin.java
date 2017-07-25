@@ -25,6 +25,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Delete;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.xcode.XcodeExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
@@ -49,18 +50,6 @@ import java.io.File;
  */
 @Incubating
 public class XcodePlugin extends IdePlugin {
-    private static final Spec<Plugin> HAS_XCODE_PLUGIN = new Spec<Plugin>() {
-        @Override
-        public boolean isSatisfiedBy(Plugin element) {
-            return element instanceof XcodePlugin;
-        }
-    };
-    private static final Spec<Plugin> HAS_SUPPORTED_LANGUAGE_PLUGIN = new Spec<Plugin>() {
-        @Override
-        public boolean isSatisfiedBy(Plugin element) {
-            return element instanceof SwiftModulePlugin || element instanceof SwiftExecutablePlugin;
-        }
-    };
     private DefaultXcodeExtension xcode;
 
     @Override
@@ -78,9 +67,16 @@ public class XcodePlugin extends IdePlugin {
 
         configureForSwiftPlugin(project);
 
+        includeBuildFileInProject(project);
         configureXcodeProject(project);
         configureXcodeWorkspace(project);
         configureXcodeCleanTask(project);
+    }
+
+    private void includeBuildFileInProject(Project project) {
+        if (project.getBuildFile().exists()) {
+            xcode.getProject().addSourceFile(project.getBuildFile());
+        }
     }
 
     private void configureXcodeCleanTask(Project project) {
@@ -93,30 +89,16 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeProject(final Project project) {
-        project.getPlugins().matching(HAS_SUPPORTED_LANGUAGE_PLUGIN).all(new Action<Plugin>() {
-            @Override
-            public void execute(Plugin plugin) {
-                if (project.getTasks().findByName("xcodeProject") != null) {
-                    return;
-                }
+        File xcodeProjectPackageDir = xcode.getProject().getLocationDir();
 
-                File xcodeProjectPackageDir = xcode.getProject().getLocationDir();
+        GenerateXcodeProjectFileTask projectFileTask = project.getTasks().create("xcodeProject", GenerateXcodeProjectFileTask.class);
+        projectFileTask.setXcodeProject(xcode.getProject());
+        projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
+        getLifecycleTask().dependsOn(projectFileTask);
 
-                GenerateXcodeProjectFileTask projectFileTask = project.getTasks().create("xcodeProject", GenerateXcodeProjectFileTask.class);
-                projectFileTask.setXcodeProject(xcode.getProject());
-                projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
-                getLifecycleTask().dependsOn(projectFileTask);
-
-                GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeProjectWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
-                workspaceSettingsFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings"));
-                getLifecycleTask().dependsOn(workspaceSettingsFileTask);
-
-                GenerateSchemeFileTask schemeFileTask = project.getTasks().create("xcodeScheme" + xcode.getProject().getTarget().getName(), GenerateSchemeFileTask.class);
-                schemeFileTask.setXcodeProject(xcode.getProject());
-                schemeFileTask.setOutputFile(new File(xcodeProjectPackageDir, "xcshareddata/xcschemes/" + xcode.getProject().getTarget().getName() + ".xcscheme"));
-                getLifecycleTask().dependsOn(schemeFileTask);
-            }
-        });
+        GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeProjectWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
+        workspaceSettingsFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings"));
+        getLifecycleTask().dependsOn(workspaceSettingsFileTask);
     }
 
     private void configureXcodeWorkspace(Project project) {
@@ -133,20 +115,16 @@ public class XcodePlugin extends IdePlugin {
             getLifecycleTask().dependsOn(workspaceSettingsFileTask);
 
             for (final Project p : project.getAllprojects()) {
-                p.getPlugins().matching(Specs.union(HAS_XCODE_PLUGIN, HAS_SUPPORTED_LANGUAGE_PLUGIN)).all(new Action<Plugin>() {
+                p.getPlugins().withType(XcodePlugin.class).all(new Action<Plugin>() {
                     @Override
                     public void execute(Plugin plugin) {
-                        if (hasSupportedLanguagePluginFor(p) && p.getPlugins().hasPlugin(XcodePlugin.class)) {
+                        if (p.getPlugins().hasPlugin(XcodePlugin.class)) {
                             xcode.getWorkspace().getProjects().add((DefaultXcodeProject) xcodeModelFor(p).getProject());
                         }
                     }
                 });
             }
         }
-    }
-
-    private static boolean hasSupportedLanguagePluginFor(Project project) {
-        return project.getPlugins().hasPlugin(SwiftExecutablePlugin.class) || project.getPlugins().hasPlugin(SwiftModulePlugin.class);
     }
 
     private static XcodeExtension xcodeModelFor(Project project) {
@@ -175,12 +153,18 @@ public class XcodePlugin extends IdePlugin {
         sourceTree.include("**/*.swift");
         xcode.getProject().setSources(sourceTree);
 
-        if (project.getBuildFile().exists()) {
-            xcode.getProject().addSourceFile(project.getBuildFile());
-        }
-
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), xcode.getProject().getGidGenerator(), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
         xcode.getProject().setTarget(target);
+
+        getLifecycleTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
+    }
+
+    private static GenerateSchemeFileTask createSchemeTask(TaskContainer tasks, DefaultXcodeProject xcodeProject) {
+        GenerateSchemeFileTask schemeFileTask = tasks.create("xcodeScheme" + xcodeProject.getTarget().getName(), GenerateSchemeFileTask.class);
+        schemeFileTask.setXcodeProject(xcodeProject);
+        schemeFileTask.setOutputFile(new File(xcodeProject.getLocationDir(), "xcshareddata/xcschemes/" +xcodeProject.getTarget().getName() + ".xcscheme"));
+
+        return schemeFileTask;
     }
 
     private static String toGradleCommand(Project project) {

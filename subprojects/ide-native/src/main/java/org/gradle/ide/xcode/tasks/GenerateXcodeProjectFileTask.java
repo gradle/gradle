@@ -67,11 +67,14 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         }
 
         XcodeTarget target = xcodeProject.getTarget();
-        project.getTargets().add(toGradlePbxTarget(target));
-        project.getTargets().add(toIndexPbxTarget(target));
-        PBXFileReference fileReference = new PBXFileReference(target.getOutputFile().getName(), target.getOutputFile().getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
-        fileReference.setExplicitFileType(Optional.of(target.getOutputFileType()));
-        project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
+        if (target != null) {
+            project.getTargets().add(toGradlePbxTarget(target));
+            project.getTargets().add(toIndexPbxTarget(target));
+
+            PBXFileReference fileReference = new PBXFileReference(target.getOutputFile().getName(), target.getOutputFile().getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
+            fileReference.setExplicitFileType(Optional.of(target.getOutputFileType()));
+            project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
+        }
 
         XcodeprojSerializer serializer = new XcodeprojSerializer(xcodeProject.getGidGenerator(), project);
         final NSDictionary rootObject = serializer.toPlist();
