@@ -52,7 +52,7 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
             }
         });
         if (isRunning()) {
-            runnerToken.rebuildInProgress();
+            runnerToken.expectPendingChanges();
         }
     }
 

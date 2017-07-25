@@ -25,7 +25,7 @@ import java.util.Map;
 
 import static org.gradle.internal.filewatch.FileWatcherEvent.Type.*;
 
-public class ChangeReporter implements FileWatcherEventListener {
+public class DefaultFileWatcherEventListener implements FileWatcherEventListener {
     public static final int SHOW_INDIVIDUAL_CHANGES_LIMIT = 3;
     private static final boolean IS_MAC_OSX = OperatingSystem.current().isMacOsX();
     private final Map<File, FileWatcherEvent.Type> aggregatedEvents = Maps.newLinkedHashMap();

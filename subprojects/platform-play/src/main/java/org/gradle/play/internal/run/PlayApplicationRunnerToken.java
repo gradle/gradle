@@ -54,7 +54,7 @@ public class PlayApplicationRunnerToken {
         return !stopped.get();
     }
 
-    public void rebuildInProgress() {
-        workerServer.rebuildInProgress();
+    public void expectPendingChanges() {
+        workerServer.expectPendingChanges();
     }
 }

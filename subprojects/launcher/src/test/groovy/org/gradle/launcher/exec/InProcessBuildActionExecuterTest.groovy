@@ -52,7 +52,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         getStartParameter() >> startParameter
     }
     final ServiceRegistry sessionServices = Mock()
-    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(factory, actionRunner)
+    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(actionRunner, factory)
 
     def setup() {
         _ * param.buildRequestMetaData >> metaData

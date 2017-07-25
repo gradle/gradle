@@ -22,12 +22,12 @@ import spock.lang.Specification
 import static org.gradle.internal.filewatch.FileWatcherEvent.Type.*
 
 
-class ChangeReporterTest extends Specification {
+class DefaultFileWatcherEventListenerTest extends Specification {
     def "should report individual changes when there are less than 4 changes"() {
         given:
         def events = [new FileWatcherEvent(CREATE, new File('/a/b/c1')), new FileWatcherEvent(CREATE, new File('/a/b/c2')), new FileWatcherEvent(CREATE, new File('/a/b/c3'))]
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter()
+        def changeReporter = new DefaultFileWatcherEventListener()
         when:
         events.each { changeReporter.onChange(it) }
         changeReporter.reportChanges(logger)
@@ -48,7 +48,7 @@ class ChangeReporterTest extends Specification {
             [new FileWatcherEvent(CREATE, file), new FileWatcherEvent(MODIFY, file)]
         }.flatten()
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter()
+        def changeReporter = new DefaultFileWatcherEventListener()
         when:
         events.each { changeReporter.onChange(it) }
         changeReporter.reportChanges(logger)
@@ -66,7 +66,7 @@ class ChangeReporterTest extends Specification {
 
     def "should not log anything when an empty list is given as input"() {
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter()
+        def changeReporter = new DefaultFileWatcherEventListener()
         when:
         changeReporter.reportChanges(logger)
         then:
@@ -77,7 +77,7 @@ class ChangeReporterTest extends Specification {
         given:
         def events = [new FileWatcherEvent(CREATE, new File('a')), new FileWatcherEvent(CREATE, new File('a')), new FileWatcherEvent(DELETE, new File('a'))]
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter()
+        def changeReporter = new DefaultFileWatcherEventListener()
         when:
         events.each { changeReporter.onChange(it) }
         changeReporter.reportChanges(logger)
@@ -95,7 +95,7 @@ class ChangeReporterTest extends Specification {
         }.flatten()
         events << new FileWatcherEvent(DELETE, events[0].file)
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter()
+        def changeReporter = new DefaultFileWatcherEventListener()
         when:
         events.each { changeReporter.onChange(it) }
         changeReporter.reportChanges(logger)
@@ -111,7 +111,7 @@ class ChangeReporterTest extends Specification {
         given:
         def events = [new FileWatcherEvent(CREATE, new File('a')), new FileWatcherEvent(MODIFY, new File('a')), new FileWatcherEvent(MODIFY, new File('a'))]
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter()
+        def changeReporter = new DefaultFileWatcherEventListener()
         when:
         events.each { changeReporter.onChange(it) }
         changeReporter.reportChanges(logger)
@@ -125,7 +125,7 @@ class ChangeReporterTest extends Specification {
         given:
         def events = [new FileWatcherEvent(CREATE, new File('a')), new FileWatcherEvent(UNDEFINED, null), new FileWatcherEvent(MODIFY, new File('a')), new FileWatcherEvent(MODIFY, new File('a')), new FileWatcherEvent(UNDEFINED, null)]
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter()
+        def changeReporter = new DefaultFileWatcherEventListener()
         when:
         events.each { changeReporter.onChange(it) }
         changeReporter.reportChanges(logger)
