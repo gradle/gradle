@@ -85,35 +85,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skippedTasks.containsAll ":compileJava"
     }
 
-    // Note: this test only actually tests millisecond-precision when:
-    //
-    //   a) it is ran on a file system with finer-than-a-second time precision
-    //      (only Ext4 and NTFS at the time of writing),
-    //   b) the current Java implementation actually supports
-    //      finer-than-a-second precision timestamps via File.lastModified()
-    //      (only Windows Java 8 at the time of writing).
-    //
-    // Even when finer-than-a-millisecond precision would be available via
-    // Files.getLastModifiedTime(), we still restore only millisecond precision
-    // dates.
-    def "restored cached results match original timestamp with millisecond precision"() {
-        settingsFile << "rootProject.name = 'test'"
-        withBuildCache().succeeds "jar"
-        def classFile = javaClassFile("Hello.class")
-        def originalModificationTime = classFile.assertIsFile().lastModified()
-
-        when:
-        // We really need to sleep here, and can't use the `makeOlder()` trick,
-        // because the results are already cached with the original timestamp
-        sleep(1000)
-        withBuildCache().succeeds "clean"
-        withBuildCache().succeeds "jar"
-
-        then:
-        skippedTasks.containsAll ":compileJava"
-        classFile.lastModified() == originalModificationTime
-    }
-
     def "cached tasks are executed with --rerun-tasks"() {
         expect:
         cacheDir.listFiles() as List == []

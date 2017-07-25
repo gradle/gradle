@@ -54,7 +54,6 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,7 +66,6 @@ import java.util.regex.Pattern;
 public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern PROPERTY_PATH = Pattern.compile("(missing-)?property-([^/]+)(?:/(.*))?");
-    private static final long NANOS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
 
     private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
@@ -167,7 +165,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 try {
                     ++entries;
                     String path = propertyRoot + fileDetails.getRelativePath().getPathString();
-                    storeFileEntry(fileDetails.getFile(), path, fileDetails.getLastModified(), fileDetails.getSize(), fileDetails.getMode(), outputStream);
+                    storeFileEntry(fileDetails.getFile(), path, fileDetails.getSize(), fileDetails.getMode(), outputStream);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -183,7 +181,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (!file.isFile()) {
             throw new IllegalArgumentException(String.format("Expected '%s' to be a file", file));
         }
-        storeFileEntry(file, propertyPath, file.lastModified(), file.length(), fileSystem.getUnixMode(file), outputStream);
+        storeFileEntry(file, propertyPath, file.length(), fileSystem.getUnixMode(file), outputStream);
     }
 
     private void storeMissingProperty(String propertyPath, TarOutputStream outputStream) throws IOException {
@@ -194,19 +192,18 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     private void storeDirectoryEntry(FileVisitDetails dirDetails, String propertyRoot, TarOutputStream outputStream) throws IOException {
         String path = dirDetails.getRelativePath().getPathString();
-        createTarEntry(propertyRoot + path + "/", dirDetails.getLastModified(), 0, UnixStat.DIR_FLAG | dirDetails.getMode(), outputStream);
+        createTarEntry(propertyRoot + path + "/", 0, UnixStat.DIR_FLAG | dirDetails.getMode(), outputStream);
         outputStream.closeEntry();
     }
 
-    private void storeFileEntry(File file, String path, long lastModified, long size, int mode, TarOutputStream outputStream) throws IOException {
-        createTarEntry(path, lastModified, size, UnixStat.FILE_FLAG | mode, outputStream);
+    private void storeFileEntry(File file, String path, long size, int mode, TarOutputStream outputStream) throws IOException {
+        createTarEntry(path, size, UnixStat.FILE_FLAG | mode, outputStream);
         Files.copy(file, outputStream);
         outputStream.closeEntry();
     }
 
-    private static void createTarEntry(String path, long lastModified, long size, int mode, TarOutputStream outputStream) throws IOException {
+    private static void createTarEntry(String path, long size, int mode, TarOutputStream outputStream) throws IOException {
         TarEntry entry = new TarEntry(path);
-        storeModificationTime(entry, lastModified);
         entry.setSize(size);
         entry.setMode(mode);
         outputStream.putNextEntry(entry);
@@ -313,10 +310,6 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
         //noinspection OctalInteger
         fileSystem.chmod(outputFile, entry.getMode() & 0777);
-        long lastModified = getModificationTime(entry);
-        if (!outputFile.setLastModified(lastModified)) {
-            throw new UnsupportedOperationException(String.format("Could not set modification time for '%s'", outputFile));
-        }
     }
 
     @VisibleForTesting
@@ -347,24 +340,5 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
         FileUtils.forceMkdir(output);
         return true;
-    }
-
-    private static void storeModificationTime(TarEntry entry, long lastModified) {
-        // This will be divided by 1000 internally
-        entry.setModTime(lastModified);
-        // Store excess nanoseconds in group ID
-        long excessNanos = TimeUnit.MILLISECONDS.toNanos(lastModified % 1000);
-        // Store excess nanos as negative number to distinguish real group IDs
-        entry.setGroupId(-excessNanos);
-    }
-
-    private static long getModificationTime(TarEntry entry) {
-        long lastModified = entry.getModTime().getTime();
-        long excessNanos = -entry.getLongGroupId();
-        if (excessNanos < 0 || excessNanos >= NANOS_PER_SECOND) {
-            throw new IllegalStateException("Invalid excess nanos: " + excessNanos);
-        }
-        lastModified += TimeUnit.NANOSECONDS.toMillis(excessNanos);
-        return lastModified;
     }
 }
