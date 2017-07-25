@@ -20,7 +20,6 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
@@ -49,11 +48,6 @@ abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDepreca
 
     public PathNormalizationStrategy getPathNormalizationStrategy() {
         return OutputPathNormalizationStrategy.getInstance();
-    }
-
-    @Override
-    public TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
-        throw new UnsupportedOperationException("Cannot change path sensitivity of output file property");
     }
 
     @Override

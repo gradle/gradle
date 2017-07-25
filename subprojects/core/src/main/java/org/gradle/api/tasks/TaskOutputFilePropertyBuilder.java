@@ -52,15 +52,6 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
     /**
      * Throws {@link UnsupportedOperationException}.
      *
-     * @deprecated It is not supported to specify a path sensitivity for output properties.
-     */
-    @Deprecated
-    @Override
-    TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
      * @deprecated Use {@link TaskOutputs#upToDateWhen(Closure)} instead.
      */
     @Deprecated
