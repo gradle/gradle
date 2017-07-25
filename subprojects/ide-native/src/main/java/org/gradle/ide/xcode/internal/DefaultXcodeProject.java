@@ -19,8 +19,6 @@ package org.gradle.ide.xcode.internal;
 import org.gradle.api.file.FileCollection;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.rc.WindowsResourceSet;
 
 import java.io.File;
 import java.util.ArrayList;

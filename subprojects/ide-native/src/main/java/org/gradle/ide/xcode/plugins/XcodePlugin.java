@@ -234,10 +234,6 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private static String projectName(Project project) {
-        String projectPath = project.getPath();
-        if (":".equals(projectPath)) {
-            return "__root__";  // TODO - What name should the root project have
-        }
-        return projectPath.substring(1).replace(":", "_");
+        return project.getName();
     }
 }

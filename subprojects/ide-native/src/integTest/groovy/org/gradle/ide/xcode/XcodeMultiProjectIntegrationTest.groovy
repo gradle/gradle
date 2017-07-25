@@ -44,7 +44,7 @@ rootProject.name = "${WORKSPACE_NAME}"
                 apply plugin: 'swift-module'
             }
 """
-        app.library.sourceFiles.each { it.writeToFile(file("Greeter/src/main/swift/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("greeter/src/main/swift/$it.name")) }
         app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
         def mainFile = file('app/src/main/swift/main.swift')
         mainFile.text = "import greeter\n\n${mainFile.text}"
@@ -53,14 +53,14 @@ rootProject.name = "${WORKSPACE_NAME}"
         succeeds("xcode")
 
         then: 'tasks are executed as expected'
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme:app Executable", ":app:xcode",
-            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme:greeter SharedLibrary", ":greeter:xcode",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeapp Executable", ":app:xcode",
+            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemegreeter SharedLibrary", ":greeter:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         def workspaceXml = xcodeWorkspace("${WORKSPACE_NAME}.xcworkspace").contentFile.contentXml
 
         and:
         workspaceXml.FileRef.size() == 2
-        workspaceXml.FileRef*.@location*.replaceAll('absolute:', '') == [file('app/:app.xcodeproj'), file('greeter/:greeter.xcodeproj')]*.absolutePath
+        workspaceXml.FileRef*.@location*.replaceAll('absolute:', '').containsAll([file('app/app.xcodeproj'), file('greeter/greeter.xcodeproj')]*.absolutePath)
     }
 
     private XcodeWorkspacePackage xcodeWorkspace(String path) {

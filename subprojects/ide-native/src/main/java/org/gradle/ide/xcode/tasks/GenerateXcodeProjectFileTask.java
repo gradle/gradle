@@ -24,7 +24,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
 import org.gradle.ide.xcode.internal.XcodeTarget;
-import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXBuildFile;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXFileReference;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXLegacyTarget;
@@ -39,7 +38,6 @@ import org.gradle.ide.xcode.tasks.internal.XcodeProjectFile;
 import org.gradle.plugins.ide.api.PropertyListGeneratorTask;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
