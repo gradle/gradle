@@ -10,6 +10,7 @@ import org.junit.Test
 import projects.RootProject
 import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class CIConfigIntegrationTests {
@@ -75,8 +76,9 @@ class CIConfigIntegrationTests {
     fun allSubprojectsAreListed() {
         val m = CIBuildModel()
         val subprojectsFromFolders = File("../subprojects").list().map { it.replace(Regex("-([a-z\\d])"), { it.groups[1]!!.value.toUpperCase()}) }.filter {
-            !m.subProjectsWithoutTests.contains(it)
+            !it.startsWith(".") && !m.subProjectsWithoutTests.contains(it)
         }
+        assertFalse(subprojectsFromFolders.isEmpty())
         subprojectsFromFolders.forEach { assertTrue(m.subProjects.contains(it), "Not defined: $it") }
     }
 

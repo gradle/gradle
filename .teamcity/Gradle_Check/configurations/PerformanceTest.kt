@@ -13,7 +13,6 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildTyp
     name = "Performance ${type.name.capitalize()} Coordinator - Linux"
 
     applyDefaultSettings(this, timeout = type.timeout)
-    artifactRules = "subprojects/*/build/performance-tests/** => results"
     detectHangingBuilds = false
     maxRunningBuilds = 2
 

@@ -68,10 +68,9 @@ fun subProjectCheckWindows(subProject: String) : String {
 
 fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     buildType.artifactRules = """
-        **/build/reports/** => reports
+        build/report-* => .
+        buildSrc/build/report-* => .
         subprojects/*/build/tmp/test files/** => test-files
-        subprojects/*/build/tmp/test distros/**/user-home-dir/daemon/*.log => isolated-daemon
-        build/daemon/** => daemon
         build/errorLogs/** => errorLogs
     """.trimIndent()
 

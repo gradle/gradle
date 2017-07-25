@@ -21,7 +21,7 @@ class StageProject(model: CIBuildModel, number: Int, stage: Stage) : Project({
         if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
             feature {
                 type = "ReportTab"
-                param("startPage", "reports/subprojects/distributions/build/reports/binary-compatibility/report.html")
+                param("startPage", "report-distribution-binary-compatibility-report.html")
                 param("title", "API Compatibility Report")
                 param("type", "BuildReportTab")
             }
@@ -29,13 +29,13 @@ class StageProject(model: CIBuildModel, number: Int, stage: Stage) : Project({
         if (!stage.performanceTests.isEmpty()) {
             feature {
                 type = "ReportTab"
-                param("startPage", "results/performance/build/performance-tests/report/index.html")
+                param("startPage", "report-performance-performance-tests.zip!report/index.html")
                 param("title", "Performance")
                 param("type", "BuildReportTab")
             }
             feature {
                 type = "ReportTab"
-                param("startPage", "results/performance/build/performance-tests/scenario-report.html")
+                param("startPage", "report-performance-performance-tests.zip!scenario-report.html")
                 param("title", "Performance Failures")
                 param("type", "BuildReportTab")
             }
