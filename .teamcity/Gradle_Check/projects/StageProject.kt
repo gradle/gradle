@@ -21,7 +21,7 @@ class StageProject(model: CIBuildModel, number: Int, stage: Stage) : Project({
         if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
             feature {
                 type = "ReportTab"
-                param("startPage", "report-distribution-binary-compatibility-report.html")
+                param("startPage", "report-distributions-binary-compatibility-report.html")
                 param("title", "API Compatibility Report")
                 param("type", "BuildReportTab")
             }
