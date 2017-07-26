@@ -127,7 +127,7 @@ public class TaskExecutionServices {
         }
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, executer);
-        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, executer, taskOutputFilesRepository);
+        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
         executer = new SkipTaskWithNoActionsExecuter(executer);
         executer = new SkipOnlyIfTaskExecuter(executer);

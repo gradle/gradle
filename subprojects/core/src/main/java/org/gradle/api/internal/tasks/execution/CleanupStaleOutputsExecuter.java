@@ -26,34 +26,52 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
 public class CleanupStaleOutputsExecuter implements TaskExecuter {
 
+    public static final String CLEAN_STALE_OUTPUTS_DISPLAY_NAME = "Clean stale outputs";
+
     private final Logger logger = Logging.getLogger(CleanupStaleOutputsExecuter.class);
+    private final BuildOperationExecutor buildOperationExecutor;
     private final TaskExecuter executer;
     private final TaskOutputFilesRepository taskOutputFilesRepository;
     private final BuildOutputCleanupRegistry cleanupRegistry;
 
-    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskExecuter executer, TaskOutputFilesRepository taskOutputFilesRepository) {
+    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskOutputFilesRepository taskOutputFilesRepository, BuildOperationExecutor buildOperationExecutor, TaskExecuter executer) {
         this.cleanupRegistry = cleanupRegistry;
+        this.buildOperationExecutor = buildOperationExecutor;
         this.executer = executer;
         this.taskOutputFilesRepository = taskOutputFilesRepository;
     }
 
     @Override
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        for (TaskOutputFilePropertySpec outputFileSpec : task.getOutputs().getFileProperties()) {
-            FileCollection files = outputFileSpec.getPropertyFiles();
-            for (File file : files) {
-                if (cleanupRegistry.isOutputOwnedByBuild(file) && !taskOutputFilesRepository.isGeneratedByGradle(file) && file.exists()) {
-                    logger.info("Deleting stale output file: {}", file.getAbsolutePath());
-                    GFileUtils.forceDelete(file);
+    public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                for (TaskOutputFilePropertySpec outputFileSpec : task.getOutputs().getFileProperties()) {
+                    FileCollection files = outputFileSpec.getPropertyFiles();
+                    for (File file : files) {
+                        if (cleanupRegistry.isOutputOwnedByBuild(file) && !taskOutputFilesRepository.isGeneratedByGradle(file) && file.exists()) {
+                            logger.info("Deleting stale output file: {}", file.getAbsolutePath());
+                            GFileUtils.forceDelete(file);
+                        }
+                    }
                 }
             }
-        }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(CLEAN_STALE_OUTPUTS_DISPLAY_NAME).progressDisplayName("Cleaning stale outputs");
+            }
+        });
         executer.execute(task, state, context);
     }
 

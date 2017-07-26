@@ -16,7 +16,9 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -229,6 +231,21 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         outputDir << ['build', 'build/outputs', 'build/some/deeply/nested/structure']
     }
 
+    def "build operations are created for stale outputs cleanup"() {
+        def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
+        def fixture = new StaleOutputFixture()
+        fixture.createInputs()
+        buildScript(fixture.buildScript)
+        fixture.createStaleOutputs()
+
+        when:
+        succeeds(fixture.taskPath, '-PassertRemoved=true')
+
+        then:
+        fixture.staleFilesHaveBeenRemoved()
+        operations.hasOperation(CleanupStaleOutputsExecuter.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
+    }
+
     def "overlapping outputs between 'build/outputs' and '#overlappingOutputDir' are not cleaned up"() {
         def fixture = new StaleOutputFixture(buildDir: 'build/outputs', overlappingOutputDir: overlappingOutputDir)
         fixture.createInputs()
@@ -323,7 +340,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     class StaleOutputFixture {
-        String buildDir
+        String buildDir = 'build'
         String overlappingOutputDir
 
         TestFile getOutputDir() {
