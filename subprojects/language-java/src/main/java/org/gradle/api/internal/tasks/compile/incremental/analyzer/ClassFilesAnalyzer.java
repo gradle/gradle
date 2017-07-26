@@ -54,6 +54,10 @@ public class ClassFilesAnalyzer implements FileVisitor {
         accumulator.addClass(fileDetails.getFile(), analysis);
     }
 
+    public void addGeneratorMapping(String generatingType, String generatedType) {
+        accumulator.addGeneratedTarget(generatingType, generatedType);
+    }
+
     public ClassSetAnalysisData getAnalysis() {
         return accumulator.getAnalysis();
     }
