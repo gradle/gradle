@@ -57,7 +57,10 @@ import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.execution.VerifyNoInputChangesTaskExecuter;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.BuildCacheTaskServices;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
@@ -79,8 +82,12 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.GradleVersion;
 
+import java.util.Collections;
 import java.util.List;
+
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class TaskExecutionServices {
 
@@ -169,7 +176,14 @@ public class TaskExecutionServices {
     }
 
     TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, FileSystemMirror fileSystemMirror, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new DefaultTaskOutputFilesRepository(cacheRepository, gradle, fileSystemMirror, inMemoryCacheDecoratorFactory);
+        PersistentCache cacheAccess = cacheRepository
+            .cache(gradle, "buildOutputCleanup")
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .withDisplayName("Build Output Cleanup Cache")
+            .withLockOptions(mode(FileLockManager.LockMode.None))
+            .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
+            .open();
+        return new DefaultTaskOutputFilesRepository(cacheAccess, fileSystemMirror, inMemoryCacheDecoratorFactory);
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {

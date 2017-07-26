@@ -16,34 +16,24 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.invocation.Gradle;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
-import org.gradle.util.GradleVersion;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTaskOutputFilesRepository implements TaskOutputFilesRepository, Closeable {
-
-    private final static String CACHE_DISPLAY_NAME = "Build Output Cleanup Cache";
 
     private final PersistentCache cacheAccess;
     private final FileSystemMirror fileSystemMirror;
     private final PersistentIndexedCache<String, Boolean> outputFiles; // The value is true if it is an output file, false if it is a parent of an output file
 
-    public DefaultTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, FileSystemMirror fileSystemMirror, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultTaskOutputFilesRepository(PersistentCache cacheAccess, FileSystemMirror fileSystemMirror, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        this.cacheAccess = cacheAccess;
         this.fileSystemMirror = fileSystemMirror;
-        this.cacheAccess = createCacheAccess(cacheRepository, gradle);
         this.outputFiles = cacheAccess.createCache(cacheParameters(inMemoryCacheDecoratorFactory));
     }
 
@@ -92,16 +82,6 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
     private static PersistentIndexedCacheParameters<String, Boolean> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         return new PersistentIndexedCacheParameters<String, Boolean>("outputFiles", String.class, Boolean.class)
             .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
-    }
-
-    private static PersistentCache createCacheAccess(CacheRepository cacheRepository, Gradle gradle) {
-        return cacheRepository
-            .cache(gradle, "buildOutputCleanup")
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withDisplayName(CACHE_DISPLAY_NAME)
-            .withLockOptions(mode(FileLockManager.LockMode.None))
-            .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
-            .open();
     }
 
     @Override
