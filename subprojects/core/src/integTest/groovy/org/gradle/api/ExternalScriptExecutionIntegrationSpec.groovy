@@ -23,10 +23,14 @@ class ExternalScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
     @org.junit.Rule
     public final HttpServer server = new HttpServer()
 
+    def setup() {
+        settingsFile << "rootProject.name = 'project'"
+        server.start()
+    }
+
     def "uses encoding specified by http server"() {
         given:
         executer.withDefaultCharacterEncoding("UTF-8")
-        server.start()
 
         and:
         def scriptFile = file("script.gradle")
@@ -52,7 +56,6 @@ task check {
     def "assumes utf-8 encoding when none specified by http server"() {
         given:
         executer.withDefaultCharacterEncoding("ISO-8859-15")
-        server.start()
 
         and:
         def scriptFile = file("script.gradle")
@@ -80,7 +83,6 @@ task check {
         given:
         String scriptName = "script-${System.currentTimeMillis()}.gradle"
         executer.withDefaultCharacterEncoding("ISO-8859-15")
-        server.start()
 
         and:
         def scriptFile = file("script.gradle")
@@ -130,7 +132,6 @@ task check {
         given:
         String scriptName = "script-${System.currentTimeMillis()}.gradle"
         executer.withDefaultCharacterEncoding("ISO-8859-15")
-        server.start()
 
         and:
         def scriptFile = file("script.gradle")
@@ -160,7 +161,6 @@ task check {
         given:
         String scriptName = "script-${System.currentTimeMillis()}.gradle"
         executer.withDefaultCharacterEncoding("ISO-8859-15")
-        server.start()
 
         and:
         File scriptFile = file("script.gradle")
@@ -193,5 +193,40 @@ task check {
         then:
         succeeds 'tasks'
         output.contains('loaded external script 2')
+    }
+
+    def "reports and recovers from missing remote script"() {
+        String scriptName = "script-${System.currentTimeMillis()}.gradle"
+        String scriptUrl = "http://localhost:${server.port}/${scriptName}"
+        def scriptFile = file("script.gradle") << """
+            println 'loaded remote script'
+        """
+
+        buildFile << """
+            apply from: '${scriptUrl}'
+        """
+
+        when: // TODO:DAZ Should not be requesting this resource twice
+        server.expectGetMissing("/" + scriptName)
+        server.expectGetMissing("/" + scriptName)
+
+        then:
+        fails()
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
+                .assertHasCause("Could not read script '${scriptUrl}' as it does not exist.")
+                .assertHasFileName("Build file '${buildFile}'")
+                .assertHasLineNumber(2)
+
+        when:
+        server.resetExpectations()
+        server.expectGet("/" + scriptName, scriptFile)
+
+        then:
+        succeeds()
+
+        and:
+        outputContains("loaded remote script")
     }
 }

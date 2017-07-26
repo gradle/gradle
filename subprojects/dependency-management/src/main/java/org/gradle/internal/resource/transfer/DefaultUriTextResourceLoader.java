@@ -44,7 +44,9 @@ public class DefaultUriTextResourceLoader extends BasicTextResourceLoader {
 
         LocallyAvailableExternalResource resource = externalResourceAccessor.resolveUri(source);
         if (resource == null) {
-            throw new RuntimeException("Unable to find " + source.toString());
+            // Use an uncached resource, allowing the build to make another request (and fail due to missing resource)
+            // TODO: We have enough information to create a missing text resource instance here
+            return super.loadUri(description, source);
         }
         ExternalResourceMetaData metaData = resource.getMetaData();
         String contentType = metaData == null ? null : metaData.getContentType();
