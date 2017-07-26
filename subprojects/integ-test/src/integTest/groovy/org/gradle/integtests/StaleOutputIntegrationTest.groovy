@@ -17,55 +17,18 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
+import spock.lang.Unroll
 
+@Unroll
 class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
-    @Issue(['GRADLE-2440', 'GRADLE-2579'])
-    def 'stale classes are removed after Java sources are removed'() {
-        setup:
-        buildScript("apply plugin: 'java'")
-        def fooJavaFile = file('src/main/java/Foo.java') << 'public class Foo {}'
-        def fooClassFile = javaClassFile('Foo.class')
-        def barJavaFile = file('src/main/java/com/example/Bar.java') << '''
-            package com.example;
-
-            public class Bar {}
-        '''
-        def barClassFile = javaClassFile('com/example/Bar.class')
-
-        when:
-        succeeds('compileJava')
-
-        then:
-        fooClassFile.exists()
-        executedAndNotSkipped(':compileJava')
-
-        when:
-        fooJavaFile.delete()
-        barJavaFile.delete()
-
-        and:
-        succeeds('compileJava')
-
-        then:
-        !fooClassFile.exists()
-        !barClassFile.exists()
-        executedAndNotSkipped(':compileJava')
-
-        and:
-        succeeds('compileJava')
-
-        then:
-        !fooClassFile.exists()
-        !barClassFile.exists()
-        skipped(':compileJava')
-    }
 
     @Issue(['GRADLE-2440', 'GRADLE-2579'])
     def 'stale output file is removed after input source directory is emptied.'() {
         def taskWithSources = new TaskWithSources()
         taskWithSources.createInputs()
-        buildFile << taskWithSources.buildScript
+        buildScript(taskWithSources.buildScript)
 
         when:
         succeeds(taskWithSources.taskPath)
@@ -96,7 +59,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     def "only files owned by the build are deleted"() {
         def taskWithSources = new TaskWithSources(outputDir: 'unsafe-dir/output')
         taskWithSources.createInputs()
-        buildFile << taskWithSources.buildScript
+        buildScript(taskWithSources.buildScript)
 
         when:
         succeeds(taskWithSources.taskPath)
@@ -212,6 +175,109 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         succeeds("myTask")
     }
 
+    def "stale #type is removed before task executes"(String type, Closure creationCommand) {
+        def fixture = new StaleOutputFixture(buildDir: 'build')
+        fixture.createInputs()
+        creationCommand(fixture.outputDir)
+        creationCommand(fixture.outputFile)
+        buildScript(fixture.buildScript)
+
+        expect:
+        succeeds(fixture.taskPath, '-PassertRemoved=true')
+
+        where:
+        type                      | creationCommand
+        "empty directory"         | { TestFile output -> output.createDir() }
+        "directory with contents" | { TestFile output ->
+            output.create {
+                file("first-file").text = "leftover file"
+                file("second-file").text = "leftover file"
+            }
+        }
+        'file'                    | { TestFile output -> output.text = 'leftover file' }
+    }
+
+    def "unregistered stale outputs (#nonRegisteredDirectory) are not removed before task executes"() {
+        def fixture = new StaleOutputFixture(buildDir: nonRegisteredDirectory)
+        fixture.createInputs()
+        buildScript(fixture.buildScript)
+        fixture.createStaleOutputs()
+
+        when:
+        succeeds(fixture.taskPath)
+
+        then:
+        fixture.staleFilesAreStillPresent()
+
+        where:
+        nonRegisteredDirectory << ['not-safe-to-delete', '.']
+    }
+
+    def "stale outputs are cleaned in #outputDir"() {
+        def fixture = new StaleOutputFixture(buildDir: outputDir)
+        fixture.createInputs()
+        buildScript(fixture.buildScript)
+        fixture.createStaleOutputs()
+
+        when:
+        succeeds(fixture.taskPath, '-PassertRemoved=true')
+
+        then:
+        fixture.staleFilesHaveBeenRemoved()
+
+        where:
+        outputDir << ['build', 'build/outputs', 'build/some/deeply/nested/structure']
+    }
+
+    def "overlapping outputs between 'build/outputs' and '#overlappingOutputDir' are not cleaned up"() {
+        def fixture = new StaleOutputFixture(buildDir: 'build/outputs', overlappingOutputDir: overlappingOutputDir)
+        fixture.createInputs()
+        buildScript(fixture.buildScript)
+
+        when:
+        succeeds fixture.taskPath, fixture.taskWritingOverlappingOutputs
+
+        then:
+        fixture.taskCreatedOutputs()
+        fixture.overlappingOutputsAreStillPresent()
+
+        where:
+        overlappingOutputDir << ['build/outputs', 'build/outputs/child', 'build', 'build/other-output']
+    }
+
+    def "relative paths canonicalized for cleanup registry"() {
+        def fixture = new StaleOutputFixture(buildDir: 'build/../some-dir')
+        buildScript(fixture.buildScript)
+        fixture.createInputs()
+        fixture.createStaleOutputs()
+
+        when:
+        succeeds(fixture.taskPath)
+
+        then:
+        fixture.staleFilesAreStillPresent()
+    }
+
+    def "relative paths are canonicalized for output files"() {
+        def fixture = new StaleOutputFixture(buildDir: 'build/output/../other-output')
+        buildScript(fixture.buildScript)
+        buildFile << """
+            task writeToRealOutput() {
+                outputs.dir 'build/other-output'
+                doLast {
+                    file('build/other-output/output-file.txt').text = "Hello world"
+                }
+            }
+        """.stripIndent()
+        fixture.createInputs()
+
+        when:
+        succeeds fixture.taskPath, 'writeToRealOutput'
+
+        then:
+        fixture.taskCreatedOutputs()
+    }
+
     class TaskWithSources {
         String outputDir = "build/output"
         File inputFile = file('src/data/input.txt')
@@ -253,6 +319,135 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         void createInputs() {
             inputFile.text = "input"
+        }
+    }
+
+    class StaleOutputFixture {
+        String buildDir
+        String overlappingOutputDir
+
+        TestFile getOutputDir() {
+            file(outputDirPath)
+        }
+
+        TestFile getOutputFile() {
+            file(outputFilePath)
+        }
+
+        String getOutputDirPath() {
+            return "${buildDir}/outputDir"
+        }
+
+        String getOutputFilePath() {
+            return "${buildDir}/outputFile"
+        }
+
+        String getOverlappingOutputDir() {
+            this.overlappingOutputDir ?: buildDir
+        }
+
+        void createStaleOutputs() {
+            outputDir.create {
+                file("first-file").text = "leftover file"
+                file("second-file").text = "leftover file"
+            }
+            outputFile.text = "leftover file"
+        }
+
+        void createInputs() {
+            file("input.txt").text = "input file"
+            file("inputs").create {
+                file("inputFile1.txt").text = "input 1 in dir"
+                file("inputFile2.txt").text = "input 2 in dir"
+            }
+        }
+
+        void staleFilesHaveBeenRemoved() {
+            assert outputFile.text != "leftover file"
+            assert !outputDir.allDescendants().contains("first-file")
+            assert !outputDir.allDescendants().contains("second-file")
+        }
+
+        void staleFilesAreStillPresent() {
+            assert outputFile.exists()
+            assert outputDir.allDescendants().contains("first-file")
+            assert outputDir.allDescendants().contains("second-file")
+        }
+
+        void taskCreatedOutputs() {
+            assert outputFile.text == "This is the text"
+            assert outputDir.allDescendants().containsAll('subDir/inputFile1.txt', 'subDir/inputFile2.txt')
+        }
+
+        File getOverlappingOutputFile() {
+            file("${getOverlappingOutputDir()}/new-output.txt")
+        }
+
+        void overlappingOutputsAreStillPresent() {
+            assert overlappingOutputFile.text == "new output"
+        }
+
+        String getTaskName() {
+            'task'
+        }
+
+        String getTaskPath() {
+            ":${taskName}"
+        }
+
+        String getTaskWritingOverlappingOutputs() {
+            ':writeDirectlyToOutputDir'
+        }
+
+        String getBuildScript() {
+            """
+            apply plugin: 'base'
+
+            task ${taskName}(type: MyTask) {
+                inputDir = file("inputs")
+                inputFile = file("input.txt")
+                input = "This is the text"
+                outputDir = file("$buildDir/outputDir")
+                outputFile = file("$buildDir/outputFile")
+            }
+            
+            class MyTask extends DefaultTask {
+                @InputDirectory File inputDir
+                @Input String input
+                @InputFile File inputFile
+                @OutputDirectory File outputDir
+                @OutputFile File outputFile
+                
+                @TaskAction
+                void doExecute() {
+                    outputFile.text = input
+                    project.copy {
+                        into outputDir
+                        from(inputDir) {
+                            into 'subDir'
+                        }
+                        from inputFile 
+                    }
+                }
+            }                        
+
+            if (project.findProperty('assertRemoved')) {
+                ${taskName}.doFirst {
+                    assert !file('${outputDirPath}').exists()
+                    assert !file('${outputFilePath}').exists()
+                }
+            }
+                
+            task writeDirectlyToOutputDir {
+                outputs.dir('${buildDir}')
+                
+                doLast {
+                    file("${getOverlappingOutputDir()}").mkdirs()
+                    file("${getOverlappingOutputDir()}/new-output.txt").text = "new output"
+                }
+            }
+
+        """.stripIndent()
         }
     }
 
