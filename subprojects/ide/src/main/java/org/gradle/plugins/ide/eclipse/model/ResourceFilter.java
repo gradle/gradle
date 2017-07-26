@@ -26,7 +26,7 @@ import org.gradle.api.Incubating;
  * whether it is an include/exclude filter that applies to files, folders,
  * or both.  The following example excludes the 'node_modules' folder.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  *

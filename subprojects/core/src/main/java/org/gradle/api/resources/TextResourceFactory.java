@@ -23,7 +23,7 @@ import org.gradle.api.Incubating;
  *
  * <p>Example usages:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * def sourcedFromString = resources.text.fromString("some text content")
  *
  * def sourcedFromFile = resources.text.fromFile("path/to/file.txt")

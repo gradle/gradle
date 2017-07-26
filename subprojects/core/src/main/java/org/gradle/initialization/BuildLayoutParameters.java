@@ -16,9 +16,9 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.SystemProperties;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 import static org.gradle.internal.FileUtils.canonicalize;

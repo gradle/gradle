@@ -26,7 +26,6 @@ import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryVar;
@@ -71,6 +70,7 @@ import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -541,6 +541,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public boolean dependsOnTaskDidWork() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.dependsOnTaskDidWork()");
         TaskDependency dependency = getTaskDependencies();
         for (Task depTask : dependency.getDependencies(this)) {
             if (depTask.getDidWork()) {
@@ -659,9 +660,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             this.closure = closure;
         }
 
+        @Override
         public void contextualise(TaskExecutionContext context) {
         }
 
+        @Override
+        public void releaseContext() {
+        }
+
+        @Override
         public void execute(Task task) {
             closure.setDelegate(task);
             closure.setResolveStrategy(Closure.DELEGATE_FIRST);
@@ -702,12 +709,21 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             this.action = action;
         }
 
+        @Override
         public void contextualise(TaskExecutionContext context) {
             if (action instanceof ContextAwareTaskAction) {
                 ((ContextAwareTaskAction) action).contextualise(context);
             }
         }
 
+        @Override
+        public void releaseContext() {
+            if (action instanceof ContextAwareTaskAction) {
+                ((ContextAwareTaskAction) action).releaseContext();
+            }
+        }
+
+        @Override
         public void execute(Task task) {
             ClassLoader original = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());

@@ -249,8 +249,12 @@ public class CyclicBarrierHttpServer extends ExternalResource {
      * <p>Note that this method will generally return before the client has received the response.
      */
     public void sync() {
+        sync(20);
+    }
+
+    public void sync(final int timeoutSeconds) {
         synchronized (lock) {
-            waitFor();
+            waitFor(timeoutSeconds);
             release();
         }
     }

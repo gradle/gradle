@@ -17,12 +17,12 @@
 package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
-import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.ProjectModel;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**

@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
+
+import javax.annotation.Nullable;
 
 public class ClassMethodNameStackTraceSpec implements Spec<StackTraceElement> {
     private final String className;

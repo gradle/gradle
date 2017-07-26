@@ -19,8 +19,9 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.Nullable;
 import org.gradle.internal.HasInternalProtocol;
+
+import javax.annotation.Nullable;
 
 /**
  * Facilitates applying plugins and determining which plugins have been applied to a {@link PluginAware} object.
@@ -38,7 +39,7 @@ public interface PluginManager {
      * <p>
      * Plugins in the {@code "org.gradle"} namespace can be applied directly via name.
      * That is, the following two lines are equivalent…
-     * <pre autoTested='true'>
+     * <pre class='autoTested'>
      * pluginManager.apply "org.gradle.java"
      * pluginManager.apply "java"
      * </pre>
@@ -54,7 +55,7 @@ public interface PluginManager {
      * The given class should implement the {@link org.gradle.api.Plugin} interface, and be parameterized for a compatible type of {@code this}.
      * <p>
      * The following two lines are equivalent…
-     * <pre autoTested='true'>
+     * <pre class='autoTested'>
      * pluginManager.apply org.gradle.api.plugins.JavaPlugin
      * pluginManager.apply "org.gradle.java"
      * </pre>

@@ -839,6 +839,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 def submitWorkItem(item, actionClass, configClosure) {
                     return workerExecutor.submit(actionClass) { config ->
                         config.isolationMode = this.isolationMode
+                        if (config.isolationMode == IsolationMode.PROCESS) {
+                            config.forkOptions.maxHeapSize = "64m"
+                        }
                         config.forkOptions(additionalForkOptions)
                         config.classpath(additionalClasspath)
                         config.params = [ item.toString() ]

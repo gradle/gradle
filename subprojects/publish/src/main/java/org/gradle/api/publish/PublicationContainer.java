@@ -28,7 +28,7 @@ import org.gradle.api.*;
  * </ul>
  *
  *
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  * apply plugin: 'ivy-publish'
  *
  * publishing.publications.create('publication-name', IvyPublication) {

@@ -78,10 +78,4 @@ public interface CompatibilityRuleChain<T> {
      */
     void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction);
 
-    /**
-     * Adds a rule that tells that if an attribute is missing, either on the producer or the consumer, then
-     * it is deemed compatible.
-     */
-    void assumeCompatibleWhenMissing();
-
 }

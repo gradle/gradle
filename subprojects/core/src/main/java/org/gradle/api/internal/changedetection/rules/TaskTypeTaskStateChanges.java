@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
@@ -27,6 +26,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 

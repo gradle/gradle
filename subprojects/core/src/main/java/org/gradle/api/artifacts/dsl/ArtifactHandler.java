@@ -27,11 +27,11 @@ import org.gradle.api.artifacts.PublishArtifact;
  *
  * <p>To create an publish artifact and assign it to a configuration you can use the following syntax:</p>
  *
- * <code>&lt;configurationName> &lt;artifact-notation>, &lt;artifact-notation> ...</code>
+ * <code>&lt;configurationName&gt; &lt;artifact-notation&gt;, &lt;artifact-notation&gt; ...</code>
  *
  * or
  *
- * <code>&lt;configurationName> &lt;artifact-notation> { ... some code to configure the artifact }</code>
+ * <code>&lt;configurationName&gt; &lt;artifact-notation&gt; { ... some code to configure the artifact }</code>
  *
  * <p>The notation can be one of the following types:</p>
  *
@@ -53,7 +53,7 @@ import org.gradle.api.artifacts.PublishArtifact;
  * <h2>Examples</h2>
  * <p>An example showing how to associate an archive task with a configuration via the artifact handler.
  * This way the archive can be published or referred in other projects via the configuration.
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * configurations {
  *   //declaring new configuration that will be used to associate with artifacts
  *   schema

@@ -17,9 +17,9 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.Multimap;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 

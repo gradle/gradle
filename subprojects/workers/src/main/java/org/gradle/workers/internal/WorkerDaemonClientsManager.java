@@ -31,7 +31,6 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.util.CollectionUtils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -88,9 +87,9 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
-    public <T extends WorkSpec> WorkerDaemonClient<T> reserveNewClient(Class<? extends WorkerProtocol<T>> workerProtocolImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> WorkerDaemonClient<T> reserveNewClient(Class<? extends WorkerProtocol<T>> workerProtocolImplementationClass, DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
-        WorkerDaemonClient client = workerDaemonStarter.startDaemon(workerProtocolImplementationClass, workingDir, forkOptions);
+        WorkerDaemonClient client = workerDaemonStarter.startDaemon(workerProtocolImplementationClass, forkOptions);
         synchronized (lock) {
             allClients.add(client);
         }

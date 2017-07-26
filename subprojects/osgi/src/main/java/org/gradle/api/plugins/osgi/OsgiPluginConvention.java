@@ -51,12 +51,12 @@ public class OsgiPluginConvention {
      * The symbolic name is usually the group + "." + archivesBaseName, with the following exceptions
      * <ul>
      * <li>if group has only one section (no dots) and archivesBaseName is not null then the
-     * first package name with classes is returned. eg. commons-logging:commons-logging ->
+     * first package name with classes is returned. eg. commons-logging:commons-logging -&gt;
      * org.apache.commons.logging</li>
      * <li>if archivesBaseName is equal to last section of group then group is returned. eg.
-     * org.gradle:gradle -> org.gradle</li>
+     * org.gradle:gradle -&gt; org.gradle</li>
      * <li>if archivesBaseName starts with last section of group that portion is removed. eg.
-     * org.gradle:gradle-core -> org.gradle.core</li>
+     * org.gradle:gradle-core -&gt; org.gradle.core</li>
      * </ul>
      */
     public OsgiManifest osgiManifest() {

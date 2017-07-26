@@ -121,7 +121,7 @@ Gradle provides a fined-grained view of the actual work being performed directly
 </figure>
 +++++
 
-CAUTION: Some work executed in parallel in not displayed yet e.g. parallel test execution. Future versions of Gradle will improve the granularity of the work in progress.
+NOTE: Parallel test execution is only displayed for JVM-based tests supported by Gradle core e.g. JUnit and TestNG. Future versions of Gradle might support other testing tools and frameworks.
 
 The following portion of the console output shows the work in-progress display with 8 concurrent workers:
 

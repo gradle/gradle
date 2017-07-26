@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.Iterators;
-import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -25,12 +24,12 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -74,7 +73,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
         if (getPrevious() == null) {
             return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange("Discovered input file history is not available."));
         }
-        return getCurrent().iterateContentChangesSince(getPrevious(), "discovered input");
+        return getCurrent().iterateContentChangesSince(getPrevious(), "discovered input", true);
     }
 
     @Override
@@ -90,7 +89,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
 
     private FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
         try {
-            return snapshotter.snapshot(fileCollection, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE, normalizationStrategy);
+            return snapshotter.snapshot(fileCollection, InputPathNormalizationStrategy.ABSOLUTE, normalizationStrategy);
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of discovered input files for task '%s' during up-to-date check.", taskName), e);
         }

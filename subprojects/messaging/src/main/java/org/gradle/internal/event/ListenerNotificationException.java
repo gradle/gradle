@@ -15,10 +15,11 @@
  */
 package org.gradle.internal.event;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.dispatch.MethodInvocation;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+
+import javax.annotation.Nullable;
 
 /**
  * A {@code ListenerNotificationException} is thrown when a listener cannot be notified of an event.

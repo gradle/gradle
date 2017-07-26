@@ -28,7 +28,6 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     /**
      * Returns the list of arguments for a particular instruction.
      *
-     * @param instructionName
      * @return The list of arguments
      * @see #instruction(String, String...)
      */
@@ -37,9 +36,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     /**
      * Adds arguments to an instruction. If the instruction does not exists, it is created. If it does exists, the
      * arguments are appended to the existing arguments.
-     * 
-     * @param name
-     * @param values
+     *
      * @return this
      * @see #instructionFirst(String, String...)
      * @see #instructionReplace(String, String...)
@@ -109,7 +106,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     /**
      * Returns the version.
      *
-     * @see #setVersion(String) 
+     * @see #setVersion(String)
      */
     String getVersion();
 
@@ -123,7 +120,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     /**
      * Returns the description.
      *
-     * @see #setDescription(String) 
+     * @see #setDescription(String)
      */
     String getDescription();
 
@@ -136,7 +133,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
 
     /**
      * Returns the license.
-     * @see #setLicense(String) 
+     * @see #setLicense(String)
      */
     String getLicense();
 
@@ -150,7 +147,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     /**
      * Returns the vendor.
      *
-     * @see #setVendor(String) 
+     * @see #setVendor(String)
      */
     String getVendor();
 
@@ -178,7 +175,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     /**
      * Returns the classes dir.
      *
-     * @see #setClassesDir(java.io.File) 
+     * @see #setClassesDir(java.io.File)
      */
     File getClassesDir();
 
@@ -187,8 +184,6 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
      * are analyzed for its packages and package dependencies. Based on this the Import-Package value is set.
      * This auto generated value can be overwritten by explicitly setting an instruction.
      *
-     * @param classesDir
-     * 
      * @see #instruction(String, String...)
      */
     void setClassesDir(File classesDir);
@@ -196,7 +191,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     /**
      * Returns the classpath.
      *
-     * @see #setClasspath(org.gradle.api.file.FileCollection) 
+     * @see #setClasspath(org.gradle.api.file.FileCollection)
      */
     FileCollection getClasspath();
 

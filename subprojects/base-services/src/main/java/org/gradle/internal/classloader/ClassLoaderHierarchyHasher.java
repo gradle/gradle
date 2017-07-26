@@ -17,7 +17,8 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * Provides a combined hash for a hierarchy of classloaders.

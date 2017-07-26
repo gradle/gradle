@@ -35,9 +35,9 @@ def buildType = Attribute.of('buildType', String)
 allprojects {
     dependencies {
        attributesSchema {
-          attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
-          attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-          attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+          attribute(usage)
+          attribute(flavor)
+          attribute(buildType)
        }
     }
     configurations {

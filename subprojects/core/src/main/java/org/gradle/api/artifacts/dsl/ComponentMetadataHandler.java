@@ -30,11 +30,11 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
  * </ul>
  *
  * <p> Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * dependencies {
  *     components {
  *         // Set the status and status scheme for every component belonging to a module in the group "org.foo"
- *         all { ComponentMetadataDetails details ->
+ *         all { ComponentMetadataDetails details -&gt;
  *             if (details.id.group == "org.foo") {
  *                 def version = details.id.version
  *                 // assuming status is last part of version string
@@ -44,7 +44,7 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
  *         }
  *
  *         // Treat all components in the module "org.foo:bar" as changing
- *         withModule("org.foo:bar") { ComponentMetadataDetails details ->
+ *         withModule("org.foo:bar") { ComponentMetadataDetails details -&gt;
  *             details.changing = true
  *         }
  *     }

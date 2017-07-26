@@ -18,12 +18,12 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
  * CopySpecs may be nested by passing a closure to one of the from methods.  The closure creates a child CopySpec and
  * delegates methods in the closure to the child. Child CopySpecs inherit any values specified in the parent. This
  * allows constructs like:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * def myCopySpec = project.copySpec {
  *   into('webroot')
  *   exclude('**&#47;.data/**')
@@ -70,7 +70,7 @@ import java.util.regex.Pattern;
  *
  * Copy specs can be reused in other copy specs via {@link #with(CopySpec...)} method. This enables reuse of the copy spec instances.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * def contentSpec = copySpec {
  *   from("content") {
  *     include "**&#47;*.txt"
@@ -185,7 +185,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * Adds the given specs as a child of this spec.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def contentSpec = copySpec {
      *   from("content") {
      *     include "**&#47;*.txt"
@@ -356,7 +356,6 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
 
     /**
      * {@inheritDoc}
-     * @param transformer
      */
     CopySpec filter(Transformer<String, String> transformer);
 

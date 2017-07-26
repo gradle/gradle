@@ -23,7 +23,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -66,6 +65,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -166,6 +166,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean dependenciesModified;
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
+
+    private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
@@ -443,25 +445,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void resolveGraphIfRequired(final InternalState requestedState) {
-        if (resolvedState == ARTIFACTS_RESOLVED) {
+        if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
             if (dependenciesModified) {
+                // TODO:DAZ I'm not sure we can ever get into this state, now that we prevent modification of resolved configuration
                 throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
             }
             return;
         }
-        if (resolvedState == GRAPH_RESOLVED) {
-            if (!dependenciesModified) {
-                return;
-            }
-            throw new InvalidUserDataException(String.format("Resolved %s again after modification", getDisplayName()));
-        }
-        if (resolvedState != UNRESOLVED) {
-            throw new IllegalStateException("Graph resolution already performed");
-        }
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                lockAttributes();
+                preventFromFurtherMutation();
 
                 ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
@@ -588,9 +582,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void lockAttributes() {
-        AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
-        configurationAttributes = new AttributeContainerWithErrorMessage(delegatee);
+    public void preventFromFurtherMutation() {
+        if (canBeMutated) {
+            AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
+            configurationAttributes = new ImmutableAttributeContainerWithErrorMessage(delegatee, this.displayName);
+            outgoing.preventFromFurtherMutation();
+            canBeMutated = false;
+        }
     }
 
     @Override
@@ -727,6 +725,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return;
         }
 
+        preventIllegalParentMutation(type);
+        markAsModified(type);
+        notifyChildren(type);
+    }
+
+    public void validateMutation(MutationType type) {
+        preventIllegalMutation(type);
+        markAsModified(type);
+        notifyChildren(type);
+    }
+
+    private void preventIllegalParentMutation(MutationType type) {
+        // TODO Deprecate and eventually prevent these mutations in parent when already resolved
+        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
+            return;
+        }
+
         if (resolvedState == ARTIFACTS_RESOLVED) {
             throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
         } else if (resolvedState == GRAPH_RESOLVED) {
@@ -734,11 +749,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after task dependencies have been resolved", type, getDisplayName()));
             }
         }
-
-        markAsModifiedAndNotifyChildren(type);
     }
 
-    public void validateMutation(MutationType type) {
+    private void preventIllegalMutation(MutationType type) {
+        // TODO: Deprecate and eventually prevent these mutations when already resolved
+        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
+            return;
+        }
+
         if (resolvedState == ARTIFACTS_RESOLVED) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
@@ -754,17 +772,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been included in dependency resolution.%s", type, getDisplayName(), extraMessage));
             }
         }
-
-        markAsModifiedAndNotifyChildren(type);
     }
 
-    private void markAsModifiedAndNotifyChildren(MutationType type) {
+    private void markAsModified(MutationType type) {
+        // TODO: Should not be ignoring DEPENDENCY_ATTRIBUTE modifications after resolve
+        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
+            return;
+        }
+        // Strategy mutations will not require a re-resolve
+        if (type == MutationType.STRATEGY) {
+            return;
+        }
+        dependenciesModified = true;
+    }
+
+    private void notifyChildren(MutationType type) {
         // Notify child configurations
         for (MutationValidator validator : childMutationValidators) {
             validator.validateMutation(type);
-        }
-        if (type != MutationType.STRATEGY) {
-            dependenciesModified = true;
         }
     }
 
@@ -1255,57 +1280,4 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private class AttributeContainerWithErrorMessage implements AttributeContainerInternal {
-        private final AttributeContainerInternal delegate;
-
-        AttributeContainerWithErrorMessage(AttributeContainerInternal delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public String toString() {
-            return delegate.toString();
-        }
-
-        @Override
-        public ImmutableAttributes asImmutable() {
-            return delegate.asImmutable();
-        }
-
-        @Override
-        public AttributeContainerInternal copy() {
-            return delegate.copy();
-        }
-
-        @Override
-        public Set<Attribute<?>> keySet() {
-            return delegate.keySet();
-        }
-
-        @Override
-        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-            throw new IllegalArgumentException(String.format("Cannot change attributes of %s after it has been resolved", getDisplayName()));
-        }
-
-        @Nullable
-        @Override
-        public <T> T getAttribute(Attribute<T> key) {
-            return delegate.getAttribute(key);
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return delegate.isEmpty();
-        }
-
-        @Override
-        public boolean contains(Attribute<?> key) {
-            return delegate.contains(key);
-        }
-
-        @Override
-        public AttributeContainer getAttributes() {
-            return delegate.getAttributes();
-        }
-    }
 }

@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -30,6 +29,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -270,10 +270,10 @@ public class CompileOptions extends AbstractOptions {
      * Defaults to the empty list.
      *
      * Compiler arguments not supported by the DSL can be added here. For example, it is possible
-     * to pass the {@code -release} option of JDK 9:
-     * <pre><code>compilerArgs.addAll(['-release', '7'])</code></pre>
+     * to pass the {@code --release} option of JDK 9:
+     * <pre><code>compilerArgs.addAll(['--release', '7'])</code></pre>
      *
-     * Note that if {@code -release} is added then {@code -target} and {@code -source}
+     * Note that if {@code --release} is added then {@code -target} and {@code -source}
      * are ignored.
      */
     @Input

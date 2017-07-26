@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
 import org.gradle.api.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.artifacts.cache.ModuleResolutionControl;
@@ -44,6 +43,7 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;

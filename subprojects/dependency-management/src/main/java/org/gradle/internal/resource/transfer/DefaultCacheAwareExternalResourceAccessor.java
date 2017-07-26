@@ -18,7 +18,6 @@ package org.gradle.internal.resource.transfer;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -47,6 +46,7 @@ import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

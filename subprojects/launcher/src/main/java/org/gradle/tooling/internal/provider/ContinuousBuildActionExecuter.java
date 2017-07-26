@@ -26,11 +26,10 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.filewatch.ChangeReporter;
-import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiter;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
-import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.filewatch.FileWatcherEventListener;
+import org.gradle.internal.filewatch.FileWatcherEventListenerFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -47,19 +46,17 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     private final TaskInputsListener inputsListener;
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
+    private final FileWatcherEventListenerFactory changeWatcherFactory;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
-    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
-        this(delegate, inputsListener, styledTextOutputFactory, OperatingSystem.current(), executorFactory, new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory));
-    }
-
-    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, OperatingSystem operatingSystem, ExecutorFactory executorFactory, FileSystemChangeWaiterFactory changeWaiterFactory) {
+    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileSystemChangeWaiterFactory changeWaiterFactory, FileWatcherEventListenerFactory changeWatcherFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
         this.delegate = delegate;
         this.inputsListener = inputsListener;
-        this.operatingSystem = operatingSystem;
-        this.changeWaiterFactory = changeWaiterFactory;
+        this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
+        this.changeWaiterFactory = changeWaiterFactory;
+        this.changeWatcherFactory = changeWatcherFactory;
         this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.QUIET);
     }
 
@@ -115,7 +112,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                     cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
                         @Override
                         public void execute(BuildCancellationToken cancellationToken) {
-                            ChangeReporter reporter = new ChangeReporter();
+                            FileWatcherEventListener reporter = changeWatcherFactory.create();
                             waiter.wait(new Runnable() {
                                 @Override
                                 public void run() {

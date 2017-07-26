@@ -27,9 +27,9 @@ import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
+import org.gradle.internal.filewatch.FileWatcherEventListenerFactory
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
@@ -52,6 +52,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def actionParameters = Stub(BuildActionParameters)
     def waiterFactory = Mock(FileSystemChangeWaiterFactory)
+    def changeWatcherFactory = new FileWatcherEventListenerFactory()
     def waiter = Mock(FileSystemChangeWaiter)
     def inputsListener = new DefaultTaskInputsListener()
     @AutoCleanup("stop")
@@ -180,7 +181,6 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(delegate, inputsListener, new TestStyledTextOutputFactory(), OperatingSystem.current(), executorFactory, waiterFactory)
+        new ContinuousBuildActionExecuter(delegate, waiterFactory, changeWatcherFactory, inputsListener, new TestStyledTextOutputFactory(), executorFactory)
     }
-
 }

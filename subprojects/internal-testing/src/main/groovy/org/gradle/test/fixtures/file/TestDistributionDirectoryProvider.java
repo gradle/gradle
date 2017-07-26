@@ -21,8 +21,7 @@ import org.junit.runners.model.FrameworkMethod;
 import java.io.File;
 
 public class TestDistributionDirectoryProvider extends AbstractTestDirectoryProvider {
-    static {
-        // NOTE: the space in the directory name is intentional
+    public TestDistributionDirectoryProvider() {
         root = new TestFile(new File("build/tmp/test distros"));
     }
 

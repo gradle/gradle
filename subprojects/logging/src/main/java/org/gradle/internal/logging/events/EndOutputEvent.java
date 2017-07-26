@@ -16,8 +16,9 @@
 
 package org.gradle.internal.logging.events;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
+
+import javax.annotation.Nullable;
 
 /**
  * Notifies output consumer tof the end of the output event stream.

@@ -227,6 +227,10 @@ class TaskTypeTaskStateChangesTest extends Specification {
         }
 
         @Override
+        void releaseContext() {
+        }
+
+        @Override
         void execute(Task task) {
         }
     }

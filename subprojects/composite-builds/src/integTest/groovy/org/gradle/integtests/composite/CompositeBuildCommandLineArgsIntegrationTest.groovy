@@ -143,6 +143,7 @@ includeBuild '../buildB'
         assertTaskExecuted(":buildB", ":jar")
     }
 
+    // Included build tasks are incorrect executed with `--dry-run`. See gradle/composite-builds#113
     def "does not execute task actions when dry run specified on composite build"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -151,17 +152,15 @@ includeBuild '../buildB'
         execute(buildA, ":build", ["--dry-run"])
 
         then:
-        result.normalizedOutput.contains ":compileJava SKIPPED\n" +
-            ":processResources SKIPPED\n" +
-            ":classes SKIPPED\n" +
-            ":jar SKIPPED\n" +
-            ":assemble SKIPPED\n" +
-            ":compileTestJava SKIPPED\n" +
-            ":processTestResources SKIPPED\n" +
-            ":testClasses SKIPPED\n" +
-            ":test SKIPPED\n" +
-            ":check SKIPPED\n" +
-            ":build SKIPPED"
+        skipped(
+            ":compileJava", ":processResources", ":classes", ":jar", ":assemble",
+            ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":check", ":build")
+    }
+
+    void skipped(String... taskNames) {
+        for (String taskName : taskNames) {
+            result.assertOutputContains(taskName + " SKIPPED\n")
+        }
     }
 
 }

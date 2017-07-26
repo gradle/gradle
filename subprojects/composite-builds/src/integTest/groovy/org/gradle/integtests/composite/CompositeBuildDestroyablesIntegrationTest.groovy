@@ -19,7 +19,7 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Ignore
 
-@Ignore("No longer works with parallel execution of included builds. Needs to be fixed.")
+@Ignore("No longer works with parallel execution of included builds. See gradle/composite-builds#114")
 class CompositeBuildDestroyablesIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
 

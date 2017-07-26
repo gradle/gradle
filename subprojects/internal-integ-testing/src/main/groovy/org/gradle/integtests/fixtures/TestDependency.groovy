@@ -23,7 +23,8 @@
 package org.gradle.integtests.fixtures
 
 import org.apache.commons.lang.StringUtils
-import org.gradle.api.Nullable
+
+import javax.annotation.Nullable
 
 class TestDependency {
 

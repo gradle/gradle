@@ -17,7 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import net.rubygrapefruit.platform.ThreadSafe;
-import org.gradle.api.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * Maintains an in-memory mirror of the state of the filesystem.

@@ -29,7 +29,7 @@ import org.gradle.internal.HasInternalProtocol;
  * <p>The configurations in a container are accessible as read-only properties of the container, using the name of the
  * configuration as the property name. For example:</p>
  *
- * <pre autoTested='true'>
+ * <pre class='autoTested'>
  * configurations.create('myConfiguration')
  * configurations.myConfiguration.transitive = false
  * </pre>
@@ -37,7 +37,7 @@ import org.gradle.internal.HasInternalProtocol;
  * <p>A dynamic method is added for each configuration which takes a configuration closure. This is equivalent to
  * calling {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
  *
- * <pre autoTested='true'>
+ * <pre class='autoTested'>
  * configurations.create('myConfiguration')
  * configurations.myConfiguration {
  *     transitive = false
@@ -48,7 +48,7 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * An example showing how to refer to a given configuration by name
  * in order to get hold of all dependencies (e.g. jars, but only)
- * <pre autoTested='true'>
+ * <pre class='autoTested'>
  *   apply plugin: 'java' //so that I can use 'compile' configuration
  *
  *   //copying all dependencies attached to 'compile' into a specific folder
@@ -60,7 +60,7 @@ import org.gradle.internal.HasInternalProtocol;
  * </pre>
  *
  * An example showing how to declare and configure configurations
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java' //so that I can use 'compile', 'testCompile' configurations
  *
  * configurations {

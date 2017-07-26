@@ -27,10 +27,12 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     def cleanup() {
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
+        if (testDirectoryProvider.cleanup) {
+            testDirectory.usingNativeTools().deleteDir() //remove symlinks
+        }
     }
 
-    public static boolean shellAvailable(String shellCommand) {
+    public static boolean   shellAvailable(String shellCommand) {
         return TestPrecondition.UNIX_DERIVATIVE.isFulfilled() && (
             new File("/bin/$shellCommand").exists()
                 || new File("/usr/bin/$shellCommand").exists()

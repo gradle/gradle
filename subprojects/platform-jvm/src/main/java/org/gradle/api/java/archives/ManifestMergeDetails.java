@@ -47,8 +47,6 @@ public interface ManifestMergeDetails {
 
     /**
      * Set's the value for the key of the manifest after the merge takes place.
-     *
-     * @param value
      */
     void setValue(String value);
 

@@ -79,14 +79,14 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == ["-target", "1.4"] + defaultOptions
     }
 
-    def "removes -source and -target option if -release is present"() {
+    def "removes -source and -target option if --release is present"() {
         when:
-        spec.compileOptions.compilerArgs += ['-release', '7']
+        spec.compileOptions.compilerArgs += ['--release', '7']
         spec.sourceCompatibility = '1.7'
         spec.targetCompatibility = '1.7'
 
         then:
-        builder.build() == defaultOptions + ['-release', '7']
+        builder.build() == defaultOptions + ['--release', '7']
     }
 
     def "generates -d option"() {
@@ -343,6 +343,16 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)
         spec.compileOptions.compilerArgs = ['-sourcepath', userProvidedPath]
         def expected = ["-g", "-sourcepath", userProvidedPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+
+        expect:
+        builder.build() == expected
+        builder.noEmptySourcePath().build() == expected
+    }
+
+    def "removes sourcepath when module-source-path is provided"() {
+        given:
+        spec.compileOptions.compilerArgs = ['--module-source-path', '/src/other']
+        def expected = ["-g", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-source-path", "/src/other"]
 
         expect:
         builder.build() == expected

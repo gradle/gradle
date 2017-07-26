@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildIdentity
-import org.gradle.includedbuild.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency

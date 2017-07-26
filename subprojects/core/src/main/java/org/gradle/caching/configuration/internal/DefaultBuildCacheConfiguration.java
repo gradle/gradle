@@ -146,7 +146,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             Class<? extends BuildCache> registeredConfigurationType = registration.getConfigurationType();
             if (registeredConfigurationType.isAssignableFrom(configurationType)) {
                 Class<? extends BuildCacheServiceFactory<?>> buildCacheServiceFactoryType = registration.getFactoryType();
-                LOGGER.info("Found {} registered for {}", buildCacheServiceFactoryType, registeredConfigurationType);
+                LOGGER.debug("Found {} registered for {}", buildCacheServiceFactoryType, registeredConfigurationType);
                 return Cast.uncheckedCast(buildCacheServiceFactoryType);
             }
         }

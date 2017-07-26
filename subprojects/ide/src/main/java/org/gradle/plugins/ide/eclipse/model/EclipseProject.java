@@ -40,7 +40,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Example of use with a blend of all possible properties.
  * Bear in mind that usually you don't have configure eclipse project directly because Gradle configures it for free!
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  *
@@ -94,7 +94,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  *
@@ -110,14 +110,14 @@ import static org.gradle.util.ConfigureUtil.configure;
  *
  *       //closure executed after .project content is loaded from existing file
  *       //but before gradle build information is merged
- *       beforeMerged { project ->
+ *       beforeMerged { project -&gt;
  *         //if you want skip merging natures... (a very abstract example)
  *         project.natures.clear()
  *       }
  *
  *       //closure executed after .project content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { project ->
+ *       whenMerged { project -&gt;
  *         //you can tinker with the {@link Project} here
  *       }
  *     }
@@ -199,7 +199,7 @@ public class EclipseProject {
      * <p>
      * Referencing projects does not mean adding a build path dependencies between them!
      * If you need to configure a build path dependency use Gradle's dependencies section or
-     * eclipse.classpath.whenMerged { classpath -> ... to manipulate the classpath entries
+     * eclipse.classpath.whenMerged { classpath -&gt; ... to manipulate the classpath entries
      * <p>
      * For example see docs for {@link EclipseProject}
      */
@@ -209,7 +209,7 @@ public class EclipseProject {
 
     /**
      * The referenced projects of this Eclipse project (*not*: java build path project references). <p> Referencing projects does not mean adding a build path dependencies between them! If you need to
-     * configure a build path dependency use Gradle's dependencies section or eclipse.classpath.whenMerged { classpath -> ... to manipulate the classpath entries
+     * configure a build path dependency use Gradle's dependencies section or eclipse.classpath.whenMerged { classpath -&gt; ... to manipulate the classpath entries
      *
      * @param referencedProjects The name of the project references.
      */

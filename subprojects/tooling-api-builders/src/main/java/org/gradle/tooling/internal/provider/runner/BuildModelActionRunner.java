@@ -46,6 +46,9 @@ public class BuildModelActionRunner implements BuildActionRunner {
         final GradleInternal gradle = buildController.getGradle();
         gradle.addBuildListener(new BuildResultAdapter(gradle, buildController, buildModelAction));
 
+        if (buildModelAction.isModelRequest()) {
+            gradle.getStartParameter().setConfigureOnDemand(false);
+        }
         if (buildModelAction.isRunTasks()) {
             buildController.run();
         } else {
@@ -64,6 +67,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
             this.buildModelAction = buildModelAction;
         }
 
+
         @Override
         public void buildFinished(BuildResult result) {
             if (result.getFailure() == null) {
@@ -72,6 +76,9 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         private static BuildActionResult buildResult(GradleInternal gradle, BuildModelAction buildModelAction) {
+            if (buildModelAction.isModelRequest()) {
+                forceFullConfiguration(gradle);
+            }
             PayloadSerializer serializer = gradle.getServices().get(PayloadSerializer.class);
             try {
                 Object model = buildModel(gradle, buildModelAction);
@@ -82,11 +89,6 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         private static Object buildModel(GradleInternal gradle, BuildModelAction buildModelAction) {
-
-            if (!buildModelAction.isRunTasks()) {
-                forceFullConfiguration(gradle);
-            }
-
             String modelName = buildModelAction.getModelName();
             ToolingModelBuilder builder = getModelBuilder(gradle, modelName);
 

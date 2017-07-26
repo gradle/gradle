@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Nullable;
 import org.gradle.util.VersionNumber;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

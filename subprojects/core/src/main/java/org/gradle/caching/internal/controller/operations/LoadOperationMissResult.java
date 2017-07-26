@@ -16,11 +16,11 @@
 
 package org.gradle.caching.internal.controller.operations;
 
-import org.gradle.caching.internal.BuildCacheLoadBuildOperationType;
+import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType;
 
-public class LoadOperationMissResult implements BuildCacheLoadBuildOperationType.Result {
+public class LoadOperationMissResult implements BuildCacheRemoteLoadBuildOperationType.Result {
 
-    public static final BuildCacheLoadBuildOperationType.Result INSTANCE = new LoadOperationMissResult();
+    public static final BuildCacheRemoteLoadBuildOperationType.Result INSTANCE = new LoadOperationMissResult();
 
     private LoadOperationMissResult() {
     }
@@ -32,11 +32,6 @@ public class LoadOperationMissResult implements BuildCacheLoadBuildOperationType
 
     @Override
     public long getArchiveSize() {
-        return 0;
-    }
-
-    @Override
-    public long getArchiveEntryCount() {
         return 0;
     }
 

@@ -18,7 +18,7 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 
 /**
  * Represents the usage of a configuration. Typical usages include compilation or runtime.
@@ -30,8 +30,8 @@ import org.gradle.api.internal.model.DefaultObjectFactory;
 public interface Usage extends Named {
     Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of(Usage.class);
 
-    Usage FOR_COMPILE = DefaultObjectFactory.INSTANCE.named(Usage.class, "for compile");
-    Usage FOR_RUNTIME = DefaultObjectFactory.INSTANCE.named(Usage.class, "for runtime");
+    Usage FOR_COMPILE = NamedObjectInstantiator.INSTANCE.named(Usage.class, "for compile");
+    Usage FOR_RUNTIME = NamedObjectInstantiator.INSTANCE.named(Usage.class, "for runtime");
 
     /**
      * The Java API of a library, packaged as class path elements, either a JAR or a classes directory.
@@ -95,4 +95,11 @@ public interface Usage extends Named {
      * @since 4.1
      */
     String NATIVE_RUNTIME = "native-runtime";
+
+    /**
+     * The Swift API of a library, packaged as swiftmodule files.
+     *
+     * @since 4.1
+     */
+    String SWIFT_API = "swift-api";
 }

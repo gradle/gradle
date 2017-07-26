@@ -17,9 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
-import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -34,20 +32,7 @@ import static com.google.common.collect.Iterators.singletonIterator;
 
 public enum TaskFilePropertyCompareStrategy {
     ORDERED(new OrderSensitiveTaskFilePropertyCompareStrategy()),
-    UNORDERED(new OrderInsensitiveTaskFilePropertyCompareStrategy(true)),
-    OUTPUT(new OrderInsensitiveTaskFilePropertyCompareStrategy(false));
-
-    static ChangeType getChangeType(FileContentSnapshot previous, FileContentSnapshot current) {
-        boolean previousMissing = previous instanceof MissingFileContentSnapshot;
-        boolean currentMissing = current instanceof MissingFileContentSnapshot;
-        Preconditions.checkState(!(previousMissing && currentMissing), "snapshots need to be different in order to determine change type, but both missing");
-        if (previousMissing) {
-            return ChangeType.ADDED;
-        } else if (currentMissing) {
-            return ChangeType.REMOVED;
-        }
-        return ChangeType.MODIFIED;
-    }
+    UNORDERED(new OrderInsensitiveTaskFilePropertyCompareStrategy());
 
     private final Impl delegate;
 
@@ -55,13 +40,13 @@ public enum TaskFilePropertyCompareStrategy {
         this.delegate = delegate;
     }
 
-    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute) {
+    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute, boolean includeAdded) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
-        Iterator<TaskStateChange> trivialResult = compareTrivialSnapshots(current, previous, fileType, delegate.isIncludeAdded());
+        Iterator<TaskStateChange> trivialResult = compareTrivialSnapshots(current, previous, fileType, includeAdded);
         if (trivialResult != null) {
             return trivialResult;
         }
-        return delegate.iterateContentChangesSince(current, previous, fileType, pathIsAbsolute);
+        return delegate.iterateContentChangesSince(current, previous, fileType, pathIsAbsolute, includeAdded);
     }
 
     public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
@@ -69,9 +54,8 @@ public enum TaskFilePropertyCompareStrategy {
     }
 
     interface Impl {
-        Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute);
+        Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute, boolean includeAdded);
         void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots);
-        boolean isIncludeAdded();
     }
 
     /**
@@ -93,8 +77,8 @@ public enum TaskFilePropertyCompareStrategy {
                     case 0:
                         return emptyIterator();
                     case 1:
-                        String path = previous.keySet().iterator().next();
-                        TaskStateChange change = new FileChange(path, ChangeType.REMOVED, fileType);
+                        Entry<String, NormalizedFileSnapshot> entry = previous.entrySet().iterator().next();
+                        TaskStateChange change = FileChange.removed(entry.getKey(), fileType, entry.getValue().getSnapshot().getType());
                         return singletonIterator(change);
                     default:
                         return null;
@@ -104,8 +88,8 @@ public enum TaskFilePropertyCompareStrategy {
                 switch (previous.size()) {
                     case 0:
                         if (includeAdded) {
-                            String path = current.keySet().iterator().next();
-                            TaskStateChange change = new FileChange(path, ChangeType.ADDED, fileType);
+                            Entry<String, NormalizedFileSnapshot> entry = current.entrySet().iterator().next();
+                            TaskStateChange change = FileChange.added(entry.getKey(), fileType, entry.getValue().getSnapshot().getType());
                             return singletonIterator(change);
                         } else {
                             return emptyIterator();
@@ -131,7 +115,7 @@ public enum TaskFilePropertyCompareStrategy {
             FileContentSnapshot currentSnapshot = normalizedCurrent.getSnapshot();
             if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
                 String path = currentEntry.getKey();
-                TaskStateChange change = new FileChange(path, getChangeType(previousSnapshot, currentSnapshot), fileType);
+                TaskStateChange change = FileChange.modified(path, fileType, previousSnapshot.getType(), currentSnapshot.getType());
                 return singletonIterator(change);
             } else {
                 return emptyIterator();
@@ -140,12 +124,12 @@ public enum TaskFilePropertyCompareStrategy {
             if (includeAdded) {
                 String previousPath = previousEntry.getKey();
                 String currentPath = currentEntry.getKey();
-                TaskStateChange remove = new FileChange(previousPath, ChangeType.REMOVED, fileType);
-                TaskStateChange add = new FileChange(currentPath, ChangeType.ADDED, fileType);
+                TaskStateChange remove = FileChange.removed(previousPath, fileType, normalizedPrevious.getSnapshot().getType());
+                TaskStateChange add = FileChange.added(currentPath, fileType, normalizedCurrent.getSnapshot().getType());
                 return Iterators.forArray(remove, add);
             } else {
                 String path = previousEntry.getKey();
-                TaskStateChange change = new FileChange(path, ChangeType.REMOVED, fileType);
+                TaskStateChange change = FileChange.removed(path, fileType, previousEntry.getValue().getSnapshot().getType());
                 return singletonIterator(change);
             }
         }

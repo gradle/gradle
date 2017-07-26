@@ -27,7 +27,7 @@ public class ProgressLoggerProvider {
         this.loggerClazz = loggerClazz;
     }
 
-    public ProgressLogger start(String description, String shortDescription) {
-        return progressLoggerFactory.newOperation(loggerClazz).start(description, shortDescription);
+    public ProgressLogger start(String description, String shortDescription, int totalProgress) {
+        return progressLoggerFactory.newOperation(loggerClazz).start(description, shortDescription, totalProgress);
     }
 }

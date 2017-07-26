@@ -143,6 +143,8 @@ tasks.withType(AsciidoctorTask) {
         }
     }
 
+    attributes website: 'http://www.gradle.org'
+
     doLast {
         outputDir.eachFile { File file ->
             def contents = file.getText("utf-8")
@@ -423,8 +425,8 @@ task javadocAll(type: Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (!java7Home && javaVersion.isJava8Compatible()) {
-        options.addStringOption 'Xdoclint:none', '-quiet'
+    if (javaVersion.isJava8Compatible()) {
+        options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source publicGroovyProjects.collect {project -> project.sourceSets.main.allJava }

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.jvm;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -41,6 +40,7 @@ import org.gradle.platform.base.internal.FixedBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 import org.gradle.util.SingleMessageLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentSpec implements ClassDirectoryBinarySpecInternal {

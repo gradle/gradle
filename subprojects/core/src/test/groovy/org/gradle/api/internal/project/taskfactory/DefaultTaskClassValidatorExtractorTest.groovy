@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Nullable
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.CacheableTask
@@ -37,6 +36,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import javax.annotation.Nullable
 import java.lang.annotation.Annotation
 
 class DefaultTaskClassValidatorExtractorTest extends Specification {

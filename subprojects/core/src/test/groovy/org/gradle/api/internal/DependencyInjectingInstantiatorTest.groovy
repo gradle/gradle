@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal
 
-import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.UnknownServiceException
 import spock.lang.Specification
@@ -24,10 +24,14 @@ import spock.lang.Specification
 import javax.inject.Inject
 
 class DependencyInjectingInstantiatorTest extends Specification {
-    final ServiceRegistry services = Mock()
-    final DependencyInjectingInstantiator instantiator = new DependencyInjectingInstantiator(services, new DependencyInjectingInstantiator.ConstructorCache())
+    def services = Mock(ServiceRegistry)
+    def classGenerator = Mock(ClassGenerator)
+    def instantiator = new DependencyInjectingInstantiator(classGenerator, services, new DependencyInjectingInstantiator.ConstructorCache())
 
     def "creates instance that has default constructor"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         when:
         def result = instantiator.newInstance(HasDefaultConstructor)
 
@@ -36,6 +40,9 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "injects provided parameters into constructor"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         when:
         def result = instantiator.newInstance(HasInjectConstructor, "string", 12)
 
@@ -46,7 +53,8 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
     def "injects missing parameters from provided service registry"() {
         given:
-        _ * services.get(String) >> "string"
+        classGenerator.generate(_) >> { Class<?> c -> c }
+        services.get(String) >> "string"
 
         when:
         def result = instantiator.newInstance(HasInjectConstructor, 12)
@@ -57,6 +65,9 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "unboxes primitive types"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         when:
         def result = instantiator.newInstance(AcceptsPrimitiveTypes, 12, true)
 
@@ -66,16 +77,25 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "constructors do not need to be public but do need to be annotated"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         expect:
         instantiator.newInstance(HasPrivateConstructor, "param") != null
     }
 
     def "class can be package scoped"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         expect:
         instantiator.newInstance(PackageScopedClass) != null
     }
 
     def "selects annotated constructor when class has multiple constructors and only one is annotated"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         when:
         def result = instantiator.newInstance(HasOneInjectConstructor, 12)
 
@@ -83,7 +103,10 @@ class DependencyInjectingInstantiatorTest extends Specification {
         result != null
     }
 
-    def "propagates constructor failure"() {
+    def "wraps constructor failure"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         when:
         instantiator.newInstance(HasBrokenConstructor)
 
@@ -92,7 +115,23 @@ class DependencyInjectingInstantiatorTest extends Specification {
         e.cause == HasBrokenConstructor.failure
     }
 
+    def "reports requested type rather than implementation type in error message"() {
+        given:
+        classGenerator.generate(HasBrokenConstructor) >> HasBrokenConstructorSub
+
+        when:
+        instantiator.newInstance(HasBrokenConstructor)
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.message == "Could not create an instance of type $HasBrokenConstructor.name."
+        e.cause == HasBrokenConstructor.failure
+    }
+
     def "fails when too many constructor parameters provided"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         when:
         instantiator.newInstance(HasOneInjectConstructor, 12, "param2")
 
@@ -103,7 +142,8 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
     def "fails when supplied parameters cannot be used to call constructor"() {
         given:
-        _ * services.get(Number) >> 12
+        classGenerator.generate(_) >> { Class<?> c -> c }
+        services.get(Number) >> 12
 
         when:
         instantiator.newInstance(HasOneInjectConstructor, new StringBuilder("string"))
@@ -113,10 +153,11 @@ class DependencyInjectingInstantiatorTest extends Specification {
         e.cause.message == "Unexpected parameter provided for constructor for class $HasOneInjectConstructor.name."
     }
 
-    def "handles missing service"() {
+    def "fails on missing service"() {
         given:
         def failure = new UnknownServiceException(String, "unknown")
-        _ * services.get(String) >> { throw failure }
+        classGenerator.generate(_) >> { Class<?> c -> c }
+        services.get(String) >> { throw failure }
 
         when:
         instantiator.newInstance(HasInjectConstructor, 12)
@@ -127,6 +168,9 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "fails when class has multiple constructors and none are annotated"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         when:
         instantiator.newInstance(HasNoInjectConstructor, new StringBuilder("param"))
 
@@ -136,6 +180,9 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "fails when class has multiple constructor that are annotated"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         when:
         instantiator.newInstance(HasMultipleInjectConstructors, new StringBuilder("param"))
 
@@ -145,6 +192,9 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "fails when class has non-public zero args constructor that is not annotated"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
         when:
         instantiator.newInstance(HasNonPublicNoArgsConstructor, new StringBuilder("param"))
 
@@ -167,6 +217,9 @@ class DependencyInjectingInstantiatorTest extends Specification {
         HasBrokenConstructor() {
             throw failure
         }
+    }
+
+    public static class HasBrokenConstructorSub extends HasBrokenConstructor {
     }
 
     public static class HasInjectConstructor {

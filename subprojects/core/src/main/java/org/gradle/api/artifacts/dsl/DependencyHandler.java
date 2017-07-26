@@ -39,7 +39,7 @@ import java.util.Map;
  * </pre>
  *
  * <p>Example shows a basic way of declaring dependencies.
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * //so that we can use 'compile', 'testCompile' for dependencies
  *
@@ -81,7 +81,7 @@ import java.util.Map;
  * <li>Avoiding transitive dependencies for certain dependency.</li>
  * </ul>
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java' //so that I can declare 'compile' dependencies
  *
  * dependencies {
@@ -106,7 +106,7 @@ import java.util.Map;
  *   <li>Explicit specification of the artifact. See also {@link org.gradle.api.artifacts.ModuleDependency#artifact(groovy.lang.Closure)}.</li>
  * </ul>
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java' //so that I can declare 'compile' dependencies
  *
  * dependencies {
@@ -155,7 +155,7 @@ import java.util.Map;
  * <p>External dependencies are represented by a {@link
  * org.gradle.api.artifacts.ExternalModuleDependency}.</p>
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * //so that we can use 'compile', 'testCompile' for dependencies
  *
@@ -189,7 +189,7 @@ import java.util.Map;
  * <p>You can also add a dependency using a {@link org.gradle.api.file.FileCollection}:</p>
  * <code><i>configurationName</i> files('a file')</code>
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * //so that we can use 'compile', 'testCompile' for dependencies
  *
@@ -218,7 +218,7 @@ import java.util.Map;
  * <p>It is possible to depend on certain Gradle APIs or libraries that Gradle ships with.
  * It is particularly useful for Gradle plugin development. Example:</p>
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * //Our Gradle plugin is written in groovy
  * apply plugin: 'groovy'
  * //now we can use the 'compile' configuration for declaring dependencies

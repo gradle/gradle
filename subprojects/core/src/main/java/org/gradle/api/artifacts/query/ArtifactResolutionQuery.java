@@ -24,7 +24,7 @@ import org.gradle.api.component.Component;
 /**
  * A builder to construct a query that can resolve selected software artifacts of the specified components.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * task resolveCompileSources {

@@ -16,10 +16,17 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.api.Nullable;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelRegistration;
+import org.gradle.model.internal.core.ModelSpec;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
+
+import javax.annotation.Nullable;
 
 public interface ModelRegistry {
 

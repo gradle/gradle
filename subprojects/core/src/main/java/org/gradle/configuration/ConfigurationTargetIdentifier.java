@@ -16,11 +16,12 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+
+import javax.annotation.Nullable;
 
 /**
  * Uniquely identifies the target of some configuration.

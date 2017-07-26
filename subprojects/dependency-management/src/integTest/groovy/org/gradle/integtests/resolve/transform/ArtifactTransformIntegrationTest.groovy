@@ -34,7 +34,7 @@ allprojects {
 
     dependencies {
         attributesSchema {
-            attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
+            attribute(usage)
         }
     }
     configurations {

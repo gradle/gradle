@@ -6,6 +6,14 @@ String jdkVarName = 'JAVA_9'
 task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
     description "Run integTests with Java9 and forking executer"
     excludes = [
+        // TODO requires investigation
+        "DaemonGroovyCompilerIntegrationTest",
+        "DaemonJavaCompilerIntegrationTest",
+        "InProcessJavaCompilerIntegrationTest",
+        "CommandLineJavaCompilerIntegrationTest",
+        "CommandLineJavaCompilerForExecutableIntegrationTest",
+        "JavadocIntegrationTest",
+
         // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
         // Fail since build 125
         "InterfaceBackedManagedTypeIntegrationTest",
@@ -77,6 +85,14 @@ task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
         "ScalaLibraryInitIntegrationTest",
         "ZincScalaCompilerMultiVersionIntegrationTest",
         "PlayCompositeBuildIntegrationTest",
+        "PlayJavaAnnotationProcessingIntegrationTest",
+        "ScalaAnnotationProcessingIntegrationTest",
+        "CachedScalaCompileIntegrationTest",
+        "ScalaCompileRelocationIntegrationTest",
+        "UpToDateScalaCompileIntegrationTest",
+        "ScalaDocIntegrationTest",
+        "ScalaCompilerDaemonReuseIntegrationTest",
+        "ScalaComponentCompilerDaemonReuseIntegrationTest",
 
         // Sample attempts to set max perm space
         "SamplesScalaZincIntegrationTest",
@@ -142,65 +158,6 @@ tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
     if (name.contains('IntegTest')) {
         systemProperties['org.gradle.integtest.executer'] = 'forking'
     }
-    excludes = [
-        // https://github.com/cglib/cglib/issues/106
-        'FindBugsSpecBuilderTest',
-        'AntlrSpecFactoryTest',
-        'TemplateOperationFactorySpec',
-        'HashUtilTest',
-        'DefaultPublishArtifactSetTest',
-        'DefaultArtifactCacheMetaDataTest',
-        'CachingModuleComponentRepositoryTest',
-        'RepositoryChainArtifactResolverTest',
-        'ExternalResourceResolverTest',
-        'DefaultArtifactTransformsTest',
-        'DefaultBuildableArtifactResolveResultTest',
-        'DefaultVisualStudioProjectTest',
-        'VisualStudioProjectConfigurationTest',
-        'VisualStudioProjectFileTest',
-        'DefaultScalaToolProviderTest',
-        'DownloadingScalaToolChainTest',
-        'StreamBackedStandardOutputListenerTest',
-        'StreamingStyledTextOutputTest',
-        'RepositoryTransportDeployWagonTest',
-        'ProviderStartParameterConverterTest',
-        'DefaultSharedLibraryBinarySpecTest',
-        'DefaultStaticLibraryBinarySpecTest',
-        'DefaultPrebuiltSharedLibraryBinaryTest',
-        'DefaultCommandLineToolInvocationWorkerTest',
-        'AbstractGccCompatibleToolChainTest',
-        'BuildOperationFiringExternalResourceDecoratorTest',
-        'DaemonPlayCompilerTest',
-        'PlayDistributionPluginTest',
-        'TwirlCompileTest',
-        'DefaultGradleRunnerTest',
-        'DefaultJarBinarySpecTest',
-        'JavaPluginConventionTest',
-        'AggregateTestResultsProviderTest',
-        'DefaultConfigurableFileCollectionTest',
-        'DefaultConfigurableFileTreeTest',
-        'DefaultFileCollectionResolveContextTest',
-        'DefaultProjectTest',
-        'SkipCachedTaskExecuterTest',
-        'SkipEmptySourceFilesTaskExecuterTest',
-        'TarTaskOutputPackerTest',
-        'TaskOutputOriginFactoryTest',
-        'BuildOperationScriptPluginTest',
-        'DefaultSettingsTest',
-        'ProjectSpecsTest',
-        'PersistentScopeIdLoaderTest',
-        'GradleUserHomeScopeServicesTest',
-        'DefaultWorkerExecutorParallelTest',
-        'ActionAwareConsumerConnectionTest',
-        'BuildActionRunnerBackedConsumerConnectionTest',
-        'CancellableConsumerConnectionTest',
-        'GradleBuildAdapterProducerTest',
-        'ModelBuilderBackedConsumerConnectionTest',
-        'ModelBuilderBackedModelProducerTest',
-        'GradleBuildConverterTest',
-        'DefaultToolingImplementationLoaderTest',
-        'DefaultPrebuiltStaticLibraryBinaryTest'
-    ].collect { "**/*${it}*" }
 }
 
 if (!gradle.hasProperty("haveInstalledJava9Guard")) {

@@ -37,6 +37,8 @@ import org.gradle.internal.work.NoAvailableWorkerLeaseException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.DefaultJavaForkOptions;
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.util.CollectionUtils;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
@@ -58,10 +60,11 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
+    private final WorkerDirectoryProvider workerDirectoryProvider;
 
     public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
                                  FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor,
-                                 AsyncWorkTracker asyncWorkTracker) {
+                                 AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -70,6 +73,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
+        this.workerDirectoryProvider = workerDirectoryProvider;
     }
 
     @Override
@@ -228,7 +232,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new UnsupportedOperationException("The worker " + propertyDescription + " cannot be set when using isolation mode " + isolationMode.name());
     }
 
-    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath) {
+    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions userForkOptions, Iterable<File> classpath) {
         ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
         ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
 
@@ -247,7 +251,16 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         Iterable<File> daemonClasspath = classpathBuilder.build();
         Iterable<String> daemonSharedPackages = sharedPackagesBuilder.build();
 
-        return new DaemonForkOptions(forkOptions.getMinHeapSize(), forkOptions.getMaxHeapSize(), forkOptions.getAllJvmArgs(), daemonClasspath, daemonSharedPackages, KeepAliveMode.DAEMON);
+        JavaForkOptions forkOptions = new DefaultJavaForkOptions(fileResolver);
+        userForkOptions.copyTo(forkOptions);
+        forkOptions.setWorkingDir(workerDirectoryProvider.getIdleWorkingDirectory());
+
+        return new DaemonForkOptionsBuilder(fileResolver)
+                        .javaForkOptions(forkOptions)
+                        .classpath(daemonClasspath)
+                        .sharedPackages(daemonSharedPackages)
+                        .keepAliveMode(KeepAliveMode.DAEMON)
+                        .build();
     }
 
     private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder, boolean addToSharedPackages) {

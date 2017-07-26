@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class SkipUpToDateTaskExecuterTest extends Specification {
 
@@ -38,7 +39,7 @@ class SkipUpToDateTaskExecuterTest extends Specification {
 
     def executer = new SkipUpToDateTaskExecuter(delegate)
 
-    def skipsTaskWhenOutputsAreUpToDate() {
+    def "skips task when outputs are up to date"() {
         given:
         def originBuildInvocationId = UniqueId.generate()
 
@@ -46,55 +47,35 @@ class SkipUpToDateTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
+        1 * taskArtifactState.ensureSnapshotBeforeTask()
         1 * taskArtifactState.isUpToDate(_) >> true
         1 * taskArtifactState.getOriginBuildInvocationId() >> originBuildInvocationId
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskState.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
         1 * taskContext.setOriginBuildInvocationId(originBuildInvocationId)
-        1 * taskArtifactState.finished()
         0 * _
     }
 
-    def executesTaskWhenOutputsAreNotUpToDate() {
+    @Unroll
+    def "executes task when outputs are not up to date"() {
         when:
         executer.execute(task, taskState, taskContext);
 
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
+        1 * taskArtifactState.ensureSnapshotBeforeTask()
         1 * taskArtifactState.isUpToDate(_) >> false
         1 * taskContext.setUpToDateMessages(_)
 
         then:
-        1 * taskArtifactState.beforeTask()
-
-        then:
         1 * delegate.execute(task, taskState, taskContext)
-        _ * taskState.getFailure() >> null
+        _ * taskState.getFailure() >> exception
 
         then:
-        1 * taskArtifactState.afterTask()
-        1 * taskArtifactState.finished()
+        1 * taskArtifactState.afterTask(exception)
         0 * _
-    }
 
-    def doesNotUpdateStateWhenTaskFails() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.isUpToDate(_) >> false
-        1 * taskContext.setUpToDateMessages(_)
-
-        then:
-        1 * taskArtifactState.beforeTask()
-
-        then:
-        1 * delegate.execute(task, taskState, taskContext)
-        1 * taskState.getFailure() >> new RuntimeException()
-
-        then:
-        1 * taskArtifactState.finished()
-        0 * _
+        where:
+        exception << [null, new RuntimeException()]
     }
 }

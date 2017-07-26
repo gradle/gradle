@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import org.gradle.api.Nullable;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -26,6 +25,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 import org.gradle.util.TextUtil;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class FullExceptionFormatter implements TestExceptionFormatter {

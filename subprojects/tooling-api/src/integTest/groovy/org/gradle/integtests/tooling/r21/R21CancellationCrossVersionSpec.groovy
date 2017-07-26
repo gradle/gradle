@@ -81,7 +81,7 @@ throw new RuntimeException("should not run")
         }
 
         then:
-        resultHandler.failure instanceof GradleConnectionException
+        resultHandler.assertFailedWith(GradleConnectionException)
         resultHandler.failure.cause.message.contains('Build cancelled.')
 
         and:
@@ -136,7 +136,7 @@ task notExecuted(dependsOn: hang) {
         }
 
         then:
-        resultHandler.failure instanceof GradleConnectionException
+        resultHandler.assertFailedWith(GradleConnectionException)
         resultHandler.failure.cause.message.contains('Build cancelled.')
 
         and:
@@ -220,7 +220,7 @@ task hang {
         }
 
         then:
-        resultHandler.failure instanceof GradleConnectionException
+        resultHandler.assertFailedWith(GradleConnectionException)
         resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
         resultHandler.failure.cause.message == 'Build cancelled.'
 
@@ -264,7 +264,7 @@ latch.await()
         }
 
         then:
-        resultHandler.failure instanceof GradleConnectionException
+        resultHandler.assertFailedWith(GradleConnectionException)
 
         and:
         daemons.daemon.assertIdle()

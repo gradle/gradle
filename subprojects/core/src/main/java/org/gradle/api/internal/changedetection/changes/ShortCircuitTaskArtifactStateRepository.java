@@ -16,7 +16,6 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -26,6 +25,7 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -70,11 +70,13 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             this.reason = reason;
         }
 
+        @Override
         public boolean isUpToDate(Collection<String> messages) {
             messages.add(reason);
             return false;
         }
 
+        @Override
         public IncrementalTaskInputs getInputChanges() {
             return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
         }
@@ -89,6 +91,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return delegate.calculateCacheKey();
         }
 
+        @Override
         public TaskExecutionHistory getExecutionHistory() {
             return delegate.getExecutionHistory();
         }
@@ -99,16 +102,19 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return null;
         }
 
-        public void beforeTask() {
-            delegate.beforeTask();
+        @Override
+        public void ensureSnapshotBeforeTask() {
+            delegate.ensureSnapshotBeforeTask();
         }
 
-        public void afterTask() {
-            delegate.afterTask();
+        @Override
+        public void afterOutputsRemovedBeforeTask() {
+            delegate.afterOutputsRemovedBeforeTask();
         }
 
-        public void finished() {
-            delegate.finished();
+        @Override
+        public void afterTask(Throwable failure) {
+            delegate.afterTask(failure);
         }
     }
 

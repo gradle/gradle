@@ -31,7 +31,7 @@ import org.gradle.api.Incubating;
  * </ul>
  *
  * Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * ProjectConnection connection = GradleConnector.newConnector()
  *    .forProjectDirectory(new File("someFolder"))
  *    .connect();

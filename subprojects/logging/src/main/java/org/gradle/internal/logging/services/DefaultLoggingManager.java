@@ -115,12 +115,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     @Override
-    public DefaultLoggingManager setMaxWorkerCount(int maxWorkerCount) {
-        loggingRouter.setMaxWorkerCount(maxWorkerCount);
-        return this;
-    }
-
-    @Override
     public DefaultLoggingManager captureSystemSources() {
         stdOutLoggingSystem.enableCapture();
         stdErrLoggingSystem.enableCapture();
@@ -205,7 +199,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     private static class StartableLoggingRouter implements Stoppable {
         private final LoggingRouter loggingRouter;
         private LogLevel level;
-        private Integer maxWorkerCount;
         private LoggingSystem.Snapshot originalState;
         private ConsoleOutput consoleOutput;
         private OutputStream consoleOutputStream;
@@ -218,9 +211,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             originalState = loggingRouter.snapshot();
             if (level != null) {
                 loggingRouter.configure(level);
-            }
-            if (maxWorkerCount != null) {
-                loggingRouter.configureMaxWorkerCount(maxWorkerCount.intValue());
             }
             if (consoleOutput != null) {
                 loggingRouter.attachProcessConsole(consoleOutput);
@@ -270,18 +260,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
                 loggingRouter.configure(logLevel);
             }
             level = logLevel;
-        }
-
-        public void setMaxWorkerCount(int maxWorkerCount) {
-            if (this.maxWorkerCount != null && this.maxWorkerCount == maxWorkerCount) {
-                return;
-            }
-
-            if (originalState != null) {
-                // Already started
-                loggingRouter.configureMaxWorkerCount(maxWorkerCount);
-            }
-            this.maxWorkerCount = Integer.valueOf(maxWorkerCount);
         }
 
         @Override

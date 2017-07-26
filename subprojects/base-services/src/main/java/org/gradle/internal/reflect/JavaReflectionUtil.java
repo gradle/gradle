@@ -16,6 +16,7 @@
 
 package org.gradle.internal.reflect;
 
+import org.apache.commons.lang.reflect.MethodUtils;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
@@ -23,6 +24,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.Constructor;
@@ -107,12 +109,13 @@ public class JavaReflectionUtil {
      *
      * @throws NoSuchPropertyException when the given property does not exist.
      */
-    public static PropertyMutator writeableProperty(Class<?> target, String property) throws NoSuchPropertyException {
-        PropertyMutator mutator = writeablePropertyIfExists(target, property);
+    public static PropertyMutator writeableProperty(Class<?> target, String property, @Nullable Class<?> valueType) throws NoSuchPropertyException {
+        PropertyMutator mutator = writeablePropertyIfExists(target, property, valueType);
         if (mutator != null) {
             return mutator;
         }
-        throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s' on class %s.", property, target.getSimpleName()));
+        throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s' %s on class %s.",
+            property, valueType == null ? "accepting null value" : "of type " + valueType.getSimpleName(), target.getSimpleName()));
     }
 
     /**
@@ -120,12 +123,10 @@ public class JavaReflectionUtil {
      *
      * Returns null if no such property exists.
      */
-    public static PropertyMutator writeablePropertyIfExists(Class<?> target, String property) throws NoSuchPropertyException {
+    public static PropertyMutator writeablePropertyIfExists(Class<?> target, String property, @Nullable Class<?> valueType) throws NoSuchPropertyException {
         String setterName = toMethodName("set", property);
-        for (final Method method : target.getMethods()) {
-            if (!method.getName().equals(setterName) || PropertyAccessorType.of(method) != PropertyAccessorType.SETTER) {
-                continue;
-            }
+        Method method = MethodUtils.getMatchingAccessibleMethod(target, setterName, new Class<?>[]{valueType});
+        if (method != null) {
             return new MethodBackedPropertyMutator(property, method);
         }
         return null;

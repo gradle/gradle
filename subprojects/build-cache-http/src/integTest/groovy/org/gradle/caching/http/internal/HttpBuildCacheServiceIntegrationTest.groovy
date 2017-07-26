@@ -38,8 +38,8 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
 
     def setup() {
-        httpBuildCache.start()
-        settingsFile << useHttpBuildCache(httpBuildCache.uri)
+        httpBuildCacheServer.start()
+        settingsFile << useHttpBuildCache(httpBuildCacheServer.uri)
 
         buildFile << """
             apply plugin: "java"
@@ -151,7 +151,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     def "credentials can be specified via DSL"() {
-        httpBuildCache.withBasicAuth("user", "pass")
+        httpBuildCacheServer.withBasicAuth("user", "pass")
         settingsFile << """
             buildCache {
                 remote.credentials {
@@ -165,7 +165,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
-        httpBuildCache.authenticationAttempts == ['Basic'] as Set
+        httpBuildCacheServer.authenticationAttempts == ['Basic'] as Set
 
         expect:
         withBuildCache().succeeds "clean"
@@ -174,33 +174,33 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         withBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
-        httpBuildCache.authenticationAttempts == ['Basic'] as Set
+        httpBuildCacheServer.authenticationAttempts == ['Basic'] as Set
     }
 
     def "credentials can be specified via URL"() {
-        httpBuildCache.withBasicAuth("user", 'pass%:-0]#')
+        httpBuildCacheServer.withBasicAuth("user", 'pass%:-0]#')
         settingsFile.text = useHttpBuildCache(getUrlWithCredentials("user", 'pass%:-0]#'))
 
         when:
         withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
-        httpBuildCache.authenticationAttempts == ['Basic'] as Set
+        httpBuildCacheServer.authenticationAttempts == ['Basic'] as Set
 
         expect:
         withBuildCache().succeeds "clean"
 
         when:
-        httpBuildCache.reset()
-        httpBuildCache.withBasicAuth("user", "pass%:-0]#")
+        httpBuildCacheServer.reset()
+        httpBuildCacheServer.withBasicAuth("user", "pass%:-0]#")
         withBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
-        httpBuildCache.authenticationAttempts == ['Basic'] as Set
+        httpBuildCacheServer.authenticationAttempts == ['Basic'] as Set
     }
 
     def "credentials from DSL override credentials in URL"() {
-        httpBuildCache.withBasicAuth("user", "pass")
+        httpBuildCacheServer.withBasicAuth("user", "pass")
         settingsFile.text = useHttpBuildCache(getUrlWithCredentials("user", "wrongPass"))
         settingsFile << """
             buildCache {
@@ -215,16 +215,16 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
-        httpBuildCache.authenticationAttempts == ['Basic'] as Set
+        httpBuildCacheServer.authenticationAttempts == ['Basic'] as Set
     }
 
     private URI getUrlWithCredentials(String user, String password) {
-        def uri = httpBuildCache.uri
+        def uri = httpBuildCacheServer.uri
         return new URI(uri.getScheme(), "${user}:${password}", uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment())
     }
 
     def "build does not leak credentials in cache URL"() {
-        httpBuildCache.withBasicAuth("correct-username", "correct-password")
+        httpBuildCacheServer.withBasicAuth("correct-username", "correct-password")
         settingsFile << """
             buildCache {
                 remote.credentials {
@@ -243,7 +243,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     def "incorrect credentials cause build to fail"() {
-        httpBuildCache.withBasicAuth("user", "pass")
+        httpBuildCacheServer.withBasicAuth("user", "pass")
         settingsFile << """
             buildCache {
                 remote.credentials {
@@ -254,9 +254,10 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
 
         when:
-        withBuildCache().fails "jar"
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().succeeds "jar"
         then:
-        failureCauseContains "response status 401: Unauthorized"
+        output.contains "response status 401: Unauthorized"
         // Make sure we don't log the password
         !output.contains("incorrect-pass")
         !errorOutput.contains("incorrect-pass")
@@ -277,6 +278,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
 
         then:
         output.contains("java.net.UnknownHostException: invalid.invalid")
-        output.contains("The remote build cache is now disabled because a non-recoverable error was encountered")
+        output.contains("The remote build cache was disabled during the build due to errors.")
     }
 }

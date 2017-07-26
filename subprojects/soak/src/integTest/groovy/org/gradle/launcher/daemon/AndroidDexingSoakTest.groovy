@@ -82,7 +82,7 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
             file("inputs").deleteDir()
 
             executer.withStackTraceChecksDisabled()
-            3.times { executer.expectDeprecationWarning() }
+            executer.expectDeprecationWarnings(3)
             executer.withBuildJvmOpts("-Xmx2560m", "-D${HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY}=1536")
             args('-x', 'lint')
             succeeds('clean', 'transformClassesWithDexForRelease')

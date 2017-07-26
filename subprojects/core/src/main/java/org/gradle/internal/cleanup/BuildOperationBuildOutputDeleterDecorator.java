@@ -47,7 +47,7 @@ public class BuildOperationBuildOutputDeleterDecorator implements BuildOutputDel
             @Override
             public BuildOperationDescriptor.Builder description() {
                 String rootProjectIdentifier = GUtil.elvis(gradle.getIdentityPath().getName(), "root build");
-                return BuildOperationDescriptor.displayName("Clean stale outputs for " + rootProjectIdentifier).progressDisplayName("cleanup stale outputs for " + rootProjectIdentifier);
+                return BuildOperationDescriptor.displayName("Clean stale outputs for " + rootProjectIdentifier).progressDisplayName("Cleaning stale outputs for " + rootProjectIdentifier);
             }
         });
     }

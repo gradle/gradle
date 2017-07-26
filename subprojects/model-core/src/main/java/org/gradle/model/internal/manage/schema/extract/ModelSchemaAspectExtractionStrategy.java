@@ -16,8 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface ModelSchemaAspectExtractionStrategy {

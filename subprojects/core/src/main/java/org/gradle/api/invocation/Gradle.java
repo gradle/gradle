@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.includedbuild.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.HasInternalProtocol;
@@ -211,7 +211,7 @@ public interface Gradle extends PluginAware {
      * None of the projects have been evaluated. This {@code Gradle} instance is passed to the closure as a parameter.
      * <p>
      * An example of hooking into the projectsLoaded to configure buildscript classpath from the init script.
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * //init.gradle
      * gradle.projectsLoaded {
      *   rootProject.buildscript {
@@ -343,12 +343,16 @@ public interface Gradle extends PluginAware {
 
     /**
      * Returns the included builds for this build.
+     *
+     * @since 3.1
      */
     @Incubating
     Collection<IncludedBuild> getIncludedBuilds();
 
     /**
      * Returns the included build with the specified name for this build.
+     *
+     * @since 3.1
      */
     @Incubating
     IncludedBuild includedBuild(String name);

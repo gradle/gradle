@@ -17,7 +17,6 @@ package org.gradle.tooling.internal.consumer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Nullable;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
@@ -26,6 +25,7 @@ import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;

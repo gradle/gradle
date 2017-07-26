@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.api.Nullable;
 import org.gradle.model.RuleSource;
 import org.gradle.model.Rules;
 import org.gradle.model.internal.core.ModelActionRole;
@@ -26,6 +25,7 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 

@@ -46,6 +46,8 @@ dependencies {
     // Making this better would likely involve a separate `:gradleRuntime` module that brings in `:core`, `:dependencyManagement` and other key subprojects
     runtime project(":compositeBuilds")
 
+    testFixturesCompile project(":internalIntegTesting")
+
     testCompile libraries.jsoup
 
     integTestRuntime project(":maven")

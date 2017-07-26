@@ -100,6 +100,7 @@ public class TaskMutator {
             this.action = action;
         }
 
+        @Override
         public void execute(Task task) {
             executingleftShiftAction = true;
             try {
@@ -109,8 +110,14 @@ public class TaskMutator {
             }
         }
 
+        @Override
         public void contextualise(TaskExecutionContext context) {
             action.contextualise(context);
+        }
+
+        @Override
+        public void releaseContext() {
+            action.releaseContext();
         }
 
         @Override

@@ -22,6 +22,7 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,6 +35,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     private List<String> tasks = new LinkedList<String>();
     private List<String> arguments = new LinkedList<String>();
 
+    @Inject
     public DefaultGradleBuildInvocationSpec(PathToFileResolver fileResolver, Object projectDir) {
         this.fileResolver = fileResolver;
         this.projectDir = projectDir;

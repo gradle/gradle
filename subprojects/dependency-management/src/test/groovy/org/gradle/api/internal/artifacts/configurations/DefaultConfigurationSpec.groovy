@@ -1480,7 +1480,7 @@ class DefaultConfigurationSpec extends Specification {
         def a1 = Attribute.of('a1', String)
 
         when:
-        conf.lockAttributes()
+        conf.preventFromFurtherMutation()
         conf.getAttributes().attribute(a1, "a1")
 
         then:
@@ -1498,7 +1498,7 @@ class DefaultConfigurationSpec extends Specification {
         def containerImmutable = conf.getAttributes().asImmutable()
 
         when:
-        conf.lockAttributes()
+        conf.preventFromFurtherMutation()
         def containerWrapped = conf.getAttributes()
 
         then:

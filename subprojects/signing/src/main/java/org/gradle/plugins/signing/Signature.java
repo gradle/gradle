@@ -17,12 +17,12 @@ package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 import java.util.concurrent.Callable;

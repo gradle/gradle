@@ -48,25 +48,25 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
             task customTask(type: CustomTask) {
                 outputFile = file('build/outputFile.bin')
             }
-        """ .stripIndent()
+        """.stripIndent()
     }
 
     def "build does not fail if connection drops during store"() {
-        httpBuildCache.dropConnectionForPutAfterBytes(1024)
+        httpBuildCacheServer.dropConnectionForPutAfterBytes(1024)
         startServer()
-        String errorPattern = /(Broken pipe|Connection reset|Software caused connection abort: socket write error)/
+        String errorPattern = /(Broken pipe|Connection reset|Software caused connection abort: socket write error|Connection refused)/
 
         when:
         executer.withStackTraceChecksDisabled()
         executer.withFullDeprecationStackTraceDisabled()
         withBuildCache().succeeds "customTask"
+
         then:
-        output ==~ /(?s).*org\.gradle\.api\.GradleException: Could not pack property 'outputFile': ${errorPattern}.*/ ||
-            output ==~ /(?s).*org\.gradle\.caching\.BuildCacheException: Unable to store entry at .*: ${errorPattern}.*/
+        output ==~ /(?s).*org\.gradle\.caching\.BuildCacheException: Unable to store entry at .*: ${errorPattern}.*/
     }
 
     private void startServer() {
-        httpBuildCache.start()
-        settingsFile << useHttpBuildCache(httpBuildCache.uri)
+        httpBuildCacheServer.start()
+        settingsFile << useHttpBuildCache(httpBuildCacheServer.uri)
     }
 }

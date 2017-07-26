@@ -24,7 +24,7 @@ archivesBaseName = 'gradle'
 
 buildTypes {
     sanityCheck {
-        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
+        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility", "javadocAll"
     }
 
     // The minimum to be run before check-in
@@ -183,7 +183,7 @@ ext {
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'compositeBuilds', 'buildCacheHttp'
+        'resourcesSftp', 'resourcesS3', 'resourcesGcs', 'compositeBuilds', 'buildCacheHttp'
     ].collect {
         project(it)
     }
@@ -258,10 +258,6 @@ subprojects {
     }
 
     apply from: "$rootDir/gradle/codeQuality.gradle"
-
-    if (isCiServer) {
-        reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}"
-    }
 }
 
 configurations {
@@ -296,8 +292,8 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.9.1'
-    externalModules 'org.gradle:gradle-script-kotlin-tooling-builders:0.9.1'
+    externalModules 'org.gradle:gradle-kotlin-dsl:0.10.3'
+    externalModules 'org.gradle:gradle-kotlin-dsl-tooling-builders:0.10.3'
     coreRuntime project(':launcher')
     coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')
@@ -387,29 +383,4 @@ gradle.buildFinished { result ->
     }
 }
 
-/*
- * When run from a Continuous Integration environment HTML test reports will usually only be inspected
- * if the build failed e.g. due to failed or flaky tests.
- *
- * Deletes HTML test reports so they are not archived on TeamCity and use up unnecessary disk space.
- */
-if (isCiServer) {
-    gradle.buildFinished { buildResult ->
-        if (!buildResult.failure) {
-            logger.quiet "Deleting HTML test reports..."
-
-            subprojects {
-                def htmlTestReportDirs = tasks.withType(Test).collect { it.reports.html.destination }.unique()
-
-                htmlTestReportDirs.each { htmlReportDir ->
-                    logger.info "Deleting test reports directory '$htmlReportDir'."
-                    def success = htmlReportDir.deleteDir()
-
-                    if (!success) {
-                        logger.warn "Unable to delete test report directory '$htmlReportDir'."
-                    }
-                }
-            }
-        }
-    }
-}
+apply from: "gradle/ciReporting.gradle"

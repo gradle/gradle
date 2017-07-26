@@ -20,16 +20,15 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
-import org.gradle.internal.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.events.OperationIdentifier;
@@ -53,6 +52,7 @@ import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -69,26 +69,26 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ResourceLockCoordinationService resourceLockCoordinationService;
     private final ManagedExecutor fixedSizePool;
-    private final ParallelExecutionManager parallelExecutionManager;
+    private final ParallelismConfigurationManager parallelismConfigurationManager;
 
     private final AtomicLong nextId = new AtomicLong(ROOT_BUILD_OPERATION_ID_VALUE);
     private final ThreadLocal<DefaultBuildOperationState> currentOperation = new ThreadLocal<DefaultBuildOperationState>();
 
     public DefaultBuildOperationExecutor(BuildOperationListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory,
                                          BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory,
-                                         ResourceLockCoordinationService resourceLockCoordinationService, ParallelExecutionManager parallelExecutionManager) {
+                                         ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
         this.listener = listener;
         this.timeProvider = timeProvider;
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.resourceLockCoordinationService = resourceLockCoordinationService;
-        this.fixedSizePool = executorFactory.create("build operations", parallelExecutionManager.getParallelismConfiguration().getMaxWorkerCount());
-        this.parallelExecutionManager = parallelExecutionManager;
-        parallelExecutionManager.addListener(this);
+        this.fixedSizePool = executorFactory.create("build operations", parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount());
+        this.parallelismConfigurationManager = parallelismConfigurationManager;
+        parallelismConfigurationManager.addListener(this);
     }
 
     @Override
-    public void onConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
+    public void onParallelismConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
         fixedSizePool.setFixedPoolSize(parallelismConfiguration.getMaxWorkerCount());
     }
 
@@ -294,7 +294,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void stop() {
-        parallelExecutionManager.removeListener(this);
+        parallelismConfigurationManager.removeListener(this);
         fixedSizePool.stop();
     }
 

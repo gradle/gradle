@@ -17,12 +17,12 @@
 package org.gradle.internal.resource;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Nullable;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;

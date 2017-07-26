@@ -49,6 +49,6 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator injectAndDecorate(ServiceRegistry registry) {
-        return new ClassGeneratorBackedInstantiator(classGenerator, new DependencyInjectingInstantiator(registry, constructorCache));
+        return new DependencyInjectingInstantiator(classGenerator, registry, constructorCache);
     }
 }

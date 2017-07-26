@@ -15,6 +15,8 @@
  */
 
 /**
- * dsl related classes.
+ * DSL related classes.
+ *
+ * @deprecated This package will be removed in Gradle 5.0.
  */
 package org.gradle.api.dsl;

@@ -216,7 +216,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final String contentHash;
 
         public BuildScriptRemapper(ClassVisitor cv, ScriptSource source, String originalClassName, String contentHash) {
-            super(ASM5, cv);
+            super(ASM6, cv);
             this.scriptSource = source;
             this.originalClassName = originalClassName;
             this.contentHash = contentHash;
@@ -339,7 +339,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         class MethodRenamer extends MethodVisitor {
 
             public MethodRenamer(final MethodVisitor mv) {
-                super(ASM5, mv);
+                super(ASM6, mv);
             }
 
             public void visitTypeInsn(int i, String name) {

@@ -50,12 +50,6 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
     TaskOutputFilePropertyBuilder optional(boolean optional);
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
-
-    /**
      * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskOutputs#upToDateWhen(Closure)} instead.

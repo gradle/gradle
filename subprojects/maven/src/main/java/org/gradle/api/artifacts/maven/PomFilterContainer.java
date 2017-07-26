@@ -39,7 +39,6 @@ public interface PomFilterContainer {
      * an exception, if you don't specify a filter that selects the artifact to deploy. If you want to deploy more than one artifact you have
      * to use the (see {@link #addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)} method.</p>
      *
-     * @param defaultFilter
      * @see #getFilter()
      */
     void setFilter(PublishFilter defaultFilter);
@@ -61,8 +60,6 @@ public interface PomFilterContainer {
      * By default the properties of such a POM object are all null.
      * If they are null, Gradle will use default values for generating the Maven POM. Those default values are derived from the deployable artifact
      * and from the project type (e.g. java, war, ...). If you explicitly set a POM property, Gradle will use this instead.</p>
-     *
-     * @param defaultPom
      */
     void setPom(MavenPom defaultPom);
 
@@ -114,8 +111,6 @@ public interface PomFilterContainer {
     /**
      * Configures a POM by a closure. The closure statements are delegated to the POM object associated with the given name.
      *
-     * @param name
-     * @param configureClosure
      * @return The POM object associated with the given name.
      * @see PomFilterContainer#pom(String)
      */
@@ -124,7 +119,6 @@ public interface PomFilterContainer {
     /**
      * Configures the default POM by a closure. The closure statements are delegated to the default POM.
      *
-     * @param configureClosure
      * @return The default POM.
      * @see PomFilterContainer#getPom()
      */

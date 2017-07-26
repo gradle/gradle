@@ -27,7 +27,7 @@ import org.gradle.api.file.SourceDirectorySet;
  * See the example below how {@link SourceSet} 'main' is accessed and how the {@link SourceDirectorySet} 'java'
  * is configured to exclude some package from compilation.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * sourceSets {

@@ -16,6 +16,7 @@ dependencies {
     compile project(':native')
     compile project(':logging')
 
+    compile libraries.asm
     compile libraries.commons_io
     compile libraries.slf4j_api
 

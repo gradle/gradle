@@ -32,20 +32,20 @@ public interface DependencySubstitutions {
      * Adds a dependency substitution rule that is triggered for every dependency (including transitive)
      * when the configuration is being resolved. The action receives an instance of {@link DependencySubstitution}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     * <p/>
+     * <p>
      * Example:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * configurations { main }
      * // add dependency substitution rules
      * configurations.main.resolutionStrategy.dependencySubstitution {
      *   // Use a rule to change the dependency module while leaving group + version intact
-     *   all { DependencySubstitution dependency ->
-     *     if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.name == 'groovy-all') {
+     *   all { DependencySubstitution dependency -&gt;
+     *     if (dependency.requested instanceof ModuleComponentSelector &amp;&amp; dependency.requested.name == 'groovy-all') {
      *       dependency.useTarget details.requested.group + ':groovy:' + details.requested.version
      *     }
      *   }
      *   // Use a rule to replace all missing projects with module dependencies
-     *   all { DependencySubstitution dependency ->
+     *   all { DependencySubstitution dependency -&gt;
      *    if (dependency.requested instanceof ProjectComponentSelector) {
      *       def targetProject = findProject(":${dependency.requested.path}")
      *       if (targetProject == null) {
@@ -74,9 +74,9 @@ public interface DependencySubstitutions {
 
     /**
      * DSL-friendly mechanism to construct a dependency substitution for dependencies matching the provided selector.
-     * <p/>
+     * <p>
      * Examples:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * configurations { main }
      * configurations.main.resolutionStrategy.dependencySubstitution {
      *   // Substitute project and module dependencies

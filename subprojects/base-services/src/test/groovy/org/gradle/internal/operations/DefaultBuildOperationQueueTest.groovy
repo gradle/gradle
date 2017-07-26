@@ -17,8 +17,7 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
-import org.gradle.initialization.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -63,14 +62,8 @@ class DefaultBuildOperationQueueTest extends Specification {
     WorkerLeaseService workerRegistry
 
     void setupQueue(int threads) {
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), parallelism(threads)) {};
+        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new ParallelismConfigurationManagerFixture(true, threads)) {};
         operationQueue = new DefaultBuildOperationQueue(workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())
-    }
-
-    ParallelExecutionManager parallelism(int maxWorkers) {
-        return Stub(ParallelExecutionManager) {
-            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, maxWorkers)
-        }
     }
 
     def "cleanup"() {

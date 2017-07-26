@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  *
  * Being a {@link DomainObjectSet}, a {@code MavenArtifactSet} provides convenient methods for querying, filtering, and applying actions to the set of {@link MavenArtifact}s.
  *
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  * apply plugin: 'maven-publish'
  *
  * def publication = publishing.publications.create("name", MavenPublication)

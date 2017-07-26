@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskOutputCachingState;
+
+import javax.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;

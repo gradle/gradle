@@ -76,6 +76,6 @@ class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
     }
 
     private String regexFor(String message) {
-        /<[-=]{13}> \d{1,3}% $message \[\d+s]/
+        /<.*> \d{1,3}% $message \[\d+s]/
     }
 }

@@ -17,7 +17,6 @@ package org.gradle.api.internal.resolve;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import org.gradle.api.Nullable;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -53,6 +52,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.VariantComponent;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;

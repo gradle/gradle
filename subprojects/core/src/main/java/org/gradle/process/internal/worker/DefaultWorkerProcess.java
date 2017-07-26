@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.worker;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -30,6 +29,7 @@ import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleListener;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 
+import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -94,7 +94,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
         lock.lock();
         try {
             LOGGER.debug("Received connection {} from {}", connection, execHandle);
-            
+
             if (connectionHandler != null && running) {
                 connectionHandler.run();
             }

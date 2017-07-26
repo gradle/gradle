@@ -54,6 +54,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -118,7 +119,7 @@ import java.util.concurrent.Callable;
  * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec plugins script block}.
  * </p>
  *
- * <a name="properties"/> <h3>Properties</h3>
+ * <a name="properties"></a> <h3>Properties</h3>
  *
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
  * property or method which your script uses is delegated through to the associated <code>Project</code> object.  This
@@ -143,7 +144,7 @@ import java.util.concurrent.Callable;
  * of the corresponding getter or setter method.</li>
  *
  * <li>The <em>extra</em> properties of the project.  Each project maintains a map of extra properties, which
- * can contain any arbitrary name -> value pair.  Once defined, the properties of this scope are readable and writable.
+ * can contain any arbitrary name -&gt; value pair.  Once defined, the properties of this scope are readable and writable.
  * See <a href="#extraproperties">extra properties</a> for more details.</li>
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
@@ -166,7 +167,7 @@ import java.util.concurrent.Callable;
  * <p>When writing a property, the project searches the above scopes in order, and sets the property in the first scope
  * it finds the property in. If not found, an exception is thrown. See {@link #setProperty(String, Object)} for more details.</p>
  *
- * <a name="extraproperties"/> <h4>Extra Properties</h4>
+ * <a name="extraproperties"></a> <h4>Extra Properties</h4>
  *
  * All extra properties must be defined through the &quot;ext&quot; namespace. Once an extra property has been defined,
  * it is available directly on the owning object (in the below case the Project, Task, and sub-projects respectively) and can
@@ -507,7 +508,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * closure is executed to configure the task.</p> <p/> <p>After the task is added to the project, it is made
+     * closure is executed to configure the task.</p> <p>After the task is added to the project, it is made
      * available as a property of the project, so that you can reference the task by name in your build file.  See <a
      * href="#properties">here</a> for more details</p>
      *
@@ -782,7 +783,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def myTree = fileTree("src")
      * myTree.include "**&#47;*.java"
      * myTree.builtBy "someTask"
@@ -802,7 +803,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * as per {@link #file(Object)}. The closure will be used to configure the new file tree.
      * The file tree is passed to the closure as its delegate.  Example:</p>
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def myTree = fileTree('src') {
      *    exclude '**&#47;.data/**'
      *    builtBy 'someTask'
@@ -827,7 +828,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as per {@link #file(Object)}. The action will be used to configure the new file tree. Example:</p>
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def myTree = fileTree('src') {
      *    exclude '**&#47;.data/**'
      *    builtBy 'someTask'
@@ -853,7 +854,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
      * properties on the new file tree.  Example:</p>
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def myTree = fileTree(dir:'src', excludes:['**&#47;ignore/**', '**&#47;.data/**'])
      *
      * task copy(type: Copy) {
@@ -900,7 +901,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * You can combine this method with the {@link #copy(groovy.lang.Closure)}
      * method to untar a TAR file:
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * task untar(type: Copy) {
      *   from tarTree('someCompressedTar.gzip')
      *
@@ -1061,7 +1062,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * <p>Returns the <code>AntBuilder</code> for this project. You can use this in your build file to execute ant
      * tasks. See example below.</p>
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * task printChecksum {
      *   doLast {
      *     ant {
@@ -1091,7 +1092,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </pre>
      *
      * Here's how it would look like in gradle. Observe how the ant XML is represented in groovy by the ant builder
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * task printChecksum {
      *   doLast {
      *     ant {
@@ -1173,7 +1174,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * ArtifactHandler} is passed to the closure as the closure's delegate.
      *
      * <p>Example:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * configurations {
      *   //declaring new configuration that will be used to associate with artifacts
      *   schema
@@ -1200,7 +1201,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>This method executes the given action against the {@link ArtifactHandler} for this project.
      *
      * <p>Example:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * configurations {
      *   //declaring new configuration that will be used to associate with artifacts
      *   schema
@@ -1223,7 +1224,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
-     * <p>Returns the {@link Convention} for this project.</p> <p/> <p>You can access this property in your build file
+     * <p>Returns the {@link Convention} for this project.</p> <p>You can access this property in your build file
      * using <code>convention</code>. You can also can also access the properties and methods of the convention object
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *
@@ -1397,6 +1398,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </ol>
      *
      * @param propertyName The name of the property.
+     * @since 2.13
      * @return The value of the property, possibly null or null if not found.
      * @see Project#property(String)
      */
@@ -1428,13 +1430,13 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Configures an object via a closure, with the closure's delegate set to the supplied object. This way you don't
-     * have to specify the context of a configuration statement multiple times. <p/> Instead of:</p>
+     * have to specify the context of a configuration statement multiple times. <p> Instead of:</p>
      * <pre>
      * MyType myType = new MyType()
      * myType.doThis()
      * myType.doThat()
      * </pre>
-     * <p/> you can do:
+     * <p> you can do:
      * <pre>
      * MyType myType = configure(new MyType()) {
      *     doThis()
@@ -1445,7 +1447,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>The object being configured is also passed to the closure as a parameter, so you can access it explicitly if
      * required:</p>
      * <pre>
-     * configure(someObj) { obj -> obj.doThis() }
+     * configure(someObj) { obj -&gt; obj.doThis() }
      * </pre>
      *
      * @param object The object to configure
@@ -1576,7 +1578,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given closure is used
      * to configure the {@link CopySpec} before it is returned by this method.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * def baseSpec = copySpec {
      *    from "source"
      *    include "**&#47;*.java"
@@ -1655,7 +1657,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ProjectState getState();
 
     /**
-     * <p>Creates a container for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.<p>
+     * <p>Creates a container for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.</p>
      *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *

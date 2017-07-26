@@ -18,10 +18,7 @@ package org.gradle.composite.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.includedbuild.IncludedBuild;
-import org.gradle.includedbuild.internal.IncludedBuildController;
-import org.gradle.includedbuild.internal.IncludedBuildControllers;
-import org.gradle.includedbuild.internal.IncludedBuilds;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -62,8 +59,21 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     @Override
     public void startTaskExecution() {
         this.taskExecutionStarted = true;
+        populateTaskGraphs();
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.startTaskExecution();
+        }
+    }
+
+    private void populateTaskGraphs() {
+        boolean tasksDiscovered = true;
+        while (tasksDiscovered) {
+            tasksDiscovered = false;
+            for (IncludedBuildController buildController : buildControllers.values()) {
+                if (buildController.populateTaskGraph()) {
+                    tasksDiscovered = true;
+                }
+            }
         }
     }
 
@@ -73,6 +83,10 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             buildController.stopTaskExecution();
         }
         buildControllers.clear();
+        // TODO:DAZ Move this logic into IncludedBuildController, and register a controller for _every_ included build.
+        for (IncludedBuild includedBuild : includedBuilds.getBuilds()) {
+            ((IncludedBuildInternal) includedBuild).finishBuild();
+        }
     }
 
     @Override

@@ -26,7 +26,7 @@ import org.gradle.tooling.model.UnsupportedMethodException;
  * Informs about the build environment, like Gradle version or the Java home in use.
  * <p>
  * Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * ProjectConnection connection = GradleConnector.newConnector()
  *    .forProjectDirectory(new File("someProjectFolder"))
  *    .connect();

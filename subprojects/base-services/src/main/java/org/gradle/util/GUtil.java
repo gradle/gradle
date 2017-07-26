@@ -253,6 +253,20 @@ public class GUtil {
         }
     }
 
+
+    public static void savePropertiesNoDateComment(Properties properties, File propertyFile) {
+        try {
+            FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
+            try {
+                savePropertiesNoDateComment(properties, propertiesFileOutputStream);
+            } finally {
+                propertiesFileOutputStream.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static void savePropertiesNoDateComment(Properties properties, OutputStream outputStream) {
         saveProperties(properties,
             new LineBufferingOutputStream(

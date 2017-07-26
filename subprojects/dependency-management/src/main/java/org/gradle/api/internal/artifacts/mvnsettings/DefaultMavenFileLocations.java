@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.mvnsettings;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.SystemProperties;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultMavenFileLocations implements MavenFileLocations {

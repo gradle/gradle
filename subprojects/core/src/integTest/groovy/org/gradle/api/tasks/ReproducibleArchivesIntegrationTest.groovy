@@ -39,6 +39,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'src'
                 destinationDir = buildDir
                 archiveName = 'test.${fileExtension}'
+                fileMode = 0644
+                dirMode = 0755
             }
             """
 
@@ -70,6 +72,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1'
                 destinationDir = buildDir
                 archiveName = 'test.${fileExtension}'
+                fileMode = 0644
+                dirMode = 0755
             }
             """
 
@@ -105,6 +109,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1', 'dir2', 'dir3'
                 destinationDir = buildDir
                 archiveName = 'test.tar.${compression}'
+                fileMode = 0644
+                dirMode = 0755
             }
             """
 
@@ -137,6 +143,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1/file11.txt'
                 destinationDir = buildDir
                 archiveName = 'test.${fileExtension}'
+                fileMode = 0644
+                dirMode = 0755
             }
         """
 
@@ -171,12 +179,16 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from('dir1')
                 destinationDir = buildDir
                 archiveName = 'test.tar'
+                fileMode = 0644
+                dirMode = 0755
             }
             task aZip(type: Zip) {
                 reproducibleFileOrder = true
                 from('dir2')
                 destinationDir = buildDir
                 archiveName = 'test.zip'
+                fileMode = 0644
+                dirMode = 0755
             }
 
             task ${taskName}(type: ${taskType}) {
@@ -188,6 +200,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from zipTree(aZip.archivePath)
                 from tarTree(aTar.archivePath)
                 dependsOn aZip, aTar
+                fileMode = 0644
+                dirMode = 0755
             }
         """
 

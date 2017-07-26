@@ -39,6 +39,3 @@ jmh {
     fork = 4
 }
 
-tasks.findByName('jmhRunBytecodeGenerator').configure {
-    generatorType = 'asm'
-}

@@ -17,7 +17,7 @@
 package org.gradle.caching.local.internal;
 
 import com.google.common.io.Closer;
-import org.apache.commons.io.FileUtils;
+import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -29,6 +29,7 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
@@ -38,14 +39,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DirectoryBuildCacheService implements BuildCacheService {
+public class DirectoryBuildCacheService implements LocalBuildCacheService, BuildCacheService {
+
+    public static final String FAILED_READ_SUFFIX = ".failed";
+
     private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
+    private final BuildCacheTempFileStore tempFileStore;
 
     public DirectoryBuildCacheService(CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, File baseDir, long targetCacheSize) {
         this.fileStore = new PathKeyFileStore(baseDir);
@@ -56,6 +60,8 @@ public class DirectoryBuildCacheService implements BuildCacheService {
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
+
+        tempFileStore = new DefaultBuildCacheTempFileStore(baseDir);
     }
 
     private static File checkDirectory(File directory) {
@@ -77,71 +83,110 @@ public class DirectoryBuildCacheService implements BuildCacheService {
         return directory;
     }
 
-    @Override
-    public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws BuildCacheException {
-        // We need to lock here because garbage collection can be under way in another process
-        return persistentCache.withFileLock(new Factory<Boolean>() {
-            @Override
-            public Boolean create() {
-                LocallyAvailableResource resource = fileStore.get(key.getHashCode());
-                if (resource == null) {
-                    return false;
-                }
+    private static class LoadAction implements Action<File> {
+        private final BuildCacheEntryReader reader;
+        boolean loaded;
 
-                try {
-                    // Mark as recently used
-                    GFileUtils.touch(resource.getFile());
-
-                    Closer closer = Closer.create();
-                    FileInputStream stream = closer.register(new FileInputStream(resource.getFile()));
-                    try {
-                        reader.readFrom(stream);
-                        return true;
-                    } finally {
-                        closer.close();
-                    }
-                } catch (IOException ex) {
-                    throw new UncheckedIOException(ex);
-                }
-            }
-        });
-    }
-
-    @Override
-    public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws BuildCacheException {
-        final String hashCode = key.getHashCode();
-        final File tempFile;
-        try {
-            tempFile = File.createTempFile(hashCode, ".part", persistentCache.getBaseDir());
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+        private LoadAction(BuildCacheEntryReader reader) {
+            this.reader = reader;
         }
 
-        try {
+        @Override
+        public void execute(File file) {
             try {
+                // Mark as recently used
+                GFileUtils.touch(file);
+
                 Closer closer = Closer.create();
-                OutputStream output = closer.register(new FileOutputStream(tempFile));
+                FileInputStream stream = closer.register(new FileInputStream(file));
                 try {
-                    result.writeTo(output);
+                    reader.readFrom(stream);
+                    loaded = true;
                 } finally {
                     closer.close();
                 }
             } catch (IOException ex) {
                 throw new UncheckedIOException(ex);
             }
-            persistentCache.useCache(new Runnable() {
-                @Override
-                public void run() {
-                    fileStore.move(hashCode, tempFile);
-                }
-            });
-        } finally {
-            FileUtils.deleteQuietly(tempFile);
         }
     }
 
     @Override
-    public void close() throws IOException {
+    public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws BuildCacheException {
+        LoadAction loadAction = new LoadAction(reader);
+        load(key, loadAction);
+        return loadAction.loaded;
+    }
+
+    @Override
+    public void load(final BuildCacheKey key, final Action<? super File> reader) {
+        // We need to lock here because garbage collection can be under way in another process
+        persistentCache.withFileLock(new Factory<Void>() {
+            @Override
+            public Void create() {
+                LocallyAvailableResource resource = fileStore.get(key.getHashCode());
+                if (resource != null) {
+                    final File file = resource.getFile();
+                    GFileUtils.touch(file); // Mark as recently used
+
+                    try {
+                        reader.execute(file);
+                    } catch (Exception e) {
+                        // Try to move the file out of the way in case its permanently corrupt
+                        // Don't delete, so that it can be potentially used for debugging
+                        File failedFile = new File(file.getAbsolutePath() + FAILED_READ_SUFFIX);
+                        GFileUtils.deleteQuietly(failedFile);
+                        //noinspection ResultOfMethodCallIgnored
+                        file.renameTo(failedFile);
+
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws BuildCacheException {
+        tempFileStore.allocateTempFile(key, new Action<File>() {
+            @Override
+            public void execute(final File file) {
+                try {
+                    Closer closer = Closer.create();
+                    try {
+                        result.writeTo(closer.register(new FileOutputStream(file)));
+                    } catch (Exception e) {
+                        throw closer.rethrow(e);
+                    } finally {
+                        closer.close();
+                    }
+                } catch (IOException ex) {
+                    throw UncheckedException.throwAsUncheckedException(ex);
+                }
+
+                store(key, file);
+            }
+        });
+    }
+
+    @Override
+    public void store(final BuildCacheKey key, final File file) {
+        persistentCache.useCache(new Runnable() {
+            @Override
+            public void run() {
+                fileStore.move(key.getHashCode(), file);
+            }
+        });
+    }
+
+    @Override
+    public void allocateTempFile(final BuildCacheKey key, final Action<? super File> action) {
+        tempFileStore.allocateTempFile(key, action);
+    }
+
+    @Override
+    public void close() {
         persistentCache.close();
     }
 }

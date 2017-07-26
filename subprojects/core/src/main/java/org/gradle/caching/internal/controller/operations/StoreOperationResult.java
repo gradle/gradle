@@ -16,25 +16,21 @@
 
 package org.gradle.caching.internal.controller.operations;
 
-import org.gradle.caching.internal.BuildCacheStoreBuildOperationType;
+import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType;
 
-public class StoreOperationResult implements BuildCacheStoreBuildOperationType.Result {
+public class StoreOperationResult implements BuildCacheRemoteStoreBuildOperationType.Result {
 
-    private final long bytes;
-    private final long entryCount;
+    public static final BuildCacheRemoteStoreBuildOperationType.Result STORED = new StoreOperationResult(true);
+    public static final BuildCacheRemoteStoreBuildOperationType.Result NOT_STORED = new StoreOperationResult(false);
 
-    public StoreOperationResult(long bytes, long entryCount) {
-        this.bytes = bytes;
-        this.entryCount = entryCount;
+    private final boolean stored;
+
+    private StoreOperationResult(boolean stored) {
+        this.stored = stored;
     }
 
     @Override
-    public long getArchiveSize() {
-        return bytes;
-    }
-
-    @Override
-    public long getArchiveEntryCount() {
-        return entryCount;
+    public boolean isStored() {
+        return stored;
     }
 }

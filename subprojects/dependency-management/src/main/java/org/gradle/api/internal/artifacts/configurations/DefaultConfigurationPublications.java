@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -26,6 +27,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
+import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -48,6 +50,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final FileCollectionFactory fileCollectionFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
+    private ConfigurationVariantFactory variantFactory;
 
     public DefaultConfigurationPublications(DisplayName displayName, PublishArtifactSet artifacts, PublishArtifactSet allArtifacts, AttributeContainerInternal parentAttributes, Instantiator instantiator, NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
         this.displayName = displayName;
@@ -126,12 +129,8 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     public NamedDomainObjectContainer<ConfigurationVariant> getVariants() {
         if (variants == null) {
             // Create variants container only as required
-            variants = new FactoryNamedDomainObjectContainer<ConfigurationVariant>(ConfigurationVariant.class, instantiator, new NamedDomainObjectFactory<ConfigurationVariant>() {
-                @Override
-                public ConfigurationVariant create(String name) {
-                    return instantiator.newInstance(DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory);
-                }
-            });
+            variantFactory = new ConfigurationVariantFactory();
+            variants = new FactoryNamedDomainObjectContainer<ConfigurationVariant>(ConfigurationVariant.class, instantiator, variantFactory);
         }
         return variants;
     }
@@ -141,4 +140,24 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         configureAction.execute(getVariants());
     }
 
+    void preventFromFurtherMutation() {
+        if (variants != null) {
+            for (ConfigurationVariant variant : variants) {
+                ((ConfigurationVariantInternal)variant).preventFurtherMutation();
+            }
+            variantFactory.canCreate = false;
+        }
+    }
+
+    private class ConfigurationVariantFactory implements NamedDomainObjectFactory<ConfigurationVariant> {
+        private boolean canCreate = true;
+        @Override
+        public ConfigurationVariant create(String name) {
+            if (canCreate) {
+                return instantiator.newInstance(DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory);
+            } else {
+                throw new InvalidUserCodeException("Cannot create variant '" + name + "' after " + displayName + " has been resolved");
+            }
+        }
+    }
 }

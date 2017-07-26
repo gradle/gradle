@@ -82,7 +82,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Sets the target jdk used with pmd.
      *
-     * @value The target jdk
+     * @param targetJdk The target jdk
      * @since 4.0
      */
     public void setTargetJdk(TargetJdk targetJdk) {
@@ -92,7 +92,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Sets the target jdk used with pmd.
      *
-     * @value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
+     * @param value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
      */
     public void setTargetJdk(Object value) {
         targetJdk = TargetJdk.toVersion(value);

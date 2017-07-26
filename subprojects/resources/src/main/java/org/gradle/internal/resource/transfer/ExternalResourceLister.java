@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.resources.ResourceException;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.List;
 

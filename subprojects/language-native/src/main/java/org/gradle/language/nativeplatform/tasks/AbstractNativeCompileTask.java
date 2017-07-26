@@ -164,6 +164,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     /**
      * The directory where object files will be generated.
+     *
+     * @since 4.1
      */
     @OutputDirectory
     public DirectoryVar getObjectFileDirectory() {
@@ -179,6 +181,13 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         this.objectFileDir.set(objectFileDir);
     }
 
+    /**
+     * Sets the object file directory to output generated object file by the compilation process via a {@link Provider}.
+     *
+     * @param objectFileDir the object file directory provider to use
+     * @see #setObjectFileDir(File)
+     * @since 4.1
+     */
     public void setObjectFileDir(Provider<? extends Directory> objectFileDir) {
         this.objectFileDir.set(objectFileDir);
     }

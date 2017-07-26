@@ -532,6 +532,51 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         !result.error.contains("Wrong magic bytes")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1307")
+    def "does not render progress output by default"() {
+        given:
+        goodCode()
+
+        when:
+        run "findbugsMain"
+
+        then:
+        !output.contains("Scanning archives")
+        !output.contains("Done with analysis")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1307")
+    def "can disable progress output"() {
+        given:
+        buildFile << extensionProgressConfiguration(false)
+
+        and:
+        goodCode()
+
+        when:
+        run "findbugsMain"
+
+        then:
+        !output.contains("Scanning archives")
+        !output.contains("Done with analysis")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1307")
+    def "can enable progress output"() {
+        given:
+        buildFile << extensionProgressConfiguration(true)
+
+        and:
+        goodCode()
+
+        when:
+        run "findbugsMain"
+
+        then:
+        output.contains("Scanning archives")
+        output.contains("Done with analysis")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/2326")
     @NotYetImplemented
     def "check task should not be up-to-date after clean if it only outputs to console"() {
@@ -636,5 +681,13 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
             classFilename = "${className}.java"
             fullyQualifiedClassFilename = "${pkg.replaceAll('\\.', '/')}/${classFilename}"
         }
+    }
+
+    static String extensionProgressConfiguration(boolean flag) {
+        """
+            findbugs {
+                showProgress = $flag 
+            }
+        """
     }
 }

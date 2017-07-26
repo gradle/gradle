@@ -24,7 +24,7 @@ class JUnitTestMethodDetecter extends MethodVisitor {
     private final JUnitTestClassDetecter testClassDetecter;
 
     JUnitTestMethodDetecter(JUnitTestClassDetecter testClassDetecter) {
-        super(Opcodes.ASM5);
+        super(Opcodes.ASM6);
         this.testClassDetecter = testClassDetecter;
     }
 

@@ -52,4 +52,22 @@ class TestResultHandler implements ResultHandler<Object> {
             throw UncheckedException.throwAsUncheckedException(BlockingResultHandler.attachCallerThreadStackTrace(failure))
         }
     }
+
+    def assertNoFailure() {
+        if (failure == null) {
+            return true
+        } else {
+            throw failure
+        }
+    }
+
+    def assertFailedWith(Class<? extends GradleConnectionException> exceptionType) {
+        if (failure?.getClass() == exceptionType) {
+            return true
+        }
+        if (failure) {
+            throw failure
+        }
+        false
+    }
 }

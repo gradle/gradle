@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A write only object that {@link PluginResolver} implementations receive and work with to communicate their results.

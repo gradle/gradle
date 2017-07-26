@@ -16,8 +16,7 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.SortedSet;
 

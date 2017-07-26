@@ -19,9 +19,9 @@ package org.gradle.internal.classloader;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.internal.classpath.ClassPath;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -30,6 +30,15 @@ import java.security.cert.Certificate;
 import java.util.Collection;
 
 public abstract class TransformingClassLoader extends VisitableURLClassLoader {
+    static {
+        try {
+            //noinspection Since15
+            ClassLoader.registerAsParallelCapable();
+        } catch (NoSuchMethodError ignore) {
+            // Not supported on Java 6
+        }
+    }
+
     public TransformingClassLoader(ClassLoader parent, ClassPath classPath) {
         super(parent, classPath);
     }

@@ -16,9 +16,10 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+
+import javax.annotation.Nullable;
 
 /**
  * The result of resolving some dynamic version selector to a particular component id.

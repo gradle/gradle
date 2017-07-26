@@ -78,10 +78,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarnings(4)
         run('deprecated', 'broken')
 
         then:
@@ -116,10 +113,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarnings(4)
         run('deprecated', 'broken')
 
         then:

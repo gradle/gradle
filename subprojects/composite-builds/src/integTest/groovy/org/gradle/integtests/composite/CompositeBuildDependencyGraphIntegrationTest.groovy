@@ -104,6 +104,34 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                 compositeSubstitute()
             }
         }
+
+        and:
+        executed ":buildB:jar"
+    }
+
+    def "can resolve dependency graph without building artifacts"() {
+        given:
+        resolve.withoutBuildingArtifacts()
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:buildB:1.0"
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
+                compositeSubstitute()
+            }
+        }
+
+        and:
+        notExecuted ":buildB:jar"
     }
 
     def "substitutes external dependencies with project dependencies using --include-build"() {
