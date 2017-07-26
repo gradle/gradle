@@ -31,7 +31,7 @@ class BuildStatusRendererTest extends OutputSpecification {
     def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, timeProvider)
 
     def setup() {
-        timeProvider.getCurrentTime() >> { currentTimeMs }
+        timeProvider.getCurrentTimeForDuration() >> { currentTimeMs }
     }
 
     def "forwards event list to listener"() {
