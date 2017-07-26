@@ -19,7 +19,6 @@ package org.gradle.internal.logging.console;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -27,22 +26,27 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.UpdateNowEvent;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.internal.logging.console.BuildStatusRenderer.BUILD_PROGRESS_CATEGORY;
 
-public class WorkInProgressRenderer extends BatchOutputEventListener {
+public class WorkInProgressRenderer implements OutputEventListener {
     private final OutputEventListener listener;
     private final ProgressOperations operations = new ProgressOperations();
     private final BuildProgressArea progressArea;
     private final DefaultWorkInProgressFormatter labelFormatter;
     private final ConsoleLayoutCalculator consoleLayoutCalculator;
+
+    private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
     // Track all unused labels to display future progress operation
     private final Deque<StyledLabel> unusedProgressLabels;
@@ -63,41 +67,15 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
 
     @Override
     public void onOutput(OutputEvent event) {
-        if (event instanceof ProgressStartEvent) {
-            progressArea.setVisible(true);
-            ProgressStartEvent startEvent = (ProgressStartEvent) event;
-            ProgressOperation op = operations.start(startEvent.getShortDescription(), startEvent.getStatus(), startEvent.getCategory(), startEvent.getProgressOperationId(), startEvent.getParentProgressOperationId());
-            attach(op);
-        } else if (event instanceof ProgressCompleteEvent) {
-            ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
-            detach(operations.complete(completeEvent.getProgressOperationId()));
-        } else if (event instanceof ProgressEvent) {
-            ProgressEvent progressEvent = (ProgressEvent) event;
-            operations.progress(progressEvent.getStatus(), progressEvent.getProgressOperationId());
+        queue.add(event);
+
+        if (event instanceof UpdateNowEvent) {
+            renderNow();
         } else if (event instanceof EndOutputEvent) {
             progressArea.setVisible(false);
         }
 
         listener.onOutput(event);
-    }
-
-    @Override
-    public void onOutput(Iterable<OutputEvent> events) {
-        Set<OperationIdentifier> completeEventOperationIds = toOperationIdSet(Iterables.filter(events, ProgressCompleteEvent.class));
-        Set<OperationIdentifier> operationIdsToSkip = new HashSet<OperationIdentifier>();
-
-        for (OutputEvent event : events) {
-            if (event instanceof ProgressStartEvent && completeEventOperationIds.contains(((ProgressStartEvent) event).getProgressOperationId())) {
-                operationIdsToSkip.add(((ProgressStartEvent) event).getProgressOperationId());
-                listener.onOutput(event);
-            } else if ((event instanceof ProgressCompleteEvent && operationIdsToSkip.contains(((ProgressCompleteEvent) event).getProgressOperationId()))
-                || (event instanceof ProgressEvent && operationIdsToSkip.contains(((ProgressEvent) event).getProgressOperationId()))) {
-                listener.onOutput(event);
-            } else {
-                onOutput(event);
-            }
-        }
-        renderNow();
     }
 
     // Transform ProgressCompleteEvent into their corresponding progress OperationIdentifier.
@@ -192,6 +170,38 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     }
 
     private void renderNow() {
+        if (queue.isEmpty()) {
+            return;
+        }
+
+        // Skip processing of any operations that both start and complete in the queue
+        Set<OperationIdentifier> completeEventOperationIds = toOperationIdSet(Iterables.filter(queue, ProgressCompleteEvent.class));
+        Set<OperationIdentifier> operationIdsToSkip = new HashSet<OperationIdentifier>();
+
+        for (OutputEvent event : queue) {
+            if (event instanceof ProgressStartEvent) {
+                progressArea.setVisible(true);
+                ProgressStartEvent startEvent = (ProgressStartEvent) event;
+                if (completeEventOperationIds.contains(startEvent.getProgressOperationId())) {
+                    operationIdsToSkip.add(startEvent.getProgressOperationId());
+                    // Don't attach to any labels
+                } else {
+                    attach(operations.start(startEvent.getShortDescription(), startEvent.getStatus(), startEvent.getCategory(), startEvent.getProgressOperationId(), startEvent.getParentProgressOperationId()));
+                }
+            } else if (event instanceof ProgressCompleteEvent) {
+                ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
+                if (!operationIdsToSkip.contains(completeEvent.getProgressOperationId())) {
+                    detach(operations.complete(completeEvent.getProgressOperationId()));
+                }
+            } else if (event instanceof ProgressEvent) {
+                ProgressEvent progressEvent = (ProgressEvent) event;
+                if (!operationIdsToSkip.contains(progressEvent.getProgressOperationId())) {
+                    operations.progress(progressEvent.getStatus(), progressEvent.getProgressOperationId());
+                }
+            }
+        }
+        queue.clear();
+
         for (AssociationLabel associatedLabel : operationIdToAssignedLabels.values()) {
             associatedLabel.renderNow();
         }
