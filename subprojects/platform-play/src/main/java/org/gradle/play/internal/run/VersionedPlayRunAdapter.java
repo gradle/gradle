@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Dependency;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 public interface VersionedPlayRunAdapter {
     void buildSuccess();
@@ -30,7 +31,7 @@ public interface VersionedPlayRunAdapter {
 
     Object getBuildDocHandler(ClassLoader docsClassLoader, Iterable<File> classpath) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException;
 
-    void runDevHttpServer(ClassLoader classLoader, ClassLoader docsClassLoader, Object buildLink, Object buildDocHandler, int httpPort) throws ClassNotFoundException;
+    InetSocketAddress runDevHttpServer(ClassLoader classLoader, ClassLoader docsClassLoader, Object buildLink, Object buildDocHandler, int httpPort) throws ClassNotFoundException;
 
     Iterable<Dependency> getRunsupportClasspathDependencies(String playVersion, String scalaCompatibilityVersion);
 

@@ -24,7 +24,7 @@ class PlayApplicationRunnerTokenTest extends Specification {
     def process = Mock(WorkerProcess)
     def client = Mock(PlayWorkerClient)
     def server = Mock(PlayRunWorkerServerProtocol)
-    def runnerToken = new PlayApplicationRunnerToken(server, client, process)
+    def runnerToken = new PlayApplicationRunnerToken(server, client, process, Mock(InetSocketAddress))
 
     def "stops all participants when stopped"() {
         when:

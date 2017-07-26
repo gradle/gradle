@@ -24,7 +24,5 @@ class PlayCoverage {
     static final List<String> PLAY23_OR_EARLIER = ALL_VERSIONS.findAll { it.major <= 2 && it.minor <= 3 }.asImmutable()
     static final List<String> PLAY23_OR_LATER = ALL_VERSIONS.findAll { it.major >= 2 && it.minor >= 3 }.asImmutable()
     static final List<String> PLAY24_OR_LATER = ALL_VERSIONS.findAll { it.major >= 2 && it.minor >= 4 }.asImmutable()
-    static final List<String> PLAY25_OR_LATER = ALL_VERSIONS.findAll { it.major >= 2 && it.minor >= 5 }.asImmutable()
-    static final List<String> PLAY23 = ALL_VERSIONS.findAll { it.major == 2 && it.minor == 3 }.asImmutable()
     static final List<String> ALL = ALL_VERSIONS.asImmutable()
 }

@@ -24,6 +24,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 import java.net.URLClassLoader;
 import java.util.concurrent.CountDownLatch;
 
@@ -45,7 +46,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         final PlayRunWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
         context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class, this);
         context.getServerConnection().connect();
-        final PlayAppLifecycleUpdate result = startServer();
+        final PlayAppLifecycleUpdate result = start();
         try {
             clientProtocol.update(result);
             stop.await();
@@ -56,17 +57,17 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         }
     }
 
-    private PlayAppLifecycleUpdate startServer() {
+    private PlayAppLifecycleUpdate start() {
         try {
-            run();
-            return PlayAppLifecycleUpdate.running();
+            InetSocketAddress address = startServer();
+            return PlayAppLifecycleUpdate.running(address);
         } catch (Exception e) {
             Logging.getLogger(this.getClass()).error("Failed to run Play", e);
             return PlayAppLifecycleUpdate.failed(e);
         }
     }
 
-    private void run() {
+    private InetSocketAddress startServer() {
         ClassLoaderUtils.disableUrlConnectionCaching();
         final Thread thread = Thread.currentThread();
         final ClassLoader previousContextClassLoader = thread.getContextClassLoader();
@@ -75,7 +76,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         try {
             Object buildDocHandler = runAdapter.getBuildDocHandler(classLoader, runSpec.getClasspath());
             Object buildLink = runAdapter.getBuildLink(classLoader, runSpec.getProjectPath(), runSpec.getApplicationJar(), runSpec.getChangingClasspath(), runSpec.getAssetsJar(), runSpec.getAssetsDirs());
-            runAdapter.runDevHttpServer(classLoader, classLoader, buildLink, buildDocHandler, runSpec.getHttpPort());
+            return runAdapter.runDevHttpServer(classLoader, classLoader, buildLink, buildDocHandler, runSpec.getHttpPort());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {

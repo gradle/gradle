@@ -22,6 +22,7 @@ import org.gradle.deployment.internal.DeploymentHandle;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.Callable;
+import java.net.InetSocketAddress;
 
 public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     private static final Logger LOGGER = Logging.getLogger(PlayApplicationDeploymentHandle.class);
@@ -74,6 +75,13 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
             // Build succeeded, so reload
             runnerToken.rebuildSuccess();
         }
+    }
+
+    public InetSocketAddress getPlayAppAddress() {
+        if (isRunning()) {
+            return runnerToken.getPlayAppAddress();
+        }
+        return null;
     }
 
     @Override

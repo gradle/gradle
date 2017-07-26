@@ -88,17 +88,19 @@ public class PlayRun extends ConventionTask {
     public void run() {
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
         PlayApplicationDeploymentHandle deploymentHandle = startOrFindDeploymentHandle(getPath());
+        String playUrl = "http://" + deploymentHandle.getPlayAppAddress() + "/";
+
         if (!getProject().getGradle().getStartParameter().isContinuous()) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
-                .start("Run Play App at http://localhost:" + httpPort + "/",
-                    "Running at http://localhost:"+ httpPort + "/");
+                .start("Run Play App at " + playUrl,
+                    "Running at " + playUrl);
             try {
                 waitForCtrlD();
             } finally {
                 progressLogger.completed();
             }
         } else {
-            LOGGER.warn("Running Play App ({}) at http://localhost:{}/", getPath(), httpPort);
+            LOGGER.warn("Running Play App ({}) at {}", getPath(), playUrl);
         }
     }
 
