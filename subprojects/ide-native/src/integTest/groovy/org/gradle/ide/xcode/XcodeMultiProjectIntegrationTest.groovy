@@ -18,13 +18,15 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.XcodeWorkspacePackage
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import spock.lang.Unroll
 
 class XcodeMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     private static final String WORKSPACE_NAME = "workspace"
-    def app = new SwiftHelloWorldApp()
 
-    def "create xcode project Swift executable"() {
+    @Unroll
+    def "create xcode project #languageName executable"() {
         given:
         settingsFile << """
 include 'app', 'greeter'
@@ -35,19 +37,17 @@ rootProject.name = "${WORKSPACE_NAME}"
                 apply plugin: 'xcode'
             }
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: '${languageName}-executable'
                 dependencies {
                     implementation project(':greeter')
                 }
             }
             project(':greeter') {
-                apply plugin: 'swift-library'
+                apply plugin: '${languageName}-library'
             }
 """
-        app.library.sourceFiles.each { it.writeToFile(file("greeter/src/main/swift/$it.name")) }
-        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
-        def mainFile = file('app/src/main/swift/main.swift')
-        mainFile.text = "import greeter\n\n${mainFile.text}"
+        app.library.writeSources(file('greeter/src/main'))
+        app.executable.writeSources(file('app/src/main'))
 
         when:
         succeeds("xcode")
@@ -61,6 +61,11 @@ rootProject.name = "${WORKSPACE_NAME}"
         and:
         workspaceXml.FileRef.size() == 3
         workspaceXml.FileRef*.@location*.replaceAll('absolute:', '').containsAll([file('app/app.xcodeproj'), file('greeter/greeter.xcodeproj')]*.absolutePath)
+
+        where:
+        app                      | languageName
+        new SwiftHelloWorldApp() | "swift"
+        new CppHelloWorldApp()   | "cpp"
     }
 
     private XcodeWorkspacePackage xcodeWorkspace(String path) {

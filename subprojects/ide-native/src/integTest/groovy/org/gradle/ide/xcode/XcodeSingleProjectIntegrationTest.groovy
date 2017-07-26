@@ -19,15 +19,18 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.XcodeProjectPackage
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import spock.lang.Unroll
 
 class XcodeSingleProjectIntegrationTest extends AbstractIntegrationSpec {
     private static final String PROJECT_NAME = "app"
 
-    def "create xcode project Swift executable"() {
+    @Unroll
+    def "create xcode project #languageName executable"() {
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: '${languageName}-executable'
 apply plugin: 'xcode'
 """
 
@@ -35,7 +38,6 @@ apply plugin: 'xcode'
 rootProject.name = "${PROJECT_NAME}"
 """
 
-        def app = new SwiftHelloWorldApp()
         app.writeSources(file('src/main'))
 
         when:
@@ -47,7 +49,7 @@ rootProject.name = "${PROJECT_NAME}"
 
         and: 'source files are properly attached to the project'
         project.mainGroup.children.size() == app.sourceFiles.size() + 2
-        project.mainGroup.children*.name == ['Products', 'build.gradle', 'hello.swift', 'main.swift', 'sum.swift']
+        project.mainGroup.children*.name.containsAll(['Products', 'build.gradle'] + app.sourceFiles*.name)
 
         and: 'targets are properly created'
         project.targets.size() == 2
@@ -59,12 +61,18 @@ rootProject.name = "${PROJECT_NAME}"
 
         def indexTargets = project.targets.findAll(indexTargets())
         indexTargets.size() == 1
+
+        where:
+        app                      | languageName
+        new SwiftHelloWorldApp() | "swift"
+        new CppHelloWorldApp()   | "cpp"
     }
 
+    @Unroll
     def "create xcode project Swift library"() {
         given:
         buildFile << """
-apply plugin: 'swift-library'
+apply plugin: '${languageName}-library'
 apply plugin: 'xcode'
 """
 
@@ -72,7 +80,6 @@ apply plugin: 'xcode'
 rootProject.name = "${PROJECT_NAME}"
 """
 
-        def app = new SwiftHelloWorldApp()
         app.library.writeSources(file('src/main'))
 
         when:
@@ -84,7 +91,7 @@ rootProject.name = "${PROJECT_NAME}"
 
         and: 'source files are properly attached to the project'
         project.mainGroup.children.size() == app.library.sourceFiles.size() + 2
-        project.mainGroup.children*.name == ['Products', 'build.gradle', 'hello.swift', 'sum.swift']
+        project.mainGroup.children*.name.containsAll(['Products', 'build.gradle'] + app.library.sourceFiles*.name)
 
         and: 'targets are properly created'
         project.targets.size() == 2
@@ -96,6 +103,11 @@ rootProject.name = "${PROJECT_NAME}"
 
         def indexTargets = project.targets.findAll(indexTargets())
         indexTargets.size() == 1
+
+        where:
+        app                      | languageName
+        new SwiftHelloWorldApp() | "swift"
+        new CppHelloWorldApp()   | "cpp"
     }
 
     def "create empty xcode project when no language plugins are applied"() {
