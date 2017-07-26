@@ -23,20 +23,20 @@ Gradle supports this scenario through _multi-project_ builds.
 [[sec:structure_of_a_multiproject_build]]
 === Structure of a multi-project build
 
-Such builds come in all shapes and sizes, but they do have some common characteristics: 
+Such builds come in all shapes and sizes, but they do have some common characteristics:
 
 * A `settings.gradle` file in the root or `master` directory of the project
 * A `build.gradle` file in the root or `master` directory
-* Child directories that have their own `\*.gradle` build files (some multi-project builds may omit child project build scripts)
- 
+* Child directories that have their own `*.gradle` build files (some multi-project builds may omit child project build scripts)
 
-The `settings.gradle` file tells Gradle how the project and subprojects are structured. Fortunately, you don’t have to read this file simply to learn what the project structure is as you can run the command `gradle projects`. Here's the output from using that command on the Java _multiproject_ build in the Gradle samples: 
+
+The `settings.gradle` file tells Gradle how the project and subprojects are structured. Fortunately, you don’t have to read this file simply to learn what the project structure is as you can run the command `gradle projects`. Here's the output from using that command on the Java _multiproject_ build in the Gradle samples:
 ++++
 <sample id="listProjects" dir="java/multiproject" title="Listing the projects in a build">
                 <output args="-q projects"/>
             </sample>
 ++++
- 
+
 
 This tells you that _multiproject_ has three immediate child projects: _api_, _services_ and _shared_. The _services_ project then has its own children, _shared_ and _webservice_. These map to the directory structure, so it’s easy to find them. For example, you can find _webservice_ in `&lt;root&gt;/services/webservice`.
 
@@ -53,10 +53,10 @@ Once you know what subprojects are available, the key question for a build user 
 [[sec:executing_a_multiproject_build]]
 === Executing a multi-project build
 
-From a user's perspective, multi-project builds are still collections of tasks you can run. The difference is that you may want to control _which_ project's tasks get executed. You have two options here: 
+From a user's perspective, multi-project builds are still collections of tasks you can run. The difference is that you may want to control _which_ project's tasks get executed. You have two options here:
+
 * Change to the directory corresponding to the subproject you’re interested in and just execute `gradle &lt;task&gt;` as normal.
 * Use a qualified task name from any directory, although this is usually done from the root. For example: `gradle :services:webservice:build` will build the _webservice_ subproject and any subprojects it depends on.
- 
 
 The first approach is similar to the single-project use case, but Gradle works slightly differently in the case of a multi-project build. The command `gradle test` will execute the `test` task in any subprojects, relative to the current working directory, that have that task. So if you run the command from the root project directory, you’ll run `test` in _api_, _shared_, _services:shared_ and _services:webservice_. If you run the command from the services project directory, you’ll only execute the task in _services:shared_ and _services:webservice_.
 

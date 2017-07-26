@@ -18,9 +18,9 @@
 
 [NOTE]
 ====
- 
+
 The JaCoCo plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
- 
+
 ====
 
 The JaCoCo plugin provides code coverage metrics for Java code via integration with http://www.eclemma.org/jacoco/[JaCoCo].
@@ -57,7 +57,7 @@ The JaCoCo plugin adds a project extension named `jacoco` of type api:org.gradle
 | Gradle default
 
 | reportsDir
-| “__$buildDir__/reports/jacoco”
+| `__$buildDir__/reports/jacoco`
 |===
 
 
@@ -71,7 +71,7 @@ The api:org.gradle.testing.jacoco.tasks.JacocoReport[] task can be used to gener
             <sourcefile file="build.gradle" snippet="report-configuration"/>
         </sample>
 ++++
-<imageobject> <imagedata fileref="img/jacocoHtmlReport.png" width="903px" depth="277px"/> </imageobject>
+image::img/jacocoHtmlReport.png[JaCoCo HTML report,903,277]
 
 [[sec:jacoco_report_violation_rules]]
 === Enforcing code coverage metrics
@@ -79,9 +79,9 @@ The api:org.gradle.testing.jacoco.tasks.JacocoReport[] task can be used to gener
 
 [NOTE]
 ====
- 
+
 This feature requires the use of JaCoCo version 0.6.3 or higher.
- 
+
 ====
 
 The api:org.gradle.testing.jacoco.tasks.JacocoCoverageVerification[] task can be used to verify if code coverage metrics are met based on configured rules. Its API exposes the method api:org.gradle.testing.jacoco.tasks.JacocoCoverageVerification#violationRules(org.gradle.api.Action)[] which is used as main entry point for configuring rules. Invoking any of those methods returns an instance of api:org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer[] providing extensive configuration options. The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
@@ -117,19 +117,19 @@ The JaCoCo plugin adds a api:org.gradle.testing.jacoco.plugins.JacocoTaskExtensi
 | true
 
 | destPath
-| __$buildDir__/jacoco
+| `__$buildDir__/jacoco`
 
 | append
 | true
 
 | includes
-| []
+| [] +
 
 | excludes
-| []
+| [] +
 
 | excludeClassLoaders
-| []
+| [] +
 
 | includeNoLocationClasses
 | false

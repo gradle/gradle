@@ -23,29 +23,30 @@ The Gradle Wrapper (henceforth referred to as the “Wrapper”) solves both the
 [[using_wrapper_scripts]]
 === Executing a build with the Wrapper
 
-If a Gradle project has set up the Wrapper (and we recommend all projects do so), you can execute the build using one of the following commands from the root of the project: 
+If a Gradle project has set up the Wrapper (and we recommend all projects do so), you can execute the build using one of the following commands from the root of the project:
 
 * `./gradlew &lt;task&gt;` (on Unix-like platforms such as Linux and Mac OS X)
 * `gradlew &lt;task&gt;` (on Windows using the gradlew.bat batch file)
- Each Wrapper is tied to a specific version of Gradle, so when you first run one of the commands above for a given Gradle version, it will download the corresponding Gradle distribution and use it to execute the build.
+
+Each Wrapper is tied to a specific version of Gradle, so when you first run one of the commands above for a given Gradle version, it will download the corresponding Gradle distribution and use it to execute the build.
 
 [TIP]
 .IDEs
 ====
-   
+
 When importing a Gradle project via its wrapper, your IDE may ask to use the Gradle 'all' distribution. This is perfectly fine and helps the IDE provide code completion for the build files.
- 
+
 ====
 
 Not only does this mean that you don’t have to manually install Gradle yourself, but you are also sure to use the version of Gradle that the build is designed for. This makes your historical builds more reliable. Just use the appropriate syntax from above whenever you see a command line starting with `gradle ...` in the user guide, on Stack Overflow, in articles or wherever.
 
-For completeness sake, and to ensure you don’t delete any important files, here are the files and directories in a Gradle project that make up the Wrapper: 
+For completeness sake, and to ensure you don’t delete any important files, here are the files and directories in a Gradle project that make up the Wrapper:
 
 * `gradlew` (Unix Shell script)
 * `gradlew.bat` (Windows batch file)
 * `gradle/wrapper/gradle-wrapper.jar` (Wrapper JAR)
 * `gradle/wrapper/gradle-wrapper.properties` (Wrapper properties)
- 
+
 
 If you’re wondering where the Gradle distributions are stored, you’ll find them in your user home directory under `$USER_HOME/.gradle/wrapper/dists`.
 
@@ -107,40 +108,42 @@ If you build via the Wrapper, any existing Gradle distribution installed on the 
 [TIP]
 .Security Warning
 ====
-   
+
 HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `HTTP` ones. With Basic Authentication, the user credentials are sent in clear text.
- 
+
 ====
 
 The Gradle `Wrapper` can download Gradle distributions from servers using HTTP Basic Authentication. This enables you to host the Gradle distribution on a private protected server. You can specify a username and password in two different ways depending on your use case: as system properties or directly embedded in the `distributionUrl`. Credentials in system properties take precedence over the ones embedded in `distributionUrl`.
 
 Using system properties can be done in the `.gradle/gradle.properties` file in the user's home directory, or by other means, see <<sec:gradle_configuration_properties>>.
-<example> .Specifying the HTTP Basic Authentication credentials using system properties
-  
-`gradle.properties`
-  
-[source]
+
+.Specifying the HTTP Basic Authentication credentials using system properties
+====
+
+[source,properties]
+.`gradle.properties`
 ----
 
  systemProp.gradle.wrapperUser=username
  systemProp.gradle.wrapperPassword=password
- 
-----
 
- </example>
+----
+====
+
 Embedding credentials in the `distributionUrl` in the `gradle/wrapper/gradle-wrapper.properties` file also works. Please note that this file is to be committed into your source control system. Shared credentials embedded in `distributionUrl` should only be used in a controlled environment.
-<example> .Specifying the HTTP Basic Authentication credentials in `distributionUrl`
-  
-`gradle-wrapper.properties`
-  
-[source]
+
+.Specifying the HTTP Basic Authentication credentials in `distributionUrl`
+====
+
+[source,properties]
+.`gradle-wrapper.properties`
 ----
 
  distributionUrl=https://username:password@somehost/path/to/gradle-distribution.zip
- 
-----
 
- </example>
+----
+====
+
 This can be used in conjunction with a proxy, authenticated or not. See <<sec:accessing_the_web_via_a_proxy>> for more information on how to configure the `Wrapper` to use a proxy.
 
 [[sec:verification]]
@@ -149,32 +152,33 @@ This can be used in conjunction with a proxy, authenticated or not. See <<sec:ac
 The Gradle Wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison. This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with the downloaded Gradle distribution.
 
 To enable this feature you'll want to first calculate the SHA-256 hash of a known Gradle distribution. You can generate a SHA-256 hash from Linux and OSX or Windows (via https://www.cygwin.com/[Cygwin]) with the `shasum` command.
-<example> .Generating a SHA-256 hash
-  
-[source]
+
+.Generating a SHA-256 hash
+====
+
 ----
 
 > shasum -a 256 gradle-2.4-all.zip
 371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b82368bcf10  gradle-2.4-all.zip
 
 ----
+====
 
- </example>
 Add the returned hash sum to the `gradle-wrapper.properties` using the `distributionSha256Sum` property.
-<example> .Configuring SHA-256 checksum verification
-  
-`gradle-wrapper.properties`
-  
-[source]
+
+.Configuring SHA-256 checksum verification
+====
+
+[source,properties]
+.`gradle-wrapper.properties`
 ----
 
 distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b82368bcf10
 
 ----
-
- </example>
+====
 
 [[sec:unix_file_permissions]]
 === Unix file permissions
 
-The Wrapper task adds appropriate file permissions to allow the execution of the `gradlew` \*NIX command. Subversion preserves this file permission. We are not sure how other version control systems deal with this. What should always work is to execute “`sh gradlew`”.
+The Wrapper task adds appropriate file permissions to allow the execution of the `gradlew` *NIX command. Subversion preserves this file permission. We are not sure how other version control systems deal with this. What should always work is to execute “`sh gradlew`”.
