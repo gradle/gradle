@@ -25,6 +25,24 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     }
 
     @Override
+    TestNativeComponent getExecutable() {
+        def delegate = super.getExecutable()
+        return new TestNativeComponent() {
+            @Override
+            List<SourceFile> getHeaderFiles() {
+                return delegate.getHeaderFiles()
+            }
+
+            @Override
+            List<SourceFile> getSourceFiles() {
+                return delegate.getSourceFiles().collect {
+                    sourceFile(it.path, it.name, "import greeter\n${it.content}")
+                }
+            }
+        }
+    }
+
+    @Override
     SourceFile getMainSource() {
         return sourceFile("swift", "main.swift", """
             // Simple hello world app
@@ -128,5 +146,10 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     String getSourceSetType() {
         return "SwiftSourceSet"
+    }
+
+    @Override
+    List<SourceFile> getSourceFiles() {
+        librarySources + [mainSource]
     }
 }

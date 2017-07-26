@@ -26,16 +26,16 @@ import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def helloWorldApp = new SwiftHelloWorldApp()
-
     def "build fails when compilation fails"() {
+        def app = new SwiftHelloWorldApp()
+
         given:
         buildFile << """
             apply plugin: 'swift-library'
          """
 
         and:
-        helloWorldApp.brokenFile.writeToDir(file("src/main"))
+        app.brokenFile.writeToDir(file("src/main"))
 
         expect:
         fails "assemble"
@@ -45,10 +45,11 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "sources are compiled with Swift compiler"() {
+        def app = new SwiftHelloWorldApp()
         settingsFile << "rootProject.name = 'hello'"
 
         given:
-        helloWorldApp.librarySources*.writeToDir(file('src/main'))
+        app.library.writeSources(file('src/main'))
 
         and:
         buildFile << """
@@ -65,7 +66,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         settingsFile << "rootProject.name = 'hello'"
         given:
         def app = new SwiftHelloWorldApp()
-        app.library.sourceFiles.each { it.writeToFile(file("src/main/swift/$it.name")) }
+        app.library.writeSources(file("src/main"))
 
         and:
         buildFile << """
@@ -80,29 +81,29 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "can compile and link against another library"() {
-        settingsFile << "include 'Hello', 'Greeting'"
+        settingsFile << "include 'hello', 'greeting'"
         def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
 
         given:
         buildFile << """
-            project(':Hello') {
+            project(':hello') {
                 apply plugin: 'swift-library'
                 dependencies {
-                    implementation project(':Greeting')
+                    implementation project(':greeting')
                 }
             }
-            project(':Greeting') {
+            project(':greeting') {
                 apply plugin: 'swift-library'
             }
 """
-        app.library.sourceFiles.each { it.writeToFile(file("Hello/src/main/swift/$it.name")) }
-        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("Greeting/src/main/swift/$it.name")) }
+        app.library.writeSources(file("hello/src/main"))
+        app.greetingsLibrary.writeSources(file("greeting/src/main"))
 
         expect:
-        succeeds ":Hello:assemble"
-        result.assertTasksExecuted(":Greeting:compileSwift", ":Greeting:linkMain", ":Hello:compileSwift", ":Hello:linkMain", ":Hello:assemble")
-        sharedLibrary("Hello/build/lib/Hello").assertExists()
-        sharedLibrary("Greeting/build/lib/Greeting").assertExists()
+        succeeds ":hello:assemble"
+        result.assertTasksExecuted(":greeting:compileSwift", ":greeting:linkMain", ":hello:compileSwift", ":hello:linkMain", ":hello:assemble")
+        sharedLibrary("hello/build/lib/hello").assertExists()
+        sharedLibrary("greeting/build/lib/greeting").assertExists()
     }
 
     def "can change default module name and successfully link against library"() {
@@ -116,15 +117,15 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
                 dependencies {
                     implementation project(':lib2')
                 }
-                tasks.withType(SwiftCompile)*.moduleName = 'Hello'
+                tasks.withType(SwiftCompile)*.moduleName = 'hello'
             }
             project(':lib2') {
                 apply plugin: 'swift-library'
-                tasks.withType(SwiftCompile)*.moduleName = 'Greeting'
+                tasks.withType(SwiftCompile)*.moduleName = 'greeting'
             }
 """
-        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/swift/$it.name")) }
-        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/swift/$it.name")) }
+        app.library.writeSources(file("lib1/src/main"))
+        app.greetingsLibrary.writeSources(file("lib2/src/main"))
 
         expect:
         succeeds ":lib1:assemble"
