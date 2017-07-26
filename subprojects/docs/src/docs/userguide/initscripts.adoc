@@ -23,14 +23,16 @@ Note that this is completely different from the “`init`” task provided by th
 [[sec:basic_usage]]
 === Basic usage
 
-Initialization scripts (a.k.a. _init scripts_) are similar to other scripts in Gradle. These scripts, however, are run before the build starts. Here are several possible uses: 
+Initialization scripts (a.k.a. _init scripts_) are similar to other scripts in Gradle. These scripts, however, are run before the build starts. Here are several possible uses:
+
 * Set up enterprise-wide configuration, such as where to find custom plugins.
 * Set up properties based on the current environment, such as a developer's machine vs. a continuous integration server.
 * Supply personal information about the user that is required by the build, such as repository or database authentication credentials.
 * Define machine specific details, such as where JDKs are installed.
 * Register build listeners. External tools that wish to listen to Gradle events might find this useful.
 * Register build loggers. You might wish to customize how Gradle logs the events that it generates.
- One main limitation of init scripts is that they cannot access classes in the `buildSrc` project (see <<sec:build_sources>> for details of this feature).
+
+One main limitation of init scripts is that they cannot access classes in the `buildSrc` project (see <<sec:build_sources>> for details of this feature).
 
 [[sec:using_an_init_script]]
 === Using an init script
@@ -104,4 +106,4 @@ Similar to a Gradle build script or a Gradle settings file, plugins can be appli
 
 The plugin in the init script ensures that only a specified repository is used when running the build.
 
-When applying plugins within the init script, Gradle instantiates the plugin and calls the plugin instance's api:org.gradle.api.Plugin#apply[] method. The `gradle` object is passed as a parameter, which can be used to configure all aspects of a build. Of course, the applied plugin can be resolved as an external dependency as described in <<sec:custom_classpath>> 
+When applying plugins within the init script, Gradle instantiates the plugin and calls the plugin instance's api:org.gradle.api.Plugin#apply[] method. The `gradle` object is passed as a parameter, which can be used to configure all aspects of a build. Of course, the applied plugin can be resolved as an external dependency as described in <<sec:custom_classpath>>

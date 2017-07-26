@@ -26,7 +26,7 @@ Gradle uses whatever JDK it finds in your path. Alternatively, you can set the `
 [[sec:download]]
 === Download
 
-You can download one of the Gradle distributions from the website:downloads[Gradle web site].
+You can download one of the Gradle distributions from the {website}/downloads[Gradle web site].
 
 [[sec:unpacking]]
 === Unpacking
@@ -38,7 +38,7 @@ The Gradle distribution comes packaged as a ZIP. The full distribution contains:
 * The DSL reference guide.
 * The API documentation (Javadoc).
 * Extensive samples, including the examples referenced in the user guide, along with some complete and more complex builds you can use as a starting point for your own build.
-* The binary sources. This is for reference only. If you want to build Gradle you need to download the source distribution or checkout the sources from the source repository. See the website:development[Gradle web site] for details.
+* The binary sources. This is for reference only. If you want to build Gradle you need to download the source distribution or checkout the sources from the source repository. See the {website}/development[Gradle web site] for details.
 
 
 [[sec:installation_environment_variables]]
@@ -58,7 +58,13 @@ JVM options for running Gradle can be set via environment variables. You can use
 
 Note that it's not currently possible to set JVM options for Gradle on the command line.
 
-[[sec:installation_getting_help]]
-=== Getting help
-
-You might check the user guide at `__GRADLE_HOME__/docs/userguide/userguide.html`. It is also available on the website:documentation.html[Gradle web site]. Typing `gradle help` prints the command line help. Typing `gradle tasks` shows all the tasks of a Gradle build.
+++++
+<section condition="standalone" id="sec:installation_getting_help">
+<title>Getting help</title>
+<para>You might check the user guide at <filename><replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html</filename>.
+It is also available on the <ulink url="website:documentation.html">Gradle web site</ulink>.
+Typing <command>gradle help</command> prints the command line help. Typing <command>gradle tasks</command> shows all the
+tasks of a Gradle build.
+</para>
+</section>
+++++

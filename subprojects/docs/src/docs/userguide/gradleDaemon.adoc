@@ -16,7 +16,11 @@
 == The Gradle Daemon
 
 From Wikipedia…
+
+++++
 <blockquote>A daemon is a computer program that runs as a background process, rather than being under the direct control of an interactive user.</blockquote>
+++++
+
 Gradle runs on the Java Virtual Machine (JVM) and uses several supporting libraries that require a non-trivial initialization time. As a result, it can sometimes seem a little slow to start. The solution to this problem is the Gradle _Daemon_: a long-lived background process that executes your builds much more quickly than would otherwise be the case. We accomplish this by avoiding the expensive bootstrapping process as well as leveraging caching, by keeping data about your project in memory. Running Gradle builds with the Daemon is no different than without. Simply configure whether you want to use it or not - everything else is handled transparently by Gradle.
 
 
@@ -34,7 +38,7 @@ The Gradle Daemon is enabled by default starting with Gradle 3.0, so you don't h
 
 To get a list of running Gradle Daemons and their statuses use the `--status` command.
 
-Sample output: 
+Sample output:
 [source]
 ----
 
@@ -44,35 +48,37 @@ Sample output:
 
 ----
 
- 
+
 
 Currently, a given Gradle version can only connect to daemons of the same version. This means the status output will only show Daemons for the version of Gradle being invoked and not for any other versions. Future versions of Gradle will lift this constraint and will show the running Daemons for all versions of Gradle.
 
 [[sec:disabling_the_daemon]]
 === Disabling the Daemon
 
-The Gradle Daemon is enabled by default, and we recommend always enabling it for developers’ machines. There are several ways to disable the Daemon, but the most common one is to add the line 
+The Gradle Daemon is enabled by default, and we recommend always enabling it for developers’ machines. There are several ways to disable the Daemon, but the most common one is to add the line
 [source]
 ----
 
         org.gradle.daemon=false
-        
+
 ----
 
- to the file `«USER_HOME»/.gradle/gradle.properties`, where `«USER_HOME»` is your home directory. That’s typically one of the following, depending on your platform: 
-* `C:\Users\&lt;username&gt;` (Windows Vista &amp; 7+)
-* `/Users/&lt;username&gt;` (Mac OS X)
-* `/home/&lt;username&gt;` (Linux)
- If that file doesn’t exist, just create it using a text editor. You can find details of other ways to disable (and enable) the Daemon in <<daemon_faq>> further down. That section also contains more detailed information on how the Daemon works.
+to the file `«USER_HOME»/.gradle/gradle.properties`, where `«USER_HOME»` is your home directory. That’s typically one of the following, depending on your platform:
+
+* `C:\Users\<username>` (Windows Vista &amp; 7+)
+* `/Users/<username>` (Mac OS X)
+* `/home/<username>` (Linux)
+
+If that file doesn’t exist, just create it using a text editor. You can find details of other ways to disable (and enable) the Daemon in <<daemon_faq>> further down. That section also contains more detailed information on how the Daemon works.
 
 Note that having the Daemon enabled, all your builds will take advantage of the speed boost, regardless of the version of Gradle a particular build uses.
 
 [TIP]
 .Continuous integration
 ====
-   
+
 At the moment, we recommend that you disable the Daemon for Continuous Integration servers as correctness is usually a priority over speed in CI environments. Using a fresh runtime for each build is more reliable since the runtime is _completely_ isolated from any previous builds. Additionally, since the Daemon primarily acts to reduce build startup times, this isn't as critical in CI as it is on a developer's machine.
- 
+
 ====
 
 
@@ -93,35 +99,34 @@ This will terminate all Daemon processes that were started with the same version
 There are two recommended ways to disable the Daemon persistently for an environment:
 
 * Via environment variables: add the flag `-Dorg.gradle.daemon=false` to the `GRADLE_OPTS` environment variable
-
-Via properties file: add `org.gradle.daemon=false` to the `«GRADLE_USER_HOME»/gradle.properties` file
+* Via properties file: add `org.gradle.daemon=false` to the `«GRADLE_USER_HOME»/gradle.properties` file
 
 [NOTE]
 ====
- 
+
 Note, `«GRADLE_USER_HOME»` defaults to `«USER_HOME»/.gradle`, where `«USER_HOME»` is the home directory of the current user. This location can be configured via the `-g` and `--gradle-user-home` command line switches, as well as by the `GRADLE_USER_HOME` environment variable and `org.gradle.user.home` JVM system property.
- 
+
 ====
 
 Both approaches have the same effect. Which one to use is up to personal preference. Most Gradle users choose the second option and add the entry to the user `gradle.properties` file.
 
-On Windows, this command will disable the Daemon for the current user: 
+On Windows, this command will disable the Daemon for the current user:
 [source]
 ----
 
                     (if not exist "%USERPROFILE%/.gradle" mkdir "%USERPROFILE%/.gradle") && (echo. >> "%USERPROFILE%/.gradle/gradle.properties" && echo org.gradle.daemon=false >> "%USERPROFILE%/.gradle/gradle.properties")
-                
+
 ----
 
- On UNIX-like operating systems, the following Bash shell command will disable the Daemon for the current user: 
+On UNIX-like operating systems, the following Bash shell command will disable the Daemon for the current user:
 [source]
 ----
 
                     mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
-                
+
 ----
 
- Once the Daemon is disabled for a build environment in this way, a Gradle Daemon will not be started unless explicitly requested using the `--daemon` option.
+Once the Daemon is disabled for a build environment in this way, a Gradle Daemon will not be started unless explicitly requested using the `--daemon` option.
 
 The `--daemon` and `--no-daemon` command line options enable and disable usage of the Daemon for individual build invocations when using the Gradle command line interface. These command line options have the _highest_ precedence when considering the build environment. Typically, it is more convenient to enable the Daemon for an environment (e.g. a user account) so that all builds use the Daemon without requiring to remember to supply the `--daemon` option.
 
