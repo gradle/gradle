@@ -18,10 +18,11 @@ package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.internal.resource.BasicTextResourceLoader;
+import org.gradle.internal.resource.DownloadedUriTextResource;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
-import java.io.File;
 import java.net.URI;
 import java.util.Set;
 
@@ -45,7 +46,8 @@ public class DefaultUriTextResourceLoader extends BasicTextResourceLoader {
         if (resource == null) {
             throw new RuntimeException("Unable to find " + source.toString());
         }
-        File resourceFile = resource.getFile();
-        return super.loadFile(description, resourceFile);
+        ExternalResourceMetaData metaData = resource.getMetaData();
+        String contentType = metaData == null ? null : metaData.getContentType();
+        return new DownloadedUriTextResource(description, source, contentType, resource.getFile());
     }
 }

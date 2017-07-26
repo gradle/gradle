@@ -34,15 +34,18 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 
 /**
- * A {@link TextResource} implementation backed by a URI. Assumes content is encoded using UTF-8.
+ * A {@link TextResource} implementation backed by a URI. Defaults content encoding to UTF-8.
  */
 public class UriTextResource implements TextResource {
+
+    protected static final String DEFAULT_ENCODING = "utf-8";
+
     private final File sourceFile;
     private final URI sourceUri;
     private final String description;
     private String displayName;
 
-    UriTextResource(String description, File sourceFile) {
+    public UriTextResource(String description, File sourceFile) {
         this.description = description;
         this.sourceFile = FileUtils.canonicalize(sourceFile);
         this.sourceUri = sourceFile.toURI();
@@ -106,7 +109,7 @@ public class UriTextResource implements TextResource {
             throw new ResourceIsAFolderException(sourceUri, String.format("Could not read %s as it is a directory.", getDisplayName()));
         }
         try {
-            return getInputStream(sourceUri);
+            return openReader();
         } catch (FileNotFoundException e) {
             throw new MissingResourceException(sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
         } catch (Exception e) {
@@ -117,7 +120,7 @@ public class UriTextResource implements TextResource {
     @Override
     public boolean getExists() {
         try {
-            Reader reader = getInputStream(sourceUri);
+            Reader reader = openReader();
             try {
                 return true;
             } finally {
@@ -130,8 +133,8 @@ public class UriTextResource implements TextResource {
         }
     }
 
-    private Reader getInputStream(URI url) throws IOException {
-        final URLConnection urlConnection = url.toURL().openConnection();
+    protected Reader openReader() throws IOException {
+        final URLConnection urlConnection = sourceUri.toURL().openConnection();
         urlConnection.setRequestProperty("User-Agent", getUserAgentString());
 
         // Without this, the URLConnection will keep the backing Jar file open indefinitely
@@ -140,7 +143,8 @@ public class UriTextResource implements TextResource {
             urlConnection.setUseCaches(false);
         }
         urlConnection.connect();
-        String charset = extractCharacterEncoding(urlConnection.getContentType(), "utf-8");
+        String contentType = urlConnection.getContentType();
+        String charset = extractCharacterEncoding(contentType, DEFAULT_ENCODING);
         return new InputStreamReader(urlConnection.getInputStream(), charset);
     }
 
@@ -152,7 +156,7 @@ public class UriTextResource implements TextResource {
     @Override
     public Charset getCharset() {
         if (getFile() != null) {
-            return Charset.forName("utf-8");
+            return Charset.forName(DEFAULT_ENCODING);
         }
         return null;
     }
