@@ -244,12 +244,11 @@ task otherTask {
 
         server.start()
         buildFile << """
-            addPendingChangeListener()
-
             tasks.withType(${PlayRun.name}) {
                 doLast {
                     def routes = file('conf/routes').text
                     if (!routes.contains("hello")) {
+                        addPendingChangeListener()
                         // signal we're ready to modify
                         ${server.callFromBuild("rebuild")}
                         // test should have added the hello route, so wait until Gradle
@@ -276,12 +275,11 @@ task otherTask {
         server.start()
         addPendingChangesHook()
         buildFile << """
-            addPendingChangeListener()
-
             tasks.withType(${PlayRun.name}) {
                 doLast {
                     def routes = file('conf/routes').text
                     if (routes.contains("hello") && !routes.contains("goodbye")) {
+                        addPendingChangeListener()
                         // hello route is present, signal we're ready to modify again
                         ${server.callFromBuild("rebuild")}
                         // test should have added the goodbye route, so wait until Gradle
