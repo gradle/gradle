@@ -193,7 +193,8 @@ allprojects {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
         maven { url "https://repo.gradle.org/gradle/libs-snapshots" }
-        maven { url 'https://jitpack.io' }
+        //TODO remove this when incap can be published to a repo
+        mavenLocal()
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.
@@ -202,6 +203,7 @@ allprojects {
             ignore 'org/gradle/build-receipt.properties'
         }
     }
+
 }
 
 subprojects {

@@ -37,6 +37,7 @@ public class ClassDependentsAccumulator {
     private final Multimap<Integer, String> literalsToClasses = HashMultimap.create();
     private final Set<String> seenClasses = Sets.newHashSet();
     private final Multimap<String, String> parentToChildren = HashMultimap.create();
+    private final Multimap<String, String> generatorsToTargets = HashMultimap.create();
 
     public ClassDependentsAccumulator() {
     }
@@ -78,6 +79,12 @@ public class ClassDependentsAccumulator {
         }
     }
 
+    public void addGeneratedTarget(String sourceName, String targetName) {
+        // TODO(oehme/stevey):  Do I have this backwards?
+        Set<String> d = rememberClass(targetName);
+        d.add(sourceName);
+    }
+
     private Set<String> rememberClass(String className) {
         Set<String> d = dependents.get(className);
         if (d == null) {
@@ -110,6 +117,7 @@ public class ClassDependentsAccumulator {
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), getLiteralsToClasses(), parentToChildren);
+        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(),
+                                        getLiteralsToClasses(), parentToChildren, generatorsToTargets);
     }
 }

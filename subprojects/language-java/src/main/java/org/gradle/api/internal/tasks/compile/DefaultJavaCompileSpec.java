@@ -43,4 +43,9 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     public void setAnnotationProcessorPath(List<File> annotationProcessorPath) {
         this.annotationProcessorPath = annotationProcessorPath;
     }
+
+    @Override
+    public File getIncrementalAnnotationProcessorWorkingDir() {
+        return new File(getWorkingDir(), "incap");
+    }
 }

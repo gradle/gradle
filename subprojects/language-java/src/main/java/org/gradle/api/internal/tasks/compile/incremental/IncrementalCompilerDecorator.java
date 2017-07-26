@@ -72,11 +72,7 @@ public class IncrementalCompilerDecorator {
             return cleaningCompiler;
         }
         if (!annotationProcessorPath.isEmpty()) {
-            // In this Gradle fork for INCAP, we enable incremental annotation processing.
-            // Make sure that the only APs in the project are INCAP-enabled, or weird stuff can happen.
-            // TODO:  Maybe put in some detection logic and do full build here if any are non-INCAP.
-            // But Cedric is going to do the official Gradle support for INCAP, so this is fine for now.
-
+            // Enable incremental AP in the INCAP fork.
             // LOG.info("{} - is not incremental. Annotation processors are present.", displayName);
             // return cleaningCompiler;
         }
