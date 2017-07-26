@@ -19,6 +19,7 @@ package org.gradle.internal.filewatch;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildGateToken;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
@@ -51,13 +52,14 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
     }
 
     @Override
-    public FileSystemChangeWaiter createChangeWaiter(PendingChangesListener listener, BuildCancellationToken cancellationToken) {
-        return new ChangeWaiter(fileWatcherFactory, listener, quietPeriodMillis, cancellationToken);
+    public FileSystemChangeWaiter createChangeWaiter(PendingChangesListener listener, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken) {
+        return new ChangeWaiter(fileWatcherFactory, listener, quietPeriodMillis, cancellationToken, buildGateToken);
     }
 
     private static class ChangeWaiter implements FileSystemChangeWaiter {
         private final long quietPeriodMillis;
         private final BuildCancellationToken cancellationToken;
+        private final BuildGateToken buildGateToken;
         private final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();
@@ -69,9 +71,10 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         private final Collection<FileWatcherEvent> eventsBeforeListening = new ArrayList<FileWatcherEvent>();
         private final Lock eventDeliveryLock = new ReentrantLock();
 
-        private ChangeWaiter(FileWatcherFactory fileWatcherFactory, final PendingChangesListener pendingChangesListener, long quietPeriodMillis, BuildCancellationToken cancellationToken) {
+        private ChangeWaiter(FileWatcherFactory fileWatcherFactory, final PendingChangesListener pendingChangesListener, long quietPeriodMillis, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken) {
             this.quietPeriodMillis = quietPeriodMillis;
             this.cancellationToken = cancellationToken;
+            this.buildGateToken = buildGateToken;
             this.onError = new Action<Throwable>() {
                 @Override
                 public void execute(Throwable throwable) {
@@ -128,7 +131,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 lock.lock();
                 try {
                     long lastChangeAtValue = lastChangeAt.get();
-                    while (!cancellationToken.isCancellationRequested() && error.get() == null && shouldKeepWaitingForQuietPeriod(lastChangeAtValue)) {
+                    while (!cancellationToken.isCancellationRequested() && waitingForChanges(lastChangeAtValue)) {
                         condition.await(quietPeriodMillis, TimeUnit.MILLISECONDS);
                         lastChangeAtValue = lastChangeAt.get();
                     }
@@ -139,6 +142,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 if (throwable != null) {
                     throw throwable;
                 }
+                buildGateToken.waitForOpen();
             } catch (Throwable e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             } finally {
@@ -146,6 +150,10 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 cancellationToken.removeCallback(cancellationHandler);
                 watcher.stop();
             }
+        }
+
+        private boolean waitingForChanges(long lastChangeAtValue) {
+            return error.get() == null && shouldKeepWaitingForQuietPeriod(lastChangeAtValue);
         }
 
         private void deliverEvent(FileWatcherEvent event) {

@@ -39,7 +39,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c)
+        def w = wf.createChangeWaiter(pendingChangesListener, c, buildGateToken)
 
         start {
             w.watch(f)
@@ -68,7 +68,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c)
+        def w = wf.createChangeWaiter(pendingChangesListener, c, buildGateToken)
 
         start {
             w.watch(f)
@@ -105,7 +105,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c)
+        def w = wf.createChangeWaiter(pendingChangesListener, c, buildGateToken)
 
         start {
             try {
@@ -137,7 +137,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem), quietPeriod)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c)
+        def w = wf.createChangeWaiter(pendingChangesListener, c, buildGateToken)
         def testfile = testDirectory.file("testfile")
 
         start {

@@ -68,7 +68,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         globalServices.get(ListenerManager) >> listenerManager
         listenerManager.getBroadcaster(PendingChangesListener) >> pendingChangesListener
         requestMetadata.getBuildTimeClock() >> clock
-        waiterFactory.createChangeWaiter(_, _) >> waiter
+        waiterFactory.createChangeWaiter(_, _, _) >> waiter
         waiter.isWatching() >> true
     }
 
