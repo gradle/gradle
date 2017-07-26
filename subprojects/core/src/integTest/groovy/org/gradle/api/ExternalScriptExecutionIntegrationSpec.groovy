@@ -179,7 +179,6 @@ task check {
         when:
         scriptFile.setText("""println 'loaded external script 2'""", "UTF-8")
         server.expectHead('/' + scriptName, scriptFile)
-        server.expectGetMissing('/' + scriptName + '.sha1')
         server.expectGet('/' + scriptName, scriptFile)
 
         then:

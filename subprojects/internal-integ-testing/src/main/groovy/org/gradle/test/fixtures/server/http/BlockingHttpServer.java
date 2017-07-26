@@ -175,6 +175,13 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
+     * Expect a HEAD request to the given path, followed by a
+     */
+    public ExpectedRequest head(String path) {
+        return new ExpectHead(path);
+    }
+
+    /**
      * Expect a GET request to the given path, and return the given content (UTF-8 encoded)
      */
     public ExpectedRequest resource(String path, String content) {
