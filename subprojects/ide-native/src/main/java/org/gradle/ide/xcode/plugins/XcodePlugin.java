@@ -160,9 +160,9 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private static GenerateSchemeFileTask createSchemeTask(TaskContainer tasks, DefaultXcodeProject xcodeProject) {
-        GenerateSchemeFileTask schemeFileTask = tasks.create("xcodeScheme" + xcodeProject.getTarget().getName(), GenerateSchemeFileTask.class);
+        GenerateSchemeFileTask schemeFileTask = tasks.create("xcodeScheme" + xcodeProject.getTarget().getName().replaceAll(" ", ""), GenerateSchemeFileTask.class);
         schemeFileTask.setXcodeProject(xcodeProject);
-        schemeFileTask.setOutputFile(new File(xcodeProject.getLocationDir(), "xcshareddata/xcschemes/" +xcodeProject.getTarget().getName() + ".xcscheme"));
+        schemeFileTask.setOutputFile(new File(xcodeProject.getLocationDir(), "xcshareddata/xcschemes/" + xcodeProject.getTarget().getName() + ".xcscheme"));
 
         return schemeFileTask;
     }

@@ -42,7 +42,7 @@ rootProject.name = "${PROJECT_NAME}"
         succeeds("xcode")
 
         then: 'tasks are executed as expected'
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme${PROJECT_NAME} Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme${PROJECT_NAME}Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         def project = xcodeProject("${PROJECT_NAME}.xcodeproj").projectFile
 
         and: 'source files are properly attached to the project'
@@ -79,7 +79,7 @@ rootProject.name = "${PROJECT_NAME}"
         succeeds("xcode")
 
         then: 'tasks are executed as expected'
-        executedAndNotSkipped(":xcodeProject", ":xcodeScheme${PROJECT_NAME} SharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeScheme${PROJECT_NAME}SharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
         def project = xcodeProject("${PROJECT_NAME}.xcodeproj").projectFile
 
         and: 'source files are properly attached to the project'
