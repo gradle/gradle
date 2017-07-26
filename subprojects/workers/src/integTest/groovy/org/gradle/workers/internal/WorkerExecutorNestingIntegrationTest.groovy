@@ -40,6 +40,24 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         nestedIsolationMode << ISOLATION_MODES
     }
 
+    def "workers with no isolation can wait on spawned work"() {
+        buildFile << """
+            ${getRunnableWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            task runInWorker(type: NestingWorkerTask) {
+                waitForChildren = true 
+            }
+        """.stripIndent()
+
+        when:
+        def gradle = executer.withTasks("runInWorker").start()
+
+        then:
+        gradle.waitForFinish()
+
+        and:
+        gradle.standardOutput.contains("Hello World")
+    }
+
     /*
      * This is not intended, but current behavior. We'll need to find a way to pass the service
      * registry across the classloader isolation barrier.
@@ -123,6 +141,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
             class NestingWorkerTask extends DefaultTask {
 
                 WorkerExecutor executor
+                boolean waitForChildren = false
 
                 @Inject
                 NestingWorkerTask(WorkerExecutor executor) {
@@ -134,6 +153,9 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
                     executor.submit(FirstLevelRunnable) {
                         isolationMode = $isolationMode
                         params = ["Hello World"]
+                    }
+                    if (waitForChildren) {
+                        executor.await()
                     }
                 }
             }
