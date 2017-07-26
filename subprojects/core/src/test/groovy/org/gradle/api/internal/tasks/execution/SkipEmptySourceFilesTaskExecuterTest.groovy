@@ -166,6 +166,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * outputFiles.files >> previousFiles
 
         then: 'deleting the file succeeds'
+        1 * previousFile.isFile() >> true
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> false
 
         then:

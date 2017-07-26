@@ -64,7 +64,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 boolean deletedFiles = false;
                 boolean debugEnabled = LOGGER.isDebugEnabled();
                 for (File file : outputFileSet) {
-                    if (buildOutputCleanupRegistry.isOutputOwnedByBuild(file) && file.isFile()) {
+                    if (file.isFile() && buildOutputCleanupRegistry.isOutputOwnedByBuild(file)) {
                         if (file.delete()) {
                             if (debugEnabled) {
                                 LOGGER.debug("Deleted stale output file '{}'.", file.getAbsolutePath());
