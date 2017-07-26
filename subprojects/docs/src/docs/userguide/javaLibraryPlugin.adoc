@@ -98,14 +98,18 @@ As a guideline, you should prefer the `implementation` configuration first: leak
 === The Java Library plugin configurations
 
 The following graph describes the main configurations setup when the Java Library plugin is in use.
-<imageobject> <imagedata fileref="img/java-library-ignore-deprecated-main.png"/> </imageobject>
+
+image::img/java-library-ignore-deprecated-main.png[]
+
 * The configurations in _green_ are the ones a user should use to declare dependencies
 * The configurations in _pink_ are the ones used when a component compiles, or runs against the library
 * The configurations in _blue_ are internal to the component, for its own use
 * The configurations in _white_ are configurations inherited from the Java plugin
 
 And the next graph describes the test configurations setup:
-<imageobject> <imagedata fileref="img/java-library-ignore-deprecated-test.png"/> </imageobject>
+
+image::img/java-library-ignore-deprecated-test.png[]
+
 [NOTE]
 ====
 The _compile_, _testCompile_, _runtime_ and _testRuntime_ configurations inherited from the Java plugin are still available but are deprecated. You should avoid using them, as they are only kept for backwards compatibility.
