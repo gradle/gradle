@@ -62,6 +62,7 @@ public class XcodePlugin extends IdePlugin {
 
         xcode = project.getExtensions().create("xcode", DefaultXcodeExtension.class);
         xcode.getProject().setLocationDir(project.file(projectName(project) + ".xcodeproj"));
+        xcode.getProject().setSources(project.files());
 
         configureForSwiftPlugin(project);
 
@@ -149,7 +150,7 @@ public class XcodePlugin extends IdePlugin {
         // TODO - Reuse the logic from `swift-executable` or `swift-module` to find the sources
         ConfigurableFileTree sourceTree = project.fileTree("src/main/swift");
         sourceTree.include("**/*.swift");
-        xcode.getProject().setSources(sourceTree);
+        xcode.getProject().getSources().from(sourceTree);
 
         // TODO - Reuse the logic from `swift-executable` or `swift-module` to find the build task
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), xcode.getProject().getGidGenerator(), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);

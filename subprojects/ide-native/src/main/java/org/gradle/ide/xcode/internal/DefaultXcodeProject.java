@@ -16,45 +16,29 @@
 
 package org.gradle.ide.xcode.internal;
 
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 
 public class DefaultXcodeProject implements XcodeProject {
     private final GidGenerator gidGenerator = new GidGenerator(Collections.<String>emptySet());
-    private final List<File> additionalFiles = new ArrayList<File>();
     private XcodeTarget target;
-    private FileCollection sources;
+    private ConfigurableFileCollection sources;
     private File locationDir;
 
     public void addSourceFile(File sourceFile) {
-        additionalFiles.add(sourceFile);
+        sources.from(sourceFile);
     }
 
-    public FileCollection getSources() {
+    public ConfigurableFileCollection getSources() {
         return sources;
     }
 
-    public void setSources(FileCollection sources) {
+    public void setSources(ConfigurableFileCollection sources) {
         this.sources = sources;
-    }
-
-    public List<File> getSourceFiles() {
-        Set<File> allSource = new LinkedHashSet<File>();
-        allSource.addAll(additionalFiles);
-
-        if (sources != null) {
-            allSource.addAll(sources.getFiles());
-        }
-
-        return new ArrayList<File>(allSource);
     }
 
     public XcodeTarget getTarget() {
