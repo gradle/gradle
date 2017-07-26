@@ -286,7 +286,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             }
             task runInWorker {
                 doLast {
-                    def workerExecutor = gradle.services.get(WorkerExecutor)
+                    def workerExecutor = services.get(WorkerExecutor)
                     workerExecutor.submit(TestRunnable) { config ->
                         config.displayName = 'My Worker Action'
                     }

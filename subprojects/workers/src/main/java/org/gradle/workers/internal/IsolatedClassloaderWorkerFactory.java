@@ -35,6 +35,7 @@ import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
 import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
 import org.gradle.internal.work.WorkerLeaseRegistry;
@@ -64,15 +65,15 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerServer<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
         return new Worker<T>() {
             @Override
             public DefaultWorkResult execute(T spec) {
-                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
+                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation(), null);
             }
 
             @Override
-            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation, Instantiator instantiator) {
                 WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
                 try {
                     return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {

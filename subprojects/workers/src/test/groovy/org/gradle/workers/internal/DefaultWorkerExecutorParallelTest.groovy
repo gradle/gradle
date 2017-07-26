@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import com.google.common.util.concurrent.ListenableFutureTask
+import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -44,6 +45,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def fileResolver = Mock(FileResolver)
     def stoppableExecutor = Mock(ManagedExecutor)
     def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
+    def instantiatorFactory = Mock(InstantiatorFactory)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
 
@@ -51,7 +53,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * fileResolver.resolveLater(_) >> fileFactory()
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * workerExecutorFactory.create(_ as String) >> stoppableExecutor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, instantiatorFactory)
     }
 
     @Unroll

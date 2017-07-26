@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import com.google.common.util.concurrent.ListenableFutureTask
+import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -49,6 +50,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def factory = Mock(Factory)
     def runnable = Mock(Runnable)
     def executor = Mock(ManagedExecutor)
+    def instantiatorFactory = Mock(InstantiatorFactory)
     def worker = Mock(Worker)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
@@ -57,7 +59,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * fileResolver.resolveLater(_) >> factory
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * executorFactory.create(_ as String) >> executor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, instantiatorFactory)
     }
 
     def "worker configuration fork property defaults to AUTO"() {
@@ -146,7 +148,7 @@ class DefaultWorkerExecutorTest extends Specification {
 
         then:
         1 * workerDaemonFactory.getWorker(_, _) >> worker
-        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+        1 * worker.execute(_, _, _, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
         }
@@ -168,7 +170,7 @@ class DefaultWorkerExecutorTest extends Specification {
 
         then:
         1 * inProcessWorkerFactory.getWorker(_, _) >> worker
-        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+        1 * worker.execute(_, _, _, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
         }
@@ -190,7 +192,7 @@ class DefaultWorkerExecutorTest extends Specification {
 
         then:
         1 * noIsolationWorkerFactory.getWorker(_, _) >> worker
-        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+        1 * worker.execute(_, _, _, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
         }

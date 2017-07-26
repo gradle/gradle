@@ -51,7 +51,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
         task runInProcess {
             doLast {
-                def workerExecutor = gradle.services.get(WorkerExecutor)
+                def workerExecutor = services.get(WorkerExecutor)
                 workerExecutor.submit(TestRunnable) { config ->
                     config.isolationMode = IsolationMode.NONE
                     config.displayName = 'My in-process worker action'
@@ -60,7 +60,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
         task runForked {
             doLast {
-                def workerExecutor = gradle.services.get(WorkerExecutor)
+                def workerExecutor = services.get(WorkerExecutor)
                 workerExecutor.submit(TestRunnable) { config ->
                     config.isolationMode = IsolationMode.PROCESS
                     config.displayName = 'My forked worker action'
