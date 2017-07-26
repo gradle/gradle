@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
 import org.gradle.ide.xcode.internal.XcodeTarget;
+import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXBuildFile;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXFileReference;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXLegacyTarget;
@@ -37,6 +38,7 @@ import org.gradle.ide.xcode.internal.xcodeproj.XcodeprojSerializer;
 import org.gradle.ide.xcode.tasks.internal.XcodeProjectFile;
 import org.gradle.plugins.ide.api.PropertyListGeneratorTask;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,8 +51,14 @@ import java.util.Map;
 @Incubating
 public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<XcodeProjectFile> {
     private static final String PRODUCTS_GROUP_NAME = "Products";
+    private final GidGenerator gidGenerator;
     private DefaultXcodeProject xcodeProject;
     private Map<String, PBXFileReference> pathToFileReference = new HashMap<String, PBXFileReference>();
+
+    @Inject
+    public GenerateXcodeProjectFileTask(GidGenerator gidGenerator) {
+        this.gidGenerator = gidGenerator;
+    }
 
     @Override
     protected void configure(XcodeProjectFile projectFile) {
@@ -76,7 +84,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
             project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
         }
 
-        XcodeprojSerializer serializer = new XcodeprojSerializer(xcodeProject.getGidGenerator(), project);
+        XcodeprojSerializer serializer = new XcodeprojSerializer(gidGenerator, project);
         final NSDictionary rootObject = serializer.toPlist();
 
         projectFile.transformAction(new Action<NSDictionary>() {

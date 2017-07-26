@@ -16,11 +16,18 @@
 
 package org.gradle.ide.xcode.internal;
 
+import org.gradle.api.internal.NoConventionMapping;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.ide.xcode.XcodeExtension;
 
+@NoConventionMapping
 public class DefaultXcodeExtension implements XcodeExtension {
-    private final DefaultXcodeProject project = new DefaultXcodeProject();
+    private final DefaultXcodeProject project;
     private final DefaultXcodeWorkspace workspace = new DefaultXcodeWorkspace();
+
+    public DefaultXcodeExtension(FileOperations fileOperations) {
+        this.project = new DefaultXcodeProject(fileOperations);
+    }
 
     @Override
     public DefaultXcodeProject getProject() {

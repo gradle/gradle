@@ -17,17 +17,19 @@
 package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.ide.xcode.XcodeProject;
-import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
 
 import java.io.File;
-import java.util.Collections;
 
 public class DefaultXcodeProject implements XcodeProject {
-    private final GidGenerator gidGenerator = new GidGenerator(Collections.<String>emptySet());
+    private final ConfigurableFileCollection sources;
     private XcodeTarget target;
-    private ConfigurableFileCollection sources;
     private File locationDir;
+
+    public DefaultXcodeProject(FileOperations fileOperations) {
+        this.sources = fileOperations.files();
+    }
 
     public void addSourceFile(File sourceFile) {
         sources.from(sourceFile);
@@ -35,10 +37,6 @@ public class DefaultXcodeProject implements XcodeProject {
 
     public ConfigurableFileCollection getSources() {
         return sources;
-    }
-
-    public void setSources(ConfigurableFileCollection sources) {
-        this.sources = sources;
     }
 
     public XcodeTarget getTarget() {
@@ -55,9 +53,5 @@ public class DefaultXcodeProject implements XcodeProject {
 
     public void setLocationDir(File locationDir) {
         this.locationDir = locationDir;
-    }
-
-    public GidGenerator getGidGenerator() {
-        return gidGenerator;
     }
 }

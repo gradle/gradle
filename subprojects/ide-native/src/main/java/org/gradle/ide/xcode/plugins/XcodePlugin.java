@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.xcode.XcodeExtension;
@@ -39,6 +40,7 @@ import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftModulePlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -50,6 +52,15 @@ import java.io.File;
 public class XcodePlugin extends IdePlugin {
     private DefaultXcodeExtension xcode;
 
+    private final GidGenerator gidGenerator;
+    private final FileOperations fileOperations;
+
+    @Inject
+    public XcodePlugin(GidGenerator gidGenerator, FileOperations fileOperations) {
+        this.gidGenerator = gidGenerator;
+        this.fileOperations = fileOperations;
+    }
+
     @Override
     protected String getLifecycleTaskName() {
         return "xcode";
@@ -60,9 +71,8 @@ public class XcodePlugin extends IdePlugin {
         getLifecycleTask().setDescription("Generates XCode project files (pbxproj, xcworkspace, xcscheme)");
         getCleanTask().setDescription("Cleans XCode project files (xcodeproj)");
 
-        xcode = project.getExtensions().create("xcode", DefaultXcodeExtension.class);
+        xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, fileOperations);
         xcode.getProject().setLocationDir(project.file(projectName(project) + ".xcodeproj"));
-        xcode.getProject().setSources(project.files());
 
         configureForSwiftPlugin(project);
 
@@ -153,7 +163,7 @@ public class XcodePlugin extends IdePlugin {
         xcode.getProject().getSources().from(sourceTree);
 
         // TODO - Reuse the logic from `swift-executable` or `swift-module` to find the build task
-        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), xcode.getProject().getGidGenerator(), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
+        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
         xcode.getProject().setTarget(target);
 
         getLifecycleTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
@@ -175,7 +185,7 @@ public class XcodePlugin extends IdePlugin {
         }
     }
 
-    private static XcodeTarget newTarget(String name, GidGenerator gidGenerator, PBXTarget.ProductType productType, String gradleCommand, String taskName, File outputFile, FileCollection sources) {
+    private XcodeTarget newTarget(String name, PBXTarget.ProductType productType, String gradleCommand, String taskName, File outputFile, FileCollection sources) {
         String id = gidGenerator.generateGid("PBXLegacyTarget", name.hashCode());
         XcodeTarget target = new XcodeTarget(name, id);
         target.setOutputFile(outputFile);
