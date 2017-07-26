@@ -17,9 +17,9 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -30,7 +30,7 @@ import java.util.Date;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Error;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
-public class StyledTextOutputBackedRenderer extends BatchOutputEventListener {
+public class StyledTextOutputBackedRenderer implements OutputEventListener {
     private final OutputEventTextOutputImpl textOutput;
     private boolean debugOutput;
     private SimpleDateFormat dateFormat;

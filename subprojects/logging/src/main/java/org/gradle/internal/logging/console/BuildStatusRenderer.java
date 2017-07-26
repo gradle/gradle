@@ -17,16 +17,18 @@
 package org.gradle.internal.logging.console;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.logging.events.BatchOutputEventListener;
+import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.time.TimeProvider;
 
-public class BuildStatusRenderer extends BatchOutputEventListener {
+public class BuildStatusRenderer implements OutputEventListener {
     public static final int PROGRESS_BAR_WIDTH = 13;
     public static final String PROGRESS_BAR_PREFIX = "<";
     public static final char PROGRESS_BAR_COMPLETE_CHAR = '=';
@@ -35,7 +37,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
 
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
 
-    private final BatchOutputEventListener listener;
+    private final OutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
@@ -49,7 +51,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     private long buildStartTimestamp;
     private boolean timerEnabled;
 
-    public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider) {
+    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
@@ -77,17 +79,16 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
                 phaseProgressed(progressEvent);
             }
         }
+
+        listener.onOutput(event);
+
+        if (event instanceof UpdateNowEvent | event instanceof EndOutputEvent) {
+            renderNow(timeProvider.getCurrentTime());
+        }
     }
 
     private boolean isPhaseProgressEvent(OperationIdentifier progressOpId) {
         return progressOpId.getId() == currentPhaseProgressOperationId;
-    }
-
-    @Override
-    public void onOutput(Iterable<OutputEvent> events) {
-        super.onOutput(events);
-        listener.onOutput(events);
-        renderNow(timeProvider.getCurrentTime());
     }
 
     private void renderNow(long now) {
@@ -111,7 +112,6 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
         if (progressBar != null) {
             progressBar.update(progressEvent.isFailing());
         }
-
     }
 
     private void phaseEnded(ProgressCompleteEvent progressCompleteEvent) {
