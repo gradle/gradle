@@ -37,6 +37,7 @@ public class ClassDependentsAccumulator {
     private final Multimap<Integer, String> literalsToClasses = HashMultimap.create();
     private final Set<String> seenClasses = Sets.newHashSet();
     private final Multimap<String, String> parentToChildren = HashMultimap.create();
+    private final Multimap<String, String> generatorsToTargets = HashMultimap.create();
 
     public ClassDependentsAccumulator() {
     }
@@ -117,6 +118,6 @@ public class ClassDependentsAccumulator {
 
     public ClassSetAnalysisData getAnalysis() {
         return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(),
-                                        getLiteralsToClasses(), parentToChildren);
+                                        getLiteralsToClasses(), parentToChildren, generatorsToTargets);
     }
 }

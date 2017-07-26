@@ -96,8 +96,7 @@ public class ClassSetAnalysisUpdater {
                             generatedType = ((GeneratedSourceFile)output).getName().toString();
                             break;
                         case RESOURCE:
-                            // TODO:  At some point, we need to care about resources.
-                            // In the short term we should refuse to allow APs that generate resources.
+                            // TODO:  Do we care about generated resources?
                             continue;
                     }
                     analyzer.addGeneratorMapping(generatingType, generatedType);
