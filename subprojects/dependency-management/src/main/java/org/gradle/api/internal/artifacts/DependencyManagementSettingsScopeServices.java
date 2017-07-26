@@ -17,20 +17,18 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalResourceUrlResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalResourceAccessor;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
-import org.gradle.api.internal.filestore.url.DefaultUrlFileStore;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinderSearchableFileStoreAdapter;
-import org.gradle.internal.resource.local.UniquePathKeyFileStore;
+import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 
-import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
 
@@ -43,14 +41,10 @@ class DependencyManagementSettingsScopeServices {
         return new ExternalResourceFileStore(cacheScopeMapping.getBaseDirectory(null, "external-resources", VersionStrategy.SharedCache), new TmpDirTemporaryFileProvider());
     }
 
-    DefaultUrlFileStore createUrlFileStore(ArtifactCacheMetaData artifactCacheMetaData) {
-        return new DefaultUrlFileStore(new UniquePathKeyFileStore(artifactCacheMetaData.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
-    }
-
-    DefaultExternalResourceUrlResolver createDefaultExternalResourceUrlResolver(DefaultUrlFileStore defaultUrlFileStore, RepositoryTransportFactory repositoryTransportFactory) {
+    TextResourceLoader createTextResourceLoader(ExternalResourceFileStore resourceFileStore, RepositoryTransportFactory repositoryTransportFactory) {
         HashSet<String> schemas = Sets.newHashSet("https", "http");
         RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "http auth", Collections.<Authentication>emptyList());
-        LocallyAvailableResourceFinderSearchableFileStoreAdapter<URL> locallyAvailableResourceFinder = new LocallyAvailableResourceFinderSearchableFileStoreAdapter<URL>(defaultUrlFileStore);
-        return new DefaultExternalResourceUrlResolver(defaultUrlFileStore, transport.getResourceAccessor(), locallyAvailableResourceFinder);
+        ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(resourceFileStore, transport.getResourceAccessor());
+        return new DefaultUriTextResourceLoader(externalResourceAccessor, schemas);
     }
 }

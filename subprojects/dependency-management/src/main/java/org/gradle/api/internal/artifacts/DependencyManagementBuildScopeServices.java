@@ -58,8 +58,8 @@ import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
-import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalResourceUrlResolver;
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceUrlResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalResourceAccessor;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
@@ -68,7 +68,6 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
-import org.gradle.api.internal.filestore.url.DefaultUrlFileStore;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
@@ -95,14 +94,12 @@ import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifac
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinderSearchableFileStoreAdapter;
 import org.gradle.internal.resource.local.UniquePathKeyFileStore;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -212,19 +209,11 @@ class DependencyManagementBuildScopeServices {
         return new ExternalResourceFileStore(cacheScopeMapping.getBaseDirectory(null, "external-resources", VersionStrategy.SharedCache), new TmpDirTemporaryFileProvider());
     }
 
-    DefaultUrlFileStore createUrlFileStore(ArtifactCacheMetaData artifactCacheMetaData) {
-        return new DefaultUrlFileStore(new UniquePathKeyFileStore(artifactCacheMetaData.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
-    }
-
-    DefaultExternalResourceUrlResolver createDefaultExternalResourceUrlResolver(DefaultUrlFileStore defaultUrlFileStore, RepositoryTransportFactory repositoryTransportFactory) {
+    TextResourceLoader createTextResourceLoader(ExternalResourceFileStore resourceFileStore, RepositoryTransportFactory repositoryTransportFactory) {
         HashSet<String> schemas = Sets.newHashSet("https", "http");
         RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "http auth", Collections.<Authentication>emptyList());
-        LocallyAvailableResourceFinderSearchableFileStoreAdapter<URL> locallyAvailableResourceFinder = new LocallyAvailableResourceFinderSearchableFileStoreAdapter<URL>(defaultUrlFileStore);
-        return new DefaultExternalResourceUrlResolver(defaultUrlFileStore, transport.getResourceAccessor(), locallyAvailableResourceFinder);
-    }
-
-    TextResourceLoader createTextResourceLoader(ExternalResourceUrlResolver resolver) {
-        return new DefaultUriTextResourceLoader(resolver);
+        ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(resourceFileStore, transport.getResourceAccessor());
+        return new DefaultUriTextResourceLoader(externalResourceAccessor, schemas);
     }
 
     MavenSettingsProvider createMavenSettingsProvider() {

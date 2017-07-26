@@ -16,35 +16,33 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceUrlResolver;
-import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.Set;
 
 public class DefaultUriTextResourceLoader extends BasicTextResourceLoader {
 
-    private final ExternalResourceUrlResolver externalResourceUrlResolver;
+    private final ExternalResourceAccessor externalResourceAccessor;
+    private final Set<String> cachedSchemas;
 
-    public DefaultUriTextResourceLoader(ExternalResourceUrlResolver externalResourceUrlResolver) {
-        this.externalResourceUrlResolver = externalResourceUrlResolver;
+    public DefaultUriTextResourceLoader(ExternalResourceAccessor externalResourceAccessor, Set<String> cachedSchemas) {
+        this.externalResourceAccessor = externalResourceAccessor;
+        this.cachedSchemas = cachedSchemas;
     }
 
     @Override
     public TextResource loadUri(String description, URI source) {
-        DefaultResourceAwareResolveResult defaultResourceAwareResolveResult = new DefaultResourceAwareResolveResult();
-        LocallyAvailableExternalResource resource;
-        try {
-            resource = externalResourceUrlResolver.resolveUrl(source.toURL(), defaultResourceAwareResolveResult);
-        } catch (MalformedURLException e) {
-            throw new UncheckedIOException(e);
+        if (!cachedSchemas.contains(source.getScheme())) {
+            return super.loadUri(description, source);
         }
-        if(resource == null) {
+
+        LocallyAvailableExternalResource resource = externalResourceAccessor.resolveUri(source);
+        if (resource == null) {
             throw new RuntimeException("Unable to find " + source.toString());
         }
         File resourceFile = resource.getFile();

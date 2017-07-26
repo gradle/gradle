@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
-import java.net.URL;
+import javax.annotation.Nullable;
+import java.net.URI;
 
-public interface ExternalResourceUrlResolver {
+public interface ExternalResourceAccessor {
     @Nullable
-    LocallyAvailableExternalResource resolveUrl(URL url, ResourceAwareResolveResult result);
+    LocallyAvailableExternalResource resolveResource(ExternalResourceName resource);
 
-    boolean artifactExists(URL url, ResourceAwareResolveResult result);
+    @Nullable
+    LocallyAvailableExternalResource resolveUri(URI resource);
 }
