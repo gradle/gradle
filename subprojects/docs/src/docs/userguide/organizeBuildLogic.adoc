@@ -81,12 +81,12 @@ For multi-project builds there can be only one `buildSrc` directory, which has t
 
 Listed below is the default build script that Gradle applies to the `buildSrc` project:
 
-++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-            <title>Default buildSrc build script</title>
-            <programlisting><xi:include href="../../../../../subprojects/core/src/main/resources/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt" parse="text"/></programlisting>
-        </figure>
-++++
+
+.Default buildSrc build script
+[source,groovy]
+----
+include::../../../../../subprojects/core/src/main/resources/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt[]
+----
 
 This means that you can just put your build source code in this directory and stick to the layout convention for a Java/Groovy project (see <<javalayout>>).
 
@@ -152,7 +152,7 @@ Every project automatically has a `buildEnvironment` task of type api:org.gradle
 [[sec:ant_optional_dependencies]]
 === Ant optional dependencies
 
-For reasons we don't fully understand yet, external dependencies are not picked up by Ant's optional tasks. But you can easily do it in another way.footnote:[In fact, we think this is a better solution. Only if your buildscript and Ant's optional task need the _same_ library would you have to define it twice. In such a case it would be nice if Ant's optional task would automatically pick up the classpath defined in the “`gradle.settings`” file.] 
+For reasons we don't fully understand yet, external dependencies are not picked up by Ant's optional tasks. But you can easily do it in another way.footnote:[In fact, we think this is a better solution. Only if your buildscript and Ant's optional task need the _same_ library would you have to define it twice. In such a case it would be nice if Ant's optional task would automatically pick up the classpath defined in the “`gradle.settings`” file.]
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="buildLogic" dir="userguide/organizeBuildLogic" title="Ant optional dependencies">

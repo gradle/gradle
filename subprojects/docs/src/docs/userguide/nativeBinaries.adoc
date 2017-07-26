@@ -18,9 +18,9 @@
 
 [NOTE]
 ====
- 
+
 Support for building native software is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
- 
+
 ====
 
 The native software plugins add support for building native software components, such as executables or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist for this space of software development, Gradle offers developers its trademark power and flexibility together with dependency management practices more traditionally found in the JVM development space.
@@ -71,11 +71,11 @@ The following tool chains are supported:
 
 | Linux
 | http://gcc.gnu.org/[GCC]
-| 
+|
 
 | Linux
 | http://clang.llvm.org[Clang]
-| 
+|
 
 | Mac OS X
 | XCode
@@ -104,11 +104,11 @@ The following tool chains are unofficially supported. They generally work fine, 
 
 | Mac OS X
 | http://gcc.gnu.org/[GCC] from Macports
-| 
+|
 
 | Mac OS X
 | http://clang.llvm.org[Clang] from Macports
-| 
+|
 
 | Windows
 | http://gcc.gnu.org/[GCC] with http://cygwin.com[Cygwin 64]
@@ -116,11 +116,11 @@ The following tool chains are unofficially supported. They generally work fine, 
 
 | UNIX-like
 | http://gcc.gnu.org/[GCC]
-| 
+|
 
 | UNIX-like
 | http://clang.llvm.org[Clang]
-| 
+|
 |===
 
 
@@ -130,9 +130,9 @@ The following tool chains are unofficially supported. They generally work fine, 
 
 [NOTE]
 ====
- 
-Note that if you are using GCC then you currently need to install support for C++, even if you are not building from C++ source. This restriction will be removed in a future Gradle version.
- 
+
+Note that if you are using GCC then you currently need to install support for C+\+, even if you are not building from C++ source. This restriction will be removed in a future Gradle version.
+
 ====
 
 To build native software, you will need to have a compatible tool chain installed:
@@ -212,7 +212,7 @@ For each component defined, Gradle adds a api:org.gradle.language.base.Functiona
 
 Sometimes, you may need to _assemble_ (compile and link) or _build_ (compile, link and test) a component or binary and its _dependents_ (things that depend upon the component or binary). The native software model provides tasks that enable this capability. First, the _dependent components_ report gives insight about the relationships between each component. Second, the _build and assemble dependents_ tasks allow you to assemble or build a component and its dependents in one step.
 
-In the following example, the build file defines `OpenSSL` as a dependency of `libUtil` and `libUtil` as a dependency of `LinuxApp` and `WindowsApp`. Test suites are treated similarly. Dependents can be thought of as reverse dependencies. 
+In the following example, the build file defines `OpenSSL` as a dependency of `libUtil` and `libUtil` as a dependency of `LinuxApp` and `WindowsApp`. Test suites are treated similarly. Dependents can be thought of as reverse dependencies.
 ++++
 <figure>
                 <title>Dependent Components Example</title>
@@ -221,18 +221,18 @@ In the following example, the build file defines `OpenSSL` as a dependency of `l
                 </imageobject>
             </figure>
 ++++
-  
+
 [NOTE]
 ====
 By following the dependencies backwards, you can see `LinuxApp` and `WindowsApp` are _dependents_ of `libUtil`. When `libUtil` is changed, Gradle will need to recompile or relink `LinuxApp` and `WindowsApp`.
 ====
- 
+
 
 When you _assemble_ dependents of a component, the component and all of its dependents are compiled and linked, including any test suite binaries. Gradle's up-to-date checks are used to only compile or link if something has changed. For instance, if you have changed source files in a way that do not affect the headers of your project, Gradle will be able to skip compilation for dependent components and only need to re-link with the new library. Tests are not run when assembling a component.
 
 When you _build_ dependents of a component, the component and all of its dependent binaries are compiled, linked _and checked_. Checking components means running any <<sec:check_tasks,check task>> including executing any test suites, so tests _are_ run when building a component.
 
-In the following sections, we will demonstrate the usage of the `assembleDependents\*`, `buildDependents\*` and `dependentComponents` tasks with a sample build that contains a CUnit test suite. The build script for the sample is the following:
+In the following sections, we will demonstrate the usage of the `assembleDependents\*`, `buildDependents*` and `dependentComponents` tasks with a sample build that contains a CUnit test suite. The build script for the sample is the following:
 
 ++++
 <sample id="nativeDependentComponentsSample" dir="native-binaries/cunit" title="Sample build" includeLocation="true">
@@ -293,8 +293,8 @@ For example, to assemble the dependents of the "passing" flavor of the "static" 
 
 ++++
 <sample id="nativeAssembleDependentComponents" dir="native-binaries/cunit" title="Assemble components that depends on the passing/static binary of the operators component">
-                <output args="assembleDependentsOperatorsPassingStaticLibrary"/>
-            </sample>
+    <output args="assembleDependentsOperatorsPassingStaticLibrary --max-workers=1"/>
+</sample>
 ++++
 
 In the output above, the targeted binary gets assembled as well as the test suite binary that depends on it.
@@ -312,8 +312,8 @@ For example, to build the dependents of the "passing" flavor of the "static" lib
 
 ++++
 <sample id="nativeBuildDependentComponents" dir="native-binaries/cunit" title="Build components that depends on the passing/static binary of the operators component">
-                <output args="buildDependentsOperatorsPassingStaticLibrary"/>
-            </sample>
+    <output args="buildDependentsOperatorsPassingStaticLibrary --max-workers=1"/>
+</sample>
 ++++
 
 In the output above, the targeted binary as well as the test suite binary that depends on it are built and the test suite has run.
@@ -414,7 +414,7 @@ Gradle provides a report that you can run from the command-line that shows some 
 [[native_binaries:languages]]
 === Language support
 
-Presently, Gradle supports building native software from any combination of source languages listed below. A native binary project will contain one or more named `FunctionalSourceSet` instances (eg 'main', 'test', etc), each of which can contain `LanguageSourceSet`s containing source files, one for each language.
+Presently, Gradle supports building native software from any combination of source languages listed below. A native binary project will contain one or more named `FunctionalSourceSet` instances (eg 'main', 'test', etc), each of which can contain ``LanguageSourceSet``s containing source files, one for each language.
 
 * C
 * C++
@@ -435,7 +435,7 @@ C++ language support is provided by means of the `'cpp'` plugin.
             </sample>
 ++++
 
-C++ sources to be included in a native binary are provided via a api:org.gradle.language.cpp.CppSourceSet[], which defines a set of C++ source files and optionally a set of exported header files (for a library). By default, for any named component the api:org.gradle.language.cpp.CppSourceSet[] contains `.cpp` source files in `src/${name}/cpp`, and header files in `src/${name}/headers`.
+$$C++$$ sources to be included in a native binary are provided via a api:org.gradle.language.cpp.CppSourceSet[], which defines a set of C++ source files and optionally a set of exported header files (for a library). By default, for any named component the api:org.gradle.language.cpp.CppSourceSet[] contains `.cpp` source files in `src/${name}/cpp`, and header files in `src/${name}/headers`.
 
 While the `cpp` plugin defines these default locations for each api:org.gradle.language.cpp.CppSourceSet[], it is possible to extend or override these defaults to allow for a different project layout.
 
@@ -507,7 +507,7 @@ Objective-C++ language support is provided by means of the `'objective-cpp'` plu
             </sample>
 ++++
 
-Objective-C++ sources to be included in a native binary are provided via a api:org.gradle.language.objectivecpp.ObjectiveCppSourceSet[], which defines a set of Objective-C++ source files. By default, for any named component the api:org.gradle.language.objectivecpp.ObjectiveCppSourceSet[] contains `.mm` source files under `src/${name}/objectiveCpp`.
+Objective-C$$++$$ sources to be included in a native binary are provided via a api:org.gradle.language.objectivecpp.ObjectiveCppSourceSet[], which defines a set of Objective-C++ source files. By default, for any named component the api:org.gradle.language.objectivecpp.ObjectiveCppSourceSet[] contains `.mm` source files under `src/${name}/objectiveCpp`.
 
 [[sec:configuring_the_compiler_assembler_and_linker]]
 === Configuring the compiler, assembler and linker
@@ -623,7 +623,7 @@ For a component produced in a different Gradle project, the notation is similar.
 [[native_binaries:preCompiledHeaders]]
 === Precompiled Headers
 
-Precompiled headers are a performance optimization that reduces the cost of compiling widely used headers multiple times. This feature _precompiles_ a header such that the compiled object file can be reused when compiling each source file rather than recompiling the header each time. This support is available for C, C++, Objective-C, and Objective-C++ builds.
+Precompiled headers are a performance optimization that reduces the cost of compiling widely used headers multiple times. This feature _precompiles_ a header such that the compiled object file can be reused when compiling each source file rather than recompiling the header each time. This support is available for C, C+\+, Objective-C, and Objective-C++ builds.
 
 To configure a precompiled header, first a header file needs to be defined that includes all of the headers that should be precompiled. It must be specified as the first included header in every source file where the precompiled header should be used. It is assumed that this header file, and any headers it contains, make use of header guards so that they can be included in an idempotent manner. If header guards are not used in a header file, it is possible the header could be compiled more than once and could potentially lead to a broken build.
 
@@ -888,14 +888,14 @@ For each api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec[], Gr
 
 [NOTE]
 ====
- 
+
 The current support for CUnit is quite rudimentary. Plans for future integration include:
-  
+
 * Allow tests to be declared with Javadoc-style annotations.
 * Improved HTML reporting, similar to that available for JUnit.
 * Real-time feedback for test execution.
 * Support for additional test frameworks.
- 
+
 ====
 
 
@@ -933,11 +933,11 @@ The GoogleTest sources provided by your project require the core GoogleTest head
 For each api:org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec[], Gradle will create a task to execute this binary, which will run all of the registered GoogleTest tests. Test results will be found in the `__${build.dir}__/test-results` directory.
 [NOTE]
 ====
- 
+
 The current support for GoogleTest is quite rudimentary. Plans for future integration include:
-  
+
 * Improved HTML reporting, similar to that available for JUnit.
 * Real-time feedback for test execution.
 * Support for additional test frameworks.
- 
+
 ====
