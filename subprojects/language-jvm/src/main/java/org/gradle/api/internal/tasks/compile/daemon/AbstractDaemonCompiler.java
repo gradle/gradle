@@ -24,18 +24,16 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.workers.internal.ActionExecutionSpec;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
-import org.gradle.workers.internal.DefaultWorkerServer;
 import org.gradle.workers.internal.SimpleActionExecutionSpec;
 import org.gradle.workers.internal.Worker;
-import org.gradle.workers.internal.WorkerDaemonServer;
 import org.gradle.workers.internal.WorkerFactory;
-import org.gradle.workers.internal.WorkerServer;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 
-import static org.gradle.process.internal.util.MergeOptionsUtil.*;
+import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
+import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
     private final Compiler<T> delegate;
@@ -54,7 +52,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     public WorkResult execute(T spec) {
         InvocationContext invocationContext = toInvocationContext(spec);
         DaemonForkOptions daemonForkOptions = invocationContext.getDaemonForkOptions();
-        Worker<ActionExecutionSpec> worker = workerFactory.getWorker(getServerImplementation(), daemonForkOptions);
+        Worker<ActionExecutionSpec> worker = workerFactory.getWorker(daemonForkOptions);
         DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerRunnable.class, "compiler daemon", invocationContext.getInvocationWorkingDir(), new Object[] {delegate, spec}));
         if (result.isSuccess()) {
             return result;
@@ -64,18 +62,6 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     }
 
     protected abstract InvocationContext toInvocationContext(T spec);
-
-    private Class<? extends WorkerServer<ActionExecutionSpec>> getServerImplementation() {
-        switch(workerFactory.getIsolationMode()) {
-            case NONE:
-            case CLASSLOADER:
-                return DefaultWorkerServer.class;
-            case PROCESS:
-                return WorkerDaemonServer.class;
-            default:
-                throw new IllegalArgumentException("Unknown isolation mode: " + workerFactory.getIsolationMode());
-        }
-    }
 
     protected BaseForkOptions mergeForkOptions(BaseForkOptions left, BaseForkOptions right) {
         BaseForkOptions merged = new BaseForkOptions();

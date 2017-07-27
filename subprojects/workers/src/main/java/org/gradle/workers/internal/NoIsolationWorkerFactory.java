@@ -51,7 +51,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerServer<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> Worker<T> getWorker(final DaemonForkOptions forkOptions) {
         return new Worker<T>() {
             @Override
             public DefaultWorkResult execute(T spec) {

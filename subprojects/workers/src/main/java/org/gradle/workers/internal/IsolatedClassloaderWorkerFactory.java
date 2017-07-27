@@ -67,7 +67,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerServer<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> Worker<T> getWorker(final DaemonForkOptions forkOptions) {
         return new Worker<T>() {
             @Override
             public DefaultWorkResult execute(T spec) {
@@ -81,7 +81,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
                     return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
                         @Override
                         public DefaultWorkResult call(BuildOperationContext context) {
-                            return executeInWorkerClassLoader(workerImplementationClass, spec, forkOptions);
+                            return executeInWorkerClassLoader(spec, forkOptions);
                         }
 
                         @Override
@@ -101,7 +101,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         return IsolationMode.CLASSLOADER;
     }
 
-    private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(Class<? extends WorkerProtocol<T>> workerImplementationClass, T spec, DaemonForkOptions forkOptions) {
+    private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(T spec, DaemonForkOptions forkOptions) {
         ClassLoader actionClasspathLoader = createActionClasspathLoader(forkOptions);
         GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(actionClasspathLoader);
 
@@ -168,6 +168,10 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         return (DefaultWorkResult) ois.readObject();
     }
 
+    /**
+     * This is serialized across into the worker ClassLoader and then executed.
+     * @param <T>
+     */
     private static class WorkerCallable<T extends WorkSpec> implements Callable<Object>, Serializable {
         private final T spec;
 
