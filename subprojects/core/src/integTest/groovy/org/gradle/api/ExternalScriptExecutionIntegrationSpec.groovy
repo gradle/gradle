@@ -165,6 +165,7 @@ task check {
         and:
         File scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script 1'""", "UTF-8")
+        scriptFile.makeOlder()
 
         and:
         buildFile << "apply from: 'http://localhost:${server.port}/${scriptName}'"
