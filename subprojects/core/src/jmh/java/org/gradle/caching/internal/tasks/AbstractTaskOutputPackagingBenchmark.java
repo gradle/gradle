@@ -52,7 +52,7 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
         .put("zip0", new ZipPacker(false))
         .build();
 
-    Map<String, DataSource> samples;
+    DataSource sample;
 
     @Param({"tar.lz4", "tar.lzo", "tar.snappy", "tar.gz", "tar", "zip0.lz4", "zip0.lzo", "zip0.snappy", "zip", "zip0"})
     String format;
@@ -66,13 +66,7 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
     public void setupTrial() throws IOException {
         System.out.println(">>> Measuring format: " + format);
         this.inputs = createInputFiles(fileCount, minFileSize, maxFileSize);
-        ImmutableMap.Builder<String, DataSource> samples = ImmutableMap.builder();
-        for (Map.Entry<String, Packer> entry : PACKERS.entrySet()) {
-            String format = entry.getKey();
-            Packer packer = entry.getValue();
-            samples.put(format, packSample("sample." + format, packer));
-        }
-        this.samples = samples.build();
+        this.sample = packSample("sample." + format, PACKERS.get(format));
     }
 
     private ImmutableList<DataSource> createInputFiles(int fileCount, int minFileSize, int maxFileSize) throws IOException {
@@ -83,7 +77,7 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
             int fileSize = minFileSize + random.nextInt(maxFileSize - minFileSize);
             byte[] buffer = new byte[fileSize];
             random.nextBytes(buffer);
-            DataSource input = createSource(name, buffer);
+            DataSource input = createSource(name, buffer, Level.Trial);
             inputs.add(input);
         }
         return inputs.build();
@@ -94,7 +88,7 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
         for (DataSource input : inputs) {
             sumLength += input.getLength();
         }
-        DataTarget target = createTarget(name);
+        DataTarget target = createTarget(name, Level.Trial);
         packer.pack(inputs, target);
         DataSource source = target.toSource();
         System.out.printf(">>> %s is %d bytes long (uncompressed length: %d, compression ratio: %,.2f%%)%n", name, source.getLength(), sumLength, (double) source.getLength() / sumLength);
@@ -103,17 +97,17 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
 
     @Benchmark
     public void pack() throws IOException {
-        PACKERS.get(format).pack(inputs, createTarget("pack-" + format));
+        PACKERS.get(format).pack(inputs, createTarget("pack-" + format, Level.Iteration));
     }
 
     @Benchmark
     public void unpack() throws IOException {
-        PACKERS.get(format).unpack(samples.get(format), createTargetFactory("unpack-" + format));
+        PACKERS.get(format).unpack(sample, createTargetFactory("unpack-" + format, Level.Iteration));
     }
 
-    protected abstract DataSource createSource(String name, byte[] bytes) throws IOException;
+    protected abstract DataSource createSource(String name, byte[] bytes, Level level) throws IOException;
 
-    protected abstract DataTarget createTarget(String name);
+    protected abstract DataTarget createTarget(String name, Level level);
 
-    protected abstract Packer.DataTargetFactory createTargetFactory(String root) throws IOException;
+    protected abstract Packer.DataTargetFactory createTargetFactory(String root, Level level) throws IOException;
 }

@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Threads;
 
 import java.io.ByteArrayInputStream;
@@ -29,17 +30,17 @@ import java.io.OutputStream;
 @Threads(4)
 public class InMemoryTaskOutputPackagingBenchmark extends AbstractTaskOutputPackagingBenchmark {
     @Override
-    protected DataSource createSource(String name, byte[] bytes) {
+    protected DataSource createSource(String name, byte[] bytes, Level level) {
         return new Source(name, bytes);
     }
 
     @Override
-    protected DataTarget createTarget(String name) {
+    protected DataTarget createTarget(String name, Level level) {
         return new Target(name);
     }
 
     @Override
-    protected Packer.DataTargetFactory createTargetFactory(final String root) {
+    protected Packer.DataTargetFactory createTargetFactory(final String root, Level level) {
         return new Packer.DataTargetFactory() {
             @Override
             public DataTarget createDataTarget(String name) {

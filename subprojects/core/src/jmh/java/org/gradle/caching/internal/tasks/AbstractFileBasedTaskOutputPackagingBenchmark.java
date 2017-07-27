@@ -31,6 +31,7 @@ import java.nio.file.StandardOpenOption;
 @SuppressWarnings("Since15")
 public abstract class AbstractFileBasedTaskOutputPackagingBenchmark extends AbstractTaskOutputPackagingBenchmark {
     private Path tempDir;
+    private Path iterationDir;
 
     @Setup(Level.Trial)
     public void setupFiles() throws IOException {
@@ -42,25 +43,56 @@ public abstract class AbstractFileBasedTaskOutputPackagingBenchmark extends Abst
         FileUtils.forceDelete(tempDir.toFile());
     }
 
+    @Setup(Level.Iteration)
+    public void setupIterationFiles() throws IOException {
+        this.iterationDir = Files.createTempDirectory(tempDir, "iteration-");
+    }
+
+    @TearDown(Level.Iteration)
+    public void destroyIterationFiles() throws IOException {
+        FileUtils.forceDelete(iterationDir.toFile());
+    }
+
     @Override
-    protected DataSource createSource(String name, byte[] bytes) throws IOException {
-        Path path = getPath(name);
+    protected DataSource createSource(String name, byte[] bytes, Level level) throws IOException {
+        Path path = getPath(name, level);
         Files.write(path, bytes, StandardOpenOption.CREATE_NEW);
         return new Source(path);
     }
 
     @Override
-    protected DataTarget createTarget(String name) {
-        return new Target(getPath(name));
+    protected DataTarget createTarget(String name, Level level) {
+        return new Target(getPath(name, level));
     }
 
-    private Path getPath(String name) {
-        return tempDir.resolve(name);
+    private Path getPath(String name, Level level) {
+        Path root;
+        switch (level) {
+            case Trial:
+                root = tempDir;
+                break;
+            case Iteration:
+                root = iterationDir;
+                break;
+            default:
+                throw new AssertionError();
+        }
+        return root.resolve(name);
     }
 
     @Override
-    protected Packer.DataTargetFactory createTargetFactory(final String root) throws IOException {
-        final Path rootDir = Files.createTempDirectory(tempDir, root);
+    protected Packer.DataTargetFactory createTargetFactory(final String root, Level level) throws IOException {
+        final Path rootDir;
+        switch (level) {
+            case Trial:
+                rootDir = Files.createTempDirectory(tempDir, root);
+                break;
+            case Iteration:
+                rootDir = Files.createTempDirectory(iterationDir, root);
+                break;
+            default:
+                throw new AssertionError();
+        }
         return new Packer.DataTargetFactory() {
             @Override
             public DataTarget createDataTarget(String name) {
