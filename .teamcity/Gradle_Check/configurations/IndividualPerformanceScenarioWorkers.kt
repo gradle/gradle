@@ -2,6 +2,7 @@ package configurations
 
 import jetbrains.buildServer.configs.kotlin.v10.BuildStep
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import model.CIBuildModel
@@ -48,5 +49,21 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BuildType({
         }
     }
 
-    applyDefaultDependencies(model, this, true)
+    val buildDistributions = BuildDistributions(model)
+    dependencies {
+        dependency(buildDistributions) {
+            snapshot {
+                onDependencyFailure = FailureAction.CANCEL
+                onDependencyCancel = FailureAction.CANCEL
+            }
+        }
+        artifacts(buildDistributions) {
+            id = "ARTIFACT_DEPENDENCY_${buildDistributions.extId}"
+            cleanDestination = true
+            artifactRules = """
+                    distributions/*-all.zip => incoming-distributions
+                    build-receipt.properties => incoming-distributions
+                """.trimIndent()
+        }
+    }
 })
