@@ -385,7 +385,7 @@ task one(type: SomeTask)
 task two(type: SomeTask)
 
 class SomeTask extends DefaultTask {
-    @org.gradle.api.internal.tasks.options.Option(description="some value")
+    @org.gradle.api.tasks.options.Option(description="some value")
     String value
 }
 """
