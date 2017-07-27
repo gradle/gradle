@@ -26,7 +26,7 @@ public class PackerUtils {
     public static void packEntry(DataSource entry, OutputStream outputStream) throws IOException {
         InputStream inputStream = entry.openInput();
         try {
-            IOUtils.copy(inputStream, outputStream);
+            IOUtils.copyLarge(inputStream, outputStream, new byte[64 * 1024]);
         } finally {
             inputStream.close();
         }
@@ -36,7 +36,7 @@ public class PackerUtils {
         DataTarget target = targetFactory.createDataTarget(name);
         OutputStream outputStream = target.openOutput();
         try {
-            IOUtils.copy(inputStream, outputStream);
+            IOUtils.copyLarge(inputStream, outputStream, new byte[64 * 1024]);
         } finally {
             outputStream.close();
         }

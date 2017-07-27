@@ -16,19 +16,18 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.apache.hadoop.io.compress.CompressionCodec;
+import io.airlift.compress.snappy.SnappyFramedInputStream;
+import io.airlift.compress.snappy.SnappyFramedOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-public class CodecPacker implements Packer {
-    private final CompressionCodec codec;
+public class SnappyPacker implements Packer {
     private final Packer delegate;
 
-    public CodecPacker(CompressionCodec codec, Packer delegate) {
-        this.codec = codec;
+    public SnappyPacker(Packer delegate) {
         this.delegate = delegate;
     }
 
@@ -37,7 +36,7 @@ public class CodecPacker implements Packer {
         delegate.pack(inputs, new DelegatingDataTarget(output) {
             @Override
             public OutputStream openOutput() throws IOException {
-                return codec.createOutputStream(super.openOutput());
+                return new SnappyFramedOutputStream(super.openOutput());
             }
         });
     }
@@ -47,7 +46,7 @@ public class CodecPacker implements Packer {
         delegate.unpack(new DelegatingDataSource(input) {
             @Override
             public InputStream openInput() throws IOException {
-                return codec.createInputStream(super.openInput());
+                return new SnappyFramedInputStream(super.openInput());
             }
         }, targetFactory);
     }

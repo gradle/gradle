@@ -18,9 +18,6 @@ package org.gradle.caching.internal.tasks;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.airlift.compress.lz4.Lz4Codec;
-import io.airlift.compress.lzo.LzoCodec;
-import io.airlift.compress.snappy.SnappyCodec;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
@@ -40,27 +37,21 @@ import java.util.Random;
 @State(Scope.Benchmark)
 public abstract class AbstractTaskOutputPackagingBenchmark {
     private static final Map<String, Packer> PACKERS = ImmutableMap.<String, Packer>builder()
-        .put("tar.lz4", new CodecPacker(new Lz4Codec(), new TarPacker()))
-        .put("tar.lzo", new CodecPacker(new LzoCodec(), new TarPacker()))
-        .put("tar.snappy", new CodecPacker(new SnappyCodec(), new TarPacker()))
-        .put("tar.gz", new TarGzipPacker())
+        .put("tar.snappy", new SnappyPacker(new TarPacker()))
+        .put("tar.gz", new GzipPacker(new TarPacker()))
         .put("tar", new TarPacker())
-        .put("zip0.lz4", new CodecPacker(new Lz4Codec(), new ZipPacker(false)))
-        .put("zip0.lzo", new CodecPacker(new LzoCodec(), new ZipPacker(false)))
-        .put("zip0.snappy", new CodecPacker(new SnappyCodec(), new ZipPacker(false)))
         .put("zip", new ZipPacker(true))
-        .put("zip0", new ZipPacker(false))
         .build();
 
     DataSource sample;
 
-    @Param({"tar.lz4", "tar.lzo", "tar.snappy", "tar.gz", "tar", "zip0.lz4", "zip0.lzo", "zip0.snappy", "zip", "zip0"})
+    @Param({"tar.snappy", "tar.gz", "tar", "zip"})
     String format;
 
     List<DataSource> inputs;
-    int fileCount = 100;
-    int minFileSize = 2 * 1024;
-    int maxFileSize = 64 * 1024;
+    int fileCount = 273;
+    int minFileSize = 273;
+    int maxFileSize = 273 * 1024;
 
     @Setup(Level.Trial)
     public void setupTrial() throws IOException {

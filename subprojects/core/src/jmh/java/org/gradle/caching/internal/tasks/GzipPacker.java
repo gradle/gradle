@@ -23,10 +23,16 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-public class TarGzipPacker extends TarPacker {
+public class GzipPacker implements Packer {
+    private final Packer delegate;
+
+    public GzipPacker(Packer delegate) {
+        this.delegate = delegate;
+    }
+
     @Override
     public void pack(List<DataSource> inputs, DataTarget output) throws IOException {
-        super.pack(inputs, new DelegatingDataTarget(output) {
+        delegate.pack(inputs, new DelegatingDataTarget(output) {
             @Override
             public OutputStream openOutput() throws IOException {
                 return new GZIPOutputStream(super.openOutput());
@@ -36,7 +42,7 @@ public class TarGzipPacker extends TarPacker {
 
     @Override
     public void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException {
-        super.unpack(new DelegatingDataSource(input) {
+        delegate.unpack(new DelegatingDataSource(input) {
             @Override
             public InputStream openInput() throws IOException {
                 return new GZIPInputStream(super.openInput());
