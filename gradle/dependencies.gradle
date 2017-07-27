@@ -205,6 +205,9 @@ libraries.gcs = [
         "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
 ] + libraries.commons_httpclient + libraries.joda
 
+// for XCode IDE integration support
+libraries.plist = 'com.googlecode.plist:dd-plist:1.20'
+
 allprojects {
     configurations.all {
         resolutionStrategy.eachDependency { details ->

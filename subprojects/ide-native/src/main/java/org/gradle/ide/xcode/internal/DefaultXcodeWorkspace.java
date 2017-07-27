@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(":ide")
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingNative')
-    compile libraries.plist
+package org.gradle.ide.xcode.internal;
 
-    testFixturesCompile project(':internalTesting')
+import org.gradle.ide.xcode.XcodeWorkspace;
+
+import java.util.HashSet;
+import java.util.Set;
+
+public class DefaultXcodeWorkspace implements XcodeWorkspace {
+    private final Set<DefaultXcodeProject> projects = new HashSet<DefaultXcodeProject>();
+
+    public Set<DefaultXcodeProject> getProjects() {
+        return projects;
+    }
 }
-
-useTestFixtures()
-useTestFixtures(project: ":platformNative")
-useClassycle()

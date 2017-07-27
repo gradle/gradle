@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(":ide")
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingNative')
-    compile libraries.plist
+package org.gradle.ide.xcode;
 
-    testFixturesCompile project(':internalTesting')
+import org.gradle.api.Incubating;
+
+/**
+ * A xcode workspace, aggregate one or more xcode project.
+ *
+ * @since 4.2
+ * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Workspace.html">XCode Workspace Concept</a>
+ */
+@Incubating
+public interface XcodeWorkspace {
 }
-
-useTestFixtures()
-useTestFixtures(project: ":platformNative")
-useClassycle()
