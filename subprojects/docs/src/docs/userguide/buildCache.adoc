@@ -235,12 +235,6 @@ These issues may affect the number of cache hits you get between machines.
 |===
 | Description | Impact | Workaround
 
-| Stale outputs left behind by previous task execution
-| Gradle does not automatically clean up outputs from other versions of Gradle. In some cases, changing the version of Gradle,
-changing the version of a plugin or changing the output directory can lead to inconsistent builds and orphaned output files.
-Gradle disables caching for a task when it detects stale outputs.
-| Use `clean` when cache misses are caused by stale outputs (e.g., after upgrading Gradle, changing plugin versions).
-
 | Overlapping outputs between tasks
 | If two or more tasks share an output directory or files, Gradle will disable caching for these tasks when it detects an overlap.
 | Use separate output directories for each task.
