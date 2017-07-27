@@ -15,7 +15,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`hello-coroutines`](./hello-coroutines): demonstrates how to enable experimental support for [coroutines in Kotlin](https://kotlinlang.org/docs/reference/coroutines.html)
  - [`hello-kotlin`](./hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
  - [`hello-world`](./hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
- - [`modularity`](./modularity): demonstrates the use of `applyFrom` to modularize build scripts
+ - [`modularity`](./modularity): demonstrates the use of `apply { from() }` to modularize build scripts
  - [`multi-kotlin-project-config-injection`](./multi-kotlin-project-config-injection): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects in which all `KotlinCompile` tasks belonging to the subprojects are configured by the root project
  - [`multi-kotlin-project-with-buildSrc`](./multi-kotlin-project-with-buildSrc): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects with custom build logic in `buildSrc`
  - [`multi-kotlin-project`](./multi-kotlin-project): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects
