@@ -105,33 +105,42 @@ class CIConfigIntegrationTests {
 
     @Test
     fun allSubprojectsDefineTheirFunctionTestPropertyCorrectly() {
-        val projectsWithUnitTests = CIBuildModel().subProjects.filter { it.functionalTests }
+        val projectsWithFunctionalTests = CIBuildModel().subProjects.filter { it.functionalTests }
         val projectFoldersWithFunctionalTests = subProjectFolderList().filter { File(it, "src/integTest").exists()
                     && it.name != "distributions" //distributions:integTest is part of Build Distributions
                     && it.name != "soak"          //soak tests have their own test category
         }
         assertFalse(projectFoldersWithFunctionalTests.isEmpty())
         projectFoldersWithFunctionalTests.forEach {
-            assertTrue(projectsWithUnitTests.map { it.asDirectoryName() }.contains(it.name), "Contains functional tests: $it")
+            assertTrue(projectsWithFunctionalTests.map { it.asDirectoryName() }.contains(it.name), "Contains functional tests: $it")
         }
     }
 
     @Test
     fun allSubprojectsDefineTheirCrossVersionTestPropertyCorrectly() {
-        val projectsWithUnitTests = CIBuildModel().subProjects.filter { it.crossVersionTests }
-        val projectFoldersWithCrossVersionTests = subProjectFolderList().filter { containsSrcFileWithString(File(it, "src/integTest"), "CrossVersion")
-                && it.name != "test-kit"
-        }
+        val projectsWithCrossVersionTests = CIBuildModel().subProjects.filter { it.crossVersionTests }
+        val projectFoldersWithCrossVersionTests = subProjectFolderList().filter { File(it, "src/crossVersionTest").exists() }
         assertFalse(projectFoldersWithCrossVersionTests.isEmpty())
         projectFoldersWithCrossVersionTests.forEach {
-            assertTrue(projectsWithUnitTests.map { it.asDirectoryName() }.contains(it.name), "Contains cross-version tests: $it")
+            assertTrue(projectsWithCrossVersionTests.map { it.asDirectoryName() }.contains(it.name), "Contains cross-version tests: $it")
         }
     }
 
-    private fun containsSrcFileWithString(srcRoot: File, content: String): Boolean {
+    @Test
+    fun integTestFolderDoesNotContainCrossVersionTests() {
+        val projectFoldersWithFunctionalTests = subProjectFolderList().filter { File(it, "src/integTest").exists() }
+        assertFalse(projectFoldersWithFunctionalTests.isEmpty())
+        projectFoldersWithFunctionalTests.forEach {
+            assertFalse(containsSrcFileWithString(File(it, "src/integTest"), "CrossVersion", listOf("package org.gradle.testkit" ,"CrossVersionPerformanceTest")))
+        }
+    }
+
+    private fun containsSrcFileWithString(srcRoot: File, content: String, exceptions: List<String>): Boolean {
         srcRoot.walkTopDown().forEach {
             if (it.extension == "groovy" || it.extension == "java") {
-                if (it.readText().contains(content)) {
+                val text = it.readText()
+                if (text.contains(content) && exceptions.all { !text.contains(it) }) {
+                    println("Found suspicious test file: $it")
                     return true
                 }
             }
