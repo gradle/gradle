@@ -172,7 +172,7 @@ tasks.withType(UserGuideTransformTask) {
     websiteUrl = 'http://www.gradle.org'
     outputs.doNotCacheIf('Has an ever changing version as an input') { true }
 
-    if (name in ["pdfUserguideDocbook", "userguideFragmentSrc"]) {
+    if (name in ["pdfUserguideDocbook"]) {
         // These will only be valid for releases, but that's ok
         javadocUrl = "http://www.gradle.org/docs/${->version}/javadoc"
         dsldocUrl = "http://www.gradle.org/docs/${->version}/dsl"
@@ -451,17 +451,11 @@ task checkstyleApi(type: Checkstyle) {
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
-task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, userguideAsciidoc]) {
-    tags << 'standalone'
-    sourceFile = new File(asciidocOutputDir, 'installation.xml')
-    destFile = new File(docbookSrc, 'installation.xml')
-}
-
 task distDocs(type: Docbook2Xhtml) {
-    source userguideFragmentSrc
+    dependsOn userguideAsciidoc
+    source new File(asciidocOutputDir, 'gettingStarted.xml')
     destFile = new File(distDocsDir, 'getting-started.html')
     stylesheetName = 'standaloneHtml.xsl'
-    outputs.doNotCacheIf('Depends on the output of userguideFragmentSrc, which contains an ever changing version') { true }
 }
 
 task userguide {
