@@ -16,25 +16,22 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultWorkerServer implements WorkerServer<ActionExecutionSpec> {
-    private static final Instantiator DEFAULT_INSTANTIATOR = new DefaultInstantiatorFactory(new AsmBackedClassGenerator()).inject();
+import javax.inject.Inject;
 
-    @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
-        return execute(spec, null);
+public class DefaultWorkerServer implements WorkerServer<ActionExecutionSpec> {
+    private final Instantiator instantiator;
+
+    @Inject
+    public DefaultWorkerServer(Instantiator instantiator) {
+        this.instantiator = instantiator;
     }
 
     @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec, Instantiator instantiator) {
+    public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
             Class<? extends Runnable> implementationClass = spec.getImplementationClass();
-            if (instantiator == null) {
-                instantiator = DEFAULT_INSTANTIATOR;
-            }
             Runnable runnable = instantiator.newInstance(implementationClass, spec.getParams(implementationClass.getClassLoader()));
             runnable.run();
             return new DefaultWorkResult(true, null);
@@ -42,7 +39,6 @@ public class DefaultWorkerServer implements WorkerServer<ActionExecutionSpec> {
             return new DefaultWorkResult(true, t);
         }
     }
-
 
     @Override
     public String toString() {

@@ -23,7 +23,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationState;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.MemoryManager;
@@ -53,7 +52,7 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     @Override
     public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerServer<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
         return new Worker<T>() {
-            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation, Instantiator instantiator) {
+            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
                 WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
                 try {
                     WorkerDaemonClient<T> client = clientsManager.reserveIdleClient(forkOptions);
@@ -73,7 +72,7 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
 
             @Override
             public DefaultWorkResult execute(T spec) {
-                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation(), null);
+                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
 
             private DefaultWorkResult executeInClient(final WorkerDaemonClient<T> client, final T spec, final BuildOperationState parentBuildOperation) {

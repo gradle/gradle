@@ -17,15 +17,12 @@
 package org.gradle.workers.internal;
 
 import org.gradle.internal.progress.BuildOperationState;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
-
-import javax.annotation.Nullable;
 
 /**
  * A service that executes work in a (potentially) long-lived process or in-process.
  */
 public interface Worker<T extends WorkSpec> {
     DefaultWorkResult execute(T spec);
-    DefaultWorkResult execute(T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation, @Nullable Instantiator instantiator);
+    DefaultWorkResult execute(T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation);
 }

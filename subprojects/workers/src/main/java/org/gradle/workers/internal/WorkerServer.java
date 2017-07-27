@@ -16,10 +16,5 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.reflect.Instantiator;
-
-import javax.annotation.Nullable;
-
 public interface WorkerServer<T extends WorkSpec> extends WorkerProtocol<T> {
-    DefaultWorkResult execute(T spec, @Nullable Instantiator instantiator);
 }

@@ -19,7 +19,6 @@ package org.gradle.workers.internal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationState;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
@@ -39,7 +38,7 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
     }
 
     @Override
-    public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation, Instantiator instantiator) {
+    public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
         return execute(spec);
     }
 

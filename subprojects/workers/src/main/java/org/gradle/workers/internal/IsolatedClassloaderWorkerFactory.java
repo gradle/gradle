@@ -16,6 +16,9 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.DefaultInstantiatorFactory;
+import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.logging.LogLevel;
@@ -28,14 +31,13 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
 import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
 import org.gradle.internal.work.WorkerLeaseRegistry;
@@ -69,11 +71,11 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         return new Worker<T>() {
             @Override
             public DefaultWorkResult execute(T spec) {
-                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation(), null);
+                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
 
             @Override
-            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation, Instantiator instantiator) {
+            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
                 WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
                 try {
                     return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
@@ -108,7 +110,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(workerClassLoader);
-            Callable<?> worker = transferWorkerIntoWorkerClassloader(workerImplementationClass, spec, workerClassLoader);
+            Callable<?> worker = transferWorkerIntoWorkerClassloader(spec, workerClassLoader);
             Object result = worker.call();
             return transferResultFromWorkerClassLoader(result);
         } catch (Exception e) {
@@ -148,8 +150,8 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         return new VisitableURLClassLoader(actionAndGradleApiLoader, ClasspathUtil.getClasspath(actionClass.getClassLoader()));
     }
 
-    private <T extends WorkSpec> Callable<?> transferWorkerIntoWorkerClassloader(Class<? extends WorkerProtocol<T>> workerImplementationClass, T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
-        byte[] serializedWorker = GUtil.serialize(new WorkerCallable<T>(workerImplementationClass, spec));
+    private <T extends WorkSpec> Callable<?> transferWorkerIntoWorkerClassloader(T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
+        byte[] serializedWorker = GUtil.serialize(new WorkerCallable<T>(spec));
         ObjectInputStream ois = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), workerClassLoader);
         return (Callable<?>) ois.readObject();
     }
@@ -167,17 +169,18 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     private static class WorkerCallable<T extends WorkSpec> implements Callable<Object>, Serializable {
-        private final Class<? extends WorkerProtocol<T>> workerImplementationClass;
         private final T spec;
 
-        private WorkerCallable(Class<? extends WorkerProtocol<T>> workerImplementationClass, T spec) {
-            this.workerImplementationClass = workerImplementationClass;
+        private WorkerCallable(T spec) {
             this.spec = spec;
         }
 
         @Override
         public Object call() throws Exception {
-            return DirectInstantiator.INSTANCE.newInstance(workerImplementationClass).execute(spec);
+            // TODO - reuse these services, either by making the global instances visible or by reusing the worker ClassLoaders and retaining a reference to them
+            DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+            WorkerProtocol<ActionExecutionSpec> worker = new DefaultWorkerServer(instantiatorFactory.inject());
+            return worker.execute((ActionExecutionSpec) spec);
         }
     }
 }

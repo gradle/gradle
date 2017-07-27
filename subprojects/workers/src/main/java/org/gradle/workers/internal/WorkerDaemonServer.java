@@ -16,6 +16,11 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.DefaultInstantiatorFactory;
+import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
@@ -23,23 +28,26 @@ import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import javax.inject.Inject;
 
 public class WorkerDaemonServer extends DefaultWorkerServer {
+    // Services for this process. They shouldn't be static, make them injectable instead
+    private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
+    private static final InstantiatorFactory INSTANTIATOR_FACTORY = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
     private final WorkerDirectoryProvider workerDirectoryProvider;
 
     @Inject
     WorkerDaemonServer(WorkerDirectoryProvider workerDirectoryProvider) {
+        super(INSTANTIATOR_FACTORY.inject());
         this.workerDirectoryProvider = workerDirectoryProvider;
     }
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
-        ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
         try {
-            processEnvironment.maybeSetProcessDir(spec.getExecutionWorkingDir());
+            PROCESS_ENVIRONMENT.maybeSetProcessDir(spec.getExecutionWorkingDir());
             return super.execute(spec);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         } finally {
-            processEnvironment.maybeSetProcessDir(workerDirectoryProvider.getIdleWorkingDirectory());
+            PROCESS_ENVIRONMENT.maybeSetProcessDir(workerDirectoryProvider.getIdleWorkingDirectory());
         }
     }
 

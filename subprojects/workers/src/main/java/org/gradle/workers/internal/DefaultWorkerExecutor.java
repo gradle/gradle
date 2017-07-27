@@ -22,7 +22,6 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
@@ -32,8 +31,6 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.progress.BuildOperationState;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.work.AsyncWorkCompletion;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.NoAvailableWorkerLeaseException;
@@ -64,11 +61,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final WorkerDirectoryProvider workerDirectoryProvider;
-    private final Instantiator actionInstantiator;
 
     public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
                                  FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor,
-                                 AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, InstantiatorFactory instantiatorFactory) {
+                                 AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -78,19 +74,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.workerDirectoryProvider = workerDirectoryProvider;
-        this.actionInstantiator = createActionInstantiator(this, instantiatorFactory);
-    }
-
-    /*
-     * TODO this instantiator should be built outside this class and passed in.
-     * We'll need to expose many more services to e.g. make our native compiler tasks
-     * use the worker API. One way to do this might be to have a filtering view over
-     * the complete service registry, using some kind of "SafeForWorkers" annotation.
-     */
-    private static Instantiator createActionInstantiator(DefaultWorkerExecutor executor, InstantiatorFactory instantiatorFactory) {
-        DefaultServiceRegistry actionServices = new DefaultServiceRegistry();
-        actionServices.add(WorkerExecutor.class, executor);
-        return instantiatorFactory.inject(actionServices);
     }
 
     @Override
@@ -119,7 +102,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 try {
                     WorkerFactory workerFactory = getWorkerFactory(isolationMode);
                     Worker<ActionExecutionSpec> worker = workerFactory.getWorker(getWorkerServer(isolationMode), daemonForkOptions);
-                    return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation, actionInstantiator);
+                    return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);
                 }

@@ -23,9 +23,9 @@ import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
@@ -53,7 +53,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * fileResolver.resolveLater(_) >> fileFactory()
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * workerExecutorFactory.create(_ as String) >> stoppableExecutor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, instantiatorFactory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider)
     }
 
     @Unroll
