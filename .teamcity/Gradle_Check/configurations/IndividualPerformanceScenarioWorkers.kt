@@ -26,10 +26,10 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BuildType({
         param("warmups", "defaults")
         param("templates", "")
         param("scenario", "")
-        
+
         param("performance.db.url", "jdbc:h2:ssl://dev61.gradle.org:9092")
         param("performance.db.username", "tcagent")
-        
+
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.ANDROID_HOME", "/opt/android/sdk")
         param("env.JAVA_HOME", "/opt/jdk/oracle-jdk-8-latest")
@@ -39,7 +39,11 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BuildType({
         gradle {
             name = "GRADLE_RUNNER"
             tasks = ""
-            gradleParams = """cleanSamples cleanFullPerformanceTest %templates% fullPerformanceTests --scenarios "%scenario%" --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% -x prepareSamples -x performanceReport -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% -PtimestampedVersion ${gradleParameters.joinToString(separator = " ")}"""
+            gradleParams = (
+                    listOf("""cleanSamples cleanFullPerformanceTest %templates% fullPerformanceTests --scenarios "%scenario%" --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% -x prepareSamples -x performanceReport -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% -PtimestampedVersion""")
+                            + gradleParameters
+                            + (if (model.buildCacheActive) gradleBuildCacheParameters else emptyList())
+                    ).joinToString(separator = " ")
             useGradleWrapper = true
         }
         script {
