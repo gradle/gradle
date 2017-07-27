@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.integtests.tooling.fixture.NullAction
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException

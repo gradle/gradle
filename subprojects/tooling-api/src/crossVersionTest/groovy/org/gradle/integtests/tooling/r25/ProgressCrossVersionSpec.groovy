@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r25
 
-import org.gradle.integtests.tooling.fixture.NullAction
+import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
