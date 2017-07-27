@@ -101,7 +101,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             public DefaultWorkResult call() throws Exception {
                 try {
                     WorkerFactory workerFactory = getWorkerFactory(isolationMode);
-                    Worker<ActionExecutionSpec> worker = workerFactory.getWorker(daemonForkOptions);
+                    Worker worker = workerFactory.getWorker(daemonForkOptions);
                     return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);

@@ -24,7 +24,7 @@ import org.gradle.process.internal.health.memory.MemoryManager
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.internal.work.WorkerLeaseRegistry.*
+import static org.gradle.internal.work.WorkerLeaseRegistry.WorkerLeaseCompletion
 
 class WorkerDaemonFactoryTest extends Specification {
 
@@ -41,8 +41,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def workingDir = new File("some-dir")
     def options = Stub(DaemonForkOptions)
-    def spec = Stub(WorkSpec)
-    def workerProtocolImplementation = Stub(WorkerProtocol)
+    def spec = Stub(ActionExecutionSpec)
 
     def setup() {
         _ * workerLeaseRegistry.getCurrentWorkerLease() >> workerOperation
@@ -51,7 +50,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "getting a worker daemon does not assume client use"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, options);
+        factory.getWorker(options);
 
         then:
         0 * clientsManager._
@@ -59,14 +58,14 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "new client is created when daemon is executed and no idle clients found"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
+        factory.getWorker(options).execute(spec)
 
         then:
         1 * workerOperation.startChild() >> completion
         1 * clientsManager.reserveIdleClient(options) >> null
 
         then:
-        1 * clientsManager.reserveNewClient(workerProtocolImplementation.class, options) >> client
+        1 * clientsManager.reserveNewClient(WorkerDaemonServer.class, options) >> client
 
         then:
         1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
@@ -78,7 +77,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "idle client is reused when daemon is executed"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
+        factory.getWorker(options).execute(spec)
 
         then:
         1 * workerOperation.startChild() >> completion
@@ -94,7 +93,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "client is released even if execution fails"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
+        factory.getWorker(options).execute(spec)
 
         then:
         1 * workerOperation.startChild() >> completion
@@ -127,7 +126,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "build operation is started and finished when client is executed"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
+        factory.getWorker(options).execute(spec)
 
         then:
         1 * workerOperation.startChild() >> completion
@@ -138,7 +137,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "build worker operation is finished even if worker fails"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, options).execute(spec)
+        factory.getWorker(options).execute(spec)
 
         then:
         1 * workerOperation.startChild() >> completion

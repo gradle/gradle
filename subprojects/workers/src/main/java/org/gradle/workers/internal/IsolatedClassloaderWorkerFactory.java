@@ -67,15 +67,15 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final DaemonForkOptions forkOptions) {
-        return new Worker<T>() {
+    public Worker getWorker(final DaemonForkOptions forkOptions) {
+        return new Worker() {
             @Override
-            public DefaultWorkResult execute(T spec) {
+            public DefaultWorkResult execute(ActionExecutionSpec spec) {
                 return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
 
             @Override
-            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+            public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
                 WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
                 try {
                     return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
@@ -101,7 +101,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         return IsolationMode.CLASSLOADER;
     }
 
-    private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(T spec, DaemonForkOptions forkOptions) {
+    private DefaultWorkResult executeInWorkerClassLoader(ActionExecutionSpec spec, DaemonForkOptions forkOptions) {
         ClassLoader actionClasspathLoader = createActionClasspathLoader(forkOptions);
         GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(actionClasspathLoader);
 
@@ -150,8 +150,8 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         return new VisitableURLClassLoader(actionAndGradleApiLoader, ClasspathUtil.getClasspath(actionClass.getClassLoader()));
     }
 
-    private <T extends WorkSpec> Callable<?> transferWorkerIntoWorkerClassloader(T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
-        byte[] serializedWorker = GUtil.serialize(new WorkerCallable<T>(spec));
+    private Callable<?> transferWorkerIntoWorkerClassloader(ActionExecutionSpec spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
+        byte[] serializedWorker = GUtil.serialize(new WorkerCallable(spec));
         ObjectInputStream ois = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), workerClassLoader);
         return (Callable<?>) ois.readObject();
     }
@@ -170,12 +170,11 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
 
     /**
      * This is serialized across into the worker ClassLoader and then executed.
-     * @param <T>
      */
-    private static class WorkerCallable<T extends WorkSpec> implements Callable<Object>, Serializable {
-        private final T spec;
+    private static class WorkerCallable implements Callable<Object>, Serializable {
+        private final ActionExecutionSpec spec;
 
-        private WorkerCallable(T spec) {
+        private WorkerCallable(ActionExecutionSpec spec) {
             this.spec = spec;
         }
 
@@ -184,7 +183,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
             // TODO - reuse these services, either by making the global instances visible or by reusing the worker ClassLoaders and retaining a reference to them
             DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
             WorkerProtocol<ActionExecutionSpec> worker = new DefaultWorkerServer(instantiatorFactory.inject());
-            return worker.execute((ActionExecutionSpec) spec);
+            return worker.execute(spec);
         }
     }
 }

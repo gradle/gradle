@@ -23,14 +23,14 @@ import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
 
-class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
+class WorkerDaemonClient implements Worker, Stoppable {
     private final DaemonForkOptions forkOptions;
-    private final WorkerDaemonProcess<T> workerDaemonProcess;
+    private final WorkerDaemonProcess<ActionExecutionSpec> workerDaemonProcess;
     private final WorkerProcess workerProcess;
     private final LogLevel logLevel;
     private int uses;
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<T> workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<ActionExecutionSpec> workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
         this.forkOptions = forkOptions;
         this.workerDaemonProcess = workerDaemonProcess;
         this.workerProcess = workerProcess;
@@ -38,12 +38,12 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
     }
 
     @Override
-    public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+    public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
         return execute(spec);
     }
 
     @Override
-    public DefaultWorkResult execute(T spec) {
+    public DefaultWorkResult execute(ActionExecutionSpec spec) {
         uses++;
         return workerDaemonProcess.execute(spec);
     }

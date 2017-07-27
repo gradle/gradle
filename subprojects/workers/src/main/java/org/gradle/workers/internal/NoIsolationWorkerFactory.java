@@ -51,15 +51,15 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final DaemonForkOptions forkOptions) {
-        return new Worker<T>() {
+    public Worker getWorker(final DaemonForkOptions forkOptions) {
+        return new Worker() {
             @Override
-            public DefaultWorkResult execute(T spec) {
+            public DefaultWorkResult execute(ActionExecutionSpec spec) {
                 return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
 
             @Override
-            public DefaultWorkResult execute(final T spec, WorkerLeaseRegistry.WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+            public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLeaseRegistry.WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
                 WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
 
                 try {
@@ -69,7 +69,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                             DefaultWorkResult result;
                             try {
                                 WorkerServer<ActionExecutionSpec> workerServer = new DefaultWorkerServer(actionInstantiator);
-                                result = workerServer.execute((ActionExecutionSpec) spec);
+                                result = workerServer.execute(spec);
                             } finally {
                                 //TODO the async work tracker should wait for children of an operation to finish first.
                                 //It should not be necessary to call it here.

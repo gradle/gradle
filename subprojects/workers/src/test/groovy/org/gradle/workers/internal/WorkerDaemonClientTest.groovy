@@ -43,7 +43,7 @@ class WorkerDaemonClientTest extends Specification {
         client = client(workerDaemonProcess)
 
         when:
-        client.execute(Stub(WorkSpec), workerOperation, buildOperation)
+        client.execute(Stub(ActionExecutionSpec), workerOperation, buildOperation)
 
         then:
         1 * workerDaemonProcess.execute(_)
@@ -55,7 +55,7 @@ class WorkerDaemonClientTest extends Specification {
         assert client.uses == 0
 
         when:
-        5.times { client.execute(Stub(WorkSpec), workerOperation, buildOperation) }
+        5.times { client.execute(Stub(ActionExecutionSpec), workerOperation, buildOperation) }
 
         then:
         client.uses == 5

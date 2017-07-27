@@ -50,18 +50,18 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final DaemonForkOptions forkOptions) {
-        return new Worker<T>() {
-            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+    public Worker getWorker(final DaemonForkOptions forkOptions) {
+        return new Worker() {
+            public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
                 WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
                 try {
-                    WorkerDaemonClient<ActionExecutionSpec> client = clientsManager.reserveIdleClient(forkOptions);
+                    WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                     if (client == null) {
                         client = clientsManager.reserveNewClient(WorkerDaemonServer.class, forkOptions);
                     }
 
                     try {
-                        return executeInClient(client, (ActionExecutionSpec) spec, parentBuildOperation);
+                        return executeInClient(client, spec, parentBuildOperation);
                     } finally {
                         clientsManager.release(client);
                     }
@@ -71,11 +71,11 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
             }
 
             @Override
-            public DefaultWorkResult execute(T spec) {
+            public DefaultWorkResult execute(ActionExecutionSpec spec) {
                 return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
 
-            private DefaultWorkResult executeInClient(final WorkerDaemonClient<ActionExecutionSpec> client, final ActionExecutionSpec spec, final BuildOperationState parentBuildOperation) {
+            private DefaultWorkResult executeInClient(final WorkerDaemonClient client, final ActionExecutionSpec spec, final BuildOperationState parentBuildOperation) {
                 return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
                     @Override
                     public DefaultWorkResult call(BuildOperationContext context) {

@@ -21,7 +21,6 @@ import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.workers.internal.ActionExecutionSpec;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
 import org.gradle.workers.internal.SimpleActionExecutionSpec;
@@ -52,7 +51,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     public WorkResult execute(T spec) {
         InvocationContext invocationContext = toInvocationContext(spec);
         DaemonForkOptions daemonForkOptions = invocationContext.getDaemonForkOptions();
-        Worker<ActionExecutionSpec> worker = workerFactory.getWorker(daemonForkOptions);
+        Worker worker = workerFactory.getWorker(daemonForkOptions);
         DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerRunnable.class, "compiler daemon", invocationContext.getInvocationWorkingDir(), new Object[] {delegate, spec}));
         if (result.isSuccess()) {
             return result;
