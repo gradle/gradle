@@ -17,26 +17,33 @@
 package org.gradle.caching.internal.tasks
 
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
 import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
 
-class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
-    def fileSystem = Mock(FileSystem)
-    private tarPacker = new TarTaskOutputPacker(fileSystem)
+@CleanupTestDirectory
+class TarTaskOutputPackerTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    def readOrigin = Stub(TaskOutputOriginReader)
+    def writeOrigin = Stub(TaskOutputOriginWriter)
 
-    @Override
-    TaskOutputPacker getPacker() {
-        return tarPacker
-    }
+    def fileSystem = Mock(FileSystem)
+    def packer = new TarTaskOutputPacker(fileSystem)
 
     @Unroll
     def "can pack single task output file with file mode #mode"() {
-        def sourceOutputFile = Spy(File, constructorArgs: [tempDir.file("source.txt").absolutePath])
+        def sourceOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("source.txt").absolutePath])
         sourceOutputFile << "output"
-        def targetOutputFile = Spy(File, constructorArgs: [tempDir.file("target.txt").absolutePath])
+        def targetOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("target.txt").absolutePath])
         def output = new ByteArrayOutputStream()
         def unixMode = Integer.parseInt(mode, 8)
 
@@ -66,11 +73,11 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     }
 
     def "can pack task output directory"() {
-        def sourceOutputDir = tempDir.file("source").createDir()
+        def sourceOutputDir = temporaryFolder.file("source").createDir()
         def sourceSubDir = sourceOutputDir.file("subdir").createDir()
         def sourceDataFile = sourceSubDir.file("data.txt")
         sourceDataFile << "output"
-        def targetOutputDir = tempDir.file("target").createDir()
+        def targetOutputDir = temporaryFolder.file("target").createDir()
         def targetSubDir = targetOutputDir.file("subdir")
         def targetDataFile = targetSubDir.file("data.txt")
         def output = new ByteArrayOutputStream()
@@ -97,8 +104,8 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
     @Unroll
     def "can pack task output with missing #type (pre-existing as: #preExistsAs)"() {
-        def sourceOutput = tempDir.file("source")
-        def targetOutput = tempDir.file("target")
+        def sourceOutput = temporaryFolder.file("source")
+        def targetOutput = temporaryFolder.file("target")
         switch (preExistsAs) {
             case "file":
                 targetOutput.createNewFile()
@@ -136,9 +143,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
     def "can pack single task output file with long name"() {
         def propertyName = "prop-" + ("x" * 100)
-        def sourceOutputFile = tempDir.file("source.txt")
+        def sourceOutputFile = temporaryFolder.file("source.txt")
         sourceOutputFile << "output"
-        def targetOutputFile = tempDir.file("target.txt")
+        def targetOutputFile = temporaryFolder.file("target.txt")
         def output = new ByteArrayOutputStream()
         when:
         pack output, new ResolvedTaskOutputFilePropertySpec(propertyName, FILE, sourceOutputFile)
@@ -181,10 +188,10 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     }
 
     def "can pack task output with missing files"() {
-        def sourceDir = tempDir.file("source")
+        def sourceDir = temporaryFolder.file("source")
         def missingSourceFile = sourceDir.file("missing.txt")
         def missingSourceDir = sourceDir.file("missing")
-        def targetDir = tempDir.file("target")
+        def targetDir = temporaryFolder.file("target")
         def missingTargetFile = targetDir.file("missing.txt")
         def missingTargetDir = targetDir.file("missing")
         def output = new ByteArrayOutputStream()
@@ -210,8 +217,8 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     }
 
     def "can pack task output with empty output directory"() {
-        def sourceDir = tempDir.file("source").createDir()
-        def targetDir = tempDir.file("target")
+        def sourceDir = temporaryFolder.file("source").createDir()
+        def targetDir = temporaryFolder.file("target")
         def output = new ByteArrayOutputStream()
         when:
         pack output, new ResolvedTaskOutputFilePropertySpec("empty", DIRECTORY, sourceDir)
@@ -232,57 +239,19 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         0 * _
     }
 
-    def "parent directory is created for output file"() {
-        def targetOutputFile = tempDir.file("build/some-dir/output.txt")
-        targetOutputFile << "Some data"
-
-        when:
-        TarTaskOutputPacker.ensureDirectoryForProperty(FILE, targetOutputFile)
-
-        then:
-        targetOutputFile.parentFile.assertIsEmptyDir()
+    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, ResolvedTaskOutputFilePropertySpec... propertySpecs) {
+        pack(output, writeOrigin, propertySpecs as SortedSet)
     }
 
-    def "directory is created for output directory"() {
-        def targetOutputDir = tempDir.file("build/output")
-
-        when:
-        TarTaskOutputPacker.ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
-
-        then:
-        targetOutputDir.assertIsEmptyDir()
+    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs) {
+        packer.pack(propertySpecs, output, writeOrigin)
     }
 
-    def "cleans up leftover files in output directory"() {
-        def targetOutputDir = tempDir.file("build/output")
-        targetOutputDir.file("sub-dir/data.txt") << "Some data"
-
-        when:
-        TarTaskOutputPacker.ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
-
-        then:
-        targetOutputDir.assertIsEmptyDir()
+    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, ResolvedTaskOutputFilePropertySpec... propertySpecs) {
+        unpack(input, readOrigin, propertySpecs as SortedSet)
     }
 
-    def "creates directories even if there is a pre-existing file in its place"() {
-        def targetOutputDir = tempDir.file("build/output")
-        targetOutputDir << "This should become a directory"
-
-        when:
-        TarTaskOutputPacker.ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
-
-        then:
-        targetOutputDir.assertIsEmptyDir()
-    }
-
-    def "creates parent directories for output file even if there is a pre-existing directory in its place"() {
-        def targetOutputFile = tempDir.file("build/some-dir/output.txt")
-        targetOutputFile.createDir()
-
-        when:
-        TarTaskOutputPacker.ensureDirectoryForProperty(FILE, targetOutputFile)
-
-        then:
-        targetOutputFile.parentFile.assertIsEmptyDir()
+    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs) {
+        packer.unpack(propertySpecs, input, readOrigin)
     }
 }
