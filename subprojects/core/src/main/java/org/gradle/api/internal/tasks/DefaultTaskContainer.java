@@ -69,7 +69,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(Map<String, ?> options) {
-        Map<String, Object> mutableOptions = new HashMap<String, Object>(options);
+        Map<String, Object> mutableOptions = new HashMap<>(options);
 
         Object replaceStr = mutableOptions.remove(Task.TASK_OVERWRITE);
         boolean replace = replaceStr != null && "true".equals(replaceStr.toString());

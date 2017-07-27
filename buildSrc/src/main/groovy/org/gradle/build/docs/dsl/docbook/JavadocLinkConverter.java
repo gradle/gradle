@@ -132,7 +132,7 @@ public class JavadocLinkConverter {
     }
 
     private MethodMetaData findMethod(String name, ClassMetaData targetClass) {
-        List<MethodMetaData> candidates = new ArrayList<MethodMetaData>();
+        List<MethodMetaData> candidates = new ArrayList<>();
         for (MethodMetaData methodMetaData : targetClass.getDeclaredMethods()) {
             if (name.equals(methodMetaData.getOverrideSignature())) {
                 return methodMetaData;

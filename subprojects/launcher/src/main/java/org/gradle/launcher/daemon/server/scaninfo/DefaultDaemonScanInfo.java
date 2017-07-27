@@ -72,7 +72,7 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
             Ideally, the value given would describe the problem and not be phrased in terms of why we are shutting down,
             but this is a practical compromise born out of piggy backing on the expiration listener mechanism to implement it.
          */
-        final AtomicReference<DaemonExpirationListener> daemonExpirationListenerReference = new AtomicReference<DaemonExpirationListener>();
+        final AtomicReference<DaemonExpirationListener> daemonExpirationListenerReference = new AtomicReference<>();
         final DaemonExpirationListener daemonExpirationListener = new DaemonExpirationListener() {
             @Override
             public void onExpirationEvent(DaemonExpirationResult result) {

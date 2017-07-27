@@ -31,7 +31,7 @@ public class MapSerializer<U, V> extends AbstractSerializer<Map<U, V>> {
 
     public Map<U, V> read(Decoder decoder) throws Exception {
         int size = decoder.readInt();
-        Map<U, V> valueMap = new LinkedHashMap<U, V>(size);
+        Map<U, V> valueMap = new LinkedHashMap<>(size);
         for (int i = 0; i < size; i++) {
             U key = keySerializer.read(decoder);
             V value = valueSerializer.read(decoder);

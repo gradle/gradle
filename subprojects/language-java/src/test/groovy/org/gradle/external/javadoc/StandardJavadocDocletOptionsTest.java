@@ -449,7 +449,7 @@ public class StandardJavadocDocletOptionsTest {
     public void testFluentTags() {
         final String[] tagsValue = new String[]{"param", "return", "todo:a:\"To Do:\""};
 
-        final List<String> tempList = new ArrayList<String>();
+        final List<String> tempList = new ArrayList<>();
         tempList.addAll(Arrays.asList(tagsValue));
 
         final Object[] totalTagsValue = tempList.toArray();
@@ -461,7 +461,7 @@ public class StandardJavadocDocletOptionsTest {
     public void testFluentTaglets() {
         final String[] tagletsValue = new String[]{"com.sun.tools.doclets.ToDoTaglet"};
 
-        final List<String> tempList = new ArrayList<String>();
+        final List<String> tempList = new ArrayList<>();
         tempList.addAll(Arrays.asList(tagletsValue));
 
         final Object[] totalTagletsValue = tempList.toArray();

@@ -266,7 +266,7 @@ public class DefaultListenerManager implements ListenerManager {
             if (parentDispatch == null && listeners.isEmpty()) {
                 allWithNoLogger = Collections.emptyList();
             } else {
-                List<Dispatch<MethodInvocation>> dispatchers = new ArrayList<Dispatch<MethodInvocation>>();
+                List<Dispatch<MethodInvocation>> dispatchers = new ArrayList<>();
                 if (parentDispatch != null) {
                     dispatchers.add(parentDispatch);
                 }
@@ -293,7 +293,7 @@ public class DefaultListenerManager implements ListenerManager {
         }
 
         private List<Dispatch<MethodInvocation>> buildAllWithLogger() {
-            List<Dispatch<MethodInvocation>> result = new ArrayList<Dispatch<MethodInvocation>>();
+            List<Dispatch<MethodInvocation>> result = new ArrayList<>();
             if (logger != null) {
                 result.add(logger);
             }

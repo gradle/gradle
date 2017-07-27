@@ -93,7 +93,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             public Set<File> getFiles() {
-                Set<File> files = new LinkedHashSet<File>(AbstractFileCollection.this.getFiles());
+                Set<File> files = new LinkedHashSet<>(AbstractFileCollection.this.getFiles());
                 files.removeAll(collection.getFiles());
                 return files;
             }
@@ -130,7 +130,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
      * Returns this collection as a set of {@link DirectoryFileTree} instances.
      */
     protected Collection<DirectoryFileTree> getAsFileTrees() {
-        List<DirectoryFileTree> fileTrees = new ArrayList<DirectoryFileTree>();
+        List<DirectoryFileTree> fileTrees = new ArrayList<>();
         for (File file : getFiles()) {
             if (file.isFile()) {
                 fileTrees.add(new FileBackedDirectoryFileTree(file));

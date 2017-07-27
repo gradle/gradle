@@ -87,7 +87,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         // Artifacts
         // Keep track of transformed artifacts as a given artifact may appear in multiple variants
-        Map<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformedArtifacts = new HashMap<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata>();
+        Map<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformedArtifacts = new HashMap<>();
         for (Map.Entry<String, LocalComponentArtifactMetadata> entry : allArtifacts.entries()) {
             LocalComponentArtifactMetadata oldArtifact = entry.getValue();
             LocalComponentArtifactMetadata newArtifact = copyArtifact(oldArtifact, artifacts, transformedArtifacts);
@@ -97,7 +97,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         // Variants
         for (Map.Entry<String, DefaultVariantMetadata> entry : allVariants.entries()) {
             DefaultVariantMetadata oldVariant = entry.getValue();
-            Set<LocalComponentArtifactMetadata> newArtifacts = new LinkedHashSet<LocalComponentArtifactMetadata>(oldVariant.getArtifacts().size());
+            Set<LocalComponentArtifactMetadata> newArtifacts = new LinkedHashSet<>(oldVariant.getArtifacts().size());
             for (ComponentArtifactMetadata oldArtifact : oldVariant.getArtifacts()) {
                 newArtifacts.add(copyArtifact((LocalComponentArtifactMetadata) oldArtifact, artifacts, transformedArtifacts));
             }

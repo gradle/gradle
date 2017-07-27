@@ -71,7 +71,7 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
     public Parameters convert(ParsedCommandLine args, Parameters target) throws CommandLineArgumentException {
         layoutConverter.convert(args, target.getLayout());
 
-        Map<String, String> properties = new HashMap<String, String>();
+        Map<String, String> properties = new HashMap<>();
         layoutToPropertiesConverter.convert(target.getLayout(), properties);
         propertiesConverter.convert(args, properties);
 

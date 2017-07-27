@@ -47,7 +47,7 @@ public abstract class AbstractDirectoryWalker implements DirectoryWalker {
             // else, might be a link which points to nothing, or has been removed while we're visiting, or ...
             throw new GradleException(String.format("Could not list contents of '%s'.", file));
         }
-        List<FileVisitDetails> dirs = new ArrayList<FileVisitDetails>();
+        List<FileVisitDetails> dirs = new ArrayList<>();
         for (int i = 0; !stopFlag.get() && i < children.length; i++) {
             File child = children[i];
             boolean isFile = child.isFile();

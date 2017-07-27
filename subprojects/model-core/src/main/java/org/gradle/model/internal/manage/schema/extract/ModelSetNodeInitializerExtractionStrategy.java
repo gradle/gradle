@@ -58,7 +58,7 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
             ModelType<ModelSet<T>> setType = ModelTypes.modelSet(elementType);
             DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), setType, ruleDescriptor, mutable, !mutable);
             ChildNodeInitializerStrategy<T> childStrategy = Cast.uncheckedCast(modelNode.getPrivateData(ChildNodeInitializerStrategy.class));
-            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType, elementType, ruleDescriptor, modelNode, state, childStrategy);
+            NodeBackedModelSet<T> set = new NodeBackedModelSet<>(setType, elementType, ruleDescriptor, modelNode, state, childStrategy);
             return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
         }
 
@@ -103,7 +103,7 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
                     new BiAction<MutableModelNode, NodeInitializerRegistry>() {
                         @Override
                         public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
-                            ChildNodeInitializerStrategy<T> childStrategy = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
+                            ChildNodeInitializerStrategy<T> childStrategy = new ManagedChildNodeCreatorStrategy<>(nodeInitializerRegistry);
                             modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
                         }
                     }

@@ -129,7 +129,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         public Builder setLaunchables(Iterable<? extends Launchable> launchables) {
-            Set<String> taskPaths = new LinkedHashSet<String>();
+            Set<String> taskPaths = new LinkedHashSet<>();
             List<InternalLaunchable> launchablesParams = Lists.newArrayList();
             for (Launchable launchable : launchables) {
                 Object original = new ProtocolToModelAdapter().unpack(launchable);

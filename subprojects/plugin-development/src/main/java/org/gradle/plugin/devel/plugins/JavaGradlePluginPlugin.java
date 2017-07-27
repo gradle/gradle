@@ -134,8 +134,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
         Jar jarTask = (Jar) project.getTasks().findByName(JAR_TASK);
-        List<PluginDescriptor> descriptors = new ArrayList<PluginDescriptor>();
-        Set<String> classList = new HashSet<String>();
+        List<PluginDescriptor> descriptors = new ArrayList<>();
+        Set<String> classList = new HashSet<>();
         PluginDescriptorCollectorAction pluginDescriptorCollector = new PluginDescriptorCollectorAction(descriptors);
         ClassManifestCollectorAction classManifestCollector = new ClassManifestCollectorAction(classList);
         PluginValidationAction pluginValidationAction = new PluginValidationAction(extension.getPlugins(), descriptors, classList);

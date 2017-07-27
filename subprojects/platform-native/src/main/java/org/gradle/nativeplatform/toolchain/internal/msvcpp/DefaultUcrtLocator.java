@@ -148,19 +148,19 @@ public class DefaultUcrtLocator implements UcrtLocator {
             return new String[0];
         }
 
-        Map<String, File> includeDirs = new HashMap<String, File>();
+        Map<String, File> includeDirs = new HashMap<>();
         for (File dir : includeDir.listFiles(ucrtVersionFilter)) {
             includeDirs.put(dir.getName(), dir);
         }
-        Map<String, File> libDirs = new HashMap<String, File>();
+        Map<String, File> libDirs = new HashMap<>();
         for (File dir : libDir.listFiles(ucrtVersionFilter)) {
             libDirs.put(dir.getName(), dir);
         }
-        Set<String> ucrtVersions = new HashSet<String>();
+        Set<String> ucrtVersions = new HashSet<>();
         ucrtVersions.addAll(includeDirs.keySet());
         ucrtVersions.addAll(libDirs.keySet());
 
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         for (String version : ucrtVersions) {
             File inc = includeDirs.get(version);
             File lib = includeDirs.get(version);
@@ -185,7 +185,7 @@ public class DefaultUcrtLocator implements UcrtLocator {
     }
 
     private Ucrt getBestUcrt(File baseDir) {
-        final SortedSet<Ucrt> candidates = new TreeSet<Ucrt>(new DescendingUcrtVersionComparator());
+        final SortedSet<Ucrt> candidates = new TreeSet<>(new DescendingUcrtVersionComparator());
         Set<Ucrt> ucrts = foundUcrts.get(baseDir);
         if (ucrts != null) {
             candidates.addAll(ucrts);
@@ -194,7 +194,7 @@ public class DefaultUcrtLocator implements UcrtLocator {
     }
 
     private Ucrt getBestUcrt() {
-        final SortedSet<Ucrt> candidates = new TreeSet<Ucrt>(new DescendingUcrtVersionComparator());
+        final SortedSet<Ucrt> candidates = new TreeSet<>(new DescendingUcrtVersionComparator());
         for (Set<Ucrt> ucrts : foundUcrts.values()) {
             candidates.addAll(ucrts);
         }

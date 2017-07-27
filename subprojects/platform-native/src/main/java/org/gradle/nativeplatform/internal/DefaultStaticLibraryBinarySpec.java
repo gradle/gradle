@@ -99,7 +99,7 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
 
         @Override
         protected Set<File> getOutputs() {
-            Set<File> allFiles = new LinkedHashSet<File>();
+            Set<File> allFiles = new LinkedHashSet<>();
             if (hasSources()) {
                 allFiles.add(getStaticLibraryFile());
             }

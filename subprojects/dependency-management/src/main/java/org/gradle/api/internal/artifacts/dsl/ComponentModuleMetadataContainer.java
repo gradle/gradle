@@ -75,7 +75,7 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
             //target does not exist in the map, there's no cycle for sure
             return;
         }
-        Set<ModuleIdentifier> visited = new LinkedHashSet<ModuleIdentifier>();
+        Set<ModuleIdentifier> visited = new LinkedHashSet<>();
         visited.add(source);
         visited.add(target);
 

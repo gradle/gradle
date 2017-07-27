@@ -69,7 +69,7 @@ public class MavenProjectsCreator {
         ProjectBuildingRequest buildingRequest = executionRequest.getProjectBuildingRequest();
         buildingRequest.setProcessPlugins(false);
         MavenProject mavenProject = builder.build(pomFile, buildingRequest).getProject();
-        Set<MavenProject> reactorProjects = new LinkedHashSet<MavenProject>();
+        Set<MavenProject> reactorProjects = new LinkedHashSet<>();
 
         //TODO adding the parent project first because the converter needs it this way ATM. This is oversimplified.
         //the converter should not depend on the order of reactor projects.

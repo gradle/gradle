@@ -72,7 +72,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
             return;
         }
 
-        Map<String, ModelNode> links = new TreeMap<String, ModelNode>();
+        Map<String, ModelNode> links = new TreeMap<>();
         for (ModelNode node : model.getLinks(ModelType.untyped())) {
             links.put(node.getPath().getName(), node);
         }

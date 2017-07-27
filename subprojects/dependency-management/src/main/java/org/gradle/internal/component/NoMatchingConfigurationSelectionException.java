@@ -37,8 +37,8 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
     }
 
     private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent) {
-        TreeSet<String> configurationNames = new TreeSet<String>(targetComponent.getConfigurationNames());
-        List<ConfigurationMetadata> configurations = new ArrayList<ConfigurationMetadata>(configurationNames.size());
+        TreeSet<String> configurationNames = new TreeSet<>(targetComponent.getConfigurationNames());
+        List<ConfigurationMetadata> configurations = new ArrayList<>(configurationNames.size());
         for (String name : configurationNames) {
             ConfigurationMetadata targetComponentConfiguration = targetComponent.getConfiguration(name);
             if (targetComponentConfiguration.isCanBeConsumed() && !targetComponentConfiguration.getAttributes().isEmpty()) {

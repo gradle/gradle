@@ -45,7 +45,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private Object url;
-    private List<Object> additionalUrls = new ArrayList<Object>();
+    private List<Object> additionalUrls = new ArrayList<>();
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
@@ -86,7 +86,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     public Set<URI> getArtifactUrls() {
-        Set<URI> result = new LinkedHashSet<URI>();
+        Set<URI> result = new LinkedHashSet<>();
         for (Object additionalUrl : additionalUrls) {
             result.add(fileResolver.resolveUri(additionalUrl));
         }

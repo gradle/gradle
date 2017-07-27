@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T> {
-    private Map<String, T> projects = new HashMap<String, T>();
-    private Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();
+    private Map<String, T> projects = new HashMap<>();
+    private Map<String, Set<T>> subProjects = new HashMap<>();
 
     public void addProject(T project) {
         projects.put(project.getPath(), project);
@@ -83,7 +83,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
     }
 
     public Set<T> getAllProjects(String path) {
-        Set<T> result = new HashSet<T>(getSubProjects(path));
+        Set<T> result = new HashSet<>(getSubProjects(path));
         if (projects.get(path) != null) {
             result.add(projects.get(path));
         }
@@ -95,7 +95,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
     }
 
     public Set<T> findAll(Spec<? super T> constraint) {
-        Set<T> matches = new HashSet<T>();
+        Set<T> matches = new HashSet<>();
         for (T project : projects.values()) {
             if (constraint.isSatisfiedBy(project)) {
                 matches.add(project);

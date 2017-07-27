@@ -46,7 +46,7 @@ import static org.gradle.util.CollectionUtils.collect;
 @Incubating
 public class TestReport extends DefaultTask {
     private File destinationDir;
-    private List<Object> results = new ArrayList<Object>();
+    private List<Object> results = new ArrayList<>();
 
     @Inject
     protected BuildOperationExecutor getBuildOperationExecutor() {
@@ -145,7 +145,7 @@ public class TestReport extends DefaultTask {
     }
 
     private TestResultsProvider createAggregateProvider() {
-        List<TestResultsProvider> resultsProviders = new LinkedList<TestResultsProvider>();
+        List<TestResultsProvider> resultsProviders = new LinkedList<>();
         try {
             FileCollection resultDirs = getTestResultDirs();
             if (resultDirs.getFiles().size() == 1) {

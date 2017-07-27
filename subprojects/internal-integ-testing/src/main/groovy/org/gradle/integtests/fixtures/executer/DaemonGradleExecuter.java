@@ -48,7 +48,7 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
     @Override
     protected List<String> getAllArgs() {
-        List<String> args = new ArrayList<String>(super.getAllArgs());
+        List<String> args = new ArrayList<>(super.getAllArgs());
         if(!isQuiet() && isAllowExtraLogging()) {
             if (!containsAny(args, asList("-i", "--info", "-d", "--debug", "-w", "--warn", "-q", "--quiet"))) {
                 args.add(0, "-i");
@@ -70,7 +70,7 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
         }
 
         // Add JVM heap settings only for shared daemons
-        List<String> buildJvmOpts = new ArrayList<String>(super.getImplicitBuildJvmArgs());
+        List<String> buildJvmOpts = new ArrayList<>(super.getImplicitBuildJvmArgs());
 
         if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
             buildJvmOpts.add("-XX:MaxPermSize=320m");

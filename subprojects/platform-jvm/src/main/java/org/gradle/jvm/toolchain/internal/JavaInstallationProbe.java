@@ -293,7 +293,7 @@ public class JavaInstallationProbe {
         if (split.length != SysProp.values().length - 1) { // -1 because of Z_ERROR
             return error("Unexpected command output: \n" + probeResult);
         }
-        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        EnumMap<SysProp, String> result = new EnumMap<>(SysProp.class);
         for (SysProp type : SysProp.values()) {
             if (type != SysProp.Z_ERROR) {
                 result.put(type, split[type.ordinal()]);
@@ -303,7 +303,7 @@ public class JavaInstallationProbe {
     }
 
     private static EnumMap<SysProp, String> error(String message) {
-        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        EnumMap<SysProp, String> result = new EnumMap<>(SysProp.class);
         for (SysProp type : SysProp.values()) {
             result.put(type, UNKNOWN);
         }
@@ -312,7 +312,7 @@ public class JavaInstallationProbe {
     }
 
     private static EnumMap<SysProp, String> current() {
-        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        EnumMap<SysProp, String> result = new EnumMap<>(SysProp.class);
         for (SysProp type : SysProp.values()) {
             result.put(type, System.getProperty(type.sysProp, UNKNOWN));
         }

@@ -71,7 +71,7 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
             }
         });
 
-        SortedSet<ArchiveEntryComparison> entryComparisons = new TreeSet<ArchiveEntryComparison>();
+        SortedSet<ArchiveEntryComparison> entryComparisons = new TreeSet<>();
 
         for (ArchiveEntry sourceOnly : diff.leftOnly) {
             entryComparisons.add(new ArchiveEntryComparison(sourceOnly, null));

@@ -99,7 +99,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private Problem extract(String problem) {
         java.util.regex.Matcher matcher = CAUSE_PATTERN.matcher(problem);
         String description;
-        List<String> causes = new ArrayList<String>();
+        List<String> causes = new ArrayList<>();
         if (!matcher.find()) {
             description = TextUtil.normaliseLineSeparators(problem.trim());
         } else {

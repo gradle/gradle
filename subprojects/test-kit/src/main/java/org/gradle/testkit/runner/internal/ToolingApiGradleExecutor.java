@@ -85,7 +85,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         final StreamByteBuffer outputBuffer = new StreamByteBuffer();
         final OutputStream syncOutput = new SynchronizedOutputStream(outputBuffer.getOutputStream());
 
-        final List<BuildTask> tasks = new ArrayList<BuildTask>();
+        final List<BuildTask> tasks = new ArrayList<>();
 
         maybeRegisterCleanup();
 

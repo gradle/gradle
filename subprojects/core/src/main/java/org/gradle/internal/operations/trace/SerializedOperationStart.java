@@ -49,7 +49,7 @@ class SerializedOperationStart {
     private Object transform(Object details) {
         if (details instanceof ExecuteTaskBuildOperationType.Details) {
             ExecuteTaskBuildOperationType.Details cast = (ExecuteTaskBuildOperationType.Details) details;
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
             map.put("buildPath", cast.getBuildPath());
             map.put("taskPath", cast.getTaskPath());
             map.put("taskClass", cast.getTaskClass().getName());
@@ -59,7 +59,7 @@ class SerializedOperationStart {
 
         if (details instanceof ApplyPluginBuildOperationType.Details) {
             ApplyPluginBuildOperationType.Details cast = (ApplyPluginBuildOperationType.Details) details;
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
             map.put("pluginId", cast.getPluginId());
             map.put("pluginClass", cast.getPluginClass().getName());
             map.put("targetType", cast.getTargetType());

@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class TextStreamOutputEventListener implements OutputEventListener {
     private final OutputEventListener listener;
-    private AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
+    private AtomicReference<LogLevel> logLevel = new AtomicReference<>(LogLevel.LIFECYCLE);
 
     public TextStreamOutputEventListener(OutputEventListener listener) {
         this.listener = listener;

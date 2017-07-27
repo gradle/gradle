@@ -104,7 +104,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setTargetBytecodeVersion(projectTargetBytecodeLevel)
                 .setJdk(DefaultInstalledJdk.current()));
 
-        Map<String, DefaultIdeaModule> modules = new LinkedHashMap<String, DefaultIdeaModule>();
+        Map<String, DefaultIdeaModule> modules = new LinkedHashMap<>();
         for (IdeaModule module : projectModel.getModules()) {
             appendModule(modules, module, out, rootGradleProject);
         }
@@ -123,7 +123,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     private void buildDependencies(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule) {
         ideaModule.setOffline(offlineDependencyResolution);
         Set<Dependency> resolved = ideaModule.resolveDependencies();
-        List<DefaultIdeaDependency> dependencies = new LinkedList<DefaultIdeaDependency>();
+        List<DefaultIdeaDependency> dependencies = new LinkedList<>();
         for (Dependency dependency : resolved) {
             if (dependency instanceof SingleEntryModuleLibrary) {
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
@@ -188,7 +188,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     }
 
     private Set<DefaultIdeaSourceDirectory> srcDirs(Set<File> sourceDirs, Set<File> generatedSourceDirs) {
-        Set<DefaultIdeaSourceDirectory> out = new LinkedHashSet<DefaultIdeaSourceDirectory>();
+        Set<DefaultIdeaSourceDirectory> out = new LinkedHashSet<>();
         for (File s : sourceDirs) {
             DefaultIdeaSourceDirectory sourceDirectory = new DefaultIdeaSourceDirectory().setDirectory(s);
             if (generatedSourceDirs.contains(s)) {

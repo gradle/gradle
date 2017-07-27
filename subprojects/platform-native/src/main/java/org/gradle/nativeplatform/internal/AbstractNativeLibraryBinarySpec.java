@@ -89,7 +89,7 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
 
         @Override
         public Set<File> getFiles() {
-            Set<File> headerDirs = new LinkedHashSet<File>();
+            Set<File> headerDirs = new LinkedHashSet<>();
             for (HeaderExportingSourceSet sourceSet : getInputs().withType(HeaderExportingSourceSet.class)) {
                 headerDirs.addAll(sourceSet.getExportedHeaders().getSrcDirs());
             }

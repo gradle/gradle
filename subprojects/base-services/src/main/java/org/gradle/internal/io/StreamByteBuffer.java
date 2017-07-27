@@ -44,7 +44,7 @@ import java.util.List;
 public class StreamByteBuffer {
     private static final int DEFAULT_CHUNK_SIZE = 4096;
     private static final int MAX_CHUNK_SIZE = 1024 * 1024;
-    private LinkedList<StreamByteBufferChunk> chunks = new LinkedList<StreamByteBufferChunk>();
+    private LinkedList<StreamByteBufferChunk> chunks = new LinkedList<>();
     private StreamByteBufferChunk currentWriteChunk;
     private StreamByteBufferChunk currentReadChunk;
     private int chunkSize;
@@ -135,7 +135,7 @@ public class StreamByteBuffer {
     }
 
     public List<byte[]> readAsListOfByteArrays() {
-        List<byte[]> listOfByteArrays = new ArrayList<byte[]>(chunks.size() + 1);
+        List<byte[]> listOfByteArrays = new ArrayList<>(chunks.size() + 1);
         byte[] buf;
         while ((buf = input.readNextBuffer()) != null) {
             if (buf.length > 0) {

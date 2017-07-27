@@ -57,7 +57,7 @@ public class JavaUtilCollectionStrategy implements ModelSchemaExtractionStrategy
     }
 
     private <T, E> ScalarCollectionSchema<T, E> createSchema(ModelSchemaExtractionContext<T> extractionContext, ModelType<T> type, ModelType<E> elementType) {
-        final ScalarCollectionSchema<T, E> schema = new ScalarCollectionSchema<T, E>(type, elementType);
+        final ScalarCollectionSchema<T, E> schema = new ScalarCollectionSchema<>(type, elementType);
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
             @Override
             public void execute(ModelSchema<E> elementTypeSchema) {

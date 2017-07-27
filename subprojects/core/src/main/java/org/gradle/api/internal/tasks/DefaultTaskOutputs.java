@@ -54,8 +54,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
-    private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
-    private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
+    private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
+    private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
     private TaskExecutionHistory history;
     private final List<TaskOutputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
     private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;

@@ -31,7 +31,7 @@ public class SystemProperties {
     private static final Set<String> STANDARD_PROPERTIES;
 
     static {
-        Set<String> standardProperties = new HashSet<String>();
+        Set<String> standardProperties = new HashSet<>();
         standardProperties.add("java.version");
         standardProperties.add("java.vendor");
         standardProperties.add("java.vendor.url");

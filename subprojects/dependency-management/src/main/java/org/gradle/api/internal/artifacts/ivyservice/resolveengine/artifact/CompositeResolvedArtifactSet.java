@@ -31,7 +31,7 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     }
 
     public static ResolvedArtifactSet of(Collection<? extends ResolvedArtifactSet> sets) {
-        List<ResolvedArtifactSet> filtered = new ArrayList<ResolvedArtifactSet>(sets.size());
+        List<ResolvedArtifactSet> filtered = new ArrayList<>(sets.size());
         for (ResolvedArtifactSet set : sets) {
             if (set != ResolvedArtifactSet.EMPTY) {
                 filtered.add(set);
@@ -48,7 +48,7 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        List<Completion> results = new ArrayList<Completion>(sets.size());
+        List<Completion> results = new ArrayList<>(sets.size());
         for (ResolvedArtifactSet set : sets) {
             results.add(set.startVisit(actions, listener));
         }

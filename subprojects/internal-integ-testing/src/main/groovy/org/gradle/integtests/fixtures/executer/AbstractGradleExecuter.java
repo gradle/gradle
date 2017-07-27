@@ -106,8 +106,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean taskList;
     private boolean dependencyList;
     private boolean searchUpwards;
-    private Map<String, String> environmentVars = new HashMap<String, String>();
-    private List<File> initScripts = new ArrayList<File>();
+    private Map<String, String> environmentVars = new HashMap<>();
+    private List<File> initScripts = new ArrayList<>();
     private String executable;
     private TestFile gradleUserHomeDir;
     private File userHomeDir;
@@ -472,7 +472,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Returns additional JVM args that should be used to start the build JVM.
      */
     protected List<String> getImplicitBuildJvmArgs() {
-        List<String> buildJvmOpts = new ArrayList<String>();
+        List<String> buildJvmOpts = new ArrayList<>();
         buildJvmOpts.add("-ea");
 
         if (isDebug()) {
@@ -764,7 +764,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected List<String> getAllArgs() {
-        List<String> allArgs = new ArrayList<String>();
+        List<String> allArgs = new ArrayList<>();
         if (buildScript != null) {
             allArgs.add("--build-file");
             allArgs.add(buildScript.getAbsolutePath());
@@ -838,7 +838,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Returns the set of system properties that should be set on every JVM used by this executer.
      */
     protected Map<String, String> getImplicitJvmSystemProperties() {
-        Map<String, String> properties = new LinkedHashMap<String, String>();
+        Map<String, String> properties = new LinkedHashMap<>();
 
         if (getUserHomeDir() != null) {
             properties.put("user.home", getUserHomeDir().getAbsolutePath());
@@ -1181,14 +1181,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected static class GradleInvocation {
-        final Map<String, String> environmentVars = new HashMap<String, String>();
-        final List<String> args = new ArrayList<String>();
+        final Map<String, String> environmentVars = new HashMap<>();
+        final List<String> args = new ArrayList<>();
         // JVM args that must be used for the build JVM
-        final List<String> buildJvmArgs = new ArrayList<String>();
+        final List<String> buildJvmArgs = new ArrayList<>();
         // JVM args that must be used to fork a JVM
-        final List<String> launcherJvmArgs = new ArrayList<String>();
+        final List<String> launcherJvmArgs = new ArrayList<>();
         // Implicit JVM args that should be used to fork a JVM
-        final List<String> implicitLauncherJvmArgs = new ArrayList<String>();
+        final List<String> implicitLauncherJvmArgs = new ArrayList<>();
     }
 
     @Override

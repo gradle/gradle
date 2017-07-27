@@ -178,7 +178,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
 
         private String status = "";
 
-        private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
+        private List<RenderableOutputEvent> bufferedLogs = new ArrayList<>();
 
         private OperationGroup(String category, @Nullable String loggingHeader, String description, @Nullable String shortDescription, long startTime, Object buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
             this.category = category;

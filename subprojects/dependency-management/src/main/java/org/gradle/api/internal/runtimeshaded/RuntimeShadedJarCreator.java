@@ -170,7 +170,7 @@ class RuntimeShadedJarCreator {
     }
 
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
-        final List<FileVisitDetails> fileVisitDetails = new ArrayList<FileVisitDetails>();
+        final List<FileVisitDetails> fileVisitDetails = new ArrayList<>();
         directoryFileTreeFactory.create(file).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {

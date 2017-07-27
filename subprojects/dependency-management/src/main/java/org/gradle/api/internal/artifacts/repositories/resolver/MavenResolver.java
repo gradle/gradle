@@ -163,7 +163,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private void updatePatterns() {
         setIvyPatterns(Collections.singletonList(getWholePattern()));
 
-        List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
+        List<ResourcePattern> artifactPatterns = new ArrayList<>();
         artifactPatterns.add(getWholePattern());
         for (URI artifactRoot : artifactRoots) {
             artifactPatterns.add(new M2ResourcePattern(artifactRoot, MavenPattern.M2_PATTERN));

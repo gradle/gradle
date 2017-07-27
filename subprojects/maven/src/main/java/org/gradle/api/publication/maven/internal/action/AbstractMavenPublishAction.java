@@ -83,7 +83,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
     }
 
     public void publish() {
-        List<Artifact> artifacts = new ArrayList<Artifact>();
+        List<Artifact> artifacts = new ArrayList<>();
         if (mainArtifact.getFile() != null) {
             artifacts.add(mainArtifact);
         }

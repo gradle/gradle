@@ -47,7 +47,7 @@ public class PayloadSerializer {
                 IoActions.closeQuietly(objectStream);
             }
 
-            Map<Short, ClassLoaderDetails> classLoaders = new HashMap<Short, ClassLoaderDetails>();
+            Map<Short, ClassLoaderDetails> classLoaders = new HashMap<>();
             map.collectClassLoaderDefinitions(classLoaders);
             return new SerializedPayload(classLoaders, buffer.readAsListOfByteArrays());
         } catch (IOException e) {

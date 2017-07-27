@@ -139,7 +139,7 @@ public abstract class AvailableJavaHomes {
     }
 
     public static Map<Jvm, JavaVersion> getAvailableJdksWithVersion() {
-        Map<Jvm, JavaVersion> result = new HashMap<Jvm, JavaVersion>();
+        Map<Jvm, JavaVersion> result = new HashMap<>();
         for (JavaVersion javaVersion : JavaVersion.values()) {
             for (Jvm javaInfo : getAvailableJdks(javaVersion)) {
                 result.put(javaInfo, javaVersion);
@@ -248,7 +248,7 @@ public abstract class AvailableJavaHomes {
         }
 
         public List<JvmInstallation> findJvms() {
-            List<JvmInstallation> jvms = new ArrayList<JvmInstallation>();
+            List<JvmInstallation> jvms = new ArrayList<>();
             if (OperatingSystem.current().isLinux()) {
                 jvms = addJvm(jvms, JavaVersion.VERSION_1_5, "1.5.0", new File("/opt/jdk/sun-jdk-5"), true, JvmInstallation.Arch.i386);
                 jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/sun-jdk-6"), true, JvmInstallation.Arch.x86_64);
@@ -283,8 +283,8 @@ public abstract class AvailableJavaHomes {
         }
 
         public List<JvmInstallation> findJvms() {
-            Set<File> javaHomes = new HashSet<File>();
-            List<JvmInstallation> jvms = new ArrayList<JvmInstallation>();
+            Set<File> javaHomes = new HashSet<>();
+            List<JvmInstallation> jvms = new ArrayList<>();
             for (File file : baseDir.listFiles()) {
                 Matcher matcher = JDK_DIR.matcher(file.getName());
                 if (!matcher.matches()) {

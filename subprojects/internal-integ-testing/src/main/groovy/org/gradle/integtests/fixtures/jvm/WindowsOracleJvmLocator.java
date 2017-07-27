@@ -40,7 +40,7 @@ class WindowsOracleJvmLocator {
 
     public Collection<JvmInstallation> findJvms() {
         JvmInstallation.Arch defaultArch = systemInfo.getArchitecture() == SystemInfo.Architecture.i386 ? JvmInstallation.Arch.i386 : JvmInstallation.Arch.x86_64;
-        List<JvmInstallation> jvms = new ArrayList<JvmInstallation>();
+        List<JvmInstallation> jvms = new ArrayList<>();
         findJvms(windowsRegistry, "SOFTWARE\\JavaSoft\\Java Development Kit", jvms, true, defaultArch);
         findJvms(windowsRegistry, "SOFTWARE\\JavaSoft\\Java Runtime Environment", jvms, false, defaultArch);
         findJvms(windowsRegistry, "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Development Kit", jvms, true, JvmInstallation.Arch.i386);

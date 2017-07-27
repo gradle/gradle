@@ -50,7 +50,7 @@ public class DefaultLegacyTypesSupport implements LegacyTypesSupport {
     }
 
     private Set<String> readClassNames(String resourceName) {
-        Set<String> classNames = new HashSet<String>();
+        Set<String> classNames = new HashSet<>();
         URL resource = LegacyTypesSupport.class.getResource(resourceName);
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(resource.openStream()));

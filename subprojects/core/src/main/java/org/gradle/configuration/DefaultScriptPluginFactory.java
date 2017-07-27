@@ -157,7 +157,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(scriptSource, initialPassScriptTarget, documentationRegistry);
             SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
             String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
-            CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>(id, initialTransformer, initialPassStatementTransformer, pluginRequestsSerializer);
+            CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<>(id, initialTransformer, initialPassStatementTransformer, pluginRequestsSerializer);
 
             ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
             initialRunner.run(target, services);
@@ -172,7 +172,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(scriptSource, scriptTarget);
             String operationId = scriptTarget.getId();
-            CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
+            CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<>(operationId, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
 
             final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {

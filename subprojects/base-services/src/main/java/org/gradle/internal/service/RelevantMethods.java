@@ -38,7 +38,7 @@ public class RelevantMethods {
     }
 
     private static List<ServiceMethod> toServiceMethodList(List<Method> methods) {
-        List<ServiceMethod> result = new ArrayList<ServiceMethod>(methods.size());
+        List<ServiceMethod> result = new ArrayList<>(methods.size());
         for (Method method : methods) {
             result.add(SERVICE_METHOD_FACTORY.toServiceMethod(method));
         }

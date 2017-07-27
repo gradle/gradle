@@ -113,7 +113,7 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
 
     @Override
     public <C> DefaultModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchema<C>> validator) {
-        DefaultModelSchemaExtractionContext<C> childContext = new DefaultModelSchemaExtractionContext<C>(this, type, description, validator);
+        DefaultModelSchemaExtractionContext<C> childContext = new DefaultModelSchemaExtractionContext<>(this, type, description, validator);
         children.add(childContext);
         return childContext;
     }

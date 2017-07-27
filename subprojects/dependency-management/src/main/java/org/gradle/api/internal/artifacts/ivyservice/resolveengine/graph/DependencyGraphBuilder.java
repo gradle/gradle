@@ -304,7 +304,7 @@ public class DependencyGraphBuilder {
         }
 
         // Collect the components to sort in consumer-first order
-        List<ComponentState> queue = new ArrayList<ComponentState>();
+        List<ComponentState> queue = new ArrayList<>();
         for (ModuleResolveState module : resolveState.getModules()) {
             if (module.getSelected() != null) {
                 queue.add(module.getSelected());
@@ -654,9 +654,9 @@ public class DependencyGraphBuilder {
         final ComponentMetaDataResolver metaDataResolver;
         final IdGenerator<Long> idGenerator;
         final ModuleIdentifier id;
-        final Set<EdgeState> unattachedDependencies = new LinkedHashSet<EdgeState>();
-        final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
-        final Set<SelectorState> selectors = new HashSet<SelectorState>();
+        final Set<EdgeState> unattachedDependencies = new LinkedHashSet<>();
+        final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
+        final Set<SelectorState> selectors = new HashSet<>();
         final ResolveState resolveState;
         ComponentState selected;
 
@@ -893,7 +893,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public Set<ComponentState> getDependents() {
-            Set<ComponentState> incoming = new LinkedHashSet<ComponentState>();
+            Set<ComponentState> incoming = new LinkedHashSet<>();
             for (NodeState configuration : nodes) {
                 for (EdgeState dependencyEdge : configuration.incomingEdges) {
                     incoming.add(dependencyEdge.from.component);

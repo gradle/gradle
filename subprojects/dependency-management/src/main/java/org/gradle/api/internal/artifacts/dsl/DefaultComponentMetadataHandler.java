@@ -75,7 +75,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private static RuleActionAdapter<ComponentMetadataDetails> createAdapter() {
-        RuleActionValidator<ComponentMetadataDetails> ruleActionValidator = new DefaultRuleActionValidator<ComponentMetadataDetails>(VALIDATOR_PARAM_LIST);
+        RuleActionValidator<ComponentMetadataDetails> ruleActionValidator = new DefaultRuleActionValidator<>(VALIDATOR_PARAM_LIST);
         return new DefaultRuleActionAdapter<ComponentMetadataDetails>(ruleActionValidator, ADAPTER_NAME);
     }
 

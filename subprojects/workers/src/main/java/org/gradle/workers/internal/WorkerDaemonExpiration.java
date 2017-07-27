@@ -75,7 +75,7 @@ public class WorkerDaemonExpiration implements MemoryHolder {
 
         @Override
         public List<WorkerDaemonClient> transform(List<WorkerDaemonClient> idleClients) {
-            List<WorkerDaemonClient> toExpire = new ArrayList<WorkerDaemonClient>();
+            List<WorkerDaemonClient> toExpire = new ArrayList<>();
             for (WorkerDaemonClient idleClient : idleClients) {
                 toExpire.add(idleClient);
                 long freed = getMemoryUsage(idleClient);

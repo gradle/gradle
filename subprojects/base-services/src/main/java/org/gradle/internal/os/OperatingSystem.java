@@ -140,7 +140,7 @@ public abstract class OperatingSystem {
     }
 
     public List<File> findAllInPath(String name) {
-        List<File> all = new LinkedList<File>();
+        List<File> all = new LinkedList<>();
 
         for (File dir : getPath()) {
             File candidate = new File(dir, name);
@@ -157,7 +157,7 @@ public abstract class OperatingSystem {
         if (path == null) {
             return Collections.emptyList();
         }
-        List<File> entries = new ArrayList<File>();
+        List<File> entries = new ArrayList<>();
         for (String entry : path.split(Pattern.quote(File.pathSeparator))) {
             entries.add(new File(entry));
         }

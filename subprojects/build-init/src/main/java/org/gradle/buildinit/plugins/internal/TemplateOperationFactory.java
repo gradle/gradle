@@ -42,7 +42,7 @@ public class TemplateOperationFactory {
 
     private Map<String, String> loadDefaultBindings() {
         String now = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date());
-        Map<String, String> map = new LinkedHashMap<String, String>(3);
+        Map<String, String> map = new LinkedHashMap<>(3);
         map.put("genDate", now);
         map.put("genUser", System.getProperty("user.name"));
         map.put("genGradleVersion", GradleVersion.current().toString());
@@ -55,7 +55,7 @@ public class TemplateOperationFactory {
 
     public class TemplateOperationBuilder {
         private File target;
-        private Map<String, String> bindings =  new HashMap<String, String>();
+        private Map<String, String> bindings = new HashMap<>();
         private URL templateUrl;
 
         public TemplateOperationBuilder(Map defaultBindings) {

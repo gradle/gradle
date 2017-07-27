@@ -32,7 +32,7 @@ public class ProxyDispatchAdapter<T> {
 
     public ProxyDispatchAdapter(Dispatch<? super MethodInvocation> dispatch, Class<T> type, Class<?>... extraTypes) {
         this.type = type;
-        List<Class<?>> types = new ArrayList<Class<?>>();
+        List<Class<?>> types = new ArrayList<>();
         ClassLoader classLoader = type.getClassLoader();
         types.add(type);
         for (Class<?> extraType : extraTypes) {

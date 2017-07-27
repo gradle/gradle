@@ -44,7 +44,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
     }
 
     public DefaultClassPath(Iterable<File> files) {
-        Set<File> noDuplicates = new LinkedHashSet<File>();
+        Set<File> noDuplicates = new LinkedHashSet<>();
         for (File file : files) {
             noDuplicates.add(file);
         }
@@ -56,7 +56,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
     }
 
     public DefaultClassPath(File... files) {
-        Set<File> noDuplicates = new LinkedHashSet<File>();
+        Set<File> noDuplicates = new LinkedHashSet<>();
         Collections.addAll(noDuplicates, files);
         this.files = new ArrayList<File>(noDuplicates);
     }
@@ -71,7 +71,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
     }
 
     public List<URI> getAsURIs() {
-        List<URI> urls = new ArrayList<URI>();
+        List<URI> urls = new ArrayList<>();
         for (File file : files) {
             urls.add(file.toURI());
         }
@@ -88,7 +88,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
     }
 
     public List<URL> getAsURLs() {
-        List<URL> urls = new ArrayList<URL>();
+        List<URL> urls = new ArrayList<>();
         for (File file : files) {
             try {
                 urls.add(file.toURI().toURL());
@@ -117,7 +117,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
     }
 
     private Set<File> concat(Collection<File> files1, Collection<File> files2) {
-        Set<File> result = new LinkedHashSet<File>();
+        Set<File> result = new LinkedHashSet<>();
         result.addAll(files1);
         result.addAll(files2);
         return result;

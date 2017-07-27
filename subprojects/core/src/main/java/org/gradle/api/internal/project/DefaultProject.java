@@ -164,7 +164,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final Map<String, Project> childProjects = Maps.newTreeMap();
 
-    private List<String> defaultTasks = new ArrayList<String>();
+    private List<String> defaultTasks = new ArrayList<>();
 
     private ProjectStateInternal state;
 
@@ -184,7 +184,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private ArtifactHandler artifactHandler;
 
-    private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
+    private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<>(ProjectEvaluationListener.class);
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
@@ -753,7 +753,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {
-        final Map<Project, Set<Task>> foundTargets = new TreeMap<Project, Set<Task>>();
+        final Map<Project, Set<Task>> foundTargets = new TreeMap<>();
         Action<Project> action = new Action<Project>() {
             public void execute(Project project) {
                 foundTargets.put(project, new TreeSet<Task>(project.getTasks()));
@@ -772,7 +772,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         if (isNullOrEmpty(name)) {
             throw new InvalidUserDataException("Name is not specified!");
         }
-        final Set<Task> foundTasks = new HashSet<Task>();
+        final Set<Task> foundTasks = new HashSet<>();
         Action<Project> action = new Action<Project>() {
             public void execute(Project project) {
                 // Don't force evaluation of rules here, let the task container do what it needs to

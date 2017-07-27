@@ -170,7 +170,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             } else {
                 literal = sourceObject.toString();
             }
-            NotationParser<String, T> parser = new NotationConverterToNotationParserAdapter<String, T>(new EnumFromCharSequenceNotationParser(targetType));
+            NotationParser<String, T> parser = new NotationConverterToNotationParserAdapter<>(new EnumFromCharSequenceNotationParser(targetType));
             T parsedLiteral = parser.parseNotation(literal);
             return targetType.cast(parsedLiteral);
         } catch (TypeConversionException e) {
@@ -309,7 +309,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         private void setup() {
-            List<MethodInvoker> invokers = new ArrayList<MethodInvoker>();
+            List<MethodInvoker> invokers = new ArrayList<>();
             invokers.add(REFLECTION_METHOD_INVOKER);
             decoration.collectInvokers(sourceObject, targetType, invokers);
 
@@ -552,7 +552,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return Optional.absent();
             }
 
-            LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
+            LinkedList<Class<?>> queue = new LinkedList<>();
             queue.add(sourceClass);
             while (!queue.isEmpty()) {
                 Class<?> c = queue.removeFirst();
@@ -832,7 +832,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         @Override
         public ViewDecoration restrictTo(Set<Class<?>> viewTypes) {
-            List<ViewDecoration> filtered = new ArrayList<ViewDecoration>();
+            List<ViewDecoration> filtered = new ArrayList<>();
             for (ViewDecoration viewDecoration : decorations) {
                 ViewDecoration filteredDecoration = viewDecoration.restrictTo(viewTypes);
                 if (!filteredDecoration.isNoOp()) {
@@ -949,7 +949,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private final Class<T> viewType;
         @Nullable
         private final ViewGraphDetails graphDetails;
-        List<ViewDecoration> viewDecorations = new ArrayList<ViewDecoration>();
+        List<ViewDecoration> viewDecorations = new ArrayList<>();
 
         DefaultViewBuilder(Class<T> viewType) {
             this.viewType = viewType;

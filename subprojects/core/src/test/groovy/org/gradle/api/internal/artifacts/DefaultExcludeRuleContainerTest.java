@@ -33,7 +33,7 @@ public class DefaultExcludeRuleContainerTest {
 
     @Test
     public void testInitWithRules() {
-        Set<ExcludeRule> sourceExcludeRules = new HashSet<ExcludeRule>();
+        Set<ExcludeRule> sourceExcludeRules = new HashSet<>();
         sourceExcludeRules.add(new DefaultExcludeRule("aGroup", null));
         DefaultExcludeRuleContainer defaultExcludeRuleContainer = new DefaultExcludeRuleContainer(sourceExcludeRules);
         assertThat(defaultExcludeRuleContainer.getRules(), equalTo(sourceExcludeRules));
@@ -61,7 +61,7 @@ public class DefaultExcludeRuleContainerTest {
     }
 
     private void assertExcludeRuleContainerHasCorrectExcludeRules(Set<ExcludeRule> excludeRules, Map... excludeRuleArgs) {
-        List<Map> foundRules = new ArrayList<Map>();
+        List<Map> foundRules = new ArrayList<>();
         for (ExcludeRule excludeRule : excludeRules) {
             for (Map excludeRuleArg : excludeRuleArgs) {
                 if (matchingExcludeRule(excludeRule, excludeRuleArg)) {

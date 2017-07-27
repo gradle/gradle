@@ -182,7 +182,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
                 configurations.get(configuration).artifacts.add(artifactMetadata);
             }
         }
-        Set<ConfigurationMetadata> visited = new HashSet<ConfigurationMetadata>();
+        Set<ConfigurationMetadata> visited = new HashSet<>();
         for (DefaultConfigurationMetadata configuration : configurations.values()) {
             configuration.collectInheritedArtifacts(visited);
         }
@@ -211,7 +211,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     private Map<String, DefaultConfigurationMetadata> populateConfigurationsFromDescriptor() {
         Set<String> configurationsNames = configurationDefinitions.keySet();
-        Map<String, DefaultConfigurationMetadata> configurations = new HashMap<String, DefaultConfigurationMetadata>(configurationsNames.size());
+        Map<String, DefaultConfigurationMetadata> configurations = new HashMap<>(configurationsNames.size());
         for (String configName : configurationsNames) {
             DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations);
             configuration.populateDependencies(dependencies);
@@ -246,7 +246,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             configurations.put(name, populated);
             return populated;
         }
-        List<DefaultConfigurationMetadata> hierarchy = new ArrayList<DefaultConfigurationMetadata>(extendsFrom.size());
+        List<DefaultConfigurationMetadata> hierarchy = new ArrayList<>(extendsFrom.size());
         for (String confName : extendsFrom) {
             hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
         }
@@ -313,7 +313,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             if (parents == null) {
                 return Collections.singleton(name);
             }
-            Set<String> hierarchy = new LinkedHashSet<String>(1 + parents.size());
+            Set<String> hierarchy = new LinkedHashSet<>(1 + parents.size());
             populateHierarchy(hierarchy);
             return hierarchy;
         }

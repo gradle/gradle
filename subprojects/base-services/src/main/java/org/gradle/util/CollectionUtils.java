@@ -247,7 +247,7 @@ public abstract class CollectionUtils {
 
             if (thing.getClass().isArray()) {
                 Object[] thingArray = (Object[]) thing;
-                List<T> list = new ArrayList<T>(thingArray.length);
+                List<T> list = new ArrayList<>(thingArray.length);
                 for (Object thingThing : thingArray) {
                     list.addAll(flattenCollections(type, thingThing));
                 }
@@ -256,7 +256,7 @@ public abstract class CollectionUtils {
 
             if (thing instanceof Collection) {
                 Collection<?> collection = (Collection<?>) thing;
-                List<T> list = new ArrayList<T>();
+                List<T> list = new ArrayList<>();
                 for (Object element : collection) {
                     list.addAll(flattenCollections(type, element));
                 }
@@ -265,7 +265,7 @@ public abstract class CollectionUtils {
 
             return Collections.singletonList(cast(type, thing));
         } else {
-            List<T> list = new ArrayList<T>();
+            List<T> list = new ArrayList<>();
             for (Object thing : things) {
                 list.addAll(flattenCollections(type, thing));
             }
@@ -282,7 +282,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> toList(Enumeration<? extends T> things) {
-        AbstractList<T> list = new ArrayList<T>();
+        AbstractList<T> list = new ArrayList<>();
         while (things.hasMoreElements()) {
             list.add(things.nextElement());
         }
@@ -293,7 +293,7 @@ public abstract class CollectionUtils {
         if (things == null) {
             return new ArrayList<T>(0);
         }
-        List<T> list = new ArrayList<T>();
+        List<T> list = new ArrayList<>();
         for (T thing : things) {
             list.add(thing);
         }
@@ -302,7 +302,7 @@ public abstract class CollectionUtils {
 
 
     public static <T> List<T> intersection(Collection<? extends Collection<T>> availableValuesByDescriptor) {
-        List<T> result = new ArrayList<T>();
+        List<T> result = new ArrayList<>();
         Iterator<? extends Collection<T>> iterator = availableValuesByDescriptor.iterator();
         if (iterator.hasNext()) {
             Collection<T> firstSet = iterator.next();
@@ -321,7 +321,7 @@ public abstract class CollectionUtils {
             return new ArrayList<T>(0);
         }
 
-        List<T> list = new ArrayList<T>(things.length);
+        List<T> list = new ArrayList<>(things.length);
         Collections.addAll(list, things);
         return list;
     }
@@ -335,7 +335,7 @@ public abstract class CollectionUtils {
             return castThings;
         }
 
-        Set<T> set = new LinkedHashSet<T>();
+        Set<T> set = new LinkedHashSet<>();
         for (T thing : things) {
             set.add(thing);
         }
@@ -396,7 +396,7 @@ public abstract class CollectionUtils {
      * Given a set of values, derive a set of keys and return a map
      */
     public static <K, V> Map<K, V> collectMap(Iterable<? extends V> items, Transformer<? extends K, ? super V> keyGenerator) {
-        Map<K, V> map = new LinkedHashMap<K, V>();
+        Map<K, V> map = new LinkedHashMap<>();
         collectMap(map, items, keyGenerator);
         return map;
     }
@@ -411,7 +411,7 @@ public abstract class CollectionUtils {
      * Given a set of keys, derive a set of values and return a map
      */
     public static <K, V> Map<K, V> collectMapValues(Iterable<? extends K> keys, Transformer<? extends V, ? super K> keyGenerator) {
-        Map<K, V> map = new LinkedHashMap<K, V>();
+        Map<K, V> map = new LinkedHashMap<>();
         collectMapValues(map, keys, keyGenerator);
         return map;
     }
@@ -461,9 +461,9 @@ public abstract class CollectionUtils {
      * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, org.gradle.api.Transformer)
      */
     public static class SetDiff<T> {
-        public Set<T> leftOnly = new HashSet<T>();
-        public Set<Pair<T, T>> common = new HashSet<Pair<T, T>>();
-        public Set<T> rightOnly = new HashSet<T>();
+        public Set<T> leftOnly = new HashSet<>();
+        public Set<Pair<T, T>> common = new HashSet<>();
+        public Set<T> rightOnly = new HashSet<>();
     }
 
     /**
@@ -487,7 +487,7 @@ public abstract class CollectionUtils {
             throw new NullPointerException("'right' set is null");
         }
 
-        SetDiff<T> setDiff = new SetDiff<T>();
+        SetDiff<T> setDiff = new SetDiff<>();
 
         Map<Object, T> indexedLeft = collectMap(left, compareBy);
         Map<Object, T> indexedRight = collectMap(right, compareBy);
@@ -575,8 +575,8 @@ public abstract class CollectionUtils {
         Preconditions.checkNotNull(items, "Cannot partition null Collection");
         Preconditions.checkNotNull(predicate, "Cannot apply null Spec when partitioning");
 
-        Collection<T> left = new LinkedList<T>();
-        Collection<T> right = new LinkedList<T>();
+        Collection<T> left = new LinkedList<>();
+        Collection<T> right = new LinkedList<>();
 
         for (T item : items) {
             if (predicate.isSatisfiedBy(item)) {

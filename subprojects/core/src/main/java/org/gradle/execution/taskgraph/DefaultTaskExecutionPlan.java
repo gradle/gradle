@@ -130,9 +130,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
-        List<TaskInfo> queue = new ArrayList<TaskInfo>();
+        List<TaskInfo> queue = new ArrayList<>();
 
-        List<Task> sortedTasks = new ArrayList<Task>(tasks);
+        List<Task> sortedTasks = new ArrayList<>(tasks);
         Collections.sort(sortedTasks);
         for (Task task : sortedTasks) {
             TaskInfo node = nodeFactory.createNode(task);
@@ -145,7 +145,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             queue.add(node);
         }
 
-        Set<TaskInfo> visiting = new HashSet<TaskInfo>();
+        Set<TaskInfo> visiting = new HashSet<>();
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
         while (!queue.isEmpty()) {
@@ -215,8 +215,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void resolveTasksInUnknownState() {
-        List<TaskInfo> queue = new ArrayList<TaskInfo>(tasksInUnknownState);
-        Set<TaskInfo> visiting = new HashSet<TaskInfo>();
+        List<TaskInfo> queue = new ArrayList<>(tasksInUnknownState);
+        Set<TaskInfo> visiting = new HashSet<>();
 
         while (!queue.isEmpty()) {
             TaskInfo task = queue.get(0);
@@ -282,9 +282,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         int visitingSegmentCounter = nodeQueue.size();
 
         HashMultimap<TaskInfo, Integer> visitingNodes = HashMultimap.create();
-        Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<GraphEdge>();
-        Deque<TaskInfo> path = new ArrayDeque<TaskInfo>();
-        HashMap<TaskInfo, Integer> planBeforeVisiting = new HashMap<TaskInfo, Integer>();
+        Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<>();
+        Deque<TaskInfo> path = new ArrayDeque<>();
+        HashMap<TaskInfo, Integer> planBeforeVisiting = new HashMap<>();
 
         while (!nodeQueue.isEmpty()) {
             TaskInfoInVisitingSegment taskInfoInVisitingSegment = nodeQueue.get(0);
@@ -307,7 +307,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 recordEdgeIfArrivedViaShouldRunAfter(walkedShouldRunAfterEdges, path, taskNode);
                 removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes, taskInfoInVisitingSegment);
                 takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, taskNode);
-                ArrayList<TaskInfo> successors = new ArrayList<TaskInfo>();
+                ArrayList<TaskInfo> successors = new ArrayList<>();
                 addAllSuccessorsInReverseOrder(taskNode, successors);
                 for (TaskInfo successor : successors) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
@@ -344,7 +344,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
 
                 // Add any finalizers to the queue
-                ArrayList<TaskInfo> finalizerTasks = new ArrayList<TaskInfo>();
+                ArrayList<TaskInfo> finalizerTasks = new ArrayList<>();
                 addAllReversed(finalizerTasks, taskNode.getFinalizers());
                 for (TaskInfo finalizer : finalizerTasks) {
                     if (!visitingNodes.containsKey(finalizer)) {
@@ -452,8 +452,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private Set<TaskInfo> getAllPrecedingTasks(TaskInfo finalizer) {
-        Set<TaskInfo> precedingTasks = new HashSet<TaskInfo>();
-        Deque<TaskInfo> candidateTasks = new ArrayDeque<TaskInfo>();
+        Set<TaskInfo> precedingTasks = new HashSet<>();
+        Deque<TaskInfo> candidateTasks = new ArrayDeque<>();
 
         // Consider every task that must run before the finalizer
         candidateTasks.addAll(finalizer.getDependencySuccessors());
@@ -473,17 +473,17 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void onOrderingCycle() {
-        CachingDirectedGraphWalker<TaskInfo, Void> graphWalker = new CachingDirectedGraphWalker<TaskInfo, Void>(new DirectedGraph<TaskInfo, Void>() {
+        CachingDirectedGraphWalker<TaskInfo, Void> graphWalker = new CachingDirectedGraphWalker<>(new DirectedGraph<TaskInfo, Void>() {
             public void getNodeValues(TaskInfo node, Collection<? super Void> values, Collection<? super TaskInfo> connectedNodes) {
                 connectedNodes.addAll(node.getDependencySuccessors());
                 connectedNodes.addAll(node.getMustSuccessors());
             }
         });
         graphWalker.add(entryTasks);
-        final List<TaskInfo> firstCycle = new ArrayList<TaskInfo>(graphWalker.findCycles().get(0));
+        final List<TaskInfo> firstCycle = new ArrayList<>(graphWalker.findCycles().get(0));
         Collections.sort(firstCycle);
 
-        DirectedGraphRenderer<TaskInfo> graphRenderer = new DirectedGraphRenderer<TaskInfo>(new GraphNodeRenderer<TaskInfo>() {
+        DirectedGraphRenderer<TaskInfo> graphRenderer = new DirectedGraphRenderer<>(new GraphNodeRenderer<TaskInfo>() {
             public void renderTo(TaskInfo node, StyledTextOutput output) {
                 output.withStyle(StyledTextOutput.Style.Identifier).text(node.getTask().getIdentityPath());
             }
@@ -540,7 +540,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public boolean executeWithTask(final WorkerLease workerLease, final Action<TaskInfo> taskExecution) {
-        final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
+        final AtomicReference<TaskInfo> selected = new AtomicReference<>();
         final AtomicBoolean workRemaining = new AtomicBoolean();
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
@@ -582,7 +582,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private TaskInfo selectNextTask(final WorkerLease workerLease) {
-        final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
+        final AtomicReference<TaskInfo> selected = new AtomicReference<>();
         final Iterator<TaskInfo> iterator = executionQueue.iterator();
         while (iterator.hasNext()) {
             final TaskInfo taskInfo = iterator.next();
@@ -860,7 +860,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void enforceWithDependencies(TaskInfo nodeInfo, Set<TaskInfo> enforcedTasks) {
-        Deque<TaskInfo> candidateNodes = new ArrayDeque<TaskInfo>();
+        Deque<TaskInfo> candidateNodes = new ArrayDeque<>();
         candidateNodes.add(nodeInfo);
 
         while (!candidateNodes.isEmpty()) {

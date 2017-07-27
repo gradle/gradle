@@ -38,8 +38,8 @@ public class ClassInspector {
     }
 
     private static void visitGraph(Class<?> type, MutableClassDetails classDetails) {
-        Set<Class<?>> seen = new HashSet<Class<?>>();
-        List<Class<?>> queue = new ArrayList<Class<?>>();
+        Set<Class<?>> seen = new HashSet<>();
+        List<Class<?>> queue = new ArrayList<>();
 
         // fully visit the class hierarchy before any interfaces in order to meet the contract
         // of PropertyDetails.getGetters() etc.

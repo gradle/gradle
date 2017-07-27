@@ -153,11 +153,11 @@ public class JavadocConverter {
 
     private static class HtmlGeneratingTokenHandler extends JavadocLexer.TokenVisitor {
         final DocBookBuilder nodes;
-        final List<HtmlElementHandler> elementHandlers = new ArrayList<HtmlElementHandler>();
-        final List<JavadocTagHandler> tagHandlers = new ArrayList<JavadocTagHandler>();
-        final LinkedList<HtmlElementHandler> handlerStack = new LinkedList<HtmlElementHandler>();
-        final LinkedList<String> tagStack = new LinkedList<String>();
-        final Map<String, String> attributes = new HashMap<String, String>();
+        final List<HtmlElementHandler> elementHandlers = new ArrayList<>();
+        final List<JavadocTagHandler> tagHandlers = new ArrayList<>();
+        final LinkedList<HtmlElementHandler> handlerStack = new LinkedList<>();
+        final LinkedList<String> tagStack = new LinkedList<>();
+        final Map<String, String> attributes = new HashMap<>();
         StringBuilder tagValue;
         final Document document;
 

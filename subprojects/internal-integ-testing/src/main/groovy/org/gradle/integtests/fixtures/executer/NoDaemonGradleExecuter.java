@@ -113,7 +113,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected List<String> getAllArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         args.addAll(super.getAllArgs());
         args.add("--stacktrace");
         addPropagatedSystemProperties(args);

@@ -66,7 +66,7 @@ public class AnnotationProcessorDetector {
             if (pos == compileOptions.getCompilerArgs().size() - 1) {
                 throw new InvalidUserDataException("No path provided for compiler argument -processorpath in requested compiler args: " + Joiner.on(" ").join(compileOptions.getCompilerArgs()));
             }
-            List<File> files = new ArrayList<File>();
+            List<File> files = new ArrayList<>();
             for (String path : Splitter.on(File.pathSeparatorChar).splitToList(compileOptions.getCompilerArgs().get(pos + 1))) {
                 files.add(new File(path));
             }

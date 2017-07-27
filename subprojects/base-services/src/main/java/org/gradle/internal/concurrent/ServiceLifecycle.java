@@ -36,7 +36,7 @@ public class ServiceLifecycle implements AsyncStoppable {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private State state = State.RUNNING;
-    private Map<Thread, Integer> usages = new HashMap<Thread, Integer>();
+    private Map<Thread, Integer> usages = new HashMap<>();
 
     public ServiceLifecycle(String displayName) {
         this.displayName = displayName;

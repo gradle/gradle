@@ -112,7 +112,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
-        CallableBuildOperationWorker<T> worker = new CallableBuildOperationWorker<T>();
+        CallableBuildOperationWorker<T> worker = new CallableBuildOperationWorker<>();
         try {
             execute(buildOperation, worker, currentOperation.get());
         } finally {

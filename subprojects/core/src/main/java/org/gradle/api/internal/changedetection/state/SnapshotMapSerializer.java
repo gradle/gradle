@@ -47,7 +47,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
     @Override
     public Map<String, NormalizedFileSnapshot> read(Decoder decoder) throws Exception {
         int snapshotsCount = decoder.readSmallInt();
-        Map<String, NormalizedFileSnapshot> snapshots = new LinkedHashMap<String, NormalizedFileSnapshot>(snapshotsCount);
+        Map<String, NormalizedFileSnapshot> snapshots = new LinkedHashMap<>(snapshotsCount);
         for (int i = 0; i < snapshotsCount; i++) {
             String absolutePath = stringInterner.intern(decoder.readString());
             NormalizedFileSnapshot snapshot = readSnapshot(absolutePath, decoder, stringInterner);

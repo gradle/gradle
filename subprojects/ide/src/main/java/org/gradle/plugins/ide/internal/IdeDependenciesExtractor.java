@@ -78,7 +78,7 @@ public class IdeDependenciesExtractor {
             resolvedDependenciesComponentMap.put(toComponentIdentifier(dep.getId()), dep);
         }
 
-        List<Class<? extends Artifact>> artifactTypes = new ArrayList<Class<? extends Artifact>>(2);
+        List<Class<? extends Artifact>> artifactTypes = new ArrayList<>(2);
         if (downloadSources) {
             artifactTypes.add(SourcesArtifact.class);
         }
@@ -92,7 +92,7 @@ public class IdeDependenciesExtractor {
         Collection<UnresolvedIdeRepoFileDependency> unresolvedDependencies = unresolvedExternalDependencies(plusConfigurations, minusConfigurations);
         Collection<IdeExtendedRepoFileDependency> resolvedDependencies = resolvedDependenciesComponentMap.values();
 
-        Collection<IdeExtendedRepoFileDependency> resolvedAndUnresolved = new ArrayList<IdeExtendedRepoFileDependency>(unresolvedDependencies.size() + resolvedDependencies.size());
+        Collection<IdeExtendedRepoFileDependency> resolvedAndUnresolved = new ArrayList<>(unresolvedDependencies.size() + resolvedDependencies.size());
         resolvedAndUnresolved.addAll(resolvedDependencies);
         resolvedAndUnresolved.addAll(unresolvedDependencies);
 
@@ -132,7 +132,7 @@ public class IdeDependenciesExtractor {
     }
 
     public Collection<UnresolvedIdeRepoFileDependency> unresolvedExternalDependencies(Iterable<Configuration> plusConfigurations, Iterable<Configuration> minusConfigurations) {
-        final LinkedHashMap<File, UnresolvedIdeRepoFileDependency> unresolved = new LinkedHashMap<File, UnresolvedIdeRepoFileDependency>();
+        final LinkedHashMap<File, UnresolvedIdeRepoFileDependency> unresolved = new LinkedHashMap<>();
 
         for (Configuration c : plusConfigurations) {
             List<UnresolvedIdeRepoFileDependency> deps = ideDependencyResolver.getUnresolvedIdeRepoFileDependencies(c);
@@ -152,7 +152,7 @@ public class IdeDependenciesExtractor {
     }
 
     public Collection<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        LinkedHashMap<File, IdeLocalFileDependency> fileToConf = new LinkedHashMap<File, IdeLocalFileDependency>();
+        LinkedHashMap<File, IdeLocalFileDependency> fileToConf = new LinkedHashMap<>();
 
         if (plusConfigurations != null) {
             for (Configuration plusConfiguration : plusConfigurations) {
@@ -174,7 +174,7 @@ public class IdeDependenciesExtractor {
     }
 
     public Collection<IdeExtendedRepoFileDependency> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        LinkedHashMap<File, IdeExtendedRepoFileDependency> out = new LinkedHashMap<File, IdeExtendedRepoFileDependency>();
+        LinkedHashMap<File, IdeExtendedRepoFileDependency> out = new LinkedHashMap<>();
 
         if (plusConfigurations != null) {
             for (Configuration plusConfiguration : plusConfigurations) {

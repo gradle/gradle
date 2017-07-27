@@ -65,7 +65,7 @@ public final class BuildOperationRecord {
     }
 
     Map<String, ?> toSerializable() {
-        Map<String, Object> map = new LinkedHashMap<String, Object>();
+        Map<String, Object> map = new LinkedHashMap<>();
         map.put("displayName", displayName);
 
         map.put("id", id);

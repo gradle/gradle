@@ -65,7 +65,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     }
 
     private void findTaskActions(Class<? extends Task> type, TaskClassInfo taskClassInfo) {
-        Set<String> methods = new HashSet<String>();
+        Set<String> methods = new HashSet<>();
         for (Class current = type; current != null; current = current.getSuperclass()) {
             for (Method method : current.getDeclaredMethods()) {
                 attachTaskAction(type, method, taskClassInfo, methods);

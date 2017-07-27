@@ -58,9 +58,9 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
      * A more efficient implementation when absolute paths are used.
      */
     private Iterator<TaskStateChange> iterateChangesForAbsolutePaths(final Map<String, NormalizedFileSnapshot> current, final Map<String, NormalizedFileSnapshot> previous, final String fileType, final boolean includeAdded) {
-        final Set<String> unaccountedForPreviousSnapshots = new LinkedHashSet<String>(previous.keySet());
+        final Set<String> unaccountedForPreviousSnapshots = new LinkedHashSet<>(previous.keySet());
         final Iterator<Entry<String, NormalizedFileSnapshot>> currentEntries = current.entrySet().iterator();
-        final List<String> added = new ArrayList<String>();
+        final List<String> added = new ArrayList<>();
         return new AbstractIterator<TaskStateChange>() {
             private Iterator<String> unaccountedForPreviousSnapshotsIterator;
             private Iterator<String> addedIterator;

@@ -228,7 +228,7 @@ public final class BuildCacheControllerFactory {
     private static class Describer implements BuildCacheServiceFactory.Describer {
 
         private String type;
-        private Map<String, String> configParams = new HashMap<String, String>();
+        private Map<String, String> configParams = new HashMap<>();
 
         @Override
         public BuildCacheServiceFactory.Describer type(String type) {

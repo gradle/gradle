@@ -28,7 +28,7 @@ public class FetchIncludedBuildInvocations implements BuildAction<List<BuildInvo
 
     @Override
     public List<BuildInvocations> execute(BuildController controller) {
-        List<BuildInvocations> invocations = new ArrayList<BuildInvocations>();
+        List<BuildInvocations> invocations = new ArrayList<>();
         GradleBuild build = controller.getBuildModel();
         for (GradleBuild includedBuild : build.getIncludedBuilds()) {
             invocations.add(controller.getModel(includedBuild, BuildInvocations.class));

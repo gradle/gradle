@@ -26,7 +26,7 @@ import java.util.List;
 
 public class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
     private final TaskStateChanges inputFilesState;
-    private List<InputFileDetails> removedFiles = new ArrayList<InputFileDetails>();
+    private List<InputFileDetails> removedFiles = new ArrayList<>();
 
     public ChangesOnlyIncrementalTaskInputs(TaskStateChanges inputFilesState) {
         this.inputFilesState = inputFilesState;

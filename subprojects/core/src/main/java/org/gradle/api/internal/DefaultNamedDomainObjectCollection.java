@@ -459,7 +459,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public NavigableMap<String, T> asMap() {
             NavigableMap<String, ? super T> delegateMap = delegate.asMap();
 
-            NavigableMap<String, T> filtered = new TreeMap<String, T>();
+            NavigableMap<String, T> filtered = new TreeMap<>();
             for (Map.Entry<String, ? super T> entry : delegateMap.entrySet()) {
                 T obj = filter.filter(entry.getValue());
                 if (obj != null) {

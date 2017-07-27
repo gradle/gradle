@@ -119,7 +119,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     protected IvyResolver createRealResolver() {
         URI uri = getUrl();
 
-        Set<String> schemes = new LinkedHashSet<String>();
+        Set<String> schemes = new LinkedHashSet<>();
         layout.addSchemes(uri, schemes);
         additionalPatternsLayout.addSchemes(uri, schemes);
 

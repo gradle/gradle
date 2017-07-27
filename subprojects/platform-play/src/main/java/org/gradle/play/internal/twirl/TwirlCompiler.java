@@ -49,7 +49,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             Iterable<RelativeFile> sources = spec.getSources();
             for (RelativeFile sourceFile : sources) {
                 Object result = compile.invoke(adapter.createCompileParameters(cl, sourceFile.getFile(), sourceFile.getBaseDir(), spec.getDestinationDir(), spec.getDefaultImports()));
-                ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<File>(result);
+                ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<>(result);
                 if (maybeFile.isDefined()) {
                     outputFiles.add(maybeFile.get());
                 }

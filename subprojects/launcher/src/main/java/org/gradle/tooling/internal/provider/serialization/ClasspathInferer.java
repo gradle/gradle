@@ -55,7 +55,7 @@ public class ClasspathInferer {
         try {
             Collection<URL> classPath = classPathCache.get(targetClass);
             if (classPath == null) {
-                Set<Class<?>> visited = new HashSet<Class<?>>();
+                Set<Class<?>> visited = new HashSet<>();
                 classPath = new LinkedHashSet<URL>();
                 find(targetClass, visited, classPath);
                 classPathCache.put(targetClass, classPath);

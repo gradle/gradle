@@ -153,7 +153,7 @@ public class FindBugsSpecBuilder {
     }
 
     public FindBugsSpec build() {
-        ArrayList<String> args = new ArrayList<String>();
+        ArrayList<String> args = new ArrayList<>();
         args.add("-pluginList");
         args.add(pluginsList==null ? "" : pluginsList.getAsPath());
         args.add("-sortByClass");

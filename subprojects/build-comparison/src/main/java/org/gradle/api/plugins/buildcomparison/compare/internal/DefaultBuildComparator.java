@@ -33,13 +33,13 @@ public class DefaultBuildComparator implements BuildComparator {
     }
 
     public BuildComparisonResult compareBuilds(BuildComparisonSpec spec) {
-        Set<BuildOutcome> uncomparedFrom = new HashSet<BuildOutcome>(spec.getSource());
-        Set<BuildOutcome> uncomparedTo = new HashSet<BuildOutcome>(spec.getTarget());
+        Set<BuildOutcome> uncomparedFrom = new HashSet<>(spec.getSource());
+        Set<BuildOutcome> uncomparedTo = new HashSet<>(spec.getTarget());
 
-        Set<BuildOutcome> unknownFrom = new HashSet<BuildOutcome>();
-        Set<BuildOutcome> unknownTo = new HashSet<BuildOutcome>();
+        Set<BuildOutcome> unknownFrom = new HashSet<>();
+        Set<BuildOutcome> unknownTo = new HashSet<>();
 
-        List<BuildOutcomeComparisonResult<?>> results = new LinkedList<BuildOutcomeComparisonResult<?>>();
+        List<BuildOutcomeComparisonResult<?>> results = new LinkedList<>();
 
         for (BuildOutcomeAssociation<? extends BuildOutcome> outcomeAssociation : spec.getOutcomeAssociations()) {
             BuildOutcome from = outcomeAssociation.getSource();

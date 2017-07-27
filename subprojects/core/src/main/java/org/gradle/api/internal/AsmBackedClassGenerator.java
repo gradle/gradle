@@ -142,7 +142,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void startClass(boolean shouldImplementWithServices) {
-            List<String> interfaceTypes = new ArrayList<String>();
+            List<String> interfaceTypes = new ArrayList<>();
 
             interfaceTypes.add(GENERATED_SUBCLASS_TYPE.getInternalName());
 
@@ -169,7 +169,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void addConstructor(Constructor<?> constructor) throws Exception {
-            List<Type> paramTypes = new ArrayList<Type>();
+            List<Type> paramTypes = new ArrayList<>();
             for (Class<?> paramType : constructor.getParameterTypes()) {
                 paramTypes.add(Type.getType(paramType));
             }

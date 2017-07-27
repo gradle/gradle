@@ -60,7 +60,7 @@ class SwiftLinker extends AbstractCompiler<LinkerSpec> {
     private static class SwiftCompileArgsTransformer implements ArgsTransformer<LinkerSpec> {
         @Override
         public List<String> transform(LinkerSpec spec) {
-            List<String> args = new ArrayList<String>();
+            List<String> args = new ArrayList<>();
 
             args.addAll(spec.getSystemArgs());
 

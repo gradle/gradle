@@ -160,7 +160,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
                 throw new IllegalArgumentException(String.format("The constructor for class %s should be public or package protected or annotated with @Inject.", type.getName()));
             }
 
-            List<Constructor<?>> injectConstructors = new ArrayList<Constructor<?>>();
+            List<Constructor<?>> injectConstructors = new ArrayList<>();
             for (Constructor<?> constructor : constructors) {
                 if (constructor.getAnnotation(Inject.class) != null) {
                     injectConstructors.add(constructor);

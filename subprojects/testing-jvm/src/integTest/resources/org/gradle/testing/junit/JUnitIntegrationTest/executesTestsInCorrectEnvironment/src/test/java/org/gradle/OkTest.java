@@ -82,7 +82,7 @@ public class OkTest {
 
     private List<URL> buildExpectedClassPath(String expectedClassPath) throws MalformedURLException {
         String[] paths = splitClasspath(expectedClassPath);
-        List<URL> urls = new ArrayList<URL>();
+        List<URL> urls = new ArrayList<>();
         for (String path : paths) {
             urls.add(new File(path).toURI().toURL());
         }

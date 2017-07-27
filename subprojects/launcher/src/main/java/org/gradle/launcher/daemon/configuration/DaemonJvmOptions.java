@@ -75,7 +75,7 @@ public class DaemonJvmOptions extends JvmOptions {
     }
 
     public List<String> getAllSingleUseImmutableJvmArgs() {
-        List<String> immutableDaemonParameters = new ArrayList<String>();
+        List<String> immutableDaemonParameters = new ArrayList<>();
         formatSystemProperties(getImmutableDaemonProperties(), immutableDaemonParameters);
         final List<String> jvmArgs = getAllImmutableJvmArgs();
         jvmArgs.removeAll(immutableDaemonParameters);

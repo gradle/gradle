@@ -27,9 +27,9 @@ import java.util.LinkedHashMap;
 public class XRef {
     private final Hierarchy antlrHierarchy;
 
-    private LinkedHashMap<String, GrammarFileMetadata> filesByPath = new LinkedHashMap<String, GrammarFileMetadata>();
-    private HashMap<String, GrammarFileMetadata> filesByExportVocab = new HashMap<String, GrammarFileMetadata>();
-    private HashMap<String, GrammarFileMetadata> filesByClassName = new HashMap<String, GrammarFileMetadata>();
+    private LinkedHashMap<String, GrammarFileMetadata> filesByPath = new LinkedHashMap<>();
+    private HashMap<String, GrammarFileMetadata> filesByExportVocab = new HashMap<>();
+    private HashMap<String, GrammarFileMetadata> filesByClassName = new HashMap<>();
 
     public XRef(Hierarchy antlrHierarchy) {
         this.antlrHierarchy = antlrHierarchy;

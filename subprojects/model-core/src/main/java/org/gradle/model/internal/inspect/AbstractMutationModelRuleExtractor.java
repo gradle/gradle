@@ -55,7 +55,7 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             MethodRuleDefinition<?, S> ruleDefinition = Cast.uncheckedCast(getRuleDefinition());
-            MethodBackedModelAction<S> ruleAction = new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences());
+            MethodBackedModelAction<S> ruleAction = new MethodBackedModelAction<>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences());
             RuleExtractorUtils.configureRuleAction(context, ruleApplicationScope, mutationType, ruleAction);
         }
 

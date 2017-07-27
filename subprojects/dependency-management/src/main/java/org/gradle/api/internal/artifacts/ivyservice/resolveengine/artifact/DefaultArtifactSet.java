@@ -78,7 +78,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
 
     private static ResolvedVariant toResolvedVariant(VariantMetadata variant, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry) {
         Set<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
-        Set<ResolvableArtifact> resolvedArtifacts = new LinkedHashSet<ResolvableArtifact>(artifacts.size());
+        Set<ResolvableArtifact> resolvedArtifacts = new LinkedHashSet<>(artifacts.size());
 
         // Apply any artifact type mappings to the attributes of the variant
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variant);

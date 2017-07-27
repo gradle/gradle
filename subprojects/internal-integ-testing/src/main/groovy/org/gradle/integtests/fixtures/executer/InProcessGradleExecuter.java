@@ -198,7 +198,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     private Collection<File> cleanup(List<File> files) {
-        List<File> result = new LinkedList<File>();
+        List<File> result = new LinkedList<>();
         String prefix = Jvm.current().getJavaHome().getPath() + File.separator;
         for (File file : files) {
             if (file.getPath().startsWith(prefix)) {
@@ -216,10 +216,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         Properties originalSysProperties = new Properties();
         originalSysProperties.putAll(System.getProperties());
         File originalUserDir = new File(originalSysProperties.getProperty("user.dir")).getAbsoluteFile();
-        Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
+        Map<String, String> originalEnv = new HashMap<>(System.getenv());
 
         GradleInvocation invocation = buildInvocation();
-        Set<String> changedEnvVars = new HashSet<String>(invocation.environmentVars.keySet());
+        Set<String> changedEnvVars = new HashSet<>(invocation.environmentVars.keySet());
 
         try {
             return executeBuild(invocation, outputListener, errorListener, listener);
@@ -364,7 +364,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();
 
         public void graphPopulated(TaskExecutionGraph graph) {
-            List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
+            List<Task> planned = new ArrayList<>(graph.getAllTasks());
             graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
         }
     }
@@ -497,7 +497,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             if (GradleContextualExecuter.isParallel()) {
                 return this;
             }
-            Set<String> expected = new HashSet<String>(Arrays.asList(taskPaths));
+            Set<String> expected = new HashSet<>(Arrays.asList(taskPaths));
             assertThat(skippedTasks, equalTo(expected));
             outputResult.assertTasksSkipped(taskPaths);
             return this;
@@ -516,7 +516,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             if (GradleContextualExecuter.isParallel()) {
                 return this;
             }
-            Set<String> expected = new HashSet<String>(Arrays.asList(taskPaths));
+            Set<String> expected = new HashSet<>(Arrays.asList(taskPaths));
             Set<String> notSkipped = getNotSkippedTasks();
             assertThat(notSkipped, equalTo(expected));
             outputResult.assertTasksNotSkipped(taskPaths);
@@ -533,7 +533,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         private Set<String> getNotSkippedTasks() {
-            Set<String> notSkipped = new HashSet<String>(plannedTasks);
+            Set<String> notSkipped = new HashSet<>(plannedTasks);
             notSkipped.removeAll(skippedTasks);
             return notSkipped;
         }
@@ -589,7 +589,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertThatCause(Matcher<String> matcher) {
-            List<Throwable> causes = new ArrayList<Throwable>();
+            List<Throwable> causes = new ArrayList<>();
             extractCauses(failure, causes);
             assertThat(causes, Matchers.<Throwable>hasItem(hasMessage(normalizedLineSeparators(matcher))));
             outputFailure.assertThatCause(matcher);

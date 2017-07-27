@@ -32,9 +32,9 @@ import java.util.List;
 class InetAddresses {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private List<InetAddress> loopback = new ArrayList<InetAddress>();
-    private List<InetAddress> remote = new ArrayList<InetAddress>();
-    private List<NetworkInterface> multicastInterfaces = new ArrayList<NetworkInterface>();
+    private List<InetAddress> loopback = new ArrayList<>();
+    private List<InetAddress> remote = new ArrayList<>();
+    private List<NetworkInterface> multicastInterfaces = new ArrayList<>();
 
     InetAddresses() throws SocketException {
         analyzeNetworkInterfaces();

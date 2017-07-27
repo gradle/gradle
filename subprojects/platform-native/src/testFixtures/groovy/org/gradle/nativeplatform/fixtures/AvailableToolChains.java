@@ -88,7 +88,7 @@ public class AvailableToolChains {
      */
     public static List<ToolChainCandidate> getToolChains() {
         if (toolChains == null) {
-            List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
+            List<ToolChainCandidate> compilers = new ArrayList<>();
             if (OperatingSystem.current().isWindows()) {
                 compilers.addAll(findVisualCpps());
                 compilers.add(findMinGW());

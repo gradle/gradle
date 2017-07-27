@@ -6,7 +6,7 @@ import org.gradle.apiImpl.Impl;
 
 
 public class PersonList {
-    private ArrayList<Person> persons = new ArrayList<Person>();
+    private ArrayList<Person> persons = new ArrayList<>();
 
     public void doSomethingWithImpl() {
         org.apache.commons.lang.builder.ToStringBuilder stringBuilder;

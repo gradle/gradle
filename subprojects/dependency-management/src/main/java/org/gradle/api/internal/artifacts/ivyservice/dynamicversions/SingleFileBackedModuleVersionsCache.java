@@ -134,7 +134,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
 
         public ModuleVersionsCacheEntry read(Decoder decoder) throws Exception {
             int size = decoder.readInt();
-            Set<String> versions = new LinkedHashSet<String>();
+            Set<String> versions = new LinkedHashSet<>();
             for (int i = 0; i < size; i++) {
                 versions.add(decoder.readString());
             }

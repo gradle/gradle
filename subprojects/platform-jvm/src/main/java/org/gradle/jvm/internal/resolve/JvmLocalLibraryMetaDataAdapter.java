@@ -56,8 +56,8 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
     @Override
     @SuppressWarnings("unchecked")
     public DefaultLibraryLocalComponentMetadata createLocalComponentMetaData(Binary selectedBinary, String projectPath, boolean toAssembly) {
-        EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage = new EnumMap<UsageKind, Iterable<DependencySpec>>(UsageKind.class);
-        EnumMap<UsageKind, List<PublishArtifact>> artifacts = new EnumMap<UsageKind, List<PublishArtifact>>(UsageKind.class);
+        EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage = new EnumMap<>(UsageKind.class);
+        EnumMap<UsageKind, List<PublishArtifact>> artifacts = new EnumMap<>(UsageKind.class);
         initializeUsages(dependenciesPerUsage, artifacts);
         if (selectedBinary instanceof JarBinarySpecInternal) {
             JarBinarySpecInternal jarBinarySpec = (JarBinarySpecInternal) selectedBinary;
@@ -104,7 +104,7 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
     }
 
     private <T> Map<String, T> toStringMap(EnumMap<? extends Enum<UsageKind>, T> enumMap) {
-        Map<String, T> map = new HashMap<String, T>(enumMap.size());
+        Map<String, T> map = new HashMap<>(enumMap.size());
         for (Map.Entry<? extends Enum<UsageKind>, T> tEntry : enumMap.entrySet()) {
             UsageKind usageKind = UsageKind.valueOf(tEntry.getKey().name());
             map.put(usageKind.getConfigurationName(), tEntry.getValue());

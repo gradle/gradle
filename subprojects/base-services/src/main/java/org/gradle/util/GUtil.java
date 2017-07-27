@@ -69,7 +69,7 @@ public class GUtil {
     }
 
     public static <T extends Collection> T flattenElements(Object... elements) {
-        Collection<T> out = new LinkedList<T>();
+        Collection<T> out = new LinkedList<>();
         flatten(elements, out, true);
         return (T) out;
     }
@@ -130,7 +130,7 @@ public class GUtil {
     }
 
     public static List<String> prefix(String prefix, Collection<String> strings) {
-        List<String> prefixed = new ArrayList<String>();
+        List<String> prefixed = new ArrayList<>();
         for (String string : strings) {
             prefixed.add(prefix + string);
         }

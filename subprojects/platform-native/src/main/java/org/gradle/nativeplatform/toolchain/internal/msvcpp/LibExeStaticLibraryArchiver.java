@@ -72,7 +72,7 @@ class LibExeStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiver
     private static class LibExeSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
         @Override
         public List<String> transform(StaticLibraryArchiverSpec spec) {
-            List<String> args = new ArrayList<String>();
+            List<String> args = new ArrayList<>();
             args.add("/OUT:" + spec.getOutputFile().getAbsolutePath());
             args.add("/NOLOGO");
             args.addAll(escapeUserArgs(spec.getAllArgs()));

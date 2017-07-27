@@ -38,7 +38,7 @@ public class PatternSpecFactory {
     }
 
     public Spec<FileTreeElement> createIncludeSpec(PatternSet patternSet) {
-        List<Spec<FileTreeElement>> allIncludeSpecs = new ArrayList<Spec<FileTreeElement>>(1 + patternSet.getIncludeSpecs().size());
+        List<Spec<FileTreeElement>> allIncludeSpecs = new ArrayList<>(1 + patternSet.getIncludeSpecs().size());
 
         if (!patternSet.getIncludes().isEmpty()) {
             allIncludeSpecs.add(createSpec(patternSet.getIncludes(), true, patternSet.isCaseSensitive()));
@@ -50,7 +50,7 @@ public class PatternSpecFactory {
     }
 
     public Spec<FileTreeElement> createExcludeSpec(PatternSet patternSet) {
-        List<Spec<FileTreeElement>> allExcludeSpecs = new ArrayList<Spec<FileTreeElement>>(2 + patternSet.getExcludeSpecs().size());
+        List<Spec<FileTreeElement>> allExcludeSpecs = new ArrayList<>(2 + patternSet.getExcludeSpecs().size());
 
         if (!patternSet.getExcludes().isEmpty()) {
             allExcludeSpecs.add(createSpec(patternSet.getExcludes(), false, patternSet.isCaseSensitive()));
@@ -75,7 +75,7 @@ public class PatternSpecFactory {
             return include ? Specs.<FileTreeElement>satisfyAll() : Specs.<FileTreeElement>satisfyNone();
         }
 
-        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>(patterns.size());
+        List<Spec<RelativePath>> matchers = new ArrayList<>(patterns.size());
         for (String pattern : patterns) {
             Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(include, caseSensitive, pattern);
             matchers.add(patternMatcher);

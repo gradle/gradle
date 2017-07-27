@@ -25,14 +25,14 @@ import java.util.List;
 public abstract class AbstractProjectSpec implements ProjectSpec {
     public boolean containsProject(ProjectRegistry<? extends ProjectIdentifier> registry) {
         checkPreconditions(registry);
-        List<ProjectIdentifier> matches = new ArrayList<ProjectIdentifier>();
+        List<ProjectIdentifier> matches = new ArrayList<>();
         select(registry, matches);
         return !matches.isEmpty();
     }
 
     public <T extends ProjectIdentifier> T selectProject(ProjectRegistry<? extends T> registry) {
         checkPreconditions(registry);
-        List<T> matches = new ArrayList<T>();
+        List<T> matches = new ArrayList<>();
         select(registry, matches);
         if (matches.isEmpty()) {
             throw new InvalidUserDataException(formatNoMatchesMessage());

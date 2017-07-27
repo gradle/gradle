@@ -129,14 +129,14 @@ public class TwirlCompile extends SourceTask {
         if (!inputs.isIncremental()) {
             new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs()).execute(spec);
         } else {
-            final Set<File> sourcesToCompile = new HashSet<File>();
+            final Set<File> sourcesToCompile = new HashSet<>();
             inputs.outOfDate(new Action<InputFileDetails>() {
                 public void execute(InputFileDetails inputFileDetails) {
                     sourcesToCompile.add(inputFileDetails.getFile());
                 }
             });
 
-            final Set<File> staleOutputFiles = new HashSet<File>();
+            final Set<File> staleOutputFiles = new HashSet<>();
             inputs.removed(new Action<InputFileDetails>() {
                 public void execute(InputFileDetails inputFileDetails) {
                     staleOutputFiles.add(inputFileDetails.getFile());

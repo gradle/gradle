@@ -82,7 +82,7 @@ public class VisualStudioProjectConfiguration {
     }
 
     public List<String> getCompilerDefines() {
-        List<String> defines = new ArrayList<String>();
+        List<String> defines = new ArrayList<>();
         defines.addAll(getDefines("cCompiler"));
         defines.addAll(getDefines("cppCompiler"));
         defines.addAll(getDefines("rcCompiler"));
@@ -99,7 +99,7 @@ public class VisualStudioProjectConfiguration {
     }
 
     public List<File> getIncludePaths() {
-        Set<File> includes = new LinkedHashSet<File>();
+        Set<File> includes = new LinkedHashSet<>();
 
         for (LanguageSourceSet sourceSet : binary.getInputs()) {
             if (sourceSet instanceof HeaderExportingSourceSet) {

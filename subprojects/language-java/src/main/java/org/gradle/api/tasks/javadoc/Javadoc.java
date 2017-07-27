@@ -135,7 +135,7 @@ public class Javadoc extends SourceTask {
             }
         }
 
-        List<String> sourceNames = new ArrayList<String>();
+        List<String> sourceNames = new ArrayList<>();
         for (File sourceFile : getSource()) {
             sourceNames.add(sourceFile.getAbsolutePath());
         }

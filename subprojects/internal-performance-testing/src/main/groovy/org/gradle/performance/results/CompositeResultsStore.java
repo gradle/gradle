@@ -59,7 +59,7 @@ public class CompositeResultsStore implements ResultsStore {
 
     private void buildTests() {
         if (tests == null) {
-            Map<String, ResultsStore> tests = new LinkedHashMap<String, ResultsStore>();
+            Map<String, ResultsStore> tests = new LinkedHashMap<>();
             for (ResultsStore store : stores) {
                 for (String testName : store.getTestNames()) {
                     if (tests.containsKey(testName)) {

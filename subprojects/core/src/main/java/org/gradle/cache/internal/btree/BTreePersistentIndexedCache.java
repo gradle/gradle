@@ -220,7 +220,7 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private void doVerify() throws Exception {
-        List<BlockPayload> blocks = new ArrayList<BlockPayload>();
+        List<BlockPayload> blocks = new ArrayList<>();
 
         HeaderBlock header = store.readFirst(HeaderBlock.class);
         blocks.add(header);

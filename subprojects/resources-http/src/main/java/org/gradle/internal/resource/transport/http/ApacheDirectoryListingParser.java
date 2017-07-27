@@ -73,7 +73,7 @@ public class ApacheDirectoryListingParser {
         final String baseURIHost = baseURI.getHost();
         final String baseURIScheme = baseURI.getScheme();
 
-        List<String> uris = new ArrayList<String>();
+        List<String> uris = new ArrayList<>();
         final String prefixPath = baseURI.getPath();
         for (URI parsedURI : inputURIs) {
             if (parsedURI.getHost() != null && !parsedURI.getHost().equals(baseURIHost)) {
@@ -115,7 +115,7 @@ public class ApacheDirectoryListingParser {
     }
 
     private List<URI> resolveURIs(URI baseURI, List<String> hrefs) {
-        List<URI> uris = new ArrayList<URI>();
+        List<URI> uris = new ArrayList<>();
         for (String href : hrefs) {
             try {
                 uris.add(baseURI.resolve(href));
@@ -127,7 +127,7 @@ public class ApacheDirectoryListingParser {
     }
 
     private class AnchorListerHandler extends DefaultHandler {
-        List<String> hrefs = new ArrayList<String>();
+        List<String> hrefs = new ArrayList<>();
 
         public List<String> getHrefs() {
             return hrefs;

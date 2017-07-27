@@ -20,7 +20,7 @@ import java.util.*;
 
 public class SomeClass {
 
-    List<Integer> field = new LinkedList<Integer>();
+    List<Integer> field = new LinkedList<>();
 
     private Set<String> stuff(HashMap<String, String> map) {
         System.out.println(new Foo());

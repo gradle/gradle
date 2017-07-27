@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class GrammarDelegate {
     public static List<GrammarDelegate> extractGrammarDelegates(GrammarFile antlrGrammarFile) {
-        List<GrammarDelegate> grammarDelegates = new ArrayList<GrammarDelegate>();
+        List<GrammarDelegate> grammarDelegates = new ArrayList<>();
         Enumeration grammarFileGramars = antlrGrammarFile.getGrammars().elements();
         while (grammarFileGramars.hasMoreElements()) {
             grammarDelegates.add(new GrammarDelegate(grammarFileGramars.nextElement()));

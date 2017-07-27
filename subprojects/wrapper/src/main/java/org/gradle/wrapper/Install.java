@@ -145,7 +145,7 @@ public class Install {
     }
 
     private List<File> listDirs(File distDir) {
-        List<File> dirs = new ArrayList<File>();
+        List<File> dirs = new ArrayList<>();
         if (distDir.exists()) {
             for (File file : distDir.listFiles()) {
                 if (file.isDirectory()) {

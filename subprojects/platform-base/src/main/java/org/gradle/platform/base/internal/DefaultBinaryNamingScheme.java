@@ -56,7 +56,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
 
     @Override
     public BinaryNamingScheme withVariantDimension(String dimension) {
-        List<String> newDimensions = new ArrayList<String>(dimensions.size() + 1);
+        List<String> newDimensions = new ArrayList<>(dimensions.size() + 1);
         newDimensions.addAll(dimensions);
         newDimensions.add(dimension);
         return new DefaultBinaryNamingScheme(parentName, binaryName, binaryType, role, main, newDimensions);

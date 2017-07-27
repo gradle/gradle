@@ -56,8 +56,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     public SerializeMap newSerializeSession() {
         return new SerializeMap() {
-            final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
-            final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
+            final Map<ClassLoader, Short> classLoaderIds = new HashMap<>();
+            final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<>();
 
             public short visitClass(Class<?> target) {
                 ClassLoader classLoader = target.getClassLoader();
@@ -114,7 +114,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     private static class ClassLoaderSpecVisitor extends ClassLoaderVisitor {
         final ClassLoader classLoader;
-        final List<ClassLoader> parents = new ArrayList<ClassLoader>();
+        final List<ClassLoader> parents = new ArrayList<>();
         ClassLoaderSpec spec;
         URL[] classPath;
 
@@ -144,7 +144,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     private class ClassLoaderToDetailsTransformer implements Transformer<ClassLoader, ClassLoaderDetails> {
         public ClassLoader transform(ClassLoaderDetails details) {
-            List<ClassLoader> parents = new ArrayList<ClassLoader>();
+            List<ClassLoader> parents = new ArrayList<>();
             for (ClassLoaderDetails parentDetails : details.parents) {
                 parents.add(getClassLoader(parentDetails));
             }

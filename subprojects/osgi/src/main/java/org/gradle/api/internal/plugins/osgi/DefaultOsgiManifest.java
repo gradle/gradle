@@ -53,7 +53,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
 
     private Factory<ContainedVersionAnalyzer> analyzerFactory = new DefaultAnalyzerFactory();
 
-    private Map<String, List<String>> unmodelledInstructions = new HashMap<String, List<String>>();
+    private Map<String, List<String>> unmodelledInstructions = new HashMap<>();
 
     private FileCollection classpath;
 
@@ -287,7 +287,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     public Map<String, List<String>> getInstructions() {
-        Map<String, List<String>> instructions = new HashMap<String, List<String>>();
+        Map<String, List<String>> instructions = new HashMap<>();
         instructions.putAll(unmodelledInstructions);
         instructions.putAll(getModelledInstructions());
         return instructions;
@@ -306,7 +306,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     private Map<String, List<String>> getModelledInstructions() {
-        Map<String, List<String>> modelledInstructions = new HashMap<String, List<String>>();
+        Map<String, List<String>> modelledInstructions = new HashMap<>();
         modelledInstructions.put(Analyzer.BUNDLE_SYMBOLICNAME, createListFromPropertyString(symbolicName));
         modelledInstructions.put(Analyzer.BUNDLE_NAME, createListFromPropertyString(name));
         modelledInstructions.put(Analyzer.BUNDLE_VERSION, createListFromPropertyString(version));

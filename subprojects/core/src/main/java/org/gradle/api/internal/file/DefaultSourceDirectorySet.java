@@ -83,7 +83,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     public Set<File> getSrcDirs() {
-        Set<File> dirs = new LinkedHashSet<File>();
+        Set<File> dirs = new LinkedHashSet<>();
         for (DirectoryTree tree : getSrcDirTrees()) {
             dirs.add(tree.getDir());
         }
@@ -169,7 +169,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     public Set<DirectoryTree> getSrcDirTrees() {
         // This implementation is broken. It does not consider include and exclude patterns
-        Map<File, DirectoryTree> trees = new LinkedHashMap<File, DirectoryTree>();
+        Map<File, DirectoryTree> trees = new LinkedHashMap<>();
         for (DirectoryTree tree : doGetSrcDirTrees()) {
             if (!trees.containsKey(tree.getDir())) {
                 trees.put(tree.getDir(), tree);
@@ -179,7 +179,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     private Set<DirectoryTree> doGetSrcDirTrees() {
-        Set<DirectoryTree> result = new LinkedHashSet<DirectoryTree>();
+        Set<DirectoryTree> result = new LinkedHashSet<>();
         for (Object path : source) {
             if (path instanceof SourceDirectorySet) {
                 SourceDirectorySet nested = (SourceDirectorySet) path;

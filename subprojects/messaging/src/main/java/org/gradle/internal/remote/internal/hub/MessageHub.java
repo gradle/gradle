@@ -306,7 +306,7 @@ public class MessageHub implements AsyncStoppable {
 
         public void run() {
             try {
-                List<InterHubMessage> messages = new ArrayList<InterHubMessage>();
+                List<InterHubMessage> messages = new ArrayList<>();
                 try {
                     while (true) {
                         lock.lock();
@@ -385,7 +385,7 @@ public class MessageHub implements AsyncStoppable {
 
         public void run() {
             try {
-                List<InterHubMessage> messages = new ArrayList<InterHubMessage>();
+                List<InterHubMessage> messages = new ArrayList<>();
                 try {
                     while (true) {
                         lock.lock();

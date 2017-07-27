@@ -310,10 +310,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             if (!hasService(serviceType)) {
                 return Collections.emptyList();
             }
-            List<ServiceProvider> providers = new ArrayList<ServiceProvider>();
+            List<ServiceProvider> providers = new ArrayList<>();
             DefaultLookupContext context = new DefaultLookupContext();
             allServices.getAll(context, serviceType, providers);
-            List<T> services = new ArrayList<T>(providers.size());
+            List<T> services = new ArrayList<>(providers.size());
             for (ServiceProvider provider : providers) {
                 services.add(serviceType.cast(provider.get()));
             }
@@ -427,7 +427,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             if (!hasService(Factory.class)) {
                 return null;
             }
-            List<ServiceProvider> candidates = new ArrayList<ServiceProvider>();
+            List<ServiceProvider> candidates = new ArrayList<>();
             for (Provider provider : providers) {
                 ServiceProvider factory = provider.getFactory(context, type);
                 if (factory != null) {
@@ -441,7 +441,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 return candidates.get(0);
             }
 
-            Set<String> descriptions = new TreeSet<String>();
+            Set<String> descriptions = new TreeSet<>();
             for (ServiceProvider candidate : candidates) {
                 descriptions.add(candidate.getDisplayName());
             }
@@ -483,7 +483,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 return singleCandidate;
             }
 
-            Set<String> descriptions = new TreeSet<String>();
+            Set<String> descriptions = new TreeSet<>();
             for (ServiceProvider candidate : candidates) {
                 descriptions.add(candidate.getDisplayName());
             }
@@ -993,7 +993,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 result.addAll(services);
                 return;
             }
-            ArrayList<ServiceProvider> tmp = new ArrayList<ServiceProvider>();
+            ArrayList<ServiceProvider> tmp = new ArrayList<>();
             delegate.getAll(context, serviceType, tmp);
             allServicesCache.putIfAbsent(serviceType, tmp);
             if (!tmp.isEmpty()) {
@@ -1361,7 +1361,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         static TypeSpec toSpec(Type serviceType) {
             if (serviceType instanceof ParameterizedType) {
                 ParameterizedType parameterizedType = (ParameterizedType) serviceType;
-                List<TypeSpec> paramSpecs = new ArrayList<TypeSpec>();
+                List<TypeSpec> paramSpecs = new ArrayList<>();
                 for (Type paramType : parameterizedType.getActualTypeArguments()) {
                     paramSpecs.add(toSpec(paramType));
                 }
@@ -1413,9 +1413,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
             @Override
             public ServiceProvider apply(final LookupContext lookupContext, final Provider provider) {
-                List<ServiceProvider> providers = new ArrayList<ServiceProvider>();
+                List<ServiceProvider> providers = new ArrayList<>();
                 provider.getAll(lookupContext, elementClass, providers);
-                List<Object> services = new ArrayList<Object>(providers.size());
+                List<Object> services = new ArrayList<>(providers.size());
                 for (ServiceProvider serviceProvider : providers) {
                     services.add(serviceProvider.get());
                 }

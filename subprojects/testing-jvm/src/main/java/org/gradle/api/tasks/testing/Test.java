@@ -632,7 +632,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         getProject().delete(binaryResultsDir);
         getProject().mkdir(binaryResultsDir);
 
-        Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
+        Map<String, TestClassResult> results = new HashMap<>();
         TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
 
         TestOutputStore.Writer outputWriter = testOutputStore.writer();

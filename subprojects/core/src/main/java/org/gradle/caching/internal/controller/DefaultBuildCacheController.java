@@ -96,7 +96,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     @Nullable
     @Override
     public <T> T load(final BuildCacheLoadCommand<T> command) {
-        final Unpack<T> unpack = new Unpack<T>(command);
+        final Unpack<T> unpack = new Unpack<>(command);
 
         if (local.canLoad()) {
             try {

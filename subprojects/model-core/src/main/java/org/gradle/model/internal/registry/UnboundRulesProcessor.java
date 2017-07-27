@@ -41,7 +41,7 @@ class UnboundRulesProcessor {
     }
 
     public List<? extends UnboundRule> process() {
-        List<UnboundRule> unboundRules = new ArrayList<UnboundRule>();
+        List<UnboundRule> unboundRules = new ArrayList<>();
         for (RuleBinder binder : binders) {
             UnboundRule.Builder builder = UnboundRule.descriptor(String.valueOf(binder.getDescriptor()));
 

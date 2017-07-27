@@ -38,7 +38,7 @@ public class InMemoryCachingPluginResolutionServiceClient implements PluginResol
     }
 
     public Response<PluginUseMetaData> queryPluginMetadata(final String portalUrl, final boolean shouldValidate, final PluginRequestInternal pluginRequest) {
-        Key<PluginIdentity> key = new Key<PluginIdentity>(portalUrl, new PluginIdentity(pluginRequest.getId(), pluginRequest.getVersion()));
+        Key<PluginIdentity> key = new Key<>(portalUrl, new PluginIdentity(pluginRequest.getId(), pluginRequest.getVersion()));
         return getResponse(
                 key,
                 pluginMetadataCache,

@@ -107,7 +107,7 @@ public class ConsoleStub implements Console {
         }
 
         public List<String> getDisplay() {
-            List<String> display = new ArrayList<String>(testableLabels.size());
+            List<String> display = new ArrayList<>(testableLabels.size());
             for (TestableRedrawableLabel label : testableLabels) {
                 display.add(label.getDisplay());
             }

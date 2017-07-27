@@ -82,7 +82,7 @@ public class TaskSelector {
     }
 
     private void ensureNotFromIncludedBuild(File root) {
-        Set<File> includedRoots = new HashSet<File>();
+        Set<File> includedRoots = new HashSet<>();
         for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
             includedRoots.add(includedBuild.getProjectDir());
         }
@@ -136,7 +136,7 @@ public class TaskSelector {
         }
 
         public Set<Task> getTasks() {
-            LinkedHashSet<Task> result = new LinkedHashSet<Task>();
+            LinkedHashSet<Task> result = new LinkedHashSet<>();
             taskSelectionResult.collectTasks(result);
             return result;
         }

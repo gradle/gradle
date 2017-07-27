@@ -46,7 +46,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
     }
 
     public T parseType(Map values) throws UnsupportedNotationException {
-        Map<String, Object> mutableValues = new HashMap<String, Object>(values);
+        Map<String, Object> mutableValues = new HashMap<>(values);
         Set<String> missing = null;
         ConvertMethod convertMethod = null;
         Method method = null;

@@ -48,9 +48,9 @@ public class IvyDescriptorFileGenerator {
     private String status;
     private Map<QName, String> extraInfo;
     private XmlTransformer xmlTransformer = new XmlTransformer();
-    private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
-    private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
-    private List<IvyDependencyInternal> dependencies = new ArrayList<IvyDependencyInternal>();
+    private List<IvyConfiguration> configurations = new ArrayList<>();
+    private List<IvyArtifact> artifacts = new ArrayList<>();
+    private List<IvyDependencyInternal> dependencies = new ArrayList<>();
 
     public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity) {
         this.projectIdentity = projectIdentity;

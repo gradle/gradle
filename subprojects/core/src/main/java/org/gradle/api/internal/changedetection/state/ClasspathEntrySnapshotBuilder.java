@@ -90,7 +90,7 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
         if (normalizedSnapshots.isEmpty()) {
             return;
         }
-        List<Map.Entry<String, NormalizedFileSnapshot>> sorted = new ArrayList<Map.Entry<String, NormalizedFileSnapshot>>(normalizedSnapshots.entries());
+        List<Map.Entry<String, NormalizedFileSnapshot>> sorted = new ArrayList<>(normalizedSnapshots.entries());
         Collections.sort(sorted, SNAPSHOT_ENTRY_ORDERING);
         for (Map.Entry<String, NormalizedFileSnapshot> normalizedFileSnapshotEntry : sorted) {
             builder.collectNormalizedFileSnapshot(normalizedFileSnapshotEntry.getKey(), normalizedFileSnapshotEntry.getValue());

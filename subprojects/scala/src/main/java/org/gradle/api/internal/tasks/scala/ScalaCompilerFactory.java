@@ -49,8 +49,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         Set<File> zincClasspathFiles = zincClasspath.getFiles();
 
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
-        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(
-            daemonWorkingDir, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles, gradleUserHomeDir),
+        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<>(daemonWorkingDir, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles, gradleUserHomeDir),
             workerDaemonFactory, zincClasspathFiles, fileResolver);
         return new NormalizingScalaCompiler(scalaCompiler);
     }

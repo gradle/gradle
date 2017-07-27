@@ -81,7 +81,7 @@ public class JvmOptions {
      * @return all jvm args including system properties
      */
     public List<String> getAllJvmArgs() {
-        List<String> args = new LinkedList<String>();
+        List<String> args = new LinkedList<>();
         formatSystemProperties(getMutableSystemProperties(), args);
 
         // We have to add these after the system properties so they can override any system properties
@@ -107,7 +107,7 @@ public class JvmOptions {
      * The result is a subset of options returned by {@link #getAllJvmArgs()}
      */
     public List<String> getAllImmutableJvmArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         args.addAll(getJvmArgs());
         args.addAll(getManagedJvmArgs());
         return args;
@@ -118,7 +118,7 @@ public class JvmOptions {
      * The result is a subset of options returned by {@link #getAllImmutableJvmArgs()}
      */
     public List<String> getManagedJvmArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         if (minHeapSize != null) {
             args.add(XMS_PREFIX + minHeapSize);
         }
@@ -153,7 +153,7 @@ public class JvmOptions {
     }
 
     public List<String> getJvmArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         for (Object extraJvmArg : extraJvmArgs) {
             args.add(extraJvmArg.toString());
         }
@@ -196,7 +196,7 @@ public class JvmOptions {
         boolean xdebugFound = false;
         boolean xrunjdwpFound = false;
         boolean xagentlibJdwpFound = false;
-        Set<Object> matches = new HashSet<Object>();
+        Set<Object> matches = new HashSet<>();
         for (Object extraJvmArg : extraJvmArgs) {
             if (extraJvmArg.toString().equals("-Xdebug")) {
                 xdebugFound = true;

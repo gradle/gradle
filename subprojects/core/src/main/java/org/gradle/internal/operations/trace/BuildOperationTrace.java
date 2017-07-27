@@ -146,7 +146,7 @@ public class BuildOperationTrace implements Stoppable {
             @Override
             public Iterator<String> iterator() {
 
-                final Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<Queue<BuildOperationRecord>>(Collections.singleton(new ArrayDeque<BuildOperationRecord>(roots)));
+                final Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<>(Collections.singleton(new ArrayDeque<BuildOperationRecord>(roots)));
                 final StringBuilder stringBuilder = new StringBuilder();
 
                 return new Iterator<String>() {
@@ -219,9 +219,9 @@ public class BuildOperationTrace implements Stoppable {
         try {
             final JsonSlurper slurper = new JsonSlurper();
 
-            final List<BuildOperationRecord> roots = new ArrayList<BuildOperationRecord>();
-            final Map<Object, SerializedOperationStart> pending = new HashMap<Object, SerializedOperationStart>();
-            final Map<Object, List<BuildOperationRecord>> childrens = new HashMap<Object, List<BuildOperationRecord>>();
+            final List<BuildOperationRecord> roots = new ArrayList<>();
+            final Map<Object, SerializedOperationStart> pending = new HashMap<>();
+            final Map<Object, List<BuildOperationRecord>> childrens = new HashMap<>();
 
             Files.asCharSource(logFile, Charsets.UTF_8).readLines(new LineProcessor<Void>() {
                 @Override

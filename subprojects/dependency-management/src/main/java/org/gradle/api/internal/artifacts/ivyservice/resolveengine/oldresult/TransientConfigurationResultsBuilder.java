@@ -149,8 +149,8 @@ public class TransientConfigurationResultsBuilder {
 
     private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
         Timer clock = Timers.startTimer();
-        Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
-        Map<ModuleDependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<ModuleDependency, DependencyGraphNodeResult>();
+        Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<>();
+        Map<ModuleDependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<>();
         DependencyGraphNodeResult root;
         int valuesRead = 0;
         byte type = -1;

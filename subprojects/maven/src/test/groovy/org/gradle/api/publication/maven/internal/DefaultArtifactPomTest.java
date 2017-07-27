@@ -235,7 +235,7 @@ public class DefaultArtifactPomTest {
     }
 
     private Artifact createTestArtifact(String name, String classifier, String type) {
-        Map<String, String> extraAttributes = new HashMap<String, String>();
+        Map<String, String> extraAttributes = new HashMap<>();
         if (classifier != null) {
             extraAttributes.put(Dependency.CLASSIFIER, classifier);
         }

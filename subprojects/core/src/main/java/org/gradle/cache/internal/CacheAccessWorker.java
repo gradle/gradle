@@ -74,7 +74,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     }
 
     public <T> T read(final Factory<T> task) {
-        FutureTask<T> futureTask = new FutureTask<T>(new Callable<T>() {
+        FutureTask<T> futureTask = new FutureTask<>(new Callable<T>() {
             @Override
             public T call() throws Exception {
                 return task.create();
@@ -151,7 +151,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             failureHandler.onFailure("Failed to execute cache operations on " + displayName, t);
         } finally {
             // Notify any waiting flush threads that the worker is done, possibly with a failure
-            List<Runnable> runnables = new ArrayList<Runnable>();
+            List<Runnable> runnables = new ArrayList<>();
             workQueue.drainTo(runnables);
             for (Runnable runnable : runnables) {
                 if (runnable instanceof FlushOperationsCommand) {
@@ -169,7 +169,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     }
 
     private void flushOperations(final Runnable updateOperation) {
-        final List<FlushOperationsCommand> flushOperations = new ArrayList<FlushOperationsCommand>();
+        final List<FlushOperationsCommand> flushOperations = new ArrayList<>();
         try {
             cacheAccess.useCache(new Runnable() {
                 @Override

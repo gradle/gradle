@@ -75,7 +75,7 @@ class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
     private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
         @Override
         public List<String> transform(LinkerSpec spec) {
-            List<String> args = new ArrayList<String>();
+            List<String> args = new ArrayList<>();
             args.addAll(escapeUserArgs(spec.getAllArgs()));
             args.add("/OUT:" + spec.getOutputFile().getAbsolutePath());
             args.add("/NOLOGO");

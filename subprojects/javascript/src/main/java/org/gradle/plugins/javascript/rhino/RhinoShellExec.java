@@ -32,8 +32,8 @@ import java.util.List;
 
 public class RhinoShellExec extends JavaExec {
 
-    private List<Object> rhinoOptions = new LinkedList<Object>();
-    private List<Object> scriptArgs = new LinkedList<Object>();
+    private List<Object> rhinoOptions = new LinkedList<>();
+    private List<Object> scriptArgs = new LinkedList<>();
     private Object script;
 
     public RhinoShellExec() {
@@ -131,7 +131,7 @@ public class RhinoShellExec extends JavaExec {
      */
     @Override
     public List<String> getArgs() {
-        List<String> args = new ArrayList<String>(rhinoOptions.size() + 1 + scriptArgs.size());
+        List<String> args = new ArrayList<>(rhinoOptions.size() + 1 + scriptArgs.size());
         args.addAll(getRhinoOptions());
         File script = getScript();
         if (script != null) {

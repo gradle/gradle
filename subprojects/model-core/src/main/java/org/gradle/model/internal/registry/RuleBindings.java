@@ -126,7 +126,7 @@ class RuleBindings {
     }
 
     private class PredicateMatches {
-        final List<Reference> references = new ArrayList<Reference>();
+        final List<Reference> references = new ArrayList<>();
         ModelNodeInternal match;
 
         void match(ModelNodeInternal node) {

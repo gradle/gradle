@@ -102,7 +102,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     }
 
     private <T> List<T> doResolve(Converter<? extends T> converter) {
-        List<T> result = new ArrayList<T>();
+        List<T> result = new ArrayList<>();
         while (!queue.isEmpty()) {
             Object element = queue.remove(0);
             // TODO - need to sync with BuildDependenciesOnlyFileCollectionResolveContext
