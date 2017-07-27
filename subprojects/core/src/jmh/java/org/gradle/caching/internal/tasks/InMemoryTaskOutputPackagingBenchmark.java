@@ -17,8 +17,6 @@
 package org.gradle.caching.internal.tasks;
 
 import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
 
 import java.io.ByteArrayInputStream;
@@ -29,7 +27,6 @@ import java.io.OutputStream;
 
 @Fork(1)
 @Threads(4)
-@State(Scope.Benchmark)
 public class InMemoryTaskOutputPackagingBenchmark extends AbstractTaskOutputPackagingBenchmark {
     @Override
     protected DataSource createSource(String name, byte[] bytes) {

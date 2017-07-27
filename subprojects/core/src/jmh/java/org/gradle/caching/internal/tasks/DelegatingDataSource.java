@@ -16,26 +16,28 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.apache.hadoop.io.compress.CompressionCodec;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
-public class TarCodecPacker extends TarPacker {
-    private final CompressionCodec codec;
+public abstract class DelegatingDataSource implements DataSource {
+    private final DataSource delegate;
 
-    public TarCodecPacker(CompressionCodec codec) {
-        this.codec = codec;
+    public DelegatingDataSource(DataSource delegate) {
+        this.delegate = delegate;
     }
 
     @Override
-    protected OutputStream openOutput(DataTarget output) throws IOException {
-        return codec.createOutputStream(super.openOutput(output));
+    public InputStream openInput() throws IOException {
+        return delegate.openInput();
     }
 
     @Override
-    protected InputStream openInput(DataSource input) throws IOException {
-        return codec.createInputStream(super.openInput(input));
+    public long getLength() throws IOException {
+        return delegate.getLength();
+    }
+
+    @Override
+    public String getName() {
+        return delegate.getName();
     }
 }

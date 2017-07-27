@@ -17,45 +17,62 @@
 package org.gradle.caching.internal.tasks;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.airlift.compress.lz4.Lz4Codec;
 import io.airlift.compress.lzo.LzoCodec;
 import io.airlift.compress.snappy.SnappyCodec;
-import org.apache.hadoop.io.compress.CompressionCodec;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.infra.Blackhole;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 @Warmup(iterations = 3)
 @Measurement(iterations = 7)
+@State(Scope.Benchmark)
 public abstract class AbstractTaskOutputPackagingBenchmark {
-    CompressionCodec lz4Codec = new Lz4Codec();
-    CompressionCodec lzoCodec = new LzoCodec();
-    CompressionCodec snappyCodec = new SnappyCodec();
+    private static final Map<String, Packer> PACKERS = ImmutableMap.<String, Packer>builder()
+        .put("tar.lz4", new CodecPacker(new Lz4Codec(), new TarPacker()))
+        .put("tar.lzo", new CodecPacker(new LzoCodec(), new TarPacker()))
+        .put("tar.snappy", new CodecPacker(new SnappyCodec(), new TarPacker()))
+        .put("tar.gz", new TarGzipPacker())
+        .put("tar", new TarPacker())
+        .put("zip0.lz4", new CodecPacker(new Lz4Codec(), new ZipPacker(false)))
+        .put("zip0.lzo", new CodecPacker(new LzoCodec(), new ZipPacker(false)))
+        .put("zip0.snappy", new CodecPacker(new SnappyCodec(), new ZipPacker(false)))
+        .put("zip", new ZipPacker(true))
+        .put("zip0", new ZipPacker(false))
+        .build();
+
+    Map<String, DataSource> samples;
+
+    @Param({"tar.lz4", "tar.lzo", "tar.snappy", "tar.gz", "tar", "zip0.lz4", "zip0.lzo", "zip0.snappy", "zip", "zip0"})
+    String format;
+
     List<DataSource> inputs;
-    // DataSource sampleTarGz;
-    DataSource sampleTarLz4;
-    DataSource sampleTarLzo;
-    DataSource sampleTarSnappy;
-    DataSource sampleZip;
     int fileCount = 100;
     int minFileSize = 2 * 1024;
     int maxFileSize = 64 * 1024;
 
     @Setup(Level.Trial)
     public void setupTrial() throws IOException {
+        System.out.println(">>> Measuring format: " + format);
         this.inputs = createInputFiles(fileCount, minFileSize, maxFileSize);
-        // this.sampleTarGz = packSample("sample.tar.gz", new TarGzipPacker());
-        this.sampleTarLz4 = packSample("sample.tar.lz4", new TarCodecPacker(this.lz4Codec));
-        this.sampleTarLzo = packSample("sample.tar.lzo", new TarCodecPacker(lzoCodec));
-        this.sampleTarSnappy = packSample("sample.tar.snappy", new TarCodecPacker(snappyCodec));
-        this.sampleZip = packSample("sample.zip", new ZipPacker());
+        ImmutableMap.Builder<String, DataSource> samples = ImmutableMap.builder();
+        for (Map.Entry<String, Packer> entry : PACKERS.entrySet()) {
+            String format = entry.getKey();
+            Packer packer = entry.getValue();
+            samples.put(format, packSample("sample." + format, packer));
+        }
+        this.samples = samples.build();
     }
 
     private ImmutableList<DataSource> createInputFiles(int fileCount, int minFileSize, int maxFileSize) throws IOException {
@@ -72,8 +89,6 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
         return inputs.build();
     }
 
-    protected abstract DataSource createSource(String name, byte[] bytes) throws IOException;
-
     private DataSource packSample(String name, Packer packer) throws IOException {
         long sumLength = 0;
         for (DataSource input : inputs) {
@@ -86,57 +101,19 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
         return source;
     }
 
+    @Benchmark
+    public void pack() throws IOException {
+        PACKERS.get(format).pack(inputs, createTarget("pack-" + format));
+    }
+
+    @Benchmark
+    public void unpack() throws IOException {
+        PACKERS.get(format).unpack(samples.get(format), createTargetFactory("unpack-" + format));
+    }
+
+    protected abstract DataSource createSource(String name, byte[] bytes) throws IOException;
+
     protected abstract DataTarget createTarget(String name);
-
-//    @Benchmark
-//    public void packTarGz(Blackhole bh) throws IOException {
-//        new TarGzipPacker().pack(inputs, createTarget("pack-tar-gz"));
-//    }
-
-    @Benchmark
-    public void packTarLz4(Blackhole bh) throws IOException {
-        new TarCodecPacker(lz4Codec).pack(inputs, createTarget("pack-tar-gz"));
-    }
-
-    @Benchmark
-    public void packTarLzo(Blackhole bh) throws IOException {
-        new TarCodecPacker(lzoCodec).pack(inputs, createTarget("pack-tar-gz"));
-    }
-
-    @Benchmark
-    public void packTarSnappy(Blackhole bh) throws IOException {
-        new TarCodecPacker(snappyCodec).pack(inputs, createTarget("pack-tar-gz"));
-    }
-
-    @Benchmark
-    public void packZip(Blackhole bh) throws IOException {
-        new ZipPacker().pack(inputs, createTarget("pack-zip"));
-    }
-
-//    @Benchmark
-//    public void unpackTarGz(Blackhole bh) throws IOException, InterruptedException {
-//        new TarGzipPacker().unpack(sampleTarGz, createTargetFactory("unpack-tar-gz"));
-//    }
-
-    @Benchmark
-    public void unpackTarLz4(Blackhole bh) throws IOException, InterruptedException {
-        new TarCodecPacker(lz4Codec).unpack(sampleTarLz4, createTargetFactory("unpack-lz4"));
-    }
-
-    @Benchmark
-    public void unpackTarLzo(Blackhole bh) throws IOException, InterruptedException {
-        new TarCodecPacker(lzoCodec).unpack(sampleTarLzo, createTargetFactory("unpack-lzo"));
-    }
-
-    @Benchmark
-    public void unpackTarSnappy(Blackhole bh) throws IOException, InterruptedException {
-        new TarCodecPacker(snappyCodec).unpack(sampleTarSnappy, createTargetFactory("unpack-snappy"));
-    }
-
-    @Benchmark
-    public void unpackZip(Blackhole bh) throws IOException {
-        new ZipPacker().unpack(sampleZip, createTargetFactory("unpack-zip"));
-    }
 
     protected abstract Packer.DataTargetFactory createTargetFactory(String root) throws IOException;
 }

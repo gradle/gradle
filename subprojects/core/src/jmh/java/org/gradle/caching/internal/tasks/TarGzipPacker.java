@@ -19,17 +19,28 @@ package org.gradle.caching.internal.tasks;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class TarGzipPacker extends TarPacker {
     @Override
-    protected OutputStream openOutput(DataTarget output) throws IOException {
-        return new GZIPOutputStream(super.openOutput(output));
+    public void pack(List<DataSource> inputs, DataTarget output) throws IOException {
+        super.pack(inputs, new DelegatingDataTarget(output) {
+            @Override
+            public OutputStream openOutput() throws IOException {
+                return new GZIPOutputStream(super.openOutput());
+            }
+        });
     }
 
     @Override
-    protected InputStream openInput(DataSource input) throws IOException {
-        return new GZIPInputStream(super.openInput(input));
+    public void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException {
+        super.unpack(new DelegatingDataSource(input) {
+            @Override
+            public InputStream openInput() throws IOException {
+                return new GZIPInputStream(super.openInput());
+            }
+        }, targetFactory);
     }
 }

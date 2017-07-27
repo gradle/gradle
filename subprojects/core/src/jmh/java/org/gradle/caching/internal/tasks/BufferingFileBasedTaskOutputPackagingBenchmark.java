@@ -17,10 +17,6 @@
 package org.gradle.caching.internal.tasks;
 
 import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
 
 import java.io.BufferedInputStream;
@@ -28,13 +24,10 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 @Fork(1)
 @Threads(4)
-@State(Scope.Benchmark)
 @SuppressWarnings("Since15")
 public class BufferingFileBasedTaskOutputPackagingBenchmark extends NonBufferingFileBasedTaskOutputPackagingBenchmark {
     @Override

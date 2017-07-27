@@ -16,37 +16,39 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.apache.tools.tar.TarEntry;
-import org.apache.tools.tar.TarInputStream;
-import org.apache.tools.tar.TarOutputStream;
+import org.apache.hadoop.io.compress.CompressionCodec;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
-public class TarPacker implements Packer {
+public class CodecPacker implements Packer {
+    private final CompressionCodec codec;
+    private final Packer delegate;
+
+    public CodecPacker(CompressionCodec codec, Packer delegate) {
+        this.codec = codec;
+        this.delegate = delegate;
+    }
+
     @Override
     public void pack(List<DataSource> inputs, DataTarget output) throws IOException {
-        TarOutputStream tarOutput = new TarOutputStream(output.openOutput());
-        for (DataSource input : inputs) {
-            TarEntry entry = new TarEntry(input.getName());
-            entry.setSize(input.getLength());
-            tarOutput.putNextEntry(entry);
-            PackerUtils.packEntry(input, tarOutput);
-            tarOutput.closeEntry();
-        }
-        tarOutput.close();
+        delegate.pack(inputs, new DelegatingDataTarget(output) {
+            @Override
+            public OutputStream openOutput() throws IOException {
+                return codec.createOutputStream(super.openOutput());
+            }
+        });
     }
 
     @Override
     public void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException {
-        TarInputStream tarInput = new TarInputStream(input.openInput());
-        while (true) {
-            TarEntry entry = tarInput.getNextEntry();
-            if (entry == null) {
-                break;
+        delegate.unpack(new DelegatingDataSource(input) {
+            @Override
+            public InputStream openInput() throws IOException {
+                return codec.createInputStream(super.openInput());
             }
-            PackerUtils.unpackEntry(entry.getName(), tarInput, targetFactory);
-        }
-        tarInput.close();
+        }, targetFactory);
     }
 }

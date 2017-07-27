@@ -16,26 +16,28 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Threads;
-
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
-@Fork(1)
-@Threads(4)
-@SuppressWarnings("Since15")
-public class NonBufferingFileBasedTaskOutputPackagingBenchmark extends AbstractFileBasedTaskOutputPackagingBenchmark {
-    @Override
-    protected InputStream openInput(Path path) throws IOException {
-        return Files.newInputStream(path);
+public abstract class DelegatingDataTarget implements DataTarget {
+    private final DataTarget delegate;
+
+    public DelegatingDataTarget(DataTarget delegate) {
+        this.delegate = delegate;
     }
 
     @Override
-    protected OutputStream openOutput(Path path) throws IOException {
-        return Files.newOutputStream(path);
+    public OutputStream openOutput() throws IOException {
+        return delegate.openOutput();
+    }
+
+    @Override
+    public DataSource toSource() throws IOException {
+        return delegate.toSource();
+    }
+
+    @Override
+    public String getName() {
+        return delegate.getName();
     }
 }
