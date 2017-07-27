@@ -18,12 +18,12 @@
 
 [NOTE]
 ====
- 
+
 This chapter is a work in progress.
- 
+
 ====
 
-This chapter introduces the Gradle support for web applications. Gradle provides two plugins for web application development: the War plugin and the Jetty plugin. The War plugin extends the Java plugin to build a WAR file for your project. The Jetty plugin extends the War plugin to allow you to deploy your web application to an embedded Jetty web container.
+This chapter introduces the Gradle support for web applications. Gradle recommends two plugins for web application development: the War plugin and the https://plugins.gradle.org/plugin/org.akhikhl.gretty[Gretty plugin]. The War plugin extends the Java plugin to build a WAR file for your project. The Gretty plugin extends the War plugin to allow you to deploy your web application to an embedded Jetty web container.
 
 
 [[sec:building_a_war_file]]
