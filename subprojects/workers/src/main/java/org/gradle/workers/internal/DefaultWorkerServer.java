@@ -20,7 +20,7 @@ import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 
-public class DefaultWorkerServer implements WorkerServer<ActionExecutionSpec> {
+public class DefaultWorkerServer implements WorkerProtocol<ActionExecutionSpec> {
     private final Instantiator instantiator;
 
     @Inject

@@ -68,7 +68,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                         public DefaultWorkResult call(BuildOperationContext context) {
                             DefaultWorkResult result;
                             try {
-                                WorkerServer<ActionExecutionSpec> workerServer = new DefaultWorkerServer(actionInstantiator);
+                                WorkerProtocol<ActionExecutionSpec> workerServer = new DefaultWorkerServer(actionInstantiator);
                                 result = workerServer.execute(spec);
                             } finally {
                                 //TODO the async work tracker should wait for children of an operation to finish first.
