@@ -23,11 +23,15 @@ import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
+import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
 import spock.lang.Unroll
+
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 @Unroll
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
@@ -108,11 +112,11 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
                     gradleInvocation.withBuilder().gradleOpts(*keyStore.serverAndClientCertArgs).build() as T
                 } else {
                     gradleInvocation.withBuilder()
-                        // We need a different daemon for the other runs because of the certificate Gradle JVM args
-                        // so we disable the daemon completely in order not to confuse the performance test
+                    // We need a different daemon for the other runs because of the certificate Gradle JVM args
+                    // so we disable the daemon completely in order not to confuse the performance test
                         .useDaemon(false)
-                        // We run one iteration without the cache to download artifacts from Maven central.
-                        // We can't download with the cache since we set the trust store and Maven central uses https.
+                    // We run one iteration without the cache to download artifacts from Maven central.
+                    // We can't download with the cache since we set the trust store and Maven central uses https.
                         .args("--no-build-cache")
                         .build() as T
                 }
@@ -172,7 +176,9 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
 
     def "clean #tasks on #testProject with local cache (parallel: #parallel)"() {
         given:
-        runner.previousTestIds = ["clean $tasks on $testProject with local cache"]
+        if (!parallel) {
+            runner.previousTestIds = ["clean $tasks on $testProject with local cache"]
+        }
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ') as List
@@ -190,6 +196,44 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         where:
         [testProject, tasks] << scenarios * 2
         parallel << [true] * scenarios.size() + [false] * scenarios.size()
+    }
+
+    def "clean #tasks for abi change on #testProject with local cache (parallel: true)"() {
+        given:
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.tasksToRun = tasks.split(' ') as List
+        runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
+        runner.args += "--parallel"
+        pushToRemote = false
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        [testProject, tasks] << [[LARGE_JAVA_MULTI_PROJECT, 'assemble']]
+    }
+
+    def "clean #tasks for non-abi change on #testProject with local cache (parallel: true)"() {
+        given:
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.tasksToRun = tasks.split(' ') as List
+        runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
+        runner.args += "--parallel"
+        pushToRemote = false
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        [testProject, tasks] << [[LARGE_JAVA_MULTI_PROJECT, 'assemble']]
     }
 
     private BuildExperimentListenerAdapter cleanLocalCache() {
