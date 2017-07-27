@@ -18,6 +18,7 @@ package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.BuildCacheKey;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 public interface BuildCacheLoadCommand<T> {
@@ -29,7 +30,7 @@ public interface BuildCacheLoadCommand<T> {
      *
      * The input stream will be closed by this method.
      */
-    Result<T> load(InputStream inputStream);
+    Result<T> load(InputStream inputStream) throws IOException;
 
     interface Result<T> {
 
