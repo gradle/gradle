@@ -16,20 +16,26 @@
 
 package org.gradle.caching.internal.tasks;
 
+import org.apache.hadoop.io.compress.CompressionCodec;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
-public class TarGzipPacker extends TarPacker {
+public class TarCodecPacker extends TarPacker {
+    private final CompressionCodec codec;
+
+    public TarCodecPacker(CompressionCodec codec) {
+        this.codec = codec;
+    }
+
     @Override
     protected OutputStream openOutput(DataTarget output) throws IOException {
-        return new GZIPOutputStream(super.openOutput(output));
+        return codec.createOutputStream(super.openOutput(output));
     }
 
     @Override
     protected InputStream openInput(DataSource input) throws IOException {
-        return new GZIPInputStream(super.openInput(input));
+        return codec.createInputStream(super.openInput(input));
     }
 }
