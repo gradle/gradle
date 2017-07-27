@@ -16,10 +16,6 @@
 
 package org.gradle.caching.internal.tasks;
 
-import java.io.IOException;
-import java.util.List;
-
-interface Packer {
-    void pack(List<DataSource> inputs, DataTarget output) throws IOException;
-    void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException;
+public interface DataTargetFactory {
+    DataTarget createDataTarget(String name);
 }

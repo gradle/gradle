@@ -16,27 +16,26 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Threads;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
-@Fork(1)
-@Threads(4)
 @SuppressWarnings("Since15")
-public class BufferingFileBasedTaskOutputPackagingBenchmark extends NonBufferingFileBasedTaskOutputPackagingBenchmark {
+public class DirectFileFileAccessor extends AbstractFileAccessor {
+
+    public DirectFileFileAccessor(DirectoryProvider directoryProvider) {
+        super(directoryProvider);
+    }
+
     @Override
     protected InputStream openInput(Path path) throws IOException {
-        return new BufferedInputStream(super.openInput(path));
+        return Files.newInputStream(path);
     }
 
     @Override
     protected OutputStream openOutput(Path path) throws IOException {
-        return new BufferedOutputStream(super.openOutput(path));
+        return Files.newOutputStream(path);
     }
 }

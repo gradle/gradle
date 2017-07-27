@@ -18,49 +18,89 @@ package org.gradle.caching.internal.tasks;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.FileUtils;
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+@Fork(1)
 @Warmup(iterations = 3)
 @Measurement(iterations = 7)
 @State(Scope.Benchmark)
 public abstract class AbstractTaskOutputPackagingBenchmark {
+    private static final DefaultDirectoryProvider DIRECTORY_PROVIDER = new DefaultDirectoryProvider();
+
     private static final Map<String, Packer> PACKERS = ImmutableMap.<String, Packer>builder()
-        .put("tar.snappy", new SnappyPacker(new TarPacker()))
-        .put("tar.gz", new GzipPacker(new TarPacker()))
-        .put("tar", new TarPacker())
-        .put("zip", new ZipPacker(true))
+        .put("tar.snappy", new SnappyPacker(new TarPacker(4)))
+        .put("tar.snappy.small", new SnappyPacker(new TarPacker(2)))
+        .put("tar.snappy.large", new SnappyPacker(new TarPacker(64)))
+        .put("tar", new TarPacker(4))
+        .put("tar.small", new TarPacker(2))
+        .put("tar.large", new TarPacker(64))
+        .put("tar.gz", new GzipPacker(new TarPacker(4)))
+        .put("zip", new ZipPacker(4))
+        .build();
+
+    private static final Map<String, DataAccessor> ACCESSORS = ImmutableMap.<String, DataAccessor>builder()
+        .put("direct", new DirectFileFileAccessor(DIRECTORY_PROVIDER))
+        .put("buffered", new BufferedFileAccessor(8, DIRECTORY_PROVIDER))
+        .put("buffered.small", new BufferedFileAccessor(2, DIRECTORY_PROVIDER))
+        .put("buffered.large", new BufferedFileAccessor(64, DIRECTORY_PROVIDER))
+        .put("in-memory", new InMemoryDataAccessor())
         .build();
 
     DataSource sample;
-
-    @Param({"tar.snappy", "tar.gz", "tar", "zip"})
-    String format;
 
     List<DataSource> inputs;
     int fileCount = 273;
     int minFileSize = 273;
     int maxFileSize = 273 * 1024;
 
+    protected abstract String getPackerName();
+
+    protected abstract String getAccessorName();
+
     @Setup(Level.Trial)
     public void setupTrial() throws IOException {
-        System.out.println(">>> Measuring format: " + format);
-        this.inputs = createInputFiles(fileCount, minFileSize, maxFileSize);
-        this.sample = packSample("sample." + format, PACKERS.get(format));
+        DIRECTORY_PROVIDER.setupTrial();
+        String packerName = getPackerName();
+        String accessorName = getAccessorName();
+        System.out.println(">>> Measuring format: " + packerName + " with accessor " + accessorName);
+        Packer packer = PACKERS.get(packerName);
+        DataAccessor accessor = ACCESSORS.get(accessorName);
+        this.inputs = createInputFiles(fileCount, minFileSize, maxFileSize, accessor);
+        this.sample = packSample("sample." + packerName, inputs, packer, accessor);
     }
 
-    private ImmutableList<DataSource> createInputFiles(int fileCount, int minFileSize, int maxFileSize) throws IOException {
+    @TearDown(Level.Trial)
+    public void tearDownTrial() throws IOException {
+        DIRECTORY_PROVIDER.tearDownTrial();
+    }
+
+    @Setup(Level.Iteration)
+    public void setupIteration() throws IOException {
+        DIRECTORY_PROVIDER.setupIteration();
+    }
+
+    @TearDown(Level.Iteration)
+    public void tearDownIteration() throws IOException {
+        DIRECTORY_PROVIDER.tearDownIteration();
+    }
+
+    private static ImmutableList<DataSource> createInputFiles(int fileCount, int minFileSize, int maxFileSize, DataAccessor accessor) throws IOException {
         Random random = new Random(1234L);
         ImmutableList.Builder<DataSource> inputs = ImmutableList.builder();
         for (int idx = 0; idx < fileCount; idx++) {
@@ -68,18 +108,18 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
             int fileSize = minFileSize + random.nextInt(maxFileSize - minFileSize);
             byte[] buffer = new byte[fileSize];
             random.nextBytes(buffer);
-            DataSource input = createSource(name, buffer, Level.Trial);
+            DataSource input = accessor.createSource(name, buffer, Level.Trial);
             inputs.add(input);
         }
         return inputs.build();
     }
 
-    private DataSource packSample(String name, Packer packer) throws IOException {
+    private static DataSource packSample(String name, List<DataSource> inputs, Packer packer, DataAccessor accessor) throws IOException {
         long sumLength = 0;
         for (DataSource input : inputs) {
             sumLength += input.getLength();
         }
-        DataTarget target = createTarget(name, Level.Trial);
+        DataTarget target = accessor.createTarget(name, Level.Trial);
         packer.pack(inputs, target);
         DataSource source = target.toSource();
         System.out.printf(">>> %s is %d bytes long (uncompressed length: %d, compression ratio: %,.2f%%)%n", name, source.getLength(), sumLength, (double) source.getLength() / sumLength);
@@ -88,17 +128,57 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
 
     @Benchmark
     public void pack() throws IOException {
-        PACKERS.get(format).pack(inputs, createTarget("pack-" + format, Level.Iteration));
+        String packerName = getPackerName();
+        String accessorName = getAccessorName();
+        Packer packer = PACKERS.get(packerName);
+        DataAccessor accessor = ACCESSORS.get(accessorName);
+        packer.pack(inputs, accessor.createTarget("pack-" + packerName, Level.Iteration));
     }
 
     @Benchmark
     public void unpack() throws IOException {
-        PACKERS.get(format).unpack(sample, createTargetFactory("unpack-" + format, Level.Iteration));
+        String packerName = getPackerName();
+        String accessorName = getAccessorName();
+        Packer packer = PACKERS.get(packerName);
+        DataAccessor accessor = ACCESSORS.get(accessorName);
+        packer.unpack(sample, accessor.createTargetFactory("unpack-" + accessorName, Level.Iteration));
     }
 
-    protected abstract DataSource createSource(String name, byte[] bytes, Level level) throws IOException;
+    @SuppressWarnings("Since15")
+    private static class DefaultDirectoryProvider implements DirectoryProvider {
+        private Path tempDir;
+        private Path iterationDir;
 
-    protected abstract DataTarget createTarget(String name, Level level);
+        @Setup(Level.Trial)
+        public void setupTrial() throws IOException {
+            this.tempDir = Files.createTempDirectory("task-output-cache-benchmark-");
+        }
 
-    protected abstract Packer.DataTargetFactory createTargetFactory(String root, Level level) throws IOException;
+        @TearDown(Level.Trial)
+        public void tearDownTrial() throws IOException {
+            FileUtils.forceDelete(tempDir.toFile());
+        }
+
+        @Setup(Level.Iteration)
+        public void setupIteration() throws IOException {
+            this.iterationDir = Files.createTempDirectory(tempDir, "iteration-");
+        }
+
+        @TearDown(Level.Iteration)
+        public void tearDownIteration() throws IOException {
+            FileUtils.forceDelete(iterationDir.toFile());
+        }
+
+        @Override
+        public Path getRoot(Level level) {
+            switch (level) {
+                case Trial:
+                    return tempDir;
+                case Iteration:
+                    return iterationDir;
+                default:
+                    throw new AssertionError();
+            }
+        }
+    }
 }

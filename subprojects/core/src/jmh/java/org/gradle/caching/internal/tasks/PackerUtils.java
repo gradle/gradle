@@ -23,20 +23,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class PackerUtils {
-    public static void packEntry(DataSource entry, OutputStream outputStream) throws IOException {
+    public static void packEntry(DataSource entry, OutputStream outputStream, byte[] buffer) throws IOException {
         InputStream inputStream = entry.openInput();
         try {
-            IOUtils.copyLarge(inputStream, outputStream, new byte[64 * 1024]);
+            IOUtils.copyLarge(inputStream, outputStream, buffer);
         } finally {
             inputStream.close();
         }
     }
 
-    public static void unpackEntry(String name, InputStream inputStream, Packer.DataTargetFactory targetFactory) throws IOException {
+    public static void unpackEntry(String name, InputStream inputStream, byte[] buffer, DataTargetFactory targetFactory) throws IOException {
         DataTarget target = targetFactory.createDataTarget(name);
         OutputStream outputStream = target.openOutput();
         try {
-            IOUtils.copyLarge(inputStream, outputStream, new byte[64 * 1024]);
+            IOUtils.copyLarge(inputStream, outputStream, buffer);
         } finally {
             outputStream.close();
         }

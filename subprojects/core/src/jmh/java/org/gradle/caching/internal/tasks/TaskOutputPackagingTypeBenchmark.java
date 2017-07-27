@@ -16,10 +16,22 @@
 
 package org.gradle.caching.internal.tasks;
 
-import java.io.IOException;
-import java.util.List;
+import org.openjdk.jmh.annotations.Param;
 
-interface Packer {
-    void pack(List<DataSource> inputs, DataTarget output) throws IOException;
-    void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException;
+public class TaskOutputPackagingTypeBenchmark extends AbstractTaskOutputPackagingBenchmark {
+    @Param({"tar.snappy", "tar.gz", "tar", "zip"})
+    String packer;
+
+    @Param({"direct", "buffered", "in-memory"})
+    String accessor;
+
+    @Override
+    protected String getPackerName() {
+        return packer;
+    }
+
+    @Override
+    protected String getAccessorName() {
+        return accessor;
+    }
 }

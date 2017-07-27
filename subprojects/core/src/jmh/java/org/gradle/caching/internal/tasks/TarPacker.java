@@ -24,6 +24,13 @@ import java.io.IOException;
 import java.util.List;
 
 public class TarPacker implements Packer {
+
+    private final byte[] buffer;
+
+    public TarPacker(int bufferSizeInKBytes) {
+        this.buffer = new byte[bufferSizeInKBytes * 1024];
+    }
+
     @Override
     public void pack(List<DataSource> inputs, DataTarget output) throws IOException {
         TarOutputStream tarOutput = new TarOutputStream(output.openOutput());
@@ -31,7 +38,7 @@ public class TarPacker implements Packer {
             TarEntry entry = new TarEntry(input.getName());
             entry.setSize(input.getLength());
             tarOutput.putNextEntry(entry);
-            PackerUtils.packEntry(input, tarOutput);
+            PackerUtils.packEntry(input, tarOutput, buffer);
             tarOutput.closeEntry();
         }
         tarOutput.close();
@@ -45,7 +52,7 @@ public class TarPacker implements Packer {
             if (entry == null) {
                 break;
             }
-            PackerUtils.unpackEntry(entry.getName(), tarInput, targetFactory);
+            PackerUtils.unpackEntry(entry.getName(), tarInput, buffer, targetFactory);
         }
         tarInput.close();
     }

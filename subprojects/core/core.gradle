@@ -86,6 +86,10 @@ test {
     forkEvery = 200
 }
 
+jmh {
+    include = ["TaskOutputPackagingBufferBenchmark"]
+}
+
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 task pluginsManifest(type: WriteProperties) {

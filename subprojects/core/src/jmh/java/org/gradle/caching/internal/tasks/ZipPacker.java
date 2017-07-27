@@ -23,27 +23,21 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class ZipPacker implements Packer {
-    private final boolean compress;
 
-    public ZipPacker() {
-        this(true);
-    }
+    private final byte[] buffer;
 
-    public ZipPacker(boolean compress) {
-        this.compress = compress;
+    public ZipPacker(int bufferSizeInKBytes) {
+        this.buffer = new byte[bufferSizeInKBytes];
     }
 
     @Override
     public void pack(List<DataSource> inputs, DataTarget output) throws IOException {
         ZipOutputStream zipOutput = new ZipOutputStream(output.openOutput());
-        if (!compress) {
-            zipOutput.setLevel(0);
-        }
         for (DataSource input : inputs) {
             ZipEntry entry = new ZipEntry(input.getName());
             entry.setSize(input.getLength());
             zipOutput.putNextEntry(entry);
-            PackerUtils.packEntry(input, zipOutput);
+            PackerUtils.packEntry(input, zipOutput, buffer);
             zipOutput.closeEntry();
         }
         zipOutput.close();
@@ -57,7 +51,7 @@ public class ZipPacker implements Packer {
             if (entry == null) {
                 break;
             }
-            PackerUtils.unpackEntry(entry.getName(), zipInput, targetFactory);
+            PackerUtils.unpackEntry(entry.getName(), zipInput, buffer, targetFactory);
         }
         zipInput.close();
     }

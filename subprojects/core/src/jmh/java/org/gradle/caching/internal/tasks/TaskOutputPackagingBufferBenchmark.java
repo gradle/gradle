@@ -16,26 +16,22 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Threads;
+import org.openjdk.jmh.annotations.Param;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+public class TaskOutputPackagingBufferBenchmark extends AbstractTaskOutputPackagingBenchmark {
+    @Param({"tar.snappy.small", "tar.snappy.large"})
+    String packer;
 
-@Fork(1)
-@Threads(4)
-@SuppressWarnings("Since15")
-public class NonBufferingFileBasedTaskOutputPackagingBenchmark extends AbstractFileBasedTaskOutputPackagingBenchmark {
+    @Param({"direct", "buffered.small", "buffered.large"})
+    String accessor;
+
     @Override
-    protected InputStream openInput(Path path) throws IOException {
-        return Files.newInputStream(path);
+    protected String getPackerName() {
+        return packer;
     }
 
     @Override
-    protected OutputStream openOutput(Path path) throws IOException {
-        return Files.newOutputStream(path);
+    protected String getAccessorName() {
+        return accessor;
     }
 }
