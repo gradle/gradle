@@ -57,14 +57,3 @@ You run Gradle via the `gradle` command. To check if Gradle is properly installe
 JVM options for running Gradle can be set via environment variables. You can use either `GRADLE_OPTS` or `JAVA_OPTS`, or both. `JAVA_OPTS` is by convention an environment variable shared by many Java applications. A typical use case would be to set the HTTP proxy in `JAVA_OPTS` and the memory options in `GRADLE_OPTS`. Those variables can also be set at the beginning of the `gradle` or `gradlew` script.
 
 Note that it's not currently possible to set JVM options for Gradle on the command line.
-
-++++
-<section condition="standalone" id="sec:installation_getting_help">
-<title>Getting help</title>
-<para>You might check the user guide at <filename><replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html</filename>.
-It is also available on the <ulink url="website:documentation.html">Gradle web site</ulink>.
-Typing <command>gradle help</command> prints the command line help. Typing <command>gradle tasks</command> shows all the
-tasks of a Gradle build.
-</para>
-</section>
-++++
