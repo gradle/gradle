@@ -16,6 +16,7 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 
@@ -49,6 +50,16 @@ public interface MavenRepositoryHandlerConvention {
     /**
      * Adds a repository for publishing to a Maven repository. This repository can not be used for resolving dependencies.
      *
+     * @param configureAction The action to use to configure the repository.
+     * @return The added repository
+     * @see #mavenDeployer()
+     * @since 4.1
+     */
+    GroovyMavenDeployer mavenDeployer(Action<? super GroovyMavenDeployer> configureAction);
+
+    /**
+     * Adds a repository for publishing to a Maven repository. This repository can not be used for resolving dependencies.
+     *
      * The following parameter are accepted as keys for the map:
      *
      * <table summary="Shows property keys and associated values">
@@ -77,6 +88,17 @@ public interface MavenRepositoryHandlerConvention {
     GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Closure configureClosure);
 
     /**
+     * Adds a repository for publishing to a Maven repository. This repository can not be used for resolving dependencies.
+     *
+     * @param args The argument to create the repository
+     * @param configureAction The action to use to configure the repository.
+     * @return The added repository
+     *
+     * @since 4.1
+     */
+    GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Action<? super GroovyMavenDeployer> configureAction);
+
+    /**
      * Adds a repository for installing to a local Maven cache. This repository can not be used for resolving dependencies.
      *
      * @return The added repository
@@ -92,6 +114,17 @@ public interface MavenRepositoryHandlerConvention {
      * @see #mavenInstaller(java.util.Map, groovy.lang.Closure) (java.util.Map, groovy.lang.Closure)
      */
     MavenResolver mavenInstaller(Closure configureClosure);
+
+    /**
+     * Adds a repository for installing to a local Maven cache. This repository can not be used for resolving dependencies.
+     *
+     * @param configureAction The action to use to configure the repository.
+     * @return The added repository
+     * @see #mavenInstaller(Map, Action)
+     *
+     * @since 4.1
+     */
+    MavenResolver mavenInstaller(Action<? super MavenResolver> configureAction);
 
     /**
      * Adds a repository for installing to a local Maven cache. This repository can not be used for resolving dependencies.
@@ -122,4 +155,15 @@ public interface MavenRepositoryHandlerConvention {
      * @return The added repository
      */
     MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure);
+
+    /**
+     * Adds a repository for installing to a local Maven cache. This repository can not be used for resolving dependencies.
+     *
+     * @param args The argument to create the repository
+     * @param configureAction The action to use to configure the repository.
+     * @return The added repository
+     *
+     * @since 4.1
+     */
+    MavenResolver mavenInstaller(Map<String, ?> args, Action<? super MavenResolver> configureAction);
 }

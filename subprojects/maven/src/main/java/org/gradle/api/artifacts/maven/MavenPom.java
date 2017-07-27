@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -56,6 +57,17 @@ public interface MavenPom {
      * @return this
      */
     MavenPom project(Closure pom);
+
+    /**
+     * Provides a builder for the Maven POM for adding or modifying properties of the Maven {@link #getModel()}.
+     * The syntax is exactly the same as used by polyglot Maven.
+     *
+     * @return this
+     *
+     * @see #project(Closure)
+     * @since 4.1
+     */
+    MavenPom project(Action<? super GroovyObject> pom);
 
     /**
      * Returns the group id for this POM.

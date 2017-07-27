@@ -16,15 +16,17 @@
 package org.gradle.api.publication.maven.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention;
-import org.gradle.internal.Actions;
-import org.gradle.util.ConfigureUtil;
 
 import java.util.Map;
+
+import static org.gradle.internal.Actions.composite;
+import static org.gradle.util.ConfigureUtil.configureUsing;
 
 public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryHandlerConvention {
     private final DefaultRepositoryHandler container;
@@ -39,19 +41,26 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
         return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME);
     }
 
+    @Override
+    public GroovyMavenDeployer mavenDeployer(Action<? super GroovyMavenDeployer> configureAction) {
+        return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, configureAction);
+    }
+
     public GroovyMavenDeployer mavenDeployer(Closure configureClosure) {
-        return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, ConfigureUtil.configureUsing(configureClosure));
+        return mavenDeployer(configureUsing(configureClosure));
     }
 
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args) {
-        return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, new ConfigureByMapAction<GroovyMavenDeployer>(args));
+        return mavenDeployer(configureByMapActionFor(args));
     }
 
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Closure configureClosure) {
+        return mavenDeployer(args, configureUsing(configureClosure));
+    }
+
+    public GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Action<? super GroovyMavenDeployer> configureAction) {
         //noinspection unchecked
-        return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, Actions.<GroovyMavenDeployer>composite(
-                new ConfigureByMapAction<GroovyMavenDeployer>(args), ConfigureUtil.configureUsing(configureClosure)
-        ));
+        return mavenDeployer(composite(configureByMapActionFor(args), configureAction));
     }
 
     private GroovyMavenDeployer createMavenDeployer() {
@@ -63,21 +72,33 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
     }
 
     public MavenResolver mavenInstaller(Closure configureClosure) {
-        return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, ConfigureUtil.configureUsing(configureClosure));
+        return mavenInstaller(configureUsing(configureClosure));
+    }
+
+    @Override
+    public MavenResolver mavenInstaller(Action<? super MavenResolver> configureAction) {
+        return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, configureAction);
     }
 
     public MavenResolver mavenInstaller(Map<String, ?> args) {
-        return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, new ConfigureByMapAction<MavenResolver>(args));
+        return mavenInstaller(configureByMapActionFor(args));
     }
 
     public MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure) {
+        return mavenInstaller(args, configureUsing(configureClosure));
+    }
+
+    @Override
+    public MavenResolver mavenInstaller(Map<String, ?> args, Action<? super MavenResolver> configureAction) {
         //noinspection unchecked
-        return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, Actions.<MavenResolver>composite(
-                new ConfigureByMapAction<MavenResolver>(args), ConfigureUtil.configureUsing(configureClosure)
-        ));
+        return mavenInstaller(composite(configureByMapActionFor(args), configureAction));
     }
 
     private MavenResolver createMavenInstaller() {
         return deployerFactory.createMavenInstaller();
+    }
+
+    private <T> ConfigureByMapAction<T> configureByMapActionFor(Map<String, ?> args) {
+        return new ConfigureByMapAction<T>(args);
     }
 }

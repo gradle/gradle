@@ -16,6 +16,7 @@
 package org.gradle.api.publication.maven.internal.pom;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObject;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
@@ -131,6 +132,15 @@ public class DefaultMavenPom implements MavenPom {
         CustomModelBuilder pomBuilder = new CustomModelBuilder(getModel());
         InvokerHelper.invokeMethod(pomBuilder, "project", cl);
         return this;
+    }
+
+    public DefaultMavenPom project(final Action<? super GroovyObject> action) {
+        return project(new Closure(this, this) {
+            @SuppressWarnings("unused")
+            public void doCall() {
+                action.execute((GroovyObject) getDelegate());
+            }
+        });
     }
 
     public Model getModel() {

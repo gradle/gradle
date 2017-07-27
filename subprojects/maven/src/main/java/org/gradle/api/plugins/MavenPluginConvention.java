@@ -16,6 +16,7 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
@@ -23,7 +24,6 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.publication.maven.internal.MavenPomMetaInfoProvider;
-import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -93,7 +93,11 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
      * @return The POM instance.
      */
     public MavenPom pom() {
-        return pom(null);
+        MavenPom pom = createMavenPom();
+        pom.setGroupId(project.getGroup().toString());
+        pom.setArtifactId(project.getName());
+        pom.setVersion(project.getVersion().toString());
+        return pom;
     }
 
     /**
@@ -103,13 +107,27 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
      * @return The POM instance.
      */
     public MavenPom pom(Closure configureClosure) {
-        Factory<MavenPom> pomFactory = mavenFactory.createMavenPomFactory(project.getConfigurations(),
-                conf2ScopeMappings.getMappings(),
-                project.getFileResolver());
-        MavenPom pom = pomFactory.create();
-        pom.setGroupId(project.getGroup().toString());
-        pom.setArtifactId(project.getName());
-        pom.setVersion(project.getVersion().toString());
-        return ConfigureUtil.configure(configureClosure, pom);
+        return ConfigureUtil.configure(configureClosure, pom());
     }
+
+    /**
+     * Creates and configures a new {@link MavenPom}. The given action is executed to configure the new POM instance.
+     *
+     * @param configureAction The action to use to configure the POM instance.
+     * @return The POM instance.
+     * @since 4.1
+     */
+    public MavenPom pom(Action<? super MavenPom> configureAction) {
+        MavenPom pom = pom();
+        configureAction.execute(pom);
+        return pom;
+    }
+
+    private MavenPom createMavenPom() {
+        return mavenFactory.createMavenPomFactory(
+            project.getConfigurations(),
+            conf2ScopeMappings.getMappings(),
+            project.getFileResolver()).create();
+    }
+
 }

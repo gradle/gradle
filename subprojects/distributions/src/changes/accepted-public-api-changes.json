@@ -126,6 +126,53 @@
             "changes": [
                 "Interface has been removed"
             ]
+	},
+	{
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.project(org.gradle.api.Action)",
+            "changes": ["Method added to interface"],
+            "acceptation": "Action<T> overload for Closure accepting method"
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPluginConvention",
+            "member": "Method org.gradle.api.plugins.MavenPluginConvention.pom(org.gradle.api.Action)",
+            "acceptation": "Action<T> overload for Closure accepting method"
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenDeployer(org.gradle.api.Action)",
+            "changes": ["Method added to interface"],
+            "acceptation": "Action<T> overload for Closure accepting method"
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.pom(java.lang.String,org.gradle.api.Action)",
+            "changes": ["Method added to interface"],
+            "acceptation": "Action<T> overload for Closure accepting method"
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.pom(org.gradle.api.Action)",
+            "changes": ["Method added to interface"],
+            "acceptation": "Action<T> overload for Closure accepting method"
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenDeployer(java.util.Map,org.gradle.api.Action)",
+            "changes": ["Method added to interface"],
+            "acceptation": "Action<T> overload for Closure accepting method"
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenInstaller(org.gradle.api.Action)",
+            "changes": ["Method added to interface"],
+            "acceptation": "Action<T> overload for Closure accepting method"
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenInstaller(java.util.Map,org.gradle.api.Action)",
+            "changes": ["Method added to interface"],
+            "acceptation": "Action<T> overload for Closure accepting method"
         }
     ]
 }

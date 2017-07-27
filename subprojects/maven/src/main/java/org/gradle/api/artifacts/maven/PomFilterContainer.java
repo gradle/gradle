@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.publication.maven.internal.PomFilter;
 
 /**
@@ -123,6 +124,26 @@ public interface PomFilterContainer {
      * @see PomFilterContainer#getPom()
      */
     MavenPom pom(Closure configureClosure);
+
+    /**
+     * Configures a POM by an action. The action is executed against the POM object associated with the given name.
+     *
+     * @return The POM object associated with the given name.
+     * @see PomFilterContainer#pom(String)
+     *
+     * @since 4.1
+     */
+    MavenPom pom(String name, Action<? super MavenPom> configureAction);
+
+    /**
+     * Configures the default POM by an action.
+     *
+     * @return The default POM.
+     * @see PomFilterContainer#getPom()
+     *
+     * @since 4.1
+     */
+    MavenPom pom(Action<? super MavenPom> configureAction);
 
     Iterable<PomFilter> getActivePomFilters();
 }
