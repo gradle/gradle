@@ -356,6 +356,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
+    @spock.lang.Ignore // TODO:pm temporarily ignore Kotlin DSL tests
     @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
     def "generates events for nested script plugin applications of different types"() {
         given:

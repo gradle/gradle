@@ -21,6 +21,7 @@ import org.gradle.util.Requires
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
+@spock.lang.Ignore // TODO:pm temporarily ignore Kotlin DSL tests
 class GradleKotlinDslSmokeTest extends AbstractSmokeTest {
 
     @Override

@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@spock.lang.Ignore // TODO:pm temporarily ignore Kotlin DSL tests
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
     private kotlinVersion = '1.1.1'
     private androidPluginVersion = AndroidPluginsSmokeTest.ANDROID_PLUGIN_VERSION

@@ -23,6 +23,7 @@ import org.gradle.util.Requires
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
+@spock.lang.Ignore // TODO:pm temporarily ignore Kotlin DSL tests
 @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
 class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
