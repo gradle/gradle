@@ -40,11 +40,13 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(SkipEmptySourceFilesTaskExecuter.class);
     private final TaskInputsListener taskInputsListener;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
+    private final TaskOutputsGenerationListener taskOutputsGenerationListener;
     private final TaskExecuter executer;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, TaskExecuter executer) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter executer) {
         this.taskInputsListener = taskInputsListener;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
+        this.taskOutputsGenerationListener = taskOutputsGenerationListener;
         this.executer = executer;
     }
 
@@ -52,7 +54,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
         FileCollection sourceFiles = task.getInputs().getSourceFiles();
         if (task.getInputs().getHasSourceFiles() && sourceFiles.isEmpty()) {
             TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-            FileCollection outputFiles = taskArtifactState.getExecutionHistory().getOutputFiles();
+            Set<File> outputFiles = taskArtifactState.getExecutionHistory().getPreviousOutputs();
             if (outputFiles == null) {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no history of previous output files.", task);
@@ -60,10 +62,11 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
-                Set<File> outputFileSet = outputFiles.getFiles();
+                taskOutputsGenerationListener.beforeTaskOutputsGenerated();
                 boolean deletedFiles = false;
                 boolean debugEnabled = LOGGER.isDebugEnabled();
-                for (File file : outputFileSet) {
+
+                for (File file : outputFiles) {
                     if (file.isFile() && buildOutputCleanupRegistry.isOutputOwnedByBuild(file)) {
                         if (file.delete()) {
                             if (debugEnabled) {
@@ -82,6 +85,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 } else {
                     state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 }
+                taskArtifactState.afterTask(null);
             }
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
             return;

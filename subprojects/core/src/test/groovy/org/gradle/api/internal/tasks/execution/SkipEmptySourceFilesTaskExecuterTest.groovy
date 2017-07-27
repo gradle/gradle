@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.GradleException
 import org.gradle.api.execution.internal.TaskInputsListener
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -44,8 +43,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskArtifactState = Mock(TaskArtifactState)
     final taskExecutionHistory = Mock(TaskExecutionHistory)
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
-    final outputFiles = Mock(FileCollection)
-    final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, target)
+    final taskOutputsGenerationListener = Mock(TaskOutputsGenerationListener)
+    final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, taskOutputsGenerationListener, target)
 
     def 'skips task when sourceFiles are empty and no previous output existed'() {
         when:
@@ -62,7 +61,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
 
         then: 'if no previous output files existed...'
-        1 * taskExecutionHistory.outputFiles >> null
+        1 * taskExecutionHistory.previousOutputs >> null
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
@@ -74,7 +73,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         0 * _
     }
 
-    def 'skips task when sourceFiles are empty and no previous output is empty'() {
+    def 'skips task when sourceFiles are empty and previous output is empty'() {
         when:
         executer.execute(task, state, taskContext)
 
@@ -89,8 +88,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
 
         then: 'if no previous output files existed...'
-        1 * taskExecutionHistory.outputFiles >> outputFiles
-        1 * outputFiles.isEmpty() >> true
+        1 * taskExecutionHistory.previousOutputs >> new HashSet<File>()
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
@@ -105,7 +103,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     def 'deletes previous output when sourceFiles are empty'() {
         given:
         def previousFile = Mock(File)
-        Set<File> previousFiles = [previousFile]
+        Set<File> previousOutputs = [previousFile]
 
         when:
         executer.execute(task, state, taskContext)
@@ -119,11 +117,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.outputFiles >> outputFiles
-
-        then: 'if previous output files existed...'
-        1 * outputFiles.empty >> false
-        1 * outputFiles.files >> previousFiles
+        1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
 
         then: 'deleting the file succeeds'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
@@ -134,6 +129,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
+        1 * taskArtifactState.afterTask(null)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -145,7 +141,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     def 'does not delete previous output when they are not safe to delete'() {
         given:
         def previousFile = Mock(File)
-        Set<File> previousFiles = [previousFile]
+        Set<File> previousOutputs = [previousFile]
 
         when:
         executer.execute(task, state, taskContext)
@@ -159,11 +155,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.outputFiles >> outputFiles
-
-        then: 'if previous output files existed...'
-        1 * outputFiles.empty >> false
-        1 * outputFiles.files >> previousFiles
+        1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
 
         then: 'deleting the file succeeds'
         1 * previousFile.isFile() >> true
@@ -171,6 +164,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
+        1 * taskArtifactState.afterTask(null)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -182,7 +176,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     def 'exception thrown when sourceFiles are empty and deletes previous output, but delete fails'() {
         given:
         def previousFile = Mock(File)
-        Set<File> previousFiles = [previousFile]
+        Set<File> previousOutputs = [previousFile]
 
         when:
         executer.execute(task, state, taskContext)
@@ -196,11 +190,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.outputFiles >> outputFiles
-
-        then: 'if previous output files existed...'
-        1 * outputFiles.empty >> false
-        1 * outputFiles.files >> previousFiles
+        1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
 
         then: 'deleting the previous file fails'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true

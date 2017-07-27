@@ -133,7 +133,7 @@ public class TaskExecutionServices {
             executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
         }
         executer = new ValidatingTaskExecuter(executer);
-        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, executer);
+        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
         executer = new SkipTaskWithNoActionsExecuter(executer);

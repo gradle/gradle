@@ -18,11 +18,14 @@ package org.gradle.api.internal;
 import org.gradle.api.file.FileCollection;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Set;
 
 public interface TaskExecutionHistory {
     /**
      * Returns the set of output files which the task produced.
      */
+    @Nullable
     FileCollection getOutputFiles();
 
     /**
@@ -30,4 +33,7 @@ public interface TaskExecutionHistory {
      */
     @Nullable
     OverlappingOutputs getOverlappingOutputs();
+
+    @Nullable
+    Set<File> getPreviousOutputs();
 }

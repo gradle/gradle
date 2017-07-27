@@ -25,7 +25,9 @@ import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBu
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
 
+import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
     @Override
@@ -78,6 +80,11 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
 
     @Override
     public OverlappingOutputs getOverlappingOutputs() {
+        return null;
+    }
+
+    @Override
+    public Set<File> getPreviousOutputs() {
         return null;
     }
 }

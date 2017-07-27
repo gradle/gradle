@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileCollection;
@@ -43,6 +44,9 @@ import org.gradle.internal.reflect.Instantiator;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private final TaskHistoryRepository taskHistoryRepository;
@@ -142,6 +146,20 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             } else {
                 return fileCollectionFactory.empty("Task " + task.getPath() + " outputs");
             }
+        }
+
+        @Override
+        public Set<File> getPreviousOutputs() {
+            TaskExecution previousExecution = history.getPreviousExecution();
+            if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
+                return Collections.emptySet();
+            }
+            ImmutableCollection<FileCollectionSnapshot> outputFilesSnapshot = previousExecution.getOutputFilesSnapshot().values();
+            Set<File> outputs = new HashSet<File>();
+            for (FileCollectionSnapshot fileCollectionSnapshot : outputFilesSnapshot) {
+                outputs.addAll(fileCollectionSnapshot.getElements());
+            }
+            return outputs;
         }
 
         @Override
