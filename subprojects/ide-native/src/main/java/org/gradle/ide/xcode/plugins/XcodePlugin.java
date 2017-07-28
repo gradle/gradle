@@ -36,8 +36,10 @@ import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
+import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
+import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
@@ -167,6 +169,7 @@ public class XcodePlugin extends IdePlugin {
 
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the build task
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
+        target.getImportPaths().from(project.getConfigurations().getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
         xcode.getProject().setTarget(target);
 
         getLifecycleTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
@@ -192,9 +195,13 @@ public class XcodePlugin extends IdePlugin {
         // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the sources
         ConfigurableFileTree sourceTree = project.fileTree("src/main/cpp");
         xcode.getProject().getSources().from(sourceTree);
+        xcode.getProject().getSources().from(project.fileTree("src/main/headers"));
+        xcode.getProject().getSources().from(project.fileTree("src/main/public"));
 
-        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the build task
+        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the build and header search paths
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
+        target.getHeaderSearchPaths().from("src/main/headers");
+        target.getHeaderSearchPaths().from(project.getConfigurations().getByName(CppBasePlugin.CPP_INCLUDE_PATH));
         xcode.getProject().setTarget(target);
 
         getLifecycleTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
@@ -218,7 +225,7 @@ public class XcodePlugin extends IdePlugin {
 
     private XcodeTarget newTarget(String name, PBXTarget.ProductType productType, String gradleCommand, String taskName, File outputFile, FileCollection sources) {
         String id = gidGenerator.generateGid("PBXLegacyTarget", name.hashCode());
-        XcodeTarget target = new XcodeTarget(name, id);
+        XcodeTarget target = new XcodeTarget(name, id, fileOperations);
         target.setOutputFile(outputFile);
         target.setTaskName(taskName);
         target.setGradleCommand(gradleCommand);
