@@ -87,6 +87,7 @@ We would like to thank the following community members for making contributions 
  - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Register classloaders as parallelCapable (#772)
  - [Lance](https://github.com/uklance) - Fix Maven BOM evaluation order (#2282)
  - [Jokubas Dargis](https://github.com/eleventigerssc) - Add GCS transport protocol support for declaring dependencies (#2258)
+ - [Thomas Halm](https://github.com/thhalm) - Maintain order of classpath when generating start scripts (#2513)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
