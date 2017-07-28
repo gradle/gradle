@@ -72,6 +72,22 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     String alternateOutput = "$HELLO_WORLD\n"
 
     @Override
+    TestNativeComponent getLibrary() {
+        def delegate = super.getExecutable()
+        return new TestNativeComponent() {
+            @Override
+            List<SourceFile> getHeaderFiles() {
+                return Collections.<SourceFile>emptyList()
+            }
+
+            @Override
+            List<SourceFile> getSourceFiles() {
+                return delegate.getSourceFiles()
+            }
+        }
+    }
+
+    @Override
     SourceFile getLibraryHeader() {
         return sourceFile("headers", "hello.h", "");
     }

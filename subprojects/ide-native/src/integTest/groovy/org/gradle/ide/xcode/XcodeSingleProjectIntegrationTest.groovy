@@ -48,7 +48,7 @@ rootProject.name = "${PROJECT_NAME}"
         def project = xcodeProject("${PROJECT_NAME}.xcodeproj").projectFile
 
         and: 'source files are properly attached to the project'
-        project.mainGroup.children.size() == app.sourceFiles.size() + 2
+        project.mainGroup.children.size() == app.allFiles.size() + 2
         project.mainGroup.children*.name.containsAll(['Products', 'build.gradle'] + app.sourceFiles*.name)
 
         and: 'targets are properly created'
@@ -69,7 +69,7 @@ rootProject.name = "${PROJECT_NAME}"
     }
 
     @Unroll
-    def "create xcode project Swift library"() {
+    def "create xcode project #languageName library"() {
         given:
         buildFile << """
 apply plugin: '${languageName}-library'
@@ -90,7 +90,7 @@ rootProject.name = "${PROJECT_NAME}"
         def project = xcodeProject("${PROJECT_NAME}.xcodeproj").projectFile
 
         and: 'source files are properly attached to the project'
-        project.mainGroup.children.size() == app.library.sourceFiles.size() + 2
+        project.mainGroup.children.size() == app.library.allFiles.size() + 2
         project.mainGroup.children*.name.containsAll(['Products', 'build.gradle'] + app.library.sourceFiles*.name)
 
         and: 'targets are properly created'
