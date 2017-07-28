@@ -45,6 +45,7 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
 
     private static final Map<String, Packer> PACKERS = ImmutableMap.<String, Packer>builder()
         .put("tar.snappy", new SnappyPacker(new TarPacker(4)))
+        .put("tar.snappy.commons", new SnappyCommonsPacker(new TarPacker(4)))
         .put("tar.snappy.small", new SnappyPacker(new TarPacker(2)))
         .put("tar.snappy.large", new SnappyPacker(new TarPacker(64)))
         .put("tar", new TarPacker(4))

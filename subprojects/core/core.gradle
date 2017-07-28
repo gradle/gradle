@@ -74,6 +74,7 @@ dependencies {
     integTestRuntimeOnly project(":plugins")
 
     jmh "io.airlift:aircompressor:0.8"
+    jmh "org.apache.commons:commons-compress:1.14"
 }
 
 useTestFixtures()
@@ -87,7 +88,7 @@ test {
 }
 
 jmh {
-    include = ["TaskOutputPackagingBufferBenchmark"]
+    include = ["TaskOutputPackagingTypeBenchmark"]
 }
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
