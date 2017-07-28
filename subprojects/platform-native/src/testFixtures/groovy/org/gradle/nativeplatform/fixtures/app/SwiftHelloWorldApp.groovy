@@ -42,7 +42,7 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     SourceFile getAlternateMainSource() {
         sourceFile("swift", "main.swift", """
             func main() -> Int {
-              let greeter = Greater()
+              let greeter = Greeter()
               greeter.sayHello()
               return 0
             }
@@ -70,7 +70,6 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
                 return "${HELLO_WORLD_FRENCH}"
             }
             #endif
-
 
             public class Greeter {
                 public init() {}

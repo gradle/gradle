@@ -82,12 +82,12 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     @Inject
-    public IncrementalCompilerBuilder getIncrementalCompilerBuilder() {
+    protected IncrementalCompilerBuilder getIncrementalCompilerBuilder() {
         throw new UnsupportedOperationException();
     }
 
     @Inject
-    public BuildOperationLoggerFactory getOperationLoggerFactory() {
+    protected BuildOperationLoggerFactory getOperationLoggerFactory() {
         throw new UnsupportedOperationException();
     }
 

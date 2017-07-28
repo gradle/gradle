@@ -17,10 +17,14 @@
 package org.gradle.language.swift.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
+import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.language.swift.internal.DefaultSwiftCompileSpec;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
@@ -30,7 +34,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec
  * @since 4.1
  */
 @Incubating
-public class SwiftCompile extends AbstractNativeSourceCompileTask {
+public class SwiftCompile extends AbstractNativeCompileTask {
     private String moduleName;
 
     @Override
@@ -38,6 +42,16 @@ public class SwiftCompile extends AbstractNativeSourceCompileTask {
         SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
         spec.setModuleName(moduleName);
         return spec;
+    }
+
+    @Override
+    protected IncrementalCompilerBuilder getIncrementalCompilerBuilder() {
+        return new IncrementalCompilerBuilder() {
+            @Override
+            public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain) {
+                return compiler;
+            }
+        };
     }
 
     @Optional
