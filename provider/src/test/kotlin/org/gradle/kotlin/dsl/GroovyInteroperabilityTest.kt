@@ -130,10 +130,10 @@ class GroovyInteroperabilityTest {
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "withKeywordArguments"("string" to "42", "int" to 42)
-            assertThat(invokeResult, equalTo(expectedInvokeResult))
+            assertThat(invokeResult, sameInstance(expectedInvokeResult))
             expectedBuilderResult
         }
-        assertThat(builderResult, equalTo(expectedBuilderResult))
+        assertThat(builderResult, sameInstance(expectedBuilderResult))
 
         val expectedKeywordArguments = mapOf("string" to "42", "int" to 42)
         verify(delegate).withKeywordArguments(expectedKeywordArguments)
