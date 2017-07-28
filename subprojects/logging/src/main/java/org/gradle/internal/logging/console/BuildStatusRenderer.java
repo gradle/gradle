@@ -87,7 +87,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     public void onOutput(Iterable<OutputEvent> events) {
         super.onOutput(events);
         listener.onOutput(events);
-        renderNow(timeProvider.getCurrentTime());
+        renderNow(timeProvider.getCurrentTimeForDuration());
     }
 
     private void renderNow(long now) {
@@ -98,7 +98,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     }
 
     private void buildStarted(ProgressStartEvent startEvent) {
-        buildStartTimestamp = timeProvider.getCurrentTime();
+        buildStartTimestamp = timeProvider.getCurrentTimeForDuration();
     }
 
     private void phaseStarted(ProgressStartEvent progressStartEvent) {
