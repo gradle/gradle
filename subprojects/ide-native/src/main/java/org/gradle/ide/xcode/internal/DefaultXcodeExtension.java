@@ -16,17 +16,19 @@
 
 package org.gradle.ide.xcode.internal;
 
-import org.gradle.api.internal.NoConventionMapping;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.ide.xcode.XcodeExtension;
 
-@NoConventionMapping
+import javax.inject.Inject;
+
 public class DefaultXcodeExtension implements XcodeExtension {
     private final DefaultXcodeProject project;
-    private final DefaultXcodeWorkspace workspace = new DefaultXcodeWorkspace();
+    private final DefaultXcodeWorkspace workspace;
 
-    public DefaultXcodeExtension(FileOperations fileOperations) {
-        this.project = new DefaultXcodeProject(fileOperations);
+    @Inject
+    public DefaultXcodeExtension(ObjectFactory objectFactory) {
+        project = objectFactory.newInstance(DefaultXcodeProject.class);
+        workspace = objectFactory.newInstance(DefaultXcodeWorkspace.class);
     }
 
     @Override

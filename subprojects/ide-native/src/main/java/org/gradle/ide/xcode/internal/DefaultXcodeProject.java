@@ -20,6 +20,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.ide.xcode.XcodeProject;
 
+import javax.inject.Inject;
 import java.io.File;
 
 public class DefaultXcodeProject implements XcodeProject {
@@ -27,6 +28,7 @@ public class DefaultXcodeProject implements XcodeProject {
     private XcodeTarget target;
     private File locationDir;
 
+    @Inject
     public DefaultXcodeProject(FileOperations fileOperations) {
         this.sources = fileOperations.files();
     }

@@ -22,7 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.xcode.XcodeExtension;
@@ -53,12 +53,12 @@ public class XcodePlugin extends IdePlugin {
     private DefaultXcodeExtension xcode;
 
     private final GidGenerator gidGenerator;
-    private final FileOperations fileOperations;
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public XcodePlugin(GidGenerator gidGenerator, FileOperations fileOperations) {
+    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory) {
         this.gidGenerator = gidGenerator;
-        this.fileOperations = fileOperations;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class XcodePlugin extends IdePlugin {
         getLifecycleTask().setDescription("Generates XCode project files (pbxproj, xcworkspace, xcscheme)");
         getCleanTask().setDescription("Cleans XCode project files (xcodeproj)");
 
-        xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, fileOperations);
+        xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
         xcode.getProject().setLocationDir(project.file(projectName(project) + ".xcodeproj"));
 
         configureForSwiftPlugin(project);
