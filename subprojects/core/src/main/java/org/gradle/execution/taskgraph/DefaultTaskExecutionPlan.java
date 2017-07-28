@@ -563,7 +563,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 try {
                     selected.set(selectNextTask(workerLease));
                 } catch (Throwable t) {
-                    abortAndFail(t);
+                    abortAllAndFail(t);
                     workRemaining.set(false);
                 }
 
@@ -877,8 +877,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void abortAndFail(Throwable t) {
-        abortExecution();
+    private void abortAllAndFail(Throwable t) {
+        abortExecution(true);
         this.failures.add(t);
     }
 
@@ -903,11 +903,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private boolean abortExecution() {
-        // Allow currently executing and enforced tasks to complete, but skip everything else.
+        return abortExecution(false);
+    }
+
+    private boolean abortExecution(boolean abortAll) {
         boolean aborted = false;
         for (TaskInfo taskInfo : executionPlan.values()) {
+            // Allow currently executing and enforced tasks to complete, but skip everything else.
             if (taskInfo.isRequired()) {
                 taskInfo.skipExecution();
+                aborted = true;
+            }
+
+            // If abortAll is set, also stop enforced tasks.
+            if (abortAll && taskInfo.isReady()) {
+                taskInfo.abortExecution();
                 aborted = true;
             }
         }
