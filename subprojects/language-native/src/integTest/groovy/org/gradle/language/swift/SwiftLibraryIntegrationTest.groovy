@@ -25,7 +25,7 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new SwiftHelloWorldApp()
 
     def "build fails when compilation fails"() {
