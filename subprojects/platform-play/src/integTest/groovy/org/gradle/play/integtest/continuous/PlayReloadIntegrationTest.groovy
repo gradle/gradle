@@ -56,18 +56,6 @@ class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegratio
         runningApp.playUrl('hello').text == 'hello world'
     }
 
-    private void addNewRoute(String route="hello") {
-        file("conf/routes") << "\nGET     /${route}                   controllers.Application.${route}"
-        file("app/controllers/Application.scala").with {
-            text = text.replaceFirst(/(?s)\}\s*$/, """
-  def ${route} = Action {
-    Ok("${route} world")
-  }
-}
-""")
-        }
-    }
-
     def "should reload with exception when modify scala controller"() {
         when:
         succeeds("runPlayBinary")
@@ -87,29 +75,6 @@ class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegratio
         succeeds()
         appIsRunningAndDeployed()
 
-    }
-
-    private errorPageHasTaskFailure(task) {
-        def error = runningApp.playUrlError()
-        assert error.httpCode == 500
-        assert error.text.contains("Gradle Build Failure")
-        assert error.text.contains("Execution failed for task &#x27;:$task&#x27;.")
-        error
-    }
-
-    private void addBadCode() {
-        file("conf/routes") << "\nGET     /hello                   controllers.Application.hello"
-        file("app/controllers/Application.scala").with {
-            text = text.replaceFirst(/(?s)\}\s*$/, '''
-  def hello = Action {
-    Ok("hello world")
-  }
-''') // missing closing brace
-        }
-    }
-
-    private void fixBadCode() {
-        file("app/controllers/Application.scala") << "}"
     }
 
     def "should reload modified coffeescript"() {
@@ -213,31 +178,6 @@ task otherTask {
         errorPageHasTaskFailure("otherTask")
     }
 
-    void addPendingChangesHook() {
-        buildFile << """
-            ext.pendingChanges = new java.util.concurrent.atomic.AtomicBoolean(false)
-
-            void addPendingChangeListener() {
-                def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
-                pendingChangesManager.addListener new ${SingleFirePendingChangesListener.canonicalName}({
-                    synchronized(pendingChanges) {
-                        println "Pending changes detected"
-                        pendingChanges.set(true)
-                        pendingChanges.notifyAll()
-                    }
-                } as ${PendingChangesListener.canonicalName})
-            }
-
-            void waitForPendingChanges() {
-                synchronized(pendingChanges) {
-                    while(!pendingChanges.get()) {
-                        pendingChanges.wait()
-                    }
-                }
-            }
-        """
-    }
-
     def "wait for changes to be built when a request comes in during initial app startup and there are pending changes"() {
         addPendingChangesHook()
         // Prebuild so we don't timeout waiting for the 'rebuild' trigger
@@ -310,7 +250,6 @@ task otherTask {
         runningApp.playUrl('hello').text == 'hello world'
     }
 
-
     def "wait for pending changes to be built if a request comes in during a failing build and there are pending changes"() {
         server.start()
         addPendingChangesHook()
@@ -368,5 +307,65 @@ task otherTask {
         buildStarted.releaseAll()
         then:
         runningApp.playUrl('hello').text == 'hello world'
+    }
+
+    private void addNewRoute(String route="hello") {
+        file("conf/routes") << "\nGET     /${route}                   controllers.Application.${route}"
+        file("app/controllers/Application.scala").with {
+            text = text.replaceFirst(/(?s)\}\s*$/, """
+  def ${route} = Action {
+    Ok("${route} world")
+  }
+}
+""")
+        }
+    }
+
+    private errorPageHasTaskFailure(task) {
+        def error = runningApp.playUrlError()
+        assert error.httpCode == 500
+        assert error.text.contains("Gradle Build Failure")
+        assert error.text.contains("Execution failed for task &#x27;:$task&#x27;.")
+        error
+    }
+
+    private void addBadCode() {
+        file("conf/routes") << "\nGET     /hello                   controllers.Application.hello"
+        file("app/controllers/Application.scala").with {
+            text = text.replaceFirst(/(?s)\}\s*$/, '''
+  def hello = Action {
+    Ok("hello world")
+  }
+''') // missing closing brace
+        }
+    }
+
+    private void fixBadCode() {
+        file("app/controllers/Application.scala") << "}"
+    }
+
+    void addPendingChangesHook() {
+        buildFile << """
+            ext.pendingChanges = new java.util.concurrent.atomic.AtomicBoolean(false)
+
+            void addPendingChangeListener() {
+                def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
+                pendingChangesManager.addListener new ${SingleFirePendingChangesListener.canonicalName}({
+                    synchronized(pendingChanges) {
+                        println "Pending changes detected"
+                        pendingChanges.set(true)
+                        pendingChanges.notifyAll()
+                    }
+                } as ${PendingChangesListener.canonicalName})
+            }
+
+            void waitForPendingChanges() {
+                synchronized(pendingChanges) {
+                    while(!pendingChanges.get()) {
+                        pendingChanges.wait()
+                    }
+                }
+            }
+        """
     }
 }
