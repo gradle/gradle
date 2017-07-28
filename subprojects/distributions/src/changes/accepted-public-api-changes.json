@@ -46,6 +46,22 @@
             "type": "org.gradle.api.tasks.TaskInputFilePropertyBuilder",
             "member": "Implemented interface org.gradle.api.tasks.TaskFilePropertyBuilder",
             "acceptation": "Removed at not exposed method (`withPathSensitivity`) on an incubating interface"
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftModulePlugin",
+            "member": "Constructor SwiftModulePlugin",
+            "acceptation": "Incubating class `SwiftModulePlugin` was renamed to `SwiftLibraryPlugin`",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftModulePlugin",
+            "member": "Implemented interface org.gradle.api.Plugin",
+            "acceptation": "Incubating class `SwiftModulePlugin` was renamed to `SwiftLibraryPlugin`",
+            "changes": [
+                "Interface has been removed"
+            ]
         }
     ]
 }
