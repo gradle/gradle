@@ -94,7 +94,7 @@ ${f.text}"""
         sharedLibrary("app/build/install/app/lib/Greeter").file.assertExists()
     }
 
-    def "can compile and link against library with dependencies"() {
+    def "can compile and link against library with api dependencies"() {
         settingsFile << "include 'app', 'Hello', 'Greeting'"
         def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
 
