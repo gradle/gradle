@@ -98,10 +98,11 @@ class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegratio
     }
 
     private void addBadCode() {
+        file("conf/routes") << "\nGET     /hello                   controllers.Application.hello"
         file("app/controllers/Application.scala").with {
             text = text.replaceFirst(/(?s)\}\s*$/, '''
   def hello = Action {
-    Ok("Hello world")
+    Ok("hello world")
   }
 ''') // missing closing brace
         }
@@ -306,6 +307,44 @@ task otherTask {
         then:
         // goodbye route is added by second change, so if it's available, we know we've blocked
         runningApp.playUrl('goodbye').text == 'goodbye world'
+        runningApp.playUrl('hello').text == 'hello world'
+    }
+
+
+    def "wait for pending changes to be built if a request comes in during a failing build and there are pending changes"() {
+        server.start()
+        addPendingChangesHook()
+        buildFile << """
+            gradle.taskGraph.afterTask { task ->
+                if (task.path != ":compilePlayBinaryScala") {
+                    return
+                }
+                def routes = file('conf/routes').text
+                if (routes.contains("hello") && task.state.failure) {
+                    addPendingChangeListener()
+                    // hello route is present, signal we're ready to modify again
+                    ${server.callFromBuild("rebuild")}
+                    // test should have added the goodbye route, so wait until Gradle
+                    // detects this as a pending change
+                    waitForPendingChanges()
+                }
+            }
+        """
+
+        when:
+        succeeds("runPlayBinary")
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        // Trigger a change that breaks the build
+        addBadCode()
+        def rebuild = server.expectAndBlock("rebuild")
+        rebuild.waitForAllPendingCalls()
+        // Trigger another change during the build that works
+        fixBadCode()
+        rebuild.releaseAll()
+        then:
         runningApp.playUrl('hello').text == 'hello world'
     }
 
