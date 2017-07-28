@@ -75,6 +75,7 @@ dependencies {
 
     jmh "io.airlift:aircompressor:0.8"
     jmh "org.apache.commons:commons-compress:1.14"
+    jmh "org.iq80.snappy:snappy:0.4"
 }
 
 useTestFixtures()

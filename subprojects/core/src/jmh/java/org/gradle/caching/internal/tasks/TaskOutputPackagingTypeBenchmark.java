@@ -19,7 +19,7 @@ package org.gradle.caching.internal.tasks;
 import org.openjdk.jmh.annotations.Param;
 
 public class TaskOutputPackagingTypeBenchmark extends AbstractTaskOutputPackagingBenchmark {
-    @Param({"tar.snappy", "tar.snappy.commons"})
+    @Param({"tar.snappy", "tar.snappy.commons", "tar.snappy.dain"})
     String packer;
 
     @Param({"direct", "buffered"})
