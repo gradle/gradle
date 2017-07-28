@@ -111,15 +111,6 @@ fun <T : Any> Project.the(extensionType: KClass<T>) =
     convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)!!
 
 
-inline
-fun <reified T : Any> Convention.getPlugin() =
-    getPlugin(T::class)
-
-
-fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
-    getPlugin(conventionType.java)!!
-
-
 /**
  * Creates a [Task] with the given [name] and [type], configures it with the given [configuration] action,
  * and adds it to this project tasks container.
