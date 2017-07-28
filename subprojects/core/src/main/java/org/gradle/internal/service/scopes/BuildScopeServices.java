@@ -41,6 +41,7 @@ import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
+import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
@@ -71,6 +72,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.caching.internal.BuildCacheServices;
+import org.gradle.composite.internal.IncludedBuildFactory;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
@@ -94,8 +96,6 @@ import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCa
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
-import org.gradle.composite.internal.IncludedBuildFactory;
-import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -128,7 +128,6 @@ import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
-import org.gradle.internal.cleanup.BuildOutputCleanupListener;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -423,10 +422,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     AuthenticationSchemeRegistry createAuthenticationSchemeRegistry() {
         return new DefaultAuthenticationSchemeRegistry();
-    }
-
-    protected BuildOutputCleanupListener createBuildOutputCleanupListener() {
-        return new BuildOutputCleanupListener();
     }
 
     protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions) {

@@ -16,28 +16,23 @@
 
 package org.gradle.internal.cleanup
 
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 @UsesNativeServices
 class DefaultBuildOutputCleanupRegistryTest extends Specification {
 
-    def fileResolver = Mock(FileResolver)
+    def fileResolver = new IdentityFileResolver()
     def registry = new DefaultBuildOutputCleanupRegistry(fileResolver)
-
-    def "no outputs are registered by default"() {
-        expect:
-        registry.outputs.empty
-    }
 
     def "can register files, directories and file collections"() {
         given:
-        def dir1 = new File('dir1')
-        File file1 = new File('someDir/test1.txt')
-        def outputFiles = Mock(FileCollection)
+        def dir1 = file('dir1')
+        File file1 = file('someDir/test1.txt')
+        File outputFile = file('someDir/test2.txt')
+        def outputFiles = new SimpleFileCollection(outputFile)
 
 
         when:
@@ -46,9 +41,30 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         registry.registerOutputs(outputFiles)
 
         then:
-        1 * fileResolver.resolveFiles(dir1) >> Mock(FileCollectionInternal)
-        1 * fileResolver.resolveFiles(file1) >> Mock(FileCollectionInternal)
-        1 * fileResolver.resolveFiles(outputFiles) >> Mock(FileCollectionInternal)
-        registry.outputs.sources.size() == 3
+        registry.isOutputOwnedByBuild(dir1)
+        registry.isOutputOwnedByBuild(file1)
+        registry.isOutputOwnedByBuild(outputFile)
     }
+
+    def "determines files which are owned by the build"() {
+        registry.registerOutputs(file('build/outputs'))
+        registry.registerOutputs(file('build/outputs/other'))
+        registry.registerOutputs(file('outputs'))
+
+        expect:
+        registry.isOutputOwnedByBuild(file('build/outputs'))
+        registry.isOutputOwnedByBuild(file('build/outputs/some-dir/other-dir'))
+        registry.isOutputOwnedByBuild(file('build/outputs/other'))
+        registry.isOutputOwnedByBuild(file('build/outputs/other/even-an-other-dir'))
+        registry.isOutputOwnedByBuild(file('outputs/even-an-other-dir'))
+        !registry.isOutputOwnedByBuild(file('build'))
+        !registry.isOutputOwnedByBuild(file('output'))
+        !registry.isOutputOwnedByBuild(file('build/output'))
+        !registry.isOutputOwnedByBuild(file('different-file/build/outputs'))
+    }
+
+    File file(String fileName) {
+        new File(fileName).absoluteFile
+    }
+
 }

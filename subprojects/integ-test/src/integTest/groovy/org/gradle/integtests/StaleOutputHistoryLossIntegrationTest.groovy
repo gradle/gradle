@@ -34,7 +34,7 @@ import static org.gradle.util.GFileUtils.forceDelete
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     private final ReleasedVersionDistributions releasedVersionDistributions = new ReleasedVersionDistributions()
-    // TODO: Convert this to .mostRecentFinalRelease once 4.0 is released.
+    // TODO: Convert this to .mostRecentFinalRelease once 4.2 is released.
     private final GradleExecuter mostRecentFinalReleaseExecuter = releasedVersionDistributions.getMostRecentSnapshot().executer(temporaryFolder, getBuildContext())
 
     def cleanup() {
@@ -42,12 +42,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def setup() {
-        executer.beforeExecute {
-            executer.withArgument('--info')
-        }
+        buildFile << "apply plugin: 'base'\n"
     }
 
-    @Issue("GRADLE-1501")
+    @Issue("https://github.com/gradle/gradle/issues/821")
     @Unroll
     def "production sources files are removed in a single project build for #description"() {
         given:
@@ -64,7 +62,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
 
         then:
-        javaProject.assertDoesNotHaveCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertIsFile()
         javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
@@ -74,7 +71,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         succeeds JAR_TASK_NAME
 
         then:
-        javaProject.assertHasCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
         javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
@@ -84,7 +80,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksSkipped(result)
-        javaProject.assertDoesNotHaveCleanupMessage(result)
 
         where:
         buildDirName | defaultDir | description
@@ -132,8 +127,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // We register the output directory before task execution and would have deleted output files at the end of configuration.
-    @NotYetImplemented
-    @Issue("GRADLE-1501")
+    @Issue("https://github.com/gradle/gradle/issues/821")
     def "production sources files are removed even if output directory is reconfigured during execution phase"() {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory)
@@ -142,7 +136,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             
             task configureCompileJava {
                 doLast {
-                    sourceSets.main.output.classesDir = file('out')
+                    compileJava.destinationDir = file('build/out')
+                    jar.from compileJava
                 }
             }
             
@@ -153,7 +148,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksExecuted(result)
-        javaProject.assertDoesNotHaveCleanupMessage(result)
         javaProject.mainClassFile.assertDoesNotExist()
         javaProject.redundantClassFile.assertDoesNotExist()
         javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
@@ -166,7 +160,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksExecuted(result)
-        javaProject.assertHasCleanupMessage(result)
         javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         javaProject.mainClassFileAlternate.assertIsFile()
         javaProject.redundantClassFileAlternate.assertDoesNotExist()
@@ -176,11 +169,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksSkipped(result)
-        javaProject.assertDoesNotHaveCleanupMessage(result)
     }
 
     @Unroll
-    @Issue("GRADLE-1501")
+    @Issue("https://github.com/gradle/gradle/issues/821")
     def "production sources files are removed in a multi-project build executed #description"(String[] arguments, String description) {
         given:
         Assume.assumeFalse("This doesn't work with configure on demand since not all projects are configured, so not all outputs are registered.", arguments.contains("--configure-on-demand"))
@@ -199,7 +191,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProjects.each { javaProject ->
-            javaProject.assertDoesNotHaveCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertIsFile()
             javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
@@ -213,19 +204,13 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProjects.each { javaProject ->
-            javaProject.assertHasCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertDoesNotExist()
             javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         }
 
-        when:
+        and:
         succeeds arguments
-
-        then:
-        javaProjects.each { javaProject ->
-            javaProject.assertDoesNotHaveCleanupMessage(result)
-        }
 
         where:
         arguments                                                | description
@@ -235,11 +220,9 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @Issue("GRADLE-1501")
+    @Issue("https://github.com/gradle/gradle/issues/821")
     def "production sources files are removed in a multi-project build executed when a single project is built #description"(String singleTask, List arguments, String description) {
         given:
-        Assume.assumeFalse("This doesn't work with configure on demand since not all projects are configured, so not all outputs are registered.", arguments.contains("--configure-on-demand"))
-
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
@@ -256,7 +239,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProjects.each { javaProject ->
-            javaProject.assertDoesNotHaveCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertIsFile()
             javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
@@ -276,7 +258,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         builtProject.mainClassFile.assertIsFile()
         builtProject.redundantClassFile.assertDoesNotExist()
         builtProject.assertJarHasDescendants(builtProject.mainClassFile.name)
-        builtProject.assertHasCleanupMessage(result)
 
         when:
         // Build everything
@@ -295,7 +276,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         ":project1:jar" | ['--parallel', '--configure-on-demand'] | 'in parallel and configure on demand enabled'
     }
 
-    @Issue("GRADLE-1501")
+    @Issue("https://github.com/gradle/gradle/issues/821")
     def "task history is deleted"() {
         def javaProject = new StaleOutputJavaProject(testDirectory)
         buildFile << "apply plugin: 'java'"
@@ -305,7 +286,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksExecuted(result)
-        javaProject.assertDoesNotHaveCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertIsFile()
         javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
@@ -317,7 +297,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksExecuted(result)
-        javaProject.assertHasCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
         javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
@@ -327,7 +306,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksSkipped(result)
-        javaProject.assertDoesNotHaveCleanupMessage(result)
     }
 
     def "tasks have common output directories"() {
@@ -371,8 +349,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertIsFile()
     }
 
-    // We don't clean anything other than source set output directories
-    @NotYetImplemented
+    @NotYetImplemented // We don't clean anything which is not safe to delete
     def "tasks have output directories outside of build directory"() {
         given:
         def sourceFile1 = file('source/source1.txt')
@@ -479,8 +456,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copyAll'
 
         buildFile << """
-            apply plugin: 'base'
-            
             task copy1(type: Copy) {
                 from file('source1')
                 into file('target1')
@@ -518,22 +493,20 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
-    // We don't track all outputs from tasks, so we won't delete target/
-    @NotYetImplemented
     def "inputs become empty for task"() {
         given:
         def sourceFile1 = file('source/source1.txt')
         sourceFile1 << 'a'
         def sourceFile2 = file('source/source2.txt')
         sourceFile2 << 'b'
-        def targetFile1 = file('target/source1.txt')
-        def targetFile2 = file('target/source2.txt')
+        def targetFile1 = file('build/target/source1.txt')
+        def targetFile2 = file('build/target/source2.txt')
         def taskPath = ':customCopy'
 
-        buildFile << """
+        buildFile << """                
             task customCopy(type: CustomCopy) {
                 sourceDir = fileTree('source')
-                targetDir = file('target')
+                targetDir = file('build/target')
             }
 
             class CustomCopy extends DefaultTask {
@@ -573,22 +546,20 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
-    // We don't track outputs from tasks that were removed, so we won't remove its outputs.
-    @NotYetImplemented
     def "task is renamed"() {
         given:
         def sourceFile1 = file('source/source1.txt')
         sourceFile1 << 'a'
         def sourceFile2 = file('source/source2.txt')
         sourceFile2 << 'b'
-        def targetFile1 = file('target/source1.txt')
-        def targetFile2 = file('target/source2.txt')
+        def targetFile1 = file('build/target/source1.txt')
+        def targetFile2 = file('build/target/source2.txt')
         def taskPath = ':copy'
 
-        buildFile << """
+        buildFile << """                     
             task copy(type: Copy) {
                 from file('source')
-                into temporaryDir
+                into 'build/target'
             }
         """
 
@@ -608,7 +579,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
             task newCopy(type: Copy) {
                 from file('source')
-                into temporaryDir
+                into 'build/target'
             }
         """
         forceDelete(sourceFile2)

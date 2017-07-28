@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures
 
 import com.google.common.io.Files
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.internal.cleanup.DefaultBuildOutputDeleter
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 
@@ -91,7 +90,7 @@ class StaleOutputJavaProject {
     }
 
     TestFile getCustomOutputDir() {
-        testDir.file("out")
+        testDir.file("build/out")
     }
 
     TestFile getMainClassFileAlternate() {
@@ -127,14 +126,6 @@ class StaleOutputJavaProject {
     void assertBuildTasksSkipped(ExecutionResult result) {
         result.assertTaskSkipped(getCompileTaskPath())
         result.assertTaskSkipped(getJarTaskPath())
-    }
-
-    void assertDoesNotHaveCleanupMessage(ExecutionResult result) {
-        assert !result.output.contains(DefaultBuildOutputDeleter.STALE_OUTPUT_MESSAGE)
-    }
-
-    void assertHasCleanupMessage(ExecutionResult result) {
-        result.assertOutputContains(DefaultBuildOutputDeleter.STALE_OUTPUT_MESSAGE)
     }
 
     boolean assertJarHasDescendants(String... relativePaths) {

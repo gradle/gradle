@@ -86,12 +86,19 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
+            if (!inputs.incremental) {
+                createOutputsNonIncremental()
+            }
+            
             touchOutputs()
 
             discoveredFiles = inputs.getDiscoveredInputs()
         }
 
         def touchOutputs() {
+        }
+
+        def createOutputsNonIncremental() {
         }
 
         def addedFiles = []
@@ -113,6 +120,12 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
         @OutputDirectory
         def File outputDir
+
+        @Override
+        def createOutputsNonIncremental() {
+            new File(outputDir, 'file1.txt').text = 'outputFile1'
+            new File(outputDir, 'file2.txt').text = 'outputFile2'
+        }
 
         @Override
         def touchOutputs() {
@@ -184,7 +197,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         file('inputs/file1.txt') << "changed content"
 
         then:
-        executesWithIncrementalContext("ext.changed = ['file1.txt']");
+        executesWithIncrementalContext("ext.changed = ['file1.txt']")
     }
 
     def "incremental task is informed of 'out-of-date' files when discovered input file modified"() {
@@ -435,7 +448,7 @@ ext.added = ['file3.txt', 'file4.txt']
         failedExecution()
 
         then:
-        executesWithIncrementalContext("ext.changed = ['file1.txt']");
+        executesWithIncrementalContext("ext.changed = ['file1.txt']")
     }
     /*
      7. Sad-day cases

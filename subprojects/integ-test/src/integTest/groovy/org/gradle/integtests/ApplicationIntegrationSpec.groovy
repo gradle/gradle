@@ -305,11 +305,11 @@ installDist.destinationDir = buildDir
         then:
         File generatedWindowsStartScript = file("build/scripts/application.bat")
         generatedWindowsStartScript.exists()
-        assertLineSeparators(generatedWindowsStartScript, TextUtil.windowsLineSeparator, 84);
+        assertLineSeparators(generatedWindowsStartScript, TextUtil.windowsLineSeparator, 84)
 
         File generatedLinuxStartScript = file("build/scripts/application")
         generatedLinuxStartScript.exists()
-        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 172);
+        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 172)
         assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
         file("build/scripts/application").exists()
@@ -422,7 +422,7 @@ class Main {
         distBase.file("docs/READ-ME.txt").text == "Read me!!!"
     }
 
-    private void checkApplicationImage(String applicationName, TestFile installDir) {
+    private static void checkApplicationImage(String applicationName, TestFile installDir) {
         installDir.file("bin/${applicationName}").assertIsFile()
         installDir.file("bin/${applicationName}.bat").assertIsFile()
         installDir.file("lib/application.jar").assertIsFile()
