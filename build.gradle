@@ -47,18 +47,18 @@ buildTypes {
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
     quickTest {
-        tasks "runtimeTests", "runtimeIntegTests"
+        tasks "runtimeTests", "runtimeIntegTests", "runtimeCrossVersionTests"
     }
 
     // Used for builds to run all tests, but not necessarily on all platforms
     fullTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests"
+        tasks "runtimeTests", "runtimeForkingIntegTests", "runtimeForkingCrossVersionTests"
         projectProperties useIncomingDistributions: true, testAllVersions: true
     }
 
     // Used for builds to test the code on certain platforms
     platformTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests"
+        tasks "runtimeTests", "runtimeForkingIntegTests", "runtimeForkingCrossVersionTests"
         projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
     }
 
@@ -106,11 +106,11 @@ buildTypes {
 
     // Used for cross version tests on CI
     crossVersionTest {
-        tasks "crossVersionIntegTest"
+        tasks "crossVersionTests"
         projectProperties useIncomingDistributions: true
     }
     quickFeedbackCrossVersionTest {
-        tasks "quickFeedbackCrossVersionIntegTest"
+        tasks "quickFeedbackCrossVersionTests"
         projectProperties useIncomingDistributions: true
     }
 

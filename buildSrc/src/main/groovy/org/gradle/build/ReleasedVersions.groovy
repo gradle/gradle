@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.util.GradleVersion
+import org.gradle.util.VersionNumber
 
 import java.util.concurrent.TimeUnit
 
@@ -114,20 +115,24 @@ $standardErr""")
     }
 
     List<String> getTestedVersions(boolean selection=false) {
-        List<String> versions =  testedVersions*.version*.version
-        if (selection) {
-            (versions  - BANNED_VERSIONS)
-                    .collect { org.gradle.util.VersionNumber.parse(it) }
-                    .groupBy { it.major }
-                    .collectEntries { k, v -> [k, { v.sort(); [v[0], v[-1]] }() as Set]}
-                    .values().flatten()
-                    .collect {
-                        // reformat according to our versioning scheme, since toString() would typically convert 1.0 to 1.0.0
-                        "$it.major.${it.minor}${it.micro>0?'.'+it.micro:''}${it.qualifier? '-' + it.qualifier:''}"
-                    }
+        //Only use latest patch release of each Gradle version
+        List<VersionNumber> versions = (testedVersions*.version*.version - BANNED_VERSIONS)
+            .collect { VersionNumber.parse(it) }
+            .groupBy { "$it.major.$it.minor" }
+            .collectEntries { k, v -> [k, { v.sort(); [v[-1]]}() as Set]}
+            .values().flatten()
 
-        } else {
-            return versions
+        if (selection) {
+            //Limit to first and last release of each major version
+            versions = versions
+                .groupBy { it.major }
+                .collectEntries { k, v -> [k, { v.sort(); [v[0], v[-1]]}() as Set]}
+                .values().flatten()
+        }
+
+        versions.sort().collect {
+            // reformat according to our versioning scheme, since toString() would typically convert 1.0 to 1.0.0
+            "$it.major.${it.minor}${it.micro>0?'.'+it.micro:''}${it.qualifier? '-' + it.qualifier:''}"
         }
     }
 
