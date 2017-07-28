@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.tasks.execution
 
-import org.gradle.api.GradleException
+import org.gradle.api.UncheckedIOException
 import org.gradle.api.execution.internal.TaskInputsListener
+import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -118,14 +119,14 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskExecutionHistory.overlappingOutputs >> null
         1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
 
         then: 'deleting the file succeeds'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
         _ * previousFile.exists() >> true
-        _ * previousFile.isFile() >> true
+        _ * previousFile.isDirectory() >> false
         1 * previousFile.delete() >> true
-        _ * previousFile.absolutePath // depends on log level
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
@@ -156,14 +157,59 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskExecutionHistory.overlappingOutputs >> null
         1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
 
         then: 'deleting the file succeeds'
-        1 * previousFile.isFile() >> true
+        1 * previousFile.exists() >> true
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> false
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
+        1 * taskArtifactState.afterTask(null)
+
+        then:
+        1 * taskInputsListener.onExecute(task, sourceFiles)
+
+        then:
+        0 * _
+    }
+
+    def 'does not delete directories when they overlapping outputs'() {
+        given:
+        def previousFile = Mock(File)
+        def previousDirectory = Mock(File)
+        Set<File> previousOutputs = [previousFile, previousDirectory]
+
+        when:
+        executer.execute(task, state, taskContext)
+
+        then:
+        _ * task.inputs >> taskInputs
+        1 * taskInputs.sourceFiles >> sourceFiles
+        1 * taskInputs.hasSourceFiles >> true
+        1 * sourceFiles.empty >> true
+
+        then:
+        1 * taskContext.taskArtifactState >> taskArtifactState
+        1 * taskArtifactState.executionHistory >> taskExecutionHistory
+        1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskExecutionHistory.overlappingOutputs >> new OverlappingOutputs("outputProperty", "some/path")
+        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+
+        then: 'deleting the file succeeds'
+        _ * previousFile.exists() >> true
+        _ * previousDirectory.exists() >> true
+        _ * previousDirectory.compareTo(previousFile) >> 1
+        _ * previousFile.compareTo(previousDirectory) >> -1
+        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
+        1 * cleanupRegistry.isOutputOwnedByBuild(previousDirectory) >> true
+        _ * previousFile.isDirectory() >> false
+        _ * previousDirectory.isDirectory() >> true
+        1 * previousFile.delete() >> true
+
+        then:
+        1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
         1 * taskArtifactState.afterTask(null)
 
         then:
@@ -191,22 +237,19 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskExecutionHistory.overlappingOutputs >> null
         1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
 
         then: 'deleting the previous file fails'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
         _ * previousFile.exists() >> true
-        _ * previousFile.isFile() >> true
+        _ * previousFile.isDirectory() >> false
         1 * previousFile.delete() >> false
-        1 * previousFile.getAbsolutePath() >> "output"
+        1 * previousFile.toString() >> "output"
 
         then:
-        state.setOutcome(_ as Throwable) >> { GradleException ex ->
-            assert ex.message == "Could not delete file: 'output'."
-        }
-
-        then:
-        0 * _
+        UncheckedIOException exception = thrown()
+        exception.message.contains("Unable to delete file: output")
     }
 
     def 'executes task when sourceFiles are not empty'() {
