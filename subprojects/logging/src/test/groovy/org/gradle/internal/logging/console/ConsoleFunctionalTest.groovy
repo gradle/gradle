@@ -49,7 +49,7 @@ class ConsoleFunctionalTest extends Specification {
         renderer.addConsole(console, true, true, metaData)
         _ * metaData.getRows() >> 10
         _ * metaData.getCols() >> 36
-        _ * timeProvider.getCurrentTime() >> { currentTimeMs }
+        _ * timeProvider.getCurrentTimeForDuration() >> { currentTimeMs }
     }
 
     def "renders initial state"() {
