@@ -41,7 +41,7 @@ rootProject.name = "${WORKSPACE_NAME}"
                 }
             }
             project(':greeter') {
-                apply plugin: 'swift-module'
+                apply plugin: 'swift-library'
             }
 """
         app.library.sourceFiles.each { it.writeToFile(file("greeter/src/main/swift/$it.name")) }

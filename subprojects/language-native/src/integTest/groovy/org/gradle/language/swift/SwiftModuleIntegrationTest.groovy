@@ -31,7 +31,7 @@ class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSp
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-            apply plugin: 'swift-module'
+            apply plugin: 'swift-library'
          """
 
         and:
@@ -52,7 +52,7 @@ class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSp
 
         and:
         buildFile << """
-            apply plugin: 'swift-module'
+            apply plugin: 'swift-library'
          """
 
         expect:
@@ -61,7 +61,7 @@ class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         sharedLibrary("build/lib/hello").assertExists()
     }
 
-    def "can define public module"() {
+    def "can define public library"() {
         settingsFile << "rootProject.name = 'hello'"
         given:
         def app = new SwiftHelloWorldApp()
@@ -69,7 +69,7 @@ class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSp
 
         and:
         buildFile << """
-            apply plugin: 'swift-module'
+            apply plugin: 'swift-library'
          """
 
         expect:
@@ -86,13 +86,13 @@ class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         given:
         buildFile << """
             project(':Hello') {
-                apply plugin: 'swift-module'
+                apply plugin: 'swift-library'
                 dependencies {
                     implementation project(':Greeting')
                 }
             }
             project(':Greeting') {
-                apply plugin: 'swift-module'
+                apply plugin: 'swift-library'
             }
 """
         app.library.sourceFiles.each { it.writeToFile(file("Hello/src/main/swift/$it.name")) }
@@ -105,21 +105,21 @@ class SwiftModuleIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         sharedLibrary("Greeting/build/lib/Greeting").assertExists()
     }
 
-    def "can change default module name and successfully link against library library"() {
+    def "can change default module name and successfully link against library"() {
         settingsFile << "include 'lib1', 'lib2'"
         def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
 
         given:
         buildFile << """
             project(':lib1') {
-                apply plugin: 'swift-module'
+                apply plugin: 'swift-library'
                 dependencies {
                     implementation project(':lib2')
                 }
                 tasks.withType(SwiftCompile)*.moduleName = 'Hello'
             }
             project(':lib2') {
-                apply plugin: 'swift-module'
+                apply plugin: 'swift-library'
                 tasks.withType(SwiftCompile)*.moduleName = 'Greeting'
             }
 """

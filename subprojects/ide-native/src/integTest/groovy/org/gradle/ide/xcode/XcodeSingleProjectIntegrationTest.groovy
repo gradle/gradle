@@ -61,10 +61,10 @@ rootProject.name = "${PROJECT_NAME}"
         indexTargets.size() == 1
     }
 
-    def "create xcode project Swift module"() {
+    def "create xcode project Swift library"() {
         given:
         buildFile << """
-apply plugin: 'swift-module'
+apply plugin: 'swift-library'
 apply plugin: 'xcode'
 """
 

@@ -37,7 +37,7 @@ import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
-import org.gradle.language.swift.plugins.SwiftModulePlugin;
+import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
@@ -148,21 +148,21 @@ public class XcodePlugin extends IdePlugin {
             }
         });
 
-        project.getPlugins().withType(SwiftModulePlugin.class, new Action<SwiftModulePlugin>() {
+        project.getPlugins().withType(SwiftLibraryPlugin.class, new Action<SwiftLibraryPlugin>() {
             @Override
-            public void execute(SwiftModulePlugin swiftModulePlugin) {
+            public void execute(SwiftLibraryPlugin swiftLibraryPlugin) {
                 configureXcodeForSwift(project, PBXTarget.ProductType.DYNAMIC_LIBRARY);
             }
         });
     }
 
     private void configureXcodeForSwift(Project project, PBXTarget.ProductType productType) {
-        // TODO - Reuse the logic from `swift-executable` or `swift-module` to find the sources
+        // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the sources
         ConfigurableFileTree sourceTree = project.fileTree("src/main/swift");
         sourceTree.include("**/*.swift");
         xcode.getProject().getSources().from(sourceTree);
 
-        // TODO - Reuse the logic from `swift-executable` or `swift-module` to find the build task
+        // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the build task
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
         xcode.getProject().setTarget(target);
 
