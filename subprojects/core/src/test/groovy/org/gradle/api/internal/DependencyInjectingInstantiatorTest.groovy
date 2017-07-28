@@ -105,6 +105,28 @@ class DependencyInjectingInstantiatorTest extends Specification {
         result != null
     }
 
+    def "class can have private constructor with args and annotated"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
+        when:
+        def result = instantiator.newInstance(HasPrivateArgsInjectConstructor, "param")
+
+        then:
+        result != null
+    }
+
+    def "class can be private and have public constructor"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
+        when:
+        def result = instantiator.newInstance(PrivateWithValidConstructor, "param")
+
+        then:
+        result != null
+    }
+
     def "wraps constructor failure"() {
         given:
         classGenerator.generate(_) >> { Class<?> c -> c }
@@ -181,7 +203,19 @@ class DependencyInjectingInstantiatorTest extends Specification {
         e.cause.message == "Class $HasNoInjectConstructor.name has no constructor that is annotated with @Inject."
     }
 
-    def "fails when class has multiple constructor that are annotated"() {
+    def "fails when class has multiple constructors with different visibilities and none are annotated"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
+        when:
+        instantiator.newInstance(HasMixedConstructors, new StringBuilder("param"))
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause.message == "Class $HasMixedConstructors.name has no constructor that is annotated with @Inject."
+    }
+
+    def "fails when class has multiple constructors that are annotated"() {
         given:
         classGenerator.generate(_) >> { Class<?> c -> c }
 
@@ -191,6 +225,18 @@ class DependencyInjectingInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause.message == "Class $HasMultipleInjectConstructors.name has multiple constructors that are annotated with @Inject."
+    }
+
+    def "fails when class has multiple constructors with different visibilities that are annotated"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
+        when:
+        instantiator.newInstance(HasMixedInjectConstructors, new StringBuilder("param"))
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause.message == "Class $HasMixedInjectConstructors.name has multiple constructors that are annotated with @Inject."
     }
 
     def "fails when class has non-public zero args constructor that is not annotated"() {
@@ -215,6 +261,18 @@ class DependencyInjectingInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause.message == "The constructor for class $HasSingleConstructorWithArgsAndNoAnnotation.name should be annotated with @Inject."
+    }
+
+    def "fails when class has private constructor with args and that is not annotated"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
+        when:
+        instantiator.newInstance(HasPrivateArgsConstructor, new StringBuilder("param"))
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause.message == "The constructor for class $HasPrivateArgsConstructor.name should be annotated with @Inject."
     }
 
     static class TestCache implements CrossBuildInMemoryCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor> {
@@ -242,6 +300,23 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
     public static class HasNonPublicNoArgsConstructor {
         protected HasNonPublicNoArgsConstructor() {
+        }
+    }
+
+    public static class HasPrivateArgsInjectConstructor {
+        @Inject
+        private HasPrivateArgsInjectConstructor(String param) {
+        }
+    }
+
+    public static class HasPrivateArgsConstructor {
+        private HasPrivateArgsConstructor(String param) {
+        }
+    }
+
+    private static class PrivateWithValidConstructor {
+        @Inject
+        public PrivateWithValidConstructor(String param) {
         }
     }
 
@@ -316,6 +391,19 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
+    public static class HasMixedConstructors {
+        HasMixedConstructors(String param1) {
+        }
+
+        private HasMixedConstructors(Number param1) {
+            throw new AssertionError()
+        }
+
+        private HasMixedConstructors() {
+            throw new AssertionError()
+        }
+    }
+
     public static class HasPrivateConstructor {
         @Inject
         private HasPrivateConstructor(String param1) {
@@ -334,6 +422,22 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         @Inject
         HasMultipleInjectConstructors() {
+            throw new AssertionError()
+        }
+    }
+
+    public static class HasMixedInjectConstructors {
+        @Inject
+        public HasMixedInjectConstructors(String param1) {
+        }
+
+        @Inject
+        private HasMixedInjectConstructors(Number param1) {
+            throw new AssertionError()
+        }
+
+        @Inject
+        private HasMixedInjectConstructors() {
             throw new AssertionError()
         }
     }
