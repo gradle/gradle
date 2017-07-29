@@ -54,6 +54,6 @@ class PlayIdeaPluginMultiprojectIntegrationTest extends PlayIdeaPluginIntegratio
     }
 
     int getExpectedScalaClasspathSize() {
-        104
+        102
     }
 }

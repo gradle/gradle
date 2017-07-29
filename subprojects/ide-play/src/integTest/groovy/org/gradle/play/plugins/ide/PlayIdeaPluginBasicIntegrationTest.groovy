@@ -37,7 +37,7 @@ class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
     }
 
     int getExpectedScalaClasspathSize() {
-        104
+        102
     }
 
     def "when model configuration changes, IDEA metadata can be rebuilt"() {

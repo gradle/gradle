@@ -21,6 +21,7 @@ package org.gradle.play.tasks
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.VersionNumber
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
@@ -28,10 +29,22 @@ abstract class AbstractRoutesCompileIntegrationTest extends MultiVersionIntegrat
     def destinationDirPath = "build/src/play/binary/routesScalaSources"
     def destinationDir = file(destinationDirPath)
 
-    abstract getScalaRoutesFileName(String packageName, String namespace);
-    abstract getJavaRoutesFileName(String packageName, String namespace);
-    abstract getReverseRoutesFileName(String packageName, String namespace);
-    abstract getOtherRoutesFileNames();
+    abstract getScalaRoutesFileName(String packageName, String namespace)
+    abstract getJavaRoutesFileName(String packageName, String namespace)
+    abstract getReverseRoutesFileName(String packageName, String namespace)
+    abstract getOtherRoutesFileNames()
+
+    protected fixForPlayVersion() {
+        if (versionNumber >= VersionNumber.parse("2.6.0")) {
+            [ '', '.other', '.some.pkg' ].each { path ->
+                file("app/controllers/${path}/Application.scala").with {
+                    if (exists()) {
+                        text = text.replaceFirst("Controller", "InjectedController")
+                    }
+                }
+            }
+        }
+    }
 
     def destinationDir(String sourceSetName) {
         return file("build/src/play/binary/${sourceSetName}")
@@ -143,6 +156,7 @@ GET     /newroute                          controllers.Application.index()
         withRoutesTemplate()
         withRoutesSource(file("extraRoutes", "some", "pkg", "some.pkg.routes"), ".some.pkg")
         withRoutesSource(file("otherRoutes", "other", "other.routes"), ".other")
+        fixForPlayVersion()
 
         when:
         succeeds "assemble"
