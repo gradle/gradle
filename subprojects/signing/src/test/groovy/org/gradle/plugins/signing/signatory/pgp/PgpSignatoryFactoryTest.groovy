@@ -21,7 +21,7 @@ import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.*
 
-class PgpSignatoryFactorySpec extends Specification {
+class PgpSignatoryFactoryTest extends Specification {
 
     //https://github.com/gradle/gradle/issues/2267
     protected Project aProjectWithNullProperties(){
