@@ -43,7 +43,7 @@ class PgpSignatoryFactoryTest extends Specification {
             Exception ex = thrown()
             ex.class != NullPointerException
     }
-    def "null properties throw a nice exception"() {
+    def "null properties throw a descriptive exception"() {
         setup:
             def factory = new PgpSignatoryFactory()
             def project = aProjectWithNullProperties()
