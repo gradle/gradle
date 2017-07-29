@@ -50,7 +50,9 @@ class PgpSignatoryFactoryTest extends Specification {
         when:
             factory.createSignatory(project, true)
         then:
-            thrown InvalidUserDataException
+            Exception ex = thrown()
+            ex.message.matches 'property .* was null\\. A valid value is needed for signing'
+            //thrown InvalidUserDataException // This is implied by the message contents check.
     }
 
 
