@@ -24,7 +24,7 @@ import spock.lang.*
 @Issue("https://github.com/gradle/gradle/issues/2267")
 class PgpSignatoryFactoryTest extends Specification {
 
-    protected Project aProjectWithNullProperties(){
+    static Project aProjectWithNullProperties(){
         def project = new ProjectBuilder().build()
         project.ext.'signing.keyId' = null
         project.ext.'signing.password' = null
