@@ -180,9 +180,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         when:
         runMultiple(MAX_CACHE_SIZE)
         then:
-        // the exact size depends on which cache entries were cleaned above
-        // which depends on file system ordering/time resolution
-        calculateCacheSize(listCacheFiles()) > MAX_CACHE_SIZE
         lastCleanedTime == gcFile().lastModified()
     }
 
