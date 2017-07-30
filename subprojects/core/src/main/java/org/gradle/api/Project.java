@@ -116,7 +116,7 @@ import java.util.concurrent.Callable;
  *
  * <p>
  * Plugins can be used to modularise and reuse project configuration.
- * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec plugins script block}.
+ * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec} plugins script block.
  * </p>
  *
  * <a name="properties"></a> <h3>Properties</h3>
@@ -156,7 +156,7 @@ import java.util.concurrent.Callable;
  * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
  * property.</li>
  *
- * <li>The extra properties and convention properties inherited from the project's parent, recursively up to the root
+ * <li>The extra properties and convention properties are inherited from the project's parent, recursively up to the root
  * project. The properties of this scope are read-only.</li>
  *
  * </ul>
