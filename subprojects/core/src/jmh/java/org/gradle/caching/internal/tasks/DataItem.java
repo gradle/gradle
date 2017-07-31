@@ -16,8 +16,6 @@
 
 package org.gradle.caching.internal.tasks;
 
-import java.io.OutputStream;
-
 public interface DataItem {
     String getName();
 }
