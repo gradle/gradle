@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.controller.service;
 
+import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.controller.operations.LoadOperationDetails;
@@ -27,6 +28,9 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle {
 
@@ -42,7 +46,7 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                OpFiringBuildCacheServiceHandle.super.loadInner(description, key, loadTarget);
+                loadInner(key, new OpFiringEntryReader(loadTarget));
                 context.setResult(
                     loadTarget.isLoaded()
                         ? new LoadOperationHitResult(loadTarget.getLoadedSize())
@@ -54,7 +58,7 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(description)
                     .details(new LoadOperationDetails(key))
-                    .progressDisplayName("Loading from build cache");
+                    .progressDisplayName("Requesting from remote build cache");
             }
         });
     }
@@ -72,9 +76,56 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(description)
                     .details(new StoreOperationDetails(key, storeTarget.getSize()))
-                    .progressDisplayName("Storing in build cache");
+                    .progressDisplayName("Uploading to remote build cache");
             }
         });
     }
 
+    private class OpFiringEntryReader implements BuildCacheEntryReader {
+
+        private final BuildCacheEntryReader delegate;
+
+        OpFiringEntryReader(BuildCacheEntryReader delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void readFrom(final InputStream input) throws IOException {
+            try {
+                buildOperationExecutor.run(new RunnableBuildOperation() {
+                    @Override
+                    public void run(BuildOperationContext context) {
+                        try {
+                            delegate.readFrom(input);
+                        } catch (IOException e) {
+                            throw new UncheckedWrapper(e);
+                        }
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Downloading from remote build cache")
+                            .progressDisplayName("Downloading");
+                    }
+                });
+            } catch (UncheckedWrapper uncheckedWrapper) {
+                throw uncheckedWrapper.getIOException();
+            }
+        }
+    }
+
+    private static class UncheckedWrapper extends RuntimeException {
+        UncheckedWrapper(IOException cause) {
+            super(cause);
+        }
+
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+            return this;
+        }
+
+        IOException getIOException() {
+            return (IOException) getCause();
+        }
+    }
 }
