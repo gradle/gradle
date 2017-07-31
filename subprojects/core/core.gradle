@@ -88,10 +88,6 @@ test {
     forkEvery = 200
 }
 
-jmh {
-    include = ["ChmodBenchmark"]
-}
-
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 task pluginsManifest(type: WriteProperties) {
