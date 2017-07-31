@@ -72,6 +72,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
     private OutputEventListener console;
+    private OutputEventListener commonOutputChain;
 
     public OutputEventRenderer() {
         this(new TrueTimeProvider());
@@ -79,6 +80,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     OutputEventRenderer(TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
+        this.commonOutputChain = new ThrottlingOutputEventListener(formatters.getSource(), timeProvider);
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
@@ -110,6 +112,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             if (snapshot.logLevel != logLevel.get()) {
                 configure(snapshot.logLevel);
             }
+
+            // FIXME(ew): Need to generate an EndOutputEvent for plain console (due to use of ThrottlingOutputEventListener), otherwise not all logs will be rendered
 
             // TODO - also close console when it is replaced
             if (snapshot.console != console) {
@@ -214,14 +218,13 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
-        final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
+        final OutputEventListener consoleChain =
             new BuildStatusRenderer(
                 new WorkInProgressRenderer(
                     new BuildLogLevelFilterRenderer(
                         new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), timeProvider, new PrettyPrefixedLogHeaderFormatter(), false)),
                     console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                console.getStatusBar(), console, consoleMetaData, timeProvider),
-            timeProvider);
+                console.getStatusBar(), console, consoleMetaData, timeProvider);
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;
@@ -311,7 +314,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             this.logLevel.set(newLogLevel);
         }
         synchronized (lock) {
-            formatters.getSource().onOutput(event);
+            commonOutputChain.onOutput(event);
         }
     }
 
