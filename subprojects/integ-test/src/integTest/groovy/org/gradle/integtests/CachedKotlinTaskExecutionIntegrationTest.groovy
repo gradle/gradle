@@ -21,14 +21,12 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
 @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
-@Ignore("AbstractSnappyOutputStream leaks through from kotlin-compiler-embeddable.jar")
 class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Override
