@@ -21,27 +21,28 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
+import org.iq80.snappy.SnappyFramedInputStream;
+import org.iq80.snappy.SnappyFramedOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.SortedSet;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
- * Adds compression and CRC32 checks to the packed task output.
+ * Adds compression and CRC32C checks to the packed task output using Google's Snappy compressor.
+ * Implementation is from https://github.com/dain/snappy.
  */
-public class GZipTaskOutputPacker implements TaskOutputPacker {
+public class SnappyTaskOutputPacker implements TaskOutputPacker {
     private final TaskOutputPacker delegate;
 
-    public GZipTaskOutputPacker(TaskOutputPacker delegate) {
+    public SnappyTaskOutputPacker(TaskOutputPacker delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin) {
-        GZIPOutputStream gzipOutput = createGzipOutputStream(output);
+        OutputStream gzipOutput = createOutputStream(output);
         try {
             return delegate.pack(propertySpecs, gzipOutput, writeOrigin);
         } finally {
@@ -49,9 +50,9 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private GZIPOutputStream createGzipOutputStream(OutputStream output) {
+    private static OutputStream createOutputStream(OutputStream output) {
         try {
-            return new GZIPOutputStream(output);
+            return new SnappyFramedOutputStream(output);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -59,7 +60,7 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin) {
-        GZIPInputStream gzipInput = createGzipInputStream(input);
+        InputStream gzipInput = createInputStream(input);
         try {
             return delegate.unpack(propertySpecs, gzipInput, readOrigin);
         } finally {
@@ -67,9 +68,9 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private GZIPInputStream createGzipInputStream(InputStream input) {
+    private static InputStream createInputStream(InputStream input) {
         try {
-            return new GZIPInputStream(input);
+            return new SnappyFramedInputStream(input, true);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

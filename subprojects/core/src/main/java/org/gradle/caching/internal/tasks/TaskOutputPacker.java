@@ -26,13 +26,13 @@ import java.io.OutputStream;
 import java.util.SortedSet;
 
 public interface TaskOutputPacker {
-    // Initial format version
+    // Cache artifact format version
     // NOTE: This should be changed whenever we change the way we pack a cache entry, such as
-    // - changing from gzip to bzip2.
+    // - changing from Snappy to gzip.
     // - adding/removing properties to the origin metadata
     // - using a different format for the origin metadata
     // - any major changes of the layout of a cache entry
-    int CACHE_ENTRY_FORMAT = 1;
+    int CACHE_ENTRY_FORMAT = 2;
 
     PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin);
 

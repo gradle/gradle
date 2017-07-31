@@ -45,7 +45,7 @@ public class BuildCacheTaskServices {
     TaskOutputPacker createTaskResultPacker(
         FileSystem fileSystem
     ) {
-        return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem));
+        return new SnappyTaskOutputPacker(new TarTaskOutputPacker(fileSystem));
     }
 
     TaskOutputOriginFactory createTaskOutputOriginFactory(

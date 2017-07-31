@@ -51,6 +51,7 @@ dependencies {
     implementation libraries.commons_lang
     implementation libraries.jcip
     implementation libraries.nativePlatform
+    implementation libraries.snappy
 
     runtimeOnly project(":docs")
 
