@@ -42,13 +42,18 @@ class CleanupTestDirectoryExtension extends AbstractAnnotationDrivenExtension<Cl
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            invocation.spec.addListener(new AbstractRunListener() {
+            def noCleanupOnErrorListener = new AbstractRunListener() {
                 @Override
                 void error(ErrorInfo error) {
                     TestDirectoryProvider provider = GroovyRuntimeUtil.getProperty(invocation.instance, fieldName) as TestDirectoryProvider
                     provider.suppressCleanup()
                 }
-            })
+            }
+            def spec = invocation.spec
+            while (spec != null) {
+                spec.addListener(noCleanupOnErrorListener)
+                spec = spec.subSpec
+            }
             invocation.proceed()
         }
     }
