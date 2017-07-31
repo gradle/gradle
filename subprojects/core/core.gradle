@@ -89,7 +89,7 @@ test {
 }
 
 jmh {
-    include = ["TaskOutputPackagingTypeBenchmark"]
+    include = ["ChmodBenchmark"]
 }
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
