@@ -17,61 +17,45 @@
 package org.gradle.caching.internal.tasks;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
+import org.iq80.snappy.SnappyFramedInputStream;
+import org.iq80.snappy.SnappyFramedOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.SortedSet;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
- * Adds compression and CRC32 checks to the packed task output.
+ * Adds compression and CRC32C checks to the packed task output using Google's Snappy compressor.
+ * Implementation is from https://github.com/dain/snappy.
  */
-public class GZipTaskOutputPacker implements TaskOutputPacker {
+public class SnappyTaskOutputPacker implements TaskOutputPacker {
     private final TaskOutputPacker delegate;
 
-    public GZipTaskOutputPacker(TaskOutputPacker delegate) {
+    public SnappyTaskOutputPacker(TaskOutputPacker delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
-        GZIPOutputStream gzipOutput = createGzipOutputStream(output);
+        OutputStream compressedOutput = new SnappyFramedOutputStream(output);
         try {
-            return delegate.pack(propertySpecs, gzipOutput, writeOrigin);
+            return delegate.pack(propertySpecs, compressedOutput, writeOrigin);
         } finally {
-            IOUtils.closeQuietly(gzipOutput);
-        }
-    }
-
-    private GZIPOutputStream createGzipOutputStream(OutputStream output) {
-        try {
-            return new GZIPOutputStream(output);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            IOUtils.closeQuietly(compressedOutput);
         }
     }
 
     @Override
     public UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException {
-        GZIPInputStream gzipInput = createGzipInputStream(input);
+        InputStream uncompressedInput = new SnappyFramedInputStream(input, true);
         try {
-            return delegate.unpack(propertySpecs, gzipInput, readOrigin);
+            return delegate.unpack(propertySpecs, uncompressedInput, readOrigin);
         } finally {
-            IOUtils.closeQuietly(gzipInput);
-        }
-    }
-
-    private GZIPInputStream createGzipInputStream(InputStream input) {
-        try {
-            return new GZIPInputStream(input);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            IOUtils.closeQuietly(uncompressedInput);
         }
     }
 }

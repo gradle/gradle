@@ -87,6 +87,7 @@ class PatchExternalModules extends DefaultTask {
             .exclude("META-INF/native/**/*jansi.*")
             .includeJar("native-platform-")
             .includeJar("jansi-", "META-INF/native/**", "org/fusesource/jansi/internal/CLibrary*.class")
+            .exclude("org/iq80/snappy/**").includeJar("snappy", "org/iq80/snappy/**")
             .writePatchedFilesTo(destination)
     }
 }
