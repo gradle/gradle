@@ -372,7 +372,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                     throw new DaemonUnavailableException(String.format("This daemon is currently executing: %s", currentCommandExecution));
             }
 
-            LOGGER.error("Command execution: started {} after {} minutes of idle", commandDisplayName, getIdleMinutes());
+            LOGGER.debug("Command execution: started {} after {} minutes of idle", commandDisplayName, getIdleMinutes());
             try {
                 setState(State.Busy);
                 onStartCommand.run();

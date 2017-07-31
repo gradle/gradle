@@ -21,8 +21,11 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.console.ConsoleStub
+import org.gradle.internal.logging.console.ThrottlingOutputEventListener
 import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -189,8 +192,11 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.addOutputEventListener(listener)
         renderer.onOutput(ignored)
         renderer.onOutput(event)
+        awaitEventQueueFlush()
 
         then:
+        _ * listener.onOutput(_ as LogLevelChangeEvent)
+        _ * listener.onOutput(_ as UpdateNowEvent)
         1 * listener.onOutput(event)
         0 * listener._
     }
@@ -208,8 +214,11 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(start)
         renderer.onOutput(progress)
         renderer.onOutput(complete)
+        awaitEventQueueFlush()
 
         then:
+        _ * listener.onOutput(_ as LogLevelChangeEvent)
+        _ * listener.onOutput(_ as UpdateNowEvent)
         1 * listener.onOutput(start)
         1 * listener.onOutput(progress)
         1 * listener.onOutput(complete)
@@ -388,6 +397,10 @@ class OutputEventRendererTest extends OutputSpecification {
             assert outputs.stdOut.readLines() == ['info']
             assert outputs.stdErr == ''
         }
+    }
+
+    private static void awaitEventQueueFlush() {
+        Thread.sleep(ThrottlingOutputEventListener.EVENT_QUEUE_FLUSH_PERIOD_MS * 2)
     }
 }
 

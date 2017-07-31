@@ -24,97 +24,73 @@ import org.gradle.util.MockTimeProvider
 import spock.lang.Subject
 
 class ThrottlingOutputEventListenerTest extends OutputSpecification {
+    public static final int EVENT_QUEUE_FLUSH_PERIOD_MS = 100
     def listener = Mock(OutputEventListener)
     def timeProvider = new MockTimeProvider()
     def executor = new MockExecutor()
 
-    @Subject renderer = new ThrottlingOutputEventListener(listener, 100, executor, timeProvider)
+    @Subject renderer = new ThrottlingOutputEventListener(listener, EVENT_QUEUE_FLUSH_PERIOD_MS, executor, timeProvider)
 
-    def "forwards events to listener"() {
+    def "forwards events to listener after update event"() {
         def event = event('message')
+        def updateNowEvent = new UpdateNowEvent(timeProvider.currentTime)
 
         when:
         renderer.onOutput(event)
 
         then:
+        0 * _
+
+        when:
+        renderer.onOutput(updateNowEvent)
+
+        then:
         1 * listener.onOutput(event)
+        1 * listener.onOutput(updateNowEvent)
         0 * _
     }
 
-    def "queues events received soon after first and forwards in batch"() {
+    def "generates update now events periodically"() {
         def event1 = event('1')
         def event2 = event('2')
         def event3 = event('3')
-        def event4 = event('4')
 
         when:
         renderer.onOutput(event1)
+
+        then:
+        0 * _
+
+        when:
+        timeProvider.increment(EVENT_QUEUE_FLUSH_PERIOD_MS * 2)
         renderer.onOutput(event2)
-        renderer.onOutput(event3)
+        flushFixedScheduledActions()
 
         then:
         1 * listener.onOutput(event1)
-        0 * _
-
-        when:
-        flushSingleScheduledActions()
-
-        then:
         1 * listener.onOutput(event2)
-        1 * listener.onOutput(event3)
-        0 * _
-
-        when:
-        renderer.onOutput(event4)
-
-        then:
-        0 * _
-    }
-
-    def "forwards event received significantly after first"() {
-        def event1 = event('1')
-        def event2 = event('2')
-        def event3 = event('3')
-
-        given:
-        renderer.onOutput(event1)
-
-        when:
-        timeProvider.increment(100)
-        renderer.onOutput(event2)
-
-        then:
-        1 * listener.onOutput(event2)
-        0 * _
-
-        when:
-        renderer.onOutput(event3)
-
-        then:
+        1 * listener.onOutput(_ as UpdateNowEvent)
         0 * _
     }
 
     def forwardsQueuedEventsOnEndOfOutputEvent() {
         def event1 = event('1')
         def event2 = event('2')
-        def event3 = event('3')
         def end = new EndOutputEvent()
 
         when:
         renderer.onOutput(event1)
         renderer.onOutput(event2)
-        renderer.onOutput(event3)
 
         then:
-        1 * listener.onOutput(event1)
         0 * _
 
         when:
         renderer.onOutput(end)
 
         then:
+        1 * listener.onOutput(event1)
         1 * listener.onOutput(event2)
-        1 * listener.onOutput(event3)
         1 * listener.onOutput(end)
         0 * _
     }
