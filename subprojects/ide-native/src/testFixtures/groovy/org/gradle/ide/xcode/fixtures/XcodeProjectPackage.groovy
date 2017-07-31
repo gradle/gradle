@@ -20,13 +20,19 @@ import org.gradle.test.fixtures.file.TestFile
 
 class XcodeProjectPackage {
     final TestFile dir
+    final TestFile workspaceSettingsFile
     final ProjectFile projectFile
-    final List<SchemeFile> schemeFiles
+    final List<SchemeFile> schemeFiles = []
 
     XcodeProjectPackage(TestFile xcodeProjectPackage) {
         xcodeProjectPackage.assertIsDir()
         dir = xcodeProjectPackage
         projectFile = new ProjectFile(xcodeProjectPackage.file("project.pbxproj"))
-        schemeFiles = dir.files("xcshareddata/xcschemes").findAll { it.name.endsWith(".xcscheme") }.collect { new SchemeFile(it) }
+        workspaceSettingsFile = dir.file('project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings')
+
+        def xcschemesDir = dir.file("xcshareddata/xcschemes")
+        if (xcschemesDir.exists()) {
+            xcschemesDir.eachFileMatch ~/.*\.xcscheme/, { schemeFiles << new SchemeFile(it) }
+        }
     }
 }

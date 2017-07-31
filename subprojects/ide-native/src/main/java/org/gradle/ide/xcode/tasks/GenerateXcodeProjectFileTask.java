@@ -43,6 +43,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList;
+
 /**
  * Task for generating a project file.
  *
@@ -133,8 +135,14 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         NSDictionary buildSettings = new NSDictionary();
         buildSettings.put("SWIFT_VERSION", "3.0");  // TODO - Choose the right version for swift
         buildSettings.put("PRODUCT_NAME", xcodeTarget.getProductName());  // Mandatory
-        buildSettings.put("HEADER_SEARCH_PATHS", toList(xcodeTarget.getHeaderSearchPaths()));
-        buildSettings.put("SWIFT_INCLUDE_PATHS", toList(xcodeTarget.getImportPaths()));
+
+        if (!xcodeTarget.getHeaderSearchPaths().isEmpty()) {
+            buildSettings.put("HEADER_SEARCH_PATHS", toSpaceSeparatedList(xcodeTarget.getHeaderSearchPaths()));
+        }
+
+        if (!xcodeTarget.getImportPaths().isEmpty()) {
+            buildSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getImportPaths()));
+        }
 
         target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug").setBuildSettings(buildSettings);
         target.getBuildPhases().add(buildPhase);
@@ -149,13 +157,5 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
 
     public void setXcodeProject(XcodeProject xcodeProject) {
         this.xcodeProject = (DefaultXcodeProject) xcodeProject;
-    }
-
-    public static String toList(Iterable<File> it) {
-        StringBuilder result = new StringBuilder();
-        for (File file : it) {
-            result.append("\"" + file.getAbsolutePath() + "\" ");
-        }
-        return result.toString();
     }
 }
