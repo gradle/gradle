@@ -1,5 +1,5 @@
 {
-    "baseVersion": "4.1-20170718061434+0000",
+    "baseVersion": "4.1-rc-2",
     "acceptedApiChanges": [
         {
             "type": "org.gradle.api.plugins.quality.Checkstyle",
