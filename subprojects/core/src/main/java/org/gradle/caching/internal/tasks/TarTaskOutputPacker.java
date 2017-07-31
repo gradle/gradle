@@ -47,11 +47,10 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Map;
 import java.util.SortedSet;
@@ -65,6 +64,7 @@ import static org.gradle.caching.internal.tasks.TaskOutputPackerUtils.makeDirect
 /**
  * Packages task output to a POSIX TAR file.
  */
+@SuppressWarnings("Since15")
 public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern PROPERTY_PATH = Pattern.compile("(missing-)?property-([^/]+)(?:/(.*))?");
@@ -208,7 +208,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     private void storeFileEntry(File inputFile, String path, long size, int mode, TarOutputStream tarOutput) throws IOException {
         createTarEntry(path, size, UnixStat.FILE_FLAG | mode, tarOutput);
-        FileInputStream input = new FileInputStream(inputFile);
+        InputStream input = Files.newInputStream(inputFile.toPath());
         try {
             IOUtils.copyLarge(input, tarOutput, COPY_BUFFERS.get());
         } finally {
@@ -320,7 +320,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (isDirEntry) {
             FileUtils.forceMkdir(outputFile);
         } else {
-            FileOutputStream output = new FileOutputStream(outputFile);
+            OutputStream output = Files.newOutputStream(outputFile.toPath());
             try {
                 IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
             } finally {
