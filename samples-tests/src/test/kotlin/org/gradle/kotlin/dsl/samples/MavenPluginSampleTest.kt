@@ -10,7 +10,7 @@ class MavenPluginSampleTest : AbstractSampleTest("maven-plugin") {
 
     @Test
     fun `uploadArchives publishes custom pom`() {
-        build("uploadArchives")
+        build("uploadArchives", "-Dmaven.repo.local=$tempMavenLocalDir")
         assertPom("""
             <?xml version="1.0" encoding="UTF-8"?>
             <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
@@ -46,5 +46,10 @@ class MavenPluginSampleTest : AbstractSampleTest("maven-plugin") {
     private
     val projectName by lazy {
         projectRoot.name
+    }
+
+    private
+    val tempMavenLocalDir by lazy {
+        existing("build/m2/local")
     }
 }
