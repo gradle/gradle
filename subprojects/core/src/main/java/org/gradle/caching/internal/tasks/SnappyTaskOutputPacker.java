@@ -52,7 +52,7 @@ public class SnappyTaskOutputPacker implements TaskOutputPacker {
 
     private static OutputStream createOutputStream(OutputStream output) {
         try {
-            return new SnappyFramedOutputStream(output);
+            return new SnappyFramedOutputStream(output, 64 * 1024, 0.2);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
