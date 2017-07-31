@@ -82,7 +82,7 @@ public class BuildStatusRenderer implements OutputEventListener {
 
         listener.onOutput(event);
 
-        if (event instanceof UpdateNowEvent | event instanceof EndOutputEvent) {
+        if (event instanceof UpdateNowEvent || event instanceof EndOutputEvent) {
             renderNow(timeProvider.getCurrentTime());
         }
     }
