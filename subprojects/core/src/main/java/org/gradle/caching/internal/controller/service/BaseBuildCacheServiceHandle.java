@@ -18,6 +18,7 @@ package org.gradle.caching.internal.controller.service;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 
@@ -56,6 +57,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     @Override
     public final void load(BuildCacheKey key, LoadTarget loadTarget) {
         String description = "Load entry " + key + " from " + role.getDisplayName() + " build cache";
+        LOGGER.debug(description);
         try {
             loadInner(description, key, loadTarget);
         } catch (Exception e) {
@@ -64,8 +66,11 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     protected void loadInner(String description, BuildCacheKey key, LoadTarget loadTarget) {
-        LOGGER.debug(description);
         service.load(key, loadTarget);
+    }
+
+    protected void loadInner(BuildCacheKey key, BuildCacheEntryReader entryReader) {
+        service.load(key, entryReader);
     }
 
     @Override
@@ -76,6 +81,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     @Override
     public final void store(BuildCacheKey key, StoreTarget storeTarget) {
         String description = "Store entry " + key + " in " + role.getDisplayName() + " build cache";
+        LOGGER.debug(description);
         try {
             storeInner(description, key, storeTarget);
         } catch (Exception e) {
@@ -84,7 +90,6 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     protected void storeInner(String description, BuildCacheKey key, StoreTarget storeTarget) {
-        LOGGER.debug(description);
         service.store(key, storeTarget);
     }
 
