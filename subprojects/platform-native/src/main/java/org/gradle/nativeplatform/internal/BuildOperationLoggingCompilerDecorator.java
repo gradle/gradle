@@ -16,28 +16,56 @@
 
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.api.internal.tasks.AsyncWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
-public class BuildOperationLoggingCompilerDecorator<T extends BinaryToolSpec> implements Compiler<T> {
-
-    private final Compiler<? super T> delegate;
-
-    private BuildOperationLoggingCompilerDecorator(Compiler<? super T> delegate) {
-        this.delegate = delegate;
-    }
-
+public class BuildOperationLoggingCompilerDecorator<T extends BinaryToolSpec> {
     public static <T extends BinaryToolSpec> Compiler<T> wrap(Compiler<T> delegate) {
-        return new BuildOperationLoggingCompilerDecorator<T>(delegate);
+        return new SynchronousLoggingCompiler<T>(delegate);
     }
 
-    @Override
-    public WorkResult execute(T spec) {
-        spec.getOperationLogger().start();
-        try {
-            return delegate.execute(spec);
-        } finally {
-            spec.getOperationLogger().done();
+    public static <T extends BinaryToolSpec> Compiler<T> wrapAsync(Compiler<T> delegate) {
+        return new AsynchronousLoggingCompiler<T>(delegate);
+    }
+
+    private static class SynchronousLoggingCompiler<T extends BinaryToolSpec> implements Compiler<T> {
+        private final Compiler<? super T> delegate;
+
+        public SynchronousLoggingCompiler(Compiler<? super T> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public WorkResult execute(T spec) {
+            spec.getOperationLogger().start();
+            try {
+                return delegate.execute(spec);
+            } finally {
+                spec.getOperationLogger().done();
+            }
+        }
+    }
+
+    private static class AsynchronousLoggingCompiler<T extends BinaryToolSpec> implements Compiler<T> {
+        private final Compiler<? super T> delegate;
+
+        public AsynchronousLoggingCompiler(Compiler<? super T> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public WorkResult execute(final T spec) {
+            spec.getOperationLogger().start();
+
+            final AsyncWorkResult workResult = (AsyncWorkResult) delegate.execute(spec);
+            workResult.onCompletion(new Runnable() {
+                @Override
+                public void run() {
+                    spec.getOperationLogger().done();
+                }
+            });
+            return workResult;
         }
     }
 }

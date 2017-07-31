@@ -23,11 +23,12 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
-import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
+import org.gradle.nativeplatform.toolchain.internal.AbstractAsyncCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.NativeExecutor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,13 +36,13 @@ import java.util.List;
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
-class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
+class LinkExeLinker extends AbstractAsyncCompiler<LinkerSpec> {
 
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
     private final CommandLineToolContext invocationContext;
 
-    LinkExeLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new LinkerArgsTransformer(), true);
+    LinkExeLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer, NativeExecutor nativeExecutor) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new LinkerArgsTransformer(), true, nativeExecutor);
         this.invocationContext = invocationContext;
         this.specTransformer = specTransformer;
     }

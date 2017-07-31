@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.internal.tasks.AsyncWorkResult;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -29,10 +30,11 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Cast;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
+import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
@@ -188,6 +190,16 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    public BuildOperationExecutor getBuildOperationExecutor() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public AsyncWorkTracker getAsyncWorkTracker() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void link() {
         SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
@@ -197,9 +209,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         if (getSource().isEmpty()) {
             setDidWork(false);
             return;
-
         }
-
 
         LinkerSpec spec = createLinkerSpec();
         spec.setTargetPlatform(getTargetPlatform());
@@ -214,9 +224,15 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         spec.setOperationLogger(operationLogger);
 
         Compiler<LinkerSpec> compiler = Cast.uncheckedCast(toolChain.select(targetPlatform).newCompiler(spec.getClass()));
-        compiler = BuildOperationLoggingCompilerDecorator.wrap(compiler);
-        WorkResult result = compiler.execute(spec);
-        setDidWork(result.getDidWork());
+        compiler = BuildOperationLoggingCompilerDecorator.wrapAsync(compiler);
+        final AsyncWorkResult result = (AsyncWorkResult) compiler.execute(spec);
+        result.onCompletion(new Runnable() {
+            @Override
+            public void run() {
+                setDidWork(result.getDidWork());
+            }
+        });
+        getAsyncWorkTracker().registerWork(getBuildOperationExecutor().getCurrentOperation(), result);
     }
 
     protected abstract LinkerSpec createLinkerSpec();

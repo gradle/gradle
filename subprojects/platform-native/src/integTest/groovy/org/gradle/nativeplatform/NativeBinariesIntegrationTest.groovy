@@ -25,6 +25,7 @@ import org.hamcrest.Matchers
 import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
+import static org.hamcrest.Matchers.containsString
 
 class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
@@ -121,11 +122,11 @@ model {
         failureDescriptionContains("Execution failed for task ':assemble'.")
         failure.assertThatCause(Matchers.<String>allOf(
                 Matchers.startsWith("No buildable binaries found:"),
-                Matchers.containsString("shared library 'hello:sharedLibrary': No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("static library 'hello:staticLibrary': No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("executable 'main:executable': No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("static library 'another:staticLibrary': Disabled by user"),
-                Matchers.containsString("shared library 'another:sharedLibrary': Disabled by user")
+                containsString("shared library 'hello:sharedLibrary': No tool chain is available to build for platform 'unknown'"),
+                containsString("static library 'hello:staticLibrary': No tool chain is available to build for platform 'unknown'"),
+                containsString("executable 'main:executable': No tool chain is available to build for platform 'unknown'"),
+                containsString("static library 'another:staticLibrary': Disabled by user"),
+                containsString("shared library 'another:sharedLibrary': Disabled by user")
         ))
     }
 
@@ -259,7 +260,7 @@ model {
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.");
-        failure.assertHasCause("A build operation failed.")
+        failure.assertThatCause(containsString("A build operation failed."))
         def exeName = executable("build/binaries/mainExecutable/main").file.name
         failure.assertThatCause(containsText("Linker failed while linking ${exeName}"))
     }
@@ -292,7 +293,7 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary'.");
-        failure.assertHasCause("A build operation failed.")
+        failure.assertThatCause(containsString("A build operation failed."))
         def libName = sharedLibrary("build/binaries/mainSharedLibrary/main").file.name
         failure.assertThatCause(containsText("Linker failed while linking ${libName}"))
     }

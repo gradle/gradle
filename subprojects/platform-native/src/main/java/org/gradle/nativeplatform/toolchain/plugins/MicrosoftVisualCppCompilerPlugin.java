@@ -30,6 +30,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
+import org.gradle.nativeplatform.toolchain.internal.NativeExecutor;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.UcrtLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain;
@@ -53,6 +54,7 @@ public class MicrosoftVisualCppCompilerPlugin implements Plugin<Project> {
         public static void addToolChain(NativeToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final ExecActionFactory execActionFactory = serviceRegistry.get(ExecActionFactory.class);
+            final NativeExecutor nativeExecutor = serviceRegistry.get(NativeExecutor.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final OperatingSystem operatingSystem = serviceRegistry.get(OperatingSystem.class);
             final BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
@@ -63,7 +65,7 @@ public class MicrosoftVisualCppCompilerPlugin implements Plugin<Project> {
 
             toolChainRegistry.registerFactory(VisualCpp.class, new NamedDomainObjectFactory<VisualCpp>() {
                 public VisualCpp create(String name) {
-                return instantiator.newInstance(VisualCppToolChain.class, name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator);
+                return instantiator.newInstance(VisualCppToolChain.class, name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator, nativeExecutor);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp.class);

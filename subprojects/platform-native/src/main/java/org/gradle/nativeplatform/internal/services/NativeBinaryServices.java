@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.internal.services;
 
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -27,6 +29,8 @@ import org.gradle.nativeplatform.internal.SharedLibraryBinaryRenderer;
 import org.gradle.nativeplatform.internal.StaticLibraryBinaryRenderer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolverServices;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
+import org.gradle.nativeplatform.toolchain.internal.DefaultNativeExecutor;
+import org.gradle.nativeplatform.toolchain.internal.NativeExecutor;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultUcrtLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
@@ -53,6 +57,11 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
     }
 
     @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildSessionScopeServices());
+    }
+
+    @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectCompilerServices());
     }
@@ -60,6 +69,12 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
     private static final class ProjectCompilerServices {
         CompilerOutputFileNamingSchemeFactory createCompilerOutputFileNamingSchemeFactory(RelativeFilePathResolver fileResolver) {
             return new CompilerOutputFileNamingSchemeFactory(fileResolver);
+        }
+    }
+
+    private static final class BuildSessionScopeServices {
+        NativeExecutor createNativeExecutor(ExecutorFactory executorFactory, ParallelismConfigurationManager parallelismConfigurationManager) {
+            return new DefaultNativeExecutor(executorFactory, parallelismConfigurationManager);
         }
     }
 }

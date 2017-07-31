@@ -16,7 +16,11 @@
 
 package org.gradle.language.nativeplatform
 
+import org.gradle.api.specs.Spec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
@@ -27,6 +31,7 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedObjectiveCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.TestApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
@@ -34,39 +39,27 @@ import spock.lang.IgnoreIf
 @IgnoreIf({ GradleContextualExecuter.parallel })
 // no point, always runs in parallel
 class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    Map<String, TestApp> apps = [:]
+    BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
-        executer.withArgument("--parallel")
-                .withArgument("--max-workers=4")
+        executer.withArgument("--max-workers=4")
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "can produce multiple executables from a single project in parallel"() {
         given:
-        Map<String, HelloWorldApp> apps = [
+        apps = [
                 c              : new CHelloWorldApp(),
                 cpp            : new CppHelloWorldApp(),
                 objectiveC     : new ObjectiveCHelloWorldApp(),
                 objectiveCpp   : new ObjectiveCppHelloWorldApp(),
-                mixedObjectiveC: new MixedObjectiveCHelloWorldApp(),
+                mixedObjectiveC: new MixedObjectiveCHelloWorldApp()
         ]
-
-        apps.each { name, app ->
-            buildFile << app.pluginScript
-            buildFile << app.getExtraConfiguration("${name}Executable")
-            buildFile << """
-                model {
-                    components {
-                        ${name}(NativeExecutableSpec)
-                    }
-                }
-            """
-
-            app.writeSources(file("src/$name"))
-        }
+        withComponentsForApps(apps)
 
         when:
-        run(*apps.keySet().collect { "${it}Executable" })
+        succeeds("assemble")
 
         then:
         Map<ExecutableFixture, HelloWorldApp> executables = apps.collectEntries { name, app ->
@@ -77,12 +70,15 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         executables.every { executable, app ->
             executable.exec().out == app.englishOutput
         }
+
+        and:
+        buildOperations.assertConcurrentOperationsExecuted(ExecuteTaskBuildOperationType)
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
-        Map<String, ExeWithLibraryUsingLibraryHelloWorldApp> apps = [
+        apps = [
                 first : new ExeWithLibraryUsingLibraryHelloWorldApp(),
                 second: new ExeWithLibraryUsingLibraryHelloWorldApp(),
                 third : new ExeWithLibraryUsingLibraryHelloWorldApp(),
@@ -139,6 +135,58 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         }
         installations.every { installation, app ->
             installation.exec().out == app.englishOutput
+        }
+
+        and:
+        buildOperations.assertConcurrentOperationsExecuted(ExecuteTaskBuildOperationType)
+    }
+
+    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+    def "can execute link tasks in parallel"() {
+        given:
+        apps = [
+            c              : new CHelloWorldApp(),
+            cpp            : new CppHelloWorldApp(),
+            objectiveC     : new ObjectiveCHelloWorldApp(),
+            objectiveCpp   : new ObjectiveCppHelloWorldApp()
+        ]
+        withComponentsForApps(apps)
+
+        when:
+        succeeds("assemble")
+
+        then:
+        assertLinkTasksAreParallel()
+    }
+
+    void assertLinkTasksAreParallel() {
+        assertTaskAreParallel("link")
+    }
+
+    void assertTaskAreParallel(String type) {
+        def linkTasks = buildOperations.all(ExecuteTaskBuildOperationType, new Spec<BuildOperationRecord>() {
+            @Override
+            boolean isSatisfiedBy(BuildOperationRecord record) {
+                return record.displayName.startsWith("Task :${type}")
+            }
+        })
+        assert linkTasks.size() == apps.size()
+        assert linkTasks.any { buildOperations.getOperationsConcurrentAfter(ExecuteTaskBuildOperationType, it).size() > 0 }
+    }
+
+    def withComponentsForApps(Map<String, HelloWorldApp> apps) {
+        apps.each { name, app ->
+            buildFile << app.pluginScript
+            buildFile << app.getExtraConfiguration("${name}Executable")
+            buildFile << """
+                model {
+                    components {
+                        ${name}(NativeExecutableSpec)
+                    }
+                }
+            """
+
+            app.writeSources(file("src/$name"))
         }
     }
 }
