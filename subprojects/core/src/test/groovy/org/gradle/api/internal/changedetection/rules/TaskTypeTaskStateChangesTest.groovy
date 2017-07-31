@@ -233,5 +233,10 @@ class TaskTypeTaskStateChangesTest extends Specification {
         @Override
         void execute(Task task) {
         }
+
+        @Override
+        String getDisplayName() {
+            return "Execute test action"
+        }
     }
 }

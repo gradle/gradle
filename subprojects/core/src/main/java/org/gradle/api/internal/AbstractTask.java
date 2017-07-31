@@ -24,6 +24,7 @@ import groovy.util.ObservableList;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -561,7 +562,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.doFirst(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(0, convertClosureToAction(action));
+                getTaskActions().add(0, convertClosureToAction(action, "doFirst {}"));
             }
         });
         return this;
@@ -575,7 +576,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.doLast(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(convertClosureToAction(action));
+                getTaskActions().add(convertClosureToAction(action, "doLast {}"));
             }
         });
         return this;
@@ -591,7 +592,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.leftShift(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(taskMutator.leftShift(convertClosureToAction(action)));
+                getTaskActions().add(taskMutator.leftShift(convertClosureToAction(action, "<<")));
             }
         });
         return this;
@@ -632,8 +633,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return validators;
     }
 
-    private ContextAwareTaskAction convertClosureToAction(Closure actionClosure) {
-        return new ClosureTaskAction(actionClosure);
+    private ContextAwareTaskAction convertClosureToAction(Closure actionClosure, String displayHint) {
+        return new ClosureTaskAction(actionClosure, displayHint);
     }
 
     private ContextAwareTaskAction wrap(final Action<? super Task> action) {
@@ -657,9 +658,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private static class ClosureTaskAction implements ContextAwareTaskAction {
         private final Closure closure;
+        private final String displayHint;
 
-        private ClosureTaskAction(Closure closure) {
+        private ClosureTaskAction(Closure closure, String displayHint) {
             this.closure = closure;
+            this.displayHint = displayHint;
         }
 
         @Override
@@ -701,6 +704,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         @Override
         public String getActionClassName() {
             return AbstractTask.getActionClassName(closure);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Execute " + displayHint + " action";
         }
     }
 
@@ -775,6 +783,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         @Override
         public int hashCode() {
             return action != null ? action.hashCode() : 0;
+        }
+
+        @Override
+        public String getDisplayName() {
+            if (action instanceof Describable) {
+                return ((Describable) action).getDisplayName();
+            }
+            return "Execute unnamed task action";
         }
     }
 
