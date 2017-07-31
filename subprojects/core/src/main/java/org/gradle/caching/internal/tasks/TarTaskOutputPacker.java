@@ -19,7 +19,6 @@ package org.gradle.caching.internal.tasks;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
@@ -48,6 +47,8 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -69,6 +70,13 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final Pattern PROPERTY_PATH = Pattern.compile("(missing-)?property-([^/]+)(?:/(.*))?");
     @SuppressWarnings("OctalInteger")
     private static final int FILE_PERMISSION_MASK = 0777;
+    private static final int BUFFER_SIZE = 64 * 1024;
+    private static final ThreadLocal<byte[]> COPY_BUFFERS = new ThreadLocal<byte[]>() {
+        @Override
+        protected byte[] initialValue() {
+            return new byte[BUFFER_SIZE];
+        }
+    };
 
     private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
@@ -198,10 +206,15 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         outputStream.closeEntry();
     }
 
-    private void storeFileEntry(File file, String path, long size, int mode, TarOutputStream outputStream) throws IOException {
-        createTarEntry(path, size, UnixStat.FILE_FLAG | mode, outputStream);
-        Files.copy(file, outputStream);
-        outputStream.closeEntry();
+    private void storeFileEntry(File inputFile, String path, long size, int mode, TarOutputStream tarOutput) throws IOException {
+        createTarEntry(path, size, UnixStat.FILE_FLAG | mode, tarOutput);
+        FileInputStream input = new FileInputStream(inputFile);
+        try {
+            IOUtils.copyLarge(input, tarOutput, COPY_BUFFERS.get());
+        } finally {
+            IOUtils.closeQuietly(input);
+        }
+        tarOutput.closeEntry();
     }
 
     private static void createTarEntry(String path, long size, int mode, TarOutputStream outputStream) throws IOException {
@@ -307,7 +320,12 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (isDirEntry) {
             FileUtils.forceMkdir(outputFile);
         } else {
-            Files.asByteSink(outputFile).writeFrom(input);
+            FileOutputStream output = new FileOutputStream(outputFile);
+            try {
+                IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
+            } finally {
+                IOUtils.closeQuietly(output);
+            }
         }
 
         //noinspection OctalInteger
