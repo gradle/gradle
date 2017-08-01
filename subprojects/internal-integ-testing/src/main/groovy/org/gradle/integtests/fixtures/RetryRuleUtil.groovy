@@ -49,7 +49,7 @@ class RetryRuleUtil {
             println "Cause   (caught during test): " + failure?.cause
         }
 
-        println "Daemons (potentially used): ${daemonsFixture?.daemons?.collect { it.context.pid }} - ${daemonsFixture.daemonBaseDir}"
+        println "Daemons (potentially used): ${daemonsFixture?.daemons?.collect { it.context?.pid }} - ${daemonsFixture?.daemonBaseDir}"
 
         if (releasedGradleVersion == null) {
             println "Can not retry cross version test because 'gradleVersion' is unknown"
