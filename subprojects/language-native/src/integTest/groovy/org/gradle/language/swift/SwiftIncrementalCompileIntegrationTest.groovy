@@ -67,7 +67,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
                 }
             }
             project(':greeter') {
-                apply plugin: 'swift-module'
+                apply plugin: 'swift-library'
             }
 """
         app.library.sourceFiles.each { it.writeToDir(file('greeter/src/main')) }
