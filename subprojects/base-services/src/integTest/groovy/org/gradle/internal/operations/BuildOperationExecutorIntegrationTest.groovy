@@ -72,8 +72,8 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // This is the current behavior:
-    // We need to make sure that the build operation ids of nested builds do not overlap.
-    // Since we currently have no specific scope for "one build and all its nested builds", we use the global scope.
+    // We need to make sure that the build operation ids of nested builds started by a GradleBuild task do not overlap.
+    // Since we currently have no specific scope for "one build and the builds it started via GradleBuild tasks", we use the global scope.
     @Issue("https://github.com/gradle/gradle/issues/2622")
     def "build operations have unique ids within the global scope"() {
         when:
