@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console
+package org.gradle.internal.logging.console.taskgrouping
 
 class ConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     private static final String PROJECT_A_NAME = 'projectA'

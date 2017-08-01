@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console
+package org.gradle.internal.logging.console.taskgrouping
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
-class ConsoleDeprecationMessageTaskGroupingFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
+class ConsoleDeprecationMessageGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
 
     private static final String JAVA_SRC_DIR_PATH = 'src/main/java'
 

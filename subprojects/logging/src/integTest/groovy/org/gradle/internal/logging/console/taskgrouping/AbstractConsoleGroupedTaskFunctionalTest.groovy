@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console
+package org.gradle.internal.logging.console.taskgrouping
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
