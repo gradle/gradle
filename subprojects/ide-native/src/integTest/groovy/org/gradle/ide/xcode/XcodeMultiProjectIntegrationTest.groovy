@@ -139,7 +139,7 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         buildSettings(xcodeProject("app/app.xcodeproj").projectFile).HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("greeter/src/main/public"))
     }
 
-    def "Gradle project with added xcode plugin are not included in the workspace"() {
+    def "Gradle project with added xcode plugin are included in the workspace"() {
         given:
         file('greeter/build.gradle') << """
             apply plugin: 'swift-library'
