@@ -81,7 +81,9 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+
         !file("build").exists()
+        file("output/main/objs").assertIsDir()
         sharedLibrary("output/lib/hello").assertExists()
     }
 
@@ -101,6 +103,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+
+        file("build/object-files").assertIsDir()
         file("build/some-lib/main.bin").assertIsFile()
     }
 

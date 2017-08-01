@@ -62,6 +62,48 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/hello").assertExists()
     }
 
+    def "honors changes to buildDir"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def app = new SwiftHelloWorldApp()
+        app.library.writeSources(file('src/main'))
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            buildDir = 'output'
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+
+        !file("build").exists()
+        file("output/main/objs").assertIsDir()
+        sharedLibrary("output/lib/hello").assertExists()
+    }
+
+    def "honors changes to task output locations"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def app = new SwiftHelloWorldApp()
+        app.library.writeSources(file('src/main'))
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            compileSwift.objectFileDirectory.set(layout.buildDirectory.dir("object-files"))
+            linkMain.binaryFile.set(layout.buildDirectory.file("some-lib/main.bin"))
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+
+        file("build/object-files").assertIsDir()
+        file("build/some-lib/main.bin").assertIsFile()
+    }
+
     def "can define public library"() {
         settingsFile << "rootProject.name = 'hello'"
         given:

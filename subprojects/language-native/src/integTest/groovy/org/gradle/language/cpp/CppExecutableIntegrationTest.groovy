@@ -87,6 +87,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
 
         !file("build").exists()
+        file("output/main/objs").assertIsDir()
         executable("output/exe/app").assertExists()
         installation("output/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
