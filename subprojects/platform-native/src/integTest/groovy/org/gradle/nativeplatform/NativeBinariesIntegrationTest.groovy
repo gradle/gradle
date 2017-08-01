@@ -326,7 +326,7 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary'.");
-        failure.assertHasCause("A build operation failed.")
+        failure.assertThatCause(containsString("A build operation failed."))
         def libName = staticLibrary("build/binaries/mainSharedLibrary/main").file.name
         failure.assertThatCause(containsText("Static library archiver failed while archiving ${libName}"))
     }

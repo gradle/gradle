@@ -142,7 +142,7 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
-    def "can execute link tasks in parallel"() {
+    def "can execute link executable tasks in parallel"() {
         given:
         apps = [
             c              : new CHelloWorldApp(),
@@ -156,22 +156,54 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         succeeds("assemble")
 
         then:
-        assertLinkTasksAreParallel()
+        assertTaskAreParallel("link.*Executable")
     }
 
-    void assertLinkTasksAreParallel() {
-        assertTaskAreParallel("link")
+    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+    def "can execute link shared library tasks in parallel"() {
+        given:
+        apps = [
+            c              : new CHelloWorldApp(),
+            cpp            : new CppHelloWorldApp(),
+            objectiveC     : new ObjectiveCHelloWorldApp(),
+            objectiveCpp   : new ObjectiveCppHelloWorldApp()
+        ]
+        withComponentsForAppsAndSharedLibs(apps)
+
+        when:
+        succeeds("assemble")
+
+        then:
+        assertTaskAreParallel("link.*SharedLibrary")
     }
 
-    void assertTaskAreParallel(String type) {
-        def linkTasks = buildOperations.all(ExecuteTaskBuildOperationType, new Spec<BuildOperationRecord>() {
+    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+    def "can execute create static library tasks in parallel"() {
+        given:
+        apps = [
+            c              : new CHelloWorldApp(),
+            cpp            : new CppHelloWorldApp(),
+            objectiveC     : new ObjectiveCHelloWorldApp(),
+            objectiveCpp   : new ObjectiveCppHelloWorldApp()
+        ]
+        withComponentsForAppsAndStaticLibs(apps)
+
+        when:
+        succeeds("assemble")
+
+        then:
+        assertTaskAreParallel("create.*StaticLibrary")
+    }
+
+    void assertTaskAreParallel(String regex) {
+        def tasks = buildOperations.all(ExecuteTaskBuildOperationType, new Spec<BuildOperationRecord>() {
             @Override
             boolean isSatisfiedBy(BuildOperationRecord record) {
-                return record.displayName.startsWith("Task :${type}")
+                return record.displayName.matches("Task :${regex}")
             }
         })
-        assert linkTasks.size() == apps.size()
-        assert linkTasks.any { buildOperations.getOperationsConcurrentAfter(ExecuteTaskBuildOperationType, it).size() > 0 }
+        assert tasks.size() == apps.size()
+        assert tasks.any { buildOperations.getOperationsConcurrentAfter(ExecuteTaskBuildOperationType, it).size() > 0 }
     }
 
     def withComponentsForApps(Map<String, HelloWorldApp> apps) {
@@ -187,6 +219,39 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
             """
 
             app.writeSources(file("src/$name"))
+        }
+    }
+
+    def withComponentsForAppsAndStaticLibs(Map<String, HelloWorldApp> apps) {
+        withComponentsForAppsAndLibs(apps, true)
+    }
+
+    def withComponentsForAppsAndSharedLibs(Map<String, HelloWorldApp> apps) {
+        withComponentsForAppsAndLibs(apps, false)
+    }
+
+    def withComponentsForAppsAndLibs(Map<String, HelloWorldApp> apps, boolean useStaticLibs) {
+        apps.each { name, app ->
+            buildFile << app.pluginScript
+            buildFile << app.getExtraConfiguration("${name}Executable")
+            buildFile << app.getExtraConfiguration("${name}Lib${useStaticLibs ? 'Static' : 'Shared'}Library")
+            buildFile << """
+                model {
+                    components {
+                        ${name}(NativeExecutableSpec) {
+                            sources.${app.sourceType}.lib library: "${name}Lib", linkage: '${useStaticLibs ? "static" : "shared"}'
+                        }
+                        ${name}Lib(NativeLibrarySpec) {
+                            binaries.withType(${useStaticLibs ? "Shared" : "Static"}LibraryBinarySpec) {
+                                buildable = false
+                            }
+                        }
+                    }
+                }
+            """
+
+            app.executable.writeSources(file("src/$name"))
+            app.library.writeSources(file("src/${name}Lib"))
         }
     }
 }

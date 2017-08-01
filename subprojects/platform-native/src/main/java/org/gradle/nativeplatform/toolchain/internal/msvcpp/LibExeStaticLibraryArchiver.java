@@ -22,11 +22,12 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
-import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
+import org.gradle.nativeplatform.toolchain.internal.AbstractAsyncCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.NativeExecutor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,11 +35,11 @@ import java.util.List;
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
-class LibExeStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiverSpec> {
+class LibExeStaticLibraryArchiver extends AbstractAsyncCompiler<StaticLibraryArchiverSpec> {
     private final Transformer<StaticLibraryArchiverSpec, StaticLibraryArchiverSpec> specTransformer;
 
-    LibExeStaticLibraryArchiver(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<StaticLibraryArchiverSpec, StaticLibraryArchiverSpec> specTransformer) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new LibExeSpecToArguments(), true);
+    LibExeStaticLibraryArchiver(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<StaticLibraryArchiverSpec, StaticLibraryArchiverSpec> specTransformer, NativeExecutor nativeExecutor) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new LibExeSpecToArguments(), true, nativeExecutor);
         this.specTransformer = specTransformer;
     }
 
