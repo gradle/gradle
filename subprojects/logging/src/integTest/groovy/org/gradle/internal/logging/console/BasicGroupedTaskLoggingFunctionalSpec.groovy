@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging
+package org.gradle.internal.logging.console
 
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.SystemProperties

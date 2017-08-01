@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging
+package org.gradle.internal.logging.console
 
 class ConsoleBuildSrcGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
 
