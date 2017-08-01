@@ -36,6 +36,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
+import static org.gradle.util.TestPrecondition.OBJECTIVE_C_SUPPORT
+
 @IgnoreIf({ GradleContextualExecuter.parallel })
 // no point, always runs in parallel
 class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -44,18 +46,22 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
 
     def setup() {
         executer.withArgument("--max-workers=4")
+        apps = [
+            c              : new CHelloWorldApp(),
+            cpp            : new CppHelloWorldApp()
+        ]
+        if (OBJECTIVE_C_SUPPORT.fulfilled) {
+            apps += [
+                objectiveC     : new ObjectiveCHelloWorldApp(),
+                objectiveCpp   : new ObjectiveCppHelloWorldApp()
+            ]
+        }
     }
 
-    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+    @Requires(OBJECTIVE_C_SUPPORT)
     def "can produce multiple executables from a single project in parallel"() {
         given:
-        apps = [
-                c              : new CHelloWorldApp(),
-                cpp            : new CppHelloWorldApp(),
-                objectiveC     : new ObjectiveCHelloWorldApp(),
-                objectiveCpp   : new ObjectiveCppHelloWorldApp(),
-                mixedObjectiveC: new MixedObjectiveCHelloWorldApp()
-        ]
+        apps << [ mixedObjectiveC: new MixedObjectiveCHelloWorldApp() ]
         withComponentsForApps(apps)
 
         when:
@@ -141,15 +147,8 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         buildOperations.assertConcurrentOperationsExecuted(ExecuteTaskBuildOperationType)
     }
 
-    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "can execute link executable tasks in parallel"() {
         given:
-        apps = [
-            c              : new CHelloWorldApp(),
-            cpp            : new CppHelloWorldApp(),
-            objectiveC     : new ObjectiveCHelloWorldApp(),
-            objectiveCpp   : new ObjectiveCppHelloWorldApp()
-        ]
         withComponentsForApps(apps)
 
         when:
@@ -159,15 +158,8 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         assertTaskAreParallel("link.*Executable")
     }
 
-    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "can execute link shared library tasks in parallel"() {
         given:
-        apps = [
-            c              : new CHelloWorldApp(),
-            cpp            : new CppHelloWorldApp(),
-            objectiveC     : new ObjectiveCHelloWorldApp(),
-            objectiveCpp   : new ObjectiveCppHelloWorldApp()
-        ]
         withComponentsForAppsAndSharedLibs(apps)
 
         when:
@@ -177,15 +169,8 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         assertTaskAreParallel("link.*SharedLibrary")
     }
 
-    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "can execute create static library tasks in parallel"() {
         given:
-        apps = [
-            c              : new CHelloWorldApp(),
-            cpp            : new CppHelloWorldApp(),
-            objectiveC     : new ObjectiveCHelloWorldApp(),
-            objectiveCpp   : new ObjectiveCppHelloWorldApp()
-        ]
         withComponentsForAppsAndStaticLibs(apps)
 
         when:
@@ -206,7 +191,7 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         assert tasks.any { buildOperations.getOperationsConcurrentAfter(ExecuteTaskBuildOperationType, it).size() > 0 }
     }
 
-    def withComponentsForApps(Map<String, HelloWorldApp> apps) {
+    def withComponentsForApps(Map<String, TestApp> apps) {
         apps.each { name, app ->
             buildFile << app.pluginScript
             buildFile << app.getExtraConfiguration("${name}Executable")
@@ -222,15 +207,15 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         }
     }
 
-    def withComponentsForAppsAndStaticLibs(Map<String, HelloWorldApp> apps) {
+    def withComponentsForAppsAndStaticLibs(Map<String, TestApp> apps) {
         withComponentsForAppsAndLibs(apps, true)
     }
 
-    def withComponentsForAppsAndSharedLibs(Map<String, HelloWorldApp> apps) {
+    def withComponentsForAppsAndSharedLibs(Map<String, TestApp> apps) {
         withComponentsForAppsAndLibs(apps, false)
     }
 
-    def withComponentsForAppsAndLibs(Map<String, HelloWorldApp> apps, boolean useStaticLibs) {
+    def withComponentsForAppsAndLibs(Map<String, TestApp> apps, boolean useStaticLibs) {
         apps.each { name, app ->
             buildFile << app.pluginScript
             buildFile << app.getExtraConfiguration("${name}Executable")
