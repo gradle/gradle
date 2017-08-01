@@ -45,6 +45,22 @@ public class ExeWithLibraryUsingSwiftLibraryHelloWorldApp extends HelloWorldApp 
         };
     }
 
+    SourceFile getGreetingsHeader() {
+        sourceFile("headers", "greetings.h", "");
+    }
+
+    List<SourceFile> greetingsSources = [
+        sourceFile("swift", "greetings.swift", """
+            public func getHello() -> String{
+                #if FRENCH
+                return "${HELLO_WORLD_FRENCH}"
+                #else
+                return "${HELLO_WORLD}"
+                #endif
+            }
+        """)
+    ]
+
     @Override
     String getEnglishOutput() {
         return HELLO_WORLD + " " + HELLO_WORLD
@@ -56,10 +72,57 @@ public class ExeWithLibraryUsingSwiftLibraryHelloWorldApp extends HelloWorldApp 
     }
 
     @Override
+    TestNativeComponent getLibrary() {
+        def delegate = super.getLibrary()
+        return new TestNativeComponent() {
+            @Override
+            List<SourceFile> getSourceFiles() {
+                return delegate.getSourceFiles().collect {
+                    sourceFile(it.path, it.name, "import greeting\n${it.content}")
+                }
+            }
+
+            @Override
+            List<SourceFile> getHeaderFiles() {
+                return delegate.getHeaderFiles()
+            }
+        }
+    }
+
+    @Override
+    SourceFile getLibraryHeader() {
+        sourceFile("headers", "hello.h", "");
+    }
+
+    List<SourceFile> librarySources = [
+        sourceFile("swift", "hello.swift", """
+            public func sayHello() {
+                print(getHello(), terminator:"")
+            }
+        """)
+    ]
+
+    @Override
+    TestNativeComponent getExecutable() {
+        def delegate = super.getExecutable()
+        return new TestNativeComponent() {
+            @Override
+            List<SourceFile> getHeaderFiles() {
+                return delegate.getHeaderFiles()
+            }
+
+            @Override
+            List<SourceFile> getSourceFiles() {
+                return delegate.getSourceFiles().collect {
+                    sourceFile(it.path, it.name, "import hello\n${it.content}")
+                }
+            }
+        }
+    }
+
+    @Override
     SourceFile getMainSource() {
         sourceFile("swift", "main.swift", """
-            import Hello
-
             func getExeHello() -> String {
                 #if FRENCH
                 return "${HELLO_WORLD_FRENCH}"
@@ -77,36 +140,5 @@ public class ExeWithLibraryUsingSwiftLibraryHelloWorldApp extends HelloWorldApp 
             _ = main()
         """)
     }
-
-    @Override
-    SourceFile getLibraryHeader() {
-        sourceFile("headers", "hello.h", "");
-    }
-
-    List<SourceFile> librarySources = [
-        sourceFile("swift", "hello.swift", """
-            import Greeting
-
-            public func sayHello() {
-                print(getHello(), terminator:"")
-            }
-        """)
-    ]
-
-    SourceFile getGreetingsHeader() {
-        sourceFile("headers", "greetings.h", "");
-    }
-
-    List<SourceFile> greetingsSources = [
-        sourceFile("swift", "greetings.swift", """
-            public func getHello() -> String{
-                #if FRENCH
-                return "${HELLO_WORLD_FRENCH}"
-                #else
-                return "${HELLO_WORLD}"
-                #endif
-            }
-        """)
-    ]
 
 }

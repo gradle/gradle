@@ -17,9 +17,12 @@
 package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.Named;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -28,6 +31,8 @@ import java.io.File;
 public class XcodeTarget implements Named {
     private final String id;
     private final String name;
+    private final ConfigurableFileCollection headerSearchPaths;
+    private final ConfigurableFileCollection importPaths;
     private FileCollection sources;
     private String taskName;
     private String gradleCommand;
@@ -37,9 +42,12 @@ public class XcodeTarget implements Named {
     private String productName;
     private String outputFileType;
 
-    public XcodeTarget(String name, String id) {
+    @Inject
+    public XcodeTarget(String name, String id, FileOperations fileOperations) {
         this.name = name;
         this.id = id;
+        this.headerSearchPaths = fileOperations.files();
+        this.importPaths = fileOperations.files();
     }
 
     public String getId() {
@@ -105,5 +113,13 @@ public class XcodeTarget implements Named {
 
     public void setSources(FileCollection sources) {
         this.sources = sources;
+    }
+
+    public ConfigurableFileCollection getHeaderSearchPaths() {
+        return headerSearchPaths;
+    }
+
+    public ConfigurableFileCollection getImportPaths() {
+        return importPaths;
     }
 }

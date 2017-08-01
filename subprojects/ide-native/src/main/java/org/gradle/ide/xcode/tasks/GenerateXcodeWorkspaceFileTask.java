@@ -23,6 +23,8 @@ import org.gradle.ide.xcode.internal.DefaultXcodeWorkspace;
 import org.gradle.ide.xcode.tasks.internal.XcodeWorkspaceFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
+import java.io.File;
+
 /**
  * Task for generating a workspace file.
  *
@@ -46,5 +48,10 @@ public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorksp
 
     public void setXcodeWorkspace(XcodeWorkspace xcodeWorkspace) {
         this.xcodeWorkspace = (DefaultXcodeWorkspace) xcodeWorkspace;
+    }
+
+    @Override
+    public File getInputFile() {
+        return null;
     }
 }

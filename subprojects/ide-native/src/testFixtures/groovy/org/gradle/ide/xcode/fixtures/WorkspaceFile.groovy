@@ -29,4 +29,14 @@ class WorkspaceFile {
         name = file.name.replace(".xcworkspacedata", "")
         contentXml = new XmlParser().parse(file)
     }
+
+    def assertHasProjects(String... paths) {
+        assertHasProjects(Arrays.asList(paths))
+    }
+
+    def assertHasProjects(Iterable<String> paths) {
+        assert contentXml.FileRef.size() == paths.size()
+        assert contentXml.FileRef*.@location*.replaceAll('absolute:', '').containsAll(paths)
+        return true
+    }
 }

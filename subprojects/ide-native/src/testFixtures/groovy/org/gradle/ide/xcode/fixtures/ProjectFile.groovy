@@ -21,10 +21,12 @@ import com.dd.plist.NSDictionary
 import com.dd.plist.NSObject
 import com.dd.plist.NSString
 import com.dd.plist.PropertyListParser
+import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget
+import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget.ProductType
 import org.gradle.test.fixtures.file.TestFile
 
 class ProjectFile {
-    final TestFile file
+    private final TestFile file
     final NSDictionary content
     private Map<String, NSObject> objects
     private PBXObject rootObject
@@ -34,35 +36,71 @@ class ProjectFile {
         file = pbxProjectFile
         content = PropertyListParser.parse(file)
         objects = ((NSDictionary)content.get("objects")).getHashMap()
-        rootObject = new PBXObject(content.get("rootObject").getContent())
+        rootObject = toPbxObject(toNSString(content.get("rootObject")).getContent())
     }
 
     protected Map<String, NSObject> getObjects() {
-        return objects;
+        return objects
+    }
+
+    TestFile getFile() {
+        return file
     }
 
     def getProperty(String name) {
         rootObject.getProperty(name)
     }
 
+    def assertNoTargets() {
+        assert getProperty("targets").empty
+        return true
+    }
+
+    def assertTargetsAreTools() {
+        assertTargetsAre(ProductType.TOOL)
+    }
+
+    def assertTargetsAreDynamicLibraries() {
+        assertTargetsAre(ProductType.DYNAMIC_LIBRARY)
+    }
+
+    def assertTargetsAre(PBXTarget.ProductType productType) {
+        assert getProperty("targets").every { it.productType == productType.identifier }
+        return true
+    }
+
+    private <T extends PBXObject> T toPbxObject(String id) {
+        NSDictionary object = (NSDictionary)getObjects().get(id)
+
+        if (object.isa.toJavaObject() == "PBXGroup") {
+            return new PBXGroup(id, object)
+        } else {
+            return new PBXObject(id, object)
+        }
+    }
+
+    private static NSString toNSString(NSObject object) {
+        return (NSString)object
+    }
+
     class PBXObject {
         final String id
         private final NSDictionary object
 
-        PBXObject(String id) {
+        PBXObject(String id, NSDictionary object) {
             this.id = id
-            this.object = (NSDictionary)ProjectFile.this.getObjects().get(id)
+            this.object = object
         }
 
         def getProperty(String name) {
             def value = object.get(name)
             if (isId(value)) {
-                return new PBXObject(value.getContent())
+                return toPbxObject(toNSString(value).getContent())
             } else if (value instanceof NSArray) {
                 def list = []
                 for (NSObject obj : value.getArray()) {
                     if (isId(obj)) {
-                        list.add(new PBXObject(obj.getContent()))
+                        list.add(toPbxObject(toNSString(obj).getContent()))
                     } else {
                         list.add(obj)
                     }
@@ -75,6 +113,19 @@ class ProjectFile {
         private static boolean isId(NSObject obj) {
             // Check if the value is a FB generated id (static 24 chars) or Gradle generated id (static 36 chars - uuid)
             return obj instanceof NSString && (obj.getContent().length() == 24 || obj.getContent().length() == 36)
+        }
+    }
+
+    class PBXGroup extends PBXObject {
+        PBXGroup(String id, NSDictionary object) {
+            super(id, object)
+        }
+
+        def assertHasChildren(List<String> entries) {
+            def children = getProperty("children")
+            assert children.size() == entries.size()
+            assert children*.name.containsAll(entries)
+            return true
         }
     }
 }

@@ -16,126 +16,48 @@
 
 package org.gradle.ide.xcode
 
-import org.gradle.ide.xcode.fixtures.XcodeProjectPackage
-import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 
-class XcodeSingleProjectIntegrationTest extends AbstractIntegrationSpec {
-    private static final String PROJECT_NAME = "app"
+class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
+    def "create empty xcode project when no language plugins are applied"() {
+        when:
+        succeeds("xcode")
 
-    def "create xcode project Swift executable"() {
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcode")
+
+        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        project.mainGroup.assertHasChildren(['build.gradle'])
+        project.assertNoTargets()
+    }
+
+    def "cleanXcode remove all XCode generated project files"() {
         given:
         buildFile << """
 apply plugin: 'swift-executable'
-apply plugin: 'xcode'
-"""
-
-        settingsFile << """
-rootProject.name = "${PROJECT_NAME}"
-"""
-
-        def app = new SwiftHelloWorldApp()
-        app.writeSources(file('src/main'))
-
-        when:
-        succeeds("xcode")
-
-        then: 'tasks are executed as expected'
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme${PROJECT_NAME}Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
-        def project = xcodeProject("${PROJECT_NAME}.xcodeproj").projectFile
-
-        and: 'source files are properly attached to the project'
-        project.mainGroup.children.size() == app.sourceFiles.size() + 2
-        project.mainGroup.children*.name == ['Products', 'build.gradle', 'hello.swift', 'main.swift', 'sum.swift']
-
-        and: 'targets are properly created'
-        project.targets.size() == 2
-        project.targets*.productType == [PBXTarget.ProductType.TOOL.identifier] * 2
-        project.targets*.productName == [PROJECT_NAME] * 2
-
-        def gradleTargets = project.targets.findAll(gradleTargets())
-        gradleTargets.size() == 1
-
-        def indexTargets = project.targets.findAll(indexTargets())
-        indexTargets.size() == 1
-    }
-
-    def "create xcode project Swift library"() {
-        given:
-        buildFile << """
-apply plugin: 'swift-library'
-apply plugin: 'xcode'
-"""
-
-        settingsFile << """
-rootProject.name = "${PROJECT_NAME}"
-"""
-
-        def app = new SwiftHelloWorldApp()
-        app.library.writeSources(file('src/main'))
-
-        when:
-        succeeds("xcode")
-
-        then: 'tasks are executed as expected'
-        executedAndNotSkipped(":xcodeProject", ":xcodeScheme${PROJECT_NAME}SharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
-        def project = xcodeProject("${PROJECT_NAME}.xcodeproj").projectFile
-
-        and: 'source files are properly attached to the project'
-        project.mainGroup.children.size() == app.library.sourceFiles.size() + 2
-        project.mainGroup.children*.name == ['Products', 'build.gradle', 'hello.swift', 'sum.swift']
-
-        and: 'targets are properly created'
-        project.targets.size() == 2
-        project.targets*.productType == [PBXTarget.ProductType.DYNAMIC_LIBRARY.identifier] * 2
-        project.targets*.productName == [PROJECT_NAME] * 2
-
-        def gradleTargets = project.targets.findAll(gradleTargets())
-        gradleTargets.size() == 1
-
-        def indexTargets = project.targets.findAll(indexTargets())
-        indexTargets.size() == 1
-    }
-
-    def "create empty xcode project when no language plugins are applied"() {
-        given:
-        buildFile << """
-apply plugin: 'xcode'
-"""
-
-        settingsFile << """
-rootProject.name = "${PROJECT_NAME}"
 """
 
         when:
         succeeds("xcode")
 
-        then: 'tasks are executed as expected'
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcode")
-        def project = xcodeProject("${PROJECT_NAME}.xcodeproj").projectFile
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme${rootProjectName}Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        and: 'only the build script is attached to the project'
-        project.mainGroup.children.size() == 1
-        project.mainGroup.children*.name == ['build.gradle']
+        def project = xcodeProject("${rootProjectName}.xcodeproj")
+        project.projectFile.getFile().assertExists()
+        project.schemeFiles*.file*.assertExists()
+        project.workspaceSettingsFile.assertExists()
+        project.dir.assertExists()
 
-        and: 'no targets are created'
-        project.targets.size() == 0
-    }
+        when:
+        succeeds("cleanXcode")
 
-    private XcodeProjectPackage xcodeProject(String path) {
-        new XcodeProjectPackage(file(path))
-    }
+        then:
+        executedAndNotSkipped(":cleanXcode")
 
-    private static def gradleTargets() {
-        return {
-            it.isa == 'PBXLegacyTarget'
-        }
-    }
-
-    private static def indexTargets() {
-        return {
-            it.isa == 'PBXNativeTarget'
-        }
+        project.projectFile.getFile().assertDoesNotExist()
+        project.schemeFiles*.file*.assertDoesNotExist()
+        project.workspaceSettingsFile.assertDoesNotExist()
+        project.dir.assertDoesNotExist()
     }
 }
