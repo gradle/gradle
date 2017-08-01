@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -48,8 +49,8 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
         then:
         ConcurrentTestUtil.poll {
-            assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Executing test org\\.gradle\\.Test1.*")
-            assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Executing test org\\.gradle\\.Test2.*")
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', 'org.gradle.Test1')
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', 'org.gradle.Test2')
         }
 
         testExecution.releaseAll()
@@ -75,8 +76,8 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
         then:
         ConcurrentTestUtil.poll {
-            assert matchesOutput(gradleHandle.standardOutput, ".*> :project1:test > Executing test org\\.gradle\\.Test1.*")
-            assert matchesOutput(gradleHandle.standardOutput, ".*> :project2:test > Executing test org\\.gradle\\.Test2.*")
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project1:test', 'org.gradle.Test1')
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project2:test', 'org.gradle.Test2')
         }
 
         testExecution.releaseAll()
@@ -116,7 +117,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         """
     }
 
-    static boolean matchesOutput(String output, String regexToFind) {
-        (output =~ /(?ms)($regexToFind)/).matches()
+    static boolean containsTestExecutionWorkInProgressLine(GradleHandle gradleHandle, String taskPath, String testName) {
+        gradleHandle.standardOutput.contains(workInProgressLine("> $taskPath > Executing test $testName"))
     }
 }
