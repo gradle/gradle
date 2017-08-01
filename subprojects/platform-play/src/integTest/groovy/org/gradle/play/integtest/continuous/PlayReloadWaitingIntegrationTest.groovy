@@ -16,7 +16,6 @@
 
 package org.gradle.play.integtest.continuous
 
-import groovy.transform.NotYetImplemented
 import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.test.fixtures.ConcurrentTestUtil
 
@@ -64,7 +63,6 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
         }
     }
 
-    @NotYetImplemented
     def "wait for changes to be built when a request comes in during initial app startup and there are pending changes"() {
         addPendingChangesHook()
         // Prebuild so we don't timeout waiting for the 'rebuild' trigger

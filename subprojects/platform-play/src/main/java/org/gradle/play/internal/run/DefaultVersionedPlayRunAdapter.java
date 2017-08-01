@@ -52,8 +52,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     private static final Logger LOGGER = Logging.getLogger(DefaultVersionedPlayRunAdapter.class);
 
     private final AtomicBoolean reload = new AtomicBoolean();
-    private final PendingChanges pendingChanges = new PendingChanges();
-
+    private final AtomicBoolean blockReload = new AtomicBoolean();
     private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
     private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
     private volatile Throwable buildFailure;
@@ -75,7 +74,13 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     return projectPath;
                 } else if (method.getName().equals("reload")) {
 
-                    pendingChanges.waitForAll();
+                    synchronized (blockReload) {
+                        LOGGER.debug("waiting for blockReload to clear {} ", blockReload.get());
+                        while (blockReload.get()) {
+                            blockReload.wait();
+                        }
+                        LOGGER.debug("blockReload cleared {} ", blockReload.get());
+                    }
 
                     // We can't close replaced loaders immediately, because their classes may be used during shutdown,
                     // after the return of the reload() call that caused the loader to be swapped out.
@@ -117,12 +122,11 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
         }
     }
 
-    private ClassLoader storeClassLoader(ClassLoader classLoader) {
+    private void storeClassLoader(ClassLoader classLoader) {
         final ClassLoader previous = currentClassloader.getAndSet(classLoader);
         if (previous != null && previous instanceof Closeable) {
             loadersToClose.add(new SoftReference<Closeable>(Cast.cast(Closeable.class, previous)));
         }
-        return classLoader;
     }
 
     private void closeOldLoaders() throws IOException {
@@ -142,19 +146,21 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     public void buildSuccess() {
         reload.set(true);
         buildFailure = null;
-        pendingChanges.decrement();
     }
 
     @Override
     public void buildError(Throwable throwable) {
         buildFailure = throwable;
-        pendingChanges.decrement();
     }
 
     @Override
-    public void onPendingChanges() {
-        pendingChanges.increment();
-
+    public void blockReload(boolean block) {
+        LOGGER.debug("blockReload {}", block);
+        synchronized (blockReload) {
+            blockReload.set(block);
+            blockReload.notifyAll();
+            LOGGER.debug("notify blockReload {}", blockReload.get());
+        }
     }
 
     @Override

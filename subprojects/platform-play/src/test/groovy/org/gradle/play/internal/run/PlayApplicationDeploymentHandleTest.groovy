@@ -16,31 +16,32 @@
 
 package org.gradle.play.internal.run
 
-import org.gradle.BuildListener
-import org.gradle.BuildResult
-import org.gradle.api.invocation.Gradle
 import spock.lang.Specification
 
+import java.util.concurrent.Callable
 
 class PlayApplicationDeploymentHandleTest extends Specification {
-    def PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
-    def PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle("test")
-    def Gradle gradle = Mock(Gradle)
+    PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
+    PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle("test", new Callable() {
+        @Override
+        PlayApplicationRunnerToken call() throws Exception {
+            return runnerToken
+        }
+    })
+
     def failure = new Throwable()
-    def BuildResult goodBuild = new BuildResult(gradle, null)
-    def BuildResult badBuild = new BuildResult(gradle, failure)
 
     def "reloading deployment handle reloads runner" () {
         when:
-        deploymentHandle.start(runnerToken)
-        deploymentHandle.reloadFromResult(goodBuild)
+        deploymentHandle.start()
+        deploymentHandle.buildResult(null)
 
         then:
         1 * runnerToken.isRunning() >> true
         1 * runnerToken.rebuildSuccess()
 
         when:
-        deploymentHandle.reloadFromResult(badBuild)
+        deploymentHandle.buildResult(failure)
 
         then:
         1 * runnerToken.isRunning() >> true
@@ -50,7 +51,7 @@ class PlayApplicationDeploymentHandleTest extends Specification {
 
     def "stopping deployment handle stops runner" () {
         when:
-        deploymentHandle.start(runnerToken)
+        deploymentHandle.start()
         deploymentHandle.stop()
 
         then:
@@ -61,38 +62,34 @@ class PlayApplicationDeploymentHandleTest extends Specification {
     def "cannot reload a stopped deployment handle" () {
         given:
         runnerToken.isRunning() >> false
-        deploymentHandle.start(runnerToken)
+        deploymentHandle.start()
 
         when:
-        deploymentHandle.reloadFromResult(goodBuild)
+        deploymentHandle.buildResult(null)
 
         then:
-        0 * runnerToken.rebuildSuccess()
+        def e = thrown(IllegalStateException)
+        e.message == "test needs to be started first."
 
         when:
-        deploymentHandle.reloadFromResult(badBuild)
+        deploymentHandle.buildResult(failure)
 
         then:
-        0 * runnerToken.rebuildFailure(_)
+        e = thrown(IllegalStateException)
+        e.message == "test needs to be started first."
     }
 
     def "cannot reload a deployment handle that was never started" () {
         when:
-        deploymentHandle.reloadFromResult(goodBuild)
+        deploymentHandle.buildResult(null)
         then:
-        0 * runnerToken.rebuildFailure(_)
+        def e = thrown(IllegalStateException)
+        e.message == "test needs to be started first."
 
         when:
-        deploymentHandle.reloadFromResult(badBuild)
+        deploymentHandle.buildResult(failure)
         then:
-        0 * runnerToken.rebuildSuccess()
+        e = thrown(IllegalStateException)
+        e.message == "test needs to be started first."
     }
-
-    def "registers for build finished events" () {
-        when:
-        deploymentHandle.onNewBuild(gradle)
-        then:
-        1 * gradle.addBuildListener({ it instanceof BuildListener })
-    }
-
 }

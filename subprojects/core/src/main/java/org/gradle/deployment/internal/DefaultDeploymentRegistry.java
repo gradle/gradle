@@ -17,7 +17,8 @@
 package org.gradle.deployment.internal;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.BuildResult;
+import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
@@ -35,19 +36,30 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     private final Lock lock = new ReentrantLock();
     private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
     private final PendingChangesManager pendingChangesManager;
+    private final PendingChanges pendingChanges;
     private boolean stopped;
 
-    public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager) {
+    public DefaultDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager) {
         this.pendingChangesManager = pendingChangesManager;
+        this.pendingChanges = new PendingChanges();
+        // TODO: Detangle pending changes handling and continuous build
+        if (startParameter.isContinuous()) {
+            pendingChanges.changesMade();
+        }
         pendingChangesManager.addListener(this);
     }
 
     @Override
-    public void register(String id, DeploymentHandle handle) {
+    public void start(String id, DeploymentHandle handle) {
         lock.lock();
         try {
             failIfStopped();
             if (!handles.containsKey(id)) {
+                // TODO: Restore progress logging
+                handle.start();
+                if (pendingChanges.hasRemainingChanges()) {
+                    handle.pendingChanges(true);
+                }
                 handles.put(id, handle);
             } else {
                 throw new IllegalStateException("A deployment with id '" + id + "' is already registered.");
@@ -69,27 +81,33 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     @Override
-    public void onNewBuild(Gradle gradle) {
+    public void onPendingChanges() {
         lock.lock();
         try {
+            pendingChanges.changesMade();
             for (DeploymentHandle handle : handles.values()) {
-                handle.onNewBuild(gradle);
+                handle.pendingChanges(true);
             }
         } finally {
             lock.unlock();
         }
     }
 
-    public void onPendingChanges() {
+    public void buildFinished(BuildResult buildResult) {
         lock.lock();
         try {
+            pendingChanges.changesIncorporated();
             for (DeploymentHandle handle : handles.values()) {
-                handle.onPendingChanges();
+                handle.buildResult(buildResult.getFailure());
+                if (!pendingChanges.hasRemainingChanges()) {
+                    handle.pendingChanges(false);
+                }
             }
         } finally {
             lock.unlock();
         }
     }
+
 
     @Override
     public void stop() {
@@ -109,6 +127,22 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     private void failIfStopped() {
         if (stopped) {
             throw new IllegalStateException("Cannot modify deployment handles once the registry has been stopped.");
+        }
+    }
+
+    private static class PendingChanges {
+        private int pendingChanges;
+
+        void changesMade() {
+            pendingChanges++;
+        }
+
+        void changesIncorporated() {
+            pendingChanges = Math.max(0, pendingChanges-1);
+        }
+
+        boolean hasRemainingChanges() {
+            return pendingChanges != 0;
         }
     }
 }

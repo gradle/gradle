@@ -16,58 +16,63 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.BuildAdapter;
-import org.gradle.BuildResult;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.deployment.internal.DeploymentHandle;
+import org.gradle.internal.UncheckedException;
+
+import java.util.concurrent.Callable;
 
 public class PlayApplicationDeploymentHandle implements DeploymentHandle {
-
     private static final Logger LOGGER = Logging.getLogger(PlayApplicationDeploymentHandle.class);
 
     private PlayApplicationRunnerToken runnerToken;
     private final String id;
+    private final Callable<PlayApplicationRunnerToken> startAction;
 
-    public PlayApplicationDeploymentHandle(String id) {
+    public PlayApplicationDeploymentHandle(String id, Callable<PlayApplicationRunnerToken> startAction) {
         this.id = id;
-    }
-
-    public void start(PlayApplicationRunnerToken runnerToken) {
-        this.runnerToken = runnerToken;
+        this.startAction = startAction;
     }
 
     @Override
+    public void start() {
+        if (isRunning()) {
+            throw new IllegalStateException(id + " has already been started.");
+        }
+
+        try {
+            runnerToken = startAction.call();
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Override
+    public void pendingChanges(boolean pendingChanges) {
+        assertIsRunning();
+        runnerToken.blockReload(pendingChanges);
+    }
+
+    private void assertIsRunning() {
+        if (!isRunning()) {
+            throw new IllegalStateException(id + " needs to be started first.");
+        }
+    }
+
     public boolean isRunning() {
         return runnerToken != null && runnerToken.isRunning();
     }
 
     @Override
-    public void onNewBuild(Gradle gradle) {
-        gradle.addBuildListener(new BuildAdapter() {
-            @Override
-            public void buildFinished(BuildResult result) {
-                reloadFromResult(result);
-            }
-        });
-    }
-
-    @Override
-    public void onPendingChanges() {
-        if (isRunning()) {
-            runnerToken.onPendingChanges();
-        }
-    }
-
-    void reloadFromResult(BuildResult result) {
-        if (isRunning()) {
-            Throwable failure = result.getFailure();
-            if (failure != null) {
-                runnerToken.rebuildFailure(failure);
-            } else {
-                runnerToken.rebuildSuccess();
-            }
+    public void buildResult(Throwable failure) {
+        assertIsRunning();
+        if (failure != null) {
+            // Build failed, so show the error
+            runnerToken.rebuildFailure(failure);
+        } else {
+            // Build succeeded, so reload
+            runnerToken.rebuildSuccess();
         }
     }
 

@@ -16,18 +16,24 @@
 
 package org.gradle.deployment.internal
 
-import org.gradle.api.invocation.Gradle
+import org.gradle.BuildResult
+import org.gradle.StartParameter
 import org.gradle.internal.filewatch.PendingChangesManager
 import spock.lang.Specification
 
 class DefaultDeploymentRegistryTest extends Specification {
-    DefaultDeploymentRegistry registry = new DefaultDeploymentRegistry(Mock(PendingChangesManager))
+    StartParameter startParameter = Mock()
+    DefaultDeploymentRegistry registry = new DefaultDeploymentRegistry(startParameter, Mock(PendingChangesManager))
+
+    def setup() {
+        startParameter.isContinuous() >> true
+    }
 
     def "can register and retrieve a deployment handle" () {
         DeploymentHandle handle = Mock(DeploymentHandle)
 
         when:
-        registry.register("test", handle)
+        registry.start("test", handle)
 
         then:
         registry.get(DeploymentHandle.class, "test") == handle
@@ -35,31 +41,30 @@ class DefaultDeploymentRegistryTest extends Specification {
 
     def "notifies all handles when new build starts"() {
         DeploymentHandle handle = Mock(DeploymentHandle)
-        Gradle gradle = Mock(Gradle)
 
         when:
         (1..10).each {
-            registry.register("test$it", handle)
+            registry.start("test$it", handle)
         }
         and:
-        registry.onNewBuild(gradle)
+        registry.buildFinished(new BuildResult(null, null))
 
         then:
-        10 * handle.onNewBuild(gradle)
+        10 * handle.buildResult(null)
     }
 
     def "cannot register a duplicate deployment handle" () {
         DeploymentHandle handle = Mock(DeploymentHandle)
 
         when:
-        registry.register("test", handle)
+        registry.start("test", handle)
 
         then:
         noExceptionThrown()
         registry.get(DeploymentHandle.class, "test") == handle
 
         when:
-        registry.register("test", handle)
+        registry.start("test", handle)
 
         then:
         IllegalStateException e = thrown()
@@ -70,9 +75,9 @@ class DefaultDeploymentRegistryTest extends Specification {
         DeploymentHandle handle1 = Mock(DeploymentHandle)
         DeploymentHandle handle2 = Mock(DeploymentHandle)
         DeploymentHandle handle3 = Mock(DeploymentHandle)
-        registry.register("test1", handle1)
-        registry.register("test2", handle2)
-        registry.register("test3", handle3)
+        registry.start("test1", handle1)
+        registry.start("test2", handle2)
+        registry.start("test3", handle3)
 
         when:
         registry.stop()
@@ -85,7 +90,7 @@ class DefaultDeploymentRegistryTest extends Specification {
 
     def "cannot get a handle once the registry is stopped" () {
         given:
-        registry.register("test", Mock(DeploymentHandle))
+        registry.start("test", Mock(DeploymentHandle))
         registry.stop()
 
         when:
@@ -101,7 +106,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         registry.stop()
 
         when:
-        registry.register("test", Mock(DeploymentHandle))
+        registry.start("test", Mock(DeploymentHandle))
 
         then:
         def e = thrown(IllegalStateException)

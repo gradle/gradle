@@ -34,5 +34,5 @@ public interface VersionedPlayRunAdapter {
 
     Iterable<Dependency> getRunsupportClasspathDependencies(String playVersion, String scalaCompatibilityVersion);
 
-    void onPendingChanges();
+    void blockReload(boolean block);
 }

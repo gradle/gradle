@@ -54,7 +54,7 @@ public class PlayApplicationRunnerToken {
         return !stopped.get();
     }
 
-    public void onPendingChanges() {
-        workerServer.onPendingChanges();
+    public void blockReload(boolean block) {
+        workerServer.blockReload(block);
     }
 }

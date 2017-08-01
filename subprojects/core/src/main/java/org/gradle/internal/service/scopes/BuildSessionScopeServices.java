@@ -50,7 +50,6 @@ import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
-import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -118,8 +117,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new PendingChangesManager(listenerManager);
     }
 
-    DeploymentRegistry createDeploymentRegistry(PendingChangesManager pendingChangesManager) {
-        return new DefaultDeploymentRegistry(pendingChangesManager);
+    DefaultDeploymentRegistry createDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager) {
+        return new DefaultDeploymentRegistry(startParameter, pendingChangesManager);
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {

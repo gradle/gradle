@@ -99,8 +99,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     }
 
     @Override
-    public void onPendingChanges() {
-        runAdapter.onPendingChanges();
+    public void blockReload(Boolean block) {
+        runAdapter.blockReload(block);
     }
-
 }

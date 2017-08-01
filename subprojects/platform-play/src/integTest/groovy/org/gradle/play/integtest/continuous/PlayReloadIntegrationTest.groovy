@@ -27,7 +27,7 @@ import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegrationTest {
+abstract class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegrationTest {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     RunningPlayApp runningApp = new AdvancedRunningPlayApp(testDirectory)

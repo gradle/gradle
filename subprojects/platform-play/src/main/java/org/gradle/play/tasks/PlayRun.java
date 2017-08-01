@@ -43,6 +43,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * Task to run a Play application.
@@ -86,22 +87,7 @@ public class PlayRun extends ConventionTask {
     @TaskAction
     public void run() {
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
-        PlayApplicationDeploymentHandle deploymentHandle = registerOrFindDeploymentHandle(getPath());
-
-        if (!deploymentHandle.isRunning()) {
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
-                .start("Start Play server", "Starting Play");
-
-            try {
-                int httpPort = getHttpPort();
-                PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
-                PlayApplicationRunnerToken runnerToken = playToolProvider.get(PlayApplicationRunner.class).start(spec);
-                deploymentHandle.start(runnerToken);
-            } finally {
-                progressLogger.completed();
-            }
-        }
-
+        PlayApplicationDeploymentHandle deploymentHandle = startOrFindDeploymentHandle(getPath());
         if (!getProject().getGradle().getStartParameter().isContinuous()) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                 .start("Run Play App at http://localhost:" + httpPort + "/",
@@ -197,12 +183,20 @@ public class PlayRun extends ConventionTask {
         throw new UnsupportedOperationException();
     }
 
-    private PlayApplicationDeploymentHandle registerOrFindDeploymentHandle(String deploymentId) {
+    private PlayApplicationDeploymentHandle startOrFindDeploymentHandle(String deploymentId) {
         DeploymentRegistry deploymentRegistry = getDeploymentRegistry();
         PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId);
+
         if (deploymentHandle == null) {
-            deploymentHandle = new PlayApplicationDeploymentHandle(deploymentId);
-            deploymentRegistry.register(deploymentId, deploymentHandle);
+            deploymentHandle = new PlayApplicationDeploymentHandle(deploymentId, new Callable<PlayApplicationRunnerToken>() {
+                @Override
+                public PlayApplicationRunnerToken call() throws Exception {
+                    int httpPort = getHttpPort();
+                    PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
+                    return playToolProvider.get(PlayApplicationRunner.class).start(spec);
+                }
+            });
+            deploymentRegistry.start(deploymentId, deploymentHandle);
         }
         return deploymentHandle;
     }
