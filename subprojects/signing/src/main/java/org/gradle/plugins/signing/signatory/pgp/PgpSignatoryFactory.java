@@ -81,10 +81,11 @@ public class PgpSignatoryFactory {
         for (String property : PROPERTIES) {
             String qualifiedProperty = (String)getQualifiedPropertyName(prefix, property);
             Object prop = getPropertySafely(project, qualifiedProperty, required);
-            if(prop == null) {
+            if(prop != null) {
+                values.add(prop);
+            } else {
                 return null;
             }
-            values.add(prop);
         }
 
         String keyId = values.get(0).toString();
@@ -96,10 +97,10 @@ public class PgpSignatoryFactory {
     private Object getPropertySafely(Project project, String qualifiedProperty, boolean required) {
         if (project.hasProperty(qualifiedProperty)) {
             Object prop = project.property(qualifiedProperty);
-            if(prop != null){
+            if (prop != null) {
                 return prop;
             } else {
-                if(required){
+                if (required) {
                     throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' was null. A valid value is needed for signing");
                 }
             }

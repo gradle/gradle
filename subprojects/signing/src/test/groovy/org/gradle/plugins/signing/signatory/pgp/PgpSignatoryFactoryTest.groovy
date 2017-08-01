@@ -17,43 +17,78 @@
 package org.gradle.plugins.signing.signatory.pgp
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
-import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.*
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import spock.lang.Issue
+import spock.lang.Unroll
 
-@Issue("https://github.com/gradle/gradle/issues/2267")
-class PgpSignatoryFactoryTest extends Specification {
+class PgpSignatoryFactoryTest extends AbstractProjectBuilderSpec {
 
-    static Project aProjectWithNullProperties(){
-        def project = new ProjectBuilder().build()
-        project.ext.'signing.keyId' = null
-        project.ext.'signing.password' = null
-        project.ext.'signing.secretKeyRingFile' = null
-        project
-    }
+    private static final String KEY_ID_VALUE = '24875D73'
+    private static final String PASSWORD_VALUE = 'secret'
+    private static final String SECRET_KEY_RING_FILE = '/Users/me/.gnupg/secring.gpg'
+    def factory = new PgpSignatoryFactory()
 
-    def "null properties do not throw an NPE"() {
-        setup:
-            def factory = new PgpSignatoryFactory()
-            def project = aProjectWithNullProperties()
+    @Issue("https://github.com/gradle/gradle/issues/2267")
+    @Unroll
+    def "property '#nullPropertyName' with null value throws a descriptive exception if required"() {
+        given:
+        project.ext.'signing.keyId' = keyId
+        project.ext.'signing.password' = password
+        project.ext.'signing.secretKeyRingFile' = secretKeyRingFile
+
         when:
-            factory.createSignatory(project, true)
+        factory.createSignatory(project, true)
+
         then:
-            //notThrown NullPointerException // does not allow the real exception through
-            Exception ex = thrown()
-            ex.class != NullPointerException
+        def t = thrown(InvalidUserDataException)
+        t.message == "property '$nullPropertyName' was null. A valid value is needed for signing"
+
+        where:
+        keyId        | password       | secretKeyRingFile    | nullPropertyName
+        null         | PASSWORD_VALUE | SECRET_KEY_RING_FILE | 'signing.keyId'
+        KEY_ID_VALUE | null           | SECRET_KEY_RING_FILE | 'signing.password'
+        KEY_ID_VALUE | PASSWORD_VALUE | null                 | 'signing.secretKeyRingFile'
     }
-    def "null properties throw a descriptive exception"() {
-        setup:
-            def factory = new PgpSignatoryFactory()
-            def project = aProjectWithNullProperties()
+
+    @Issue("https://github.com/gradle/gradle/issues/2267")
+    @Unroll
+    def "returns null signatory if any of the properties is null and not required"() {
+        given:
+        project.ext.'signing.keyId' = keyId
+        project.ext.'signing.password' = password
+        project.ext.'signing.secretKeyRingFile' = secretKeyRingFile
+
         when:
-            factory.createSignatory(project, true)
+        def signatory = factory.createSignatory(project, false)
+
         then:
-            Exception ex = thrown()
-            ex.message.matches 'property .* was null\\. A valid value is needed for signing'
-            //thrown InvalidUserDataException // This is implied by the message contents check.
+        !signatory
+
+        where:
+        keyId        | password       | secretKeyRingFile
+        null         | PASSWORD_VALUE | SECRET_KEY_RING_FILE
+        KEY_ID_VALUE | null           | SECRET_KEY_RING_FILE
+        KEY_ID_VALUE | PASSWORD_VALUE | null
     }
 
+    @Unroll
+    def "undeclared property '#missingPropertyName' throws a descriptive exception if required"() {
+        given:
+        declaredProperties.each {
+            project.ext."$it" = 'someValue'
+        }
 
+        when:
+        factory.createSignatory(project, true)
+
+        then:
+        def t = thrown(InvalidUserDataException)
+        t.message == "property '$missingPropertyName' could not be found on project and is needed for signing"
+
+        where:
+        declaredProperties                                | missingPropertyName
+        ['signing.password', 'signing.secretKeyRingFile'] | 'signing.keyId'
+        ['signing.keyId', 'signing.secretKeyRingFile']    | 'signing.password'
+        ['signing.keyId','signing.password']              | 'signing.secretKeyRingFile'
+    }
 }

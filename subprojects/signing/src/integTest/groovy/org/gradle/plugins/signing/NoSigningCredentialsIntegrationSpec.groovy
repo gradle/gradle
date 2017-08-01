@@ -17,6 +17,8 @@ package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
+import spock.lang.Issue
+import spock.lang.Unroll
 
 class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
 
@@ -78,4 +80,34 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         pomSignature().exists()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/2267")
+    @Unroll
+    def "trying to perform a signing operation for null signing properties when not required does not error"() {
+        when:
+        buildFile << """
+            signing {
+                sign configurations.archives
+                required = { false }
+            }
+        """ << uploadArchives() << signDeploymentPom()
+        buildFile << keyInfo.addAsPropertiesScript()
+        buildFile << """
+            project.ext.setProperty('$signingProperty', null)
+        """
+
+        then:
+        succeeds ":uploadArchives"
+
+        and:
+        ":signArchives" in skippedTasks
+
+        and:
+        jarUploaded()
+        signatureNotUploaded()
+        pom().exists()
+        !pomSignature().exists()
+
+        where:
+        signingProperty << ['signing.keyId', 'signing.password', 'signing.secretKeyRingFile']
+    }
 }
