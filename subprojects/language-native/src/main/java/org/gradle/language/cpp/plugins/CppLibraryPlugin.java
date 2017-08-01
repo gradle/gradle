@@ -27,9 +27,10 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -40,7 +41,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import java.util.Collections;
-import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -55,7 +55,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
-        TaskContainerInternal tasks = project.getTasks();
+        TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
@@ -89,18 +89,12 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         // Add a link task
         final LinkSharedLibrary link = tasks.create("linkMain", LinkSharedLibrary.class);
-        // TODO - include only object files
-        link.source(compile.getObjectFileDirectory().getAsFileTree());
+        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - need to set basename and soname
         String linkFileName = platformToolChain.getSharedLibraryLinkFileName("build/lib/" + project.getName());
-        Provider<RegularFile> runtimeFile = buildDirectory.file(project.getProviders().provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return platformToolChain.getSharedLibraryName("lib/" + project.getName());
-            }
-        }));
+        Provider<RegularFile> runtimeFile = buildDirectory.file(platformToolChain.getSharedLibraryName("lib/" + project.getName()));
         link.setOutputFile(runtimeFile);
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);
