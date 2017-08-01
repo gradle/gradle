@@ -23,6 +23,7 @@ import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationQueueFactory
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.resources.ResourceDeadlockException
 import org.gradle.internal.resources.ResourceLockCoordinationService
@@ -37,7 +38,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def timeProvider = Mock(TimeProvider)
     def progressLoggerFactory = Spy(NoOpProgressLoggerFactory)
     def resourceLockCoordinator = Mock(ResourceLockCoordinationService)
-    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), resourceLockCoordinator, new ParallelismConfigurationManagerFixture(true, 1))
+    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), resourceLockCoordinator, new ParallelismConfigurationManagerFixture(true, 1), new DefaultBuildOperationIdFactory())
 
     def "fires events when operation starts and finishes successfully"() {
         setup:

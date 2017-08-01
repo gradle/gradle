@@ -80,6 +80,8 @@ import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.operations.BuildOperationIdFactory;
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.progress.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.Instantiator;
@@ -339,5 +341,9 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     LoggingManagerInternal createLoggingManager(Factory<LoggingManagerInternal> loggingManagerFactory) {
         return loggingManagerFactory.create();
+    }
+
+    BuildOperationIdFactory createBuildOperationIdProvider() {
+        return new DefaultBuildOperationIdFactory();
     }
 }

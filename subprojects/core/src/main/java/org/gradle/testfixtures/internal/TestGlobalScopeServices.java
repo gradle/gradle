@@ -24,6 +24,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.DefaultBuildOperationExecutor;
@@ -53,7 +54,7 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
     private static class ProjectBuilderBuildOperationExecutor extends DefaultBuildOperationExecutor {
 
         public ProjectBuilderBuildOperationExecutor(BuildOperationListener broadcaster, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory, DefaultBuildOperationQueueFactory defaultBuildOperationQueueFactory, ExecutorFactory executorFactory, ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
-            super(broadcaster, timeProvider, progressLoggerFactory, defaultBuildOperationQueueFactory, executorFactory, resourceLockCoordinationService, parallelismConfigurationManager);
+            super(broadcaster, timeProvider, progressLoggerFactory, defaultBuildOperationQueueFactory, executorFactory, resourceLockCoordinationService, parallelismConfigurationManager, new DefaultBuildOperationIdFactory());
             createRunningRootOperation("ProjectBuilder");
         }
     }
