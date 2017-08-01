@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures
 
 import org.fusesource.jansi.Ansi
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 
 /**
  * A base class for testing the console in rich mode. Executes with a Gradle distribution and {@code "--console=rich"} command line option.
@@ -32,10 +31,6 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
 
     def setup() {
         executer.withRichConsole()
-    }
-
-    protected GradleExecuter withParallel() {
-        executer.withArgument('--parallel')
     }
 
     /**

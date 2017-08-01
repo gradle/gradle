@@ -20,10 +20,13 @@ import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
+/**
+ * A base class for testing task grouping in the console. Executes with a Gradle distribution and {@code "--parallel"} command line option.
+ */
 @IgnoreIf({ GradleContextualExecuter.parallel })
 abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractConsoleFunctionalSpec {
 
     def setup() {
-        withParallel()
+        executer.withArgument('--parallel')
     }
 }
