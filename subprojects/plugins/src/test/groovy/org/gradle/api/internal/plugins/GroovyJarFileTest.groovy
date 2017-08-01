@@ -40,7 +40,7 @@ class GroovyJarFileTest extends Specification {
         jar.indy == isIndy
         jar.dependencyNotation == dependency
 
-        
+
         where:
         path                                                            | baseName     | version                                    | isAll | isIndy | dependency
         "/lib/groovy-2.0.5.jar"                                         | "groovy"     | "2.0.5"                                    | false | false  | "org.codehaus.groovy:groovy:2.0.5"
