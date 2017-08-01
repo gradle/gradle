@@ -77,7 +77,9 @@ class ConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGrou
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withArgument("--dry-run").withTasks('compileJava').run()
 
         then:
-        result.groupedOutput.strippedOutput.contains ":byeWorld SKIPPED$EOL:compileJava SKIPPED$EOL"
+        def strippedGroupedTaskOutput = result.groupedOutput.strippedOutput
+        strippedGroupedTaskOutput.contains(':byeWorld SKIPPED')
+        strippedGroupedTaskOutput.contains(':compileJava SKIPPED')
     }
 
     static String javaProject() {
