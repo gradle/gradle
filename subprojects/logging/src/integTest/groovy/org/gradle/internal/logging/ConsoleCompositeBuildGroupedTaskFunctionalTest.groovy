@@ -16,7 +16,10 @@
 
 package org.gradle.internal.logging
 
+import org.gradle.internal.SystemProperties
+
 class ConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
+    private static final String EOL = SystemProperties.instance.lineSeparator
     private static final String PROJECT_A_NAME = 'projectA'
     private static final String PROJECT_B_NAME = 'projectB'
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
@@ -74,9 +77,7 @@ class ConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGrou
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withArgument("--dry-run").withTasks('compileJava').run()
 
         then:
-        def strippedGroupedTaskOutput = result.groupedOutput.strippedOutput
-        strippedGroupedTaskOutput.contains(':byeWorld SKIPPED')
-        strippedGroupedTaskOutput.contains(':compileJava SKIPPED')
+        result.groupedOutput.strippedOutput.contains ":byeWorld SKIPPED$EOL:compileJava SKIPPED"
     }
 
     static String javaProject() {
