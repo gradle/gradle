@@ -17,16 +17,21 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.util.VersionNumber
 import spock.lang.Specification
+import spock.lang.Unroll
+
+import java.rmi.activation.ActivationGroup_Stub
 
 class GroovyJarFileTest extends Specification {
     def "parse non-Groovy file"() {
         expect:
         GroovyJarFile.parse(new File("groovy-other-2.0.5.jar")) == null
+        GroovyJarFile.parse(new File("groovy-1b3e1k20f5.jar")) == null
         GroovyJarFile.parse(new File("groovy-2.0.5.zip")) == null
     }
 
-    def "parse 'groovy' Jar"() {
-        def jar = GroovyJarFile.parse(new File("/lib/groovy-2.0.5.jar"))
+    @Unroll
+    def "parse 'groovy' Jar with version #version"() {
+        def jar = GroovyJarFile.parse(new File("/lib/groovy-$version.jar"))
 
         expect:
         jar != null
@@ -36,6 +41,18 @@ class GroovyJarFileTest extends Specification {
         !jar.groovyAll
         !jar.indy
         jar.dependencyNotation == "org.codehaus.groovy:groovy:2.0.5"
+
+        where:
+        path | baseName | version | isAll | isIndy | dependency
+        "/lib/groovy-2.0.5.jar" | "groovy" | "2.0.5" | false | false | "org.codehaus.groovy:groovy:2.0.5"
+        "/lib/groovy-1b3e1520f5.jar" | "groovy" | "1b3e1520f5" | false | false | "org.codehaus.groovy:groovy:1b3e1520f5"
+        "/lib/groovy-ea60e33cb2fd4b66ae3c6e87200005fa941dca2c.jar" | "groovy" | "ea60e33cb2fd4b66ae3c6e87200005fa941dca2c" | false | false | "org.codehaus.groovy:groovy:ea60e33cb2fd4b66ae3c6e87200005fa941dca2c"
+        "/lib/groovy-all-2.0.5.jar" | "groovy-all" | "2.0.5" | true | false | "org.codehaus.groovy:groovy-all:2.0.5"
+        "/lib/groovy-all-1b3e1520f5.jar" | "groovy-all" | "1b3e1520f5" | true | false | "org.codehaus.groovy:groovy-all:1b3e1520f5"
+        "/lib/groovy-all-ea60e33cb2fd4b66ae3c6e87200005fa941dca2c.jar" | "groovy-all" | "ea60e33cb2fd4b66ae3c6e87200005fa941dca2c" | true | false | "org.codehaus.groovy:groovy-all:ea60e33cb2fd4b66ae3c6e87200005fa941dca2c"
+        "/lib/groovy-2.0.5-indy.jar" | "groovy" | "2.0.5" | false | true | "org.codehaus.groovy:groovy:2.0.5:indy"
+        "/lib/groovy-1b3e1520f5-indy.jar" | "groovy" | "1b3e1520f5" | false | true | "org.codehaus.groovy:groovy:1b3e1520f5:indy"
+        "/lib/groovy-ea60e33cb2fd4b66ae3c6e87200005fa941dca2c-indy.jar" | "groovy" | "ea60e33cb2fd4b66ae3c6e87200005fa941dca2c" | false | true | "org.codehaus.groovy:groovy:ea60e33cb2fd4b66ae3c6e87200005fa941dca2c:indy"
     }
 
     def "parse 'groovy-all' Jar"() {

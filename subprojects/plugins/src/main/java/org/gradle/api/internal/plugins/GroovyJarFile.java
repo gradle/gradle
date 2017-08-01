@@ -23,7 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GroovyJarFile {
-    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(?:-all)?)-(\\d.*?)(-indy)?.jar");
+    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(?:-all)?)-([a-f0-9].*?)(-indy)?.jar");
 
     private final File file;
     private final Matcher matcher;
