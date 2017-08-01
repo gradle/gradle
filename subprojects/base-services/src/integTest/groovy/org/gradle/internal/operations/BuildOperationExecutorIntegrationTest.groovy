@@ -18,8 +18,9 @@ package org.gradle.internal.operations
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Matchers
+import spock.lang.Issue
 
-class BuildOperationExecutorParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
+class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
 
     def "produces sensible error when there are failures both enqueueing and running operations" () {
         buildFile << """
@@ -68,5 +69,29 @@ class BuildOperationExecutorParallelExecutionIntegrationTest extends AbstractInt
         then:
         failure.assertHasCause("There was a failure while populating the build operation queue:")
         failure.assertThatCause(Matchers.containsText("Multiple build operations failed"));
+    }
+
+    // This is the current behavior:
+    // We need to make sure that the build operation ids of nested builds do not overlap.
+    // Since we currently have no specific scope for "one build and all its nested builds", we use the global scope.
+    @Issue("https://github.com/gradle/gradle/issues/2622")
+    def "build operations have unique ids within the global scope"() {
+        when:
+        buildFile << """
+            import org.gradle.internal.operations.BuildOperationExecutor
+            
+            task checkOpId() {
+                doLast() {
+                    file(resultFile) << gradle.services.get(BuildOperationExecutor).currentOperation.id
+                }
+            }
+        """
+        executer.withArguments("-PresultFile=build1result.txt")
+        succeeds "checkOpId"
+        executer.withArguments("-PresultFile=build2result.txt")
+        succeeds "checkOpId"
+
+        then:
+        file("build1result.txt").text != file("build2result.txt").text
     }
 }
