@@ -17,7 +17,7 @@
 
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
-import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
@@ -81,7 +81,7 @@ tasks.withType(JvmProjectGeneratorTask) {
 task prepareSamples {
     dependsOn tasks.withType(ProjectGeneratorTask)
     dependsOn tasks.withType(RemoteProject)
-    dependsOn tasks.withType(JavaExec)
+    dependsOn tasks.withType(JavaExecProjectGeneratorTask)
     group = "Project Setup"
     description = "Generates all sample projects for automated performance tests"
 }
@@ -89,7 +89,7 @@ task prepareSamples {
 task cleanSamples(type: Delete) {
     delete {tasks.withType(ProjectGeneratorTask)*.destDir}
     delete {tasks.withType(RemoteProject)*.outputDirectory}
-    delete {tasks.withType(JavaExec)*.outputs}
+    delete {tasks.withType(JavaExecProjectGeneratorTask)*.outputs}
 }
 
 def withPerformanceDb = { task ->
@@ -129,6 +129,7 @@ performanceTestTasks.all { PerformanceTest task ->
     dependsOn prepareSamples
     mustRunAfter tasks.withType(ProjectGeneratorTask)
     mustRunAfter tasks.withType(RemoteProject)
+    mustRunAfter tasks.withType(JavaExecProjectGeneratorTask)
     requiresBinZip = true
     requiresLibsRepo = true
 
