@@ -70,6 +70,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 These methods where not meant to be used, since Gradle does not allow to customize the PathSensitivity for output files.
 
+### Upgraded the bndlib to 3.3.0
+
+Gradle previously depended on `biz.aQute.bnd:biz.aQute.bndlib:3.2.0`. That version of the library didn't support Java 9.
+To fix [issue 2583](https://github.com/gradle/gradle/issues/2583), we upgraded to version 3.3.0 of the library. This
+should cause no changes as it is a minor version release.
+
 <!--
 ### Example breaking change
 -->
