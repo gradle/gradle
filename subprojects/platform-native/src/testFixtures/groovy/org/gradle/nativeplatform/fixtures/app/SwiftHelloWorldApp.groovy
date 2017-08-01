@@ -73,7 +73,7 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
     TestNativeComponent getLibrary() {
-        def delegate = super.getExecutable()
+        def delegate = super.getLibrary()
         return new TestNativeComponent() {
             @Override
             List<SourceFile> getHeaderFiles() {
