@@ -16,25 +16,17 @@
 
 package org.gradle.internal.logging
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
-class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpec {
+class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFunctionalTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
-
-    def setup() {
-        executer.withArgument('--parallel')
-    }
 
     def "multi-project build tasks logs are grouped"() {
         given:

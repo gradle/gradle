@@ -16,10 +16,9 @@
 
 package org.gradle.internal.logging
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.internal.SystemProperties
 
-class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
+class ConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     private static final String EOL = SystemProperties.instance.lineSeparator
     private static final String PROJECT_A_NAME = 'projectA'
     private static final String PROJECT_B_NAME = 'projectB'

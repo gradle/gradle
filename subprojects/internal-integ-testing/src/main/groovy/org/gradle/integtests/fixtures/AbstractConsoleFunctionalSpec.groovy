@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import org.fusesource.jansi.Ansi
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 
 /**
  * A base class for testing the console in rich mode. Executes with a Gradle distribution and {@code "--console=rich"} command line option.
@@ -29,12 +30,12 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     public final static String CONTROL_SEQUENCE_END = "m"
     public final static String DEFAULT_TEXT = "0;39"
 
-    static String workInProgressLine(String plainText) {
-        return boldOn() + plainText + reset()
-    }
-
     def setup() {
         executer.withRichConsole()
+    }
+
+    protected GradleExecuter withParallel() {
+        executer.withArgument('--parallel')
     }
 
     /**
@@ -51,6 +52,10 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
         styledString += CONTROL_SEQUENCE_END + plainText + CONTROL_SEQUENCE_START + DEFAULT_TEXT + CONTROL_SEQUENCE_END
 
         return styledString
+    }
+
+    static String workInProgressLine(String plainText) {
+        return boldOn() + plainText + reset()
     }
 
     private static String boldOn() {
