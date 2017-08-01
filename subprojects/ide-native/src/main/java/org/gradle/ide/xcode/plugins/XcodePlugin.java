@@ -225,7 +225,7 @@ public class XcodePlugin extends IdePlugin {
 
     private XcodeTarget newTarget(String name, PBXTarget.ProductType productType, String gradleCommand, String taskName, File outputFile, FileCollection sources) {
         String id = gidGenerator.generateGid("PBXLegacyTarget", name.hashCode());
-        XcodeTarget target = new XcodeTarget(name, id, fileOperations);
+        XcodeTarget target = objectFactory.newInstance(XcodeTarget.class, name, id);
         target.setOutputFile(outputFile);
         target.setTaskName(taskName);
         target.setGradleCommand(gradleCommand);

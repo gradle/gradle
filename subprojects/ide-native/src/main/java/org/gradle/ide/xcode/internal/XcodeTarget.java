@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -41,6 +42,7 @@ public class XcodeTarget implements Named {
     private String productName;
     private String outputFileType;
 
+    @Inject
     public XcodeTarget(String name, String id, FileOperations fileOperations) {
         this.name = name;
         this.id = id;
