@@ -17,15 +17,19 @@
 package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
+@IgnoreIf({ GradleContextualExecuter.parallel })
 class ConsoleTaskGroupingFunctionalTest extends AbstractConsoleFunctionalSpec {
 
     private static final String JAVA_SRC_DIR_PATH = 'src/main/java'
 
     def setup() {
         executer.expectDeprecationWarning()
+        executer.withArgument('--parallel')
     }
 
     def "compiler warnings emitted from compilation task are grouped"() {

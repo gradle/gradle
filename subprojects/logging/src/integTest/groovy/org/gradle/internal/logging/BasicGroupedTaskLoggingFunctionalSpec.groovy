@@ -27,9 +27,14 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+@IgnoreIf({ GradleContextualExecuter.parallel })
 class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
+
+    def setup() {
+        executer.withArgument('--parallel')
+    }
 
     def "multi-project build tasks logs are grouped"() {
         given:
@@ -122,7 +127,6 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleFunctionalSpe
         result.groupedOutput.task(':log').output =~ /First line of text\n{3,}Last line of text/
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.parallel })
     def "long running task output correctly interleave with other tasks in parallel"() {
         given:
         def sleepTime = GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT / 2 * 3
