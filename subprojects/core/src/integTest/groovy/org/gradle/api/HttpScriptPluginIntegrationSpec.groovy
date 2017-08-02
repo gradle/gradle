@@ -17,15 +17,39 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.matchers.UserAgentMatcher
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
-class ExternalScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
+class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     @org.junit.Rule
     public final HttpServer server = new HttpServer()
 
     def setup() {
         settingsFile << "rootProject.name = 'project'"
+        server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         server.start()
+    }
+
+    def "can apply script via http"() {
+        when:
+        def script = file('external.gradle')
+        server.expectGet('/external.gradle', script)
+        server.start()
+
+        script << """
+            task doStuff
+            assert buildscript.sourceFile == null
+            assert "${server.uri}/external.gradle" == buildscript.sourceURI as String
+"""
+
+        buildFile << """
+            apply from: '$server.uri/external.gradle'
+            defaultTasks 'doStuff'
+"""
+
+        then:
+        succeeds()
     }
 
     def "uses encoding specified by http server"() {
@@ -47,7 +71,7 @@ task check {
         server.expectGet('/script.gradle', scriptFile).contentType("text/plain; charset=ISO-8859-15")
 
         and:
-        buildFile << "apply from: 'http://localhost:${server.port}/script.gradle'"
+        buildFile << "apply from: '${server.uri}/script.gradle'"
 
         expect:
         succeeds 'check'
@@ -72,7 +96,7 @@ task check {
         server.expectGet('/script.gradle', scriptFile).contentType("text/plain")
 
         and:
-        buildFile << "apply from: 'http://localhost:${server.port}/script.gradle'"
+        buildFile << "apply from: '${server.uri}/script.gradle'"
 
         expect:
         succeeds 'check'
@@ -96,7 +120,7 @@ task check {
         """
 
         when:
-        def scriptUri = "http://localhost:${server.port}/${scriptName}"
+        def scriptUri = "${server.uri}/${scriptName}"
         file(sourceFile) << """
             apply from: '${scriptUri}'
         """
@@ -146,7 +170,7 @@ task check {
 
         and:
         [file('settings.gradle'), file('init.gradle'), file("projA/build.gradle"), file("projB/build.gradle")].each {
-            it << "apply from: 'http://localhost:${server.port}/${scriptName}'"
+            it << "apply from: '${server.uri}/${scriptName}'"
         }
 
         when:
@@ -168,7 +192,7 @@ task check {
         scriptFile.makeOlder()
 
         and:
-        buildFile << "apply from: 'http://localhost:${server.port}/${scriptName}'"
+        buildFile << "apply from: '${server.uri}/${scriptName}'"
 
         when:
         server.expectGet('/' + scriptName, scriptFile)
@@ -197,7 +221,7 @@ task check {
 
     def "reports and recovers from missing remote script"() {
         String scriptName = "script-${System.currentTimeMillis()}.gradle"
-        String scriptUrl = "http://localhost:${server.port}/${scriptName}"
+        String scriptUrl = "${server.uri}/${scriptName}"
         def scriptFile = file("script.gradle") << """
             println 'loaded remote script'
         """
