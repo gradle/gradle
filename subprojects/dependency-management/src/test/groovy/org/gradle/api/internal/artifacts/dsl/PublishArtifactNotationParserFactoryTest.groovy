@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
@@ -168,6 +169,21 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
         then:
         deps.getDependencies(null) == [task1, task2] as Set
+    }
+
+    def "fails when provider returns an unsupported type"() {
+        def provider = Mock(BuildableProvider)
+
+        given:
+        def publishArtifact = publishArtifactNotationParser.parseNotation(provider)
+        provider.get() >> "broken"
+
+        when:
+        publishArtifact.file
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "Cannot convert provided value (broken) to a file."
     }
 
     def createArtifactFromFileInMap() {

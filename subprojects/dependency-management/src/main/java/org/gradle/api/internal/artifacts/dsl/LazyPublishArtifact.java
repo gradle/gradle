@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -28,10 +30,10 @@ import java.io.File;
 import java.util.Date;
 
 public class LazyPublishArtifact implements PublishArtifact {
-    private final Provider<? extends Provider<File>> provider;
+    private final Provider<?> provider;
     private final String version;
 
-    public LazyPublishArtifact(Provider<RegularFile> provider, String version) {
+    public LazyPublishArtifact(Provider<?> provider, String version) {
         this.provider = provider;
         this.version = version;
     }
@@ -58,7 +60,16 @@ public class LazyPublishArtifact implements PublishArtifact {
 
     @Override
     public File getFile() {
-        return provider.get().get();
+        Object value = provider.get();
+        if (value instanceof RegularFile) {
+            RegularFile regularFile = (RegularFile) value;
+            return regularFile.get();
+        }
+        if (value instanceof Directory) {
+            Directory directory = (Directory) value;
+            return directory.get();
+        }
+        throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
     }
 
     @Override
