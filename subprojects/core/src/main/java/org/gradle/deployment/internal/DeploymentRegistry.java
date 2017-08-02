@@ -26,15 +26,21 @@ import javax.annotation.Nullable;
 @ThreadSafe
 public interface DeploymentRegistry {
     /**
-     * Registers a given deployment handle in the registry.
+     * Creates and starts a given deployment handle in the registry.
+     *
+     * @param name name of deployment
+     * @param handleType type of deployment handle
+     * @param params constructor arguments
+     *
+     * @throws IllegalStateException if deployment handle with the given name already exists
      */
-    <T extends DeploymentHandle> T start(String id, Class<T> handleType, Object... params);
+    <T extends DeploymentHandle> T start(String name, Class<T> handleType, Object... params);
 
     /**
-     * Retrieves a deployment handle from the registry with the given id and type.
+     * Retrieves a deployment handle from the registry with the given name and type.
      *
-     * @return the registered deployment handle; null if no deployment is registered with the given id
+     * @return the registered deployment handle; null if no deployment is registered with the given name
      */
     @Nullable
-    <T extends DeploymentHandle> T get(String id, Class<T> handleType);
+    <T extends DeploymentHandle> T get(String name, Class<T> handleType);
 }

@@ -60,30 +60,30 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     @Override
-    public <T extends DeploymentHandle> T start(final String id, final Class<T> handleType, final Object... params) {
+    public <T extends DeploymentHandle> T start(final String name, final Class<T> handleType, final Object... params) {
         lock.lock();
         try {
             failIfStopped();
-            if (!handles.containsKey(id)) {
+            if (!handles.containsKey(name)) {
                 return buildOperationExecutor.call(new CallableBuildOperation<T>() {
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Start deployment '" + id + "'");
+                        return BuildOperationDescriptor.displayName("Start deployment '" + name + "'");
                     }
 
                     @Override
                     public T call(BuildOperationContext context) {
                         T delegate = objectFactory.newInstance(handleType, params);
-                        DeploymentHandleWrapper handle = new DeploymentHandleWrapper(id, delegate);
+                        DeploymentHandleWrapper handle = new DeploymentHandleWrapper(name, delegate);
                         if (pendingChanges.hasRemainingChanges()) {
                             handle.pendingChanges(true);
                         }
-                        handles.put(id, handle);
+                        handles.put(name, handle);
                         return delegate;
                     }
                 });
             } else {
-                throw new IllegalStateException("A deployment with id '" + id + "' is already registered.");
+                throw new IllegalStateException("A deployment with id '" + name + "' is already registered.");
             }
         } finally {
             lock.unlock();
@@ -91,12 +91,12 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     @Override
-    public <T extends DeploymentHandle> T get(String id, Class<T> handleType) {
+    public <T extends DeploymentHandle> T get(String name, Class<T> handleType) {
         lock.lock();
         try {
             failIfStopped();
-            if (handles.containsKey(id)) {
-                return Cast.cast(handleType, handles.get(id).getDelegate());
+            if (handles.containsKey(name)) {
+                return Cast.cast(handleType, handles.get(name).getDelegate());
             } else {
                 return null;
             }
