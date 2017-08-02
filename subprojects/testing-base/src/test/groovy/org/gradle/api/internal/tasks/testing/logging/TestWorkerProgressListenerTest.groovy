@@ -180,16 +180,6 @@ class TestWorkerProgressListenerTest extends Specification {
         testWorkerProgressListener.testWorkerProgressLoggers.isEmpty()
     }
 
-    def "abbreviates long java packages"() {
-        expect:
-        testWorkerProgressListener.abbreviateJavaPackage(null) == null
-        testWorkerProgressListener.abbreviateJavaPackage("") == ""
-        testWorkerProgressListener.abbreviateJavaPackage("org.gradle.FooTest") == "org.gradle.FooTest"
-        testWorkerProgressListener.abbreviateJavaPackage("TestNoPackageFunctionalIntegrationTestWithAReallyReallyLongName") == "TestNoPackageFunctionalIntegrationTestWithAReallyReallyLongName"
-        testWorkerProgressListener.abbreviateJavaPackage("org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListenerTest") == "org.gradle...testing.logging.TestWorkerProgressListenerTest"
-        testWorkerProgressListener.abbreviateJavaPackage("short.pkg.TestWorkerProgressListenerIntegrationTestWithAReallyReallyLongName") == "...TestWorkerProgressListenerIntegrationTestWithAReallyReallyLongName"
-    }
-
     static TestStartEvent createTestStartEvent() {
         new TestStartEvent(new Date().time)
     }
