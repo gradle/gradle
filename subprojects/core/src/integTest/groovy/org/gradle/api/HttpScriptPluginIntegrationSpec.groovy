@@ -16,14 +16,16 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
-    @org.junit.Rule
-    public final HttpServer server = new HttpServer()
+    @org.junit.Rule HttpServer server = new HttpServer()
+    @org.junit.Rule TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
         settingsFile << "rootProject.name = 'project'"
@@ -31,11 +33,17 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         server.start()
     }
 
-    def "can apply script via http"() {
+    @Unroll
+    def "can apply script via #scheme"() {
         when:
+        if (useKeystore) {
+            def keyStore = TestKeyStore.init(resources.dir)
+            keyStore.enableSslWithServerCert(server)
+            keyStore.configureServerCert(executer)
+        }
+
         def script = file('external.gradle')
         server.expectGet('/external.gradle', script)
-        server.start()
 
         script << """
             task doStuff
@@ -50,6 +58,11 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds()
+
+        where:
+        scheme  | useKeystore
+        "http"  | false
+        "https" | true
     }
 
     def "uses encoding specified by http server"() {
