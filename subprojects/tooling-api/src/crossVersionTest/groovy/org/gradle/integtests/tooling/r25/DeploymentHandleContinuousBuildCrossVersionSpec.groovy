@@ -45,6 +45,7 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
                 final File keyFile
                 boolean running = true
 
+                @Inject 
                 TestDeploymentHandle(key, File keyFile) {
                     this.keyFile = keyFile
                     keyFile.text = key
@@ -54,9 +55,9 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
                     return running
                 }
 
-                public void onNewBuild(Gradle gradle) {}
-                
-                public void onPendingChanges() {}
+                public void buildSucceeded() {}
+                public void buildFailed(Throwable failure) {}
+                public void pendingChanges(boolean pendingChanges) {}
 
                 public void stop() {
                     running = false
@@ -82,12 +83,11 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
                     // somehow get a different deployment handle between builds
                     def key = System.currentTimeMillis()
 
-                    TestDeploymentHandle handle = getDeploymentRegistry().get(TestDeploymentHandle.class, 'test')
+                    TestDeploymentHandle handle = getDeploymentRegistry().get('test', TestDeploymentHandle.class)
                     if (handle == null) {
                         // This should only happen once (1st build), so if we get a different value in keyFile between
                         // builds then we know we can detect if we didn't get the same handle
-                        handle = new TestDeploymentHandle(key, keyFile)
-                        getDeploymentRegistry().register('test', handle)
+                        handle = getDeploymentRegistry().start('test', TestDeploymentHandle.class, key, keyFile)
                     }
 
                     println "\\nCurrent Key: \$key, Deployed Key: \$handle.keyFile.text"
