@@ -66,7 +66,7 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         where:
         type            | userName    | password
         "configured"    | null        | null
-//        "authenticated" | "proxyUser" | "proxyPassword"  // TODO:Proxy authentication not yet working for HTTP script plugins
+        "authenticated" | "proxyUser" | "proxyPassword"
     }
 
     def "reports proxy not running at configured location"() {
