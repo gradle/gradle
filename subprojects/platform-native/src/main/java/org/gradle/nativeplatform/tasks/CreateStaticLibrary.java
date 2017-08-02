@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.AsyncWorkResult;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -26,10 +27,11 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Cast;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
+import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.internal.DefaultStaticLibraryArchiverSpec;
@@ -87,6 +89,16 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    public BuildOperationExecutor getBuildOperationExecutor() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public AsyncWorkTracker getAsyncWorkTracker() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void link() {
 
@@ -100,8 +112,14 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
         spec.setOperationLogger(operationLogger);
 
         Compiler<StaticLibraryArchiverSpec> compiler = Cast.uncheckedCast(toolChain.select(targetPlatform).newCompiler(spec.getClass()));
-        WorkResult result = BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
-        setDidWork(result.getDidWork());
+        final AsyncWorkResult result = (AsyncWorkResult) BuildOperationLoggingCompilerDecorator.wrapAsync(compiler).execute(spec);
+        result.onCompletion(new Runnable() {
+            @Override
+            public void run() {
+                setDidWork(result.getDidWork());
+            }
+        });
+        getAsyncWorkTracker().registerWork(getBuildOperationExecutor().getCurrentOperation(), result);
     }
 
     /**

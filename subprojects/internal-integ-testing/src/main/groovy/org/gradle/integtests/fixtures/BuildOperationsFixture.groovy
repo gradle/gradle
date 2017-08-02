@@ -187,6 +187,19 @@ class BuildOperationsFixture {
      * @param concurrencyExpected whether or not to expect _any_ concurrency
      */
     void assertConcurrentOperationsDoNotExceed(Class<BuildOperationType> type, int maximumConcurrentOperations, boolean concurrencyExpected=false) {
+        int maxConcurrency = getMaximumConcurrentOperations(type)
+        assert maxConcurrency <= maximumConcurrentOperations
+        if (concurrencyExpected) {
+            assert maxConcurrency > 1 : "No operations were executed concurrently"
+        }
+    }
+
+    void assertConcurrentOperationsExecuted(Class<BuildOperationType> type) {
+        assert getMaximumConcurrentOperations(type) > 1 : "No operations were executed concurrently"
+    }
+
+    int getMaximumConcurrentOperations(Class<BuildOperationType> type) {
+        def highWaterPoint = 0
         def allOperations = all(type)
 
         List<TimePoint> points = []
@@ -196,7 +209,6 @@ class BuildOperationsFixture {
             points.add(new TimePoint(it, it.endTime, true))
         }
 
-        def concurrencySeen = false
         def concurrentOperations = []
         points.sort().each {
             if (it.end) {
@@ -206,13 +218,20 @@ class BuildOperationsFixture {
                     concurrentOperations.add(it.operation)
                 }
             }
-            assert concurrentOperations.size() <= maximumConcurrentOperations
-            if (concurrentOperations.size() > 1) {
-                concurrencySeen = true
+            if (concurrentOperations.size() > highWaterPoint) {
+                highWaterPoint = concurrentOperations.size()
             }
         }
-        if (concurrencyExpected) {
-            assert concurrencySeen : "No operations were executed concurrently"
+        return highWaterPoint
+    }
+
+    List<BuildOperationRecord> getOperationsConcurrentAfter(Class<BuildOperationType> type, BuildOperationRecord operation) {
+        def concurrentOperations = []
+        all(type).each { candidate ->
+            if (candidate != operation && candidate.startTime > operation.startTime && candidate.startTime < operation.endTime) {
+                concurrentOperations << candidate
+            }
         }
+        return concurrentOperations
     }
 }

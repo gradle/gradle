@@ -17,6 +17,8 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
 import org.gradle.internal.Actions
+import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.logging.BuildOperationLogger
@@ -29,6 +31,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker
+import org.gradle.nativeplatform.toolchain.internal.DefaultNativeExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -43,11 +46,12 @@ class GccLinkerTest extends Specification {
     def executable = new File("executable")
     def invocationContext = Mock(CommandLineToolContext)
     def invocation = Mock(CommandLineToolInvocation)
+    def nativeExecutor = new DefaultNativeExecutor(new DefaultExecutorFactory(), new ParallelismConfigurationManagerFixture(true, 4))
     CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
     BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     BuildOperationQueue queue = Mock(BuildOperationQueue)
 
-    GccLinker linker = new GccLinker(buildOperationExecutor, commandLineTool, invocationContext, false)
+    GccLinker linker = new GccLinker(buildOperationExecutor, commandLineTool, invocationContext, false, nativeExecutor)
 
     def "links all object files in a single execution"() {
         given:
@@ -76,7 +80,7 @@ class GccLinkerTest extends Specification {
         spec.getOperationLogger() >> operationLogger
 
         and:
-        linker.execute(spec)
+        linker.execute(spec).waitForCompletion()
 
         then:
         1 * operationLogger.getLogLocation() >> LOG_LOCATION
@@ -125,7 +129,7 @@ class GccLinkerTest extends Specification {
         spec.getOperationLogger() >> operationLogger
 
         and:
-        linker.execute(spec)
+        linker.execute(spec).waitForCompletion()
 
         then:
         1 * operationLogger.getLogLocation() >> LOG_LOCATION
@@ -163,7 +167,7 @@ class GccLinkerTest extends Specification {
         spec.getOperationLogger() >> operationLogger
 
         and:
-        linker.execute(spec)
+        linker.execute(spec).waitForCompletion()
 
         then:
         1 * operationLogger.getLogLocation() >> LOG_LOCATION
@@ -202,7 +206,7 @@ class GccLinkerTest extends Specification {
         spec.getOperationLogger() >> operationLogger
 
         and:
-        linker.execute(spec)
+        linker.execute(spec).waitForCompletion()
 
         then:
         1 * operationLogger.getLogLocation() >> LOG_LOCATION

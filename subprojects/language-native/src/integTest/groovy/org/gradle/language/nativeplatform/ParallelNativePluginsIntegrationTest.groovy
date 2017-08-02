@@ -16,7 +16,11 @@
 
 package org.gradle.language.nativeplatform
 
+import org.gradle.api.specs.Spec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
@@ -27,46 +31,41 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedObjectiveCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.TestApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
+import static org.gradle.util.TestPrecondition.OBJECTIVE_C_SUPPORT
+
 @IgnoreIf({ GradleContextualExecuter.parallel })
 // no point, always runs in parallel
 class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    Map<String, TestApp> apps = [:]
+    BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
-        executer.withArgument("--parallel")
-                .withArgument("--max-workers=4")
+        executer.withArgument("--max-workers=4")
+        apps = [
+            c              : new CHelloWorldApp(),
+            cpp            : new CppHelloWorldApp()
+        ]
+        if (OBJECTIVE_C_SUPPORT.fulfilled) {
+            apps += [
+                objectiveC     : new ObjectiveCHelloWorldApp(),
+                objectiveCpp   : new ObjectiveCppHelloWorldApp()
+            ]
+        }
     }
 
-    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+    @Requires(OBJECTIVE_C_SUPPORT)
     def "can produce multiple executables from a single project in parallel"() {
         given:
-        Map<String, HelloWorldApp> apps = [
-                c              : new CHelloWorldApp(),
-                cpp            : new CppHelloWorldApp(),
-                objectiveC     : new ObjectiveCHelloWorldApp(),
-                objectiveCpp   : new ObjectiveCppHelloWorldApp(),
-                mixedObjectiveC: new MixedObjectiveCHelloWorldApp(),
-        ]
-
-        apps.each { name, app ->
-            buildFile << app.pluginScript
-            buildFile << app.getExtraConfiguration("${name}Executable")
-            buildFile << """
-                model {
-                    components {
-                        ${name}(NativeExecutableSpec)
-                    }
-                }
-            """
-
-            app.writeSources(file("src/$name"))
-        }
+        apps << [ mixedObjectiveC: new MixedObjectiveCHelloWorldApp() ]
+        withComponentsForApps(apps)
 
         when:
-        run(*apps.keySet().collect { "${it}Executable" })
+        succeeds("assemble")
 
         then:
         Map<ExecutableFixture, HelloWorldApp> executables = apps.collectEntries { name, app ->
@@ -77,12 +76,15 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         executables.every { executable, app ->
             executable.exec().out == app.englishOutput
         }
+
+        and:
+        buildOperations.assertConcurrentOperationsExecuted(ExecuteTaskBuildOperationType)
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
-        Map<String, ExeWithLibraryUsingLibraryHelloWorldApp> apps = [
+        apps = [
                 first : new ExeWithLibraryUsingLibraryHelloWorldApp(),
                 second: new ExeWithLibraryUsingLibraryHelloWorldApp(),
                 third : new ExeWithLibraryUsingLibraryHelloWorldApp(),
@@ -139,6 +141,102 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         }
         installations.every { installation, app ->
             installation.exec().out == app.englishOutput
+        }
+
+        and:
+        buildOperations.assertConcurrentOperationsExecuted(ExecuteTaskBuildOperationType)
+    }
+
+    def "can execute link executable tasks in parallel"() {
+        given:
+        withComponentsForApps(apps)
+
+        when:
+        succeeds("assemble")
+
+        then:
+        assertTaskAreParallel("link.*Executable")
+    }
+
+    def "can execute link shared library tasks in parallel"() {
+        given:
+        withComponentsForAppsAndSharedLibs(apps)
+
+        when:
+        succeeds("assemble")
+
+        then:
+        assertTaskAreParallel("link.*SharedLibrary")
+    }
+
+    def "can execute create static library tasks in parallel"() {
+        given:
+        withComponentsForAppsAndStaticLibs(apps)
+
+        when:
+        succeeds("assemble")
+
+        then:
+        assertTaskAreParallel("create.*StaticLibrary")
+    }
+
+    void assertTaskAreParallel(String regex) {
+        def tasks = buildOperations.all(ExecuteTaskBuildOperationType, new Spec<BuildOperationRecord>() {
+            @Override
+            boolean isSatisfiedBy(BuildOperationRecord record) {
+                return record.displayName.matches("Task :${regex}")
+            }
+        })
+        assert tasks.size() == apps.size()
+        assert tasks.any { buildOperations.getOperationsConcurrentAfter(ExecuteTaskBuildOperationType, it).size() > 0 }
+    }
+
+    def withComponentsForApps(Map<String, TestApp> apps) {
+        apps.each { name, app ->
+            buildFile << app.pluginScript
+            buildFile << app.getExtraConfiguration("${name}Executable")
+            buildFile << """
+                model {
+                    components {
+                        ${name}(NativeExecutableSpec)
+                    }
+                }
+            """
+
+            app.writeSources(file("src/$name"))
+        }
+    }
+
+    def withComponentsForAppsAndStaticLibs(Map<String, TestApp> apps) {
+        withComponentsForAppsAndLibs(apps, true)
+    }
+
+    def withComponentsForAppsAndSharedLibs(Map<String, TestApp> apps) {
+        withComponentsForAppsAndLibs(apps, false)
+    }
+
+    def withComponentsForAppsAndLibs(Map<String, TestApp> apps, boolean useStaticLibs) {
+        apps.each { name, app ->
+            buildFile << app.pluginScript
+            buildFile << app.getExtraConfiguration("${name}Executable")
+            buildFile << app.getExtraConfiguration("${name}Lib${useStaticLibs ? 'Static' : 'Shared'}Library")
+            buildFile << """
+                model {
+                    components {
+                        ${name}(NativeExecutableSpec) {
+                            sources.${app.sourceType}.lib library: "${name}Lib", linkage: '${useStaticLibs ? "static" : "shared"}'
+                        }
+                        ${name}Lib(NativeLibrarySpec) {
+                            binaries.withType(${useStaticLibs ? "Shared" : "Static"}LibraryBinarySpec) {
+                                buildable = false
+                            }
+                        }
+                    }
+                }
+            """
+
+            app.executable.writeSources(file("src/$name"))
+            app.library.writeSources(file("src/${name}Lib"))
         }
     }
 }
