@@ -118,10 +118,7 @@ task check {
     @Unroll
     def "will used cached #source resource when run with --offline"() {
         given:
-        String scriptName = "script-${System.currentTimeMillis()}.gradle"
-        executer.withDefaultCharacterEncoding("ISO-8859-15")
-
-        and:
+        def scriptName = "script.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
         server.expectGet('/' + scriptName, scriptFile)
@@ -167,10 +164,7 @@ task check {
 
     def "will only request resource once for build invocation"() {
         given:
-        String scriptName = "script-${System.currentTimeMillis()}.gradle"
-        executer.withDefaultCharacterEncoding("ISO-8859-15")
-
-        and:
+        def scriptName = "script.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
         server.expectGet('/' + scriptName, scriptFile)
@@ -196,11 +190,8 @@ task check {
 
     def "will refresh cached value on subsequent build invocation"() {
         given:
-        String scriptName = "script-${System.currentTimeMillis()}.gradle"
-        executer.withDefaultCharacterEncoding("ISO-8859-15")
-
-        and:
-        File scriptFile = file("script.gradle")
+        def scriptName = "script.gradle"
+        def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script 1'""", "UTF-8")
         scriptFile.makeOlder()
 
@@ -233,7 +224,7 @@ task check {
     }
 
     def "reports and recovers from missing remote script"() {
-        String scriptName = "script-${System.currentTimeMillis()}.gradle"
+        String scriptName = "script.gradle"
         String scriptUrl = "${server.uri}/${scriptName}"
         def scriptFile = file("script.gradle") << """
             println 'loaded remote script'
