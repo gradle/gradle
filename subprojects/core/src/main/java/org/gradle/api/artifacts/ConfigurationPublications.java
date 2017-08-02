@@ -39,11 +39,15 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
 
     /**
      * Adds an outgoing artifact to this configuration. This artifact is included in all variants.
+     *
+     * <p>See {@link org.gradle.api.artifacts.dsl.ArtifactHandler} for details of the supported notations.
      */
     void artifact(Object notation);
 
     /**
      * Adds an outgoing artifact to this configuration, configuring it using the given action. This artifact is included in all variants.
+     *
+     * <p>See {@link org.gradle.api.artifacts.dsl.ArtifactHandler} for details of the supported notations.
      */
     void artifact(Object notation, Action<? super ConfigurablePublishArtifact> configureAction);
 

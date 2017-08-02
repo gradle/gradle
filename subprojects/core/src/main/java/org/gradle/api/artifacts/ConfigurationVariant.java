@@ -38,11 +38,15 @@ public interface ConfigurationVariant extends Named, HasConfigurableAttributes<C
 
     /**
      * Adds an artifact to this variant.
+     *
+     * <p>See {@link org.gradle.api.artifacts.dsl.ArtifactHandler} for details of the supported notations.
      */
     void artifact(Object notation);
 
     /**
      * Adds an artifact to this variant, configuring it using the given action.
+     *
+     * <p>See {@link org.gradle.api.artifacts.dsl.ArtifactHandler} for details of the supported notations.
      */
     void artifact(Object notation, Action<? super ConfigurablePublishArtifact> configureAction);
 }

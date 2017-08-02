@@ -37,18 +37,20 @@ import org.gradle.api.artifacts.PublishArtifact;
  *
  * <ul>
  *
- * <li>{@link org.gradle.api.tasks.bundling.AbstractArchiveTask}. The information for publishing the artifact is extracted from the archive task (e.g. name, extension, ...).
- * An archive artifact is represented using an instance of {@link PublishArtifact}.</li>
+ * <li>{@link PublishArtifact}.</li>
  *
- * <li>{@link java.io.File}. The information for publishing the artifact is extracted from the file name. You can tweak the resulting values by using
- * a closure to configure the properties of the artifact instance. A file artifact is represented using an instance of {@link org.gradle.api.artifacts.ConfigurablePublishArtifact}
- * </li>
+ * <li>{@link org.gradle.api.tasks.bundling.AbstractArchiveTask}. The information for publishing the artifact is extracted from the archive task (e.g. name, extension, ...). The task will be executed if the artifact is required.</li>
  *
- * <li>{@link java.util.Map}. The map should contain a 'file' key. This is converted to an artifact as described above. You can also
- * specify other properties of the artifact using entries in the map.
+ * <li>A {@link org.gradle.api.provider.Provider} of {@link org.gradle.api.file.RegularFile} or {@link org.gradle.api.file.Directory}. The information for publishing the artifact is extracted from the file or directory name. When the provider represents an output of a particular task, that task will be executed if the artifact is required.</li>
+ *
+ * <li>{@link java.io.File}. The information for publishing the artifact is extracted from the file name.</li>
+ *
+ * <li>{@link java.util.Map}. The map should contain a 'file' key. This is converted to an artifact as described above. You can also specify other properties of the artifact using entries in the map.
  * </li>
  *
  * </ul>
+ *
+ * <p>In each case, a {@link ConfigurablePublishArtifact} instance is created for the artifact, to allow artifact properties to be configured. You can also override the default values for artifact properties by using a closure to configure the properties of the artifact instance</p>
  *
  * <h2>Examples</h2>
  * <p>An example showing how to associate an archive task with a configuration via the artifact handler.
