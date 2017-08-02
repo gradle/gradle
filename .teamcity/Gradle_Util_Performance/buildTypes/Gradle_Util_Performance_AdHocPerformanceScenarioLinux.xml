@@ -36,7 +36,7 @@
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="cleanSamples cleanPerformanceAdHocTest %templates% performanceAdHocTest --scenarios &quot;%scenario%&quot; --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% -x prepareSamples -x performanceReport -PmaxParallelForks=%maxParallelForks% %additional.gradle.parameters% -Dorg.gradle.logging.level=LIFECYCLE -s --no-daemon --continue" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="cleanSamples cleanPerformanceAdHocTest %templates% performanceAdHocTest --scenarios &quot;%scenario%&quot; --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% -x prepareSamples -x performanceReport -PmaxParallelForks=%maxParallelForks% %additional.gradle.parameters% -Dorg.gradle.logging.level=LIFECYCLE -s --no-daemon --continue --build-cache -Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password% -I ./gradle/taskCacheDetailedStatsInit.gradle" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
