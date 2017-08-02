@@ -16,12 +16,12 @@
 
 package org.gradle.api.plugins.quality
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.util.Resources
+import org.gradle.util.ToBeImplemented
 import org.hamcrest.Matcher
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -59,7 +59,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
-    @NotYetImplemented
+    @ToBeImplemented
     @Issue("GRADLE-3432")
     def "analyze bad resources"() {
         defaultLanguage('en')
@@ -67,10 +67,12 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         badResources()
 
         expect:
-        fails('check')
+        // TODO Should fail
+        succeeds('check')
 
-        file("build/reports/checkstyle/main.xml").assertContents(containsLine(containsString("bad.properties")))
-        file("build/reports/checkstyle/main.html").assertContents(containsLine(containsString("bad.properties")))
+        // TODO These should match
+        // file("build/reports/checkstyle/main.xml").assertContents(containsLine(containsString("bad.properties")))
+        // file("build/reports/checkstyle/main.html").assertContents(containsLine(containsString("bad.properties")))
     }
 
     def "analyze bad code"() {
@@ -309,7 +311,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
-    @NotYetImplemented
+    @ToBeImplemented
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         defaultLanguage('en')
@@ -329,8 +331,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         succeeds('clean', 'check')
 
         then:
-        nonSkippedTasks.contains(':checkstyleMain')
-        errorOutput.contains("[ant:checkstyle] [WARN]")
+        // TODO These should match
+        !!! nonSkippedTasks.contains(':checkstyleMain')
+        !!! errorOutput.contains("[ant:checkstyle] [WARN]")
     }
 
     private goodCode() {

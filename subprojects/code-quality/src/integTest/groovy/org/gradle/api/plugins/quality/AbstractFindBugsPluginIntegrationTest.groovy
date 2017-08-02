@@ -15,11 +15,11 @@
  */
 package org.gradle.api.plugins.quality
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Matchers
 import org.gradle.util.Resources
+import org.gradle.util.ToBeImplemented
 import org.hamcrest.Matcher
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -578,7 +578,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
-    @NotYetImplemented
+    @ToBeImplemented
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         badCode()
@@ -600,8 +600,9 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         succeeds('clean', 'check')
 
         then:
-        nonSkippedTasks.contains(':findbugsMain')
-        output.contains("Analyzing classes")
+        // TODO These should match
+        !!! nonSkippedTasks.contains(':findbugsMain')
+        !!! output.contains("Analyzing classes")
     }
 
     private static boolean containsXmlMessages(File xmlReportFile) {

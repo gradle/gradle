@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
-
+import spock.lang.Issue
 /**
  * Tests for composite build delegating to tasks in an included build.
  */
@@ -88,7 +88,8 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         assertTaskExecutedOnce(":buildB", ":succeeds")
     }
 
-    @NotYetImplemented // gradle/composite-builds#117
+    @Issue("https://github.com/gradle/gradle/issues/2520")
+    @ToBeImplemented
     def "continues build when delegated task fails when run with --continue"() {
         when:
         buildA.buildFile << """
@@ -110,7 +111,8 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         // Thus ":delegateWithSuccess" is never executed.
         assertTaskExecutedOnce(":buildB", ":fails")
         assertTaskExecutedOnce(":buildB", ":succeeds")
-        assertTaskExecutedOnce(":", ":delegateWithSuccess")
+        // TODO Should be executed once
+        assertTaskNotExecuted(":", ":delegateWithSuccess")
     }
 
     def "executes delegate task with --continue"() {
