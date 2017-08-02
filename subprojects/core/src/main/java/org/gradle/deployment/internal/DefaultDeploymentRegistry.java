@@ -27,6 +27,10 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.filewatch.PendingChangesManager;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -39,11 +43,13 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     private final Map<String, DeploymentHandleWrapper> handles = Maps.newHashMap();
     private final PendingChangesManager pendingChangesManager;
     private final PendingChanges pendingChanges;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final ObjectFactory objectFactory;
     private boolean stopped;
 
-    public DefaultDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager, ObjectFactory objectFactory) {
+    public DefaultDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
+        this.buildOperationExecutor = buildOperationExecutor;
         this.objectFactory = objectFactory;
         this.pendingChanges = new PendingChanges();
         // TODO: Detangle pending changes handling and continuous build
@@ -54,19 +60,28 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     @Override
-    public <T extends DeploymentHandle> T start(String id, Class<T> handleType, Object... params) {
+    public <T extends DeploymentHandle> T start(final String id, final Class<T> handleType, final Object... params) {
         lock.lock();
         try {
             failIfStopped();
             if (!handles.containsKey(id)) {
-                // TODO: Restore progress logging
-                T delegate = objectFactory.newInstance(handleType, params);
-                DeploymentHandleWrapper handle = new DeploymentHandleWrapper(id, delegate);
-                if (pendingChanges.hasRemainingChanges()) {
-                    handle.pendingChanges(true);
-                }
-                handles.put(id, handle);
-                return delegate;
+                return buildOperationExecutor.call(new CallableBuildOperation<T>() {
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Start deployment '" + id + "'");
+                    }
+
+                    @Override
+                    public T call(BuildOperationContext context) {
+                        T delegate = objectFactory.newInstance(handleType, params);
+                        DeploymentHandleWrapper handle = new DeploymentHandleWrapper(id, delegate);
+                        if (pendingChanges.hasRemainingChanges()) {
+                            handle.pendingChanges(true);
+                        }
+                        handles.put(id, handle);
+                        return delegate;
+                    }
+                });
             } else {
                 throw new IllegalStateException("A deployment with id '" + id + "' is already registered.");
             }
