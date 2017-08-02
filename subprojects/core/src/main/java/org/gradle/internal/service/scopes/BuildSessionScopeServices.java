@@ -62,6 +62,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.progress.BuildOperationListener;
@@ -136,6 +137,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         ExecutorFactory executorFactory,
         ResourceLockCoordinationService resourceLockCoordinationService,
         ParallelismConfigurationManager parallelismConfigurationManager,
+        BuildOperationIdFactory buildOperationIdFactory,
         @SuppressWarnings("unused") BuildOperationTrace buildOperationTrace // required in order to init this
     ) {
         return new DefaultBuildOperationExecutor(
@@ -144,7 +146,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
             resourceLockCoordinationService,
-            parallelismConfigurationManager
+            parallelismConfigurationManager,
+            buildOperationIdFactory
         );
     }
 

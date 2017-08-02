@@ -37,12 +37,14 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.BuildOperationQueueFactory;
 import org.gradle.internal.operations.BuildOperationQueueFailure;
 import org.gradle.internal.operations.BuildOperationWorker;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceDeadlockException;
@@ -61,7 +63,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable, ParallelismConfigurationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
-    private static final long ROOT_BUILD_OPERATION_ID_VALUE = 1L;
 
     private final BuildOperationListener listener;
     private final TimeProvider timeProvider;
@@ -70,13 +71,14 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final ResourceLockCoordinationService resourceLockCoordinationService;
     private final ManagedExecutor fixedSizePool;
     private final ParallelismConfigurationManager parallelismConfigurationManager;
+    private final BuildOperationIdFactory buildOperationIdFactory;
 
-    private final AtomicLong nextId = new AtomicLong(ROOT_BUILD_OPERATION_ID_VALUE);
     private final ThreadLocal<DefaultBuildOperationState> currentOperation = new ThreadLocal<DefaultBuildOperationState>();
 
     public DefaultBuildOperationExecutor(BuildOperationListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory,
                                          BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory,
-                                         ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
+                                         ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager,
+                                         BuildOperationIdFactory buildOperationIdFactory) {
         this.listener = listener;
         this.timeProvider = timeProvider;
         this.progressLoggerFactory = progressLoggerFactory;
@@ -84,6 +86,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         this.resourceLockCoordinationService = resourceLockCoordinationService;
         this.fixedSizePool = executorFactory.create("build operations", parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount());
         this.parallelismConfigurationManager = parallelismConfigurationManager;
+        this.buildOperationIdFactory = buildOperationIdFactory;
         parallelismConfigurationManager.addListener(this);
     }
 
@@ -231,7 +234,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, DefaultBuildOperationState parent) {
-        OperationIdentifier id = new OperationIdentifier(nextId.getAndIncrement());
+        OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
         DefaultBuildOperationState current = maybeStartUnmanagedThreadOperation(parent);
         return descriptorBuilder.build(id, current == null ? null : current.getDescription().getId());
     }
@@ -277,7 +280,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
      */
     protected void createRunningRootOperation(String displayName) {
         assert currentOperation.get() == null;
-        OperationIdentifier rootBuildOpId = new OperationIdentifier(ROOT_BUILD_OPERATION_ID_VALUE);
+        OperationIdentifier rootBuildOpId = new OperationIdentifier(DefaultBuildOperationIdFactory.ROOT_BUILD_OPERATION_ID_VALUE);
         DefaultBuildOperationState operation = new DefaultBuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), timeProvider.getCurrentTime());
         operation.setRunning(true);
         currentOperation.set(operation);

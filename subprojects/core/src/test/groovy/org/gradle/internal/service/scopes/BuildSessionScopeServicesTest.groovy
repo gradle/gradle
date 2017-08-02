@@ -33,6 +33,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationIdFactory
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -93,6 +94,7 @@ class BuildSessionScopeServicesTest extends Specification {
         _ * parent.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
         _ * parent.get(StartParameter) >> Mock(StartParameter)
         _ * parent.get(ExecutorFactory) >> Mock(ExecutorFactory)
+        _ * parent.get(BuildOperationIdFactory) >> Mock(BuildOperationIdFactory)
 
         expect:
         registry.get(BuildOperationExecutor) instanceof DefaultBuildOperationExecutor

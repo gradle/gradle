@@ -52,7 +52,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), parallelExecutionManager)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerRegistry), executorFactory, Mock(ResourceLockCoordinationService), parallelExecutionManager)
+            new DefaultBuildOperationQueueFactory(workerRegistry), executorFactory, Mock(ResourceLockCoordinationService), parallelExecutionManager, new DefaultBuildOperationIdFactory())
         outerOperationCompletion = workerRegistry.getWorkerLease().start()
         outerOperation = workerRegistry.getCurrentWorkerLease()
     }
@@ -213,7 +213,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
 
         def buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            buildOperationQueueFactory, Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, 1))
+            buildOperationQueueFactory, Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, 1), new DefaultBuildOperationIdFactory())
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -241,7 +241,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
         def buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            buildOperationQueueFactory, Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, 1))
+            buildOperationQueueFactory, Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, 1), new DefaultBuildOperationIdFactory())
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -400,7 +400,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
 
         when:
         buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            Stub(BuildOperationQueueFactory), Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), parallelExecutionManager)
+            Stub(BuildOperationQueueFactory), Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), parallelExecutionManager, new DefaultBuildOperationIdFactory())
 
         then:
         parallelExecutionManager.listeners.size() == 1
