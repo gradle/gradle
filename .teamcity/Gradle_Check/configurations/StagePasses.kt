@@ -14,10 +14,10 @@ import model.Stage
 import model.TestType
 import model.Trigger
 
-class StagePasses(model: CIBuildModel, stageNumber: Int, stage: Stage) : BuildType({
-    uuid = "${model.projectPrefix}Stage${stageNumber}_Passes"
+class StagePasses(model: CIBuildModel, stage: Stage) : BuildType({
+    uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ","")}_Trigger"
     extId = uuid
-    name = "$stageNumber Stage Passes"
+    name = stage.name + " (Trigger)"
 
     applyDefaultSettings(this)
     artifactRules = "build/build-receipt.properties"
@@ -81,8 +81,8 @@ class StagePasses(model: CIBuildModel, stageNumber: Int, stage: Stage) : BuildTy
     }
 
     dependencies {
-        if (stageNumber > 1) {
-            dependency("${model.projectPrefix}Stage${stageNumber - 1}_Passes") {
+        if (stage.name != "Quick Feedback") {
+            dependency("${model.projectPrefix}Stage_QuickFeedback_Trigger") {
                 snapshot {
                     onDependencyFailure = FailureAction.ADD_PROBLEM
                 }

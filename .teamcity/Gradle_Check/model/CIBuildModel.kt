@@ -14,24 +14,21 @@ data class CIBuildModel (
         val buildCacheActive: Boolean = true,
         val masterAndReleaseBranches: List<String> = listOf("master", "release"),
         val stages: List<Stage> = listOf(
-            Stage("Sanity Check and Distribution",
+            Stage("Quick Feedback", "Runs all checks and functional tests with an embedded test executer",
                     specificBuilds = listOf(
                             SpecificBuild.SanityCheck,
-                            SpecificBuild.BuildDistributions)),
-            Stage("Test Embedded Java8 Linux",
+                            SpecificBuild.BuildDistributions),
                     functionalTests = listOf(
-                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
-            Stage("Test Embedded Java7 Windows",
-                    functionalTests = listOf(
+                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java7))),
-            Stage("Test Forked Linux/Windows, Performance, Gradleception",
+            Stage("Branch Build Accept", "Runs performance tests and functional tests against real distributions",
                     specificBuilds = listOf(
                             SpecificBuild.Gradleception),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
                     performanceTests = listOf(PerformanceTestType.test)),
-            Stage("Test Parallel, Java9, IBM VM, Cross-Version, Smoke Tests, Colony",
+            Stage("Master Accept", "Runs functional tests in different environments and tests against 3rd party components",
                     trigger = Trigger.eachCommit,
                     specificBuilds = listOf(
                             SpecificBuild.SmokeTests, SpecificBuild.ColonyCompatibility),
@@ -40,7 +37,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
                             TestCoverage(TestType.java9Smoke, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
-            Stage("Test Cross-version (All Versions), No-daemon, Soak Tests, Performance Experiments",
+            Stage("Release Accept", "Once a day: Runs extended test coverage that is not expected to fail if all other tests passed",
                     trigger = Trigger.daily,
                     functionalTests = listOf(
                             TestCoverage(TestType.soak, OS.linux, JvmVersion.java8),
@@ -51,7 +48,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
-            Stage("Performance Historical",
+            Stage("Historical Performance Tests", "Once a week: Runs performance tests agains multiple Gradle versions for comparison",
                     trigger = Trigger.weekly,
                     performanceTests = listOf(
                             PerformanceTestType.historical)))
@@ -141,7 +138,7 @@ data class GradleSubproject(val name: String, val unitTests: Boolean = true, val
     }
 }
 
-data class Stage(val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
+data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
 
 data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {

@@ -1,5 +1,6 @@
 package projects
 
+import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v10.Project
 import jetbrains.buildServer.configs.kotlin.v10.projectFeatures.VersionedSettings
 import jetbrains.buildServer.configs.kotlin.v10.projectFeatures.versionedSettings
@@ -24,10 +25,14 @@ class RootProject(model: CIBuildModel) : Project({
     }
 
     model.stages.forEach { stage ->
-        subProject(StageProject(model, model.stages.indexOf(stage) + 1, stage))
+        buildType(StagePasses(model, stage))
+        subProject(StageProject(model, stage))
     }
 
     if (model.stages.map { stage -> stage.performanceTests }.flatten().isNotEmpty()) {
         subProject(WorkersProject(model))
     }
+
+    buildTypesOrder = buildTypes
+    subProjectsOrder = subProjects.map { it.extId }
 })

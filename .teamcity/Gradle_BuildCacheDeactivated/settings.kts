@@ -5,10 +5,10 @@ import jetbrains.buildServer.configs.kotlin.v10.version
 import model.CIBuildModel
 import model.JvmVersion
 import model.OS
+import model.SpecificBuild
 import model.Stage
 import model.TestCoverage
 import model.TestType
-import model.Trigger
 import projects.RootProject
 
 /*
@@ -39,16 +39,12 @@ val buildModel = CIBuildModel(
         tagBuilds = false,
         buildCacheActive = false,
         stages = listOf(
-                Stage("Sanity Check and Distribution",
+                Stage("Quick Feedback", "Runs all checks and functional tests with an embedded test executer",
                         specificBuilds = listOf(
-                                model.SpecificBuild.SanityCheck,
-                                model.SpecificBuild.BuildDistributions)),
-                Stage("Test Embedded Java8 Linux",
+                                SpecificBuild.SanityCheck,
+                                SpecificBuild.BuildDistributions),
                         functionalTests = listOf(
-                                TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
-                Stage("Test Embedded Java7 Windows",
-                        trigger = Trigger.eachCommit,
-                        functionalTests = listOf(
+                                TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
                                 TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
         )
 )

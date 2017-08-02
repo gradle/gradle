@@ -26,7 +26,7 @@ class CIConfigIntegrationTests {
     fun configurationsHaveDependencies() {
         val m = CIBuildModel()
         val p = RootProject(m)
-        val stagePassConfigs = p.subProjects.map { it.buildTypes[0] }
+        val stagePassConfigs = p.buildTypes
         stagePassConfigs.forEach {
             val stageNumber = stagePassConfigs.indexOf(it) + 1
             val hasPrevStage = if (stageNumber > 1) 1 else 0
@@ -66,21 +66,18 @@ class CIConfigIntegrationTests {
                 projectPrefix = "Gradle_BuildCacheDeactivated_",
                 buildCacheActive = false,
                 stages = listOf(
-                    Stage("Sanity Check and Distribution",
+                        Stage("Quick Feedback", "Runs all checks and functional tests with an embedded test executer",
                             specificBuilds = listOf(
                                     SpecificBuild.SanityCheck,
-                                    SpecificBuild.BuildDistributions)),
-                    Stage("Test Embedded Java8 Linux",
+                                    SpecificBuild.BuildDistributions),
                             functionalTests = listOf(
-                                    TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
-                    Stage("Test Embedded Java7 Windows",
-                            functionalTests = listOf(
+                                    TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
                                     TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
                 )
         )
         val p = RootProject(m)
         printTree(p)
-        assertTrue(p.subProjects.size == 3)
+        assertTrue(p.subProjects.size == 1)
     }
 
     @Test

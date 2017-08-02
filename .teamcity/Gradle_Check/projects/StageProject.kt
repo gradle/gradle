@@ -2,20 +2,17 @@ package projects
 
 import configurations.FunctionalTest
 import configurations.PerformanceTest
-import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v10.Project
 import model.CIBuildModel
 import model.SpecificBuild
 import model.Stage
 import model.TestType
 
-class StageProject(model: CIBuildModel, number: Int, stage: Stage) : Project({
-    this.uuid = "${model.projectPrefix}Stage$number"
+class StageProject(model: CIBuildModel, stage: Stage) : Project({
+    this.uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ", "")}"
     this.extId = uuid
-    this.name = "Stage $number"
+    this.name = stage.name
     this.description = stage.description
-
-    buildType(StagePasses(model, number, stage))
 
     features {
         if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
