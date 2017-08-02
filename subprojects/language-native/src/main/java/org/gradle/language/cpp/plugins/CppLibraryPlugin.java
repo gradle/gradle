@@ -93,7 +93,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - need to set basename and soname
-        String linkFileName = platformToolChain.getSharedLibraryLinkFileName("build/lib/" + project.getName());
+        Provider<RegularFile> linkFile = buildDirectory.file(platformToolChain.getSharedLibraryLinkFileName("lib/" + project.getName()));
         Provider<RegularFile> runtimeFile = buildDirectory.file(platformToolChain.getSharedLibraryName("lib/" + project.getName()));
         link.setOutputFile(runtimeFile);
         link.setTargetPlatform(currentPlatform);
@@ -114,8 +114,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         linkElements.extendsFrom(implementation);
         linkElements.setCanBeResolved(false);
         linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should be lazy and reflect changes to task output file
-        linkElements.getOutgoing().artifact(project.file(linkFileName), new Action<ConfigurablePublishArtifact>() {
+        // TODO - should reflect changes to task output file
+        linkElements.getOutgoing().artifact(linkFile, new Action<ConfigurablePublishArtifact>() {
             @Override
             public void execute(ConfigurablePublishArtifact artifact) {
                 artifact.builtBy(link);
@@ -126,12 +126,6 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         runtimeElements.extendsFrom(implementation);
         runtimeElements.setCanBeResolved(false);
         runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        // TODO - should be lazy and reflect changes to task output file
-        runtimeElements.getOutgoing().artifact(link.getOutputFile(), new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(link);
-            }
-        });
+        runtimeElements.getOutgoing().artifact(link.getBinaryFile());
     }
 }

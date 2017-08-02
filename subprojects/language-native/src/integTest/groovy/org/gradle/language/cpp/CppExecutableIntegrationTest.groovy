@@ -183,6 +183,48 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
     }
 
+    def "honors changes to library buildDir"() {
+        settingsFile << "include 'app', 'lib1', 'lib2'"
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':lib1')
+                }
+            }
+            project(':lib1') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    implementation project(':lib2')
+                }
+            }
+            project(':lib2') {
+                apply plugin: 'cpp-library'
+                buildDir = 'out'
+            }
+"""
+        app.library.headerFiles.each { it.writeToFile(file("lib1/src/main/public/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/cpp/$it.name")) }
+        app.greetingsLibrary.headerFiles.each { it.writeToFile(file("lib2/src/main/public/$it.name")) }
+        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/cpp/$it.name")) }
+        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":lib1:compileCpp", ":lib1:linkMain", ":lib2:compileCpp", ":lib2:linkMain", ":app:compileCpp", ":app:linkMain", ":app:installMain", ":app:assemble")
+
+        !file("lib2/build").exists()
+        sharedLibrary("lib1/build/lib/lib1").assertExists()
+        sharedLibrary("lib2/out/lib/lib2").assertExists()
+        executable("app/build/exe/app").assertExists()
+        installation("app/build/install/app").exec().out == app.englishOutput
+        sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
+    }
+
     def "can compile and link against libraries in included builds"() {
         settingsFile << """
             rootProject.name = 'app'

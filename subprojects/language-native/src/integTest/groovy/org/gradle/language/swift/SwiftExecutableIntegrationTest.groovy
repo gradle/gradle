@@ -173,6 +173,45 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         sharedLibrary("app/build/install/app/lib/greeting").file.assertExists()
     }
 
+    def "honors changes to library buildDir"() {
+        settingsFile << "include 'app', 'hello', 'greeting'"
+        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-executable'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                dependencies {
+                    api project(':greeting')
+                }
+            }
+            project(':greeting') {
+                apply plugin: 'swift-library'
+                buildDir = 'out'
+            }
+"""
+        app.library.writeSources(file("hello/src/main"))
+        app.greetingsLibrary.writeSources(file("greeting/src/main"))
+        app.executable.writeSources(file('app/src/main'))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":greeting:compileSwift", ":greeting:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
+
+        !file("greeting/build").exists()
+        sharedLibrary("hello/build/lib/hello").assertExists()
+        sharedLibrary("greeting/out/lib/greeting").assertExists()
+        executable("app/build/exe/app").exec().out == app.englishOutput
+        sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/greeting").file.assertExists()
+    }
+
     def "can compile and link against libraries in included builds"() {
         settingsFile << """
             rootProject.name = 'app'

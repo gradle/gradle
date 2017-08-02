@@ -17,11 +17,9 @@
 package org.gradle.language.swift.plugins;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
@@ -108,13 +106,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         apiElements.extendsFrom(api);
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-        // TODO - should be lazy and reflect changes to output file
-        apiElements.getOutgoing().artifact(project.file("build/main/objs"), new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(compile);
-            }
-        });
+        // TODO - should reflect changes to output file
+        apiElements.getOutgoing().artifact(compile.getObjectFileDirectory());
 
         Configuration implementation = configurations.getByName(SwiftBasePlugin.IMPLEMENTATION);
 
@@ -122,25 +115,16 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         linkElements.extendsFrom(implementation);
         linkElements.setCanBeResolved(false);
         linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should be lazy and reflect changes to task output file
-        // TODO - Libary on macOS are dylib which could change on other system (like Linux)
-        linkElements.getOutgoing().artifact(link.getOutputFile(), new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(link);
-            }
-        });
+        // TODO - should reflect changes to task output file
+        // TODO - should distinguish between link-time and runtime files
+        linkElements.getOutgoing().artifact(link.getBinaryFile());
 
         Configuration runtimeElements = configurations.create("runtimeElements");
         runtimeElements.extendsFrom(implementation);
         runtimeElements.setCanBeResolved(false);
         runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        // TODO - should be lazy and reflect changes to task output file
-        runtimeElements.getOutgoing().artifact(link.getOutputFile(), new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(link);
-            }
-        });
+        // TODO - should reflect changes to task output file
+        // TODO - should distinguish between link-time and runtime files
+        runtimeElements.getOutgoing().artifact(link.getBinaryFile());
     }
 }
