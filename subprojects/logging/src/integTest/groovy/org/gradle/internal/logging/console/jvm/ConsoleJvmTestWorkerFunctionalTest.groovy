@@ -97,8 +97,8 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
         then:
         ConcurrentTestUtil.poll {
-            assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Executing test org\\.\\.\\.AdvancedJavaPackageAbbreviatingClassFunctionalTest.*")
-            assert matchesOutput(gradleHandle.standardOutput, ".*> :test > Executing test \\.\\.\\.EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest.*")
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', 'org...AdvancedJavaPackageAbbreviatingClassFunctionalTest')
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', '...EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest')
         }
 
         testExecution.releaseAll()
