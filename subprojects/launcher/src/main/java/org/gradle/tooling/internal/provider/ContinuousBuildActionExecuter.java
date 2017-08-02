@@ -25,7 +25,6 @@ import org.gradle.execution.PassThruCancellableOperationManager;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildGateToken;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultBuildGateToken;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -76,7 +75,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         SingleMessageLogger.incubatingFeatureUsed("Continuous build");
 
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
-        BuildGateToken buildGateToken = new DefaultBuildGateToken();
+        BuildGateToken buildGateToken = requestContext.getGateToken();
 
         final CancellableOperationManager cancellableOperationManager;
         if (actionParameters.isInteractive()) {

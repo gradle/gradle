@@ -20,18 +20,30 @@ import org.gradle.util.Clock;
 
 public class DefaultBuildRequestContext implements BuildRequestContext {
     private final BuildCancellationToken token;
+    private final BuildGateToken gate;
     private final BuildEventConsumer buildEventConsumer;
     private final BuildRequestMetaData metaData;
 
+    // TODO: Wire the gate token into other levels
     public DefaultBuildRequestContext(BuildRequestMetaData metaData, BuildCancellationToken token, BuildEventConsumer buildEventConsumer) {
+        this(metaData, token, new DefaultBuildGateToken(), buildEventConsumer);
+    }
+
+    public DefaultBuildRequestContext(BuildRequestMetaData metaData, BuildCancellationToken token, BuildGateToken gate, BuildEventConsumer buildEventConsumer) {
         this.metaData = metaData;
         this.token = token;
+        this.gate = gate;
         this.buildEventConsumer = buildEventConsumer;
     }
 
     @Override
     public BuildEventConsumer getEventConsumer() {
         return buildEventConsumer;
+    }
+
+    @Override
+    public BuildGateToken getGateToken() {
+        return gate;
     }
 
     @Override
