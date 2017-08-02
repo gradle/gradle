@@ -76,7 +76,7 @@ class ConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGrou
         then:
         def strippedGroupedTaskOutput = result.groupedOutput.strippedOutput
         strippedGroupedTaskOutput.contains(':byeWorld SKIPPED')
-        strippedGroupedTaskOutput.contains(':byeWorld SKIPPED')
+        strippedGroupedTaskOutput.contains(':compileJava SKIPPED')
     }
 
     static String javaProject() {
