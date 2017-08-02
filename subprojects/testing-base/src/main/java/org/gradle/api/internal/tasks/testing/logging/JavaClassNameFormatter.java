@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.tasks.testing.logging;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 public class JavaClassNameFormatter {
     private static final char PACKAGE_SEPARATOR = '.';
 
-    public static String abbreviateJavaPackage(@Nullable String qualifiedClassName, int maxLength) {
-        if (qualifiedClassName == null || qualifiedClassName.length() <= maxLength || qualifiedClassName.indexOf(PACKAGE_SEPARATOR) == -1) {
+    public static String abbreviateJavaPackage(@Nonnull String qualifiedClassName, int maxLength) {
+        if (qualifiedClassName.length() <= maxLength || qualifiedClassName.indexOf(PACKAGE_SEPARATOR) == -1) {
             return qualifiedClassName;
         }
 

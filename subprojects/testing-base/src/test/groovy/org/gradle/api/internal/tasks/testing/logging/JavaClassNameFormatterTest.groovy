@@ -20,7 +20,6 @@ import spock.lang.Specification
 class JavaClassNameFormatterTest extends Specification {
     def "abbreviates long java packages"() {
         expect:
-        JavaClassNameFormatter.abbreviateJavaPackage(null, 60) == null
         JavaClassNameFormatter.abbreviateJavaPackage("", 60) == ""
         JavaClassNameFormatter.abbreviateJavaPackage("org.gradle.FooTest", 60) == "org.gradle.FooTest"
         JavaClassNameFormatter.abbreviateJavaPackage("TestNoPackageFunctionalIntegrationTestWithAReallyReallyLongName", 60) == "TestNoPackageFunctionalIntegrationTestWithAReallyReallyLongName"
