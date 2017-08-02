@@ -22,6 +22,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.BinaryToolSpec;
 
@@ -34,18 +35,27 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
     private final CommandLineToolContext invocationContext;
     private final boolean useCommandFile;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final WorkerLeaseService workerLeaseService;
 
-    protected AbstractCompiler(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, boolean useCommandFile) {
+    protected AbstractCompiler(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.argsTransformer = argsTransformer;
         this.invocationContext = invocationContext;
         this.useCommandFile = useCommandFile;
         this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
+        this.workerLeaseService = workerLeaseService;
     }
 
     @Override
-    public WorkResult execute(T spec) {
-        buildOperationExecutor.runAll(commandLineToolInvocationWorker, newInvocationAction(spec));
+    public WorkResult execute(final T spec) {
+        final Action<BuildOperationQueue<CommandLineToolInvocation>> invocationAction = newInvocationAction(spec);
+
+        workerLeaseService.withoutProjectLock(new Runnable() {
+            @Override
+            public void run() {
+                buildOperationExecutor.runAll(commandLineToolInvocationWorker, invocationAction);
+            }
+        });
 
         return new SimpleWorkResult(true);
     }
