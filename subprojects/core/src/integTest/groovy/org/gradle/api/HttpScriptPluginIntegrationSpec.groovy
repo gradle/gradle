@@ -116,7 +116,46 @@ task check {
     }
 
     @Unroll
-    def "will used cached #source resource when run with --offline"() {
+    def "will not download cached #source resource when run with --offline"() {
+        given:
+        def scriptName = "script.gradle"
+        def scriptFile = file("script.gradle")
+        scriptFile.setText("""println 'loaded external script'""", "UTF-8")
+        server.expectGet('/' + scriptName, scriptFile)
+
+        and:
+        file("init.gradle").createFile()
+        buildFile << """
+            task check {}
+        """
+
+        when:
+        def scriptUri = "${server.uri}/${scriptName}"
+        file(sourceFile) << """
+            apply from: '${scriptUri}'
+        """
+
+        then:
+        args('-I', 'init.gradle')
+        succeeds 'check'
+        outputContains 'loaded external script'
+
+        when:
+        server.resetExpectations()
+        args('--offline', '-I', 'init.gradle')
+
+        then:
+        succeeds 'check'
+
+        where:
+        source        | sourceFile
+        "buildscript" | "build.gradle"
+        "settings"    | "settings.gradle"
+        "initscript"  | "init.gradle"
+    }
+
+    @Unroll
+    def "can recover from failure to download cached #source resource by running with --offline"() {
         given:
         def scriptName = "script.gradle"
         def scriptFile = file("script.gradle")
@@ -149,7 +188,6 @@ task check {
         errorOutput.contains("Could not get resource '${scriptUri}'")
 
         when:
-        scriptFile.setText("""throw new RuntimeException('NOT CACHED')""", "UTF-8")
         args('--offline', '-I', 'init.gradle')
 
         then:
