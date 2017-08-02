@@ -16,16 +16,26 @@
 
 package org.gradle.ide.xcode.plugins;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.xcode.XcodeExtension;
+import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
 import org.gradle.ide.xcode.internal.XcodeTarget;
@@ -36,6 +46,10 @@ import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
+import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
@@ -43,9 +57,15 @@ import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 /**
  * A plugin for creating a XCode project for a gradle project.
@@ -54,10 +74,11 @@ import java.io.File;
  */
 @Incubating
 public class XcodePlugin extends IdePlugin {
-    private DefaultXcodeExtension xcode;
-
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
+    private DefaultXcodeExtension xcode;
+    private GenerateXcodeWorkspaceFileTask workspaceTask;
+    private GenerateXcodeProjectFileTask projectTask;
 
     @Inject
     public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory) {
@@ -78,13 +99,29 @@ public class XcodePlugin extends IdePlugin {
         xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
         xcode.getProject().setLocationDir(project.file(projectName(project) + ".xcodeproj"));
 
+        projectTask = createProjectTask(project);
+        workspaceTask = createWorkspaceTask(project);
+
+        if (getWorkspaceTask() != null) {
+            getLifecycleTask().dependsOn(getWorkspaceTask());
+        }
+        getLifecycleTask().dependsOn(getProjectTask());
+
         configureForSwiftPlugin(project);
         configureForCppPlugin(project);
 
         includeBuildFileInProject(project);
-        configureXcodeProject(project);
-        configureXcodeWorkspace(project);
         configureXcodeCleanTask(project);
+        registerXcodeProjectArtifact(project);
+        addIncludedBuildToWorkspace(project);
+    }
+
+    private GenerateXcodeProjectFileTask getProjectTask() {
+        return projectTask;
+    }
+
+    private GenerateXcodeWorkspaceFileTask getWorkspaceTask() {
+        return workspaceTask;
     }
 
     private void includeBuildFileInProject(Project project) {
@@ -102,43 +139,35 @@ public class XcodePlugin extends IdePlugin {
         getCleanTask().dependsOn(cleanTask);
     }
 
-    private void configureXcodeProject(final Project project) {
+    private GenerateXcodeProjectFileTask createProjectTask(final Project project) {
         File xcodeProjectPackageDir = xcode.getProject().getLocationDir();
-
-        GenerateXcodeProjectFileTask projectFileTask = project.getTasks().create("xcodeProject", GenerateXcodeProjectFileTask.class);
-        projectFileTask.setXcodeProject(xcode.getProject());
-        projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
-        getLifecycleTask().dependsOn(projectFileTask);
 
         GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeProjectWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
         workspaceSettingsFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings"));
-        getLifecycleTask().dependsOn(workspaceSettingsFileTask);
+
+        GenerateXcodeProjectFileTask projectFileTask = project.getTasks().create("xcodeProject", GenerateXcodeProjectFileTask.class);
+        projectFileTask.dependsOn(workspaceSettingsFileTask);
+        projectFileTask.setXcodeProject(xcode.getProject());
+        projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
+
+        return projectFileTask;
     }
 
-    private void configureXcodeWorkspace(Project project) {
+    private GenerateXcodeWorkspaceFileTask createWorkspaceTask(Project project) {
         if (isRoot(project)) {
             File xcodeWorkspacePackageDir = toXcodeWorkspacePackageDir(project);
 
-            GenerateXcodeWorkspaceFileTask workspaceFileTask = project.getTasks().create("xcodeWorkspace", GenerateXcodeWorkspaceFileTask.class);
-            workspaceFileTask.setXcodeWorkspace(xcode.getWorkspace());
-            workspaceFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "contents.xcworkspacedata"));
-            getLifecycleTask().dependsOn(workspaceFileTask);
-
             GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeWorkspaceWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
             workspaceSettingsFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "xcshareddata/WorkspaceSettings.xcsettings"));
-            getLifecycleTask().dependsOn(workspaceSettingsFileTask);
 
-            for (final Project p : project.getAllprojects()) {
-                p.getPlugins().withType(XcodePlugin.class).all(new Action<Plugin>() {
-                    @Override
-                    public void execute(Plugin plugin) {
-                        if (p.getPlugins().hasPlugin(XcodePlugin.class)) {
-                            xcode.getWorkspace().getProjects().add((DefaultXcodeProject) xcodeModelFor(p).getProject());
-                        }
-                    }
-                });
-            }
+            GenerateXcodeWorkspaceFileTask workspaceFileTask = project.getTasks().create("xcodeWorkspace", GenerateXcodeWorkspaceFileTask.class);
+            workspaceFileTask.dependsOn(workspaceSettingsFileTask);
+            workspaceFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "contents.xcworkspacedata"));
+
+            return workspaceFileTask;
         }
+
+        return null;
     }
 
     private static XcodeExtension xcodeModelFor(Project project) {
@@ -172,7 +201,7 @@ public class XcodePlugin extends IdePlugin {
         target.getImportPaths().from(project.getConfigurations().getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
         xcode.getProject().setTarget(target);
 
-        getLifecycleTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
+        getProjectTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
     }
 
     private void configureForCppPlugin(final Project project) {
@@ -204,7 +233,7 @@ public class XcodePlugin extends IdePlugin {
         target.getHeaderSearchPaths().from(project.getConfigurations().getByName(CppBasePlugin.CPP_INCLUDE_PATH));
         xcode.getProject().setTarget(target);
 
-        getLifecycleTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
+        getProjectTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
     }
 
     private static GenerateSchemeFileTask createSchemeTask(TaskContainer tasks, DefaultXcodeProject xcodeProject) {
@@ -267,5 +296,86 @@ public class XcodePlugin extends IdePlugin {
 
     private static String projectName(Project project) {
         return project.getName();
+    }
+
+    private void registerXcodeProjectArtifact(Project project) {
+        ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
+        ProjectComponentIdentifier projectId = newProjectId(project);
+        projectComponentProvider.registerAdditionalArtifact(projectId, createXcodeProjectArtifact(projectId, xcodeModelFor(project), getProjectTask()));
+    }
+
+    private static LocalComponentArtifactMetadata createXcodeProjectArtifact(ProjectComponentIdentifier projectId, XcodeExtension xcode, Task projectTask) {
+        XcodeProject xcodeProject = xcode.getProject();
+        PublishArtifact publishArtifact = new XcodeProjectArtifact(xcodeProject, projectTask);
+        return new PublishArtifactLocalArtifactMetadata(projectId, publishArtifact);
+    }
+
+    private void addIncludedBuildToWorkspace(final Project project) {
+        if (isRoot(project)) {
+            final ServiceRegistry serviceRegistry = ((ProjectInternal) project).getServices();
+            getWorkspaceTask().dependsOn(new Callable<List<TaskDependency>>() {
+                @Override
+                public List<TaskDependency> call() throws Exception {
+                    return CollectionUtils.collect(
+                        allXcodeprojArtifactsInComposite(serviceRegistry),
+                        new Transformer<TaskDependency, LocalComponentArtifactMetadata>() {
+                            @Override
+                            public TaskDependency transform(LocalComponentArtifactMetadata metadata) {
+                                return metadata.getBuildDependencies();
+                            }
+                        });
+                }
+            });
+
+            getWorkspaceTask().setXcodeProjectLocations(project.provider(new Callable<Iterable<File>>() {
+                @Override
+                public Iterable<File> call() throws Exception {
+                    return CollectionUtils.collect(
+                        allXcodeprojArtifactsInComposite(serviceRegistry),
+                        new Transformer<File, LocalComponentArtifactMetadata>() {
+                            @Override
+                            public File transform(LocalComponentArtifactMetadata metadata) {
+                                return metadata.getFile();
+                            }
+                        });
+                }
+            }));
+        }
+    }
+
+    private static List<LocalComponentArtifactMetadata> allXcodeprojArtifactsInComposite(ServiceRegistry serviceRegistry) {
+        List<LocalComponentArtifactMetadata> artifactMetadata = Lists.newArrayList();
+        ProjectPathRegistry projectPathRegistry = serviceRegistry.get(ProjectPathRegistry.class);
+        LocalComponentRegistry localComponentRegistry = serviceRegistry.get(LocalComponentRegistry.class);
+
+        for (Path projectPath : projectPathRegistry.getAllProjectPaths()) {
+            ProjectComponentIdentifier projectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
+            LocalComponentArtifactMetadata xcodeprojArtifact = localComponentRegistry.findAdditionalArtifact(projectId, "xcodeproj");
+            if (xcodeprojArtifact != null) {
+                artifactMetadata.add(xcodeprojArtifact);
+            }
+        }
+
+        return artifactMetadata;
+    }
+
+    private static class XcodeProjectArtifact extends DefaultPublishArtifact {
+        private final DefaultXcodeProject xcodeProject;
+
+        public XcodeProjectArtifact(XcodeProject xcodeProject, Object... tasks) {
+            super(null, "xcodeproj", "xcodeproj", null, null, null, tasks);
+            this.xcodeProject = (DefaultXcodeProject) xcodeProject;
+        }
+
+        @Override
+        public String getName() {
+            String fileName = xcodeProject.getLocationDir().getName();
+            return fileName.substring(0, fileName.length() - ".xcodeproj".length());
+        }
+
+        @Override
+        public File getFile() {
+            return xcodeProject.getLocationDir();
+        }
     }
 }

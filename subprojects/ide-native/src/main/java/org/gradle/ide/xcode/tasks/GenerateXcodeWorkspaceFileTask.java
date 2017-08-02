@@ -17,13 +17,13 @@
 package org.gradle.ide.xcode.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.ide.xcode.XcodeWorkspace;
-import org.gradle.ide.xcode.internal.DefaultXcodeProject;
-import org.gradle.ide.xcode.internal.DefaultXcodeWorkspace;
+import org.gradle.api.provider.Provider;
 import org.gradle.ide.xcode.tasks.internal.XcodeWorkspaceFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.concurrent.Callable;
 
 /**
  * Task for generating a workspace file.
@@ -32,12 +32,16 @@ import java.io.File;
  */
 @Incubating
 public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorkspaceFile> {
-    private DefaultXcodeWorkspace xcodeWorkspace;
+    private Provider<Iterable<File>> xcodeProjectLocations;
+
+    public GenerateXcodeWorkspaceFileTask() {
+        this.xcodeProjectLocations = getProject().getProviders().provider(emptyList());
+    }
 
     @Override
     protected void configure(XcodeWorkspaceFile workspaceFile) {
-        for (DefaultXcodeProject xcodeProject : xcodeWorkspace.getProjects()) {
-            workspaceFile.addLocation(xcodeProject.getLocationDir().getAbsolutePath());
+        for (File xcodeProjectDir : xcodeProjectLocations.get()) {
+            workspaceFile.addLocation(xcodeProjectDir.getAbsolutePath());
         }
     }
 
@@ -46,12 +50,21 @@ public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorksp
         return new XcodeWorkspaceFile(getXmlTransformer());
     }
 
-    public void setXcodeWorkspace(XcodeWorkspace xcodeWorkspace) {
-        this.xcodeWorkspace = (DefaultXcodeWorkspace) xcodeWorkspace;
+    public void setXcodeProjectLocations(Provider<Iterable<File>> xcodeProjectLocations) {
+        this.xcodeProjectLocations = xcodeProjectLocations;
     }
 
     @Override
     public File getInputFile() {
         return null;
+    }
+
+    private static Callable<Iterable<File>> emptyList() {
+        return new Callable<Iterable<File>>() {
+            @Override
+            public Iterable<File> call() throws Exception {
+                return Collections.emptyList();
+            }
+        };
     }
 }
