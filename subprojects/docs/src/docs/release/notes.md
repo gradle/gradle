@@ -30,9 +30,17 @@ Please see the [repositories section of the dependency management chapter](userg
 
 ### Features for easier plugin authoring
 
+#### Nested DSL elements
+
 While it is easy for a plugin author to extend the Gradle DSL to add top level blocks to the DSL using project extensions, in previous versions of Gradle it was awkward to create a deeply nested DSL inside these top level blocks, often requiring the use of internal Gradle APIs.
 
 In this release of Gradle, API methods have been added to allow a plugin author to create nested DSL elements. See the [example in the user guide](userguide/custom_plugins.html#sec:nested_dsl_elements) section on custom plugins.
+
+#### Declaring the output of a task as a publish artifact
+
+In previous versions of Gradle, it was awkward to declare the output of a task as a publish artifact, in a way that deals with changes to the build directory and other configuration. A publish artifact makes a file or directory available to be referenced by a project dependency or published to a binary repository.
+
+TBD: The publish artifact DSL now accepts `Provider<RegularFile>` and `Provider<Directory>` instances, which allows a plugin author to easily wire up a particular task output as a publish artifact in a way that respects configuration changes.
 
 ### Better stale output cleanup
 
