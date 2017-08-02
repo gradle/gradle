@@ -39,7 +39,7 @@ val buildModel = CIBuildModel(
         tagBuilds = false,
         buildCacheActive = false,
         stages = listOf(
-                Stage("Quick Feedback", "Runs all checks and functional tests with an embedded test executer",
+                Stage("Quick Feedback", "Checks and functional tests (embedded executer)",
                         specificBuilds = listOf(
                                 SpecificBuild.SanityCheck,
                                 SpecificBuild.BuildDistributions),

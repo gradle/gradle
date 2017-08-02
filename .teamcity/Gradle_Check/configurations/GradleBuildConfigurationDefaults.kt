@@ -145,7 +145,7 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, requires
     if (requiresDistribution) {
         val buildDistributions = BuildDistributions(model)
         buildType.dependencies {
-            dependency("${model.projectPrefix}Stage3_Passes") {
+            dependency("${model.projectPrefix}Stage_QuickFeedback_Trigger") {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL

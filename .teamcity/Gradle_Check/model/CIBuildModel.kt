@@ -14,21 +14,21 @@ data class CIBuildModel (
         val buildCacheActive: Boolean = true,
         val masterAndReleaseBranches: List<String> = listOf("master", "release"),
         val stages: List<Stage> = listOf(
-            Stage("Quick Feedback", "Runs all checks and functional tests with an embedded test executer",
+            Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
                     specificBuilds = listOf(
                             SpecificBuild.SanityCheck,
                             SpecificBuild.BuildDistributions),
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java7))),
-            Stage("Branch Build Accept", "Runs performance tests and functional tests against real distributions",
+            Stage("Branch Build Accept", "Run performance and functional tests (against distribution)",
                     specificBuilds = listOf(
                             SpecificBuild.Gradleception),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
                     performanceTests = listOf(PerformanceTestType.test)),
-            Stage("Master Accept", "Runs functional tests in different environments and tests against 3rd party components",
+            Stage("Master Accept", "Rerun tests in different environments / 3rd party components",
                     trigger = Trigger.eachCommit,
                     specificBuilds = listOf(
                             SpecificBuild.SmokeTests, SpecificBuild.ColonyCompatibility),
@@ -37,7 +37,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
                             TestCoverage(TestType.java9Smoke, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
-            Stage("Release Accept", "Once a day: Runs extended test coverage that is not expected to fail if all other tests passed",
+            Stage("Release Accept", "Once a day: Rerun tests in more environments",
                     trigger = Trigger.daily,
                     functionalTests = listOf(
                             TestCoverage(TestType.soak, OS.linux, JvmVersion.java8),
@@ -48,7 +48,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
-            Stage("Historical Performance Tests", "Once a week: Runs performance tests agains multiple Gradle versions for comparison",
+            Stage("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions",
                     trigger = Trigger.weekly,
                     performanceTests = listOf(
                             PerformanceTestType.historical)))
