@@ -73,7 +73,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                     } finally {
                         statement.close();
                     }
-                    statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, gradleOpts, daemon, totalTime) values (?, ?, ?, ?, ?, ?, ?, ?)");
+                    statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         for (BuildDisplayInfo displayInfo : results.getBuilds()) {
                             addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
@@ -100,6 +100,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.setObject(6, toArray(displayInfo.getGradleOpts()));
             statement.setObject(7, displayInfo.getDaemon());
             statement.setBigDecimal(8, operation.getTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            statement.setObject(9, toArray(displayInfo.getCleanTasks()));
             statement.addBatch();
         }
     }
@@ -150,7 +151,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         }
                     });
                     PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
-                    PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime from testOperation where testExecution = ?");
+                    PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?");
                     executionsForName.setInt(1, mostRecentN);
                     executionsForName.setString(2, testName);
                     Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
@@ -181,14 +182,14 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         operationsForExecution.setLong(1, id);
                         ResultSet resultSet = operationsForExecution.executeQuery();
                         while (resultSet.next()) {
-                            BuildDisplayInfo displayInfo = new BuildDisplayInfo(
-                                resultSet.getString(1),
-                                resultSet.getString(2),
-                                toList(resultSet.getObject(3)),
-                                toList(resultSet.getObject(4)),
-                                toList(resultSet.getObject(5)),
-                                (Boolean)resultSet.getObject(6)
-                            );
+                            String projectName = resultSet.getString(1);
+                            String displayName = resultSet.getString(2);
+                            List<String> tasksToRun = toList(resultSet.getObject(3));
+                            List<String> cleanTasks = toList(resultSet.getObject(8));
+                            List<String> args = toList(resultSet.getObject(4));
+                            List<String> gradleOpts = toList(resultSet.getObject(5));
+                            Boolean daemon = (Boolean) resultSet.getObject(6);
+                            BuildDisplayInfo displayInfo = new BuildDisplayInfo(projectName, displayName, tasksToRun, cleanTasks, args, gradleOpts, daemon);
 
                             MeasuredOperation operation = new MeasuredOperation();
                             operation.setTotalTime(Duration.millis(resultSet.getBigDecimal(7)));
@@ -261,6 +262,10 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             }
             statement.execute("create index if not exists testExecution_executionTime on testExecution (startTime desc)");
             statement.execute("create index if not exists testExecution_testGroup on testExecution (testGroup)");
+
+            if (!DataBaseSchemaUtil.columnExists(connection, "TESTOPERATION", "CLEANTASKS")) {
+                statement.execute("alter table testOperation add column if not exists cleanTasks array");
+            }
 
             DataBaseSchemaUtil.removeOutdatedColumnsFromTestDB(connection, statement);
 

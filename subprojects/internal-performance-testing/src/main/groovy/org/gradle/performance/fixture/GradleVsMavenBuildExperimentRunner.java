@@ -59,12 +59,21 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
                 return new Action<MeasuredOperation>() {
                     @Override
                     public void execute(MeasuredOperation measuredOperation) {
-                        final ExecAction mavenInvocation = createMavenInvocation(invocationCustomizer.customize(invocationInfo, buildSpec));
                         System.out.println("Run Maven using JVM opts: " + Iterables.concat(buildSpec.getMavenOpts(), buildSpec.getJvmOpts()));
+                        List<String> cleanTasks = buildSpec.getCleanTasks();
+                        if (!cleanTasks.isEmpty()) {
+                            System.out.println("Cleaning up by running Maven tasks: " + Joiner.on(" ").join(buildSpec.getCleanTasks()));
+                            ExecAction clean = createMavenInvocation(buildSpec, cleanTasks);
+                            executeWithFileLogging(experiment, clean);
+                        }
+
+                        MavenInvocationSpec invocation = invocationCustomizer.customize(invocationInfo, buildSpec);
+                        final ExecAction run = createMavenInvocation(invocation, invocation.getTasksToRun());
+                        System.out.println("Measuring Maven tasks: " + Joiner.on(" ").join(buildSpec.getCleanTasks()));
                         DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
                             @Override
                             public void run() {
-                                executeWithFileLogging(experiment, mavenInvocation);
+                                executeWithFileLogging(experiment, run);
                             }
                         });
                     }
@@ -101,12 +110,12 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         return super.createInvocationCustomizer(info);
     }
 
-    private ExecAction createMavenInvocation(MavenInvocationSpec buildSpec) {
+    private ExecAction createMavenInvocation(MavenInvocationSpec buildSpec, List<String> tasks) {
         ExecAction execAction = execActionFactory.newExecAction();
         execAction.setWorkingDir(buildSpec.getWorkingDirectory());
         execAction.executable(buildSpec.getInstallation().getMvn());
         execAction.args(buildSpec.getArgs());
-        execAction.args(buildSpec.getTasksToRun());
+        execAction.args(tasks);
         execAction.environment("MAVEN_OPTS", Joiner.on(' ').join(Iterables.concat(buildSpec.getMavenOpts(), buildSpec.getJvmOpts())));
         return execAction;
     }

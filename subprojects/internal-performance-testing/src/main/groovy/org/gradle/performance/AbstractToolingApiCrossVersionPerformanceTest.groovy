@@ -141,7 +141,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
         @Override
         BuildDisplayInfo getDisplayInfo() {
-            new BuildDisplayInfo(projectName, displayName, [], [], [], true)
+            new BuildDisplayInfo(projectName, displayName, [], [], [], [], true)
         }
 
         @Override
@@ -173,6 +173,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 vcsCommits: [Git.current().commitId],
                 startTime: timeProvider.getCurrentTime(),
                 tasks: [],
+                cleanTasks: [],
                 args: [],
                 gradleOpts: [],
                 daemon: true,
