@@ -170,8 +170,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     quick(true, true, false), platform(true, true, false),
     crossVersion(false, false, true), quickFeedbackCrossVersion(false, false, true),
     parallel(false, true, false), noDaemon(false, true, false), java9Smoke(false, true, false),
-    soak(false, false, false),
-    daemon(false, true, false) /* only for <4.1 Gradle versions*/
+    soak(false, false, false)
 }
 
 enum class JvmVendor {
