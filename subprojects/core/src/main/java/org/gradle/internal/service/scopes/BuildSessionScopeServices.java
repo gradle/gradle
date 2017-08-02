@@ -44,6 +44,7 @@ import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
@@ -117,8 +118,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new PendingChangesManager(listenerManager);
     }
 
-    DefaultDeploymentRegistry createDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager) {
-        return new DefaultDeploymentRegistry(startParameter, pendingChangesManager);
+    DefaultDeploymentRegistry createDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager, ObjectFactory objectFactory) {
+        return new DefaultDeploymentRegistry(startParameter, pendingChangesManager, objectFactory);
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {

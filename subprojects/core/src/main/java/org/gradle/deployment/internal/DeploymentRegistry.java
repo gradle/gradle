@@ -17,7 +17,6 @@
 package org.gradle.deployment.internal;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.concurrent.Stoppable;
 
 import javax.annotation.Nullable;
 
@@ -25,11 +24,11 @@ import javax.annotation.Nullable;
  * A registry of deployment handles.
  */
 @ThreadSafe
-public interface DeploymentRegistry extends Stoppable {
+public interface DeploymentRegistry {
     /**
      * Registers a given deployment handle in the registry.
      */
-    void start(String id, DeploymentHandle handle);
+    <T extends DeploymentHandle> T start(String id, Class<T> handleType, Object... params);
 
     /**
      * Retrieves a deployment handle from the registry with the given id and type.
@@ -37,5 +36,5 @@ public interface DeploymentRegistry extends Stoppable {
      * @return the registered deployment handle; null if no deployment is registered with the given id
      */
     @Nullable
-    <T extends DeploymentHandle> T get(Class<T> handleType, String id);
+    <T extends DeploymentHandle> T get(String id, Class<T> handleType);
 }

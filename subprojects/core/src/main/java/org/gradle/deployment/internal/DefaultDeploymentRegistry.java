@@ -21,8 +21,10 @@ import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.filewatch.PendingChangesManager;
 
@@ -30,17 +32,19 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingChangesListener {
+public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingChangesListener, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
 
     private final Lock lock = new ReentrantLock();
-    private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
+    private final Map<String, DeploymentHandleWrapper> handles = Maps.newHashMap();
     private final PendingChangesManager pendingChangesManager;
     private final PendingChanges pendingChanges;
+    private final ObjectFactory objectFactory;
     private boolean stopped;
 
-    public DefaultDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager) {
+    public DefaultDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager, ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
+        this.objectFactory = objectFactory;
         this.pendingChanges = new PendingChanges();
         // TODO: Detangle pending changes handling and continuous build
         if (startParameter.isContinuous()) {
@@ -50,17 +54,19 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     @Override
-    public void start(String id, DeploymentHandle handle) {
+    public <T extends DeploymentHandle> T start(String id, Class<T> handleType, Object... params) {
         lock.lock();
         try {
             failIfStopped();
             if (!handles.containsKey(id)) {
                 // TODO: Restore progress logging
-                handle.start();
+                T delegate = objectFactory.newInstance(handleType, params);
+                DeploymentHandleWrapper handle = new DeploymentHandleWrapper(id, delegate);
                 if (pendingChanges.hasRemainingChanges()) {
                     handle.pendingChanges(true);
                 }
                 handles.put(id, handle);
+                return delegate;
             } else {
                 throw new IllegalStateException("A deployment with id '" + id + "' is already registered.");
             }
@@ -70,11 +76,15 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     @Override
-    public <T extends DeploymentHandle> T get(Class<T> handleType, String id) {
+    public <T extends DeploymentHandle> T get(String id, Class<T> handleType) {
         lock.lock();
         try {
             failIfStopped();
-            return Cast.cast(handleType, handles.get(id));
+            if (handles.containsKey(id)) {
+                return Cast.cast(handleType, handles.get(id).getDelegate());
+            } else {
+                return null;
+            }
         } finally {
             lock.unlock();
         }
@@ -98,7 +108,12 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         try {
             pendingChanges.changesIncorporated();
             for (DeploymentHandle handle : handles.values()) {
-                handle.buildResult(buildResult.getFailure());
+                Throwable failure = buildResult.getFailure();
+                if (failure == null) {
+                    handle.buildSucceeded();
+                } else {
+                    handle.buildFailed(failure);
+                }
                 if (!pendingChanges.hasRemainingChanges()) {
                     handle.pendingChanges(false);
                 }

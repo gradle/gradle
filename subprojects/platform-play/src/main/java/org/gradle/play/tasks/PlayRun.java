@@ -33,7 +33,6 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
 import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
 import org.gradle.play.internal.run.PlayApplicationRunner;
-import org.gradle.play.internal.run.PlayApplicationRunnerToken;
 import org.gradle.play.internal.run.PlayRunSpec;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
 import org.slf4j.Logger;
@@ -43,7 +42,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * Task to run a Play application.
@@ -187,18 +185,13 @@ public class PlayRun extends ConventionTask {
 
     private PlayApplicationDeploymentHandle startOrFindDeploymentHandle(String deploymentId) {
         DeploymentRegistry deploymentRegistry = getDeploymentRegistry();
-        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId);
+        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(deploymentId, PlayApplicationDeploymentHandle.class);
 
         if (deploymentHandle == null) {
-            deploymentHandle = new PlayApplicationDeploymentHandle(deploymentId, new Callable<PlayApplicationRunnerToken>() {
-                @Override
-                public PlayApplicationRunnerToken call() throws Exception {
-                    int httpPort = getHttpPort();
-                    PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
-                    return playToolProvider.get(PlayApplicationRunner.class).start(spec);
-                }
-            });
-            deploymentRegistry.start(deploymentId, deploymentHandle);
+            int httpPort = getHttpPort();
+            PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
+            PlayApplicationRunner playApplicationRunner = playToolProvider.get(PlayApplicationRunner.class);
+            deploymentHandle = deploymentRegistry.start(deploymentId, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
         }
         return deploymentHandle;
     }

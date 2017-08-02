@@ -18,84 +18,121 @@ package org.gradle.deployment.internal
 
 import org.gradle.BuildResult
 import org.gradle.StartParameter
+import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.filewatch.PendingChangesManager
 import spock.lang.Specification
 
 class DefaultDeploymentRegistryTest extends Specification {
-    StartParameter startParameter = Mock()
-    DefaultDeploymentRegistry registry = new DefaultDeploymentRegistry(startParameter, Mock(PendingChangesManager))
+    static class TestDeploymentHandle implements DeploymentHandle {
+        TestDeploymentHandle(String parameter) {
+            assert parameter == "parameter"
+        }
 
-    def setup() {
-        startParameter.isContinuous() >> true
+        @Override
+        boolean isRunning() {
+            return false
+        }
+
+        @Override
+        void pendingChanges(boolean pendingChanges) {
+        }
+
+        @Override
+        void buildSucceeded() {
+        }
+
+        @Override
+        void buildFailed(Throwable failure) {
+        }
+
+        @Override
+        void stop() {
+        }
     }
 
-    def "can register and retrieve a deployment handle" () {
-        DeploymentHandle handle = Mock(DeploymentHandle)
+    def testHandle = Mock(DeploymentHandle)
+    def objectFactory = Mock(ObjectFactory)
+    def startParameter = Mock(StartParameter)
+    def pendingChangesManager = Mock(PendingChangesManager)
+    def registry = new DefaultDeploymentRegistry(startParameter, pendingChangesManager, objectFactory)
 
+    def setup() {
+        objectFactory.newInstance(DeploymentHandle) >> testHandle
+    }
+
+    def "creating registry registers with pending changes listener"() {
+        startParameter.continuous >> true
         when:
-        registry.start("test", handle)
-
+        def registry = new DefaultDeploymentRegistry(startParameter, pendingChangesManager, objectFactory)
         then:
-        registry.get(DeploymentHandle.class, "test") == handle
+        1 * pendingChangesManager.addListener(_)
+        when:
+        registry.stop()
+        then:
+        1 * pendingChangesManager.removeListener(_)
+    }
+
+    def "can start a deployment with a given type and parameters and continuous build waits"() {
+        def testHandle = new TestDeploymentHandle("parameter")
+        when:
+        def handle = registry.start("id", TestDeploymentHandle, "parameter")
+        then:
+        objectFactory.newInstance(TestDeploymentHandle, "parameter") >>testHandle
+        assert handle == testHandle
+        and:
+        registry.get("id", TestDeploymentHandle) == testHandle
     }
 
     def "notifies all handles when new build starts"() {
-        DeploymentHandle handle = Mock(DeploymentHandle)
+        (1..10).each {
+            registry.start("id${it}", DeploymentHandle)
+        }
+        testHandle.running >> true
 
         when:
-        (1..10).each {
-            registry.start("test$it", handle)
-        }
-        and:
-        registry.buildFinished(new BuildResult(null, null))
-
+        registry.onPendingChanges()
         then:
-        10 * handle.buildResult(null)
+        10 * testHandle.pendingChanges(true)
+
+        when:
+        registry.buildFinished(new BuildResult(null, null))
+        then:
+        10 * testHandle.buildSucceeded()
     }
 
     def "cannot register a duplicate deployment handle" () {
-        DeploymentHandle handle = Mock(DeploymentHandle)
-
         when:
-        registry.start("test", handle)
-
+        registry.start("id", DeploymentHandle)
         then:
         noExceptionThrown()
-        registry.get(DeploymentHandle.class, "test") == handle
+        registry.get("id", DeploymentHandle) == testHandle
 
         when:
-        registry.start("test", handle)
-
+        registry.start("id", DeploymentHandle)
         then:
         IllegalStateException e = thrown()
-        e.message == "A deployment with id 'test' is already registered."
+        e.message == "A deployment with id 'id' is already registered."
     }
 
     def "stopping registry stops deployment handles" () {
-        DeploymentHandle handle1 = Mock(DeploymentHandle)
-        DeploymentHandle handle2 = Mock(DeploymentHandle)
-        DeploymentHandle handle3 = Mock(DeploymentHandle)
-        registry.start("test1", handle1)
-        registry.start("test2", handle2)
-        registry.start("test3", handle3)
+        registry.start("id1", DeploymentHandle)
+        registry.start("id2", DeploymentHandle)
+        registry.start("id3", DeploymentHandle)
+        testHandle.running >> true
 
         when:
         registry.stop()
-
         then:
-        1 * handle1.stop()
-        1 * handle2.stop()
-        1 * handle3.stop()
+        3 * testHandle.stop()
     }
 
     def "cannot get a handle once the registry is stopped" () {
         given:
-        registry.start("test", Mock(DeploymentHandle))
+        registry.start("id", DeploymentHandle)
         registry.stop()
 
         when:
-        registry.get(DeploymentHandle, "test")
-
+        registry.get("id", DeploymentHandle)
         then:
         def e = thrown(IllegalStateException)
         e.message == "Cannot modify deployment handles once the registry has been stopped."
@@ -106,8 +143,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         registry.stop()
 
         when:
-        registry.start("test", Mock(DeploymentHandle))
-
+        registry.start("id", DeploymentHandle)
         then:
         def e = thrown(IllegalStateException)
         e.message == "Cannot modify deployment handles once the registry has been stopped."

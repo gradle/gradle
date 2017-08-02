@@ -16,65 +16,43 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.deployment.internal.DeploymentHandle;
-import org.gradle.internal.UncheckedException;
 
-import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import java.net.InetSocketAddress;
 
 public class PlayApplicationDeploymentHandle implements DeploymentHandle {
-    private static final Logger LOGGER = Logging.getLogger(PlayApplicationDeploymentHandle.class);
-
     private PlayApplicationRunnerToken runnerToken;
-    private final String id;
-    private final Callable<PlayApplicationRunnerToken> startAction;
 
-    public PlayApplicationDeploymentHandle(String id, Callable<PlayApplicationRunnerToken> startAction) {
-        this.id = id;
-        this.startAction = startAction;
+    @Inject
+    public PlayApplicationDeploymentHandle(PlayRunSpec spec, PlayApplicationRunner playApplicationRunner) {
+        this(playApplicationRunner.start(spec));
     }
 
-    @Override
-    public void start() {
-        if (isRunning()) {
-            throw new IllegalStateException(id + " has already been started.");
-        }
-
-        try {
-            runnerToken = startAction.call();
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    protected PlayApplicationDeploymentHandle(PlayApplicationRunnerToken runnerToken) {
+        this.runnerToken = runnerToken;
     }
 
     @Override
     public void pendingChanges(boolean pendingChanges) {
-        assertIsRunning();
         runnerToken.blockReload(pendingChanges);
     }
 
-    private void assertIsRunning() {
-        if (!isRunning()) {
-            throw new IllegalStateException(id + " needs to be started first.");
-        }
-    }
-
+    @Override
     public boolean isRunning() {
         return runnerToken != null && runnerToken.isRunning();
     }
 
     @Override
-    public void buildResult(Throwable failure) {
-        assertIsRunning();
-        if (failure != null) {
-            // Build failed, so show the error
-            runnerToken.rebuildFailure(failure);
-        } else {
-            // Build succeeded, so reload
-            runnerToken.rebuildSuccess();
-        }
+    public void buildSucceeded() {
+        // Build succeeded, so reload
+        runnerToken.rebuildSuccess();
+    }
+
+    @Override
+    public void buildFailed(Throwable failure) {
+        // Build failed, so show the error
+        runnerToken.rebuildFailure(failure);
     }
 
     public InetSocketAddress getPlayAppAddress() {
@@ -86,10 +64,6 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
 
     @Override
     public void stop() {
-        if (isRunning()) {
-            LOGGER.info("Stopping Play deployment handle for {}", id);
-            runnerToken.stop();
-            LOGGER.info("Stopped Play deployment handle for {}", id);
-        }
+        runnerToken.stop();
     }
 }

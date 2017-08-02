@@ -17,79 +17,63 @@
 package org.gradle.play.internal.run
 
 import spock.lang.Specification
-
-import java.util.concurrent.Callable
+import spock.lang.Unroll
 
 class PlayApplicationDeploymentHandleTest extends Specification {
     PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
-    PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle("test", new Callable() {
-        @Override
-        PlayApplicationRunnerToken call() throws Exception {
-            return runnerToken
-        }
-    })
+    PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle(runnerToken)
 
     def failure = new Throwable()
 
     def "reloading deployment handle reloads runner" () {
         when:
-        deploymentHandle.start()
-        deploymentHandle.buildResult(null)
-
+        deploymentHandle.buildSucceeded()
         then:
-        1 * runnerToken.isRunning() >> true
         1 * runnerToken.rebuildSuccess()
 
         when:
-        deploymentHandle.buildResult(failure)
-
+        deploymentHandle.buildFailed(failure)
         then:
-        1 * runnerToken.isRunning() >> true
         1 * runnerToken.rebuildFailure(failure)
+    }
 
+    def "running comes from runnerToken"() {
+        when:
+        def running = deploymentHandle.running
+        then:
+        1 * runnerToken.running >> true
+        running
     }
 
     def "stopping deployment handle stops runner" () {
         when:
-        deploymentHandle.start()
         deploymentHandle.stop()
-
         then:
-        1 * runnerToken.isRunning() >> true
         1 * runnerToken.stop()
     }
 
-    def "cannot reload a stopped deployment handle" () {
-        given:
-        runnerToken.isRunning() >> false
-        deploymentHandle.start()
-
+    @Unroll
+    def "pendingChanges blocks (#changes) runnerToken"() {
         when:
-        deploymentHandle.buildResult(null)
-
+        deploymentHandle.pendingChanges(changes)
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "test needs to be started first."
-
-        when:
-        deploymentHandle.buildResult(failure)
-
-        then:
-        e = thrown(IllegalStateException)
-        e.message == "test needs to be started first."
+        1 * runnerToken.blockReload(changes)
+        where:
+        changes << [ true, false ]
     }
 
-    def "cannot reload a deployment handle that was never started" () {
+    def "gets application IP from runner"() {
         when:
-        deploymentHandle.buildResult(null)
+        def address = deploymentHandle.playAppAddress
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "test needs to be started first."
+        1 * runnerToken.running >> false
+        0 * runnerToken.playAppAddress
+        address == null
 
         when:
-        deploymentHandle.buildResult(failure)
+        deploymentHandle.playAppAddress
         then:
-        e = thrown(IllegalStateException)
-        e.message == "test needs to be started first."
+        1 * runnerToken.running >> true
+        1 * runnerToken.playAppAddress
     }
 }

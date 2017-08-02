@@ -16,12 +16,10 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.internal.concurrent.Stoppable;
-
-public interface DeploymentHandle extends Stoppable {
-    void start();
+public interface DeploymentHandle {
     boolean isRunning();
     void pendingChanges(boolean pendingChanges);
-    void buildResult(Throwable failure);
+    void buildSucceeded();
+    void buildFailed(Throwable failure);
     void stop();
 }
