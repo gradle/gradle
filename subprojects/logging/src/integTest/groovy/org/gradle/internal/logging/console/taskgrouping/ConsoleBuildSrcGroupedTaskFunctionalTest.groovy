@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging
+package org.gradle.internal.logging.console.taskgrouping
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
-
-class ConsoleBuildSrcFunctionalTest extends AbstractConsoleFunctionalSpec {
+class ConsoleBuildSrcGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
 
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
     private static final String BYE_WORLD_MESSAGE = 'Bye world'

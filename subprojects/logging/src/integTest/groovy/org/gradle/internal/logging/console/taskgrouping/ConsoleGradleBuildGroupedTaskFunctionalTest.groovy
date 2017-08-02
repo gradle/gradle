@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging
+package org.gradle.internal.logging.console.taskgrouping
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
-import spock.lang.Ignore
+import spock.lang.FailsWith
 
-@Ignore("Build fails and passes depending on timing")
-class ConsoleGradleBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
+class ConsoleGradleBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
 
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
     private static final String IMPORTANT_MESSAGE = 'Something important needs to happen'
     private static final String BYE_WORLD_MESSAGE = 'Bye world'
     private static final String AGGREGATE_TASK_NAME = 'all'
 
+    @FailsWith(value = AssertionError, reason = "External build does not group task output")
     def "can group task output from external build invoked executed by GradleBuild in same directory"() {
         given:
         def externalBuildScriptPath = 'other.gradle'
@@ -57,6 +56,7 @@ class ConsoleGradleBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
         result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
+    @FailsWith(value = AssertionError, reason = "Prints out :external:important before external build message")
     def "can group task output from external build invoked executed by GradleBuild in different directory explicitly setting project name"() {
         given:
         def externalDirPath = 'external'
@@ -72,7 +72,7 @@ class ConsoleGradleBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
 
         then:
         result.groupedOutput.task(':helloWorld').output == HELLO_WORLD_MESSAGE
-        result.groupedOutput.task(":otherBuild").output == IMPORTANT_MESSAGE
+        result.groupedOutput.task(':otherBuild').output == IMPORTANT_MESSAGE
         result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 

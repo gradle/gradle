@@ -29,10 +29,6 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     public final static String CONTROL_SEQUENCE_END = "m"
     public final static String DEFAULT_TEXT = "0;39"
 
-    static String workInProgressLine(String plainText) {
-        return boldOn() + plainText + reset()
-    }
-
     def setup() {
         executer.withRichConsole()
     }
@@ -51,6 +47,10 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
         styledString += CONTROL_SEQUENCE_END + plainText + CONTROL_SEQUENCE_START + DEFAULT_TEXT + CONTROL_SEQUENCE_END
 
         return styledString
+    }
+
+    static String workInProgressLine(String plainText) {
+        return boldOn() + plainText + reset()
     }
 
     private static String boldOn() {

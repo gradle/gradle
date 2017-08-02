@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging
+package org.gradle.internal.logging.console.taskgrouping
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
-import org.gradle.internal.SystemProperties
-import org.junit.Ignore
-
-@Ignore("Flaky - either fails or locks up on Windows")
-class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec {
-    private static final String EOL = SystemProperties.instance.lineSeparator
+class ConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     private static final String PROJECT_A_NAME = 'projectA'
     private static final String PROJECT_B_NAME = 'projectB'
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
@@ -75,13 +69,14 @@ class ConsoleCompositeBuildFunctionalTest extends AbstractConsoleFunctionalSpec 
         result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
-    @Ignore("Failing on Windows")
     def "does not execute task actions when dry run specified on composite build"() {
         when:
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withArgument("--dry-run").withTasks('compileJava').run()
 
         then:
-        result.groupedOutput.strippedOutput.contains ":byeWorld SKIPPED$EOL:compileJava SKIPPED$EOL"
+        def strippedGroupedTaskOutput = result.groupedOutput.strippedOutput
+        strippedGroupedTaskOutput.contains(':byeWorld SKIPPED')
+        strippedGroupedTaskOutput.contains(':compileJava SKIPPED')
     }
 
     static String javaProject() {
