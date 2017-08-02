@@ -1,5 +1,5 @@
 {
-    "baseVersion": "4.1-20170718061434+0000",
+    "baseVersion": "4.1-rc-2",
     "acceptedApiChanges": [
         {
             "type": "org.gradle.api.plugins.quality.Checkstyle",
@@ -46,6 +46,22 @@
             "type": "org.gradle.api.tasks.TaskInputFilePropertyBuilder",
             "member": "Implemented interface org.gradle.api.tasks.TaskFilePropertyBuilder",
             "acceptation": "Removed at not exposed method (`withPathSensitivity`) on an incubating interface"
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftModulePlugin",
+            "member": "Constructor SwiftModulePlugin",
+            "acceptation": "Incubating class `SwiftModulePlugin` was renamed to `SwiftLibraryPlugin`",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftModulePlugin",
+            "member": "Implemented interface org.gradle.api.Plugin",
+            "acceptation": "Incubating class `SwiftModulePlugin` was renamed to `SwiftLibraryPlugin`",
+            "changes": [
+                "Interface has been removed"
+            ]
         }
     ]
 }

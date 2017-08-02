@@ -32,8 +32,7 @@ import org.gradle.util.TestUtil
 import static org.junit.Assert.assertTrue
 
 class AbstractTaskSpec extends AbstractProjectBuilderSpec {
-    private DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry()
-    private Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry, new DependencyInjectingInstantiator.ConstructorCache())
+    def instantiator = TestUtil.instantiatorFactory().decorate()
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new DefaultTaskClassValidatorExtractor())
     private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(taskClassInfoStore, new TaskFactory(new AsmBackedClassGenerator()))
 

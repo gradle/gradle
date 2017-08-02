@@ -129,7 +129,7 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
             }
         }
 
-        LOGGER.info("{} consuming {} MB (target: {} MB).", persistentCache, FileUtils.byteCountToDisplaySize(totalSize), targetSizeInMB);
+        LOGGER.info("{} consuming {} (target: {} MB).", persistentCache, FileUtils.byteCountToDisplaySize(totalSize), targetSizeInMB);
 
         return filesForDeletion;
     }
@@ -147,15 +147,16 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
     void cleanupFiles(final PersistentCache persistentCache, final List<File> filesForDeletion) {
         // Need to remove some files
         long removedSize = deleteFiles(filesForDeletion);
-        LOGGER.info("{} removing {} cache entries ({} MB reclaimed).", persistentCache, filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
+        LOGGER.info("{} removing {} cache entries ({} reclaimed).", persistentCache, filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
     }
 
     private long deleteFiles(List<File> files) {
         long removedSize = 0;
         for (File file : files) {
             try {
+                long size = file.length();
                 if (file.delete()) {
-                    removedSize += file.length();
+                    removedSize += size;
                 }
             } catch (Exception e) {
                 LOGGER.debug("Could not clean up cache " + file, e);

@@ -16,6 +16,12 @@ While it is easy for a plugin author to extend the Gradle DSL to add top level b
 
 In this release of Gradle, API methods have been added to allow a plugin author to create nested DSL elements. See the [example in the user guide](userguide/custom_plugins.html#sec:nested_dsl_elements) section on custom plugins.
 
+### Better stale output cleanup
+
+Sometimes, tasks may yield incorrect results since earlier versions of Gradle or other processes created files in their output directories.
+Gradle now is able to detect this situation and cleans up the directories if it is safe to do so.
+Currently, only outputs within the `build` directory and directories registered as targets for the `clean` task are considered safe to remove.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -87,6 +93,8 @@ We would like to thank the following community members for making contributions 
  - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Register classloaders as parallelCapable (#772)
  - [Lance](https://github.com/uklance) - Fix Maven BOM evaluation order (#2282)
  - [Jokubas Dargis](https://github.com/eleventigerssc) - Add GCS transport protocol support for declaring dependencies (#2258)
+ - [Thomas Halm](https://github.com/thhalm) - Maintain order of classpath when generating start scripts (#2513)
+ - [Colin Dean](https://github.com/colindean) - Prevent NullPointerException if any of the signing properties is null but signing isn't required (#2268) 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

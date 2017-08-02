@@ -17,16 +17,14 @@
 package org.gradle.plugins.ear.descriptor.internal
 
 import org.gradle.api.Action
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.DefaultInstantiatorFactory
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.model.ObjectFactory
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -36,10 +34,8 @@ import javax.xml.parsers.DocumentBuilderFactory
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DefaultDeploymentDescriptorTest extends Specification {
-
-    private DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry();
-    private InstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator())
-    private ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorFactory.injectAndDecorate(serviceRegistry), NamedObjectInstantiator.INSTANCE)
+    private InstantiatorFactory instantiatorFactory = TestUtil.instantiatorFactory()
+    private ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorFactory.decorate(), NamedObjectInstantiator.INSTANCE)
 
     def descriptor = new DefaultDeploymentDescriptor({ it } as FileResolver, objectFactory)
     @Rule TestNameTestDirectoryProvider tmpDir

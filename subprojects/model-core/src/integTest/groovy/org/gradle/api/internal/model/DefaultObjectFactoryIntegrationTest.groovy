@@ -180,4 +180,26 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('Could not create an instance of type Thing.')
         failure.assertHasCause('broken')
     }
+
+    def "object creation fails with ObjectInstantiationException when constructor takes parameters but is not annotated"() {
+        given:
+        buildFile << """
+        class Thing {
+            Thing(ObjectFactory factory) { }
+        }
+        
+        task fail {
+            doLast {
+                project.objects.newInstance(Thing) 
+            }
+        }
+"""
+
+        when:
+        fails "fail"
+
+        then:
+        failure.assertHasCause('Could not create an instance of type Thing.')
+        failure.assertHasCause('The constructor for class Thing should be annotated with @Inject.')
+    }
 }

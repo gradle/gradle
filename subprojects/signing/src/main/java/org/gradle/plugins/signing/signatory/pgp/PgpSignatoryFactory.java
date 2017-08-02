@@ -80,15 +80,11 @@ public class PgpSignatoryFactory {
         ArrayList<Object> values = new ArrayList<Object>();
         for (String property : PROPERTIES) {
             String qualifiedProperty = (String)getQualifiedPropertyName(prefix, property);
-            if (project.hasProperty(qualifiedProperty)) {
-                values.add(
-                    project.property(qualifiedProperty));
+            Object prop = getPropertySafely(project, qualifiedProperty, required);
+            if(prop != null) {
+                values.add(prop);
             } else {
-                if (required) {
-                    throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' could not be found on project and is needed for signing");
-                } else {
-                    return null;
-                }
+                return null;
             }
         }
 
@@ -96,6 +92,24 @@ public class PgpSignatoryFactory {
         File keyRing = project.file(values.get(1).toString());
         String password = values.get(2).toString();
         return createSignatory(name, keyId, keyRing, password);
+    }
+
+    private Object getPropertySafely(Project project, String qualifiedProperty, boolean required) {
+        if (project.hasProperty(qualifiedProperty)) {
+            Object prop = project.property(qualifiedProperty);
+            if (prop != null) {
+                return prop;
+            } else {
+                if (required) {
+                    throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' was null. A valid value is needed for signing");
+                }
+            }
+        } else {
+            if (required) {
+                throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' could not be found on project and is needed for signing");
+            }
+        }
+        return null;
     }
 
     protected Object getQualifiedPropertyName(final String propertyPrefix, final String name) {

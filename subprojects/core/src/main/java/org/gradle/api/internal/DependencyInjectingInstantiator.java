@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.cache.CrossBuildInMemoryCache;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -37,10 +36,10 @@ import java.util.List;
 public class DependencyInjectingInstantiator implements Instantiator {
 
     private final ServiceRegistry services;
-    private final DependencyInjectingInstantiator.ConstructorCache cachedConstructors;
+    private final CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache;
     private final ClassGenerator classGenerator;
 
-    public DependencyInjectingInstantiator(ServiceRegistry services, ConstructorCache cachedConstructors) {
+    public DependencyInjectingInstantiator(ServiceRegistry services, CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache) {
         this.classGenerator = new ClassGenerator() {
             @Override
             public <T> Class<? extends T> generate(Class<T> type) {
@@ -48,19 +47,31 @@ public class DependencyInjectingInstantiator implements Instantiator {
             }
         };
         this.services = services;
-        this.cachedConstructors = cachedConstructors;
+        this.constructorCache = constructorCache;
     }
 
-    public DependencyInjectingInstantiator(ClassGenerator classGenerator, ServiceRegistry services, ConstructorCache constructorCache) {
+    public DependencyInjectingInstantiator(ClassGenerator classGenerator, ServiceRegistry services, CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache) {
         this.classGenerator = classGenerator;
         this.services = services;
-        this.cachedConstructors = constructorCache;
+        this.constructorCache = constructorCache;
     }
 
-    public <T> T newInstance(Class<? extends T> type, Object... parameters) {
+    public <T> T newInstance(final Class<? extends T> type, Object... parameters) {
         try {
-            Class<? extends T> implClass = classGenerator.generate(type);
-            CachedConstructor cached = cachedConstructors.get(implClass);
+            CachedConstructor cached = constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
+                @Override
+                public CachedConstructor transform(Class<?> aClass) {
+                    try {
+                        validateType(type);
+                        Class<? extends T> implClass = classGenerator.generate(type);
+                        Constructor<?> constructor = selectConstructor(type, implClass);
+                        constructor.setAccessible(true);
+                        return CachedConstructor.of(constructor);
+                    } catch (Throwable e) {
+                        return CachedConstructor.of(e);
+                    }
+                }
+            });
             if (cached.error != null) {
                 throw cached.error;
             }
@@ -80,8 +91,8 @@ public class DependencyInjectingInstantiator implements Instantiator {
         }
     }
 
-    private <T> Object[] convertParameters(Class<T> type, Constructor<?> match, Object[] parameters) {
-        Class<?>[] parameterTypes = match.getParameterTypes();
+    private <T> Object[] convertParameters(Class<T> type, Constructor<?> constructor, Object[] parameters) {
+        Class<?>[] parameterTypes = constructor.getParameterTypes();
         if (parameterTypes.length < parameters.length) {
             throw new IllegalArgumentException(String.format("Too many parameters provided for constructor for class %s. Expected %s, received %s.", type.getName(), parameterTypes.length, parameters.length));
         }
@@ -96,7 +107,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
                 resolvedParameters[i] = parameters[pos];
                 pos++;
             } else {
-                resolvedParameters[i] = services.get(match.getGenericParameterTypes()[i]);
+                resolvedParameters[i] = services.get(constructor.getGenericParameterTypes()[i]);
             }
         }
         if (pos != parameters.length) {
@@ -105,84 +116,65 @@ public class DependencyInjectingInstantiator implements Instantiator {
         return resolvedParameters;
     }
 
-    public static class ConstructorCache {
-        private final LoadingCache<Class<?>, CachedConstructor> cachedConstructors = CacheBuilder.newBuilder()
-            .weakKeys()
-            .build(new CacheLoader<Class<?>, CachedConstructor>() {
-                @Override
-                public CachedConstructor load(final Class<?> type) throws Exception {
-                    try {
-                        validateType(type);
-                        Constructor<?> constructor = selectConstructor(type);
-                        constructor.setAccessible(true);
-                        return CachedConstructor.of(constructor);
-                    } catch (Throwable e) {
-                        return CachedConstructor.of(e);
-                    }
-                }
-            });
-
-        private static boolean isPublicOrPackageScoped(Class<?> type, Constructor<?> constructor) {
-            if (isPackagePrivate(type.getModifiers())) {
-                return !Modifier.isPrivate(constructor.getModifiers()) && !Modifier.isProtected(constructor.getModifiers());
-            } else {
-                return Modifier.isPublic(constructor.getModifiers());
-            }
+    private static boolean isPublicOrPackageScoped(Class<?> type, Constructor<?> constructor) {
+        if (isPackagePrivate(type.getModifiers())) {
+            return !Modifier.isPrivate(constructor.getModifiers()) && !Modifier.isProtected(constructor.getModifiers());
+        } else {
+            return Modifier.isPublic(constructor.getModifiers());
         }
-
-        private static boolean isPackagePrivate(int modifiers) {
-            return !Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers) && !Modifier.isPublic(modifiers);
-        }
-
-        private static <T> void validateType(Class<T> type) {
-            if (type.isInterface() || type.isAnnotation() || type.isEnum()) {
-                throw new IllegalArgumentException(String.format("Type %s is not a class.", type.getName()));
-            }
-            if (type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
-                throw new IllegalArgumentException(String.format("Class %s is a non-static inner class.", type.getName()));
-            }
-            if (Modifier.isAbstract(type.getModifiers())) {
-                throw new IllegalArgumentException(String.format("Class %s is an abstract class.", type.getName()));
-            }
-        }
-
-        private static <T> Constructor<?> selectConstructor(Class<T> type) {
-            Constructor<?>[] constructors = type.getDeclaredConstructors();
-
-            if (constructors.length == 1) {
-                Constructor<?> constructor = constructors[0];
-                if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(type, constructor)) {
-                    return constructor;
-                }
-                if (constructor.getAnnotation(Inject.class) != null) {
-                    return constructor;
-                }
-                throw new IllegalArgumentException(String.format("The constructor for class %s should be public or package protected or annotated with @Inject.", type.getName()));
-            }
-
-            List<Constructor<?>> injectConstructors = new ArrayList<Constructor<?>>();
-            for (Constructor<?> constructor : constructors) {
-                if (constructor.getAnnotation(Inject.class) != null) {
-                    injectConstructors.add(constructor);
-                }
-            }
-
-            if (injectConstructors.isEmpty()) {
-                throw new IllegalArgumentException(String.format("Class %s has no constructor that is annotated with @Inject.", type.getName()));
-            }
-            if (injectConstructors.size() > 1) {
-                throw new IllegalArgumentException(String.format("Class %s has multiple constructors that are annotated with @Inject.", type.getName()));
-            }
-            return injectConstructors.get(0);
-        }
-
-        public CachedConstructor get(Class<?> clazz) {
-            return cachedConstructors.getUnchecked(clazz);
-        }
-
     }
 
-    private static class CachedConstructor {
+    private static boolean isPackagePrivate(int modifiers) {
+        return !Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers) && !Modifier.isPublic(modifiers);
+    }
+
+    private static <T> void validateType(Class<T> type) {
+        if (type.isInterface() || type.isAnnotation() || type.isEnum()) {
+            throw new IllegalArgumentException(String.format("Type %s is not a class.", type.getName()));
+        }
+        if (type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
+            throw new IllegalArgumentException(String.format("Class %s is a non-static inner class.", type.getName()));
+        }
+        if (Modifier.isAbstract(type.getModifiers())) {
+            throw new IllegalArgumentException(String.format("Class %s is an abstract class.", type.getName()));
+        }
+    }
+
+    private static Constructor<?> selectConstructor(Class<?> type, Class<?> implType) {
+        Constructor<?>[] constructors = implType.getDeclaredConstructors();
+
+        if (constructors.length == 1) {
+            Constructor<?> constructor = constructors[0];
+            if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(implType, constructor)) {
+                return constructor;
+            }
+            if (constructor.getAnnotation(Inject.class) != null) {
+                return constructor;
+            }
+            if (constructor.getParameterTypes().length == 0) {
+                throw new IllegalArgumentException(String.format("The constructor for class %s should be public or package protected or annotated with @Inject.", type.getName()));
+            } else {
+                throw new IllegalArgumentException(String.format("The constructor for class %s should be annotated with @Inject.", type.getName()));
+            }
+        }
+
+        List<Constructor<?>> injectConstructors = new ArrayList<Constructor<?>>();
+        for (Constructor<?> constructor : constructors) {
+            if (constructor.getAnnotation(Inject.class) != null) {
+                injectConstructors.add(constructor);
+            }
+        }
+
+        if (injectConstructors.isEmpty()) {
+            throw new IllegalArgumentException(String.format("Class %s has no constructor that is annotated with @Inject.", type.getName()));
+        }
+        if (injectConstructors.size() > 1) {
+            throw new IllegalArgumentException(String.format("Class %s has multiple constructors that are annotated with @Inject.", type.getName()));
+        }
+        return injectConstructors.get(0);
+    }
+
+    static class CachedConstructor {
         private final Constructor<?> constructor;
         private final Throwable error;
 

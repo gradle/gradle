@@ -93,6 +93,7 @@
         <xi:include href='../../../build/asciidoc/userguide/webTutorial.xml'/>
         <xi:include href='warPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/earPlugin.xml'/>
+        <xi:include href='jettyPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/applicationPlugin.xml'/>
         <xi:include href='javaLibraryDistributionPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/groovyTutorial.xml'/>

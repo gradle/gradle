@@ -88,6 +88,9 @@ gradle.taskGraph.whenReady { taskGraph ->
     }
 }
         </programlisting>
+        <para>
+          Note that the presence of a null value for any these three properties will cause an exception.
+        </para>
         <section id="sec:subkeys">
             <title>Using OpenPGP subkeys</title>
             <para>

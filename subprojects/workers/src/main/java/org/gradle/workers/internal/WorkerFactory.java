@@ -19,7 +19,7 @@ package org.gradle.workers.internal;
 import org.gradle.workers.IsolationMode;
 
 public interface WorkerFactory {
-    <T extends WorkSpec> Worker<T> getWorker(Class<? extends WorkerProtocol<T>> workerImplementationClass, DaemonForkOptions forkOptions);
+    Worker getWorker(DaemonForkOptions forkOptions);
 
     IsolationMode getIsolationMode();
 }

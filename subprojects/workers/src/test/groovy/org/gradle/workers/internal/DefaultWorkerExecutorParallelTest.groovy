@@ -17,14 +17,15 @@
 package org.gradle.workers.internal
 
 import com.google.common.util.concurrent.ListenableFutureTask
+import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
@@ -44,6 +45,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def fileResolver = Mock(FileResolver)
     def stoppableExecutor = Mock(ManagedExecutor)
     def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
+    def instantiatorFactory = Mock(InstantiatorFactory)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
 

@@ -101,7 +101,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             public DefaultWorkResult call() throws Exception {
                 try {
                     WorkerFactory workerFactory = getWorkerFactory(isolationMode);
-                    Worker<ActionExecutionSpec> worker = workerFactory.getWorker(getWorkerServer(isolationMode), daemonForkOptions);
+                    Worker worker = workerFactory.getWorker(daemonForkOptions);
                     return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);
@@ -128,19 +128,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 return noIsolationWorkerFactory;
             case PROCESS:
                 return daemonWorkerFactory;
-            default:
-                throw new IllegalArgumentException("Unknown isolation mode: " + isolationMode);
-        }
-    }
-
-    private Class<? extends WorkerProtocol<ActionExecutionSpec>> getWorkerServer(IsolationMode isolationMode) {
-        switch(isolationMode) {
-            case AUTO:
-            case CLASSLOADER:
-            case NONE:
-                return WorkerServer.class;
-            case PROCESS:
-                return WorkerDaemonServer.class;
             default:
                 throw new IllegalArgumentException("Unknown isolation mode: " + isolationMode);
         }

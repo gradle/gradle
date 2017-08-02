@@ -41,5 +41,8 @@ public interface CrossBuildInMemoryCache<K, V> {
      */
     void put(K key, V value);
 
+    /**
+     * Removes all entries from this cache.
+     */
     void clear();
 }

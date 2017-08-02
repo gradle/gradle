@@ -19,9 +19,11 @@ package org.gradle.api.internal.cache
 import org.gradle.api.Transformer
 import org.gradle.initialization.SessionLifecycleListener
 import org.gradle.internal.event.DefaultListenerManager
-import spock.lang.Specification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-class CrossBuildInMemoryCacheFactoryTest extends Specification {
+import java.util.concurrent.CopyOnWriteArrayList
+
+class CrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
     def listenerManager = new DefaultListenerManager()
     def factory = new CrossBuildInMemoryCacheFactory(listenerManager)
 
@@ -72,6 +74,38 @@ class CrossBuildInMemoryCacheFactoryTest extends Specification {
         0 * transformer._
     }
 
+    def "entry is created once when multiple threads attempt to create the same entry"() {
+        def a = new Object()
+        def transformer = Mock(Transformer)
+
+        given:
+        def cache = factory.newCache()
+
+        when:
+        def values = new CopyOnWriteArrayList()
+        async {
+            start {
+                values << cache.get("a", transformer)
+            }
+            start {
+                values << cache.get("a", transformer)
+            }
+            start {
+                values << cache.get("a", transformer)
+            }
+            start {
+                values << cache.get("a", transformer)
+            }
+        }
+
+        then:
+        values.unique() == [a]
+
+        and:
+        1 * transformer.transform("a") >> a
+        0 * transformer._
+    }
+
     def "can get entries"() {
         def a = new Object()
         def b = new Object()
@@ -112,4 +146,27 @@ class CrossBuildInMemoryCacheFactoryTest extends Specification {
         then:
         0 * transformer._
     }
+
+    def "creates a cache whose keys are classes"() {
+        def a = new Object()
+        def b = new Object()
+        def c = new Object()
+        def transformer = Mock(Transformer)
+
+        given:
+        transformer.transform(String) >> a
+        transformer.transform(Long) >> b
+
+        def cache = factory.newCache()
+
+        expect:
+        cache.get(String, transformer) == a
+        cache.get(Long, transformer) == b
+        cache.get(String) == a
+        cache.get(Long) == b
+
+        cache.put(String, c)
+        cache.get(String) == c
+    }
+
 }

@@ -91,7 +91,7 @@ public class WorkerDaemonExpiration implements MemoryHolder {
             return toExpire;
         }
 
-        private long getMemoryUsage(WorkerDaemonClient<?> idleClient) {
+        private long getMemoryUsage(WorkerDaemonClient idleClient) {
             // prefer to use the actual memory usage reported by the worker
             try {
                 return idleClient.getJvmMemoryStatus().getCommittedMemory();

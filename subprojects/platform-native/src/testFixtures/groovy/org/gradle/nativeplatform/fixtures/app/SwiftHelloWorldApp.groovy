@@ -20,6 +20,29 @@ import org.gradle.integtests.fixtures.SourceFile
 
 class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
+    List<SourceFile> getAllFiles() {
+        sourceFiles
+    }
+
+    @Override
+    TestNativeComponent getExecutable() {
+        def delegate = super.getExecutable()
+        return new TestNativeComponent() {
+            @Override
+            List<SourceFile> getHeaderFiles() {
+                return delegate.getHeaderFiles()
+            }
+
+            @Override
+            List<SourceFile> getSourceFiles() {
+                return delegate.getSourceFiles().collect {
+                    sourceFile(it.path, it.name, "import greeter\n${it.content}")
+                }
+            }
+        }
+    }
+
+    @Override
     SourceFile getMainSource() {
         return sourceFile("swift", "main.swift", """
             // Simple hello world app
@@ -37,7 +60,7 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     SourceFile getAlternateMainSource() {
         sourceFile("swift", "main.swift", """
             func main() -> Int {
-              let greeter = Greater()
+              let greeter = Greeter()
               greeter.sayHello()
               return 0
             }
@@ -47,6 +70,22 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     }
 
     String alternateOutput = "$HELLO_WORLD\n"
+
+    @Override
+    TestNativeComponent getLibrary() {
+        def delegate = super.getLibrary()
+        return new TestNativeComponent() {
+            @Override
+            List<SourceFile> getHeaderFiles() {
+                return Collections.<SourceFile>emptyList()
+            }
+
+            @Override
+            List<SourceFile> getSourceFiles() {
+                return delegate.getSourceFiles()
+            }
+        }
+    }
 
     @Override
     SourceFile getLibraryHeader() {
@@ -65,7 +104,6 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
                 return "${HELLO_WORLD_FRENCH}"
             }
             #endif
-
 
             public class Greeter {
                 public init() {}
@@ -124,5 +162,10 @@ class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     String getSourceSetType() {
         return "SwiftSourceSet"
+    }
+
+    @Override
+    List<SourceFile> getSourceFiles() {
+        librarySources + [mainSource]
     }
 }

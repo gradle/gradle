@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Timeout
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
 // no point, always runs in parallel
@@ -368,5 +369,35 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         blockingServer.expectConcurrent(":cPing")
 
         run ":cPing", ":aPing"
+    }
+
+    @Timeout(30)
+    def "handles an exception thrown while walking the task graph when a finalizer is present"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            class BrokenTask extends DefaultTask {
+                @OutputFiles
+                FileCollection getOutputFiles() {
+                    throw new RuntimeException('BOOM!')
+                }
+                
+                @TaskAction
+                void doSomething() {
+                    println "Executing broken task..."
+                }
+            }
+            
+            task brokenTask(type: BrokenTask) 
+            aPing.finalizedBy brokenTask
+        """
+
+        expect:
+        blockingServer.expectConcurrent(":aPing")
+        fails ":aPing"
+
+        and:
+        failure.assertHasDescription("BOOM!")
     }
 }

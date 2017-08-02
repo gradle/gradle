@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cleanup;
 
-import org.gradle.api.file.FileCollection;
+import java.io.File;
 
 public interface BuildOutputCleanupRegistry {
 
@@ -26,7 +26,9 @@ public interface BuildOutputCleanupRegistry {
     void registerOutputs(Object files);
 
     /**
-     * Returns all registered outputs.
+     * Determines if an output file is owned by this build and therefore can be safely removed.
+     *
+     * A file is owned by the build if it is registered as an output directly or within a directory registered as an output.
      */
-    FileCollection getOutputs();
+    boolean isOutputOwnedByBuild(File file);
 }
