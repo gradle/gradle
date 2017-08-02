@@ -556,13 +556,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Task doFirst(final Closure action) {
+        return doFirst("doFirst {} action", action);
+    }
+
+    @Override
+    public Task doFirst(final String actionName, final Closure action) {
         hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doFirst(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(0, convertClosureToAction(action, "doFirst {}"));
+                getTaskActions().add(0, convertClosureToAction(action, actionName));
             }
         });
         return this;
@@ -570,13 +575,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Task doLast(final Closure action) {
+        return doLast("doLast {} action", action);
+    }
+
+    @Override
+    public Task doLast(final String actionName, final Closure action) {
         hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doLast(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(convertClosureToAction(action, "doLast {}"));
+                getTaskActions().add(convertClosureToAction(action, actionName));
             }
         });
         return this;
@@ -592,7 +602,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.leftShift(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(taskMutator.leftShift(convertClosureToAction(action, "doLast {}")));
+                getTaskActions().add(taskMutator.leftShift(convertClosureToAction(action, "doLast {} action")));
             }
         });
         return this;
@@ -633,8 +643,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return validators;
     }
 
-    private ContextAwareTaskAction convertClosureToAction(Closure actionClosure, String displayHint) {
-        return new ClosureTaskAction(actionClosure, displayHint);
+    private ContextAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
+        return new ClosureTaskAction(actionClosure, actionName);
     }
 
     private ContextAwareTaskAction wrap(final Action<? super Task> action) {
@@ -662,11 +672,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private static class ClosureTaskAction implements ContextAwareTaskAction {
         private final Closure closure;
-        private final String displayHint;
+        private final String actionName;
 
-        private ClosureTaskAction(Closure closure, String displayHint) {
+        private ClosureTaskAction(Closure closure, String actionName) {
             this.closure = closure;
-            this.displayHint = displayHint;
+            this.actionName = actionName;
         }
 
         @Override
@@ -712,7 +722,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public String getDisplayName() {
-            return "Execute " + displayHint + " action";
+            return "Execute " + actionName;
         }
     }
 
