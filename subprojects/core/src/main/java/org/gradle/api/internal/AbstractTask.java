@@ -407,7 +407,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.doFirst(Action)", new Runnable() {
             public void run() {
-                getTaskActions().add(0, wrap(action));
+                getTaskActions().add(0, wrap(action, "doFirst(Action)"));
             }
         });
         return this;
@@ -421,7 +421,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.doLast(Action)", new Runnable() {
             public void run() {
-                getTaskActions().add(wrap(action));
+                getTaskActions().add(wrap(action, "doLast(Action)"));
             }
         });
         return this;
@@ -592,7 +592,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.leftShift(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(taskMutator.leftShift(convertClosureToAction(action, "<<")));
+                getTaskActions().add(taskMutator.leftShift(convertClosureToAction(action, "doLast {}")));
             }
         });
         return this;
@@ -638,10 +638,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private ContextAwareTaskAction wrap(final Action<? super Task> action) {
+        return wrap(action, "unnamed");
+    }
+
+    private ContextAwareTaskAction wrap(final Action<? super Task> action, String displayHint) {
         if (action instanceof ContextAwareTaskAction) {
             return (ContextAwareTaskAction) action;
         }
-        return new TaskActionWrapper(action);
+        return new TaskActionWrapper(action, displayHint);
     }
 
     private static class TaskInfo {
@@ -714,9 +718,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private static class TaskActionWrapper implements ContextAwareTaskAction {
         private final Action<? super Task> action;
+        private final String displayHint;
 
-        public TaskActionWrapper(Action<? super Task> action) {
+        /**
+         * The <i>displayHint</i> is used to construct a human readable name for
+         * the actions to be used in progress logging. It is only used if
+         * the wrapped action does not already implement {@link Describable}.
+         */
+        public TaskActionWrapper(Action<? super Task> action, String displayHint) {
             this.action = action;
+            this.displayHint = displayHint;
         }
 
         @Override
@@ -790,7 +801,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (action instanceof Describable) {
                 return ((Describable) action).getDisplayName();
             }
-            return "Execute unnamed task action";
+            return "Execute " + displayHint + " action";
         }
     }
 
