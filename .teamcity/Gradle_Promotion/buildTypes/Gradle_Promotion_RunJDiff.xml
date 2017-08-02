@@ -34,7 +34,7 @@
         <parameters>
           <param name="afterSuccessfulBuildOnly" value="true" />
           <param name="branchFilter" value="+:release" />
-          <param name="dependsOn" value="Gradle_Check_Stage2_Passes" />
+          <param name="dependsOn" value="Gradle_Check_Stage_QuickFeedback_Trigger" />
         </parameters>
       </build-trigger>
     </build-triggers>
