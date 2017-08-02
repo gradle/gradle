@@ -18,13 +18,18 @@ package org.gradle.api.internal.artifacts.dsl
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -109,6 +114,62 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact.classifier == null
     }
 
+    def "create artifact from buildable RegularFile provider"() {
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        def provider = Mock(BuildableProvider)
+        def value = Mock(RegularFile)
+        def file1 = new File("classes-1.zip")
+
+        _ * provider.get() >> value
+        _ * value.get() >> file1
+        _ * provider.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task1); context.add(task2) }
+
+        when:
+        def publishArtifact = publishArtifactNotationParser.parseNotation(provider)
+
+        then:
+        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact.file == file1
+        publishArtifact.name == "classes-1"
+        publishArtifact.extension == "zip"
+        publishArtifact.classifier == null
+
+        when:
+        def deps = publishArtifact.buildDependencies
+
+        then:
+        deps.getDependencies(null) == [task1, task2] as Set
+    }
+
+    def "create artifact from buildable Directory provider"() {
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        def provider = Mock(BuildableProvider)
+        def value = Mock(Directory)
+        def file1 = new File("classes-1.dir")
+
+        _ * provider.get() >> value
+        _ * value.get() >> file1
+        _ * provider.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task1); context.add(task2) }
+
+        when:
+        def publishArtifact = publishArtifactNotationParser.parseNotation(provider)
+
+        then:
+        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact.file == file1
+        publishArtifact.name == "classes-1"
+        publishArtifact.extension == "dir"
+        publishArtifact.classifier == null
+
+        when:
+        def deps = publishArtifact.buildDependencies
+
+        then:
+        deps.getDependencies(null) == [task1, task2] as Set
+    }
+
     def createArtifactFromFileInMap() {
         Task task = Mock()
         def file = new File("some-file-1.2-classifier.zip")
@@ -145,7 +206,12 @@ The following types/formats are supported:
   - Instances of ConfigurablePublishArtifact.
   - Instances of PublishArtifact.
   - Instances of AbstractArchiveTask, for example jar.
-  - Maps
-  - Instances of File."""))
+  - Instances of Provider<RegularFile>
+  - Instances of Provider<Directory>
+  - Instances of File.
+  - Maps with 'file' key"""))
+    }
+
+    interface BuildableProvider extends Provider, TaskDependencyContainer {
     }
 }
