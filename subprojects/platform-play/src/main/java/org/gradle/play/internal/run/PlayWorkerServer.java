@@ -28,7 +28,7 @@ import java.net.InetSocketAddress;
 import java.net.URLClassLoader;
 import java.util.concurrent.CountDownLatch;
 
-public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Serializable {
+public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, ReloadListener, Serializable {
 
     private PlayRunSpec runSpec;
     private VersionedPlayRunAdapter runAdapter;
@@ -75,7 +75,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         thread.setContextClassLoader(classLoader);
         try {
             Object buildDocHandler = runAdapter.getBuildDocHandler(classLoader, runSpec.getClasspath());
-            Object buildLink = runAdapter.getBuildLink(classLoader, runSpec.getProjectPath(), runSpec.getApplicationJar(), runSpec.getChangingClasspath(), runSpec.getAssetsJar(), runSpec.getAssetsDirs());
+            Object buildLink = runAdapter.getBuildLink(classLoader, this, runSpec.getProjectPath(), runSpec.getApplicationJar(), runSpec.getChangingClasspath(), runSpec.getAssetsJar(), runSpec.getAssetsDirs());
             return runAdapter.runDevHttpServer(classLoader, classLoader, buildLink, buildDocHandler, runSpec.getHttpPort());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -97,5 +97,10 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     @Override
     public void outOfDate() {
         runAdapter.outOfDate();
+    }
+
+    @Override
+    public void reloadRequested() {
+        System.out.println("reload requested");
     }
 }

@@ -64,7 +64,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     protected abstract Class<?> getBuildDocHandlerClass(ClassLoader docsClassLoader) throws ClassNotFoundException;
 
     @Override
-    public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
+    public Object getBuildLink(final ClassLoader classLoader, final ReloadListener reloadListener, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
         final ClassLoader assetsClassLoader = createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
         final Class<? extends Throwable> playExceptionClass = Cast.uncheckedCast(classLoader.loadClass(PLAY_EXCEPTION_CLASSNAME));
 
@@ -73,6 +73,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                 if (method.getName().equals("projectPath")) {
                     return projectPath;
                 } else if (method.getName().equals("reload")) {
+
+                    reloadListener.reloadRequested();
 
                     synchronized (blockReload) {
                         LOGGER.debug("waiting for blockReload to clear {} ", blockReload.get());
