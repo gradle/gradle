@@ -52,4 +52,9 @@ public class DefaultBuildGateToken implements BuildGateToken {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return "Gate is " + (gate.get() ? "open" : "closed");
+    }
 }
