@@ -54,7 +54,7 @@ public class TaskClassValidator implements TaskValidator, Action<Task>, Describa
 
     @Override
     public String getDisplayName() {
-        return "Validate task input";
+        return "Validate task inputs";
     }
 
     private static class FutureValue implements Callable<Object> {
