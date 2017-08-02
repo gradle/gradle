@@ -14,7 +14,7 @@ import model.Stage
 import model.TestType
 import model.Trigger
 
-class StagePasses(model: CIBuildModel, stage: Stage) : BuildType({
+class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BuildType({
     uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ","")}_Trigger"
     extId = uuid
     name = stage.name + " (Trigger)"
@@ -81,8 +81,8 @@ class StagePasses(model: CIBuildModel, stage: Stage) : BuildType({
     }
 
     dependencies {
-        if (stage.name != "Quick Feedback") {
-            dependency("${model.projectPrefix}Stage_QuickFeedback_Trigger") {
+        if (prevStage != null) {
+            dependency("${model.projectPrefix}Stage_${prevStage.name.replace(" ","")}_Trigger") {
                 snapshot {
                     onDependencyFailure = FailureAction.ADD_PROBLEM
                 }

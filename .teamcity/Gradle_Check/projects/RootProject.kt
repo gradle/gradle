@@ -5,6 +5,7 @@ import jetbrains.buildServer.configs.kotlin.v10.Project
 import jetbrains.buildServer.configs.kotlin.v10.projectFeatures.VersionedSettings
 import jetbrains.buildServer.configs.kotlin.v10.projectFeatures.versionedSettings
 import model.CIBuildModel
+import model.Stage
 
 class RootProject(model: CIBuildModel) : Project({
     uuid = model.projectPrefix.removeSuffix("_")
@@ -24,9 +25,11 @@ class RootProject(model: CIBuildModel) : Project({
         }
     }
 
+    var prevStage: Stage? = null
     model.stages.forEach { stage ->
-        buildType(StagePasses(model, stage))
+        buildType(StagePasses(model, stage, prevStage))
         subProject(StageProject(model, stage))
+        prevStage = stage
     }
 
     if (model.stages.map { stage -> stage.performanceTests }.flatten().isNotEmpty()) {
