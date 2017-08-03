@@ -72,6 +72,7 @@ public class IncrementalCompilerDecorator {
             return cleaningCompiler;
         }
         if (!annotationProcessorPath.isEmpty()) {
+            LOG.info("Forcing incremental build with annotation processor present.");
             // Enable incremental AP in the INCAP fork.
             // LOG.info("{} - is not incremental. Annotation processors are present.", displayName);
             // return cleaningCompiler;
