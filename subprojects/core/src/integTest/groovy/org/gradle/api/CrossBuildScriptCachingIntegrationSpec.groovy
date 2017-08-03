@@ -299,6 +299,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(buildHash, sharedHash)
 
         when:
+        server.expect(server.head("shared.gradle"))
         server.expect(server.resource("shared.gradle", "println 'Echo 1'"))
 
         run 'tasks'

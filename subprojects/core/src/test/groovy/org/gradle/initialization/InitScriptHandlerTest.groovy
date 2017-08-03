@@ -18,7 +18,7 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.configuration.InitScriptProcessor
-import org.gradle.groovy.scripts.UriScriptSource
+import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -61,8 +61,8 @@ class InitScriptHandlerTest extends Specification {
         handler.executeScripts(gradle)
 
         then:
-        1 * processor.process({ UriScriptSource source -> source.resource.file == script1 }, gradle)
-        1 * processor.process({ UriScriptSource source -> source.resource.file == script2 }, gradle)
+        1 * processor.process({ TextResourceScriptSource source -> source.resource.file == script1 }, gradle)
+        1 * processor.process({ TextResourceScriptSource source -> source.resource.file == script2 }, gradle)
         0 * executor._
         0 * processor._
     }

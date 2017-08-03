@@ -41,12 +41,13 @@ import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
+import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
 import org.gradle.plugin.use.internal.PluginRequestApplicator
-import org.gradle.plugin.management.internal.PluginRequests
 import spock.lang.Specification
 
 class DefaultScriptPluginFactoryTest extends Specification {
@@ -74,9 +75,10 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def pluginRepositoryRegistry = Mock(PluginRepositoryRegistry)
     def pluginRepositoryFactory = Mock(PluginRepositoryFactory)
     def providerFactory = Mock(ProviderFactory)
+    def textResourceLoader = Mock(TextResourceLoader)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
-        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry, pluginRepositoryFactory, providerFactory)
+        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry, pluginRepositoryFactory, providerFactory, textResourceLoader)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)

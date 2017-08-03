@@ -138,6 +138,7 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -294,7 +295,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ModelRuleSourceDetector.class),
             get(PluginRepositoryRegistry.class),
             get(PluginRepositoryFactory.class),
-            get(ProviderFactory.class));
+            get(ProviderFactory.class),
+            get(TextResourceLoader.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,

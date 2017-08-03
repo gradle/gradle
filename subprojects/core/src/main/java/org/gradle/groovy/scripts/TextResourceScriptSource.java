@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.groovy.scripts;
 
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.resource.ResourceLocation;
+import org.gradle.internal.resource.TextResource;
 
 import java.net.URI;
 
@@ -25,9 +26,35 @@ import static java.lang.Character.isJavaIdentifierStart;
 import static org.apache.commons.lang.StringUtils.substringAfterLast;
 import static org.apache.commons.lang.StringUtils.substringBeforeLast;
 
-public abstract class AbstractUriScriptSource implements ScriptSource {
-
+/**
+ * A {@link ScriptSource} which loads the script from a URI.
+ */
+public class TextResourceScriptSource implements ScriptSource {
+    private final TextResource resource;
     private String className;
+
+    public TextResourceScriptSource(TextResource resource) {
+        this.resource = resource;
+    }
+
+    public TextResource getResource() {
+        return resource;
+    }
+
+    public String getFileName() {
+        ResourceLocation location = resource.getLocation();
+        if (location.getFile() != null) {
+            return location.getFile().getPath();
+        }
+        if (location.getURI() != null) {
+            return location.getURI().toString();
+        }
+        return getClassName();
+    }
+
+    public String getDisplayName() {
+        return resource.getDisplayName();
+    }
 
     /**
      * Returns the class name for use for this script source.  The name is intended to be unique to support mapping
@@ -35,11 +62,19 @@ public abstract class AbstractUriScriptSource implements ScriptSource {
      */
     public String getClassName() {
         if (className == null) {
-            URI sourceUri = getResource().getLocation().getURI();
-            String path = sourceUri.toString();
-            this.className = classNameFromPath(path);
+            this.className = initClassName();
         }
         return className;
+    }
+
+    private String initClassName() {
+        URI sourceUri = getResource().getLocation().getURI();
+        if (sourceUri != null) {
+            String path = sourceUri.toString();
+            return classNameFromPath(path);
+        }
+
+        return "script_" + HashUtil.createCompactMD5(resource.getText());
     }
 
     private String classNameFromPath(String path) {
@@ -60,4 +95,5 @@ public abstract class AbstractUriScriptSource implements ScriptSource {
 
         return className.toString();
     }
+
 }
