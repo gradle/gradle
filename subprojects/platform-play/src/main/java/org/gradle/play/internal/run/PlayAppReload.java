@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.play.internal.run;
 
-public interface BuildGateToken {
-    void addGateKeeper(GateKeeper gatekeeper);
-    void open(GateKeeper gatekeeper);
-    void close(GateKeeper gatekeeper);
+public class PlayAppReload extends PlayAppLifecycleUpdate {
+    private final boolean reloadStart;
 
-    void waitForOpen();
+    public PlayAppReload(boolean reloadStart) {
+        this.reloadStart = reloadStart;
+    }
 
-    interface GateKeeper {
+    public boolean isReloadStart() {
+        return reloadStart;
+    }
+
+    @Override
+    public String toString() {
+        return "PlayAppReload{"
+            + "reloadStart=" + reloadStart
+            + '}';
     }
 }

@@ -28,7 +28,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.deployment.internal.DeploymentRegistry;
-import org.gradle.initialization.BuildGateToken;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
@@ -87,8 +86,6 @@ public class PlayRun extends ConventionTask {
     public void run() {
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
         PlayApplicationDeploymentHandle deploymentHandle = startOrFindDeploymentHandle(getPath());
-        BuildGateToken gateToken = getServices().get(BuildGateToken.class);
-        System.out.println(gateToken);
 
         String playUrl = "http://" + deploymentHandle.getPlayAppAddress() + "/";
 

@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.play.internal.run;
 
-public interface BuildGateToken {
-    void addGateKeeper(GateKeeper gatekeeper);
-    void open(GateKeeper gatekeeper);
-    void close(GateKeeper gatekeeper);
-
-    void waitForOpen();
-
-    interface GateKeeper {
+public class PlayAppStop extends PlayAppLifecycleUpdate {
+    @Override
+    public String toString() {
+        return "PlayAppStop{}";
     }
 }

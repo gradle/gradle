@@ -17,6 +17,7 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
+import org.gradle.initialization.BuildGateToken;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -26,10 +27,12 @@ import java.io.File;
 
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
+    private final BuildGateToken gateToken;
     private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter) {
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, BuildGateToken gateToken, VersionedPlayRunAdapter adapter) {
         this.workerFactory = workerFactory;
+        this.gateToken = gateToken;
         this.adapter = adapter;
     }
 
@@ -37,11 +40,11 @@ public class PlayApplicationRunner {
         WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 
-        PlayWorkerClient clientCallBack = new PlayWorkerClient();
+        PlayWorkerClient clientCallBack = new PlayWorkerClient(gateToken);
         process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, clientCallBack);
         PlayRunWorkerServerProtocol workerServer = process.getConnection().addOutgoing(PlayRunWorkerServerProtocol.class);
         process.getConnection().connect();
-        PlayAppLifecycleUpdate result = clientCallBack.waitForRunning();
+        PlayAppStart result = clientCallBack.waitForRunning();
         if (result.isRunning()) {
             return new PlayApplicationRunnerToken(workerServer, clientCallBack, process, result.getAddress());
         } else {

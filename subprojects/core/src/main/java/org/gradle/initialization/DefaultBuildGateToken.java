@@ -16,45 +16,81 @@
 
 package org.gradle.initialization;
 
+import com.google.common.collect.Lists;
 import org.gradle.internal.UncheckedException;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultBuildGateToken implements BuildGateToken {
-    private AtomicBoolean gate = new AtomicBoolean(true);
+    private final Lock lock = new ReentrantLock();
+    private final Condition opened = lock.newCondition();
+    private final List<GateKeeper> gatekeepers = Lists.newArrayList();
+    private GateKeeper openedBy;
 
     @Override
-    public void block() {
-        gate(false);
+    public void addGateKeeper(GateKeeper gatekeeper) {
+        lock.lock();
+        try {
+            gatekeepers.add(gatekeeper);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
-    public void release() {
-        gate(true);
+    public void open(GateKeeper gatekeeper) {
+        lock.lock();
+        try {
+            // gate hasn't been opened yet
+            if (isClosed()) {
+                openedBy = gatekeeper;
+                opened.signalAll();
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
-    private void gate(boolean open) {
-        synchronized (gate) {
-            gate.set(open);
-            gate.notifyAll();
+    private boolean isClosed() {
+        return openedBy == null;
+    }
+
+    @Override
+    public void close(GateKeeper gatekeeper) {
+        lock.lock();
+        try {
+            // The same gatekeeper that opened it, must close it
+            if (gatekeeper.equals(openedBy)) {
+                openedBy = null;
+            }
+            System.out.println("closing by " + gatekeeper);
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void waitForOpen() {
-        synchronized (gate) {
-            try {
-                while (!gate.get()) {
-                    gate.wait();
+        lock.lock();
+        try {
+            if (!gatekeepers.isEmpty()) {
+                if (isClosed()) {
+                    // wait for it to open
+                    opened.await();
                 }
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
             }
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public String toString() {
-        return "Gate is " + (gate.get() ? "open" : "closed");
+        return "Gate is " + (!isClosed() ? "open" : "closed");
     }
 }

@@ -19,54 +19,24 @@ package org.gradle.play.internal.run;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 
-public class PlayAppLifecycleUpdate implements Serializable {
-    private final InetSocketAddress address;
-    private final Exception exception;
-
-    public static PlayAppLifecycleUpdate stopped() {
-        return new PlayAppLifecycleUpdate();
+abstract class PlayAppLifecycleUpdate implements Serializable {
+    static PlayAppLifecycleUpdate stopped() {
+        return new PlayAppStop();
     }
 
-    public static PlayAppLifecycleUpdate running(InetSocketAddress address) {
-        return new PlayAppLifecycleUpdate(address);
+    static PlayAppLifecycleUpdate running(InetSocketAddress address) {
+        return new PlayAppStart(address);
     }
 
-    public static PlayAppLifecycleUpdate failed(Exception exception) {
-        return new PlayAppLifecycleUpdate(exception);
+    static PlayAppLifecycleUpdate failed(Exception exception) {
+        return new PlayAppStart(exception);
     }
 
-    private PlayAppLifecycleUpdate() {
-        this.address = null;
-        this.exception = null;
+    static PlayAppLifecycleUpdate reloadRequested() {
+        return new PlayAppReload(true);
     }
 
-    private PlayAppLifecycleUpdate(InetSocketAddress address) {
-        this.address = address;
-        this.exception = null;
-    }
-
-    private PlayAppLifecycleUpdate(Exception exception) {
-        this.address = null;
-        this.exception = exception;
-    }
-
-    public Exception getException() {
-        return exception;
-    }
-
-    public InetSocketAddress getAddress() {
-        return address;
-    }
-
-    public boolean isRunning() {
-        return address!=null && exception == null;
-    }
-
-    public boolean isStopped() {
-        return address==null && exception == null;
-    }
-
-    public boolean isFailed() {
-        return exception != null;
+    static PlayAppLifecycleUpdate reloadCompleted() {
+        return new PlayAppReload(false);
     }
 }

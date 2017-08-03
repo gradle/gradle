@@ -18,4 +18,5 @@ package org.gradle.play.internal.run;
 
 public interface ReloadListener {
     void reloadRequested();
+    void reloadComplete();
 }

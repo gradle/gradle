@@ -76,36 +76,40 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
                     reloadListener.reloadRequested();
 
-                    synchronized (blockReload) {
-                        LOGGER.debug("waiting for blockReload to clear {} ", blockReload.get());
-                        while (blockReload.get()) {
-                            blockReload.wait();
+                    try {
+                        synchronized (blockReload) {
+                            LOGGER.debug("waiting for blockReload to clear {} ", blockReload.get());
+                            while (blockReload.get()) {
+                                blockReload.wait();
+                            }
+                            LOGGER.debug("blockReload cleared {} ", blockReload.get());
                         }
-                        LOGGER.debug("blockReload cleared {} ", blockReload.get());
-                    }
 
-                    // We can't close replaced loaders immediately, because their classes may be used during shutdown,
-                    // after the return of the reload() call that caused the loader to be swapped out.
-                    // We have no way of knowing when the loader is actually done with, so we use the request after the request
-                    // that triggered the reload as the trigger point to close the replaced loader.
-                    closeOldLoaders();
-                    if (buildFailure == null) {
-                        ClassPath classpath = new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
-                        URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
-                        storeClassLoader(currentClassLoader);
-                        return currentClassLoader;
-                    } else {
-                        Throwable failure = buildFailure;
-                        if (failure == null) {
-                            return null;
+                        // We can't close replaced loaders immediately, because their classes may be used during shutdown,
+                        // after the return of the reload() call that caused the loader to be swapped out.
+                        // We have no way of knowing when the loader is actually done with, so we use the request after the request
+                        // that triggered the reload as the trigger point to close the replaced loader.
+                        closeOldLoaders();
+                        if (buildFailure == null) {
+                            ClassPath classpath = new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
+                            URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
+                            storeClassLoader(currentClassLoader);
+                            return currentClassLoader;
                         } else {
-                            try {
-                                return DirectInstantiator.instantiate(playExceptionClass, "Gradle Build Failure", failure.getMessage(), failure);
-                            } catch (Exception e) {
-                                LOGGER.warn("Could not translate " + failure + " to " + PLAY_EXCEPTION_CLASSNAME, e);
-                                return failure;
+                            Throwable failure = buildFailure;
+                            if (failure == null) {
+                                return null;
+                            } else {
+                                try {
+                                    return DirectInstantiator.instantiate(playExceptionClass, "Gradle Build Failure", failure.getMessage(), failure);
+                                } catch (Exception e) {
+                                    LOGGER.warn("Could not translate " + failure + " to " + PLAY_EXCEPTION_CLASSNAME, e);
+                                    return failure;
+                                }
                             }
                         }
+                    } finally {
+                        reloadListener.reloadComplete();
                     }
                 } else if (method.getName().equals("settings")) {
                     return new HashMap<String, String>();

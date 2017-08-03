@@ -34,6 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWaiterFactory {
     public static final String QUIET_PERIOD_SYSPROP = "org.gradle.internal.filewatch.quietperiod";
+    private static final String TRIGGER_BUILD_SYSPROP = "org.gradle.internal.continuous.trigger";
 
     private final FileWatcherFactory fileWatcherFactory;
     private final long quietPeriodMillis;
@@ -44,6 +45,10 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
 
     private static long getDefaultQuietPeriod() {
         return Long.getLong(QUIET_PERIOD_SYSPROP, 250L);
+    }
+
+    private static boolean isTriggerBuild() {
+        return Boolean.getBoolean(TRIGGER_BUILD_SYSPROP);
     }
 
     public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
@@ -142,7 +147,9 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 if (throwable != null) {
                     throw throwable;
                 }
-                buildGateToken.waitForOpen();
+                if (isTriggerBuild()) {
+                    buildGateToken.waitForOpen();
+                }
             } catch (Throwable e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             } finally {

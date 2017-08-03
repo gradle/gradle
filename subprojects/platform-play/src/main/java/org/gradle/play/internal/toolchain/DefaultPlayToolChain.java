@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.initialization.BuildGateToken;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -47,14 +48,16 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private final DependencyHandler dependencyHandler;
     private final WorkerProcessFactory workerProcessBuilderFactory;
     private final WorkerDirectoryProvider workerDirectoryProvider;
+    private final BuildGateToken gateToken;
 
-    public DefaultPlayToolChain(FileResolver fileResolver, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider) {
+    public DefaultPlayToolChain(FileResolver fileResolver, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, BuildGateToken gateToken) {
         this.fileResolver = fileResolver;
         this.workerDaemonFactory = workerDaemonFactory;
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
         this.workerDirectoryProvider = workerDirectoryProvider;
+        this.gateToken = gateToken;
     }
 
     @Override
@@ -73,7 +76,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
             Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> javascriptClasspath = resolveToolClasspath(GoogleClosureCompiler.getDependencyNotation()).resolve();
-            return new DefaultPlayToolProvider(fileResolver, workerDirectoryProvider.getIdleWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath);
+            return new DefaultPlayToolProvider(fileResolver, gateToken, workerDirectoryProvider.getIdleWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath);
         } catch (ResolveException e) {
             return new UnavailablePlayToolProvider(e);
         }

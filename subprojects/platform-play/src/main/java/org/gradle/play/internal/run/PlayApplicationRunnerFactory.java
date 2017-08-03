@@ -16,13 +16,14 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.initialization.BuildGateToken;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 public class PlayApplicationRunnerFactory {
-    public static PlayApplicationRunner create(PlayPlatform playPlatform, WorkerProcessFactory workerFactory) {
-        return new PlayApplicationRunner(workerFactory, createPlayRunAdapter(playPlatform));
+    public static PlayApplicationRunner create(PlayPlatform playPlatform, BuildGateToken gateToken, WorkerProcessFactory workerFactory) {
+        return new PlayApplicationRunner(workerFactory, gateToken, createPlayRunAdapter(playPlatform));
     }
 
     public static VersionedPlayRunAdapter createPlayRunAdapter(PlayPlatform playPlatform) {

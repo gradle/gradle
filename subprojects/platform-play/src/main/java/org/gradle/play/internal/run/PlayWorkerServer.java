@@ -26,14 +26,16 @@ import org.gradle.process.internal.worker.WorkerProcessContext;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.URLClassLoader;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 
 public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, ReloadListener, Serializable {
 
     private PlayRunSpec runSpec;
     private VersionedPlayRunAdapter runAdapter;
 
-    private volatile CountDownLatch stop;
+    private boolean stopRequested;
+    private final BlockingQueue<PlayAppLifecycleUpdate> events = new SynchronousQueue<PlayAppLifecycleUpdate>();
 
     public PlayWorkerServer(PlayRunSpec runSpec, VersionedPlayRunAdapter runAdapter) {
         this.runSpec = runSpec;
@@ -42,18 +44,19 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
 
     @Override
     public void execute(WorkerProcessContext context) {
-        stop = new CountDownLatch(1);
         final PlayRunWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
         context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class, this);
         context.getServerConnection().connect();
         final PlayAppLifecycleUpdate result = start();
         try {
             clientProtocol.update(result);
-            stop.await();
+            while (!stopRequested) {
+                PlayAppLifecycleUpdate update = events.take();
+                clientProtocol.update(update);
+            }
+            System.out.println("stopping");
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            clientProtocol.update(PlayAppLifecycleUpdate.stopped());
         }
     }
 
@@ -86,7 +89,12 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
 
     @Override
     public void stop() {
-        stop.countDown();
+        stopRequested = true;
+        try {
+            events.put(PlayAppLifecycleUpdate.stopped());
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     @Override
@@ -101,6 +109,21 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
 
     @Override
     public void reloadRequested() {
-        System.out.println("reload requested");
+        System.out.println("reloadRequested");
+        try {
+            events.put(PlayAppLifecycleUpdate.reloadRequested());
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Override
+    public void reloadComplete() {
+        System.out.println("reloadComplete");
+        try {
+            events.put(PlayAppLifecycleUpdate.reloadCompleted());
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }

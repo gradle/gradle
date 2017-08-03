@@ -39,7 +39,7 @@ public class PlayApplicationRunnerToken {
 
     public PlayAppLifecycleUpdate stop() {
         workerServer.stop();
-        PlayAppLifecycleUpdate update = clientCallBack.waitForStop();
+        PlayAppStop update = clientCallBack.waitForStop();
         process.waitForStop();
         stopped.set(true);
         return update;

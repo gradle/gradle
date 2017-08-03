@@ -16,30 +16,51 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.initialization.BuildGateToken;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
+public class PlayWorkerClient implements PlayRunWorkerClientProtocol, BuildGateToken.GateKeeper {
 
-    private final BlockingQueue<PlayAppLifecycleUpdate> startEvent = new SynchronousQueue<PlayAppLifecycleUpdate>();
-    private final BlockingQueue<PlayAppLifecycleUpdate> stopEvent = new SynchronousQueue<PlayAppLifecycleUpdate>();
+    private final BuildGateToken gateToken;
+    private final BlockingQueue<PlayAppStart> startEvent = new SynchronousQueue<PlayAppStart>();
+    private final BlockingQueue<PlayAppStop> stopEvent = new SynchronousQueue<PlayAppStop>();
+
+    public PlayWorkerClient(BuildGateToken gateToken) {
+        this.gateToken = gateToken;
+        gateToken.addGateKeeper(this);
+    }
 
     @Override
     public void update(PlayAppLifecycleUpdate update) {
         try {
-            if (update.isStopped()) {
-                stopEvent.put(update);
+            System.out.println("update = " + update);
+            if (update instanceof PlayAppStart) {
+                startEvent.put((PlayAppStart)update);
+            } else if (update instanceof PlayAppStop) {
+                stopEvent.put((PlayAppStop)update);
+            } else if (update instanceof PlayAppReload) {
+                PlayAppReload playAppReload = (PlayAppReload)update;
+                // TODO: Remove
+                System.out.println(gateToken);
+                if (playAppReload.isReloadStart()) {
+                    gateToken.open(this);
+                } else {
+                    gateToken.close(this);
+                }
+                // TODO: Remove
+                System.out.println(gateToken);
             } else {
-                startEvent.put(update);
+                throw new IllegalStateException("Unexpected event " + update);
             }
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    public PlayAppLifecycleUpdate waitForRunning() {
+    public PlayAppStart waitForRunning() {
         try {
             return startEvent.take();
         } catch (InterruptedException e) {
@@ -47,11 +68,14 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
         }
     }
 
-    public PlayAppLifecycleUpdate waitForStop() {
+    public PlayAppStop waitForStop() {
         try {
+            System.out.println("waitForStop");
             return stopEvent.take();
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            System.out.println("waitForStop - done");
         }
     }
 }
