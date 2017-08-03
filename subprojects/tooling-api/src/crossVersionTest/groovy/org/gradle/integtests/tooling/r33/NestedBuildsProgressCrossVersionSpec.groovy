@@ -54,8 +54,8 @@ class NestedBuildsProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        if (targetVersion.version.startsWith("4.0")) {
-            //this is a regression we accepted in 4.0.x
+        if (targetVersion.version.startsWith("4.0") || targetVersion.version.startsWith("4.1")) {
+            //this is a regression we accepted in 4.0.x and 4.1.x
             assert caughtException instanceof IllegalStateException
             assert caughtException.message =~ "Operation org\\.gradle\\.tooling\\.internal\\.provider\\.events\\.DefaultOperationDescriptor.* already available."
         } else {
