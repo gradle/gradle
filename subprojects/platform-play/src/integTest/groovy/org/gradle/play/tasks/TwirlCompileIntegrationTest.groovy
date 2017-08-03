@@ -219,7 +219,7 @@ Binaries
     def withTemplateSource(File templateFile) {
         templateFile << """@(message: String)
 
-            @play20.welcome(message)
+            <h1>@message</h1>
 
         """
     }
