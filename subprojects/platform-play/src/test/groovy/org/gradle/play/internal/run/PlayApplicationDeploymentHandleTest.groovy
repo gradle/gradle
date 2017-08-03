@@ -17,7 +17,6 @@
 package org.gradle.play.internal.run
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class PlayApplicationDeploymentHandleTest extends Specification {
     PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
@@ -25,16 +24,16 @@ class PlayApplicationDeploymentHandleTest extends Specification {
 
     def failure = new Throwable()
 
-    def "reloading deployment handle reloads runner" () {
+    def "upToDate deployment handle forwards to runnerToken" () {
         when:
-        deploymentHandle.buildSucceeded()
+        deploymentHandle.upToDate(null)
         then:
-        1 * runnerToken.rebuildSuccess()
+        1 * runnerToken.upToDate(null)
 
         when:
-        deploymentHandle.buildFailed(failure)
+        deploymentHandle.upToDate(failure)
         then:
-        1 * runnerToken.rebuildFailure(failure)
+        1 * runnerToken.upToDate(failure)
     }
 
     def "running comes from runnerToken"() {
@@ -52,14 +51,11 @@ class PlayApplicationDeploymentHandleTest extends Specification {
         1 * runnerToken.stop()
     }
 
-    @Unroll
-    def "pendingChanges blocks (#changes) runnerToken"() {
+    def "outOfDate forwards to runnerToken"() {
         when:
-        deploymentHandle.pendingChanges(changes)
+        deploymentHandle.outOfDate()
         then:
-        1 * runnerToken.blockReload(changes)
-        where:
-        changes << [ true, false ]
+        1 * runnerToken.outOfDate()
     }
 
     def "gets application IP from runner"() {
