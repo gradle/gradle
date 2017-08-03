@@ -17,11 +17,9 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 public class PlayRunAdapterV23X extends DefaultVersionedPlayRunAdapter {
@@ -50,14 +48,5 @@ public class PlayRunAdapterV23X extends DefaultVersionedPlayRunAdapter {
             }
         });
         return new AssetsClassLoader(classLoader, assetDirs);
-    }
-
-    @Override
-    public Iterable<Dependency> getRunsupportClasspathDependencies(String playVersion, String scalaCompatibilityVersion) {
-        return Collections.emptyList();
-    }
-
-    protected String getIOSupportDependencyVersion() {
-        return "0.13.6";
     }
 }
