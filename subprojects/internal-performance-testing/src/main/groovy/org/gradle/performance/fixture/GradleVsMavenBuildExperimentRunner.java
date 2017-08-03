@@ -69,7 +69,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
 
                         MavenInvocationSpec invocation = invocationCustomizer.customize(invocationInfo, buildSpec);
                         final ExecAction run = createMavenInvocation(invocation, invocation.getTasksToRun());
-                        System.out.println("Measuring Maven tasks: " + Joiner.on(" ").join(buildSpec.getCleanTasks()));
+                        System.out.println("Measuring Maven tasks: " + Joiner.on(" ").join(buildSpec.getTasksToRun()));
                         DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
                             @Override
                             public void run() {

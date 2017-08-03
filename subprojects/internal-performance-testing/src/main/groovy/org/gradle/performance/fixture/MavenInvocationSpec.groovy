@@ -136,7 +136,11 @@ class MavenInvocationSpec implements InvocationSpec {
         }
 
         InvocationBuilder cleanTasks(String... cleanTasks) {
-            this.cleanTasks.addAll(Arrays.asList(cleanTasks))
+            this.cleanTasks(Arrays.asList(cleanTasks))
+        }
+
+        InvocationBuilder cleanTasks(Iterable<String> cleanTasks) {
+            this.cleanTasks.addAll(cleanTasks)
             this
         }
 

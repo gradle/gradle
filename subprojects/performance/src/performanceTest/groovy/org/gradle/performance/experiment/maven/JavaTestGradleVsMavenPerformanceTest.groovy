@@ -38,16 +38,16 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         if (testProject.parallel) {
             runner.mvnArgs << '-T' << testProject.maxWorkers
         }
-        runner.gradleTasks = gradleTask
-        runner.equivalentMavenTasks = mavenTask
+        runner.gradleTasks = [gradleTask]
+        runner.equivalentMavenTasks = [mavenTask]
         if (mavenTask == "package") {
             runner.mvnArgs << "-Dmaven.test.skip=true"
         }
         runner.warmUpRuns = 2
         runner.runs = 5
 
-        runner.gradleCleanTasks = "clean"
-        runner.equivalentMavenCleanTasks = "clean"
+        runner.gradleCleanTasks = ["clean"]
+        runner.equivalentMavenCleanTasks = ["clean"]
 
         when:
         def results = runner.run()
@@ -73,14 +73,14 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         if (testProject.parallel) {
             runner.mvnArgs << '-T' << testProject.maxWorkers
         }
-        runner.gradleTasks = gradleTask
-        runner.equivalentMavenTasks = mavenTask
+        runner.gradleTasks = gradleTask.split(' ')
+        runner.equivalentMavenTasks = mavenTask.split(' ')
         if (mavenTask == "package") {
             runner.mvnArgs << "-Dmaven.test.skip=true"
         }
         runner.buildExperimentListener = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
-        runner.warmUpRuns = 4
-        runner.runs = 10
+        runner.warmUpRuns = 1
+        runner.runs = 1
 
         when:
         def results = runner.run()
