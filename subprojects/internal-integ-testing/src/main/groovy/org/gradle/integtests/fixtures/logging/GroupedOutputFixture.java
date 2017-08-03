@@ -37,13 +37,14 @@ public class GroupedOutputFixture {
      */
     private final static String TASK_HEADER = "> Task (:[\\w:]*)\\n?";
 
+    private final static String EMBEDDED_BUILD_START = "> :\\w* > root project";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "FAILURE:";
 
     /**
      * Various patterns to detect the end of the task output
      */
-    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER;
+    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START;
 
     private final static String PROGRESS_BAR_PATTERN = "<[-=(\u001b\\[\\d+[a-zA-Z;])]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT)ING \\[((\\d+h )? \\d+m )?\\d+s\\]";
     private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+[a-zA-Z]> (IDLE|[:a-z][\\w\\s\\d:>/\\\\\\.]+)\u001b\\[\\d*[a-zA-Z]";

@@ -396,4 +396,18 @@ BUILD SUCCESSFUL in 6s
 '''
         groupedOutput.task(':run').output == 'Hello, World!'
     }
+
+    def "accepts start of embedded build as end of group"() {
+        def consoleOutput = """
+> Task :helloWorld
+Hello, World!
+
+> :otherBuild > root project"""
+
+        when:
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+
+        then:
+        groupedOutput.task(':helloWorld').output == 'Hello, World!'
+    }
 }
