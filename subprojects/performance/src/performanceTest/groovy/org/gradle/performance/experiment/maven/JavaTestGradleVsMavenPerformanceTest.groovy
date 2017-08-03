@@ -43,8 +43,8 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         if (mavenTask == "package") {
             runner.mvnArgs << "-Dmaven.test.skip=true"
         }
-        runner.warmUpRuns = 4
-        runner.runs = 10
+        runner.warmUpRuns = 2
+        runner.runs = 5
 
         runner.gradleCleanTasks = "clean"
         runner.equivalentMavenCleanTasks = "clean"
