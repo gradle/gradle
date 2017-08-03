@@ -327,7 +327,7 @@ public class XcodePlugin extends IdePlugin {
                 }
             });
 
-            getWorkspaceTask().setXcodeProjectLocations(project.provider(new Callable<Iterable<File>>() {
+            getWorkspaceTask().setXcodeProjectLocations(project.files(new Callable<Iterable<File>>() {
                 @Override
                 public Iterable<File> call() throws Exception {
                     return CollectionUtils.collect(

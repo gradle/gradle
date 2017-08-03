@@ -17,13 +17,11 @@
 package org.gradle.ide.xcode.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.file.FileCollection;
 import org.gradle.ide.xcode.tasks.internal.XcodeWorkspaceFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.concurrent.Callable;
 
 /**
  * Task for generating a workspace file.
@@ -32,15 +30,15 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorkspaceFile> {
-    private Provider<Iterable<File>> xcodeProjectLocations;
+    private FileCollection xcodeProjectLocations;
 
     public GenerateXcodeWorkspaceFileTask() {
-        this.xcodeProjectLocations = getProject().getProviders().provider(emptyList());
+        this.xcodeProjectLocations = getProject().files();
     }
 
     @Override
     protected void configure(XcodeWorkspaceFile workspaceFile) {
-        for (File xcodeProjectDir : xcodeProjectLocations.get()) {
+        for (File xcodeProjectDir : xcodeProjectLocations) {
             workspaceFile.addLocation(xcodeProjectDir.getAbsolutePath());
         }
     }
@@ -50,21 +48,16 @@ public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorksp
         return new XcodeWorkspaceFile(getXmlTransformer());
     }
 
-    public void setXcodeProjectLocations(Provider<Iterable<File>> xcodeProjectLocations) {
+    public FileCollection getXcodeProjectLocations() {
+        return xcodeProjectLocations;
+    }
+
+    public void setXcodeProjectLocations(FileCollection xcodeProjectLocations) {
         this.xcodeProjectLocations = xcodeProjectLocations;
     }
 
     @Override
     public File getInputFile() {
         return null;
-    }
-
-    private static Callable<Iterable<File>> emptyList() {
-        return new Callable<Iterable<File>>() {
-            @Override
-            public Iterable<File> call() throws Exception {
-                return Collections.emptyList();
-            }
-        };
     }
 }
