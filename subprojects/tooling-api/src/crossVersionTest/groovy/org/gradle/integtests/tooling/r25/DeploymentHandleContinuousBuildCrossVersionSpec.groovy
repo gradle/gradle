@@ -55,9 +55,8 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
                     return running
                 }
 
-                public void buildSucceeded() {}
-                public void buildFailed(Throwable failure) {}
-                public void pendingChanges(boolean pendingChanges) {}
+                public void outOfDate() {}
+                public void upToDate(Throwable failure) {}
 
                 public void stop() {
                     running = false

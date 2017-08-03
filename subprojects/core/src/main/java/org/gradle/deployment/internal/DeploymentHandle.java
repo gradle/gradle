@@ -18,8 +18,7 @@ package org.gradle.deployment.internal;
 
 public interface DeploymentHandle {
     boolean isRunning();
-    void pendingChanges(boolean pendingChanges);
-    void buildSucceeded();
-    void buildFailed(Throwable failure);
+    void outOfDate();
+    void upToDate(Throwable failure);
     void stop();
 }

@@ -90,17 +90,12 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     }
 
     @Override
-    public void buildSuccess() {
-        runAdapter.buildSuccess();
+    public void upToDate(Throwable throwable) {
+        runAdapter.upToDate(throwable);
     }
 
     @Override
-    public void buildError(Throwable throwable) {
-        runAdapter.buildError(throwable);
-    }
-
-    @Override
-    public void blockReload(Boolean block) {
-        runAdapter.blockReload(block);
+    public void outOfDate() {
+        runAdapter.outOfDate();
     }
 }

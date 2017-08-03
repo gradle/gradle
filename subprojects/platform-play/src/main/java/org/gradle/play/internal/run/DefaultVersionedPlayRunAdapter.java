@@ -53,7 +53,6 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     public static final String PLAY_EXCEPTION_CLASSNAME = "play.api.PlayException";
     private static final Logger LOGGER = Logging.getLogger(DefaultVersionedPlayRunAdapter.class);
 
-    private final AtomicBoolean reload = new AtomicBoolean();
     private final AtomicBoolean blockReload = new AtomicBoolean();
     private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
     private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
@@ -69,7 +68,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
         final ClassLoader assetsClassLoader = createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
         final Class<? extends Throwable> playExceptionClass = Cast.uncheckedCast(classLoader.loadClass(PLAY_EXCEPTION_CLASSNAME));
-        buildSuccess();
+
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 if (method.getName().equals("projectPath")) {
@@ -89,7 +88,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     // We have no way of knowing when the loader is actually done with, so we use the request after the request
                     // that triggered the reload as the trigger point to close the replaced loader.
                     closeOldLoaders();
-                    if (reload.getAndSet(false)) {
+                    if (buildFailure == null) {
                         ClassPath classpath = new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
                         URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
                         storeClassLoader(currentClassLoader);
@@ -145,23 +144,22 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
 
     @Override
-    public void buildSuccess() {
-        reload.set(true);
-        buildFailure = null;
-    }
-
-    @Override
-    public void buildError(Throwable throwable) {
-        buildFailure = throwable;
-    }
-
-    @Override
-    public void blockReload(boolean block) {
-        LOGGER.debug("blockReload {}", block);
+    public void outOfDate() {
         synchronized (blockReload) {
-            blockReload.set(block);
+            blockReload.set(true);
             blockReload.notifyAll();
-            LOGGER.debug("notify blockReload {}", blockReload.get());
+            LOGGER.debug("notify outOfDate");
+        }
+    }
+
+    @Override
+    public void upToDate(Throwable throwable) {
+        buildFailure = throwable;
+
+        synchronized (blockReload) {
+            blockReload.set(false);
+            blockReload.notifyAll();
+            LOGGER.debug("notify upToDate");
         }
     }
 

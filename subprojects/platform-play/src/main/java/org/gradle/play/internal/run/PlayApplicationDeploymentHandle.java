@@ -34,25 +34,18 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     }
 
     @Override
-    public void pendingChanges(boolean pendingChanges) {
-        runnerToken.blockReload(pendingChanges);
-    }
-
-    @Override
     public boolean isRunning() {
         return runnerToken != null && runnerToken.isRunning();
     }
 
     @Override
-    public void buildSucceeded() {
-        // Build succeeded, so reload
-        runnerToken.rebuildSuccess();
+    public void outOfDate() {
+        runnerToken.outOfDate();
     }
 
     @Override
-    public void buildFailed(Throwable failure) {
-        // Build failed, so show the error
-        runnerToken.rebuildFailure(failure);
+    public void upToDate(Throwable failure) {
+        runnerToken.upToDate(failure);
     }
 
     public InetSocketAddress getPlayAppAddress() {

@@ -45,20 +45,16 @@ public class PlayApplicationRunnerToken {
         return update;
     }
 
-    public void rebuildSuccess() {
-        workerServer.buildSuccess();
+    public void outOfDate() {
+        workerServer.outOfDate();
     }
 
-    public void rebuildFailure(Throwable failure) {
-        workerServer.buildError(failure);
+    public void upToDate(Throwable failure) {
+        workerServer.upToDate(failure);
     }
 
     public boolean isRunning() {
         return !stopped.get();
-    }
-
-    public void blockReload(boolean block) {
-        workerServer.blockReload(block);
     }
 
     public InetSocketAddress getPlayAppAddress() {
