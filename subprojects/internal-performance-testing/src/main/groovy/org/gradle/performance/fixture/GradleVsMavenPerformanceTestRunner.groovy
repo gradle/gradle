@@ -58,7 +58,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
 
     @Override
     GradleVsMavenBuildPerformanceResults run() {
-        def commonBaseDisplayName = "$gradleTasks on $testProject"
+        def commonBaseDisplayName = "${gradleTasks.join(' ')} on $testProject"
         baseline {
             warmUpCount = warmUpRuns
             invocationCount = runs
