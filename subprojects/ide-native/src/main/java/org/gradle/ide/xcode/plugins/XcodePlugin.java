@@ -24,7 +24,6 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
@@ -50,12 +49,12 @@ import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
-import org.gradle.language.swift.plugins.SwiftBasePlugin;
+import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
+import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
@@ -192,13 +191,13 @@ public class XcodePlugin extends IdePlugin {
 
     private void configureXcodeForSwift(Project project, PBXTarget.ProductType productType) {
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the sources
-        ConfigurableFileTree sourceTree = project.fileTree("src/main/swift");
-        sourceTree.include("**/*.swift");
+        SwiftCompile compileTask = (SwiftCompile) project.getTasks().getByName("compileSwift");
+        FileCollection sourceTree = compileTask.getSource();
         xcode.getProject().getSources().from(sourceTree);
 
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the build task
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
-        target.getImportPaths().from(project.getConfigurations().getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
+        target.getImportPaths().from(compileTask.getIncludes());
         xcode.getProject().setTarget(target);
 
         getProjectTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
@@ -221,16 +220,17 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeForCpp(Project project, PBXTarget.ProductType productType) {
-        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the sources
-        ConfigurableFileTree sourceTree = project.fileTree("src/main/cpp");
+        CppCompile compileTask = (CppCompile) project.getTasks().getByName("compileCpp");
+        FileCollection sourceTree = compileTask.getSource();
         xcode.getProject().getSources().from(sourceTree);
+
+        // TODO - These files can't be figured out from the compileTask and need the concept of source set
         xcode.getProject().getSources().from(project.fileTree("src/main/headers"));
         xcode.getProject().getSources().from(project.fileTree("src/main/public"));
 
-        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the build and header search paths
+        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the build task
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
-        target.getHeaderSearchPaths().from("src/main/headers");
-        target.getHeaderSearchPaths().from(project.getConfigurations().getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+        target.getHeaderSearchPaths().from(compileTask.getIncludes());
         xcode.getProject().setTarget(target);
 
         getProjectTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));

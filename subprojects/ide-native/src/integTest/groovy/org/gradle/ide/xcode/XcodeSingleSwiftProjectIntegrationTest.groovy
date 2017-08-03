@@ -114,4 +114,23 @@ apply plugin: 'swift-executable'
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
             .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.sourceFiles*.name)
     }
+
+    def "changing source location still include them in the project"() {
+        given:
+        buildFile << """
+apply plugin: 'swift-executable'
+
+def sourceTree = fileTree('Sources')
+sourceTree.include('**/*.swift')
+tasks.compileSwift.source(sourceTree)
+"""
+
+        when:
+        app.writeSources(file('Sources'))
+        succeeds("xcode")
+
+        then:
+        xcodeProject("${rootProjectName}.xcodeproj").projectFile
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.sourceFiles*.name)
+    }
 }
