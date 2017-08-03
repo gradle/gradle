@@ -33,7 +33,6 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
 import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
 import org.gradle.play.internal.run.PlayApplicationRunner;
-import org.gradle.play.internal.run.PlayApplicationRunnerToken;
 import org.gradle.play.internal.run.PlayRunSpec;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
 import org.slf4j.Logger;
@@ -86,33 +85,20 @@ public class PlayRun extends ConventionTask {
     @TaskAction
     public void run() {
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
-        PlayApplicationDeploymentHandle deploymentHandle = registerOrFindDeploymentHandle(getPath());
-
-        if (!deploymentHandle.isRunning()) {
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
-                .start("Start Play server", "Starting Play");
-
-            try {
-                int httpPort = getHttpPort();
-                PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
-                PlayApplicationRunnerToken runnerToken = playToolProvider.get(PlayApplicationRunner.class).start(spec);
-                deploymentHandle.start(runnerToken);
-            } finally {
-                progressLogger.completed();
-            }
-        }
+        PlayApplicationDeploymentHandle deploymentHandle = startOrFindDeploymentHandle(getPath());
+        String playUrl = "http://" + deploymentHandle.getPlayAppAddress() + "/";
 
         if (!getProject().getGradle().getStartParameter().isContinuous()) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
-                .start("Run Play App at http://localhost:" + httpPort + "/",
-                    "Running at http://localhost:"+ httpPort + "/");
+                .start("Run Play App at " + playUrl,
+                    "Running at " + playUrl);
             try {
                 waitForCtrlD();
             } finally {
                 progressLogger.completed();
             }
         } else {
-            LOGGER.warn("Running Play App ({}) at http://localhost:{}/", getPath(), httpPort);
+            LOGGER.warn("Running Play App ({}) at {}", getPath(), playUrl);
         }
     }
 
@@ -197,12 +183,15 @@ public class PlayRun extends ConventionTask {
         throw new UnsupportedOperationException();
     }
 
-    private PlayApplicationDeploymentHandle registerOrFindDeploymentHandle(String deploymentId) {
+    private PlayApplicationDeploymentHandle startOrFindDeploymentHandle(String deploymentId) {
         DeploymentRegistry deploymentRegistry = getDeploymentRegistry();
-        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId);
+        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(deploymentId, PlayApplicationDeploymentHandle.class);
+
         if (deploymentHandle == null) {
-            deploymentHandle = new PlayApplicationDeploymentHandle(deploymentId);
-            deploymentRegistry.register(deploymentId, deploymentHandle);
+            int httpPort = getHttpPort();
+            PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
+            PlayApplicationRunner playApplicationRunner = playToolProvider.get(PlayApplicationRunner.class);
+            deploymentHandle = deploymentRegistry.start(deploymentId, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
         }
         return deploymentHandle;
     }

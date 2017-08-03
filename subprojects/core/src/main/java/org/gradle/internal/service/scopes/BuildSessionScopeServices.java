@@ -44,13 +44,13 @@ import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
-import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -59,6 +59,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -113,8 +114,12 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         addProvider(new ScopeIdsServices());
     }
 
-    DeploymentRegistry createDeploymentRegistry() {
-        return new DefaultDeploymentRegistry();
+    PendingChangesManager createPendingChangesManager(ListenerManager listenerManager) {
+        return new PendingChangesManager(listenerManager);
+    }
+
+    DefaultDeploymentRegistry createDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
+        return new DefaultDeploymentRegistry(startParameter, pendingChangesManager, buildOperationExecutor, objectFactory);
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {

@@ -18,6 +18,7 @@ package org.gradle.play.internal.run;
 
 import org.gradle.process.internal.worker.WorkerProcess;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlayApplicationRunnerToken {
@@ -26,11 +27,13 @@ public class PlayApplicationRunnerToken {
     private final PlayRunWorkerServerProtocol workerServer;
     private final WorkerProcess process;
     private final AtomicBoolean stopped;
+    private final InetSocketAddress playAppAddress;
 
-    public PlayApplicationRunnerToken(PlayRunWorkerServerProtocol workerServer, PlayWorkerClient clientCallBack, WorkerProcess process) {
+    public PlayApplicationRunnerToken(PlayRunWorkerServerProtocol workerServer, PlayWorkerClient clientCallBack, WorkerProcess process, InetSocketAddress playAppAddress) {
         this.workerServer = workerServer;
         this.clientCallBack = clientCallBack;
         this.process = process;
+        this.playAppAddress = playAppAddress;
         this.stopped = new AtomicBoolean(false);
     }
 
@@ -54,7 +57,11 @@ public class PlayApplicationRunnerToken {
         return !stopped.get();
     }
 
-    public void expectPendingChanges() {
-        workerServer.expectPendingChanges();
+    public void blockReload(boolean block) {
+        workerServer.blockReload(block);
+    }
+
+    public InetSocketAddress getPlayAppAddress() {
+        return playAppAddress;
     }
 }

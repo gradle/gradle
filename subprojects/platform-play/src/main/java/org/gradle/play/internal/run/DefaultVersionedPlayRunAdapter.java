@@ -24,6 +24,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
@@ -36,6 +37,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -52,8 +54,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     private static final Logger LOGGER = Logging.getLogger(DefaultVersionedPlayRunAdapter.class);
 
     private final AtomicBoolean reload = new AtomicBoolean();
-    private final PendingChanges pendingChanges = new PendingChanges();
-
+    private final AtomicBoolean blockReload = new AtomicBoolean();
     private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
     private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
     private volatile Throwable buildFailure;
@@ -75,7 +76,13 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     return projectPath;
                 } else if (method.getName().equals("reload")) {
 
-                    pendingChanges.waitForAll();
+                    synchronized (blockReload) {
+                        LOGGER.debug("waiting for blockReload to clear {} ", blockReload.get());
+                        while (blockReload.get()) {
+                            blockReload.wait();
+                        }
+                        LOGGER.debug("blockReload cleared {} ", blockReload.get());
+                    }
 
                     // We can't close replaced loaders immediately, because their classes may be used during shutdown,
                     // after the return of the reload() call that caused the loader to be swapped out.
@@ -117,12 +124,11 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
         }
     }
 
-    private ClassLoader storeClassLoader(ClassLoader classLoader) {
+    private void storeClassLoader(ClassLoader classLoader) {
         final ClassLoader previous = currentClassloader.getAndSet(classLoader);
         if (previous != null && previous instanceof Closeable) {
             loadersToClose.add(new SoftReference<Closeable>(Cast.cast(Closeable.class, previous)));
         }
-        return classLoader;
     }
 
     private void closeOldLoaders() throws IOException {
@@ -142,41 +148,20 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     public void buildSuccess() {
         reload.set(true);
         buildFailure = null;
-        pendingChanges.done();
     }
 
     @Override
     public void buildError(Throwable throwable) {
         buildFailure = throwable;
-        pendingChanges.done();
     }
 
     @Override
-    public void expectPendingChanges() {
-        pendingChanges.more();
-
-    }
-
-    private static class PendingChanges implements Serializable {
-        private int pendingChanges;
-
-        synchronized void more() {
-            pendingChanges++;
-        }
-
-        synchronized void done() {
-            // Clamp to 0
-            pendingChanges = Math.max(0, pendingChanges-1);
-
-            if (pendingChanges == 0) {
-                notifyAll();
-            }
-        }
-
-        synchronized void waitForAll() throws InterruptedException {
-            while (pendingChanges > 0) {
-                wait();
-            }
+    public void blockReload(boolean block) {
+        LOGGER.debug("blockReload {}", block);
+        synchronized (blockReload) {
+            blockReload.set(block);
+            blockReload.notifyAll();
+            LOGGER.debug("notify blockReload {}", blockReload.get());
         }
     }
 
@@ -209,9 +194,10 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     }
 
     @Override
-    public void runDevHttpServer(ClassLoader classLoader, ClassLoader docsClassLoader, Object buildLink, Object buildDocHandler, int httpPort) throws ClassNotFoundException {
+    public InetSocketAddress runDevHttpServer(ClassLoader classLoader, ClassLoader docsClassLoader, Object buildLink, Object buildDocHandler, int httpPort) throws ClassNotFoundException {
         ScalaMethod runMethod = ScalaReflectionUtil.scalaMethod(classLoader, "play.core.server.NettyServer", "mainDevHttpMode", getBuildLinkClass(classLoader), getBuildDocHandlerClass(docsClassLoader), int.class);
-        runMethod.invoke(buildLink, buildDocHandler, httpPort);
+        Object reloadableServer = runMethod.invoke(buildLink, buildDocHandler, httpPort);
+        return JavaReflectionUtil.method(reloadableServer, InetSocketAddress.class, "mainAddress").invoke(reloadableServer);
     }
 
 }

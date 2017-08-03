@@ -51,8 +51,8 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
     }
 
     @Override
-    public FileSystemChangeWaiter createChangeWaiter(BuildCancellationToken cancellationToken) {
-        return new ChangeWaiter(fileWatcherFactory, quietPeriodMillis, cancellationToken);
+    public FileSystemChangeWaiter createChangeWaiter(PendingChangesListener listener, BuildCancellationToken cancellationToken) {
+        return new ChangeWaiter(fileWatcherFactory, listener, quietPeriodMillis, cancellationToken);
     }
 
     private static class ChangeWaiter implements FileSystemChangeWaiter {
@@ -69,7 +69,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         private final Collection<FileWatcherEvent> eventsBeforeListening = new ArrayList<FileWatcherEvent>();
         private final Lock eventDeliveryLock = new ReentrantLock();
 
-        private ChangeWaiter(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis, BuildCancellationToken cancellationToken) {
+        private ChangeWaiter(FileWatcherFactory fileWatcherFactory, final PendingChangesListener pendingChangesListener, long quietPeriodMillis, BuildCancellationToken cancellationToken) {
             this.quietPeriodMillis = quietPeriodMillis;
             this.cancellationToken = cancellationToken;
             this.onError = new Action<Throwable>() {
@@ -90,6 +90,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                                 @Override
                                 public void run() {
                                     lastChangeAt.set(monotonicClockMillis());
+                                    pendingChangesListener.onPendingChanges();
                                 }
                             });
                         }
@@ -185,7 +186,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         private boolean shouldKeepWaitingForQuietPeriod(long lastChangeAtValue) {
             long now = monotonicClockMillis();
             return lastChangeAtValue == 0   // no changes yet
-                || now < lastChangeAtValue  // handle case where monotic clock isn't monotonic
+                || now < lastChangeAtValue  // handle case where monotonic clock isn't monotonic
                 || now - lastChangeAtValue < quietPeriodMillis;
         }
 

@@ -32,13 +32,14 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     TestNameTestDirectoryProvider testDirectory
     FileWatcherEventListener reporter = new LoggingFileWatchEventListener()
     def fileSystem = Stub(FileSystem)
+    def pendingChangesListener = Mock(PendingChangesListener)
 
     def "can wait for filesystem change"() {
         when:
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(c)
+        def w = wf.createChangeWaiter(pendingChangesListener, c)
 
         start {
             w.watch(f)
@@ -56,6 +57,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         then:
         waitFor.done
+        pendingChangesListener.onPendingChanges()
 
         cleanup:
         w.stop()
@@ -66,7 +68,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(c)
+        def w = wf.createChangeWaiter(pendingChangesListener, c)
 
         start {
             w.watch(f)
@@ -103,7 +105,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(c)
+        def w = wf.createChangeWaiter(pendingChangesListener, c)
 
         start {
             try {
@@ -135,7 +137,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem), quietPeriod)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(c)
+        def w = wf.createChangeWaiter(pendingChangesListener, c)
         def testfile = testDirectory.file("testfile")
 
         start {

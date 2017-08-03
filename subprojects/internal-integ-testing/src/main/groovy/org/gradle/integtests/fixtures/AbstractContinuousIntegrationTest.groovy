@@ -105,14 +105,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     @Override
     protected ExecutionResult succeeds(String... tasks) {
-        if (tasks) {
-            runBuild(tasks)
-        } else if (!gradle.isRunning()) {
-            throw new UnexpectedBuildFailure("Gradle has exited")
-        }
-        if (gradle == null) {
-            throw new UnexpectedBuildFailure("Gradle never started")
-        }
+        start(tasks)
         waitForBuild()
         if (result instanceof ExecutionFailure) {
             throw new UnexpectedBuildFailure("""build was expected to succeed but failed:
@@ -125,6 +118,17 @@ ${result.error}
 """)
         }
         result
+    }
+
+    protected void start(String... tasks) {
+        if (tasks) {
+            runBuild(tasks)
+        } else if (!gradle.isRunning()) {
+            throw new UnexpectedBuildFailure("Gradle has exited")
+        }
+        if (gradle == null) {
+            throw new UnexpectedBuildFailure("Gradle never started")
+        }
     }
 
     ExecutionFailure fails(String... tasks) {

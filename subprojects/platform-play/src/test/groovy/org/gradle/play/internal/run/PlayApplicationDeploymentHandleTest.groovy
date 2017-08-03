@@ -16,83 +16,64 @@
 
 package org.gradle.play.internal.run
 
-import org.gradle.BuildListener
-import org.gradle.BuildResult
-import org.gradle.api.invocation.Gradle
 import spock.lang.Specification
-
+import spock.lang.Unroll
 
 class PlayApplicationDeploymentHandleTest extends Specification {
-    def PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
-    def PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle("test")
-    def Gradle gradle = Mock(Gradle)
+    PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
+    PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle(runnerToken)
+
     def failure = new Throwable()
-    def BuildResult goodBuild = new BuildResult(gradle, null)
-    def BuildResult badBuild = new BuildResult(gradle, failure)
 
     def "reloading deployment handle reloads runner" () {
         when:
-        deploymentHandle.start(runnerToken)
-        deploymentHandle.reloadFromResult(goodBuild)
-
+        deploymentHandle.buildSucceeded()
         then:
-        1 * runnerToken.isRunning() >> true
         1 * runnerToken.rebuildSuccess()
 
         when:
-        deploymentHandle.reloadFromResult(badBuild)
-
+        deploymentHandle.buildFailed(failure)
         then:
-        1 * runnerToken.isRunning() >> true
         1 * runnerToken.rebuildFailure(failure)
+    }
 
+    def "running comes from runnerToken"() {
+        when:
+        def running = deploymentHandle.running
+        then:
+        1 * runnerToken.running >> true
+        running
     }
 
     def "stopping deployment handle stops runner" () {
         when:
-        deploymentHandle.start(runnerToken)
         deploymentHandle.stop()
-
         then:
-        1 * runnerToken.isRunning() >> true
         1 * runnerToken.stop()
     }
 
-    def "cannot reload a stopped deployment handle" () {
-        given:
-        runnerToken.isRunning() >> false
-        deploymentHandle.start(runnerToken)
-
+    @Unroll
+    def "pendingChanges blocks (#changes) runnerToken"() {
         when:
-        deploymentHandle.reloadFromResult(goodBuild)
-
+        deploymentHandle.pendingChanges(changes)
         then:
-        0 * runnerToken.rebuildSuccess()
-
-        when:
-        deploymentHandle.reloadFromResult(badBuild)
-
-        then:
-        0 * runnerToken.rebuildFailure(_)
+        1 * runnerToken.blockReload(changes)
+        where:
+        changes << [ true, false ]
     }
 
-    def "cannot reload a deployment handle that was never started" () {
+    def "gets application IP from runner"() {
         when:
-        deploymentHandle.reloadFromResult(goodBuild)
+        def address = deploymentHandle.playAppAddress
         then:
-        0 * runnerToken.rebuildFailure(_)
+        1 * runnerToken.running >> false
+        0 * runnerToken.playAppAddress
+        address == null
 
         when:
-        deploymentHandle.reloadFromResult(badBuild)
+        deploymentHandle.playAppAddress
         then:
-        0 * runnerToken.rebuildSuccess()
+        1 * runnerToken.running >> true
+        1 * runnerToken.playAppAddress
     }
-
-    def "registers for build finished events" () {
-        when:
-        deploymentHandle.onNewBuild(gradle)
-        then:
-        1 * gradle.addBuildListener({ it instanceof BuildListener })
-    }
-
 }
