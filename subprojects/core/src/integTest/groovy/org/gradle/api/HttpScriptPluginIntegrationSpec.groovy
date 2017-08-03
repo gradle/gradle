@@ -272,8 +272,7 @@ task check {
             apply from: '${scriptUrl}'
         """
 
-        when: // TODO:DAZ Should not be requesting this resource twice
-        server.expectGetMissing("/" + scriptName)
+        when:
         server.expectGetMissing("/" + scriptName)
 
         then:
@@ -281,7 +280,7 @@ task check {
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
-                .assertHasCause("Could not read script '${scriptUrl}' as it does not exist.")
+                .assertHasCause("Could not read '${scriptUrl}' as it does not exist.")
                 .assertHasFileName("Build file '${buildFile}'")
                 .assertHasLineNumber(2)
 

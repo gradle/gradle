@@ -19,6 +19,7 @@ package org.gradle.internal.resource.transfer;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.DownloadedUriTextResource;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -44,9 +45,7 @@ public class DefaultUriTextResourceLoader extends BasicTextResourceLoader {
 
         LocallyAvailableExternalResource resource = externalResourceAccessor.resolveUri(source);
         if (resource == null) {
-            // Use an uncached resource, allowing the build to make another request (and fail due to missing resource)
-            // TODO: We have enough information to create a missing text resource instance here
-            return super.loadUri(description, source);
+            throw ResourceExceptions.getMissing(source);
         }
         ExternalResourceMetaData metaData = resource.getMetaData();
         String contentType = metaData == null ? null : metaData.getContentType();
