@@ -38,7 +38,7 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "uses #type proxy to access remote script"() {
+    def "uses #type proxy to access remote build script plugin"() {
         given:
         testProxyServer.start(userName, password)
 
@@ -67,6 +67,29 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         type            | userName    | password
         "configured"    | null        | null
         "authenticated" | "proxyUser" | "proxyPassword"
+    }
+    
+    def "uses authenticated proxy to access remote settings script plugin"() {
+        given:
+        testProxyServer.start("proxyUser", "proxyPassword")
+
+        def settingsScriptPljugin = file('settings-script-plugin.gradle') << """
+            println 'loaded settings script plugin'
+        """
+        server.expectGet('/settings-script-plugin.gradle', settingsScriptPljugin)
+        settingsFile << """
+            apply from: '$server.uri/settings-script-plugin.gradle'
+        """
+
+        when:
+        testProxyServer.configureProxy(executer,"http", "proxyUser", "proxyPassword")
+        succeeds()
+
+        then:
+        outputContains "loaded settings script plugin"
+
+        and:
+        testProxyServer.requestCount == 1
     }
 
     def "reports proxy not running at configured location"() {
