@@ -9,6 +9,7 @@ import model.SpecificBuild
 import model.Stage
 import model.TestCoverage
 import model.TestType
+import model.Trigger
 import projects.RootProject
 
 /*
@@ -40,6 +41,7 @@ val buildModel = CIBuildModel(
         buildCacheActive = false,
         stages = listOf(
                 Stage("Quick Feedback", "Checks and functional tests (embedded executer)",
+                        trigger = Trigger.eachCommit,
                         specificBuilds = listOf(
                                 SpecificBuild.SanityCheck,
                                 SpecificBuild.BuildDistributions),
