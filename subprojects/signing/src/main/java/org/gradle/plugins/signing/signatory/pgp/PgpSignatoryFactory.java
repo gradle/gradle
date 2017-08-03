@@ -95,20 +95,20 @@ public class PgpSignatoryFactory {
     }
 
     private Object getPropertySafely(Project project, String qualifiedProperty, boolean required) {
-        if (project.hasProperty(qualifiedProperty)) {
-            Object prop = project.property(qualifiedProperty);
-            if (prop != null) {
-                return prop;
-            } else {
-                if (required) {
-                    throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' was null. A valid value is needed for signing");
-                }
-            }
-        } else {
-            if (required) {
-                throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' could not be found on project and is needed for signing");
-            }
+        final boolean propertyFound = project.hasProperty(qualifiedProperty);
+
+        if (!propertyFound && required) {
+            throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' could not be found on project and is needed for signing");
         }
+
+        if (propertyFound) {
+            Object prop = project.property(qualifiedProperty);
+            if (prop == null && required) {
+                throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' was null. A valid value is needed for signing");
+            }
+            return prop;
+        }
+
         return null;
     }
 
