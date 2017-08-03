@@ -32,7 +32,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
 
     @Override
     BuildDisplayInfo getDisplayInfo() {
-        new BuildDisplayInfo(projectName, displayName, invocation.tasksToRun, invocation.args, invocation.jvmOpts, invocation.useDaemon)
+        new BuildDisplayInfo(projectName, displayName, invocation.tasksToRun, invocation.cleanTasks, invocation.args, invocation.jvmOpts, invocation.useDaemon)
     }
 
     static class GradleBuilder implements BuildExperimentSpec.Builder {

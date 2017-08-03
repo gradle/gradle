@@ -33,7 +33,8 @@ abstract class ResultSpecification extends Specification {
         results.testId = "test-id"
         results.previousTestIds = []
         results.testProject = "test-project"
-        results.tasks = ["clean", "build"]
+        results.tasks = ["build"]
+        results.cleanTasks = ["clean"]
         results.args = []
         results.gradleOpts = []
         results.daemon = false

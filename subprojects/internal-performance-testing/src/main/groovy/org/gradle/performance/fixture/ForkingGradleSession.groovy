@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import com.google.common.base.Joiner
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -48,10 +49,19 @@ class ForkingGradleSession implements GradleSession {
         cleanup()
     }
 
+    @Override
     Action<MeasuredOperation> runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
+        def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
         return { MeasuredOperation measuredOperation ->
+            def cleanTasks = invocation.cleanTasks
+            if (cleanTasks) {
+                System.out.println("Cleaning up by running Gradle tasks: " + Joiner.on(" ").join(cleanTasks));
+                run(invocationInfo, invocation, cleanTasks)
+            }
+            def tasksToRun = invocation.tasksToRun
+            System.out.println("Measuring Gradle tasks: " + Joiner.on(" ").join(tasksToRun));
             DurationMeasurementImpl.measure(measuredOperation) {
-                run(invocationInfo, invocationCustomizer)
+                run(invocationInfo, invocation, tasksToRun)
             }
         } as Action<MeasuredOperation>
     }
@@ -64,9 +74,7 @@ class ForkingGradleSession implements GradleSession {
         }
     }
 
-    private void run(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
-        def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
-
+    private void run(BuildExperimentInvocationInfo invocationInfo, GradleInvocationSpec invocation, List<String> tasks) {
         String jvmArgs = invocation.jvmOpts.collect { '\'' + it + '\'' }.join(' ')
         Map<String, String> env = [:]
         List<String> args = []
@@ -79,7 +87,7 @@ class ForkingGradleSession implements GradleSession {
         args << "--stacktrace"
         if (invocation.useDaemon) {
             args << "--daemon"
-            args << "-Dorg.gradle.jvmargs=${ jvmArgs }".toString()
+            args << "-Dorg.gradle.jvmargs=${jvmArgs}".toString()
         } else {
             args << "--no-daemon"
             args << '-Dorg.gradle.jvmargs'
@@ -87,7 +95,7 @@ class ForkingGradleSession implements GradleSession {
         }
         args += invocation.args
 
-        ProcessBuilder run = newProcessBuilder(invocationInfo, args + invocation.tasksToRun, env)
+        ProcessBuilder run = newProcessBuilder(invocationInfo, args + tasks, env)
         stop = newProcessBuilder(invocationInfo, args + "--stop", env)
 
         def exitCode = run.start().waitFor()

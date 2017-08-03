@@ -78,6 +78,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ')
+        runner.cleanTasks = ["clean"]
         protocol = "http"
         pushToRemote = true
         runner.addBuildExperimentListener(cleanLocalCache())
@@ -96,6 +97,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ')
+        runner.cleanTasks = ["clean"]
         firstWarmupWithCache = 3 // Do one run without the cache to populate the dependency cache from maven central
         protocol = "https"
         pushToRemote = true
@@ -138,6 +140,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ')
+        runner.cleanTasks = ["clean"]
         runner.warmUpRuns = 6
         runner.runs = 8
         pushToRemote = false
@@ -158,6 +161,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ')
+        runner.cleanTasks = ["clean"]
         runner.warmUpRuns = 6
         runner.runs = 8
         pushToRemote = true
@@ -182,6 +186,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ') as List
+        runner.cleanTasks = ["clean"]
         if (parallel) {
             runner.args += "--parallel"
         }
@@ -203,6 +208,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ') as List
+        runner.cleanTasks = ["clean"]
         runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
         runner.args += "--parallel"
         pushToRemote = false
@@ -222,6 +228,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ') as List
+        runner.cleanTasks = ["clean"]
         runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
         runner.args += "--parallel"
         pushToRemote = false
@@ -240,9 +247,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (isCleanupRun(invocationInfo)) {
-                    cacheDir.deleteDir().mkdirs()
-                }
+                cacheDir.deleteDir().mkdirs()
             }
         }
     }
@@ -251,9 +256,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (isCleanupRun(invocationInfo)) {
-                    buildCacheServer.cacheDir.deleteDir().mkdirs()
-                }
+                buildCacheServer.cacheDir.deleteDir().mkdirs()
             }
         }
     }

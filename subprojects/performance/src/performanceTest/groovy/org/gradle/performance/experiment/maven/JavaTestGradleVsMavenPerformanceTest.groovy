@@ -17,14 +17,6 @@
 package org.gradle.performance.experiment.maven
 
 import org.gradle.performance.AbstractGradleVsMavenPerformanceTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.GradleInvocationSpec
-import org.gradle.performance.fixture.InvocationCustomizer
-import org.gradle.performance.fixture.InvocationSpec
-import org.gradle.performance.fixture.MavenInvocationSpec
-import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
@@ -46,15 +38,16 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         if (testProject.parallel) {
             runner.mvnArgs << '-T' << testProject.maxWorkers
         }
-        runner.gradleTasks = gradleTask
-        runner.equivalentMavenTasks = mavenTask
+        runner.gradleTasks = [gradleTask]
+        runner.equivalentMavenTasks = [mavenTask]
         if (mavenTask == "package") {
             runner.mvnArgs << "-Dmaven.test.skip=true"
         }
-        runner.warmUpRuns = 4
-        runner.runs = 10
+        runner.warmUpRuns = 2
+        runner.runs = 5
 
-        setupCleanupOnOddRounds()
+        runner.gradleCleanTasks = ["clean"]
+        runner.equivalentMavenCleanTasks = ["clean"]
 
         when:
         def results = runner.run()
@@ -80,14 +73,14 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         if (testProject.parallel) {
             runner.mvnArgs << '-T' << testProject.maxWorkers
         }
-        runner.gradleTasks = gradleTask
-        runner.equivalentMavenTasks = mavenTask
+        runner.gradleTasks = gradleTask.split(' ')
+        runner.equivalentMavenTasks = mavenTask.split(' ')
         if (mavenTask == "package") {
             runner.mvnArgs << "-Dmaven.test.skip=true"
         }
         runner.buildExperimentListener = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
-        runner.warmUpRuns = 4
-        runner.runs = 10
+        runner.warmUpRuns = 1
+        runner.runs = 1
 
         when:
         def results = runner.run()
@@ -102,35 +95,5 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
 
         MEDIUM_JAVA_MULTI_PROJECT      | 'test'     | 'clean test'    | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
         MEDIUM_JAVA_MULTI_PROJECT      | 'assemble' | 'clean package' | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
-    }
-
-
-    void setupCleanupOnOddRounds() {
-        runner.invocationCustomizer = new InvocationCustomizer() {
-            @Override
-            def <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo invocationInfo, T invocationSpec) {
-                if (invocationInfo.iterationNumber % 2 == 1) {
-                    if (invocationSpec instanceof GradleInvocationSpec) {
-                        invocationSpec.withBuilder()
-                            .tasksToRun(["clean"])
-                            .build() as T
-                    } else {
-                        (invocationSpec as MavenInvocationSpec).withBuilder()
-                            .tasksToRun(["clean"])
-                            .build() as T
-                    }
-                } else {
-                    invocationSpec
-                }
-            }
-        }
-        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (invocationInfo.iterationNumber % 2 == 1) {
-                    measurementCallback.omitMeasurement()
-                }
-            }
-        }
     }
 }

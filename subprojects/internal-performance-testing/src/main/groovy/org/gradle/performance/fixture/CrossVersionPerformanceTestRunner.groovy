@@ -24,7 +24,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.time.TrueTimeProvider
-import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
@@ -53,6 +52,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     boolean useDaemon = true
 
     List<String> tasksToRun = []
+    List<String> cleanTasks = []
     List<String> args = []
     List<String> gradleOpts = []
     List<String> previousTestIds = []
@@ -89,8 +89,9 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             previousTestIds: previousTestIds.collect { it.toString() }, // Convert GString instances
             testProject: testProject,
             tasks: tasksToRun.collect { it.toString() },
+            cleanTasks: cleanTasks.collect { it.toString() },
             args: args.collect { it.toString() },
-                gradleOpts: resolveGradleOpts(),
+            gradleOpts: resolveGradleOpts(),
             daemon: useDaemon,
             jvm: Jvm.current().toString(),
             host: InetAddress.getLocalHost().getHostName(),
@@ -234,6 +235,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 workingDirectory(workingDir)
                 distribution(dist)
                 tasksToRun(this.tasksToRun as String[])
+                cleanTasks(this.cleanTasks as String[])
                 args(this.args as String[])
                 gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
@@ -252,33 +254,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     HonestProfilerCollector getHonestProfiler() {
         return experimentRunner.honestProfiler
-    }
-
-    void setupCleanupOnOddRounds() {
-        setupCleanupOnOddRounds('clean')
-    }
-
-    void setupCleanupOnOddRounds(String... cleanUpTasks) {
-        addInvocationCustomizer(new InvocationCustomizer() {
-            @Override
-            def <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo invocationInfo, T invocationSpec) {
-                if (invocationInfo.iterationNumber % 2 == 1) {
-                    def builder = ((GradleInvocationSpec) invocationSpec).withBuilder()
-                    builder.setTasksToRun(cleanUpTasks as List)
-                    (T) builder.build()
-                } else {
-                    (T) invocationSpec
-                }
-            }
-        })
-        addBuildExperimentListener(new BuildExperimentListenerAdapter() {
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (invocationInfo.iterationNumber % 2 == 1) {
-                    measurementCallback.omitMeasurement()
-                }
-            }
-        })
     }
 
     void addBuildExperimentListener(BuildExperimentListener buildExperimentListener) {
