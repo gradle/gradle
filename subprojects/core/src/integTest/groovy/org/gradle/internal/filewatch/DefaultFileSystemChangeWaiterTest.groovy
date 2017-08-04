@@ -18,18 +18,19 @@ package org.gradle.internal.filewatch
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
+import org.gradle.initialization.BuildGateToken
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicReference
 
 class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
-    @Rule
-    TestNameTestDirectoryProvider testDirectory
+    @Rule TestNameTestDirectoryProvider testDirectory
     FileWatcherEventListener reporter = new LoggingFileWatchEventListener()
     def fileSystem = Stub(FileSystem)
     def pendingChangesListener = Mock(PendingChangesListener)
@@ -39,7 +40,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c, buildGateToken)
+        def w = wf.createChangeWaiter(pendingChangesListener, c, Mock(BuildGateToken))
 
         start {
             w.watch(f)
@@ -68,7 +69,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c, buildGateToken)
+        def w = wf.createChangeWaiter(pendingChangesListener, c, Mock(BuildGateToken))
 
         start {
             w.watch(f)
@@ -105,7 +106,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c, buildGateToken)
+        def w = wf.createChangeWaiter(pendingChangesListener, c, Mock(BuildGateToken))
 
         start {
             try {
@@ -131,13 +132,15 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         w.stop()
     }
 
-    def "waits until there is a quiet period"() {
+    @Unroll
+    def "waits until there is a quiet period with triggered builds=#triggered"() {
         when:
         def quietPeriod = 1000L
-        def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem), quietPeriod)
+        def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem), quietPeriod, triggered)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c, buildGateToken)
+        def gateToken = Mock(BuildGateToken)
+        def w = wf.createChangeWaiter(pendingChangesListener, c, gateToken)
         def testfile = testDirectory.file("testfile")
 
         start {
@@ -163,9 +166,14 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         then:
         waitFor.done
         Math.round((System.nanoTime() - timestampForLastChange) / 1000000L) >= quietPeriod
+        if (triggered) {
+            gateToken.waitForOpen()
+        }
 
         cleanup:
         w.stop()
+        where:
+        triggered << [ true, false ]
     }
 
     private void writeToFileMultipleTimes(instant, testfile) {

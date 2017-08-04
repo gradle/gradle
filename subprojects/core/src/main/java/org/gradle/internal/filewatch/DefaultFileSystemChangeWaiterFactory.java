@@ -34,13 +34,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWaiterFactory {
     public static final String QUIET_PERIOD_SYSPROP = "org.gradle.internal.filewatch.quietperiod";
-    private static final String TRIGGER_BUILD_SYSPROP = "org.gradle.internal.continuous.trigger";
+    public static final String TRIGGER_BUILD_SYSPROP = "org.gradle.internal.continuous.trigger";
 
     private final FileWatcherFactory fileWatcherFactory;
     private final long quietPeriodMillis;
+    private final boolean triggeredBuild;
 
     public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {
-        this(fileWatcherFactory, getDefaultQuietPeriod());
+        this(fileWatcherFactory, getDefaultQuietPeriod(), isTriggerBuild());
     }
 
     private static long getDefaultQuietPeriod() {
@@ -51,18 +52,20 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         return Boolean.getBoolean(TRIGGER_BUILD_SYSPROP);
     }
 
-    public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
+    public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis, boolean triggeredBuild) {
         this.fileWatcherFactory = fileWatcherFactory;
         this.quietPeriodMillis = quietPeriodMillis;
+        this.triggeredBuild = triggeredBuild;
     }
 
     @Override
     public FileSystemChangeWaiter createChangeWaiter(PendingChangesListener listener, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken) {
-        return new ChangeWaiter(fileWatcherFactory, listener, quietPeriodMillis, cancellationToken, buildGateToken);
+        return new ChangeWaiter(fileWatcherFactory, listener, quietPeriodMillis, triggeredBuild, cancellationToken, buildGateToken);
     }
 
     private static class ChangeWaiter implements FileSystemChangeWaiter {
         private final long quietPeriodMillis;
+        private final boolean triggeredBuild;
         private final BuildCancellationToken cancellationToken;
         private final BuildGateToken buildGateToken;
         private final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
@@ -76,8 +79,9 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         private final Collection<FileWatcherEvent> eventsBeforeListening = new ArrayList<FileWatcherEvent>();
         private final Lock eventDeliveryLock = new ReentrantLock();
 
-        private ChangeWaiter(FileWatcherFactory fileWatcherFactory, final PendingChangesListener pendingChangesListener, long quietPeriodMillis, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken) {
+        private ChangeWaiter(FileWatcherFactory fileWatcherFactory, final PendingChangesListener pendingChangesListener, long quietPeriodMillis, boolean triggeredBuild, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken) {
             this.quietPeriodMillis = quietPeriodMillis;
+            this.triggeredBuild = triggeredBuild;
             this.cancellationToken = cancellationToken;
             this.buildGateToken = buildGateToken;
             this.onError = new Action<Throwable>() {
@@ -147,7 +151,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 if (throwable != null) {
                     throw throwable;
                 }
-                if (isTriggerBuild()) {
+                if (triggeredBuild) {
                     buildGateToken.waitForOpen();
                 }
             } catch (Throwable e) {
