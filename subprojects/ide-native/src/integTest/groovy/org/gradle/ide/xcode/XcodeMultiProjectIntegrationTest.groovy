@@ -107,6 +107,85 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         buildSettings(xcodeProject("hello/hello.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeting/build/main/objs"))
     }
 
+    def "create xcode project Swift executable inside composite build"() {
+        given:
+        settingsFile.text = """
+            includeBuild 'greeter'
+            rootProject.name = '${rootProjectName}'
+        """
+        buildFile << """
+            apply plugin: 'swift-executable'
+            apply plugin: 'xcode'
+
+            dependencies {
+                implementation 'test:greeter:1.3'
+            }
+        """
+
+        file("greeter/settings.gradle") << "rootProject.name = 'greeter'"
+        file('greeter/build.gradle') << """
+            apply plugin: 'swift-library'
+            apply plugin: 'xcode'
+
+            group = 'test'
+        """
+
+        def app = new SwiftHelloWorldApp()
+        app.library.writeSources(file('greeter/src/main'))
+        app.executable.writeSources(file('src/main'))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemegreeterSharedLibrary",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        xcodeWorkspace("${rootProjectName}.xcworkspace")
+            .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('greeter/greeter.xcodeproj')]*.absolutePath)
+
+        buildSettings(xcodeProject("${rootProjectName}.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/main/objs"))
+    }
+
+    def "create xcode project C++ executable inside composite build"() {
+        given:
+        settingsFile.text = """
+            includeBuild 'greeter'
+            rootProject.name = '${rootProjectName}'
+        """
+        buildFile << """
+            apply plugin: 'cpp-executable'
+            apply plugin: 'xcode'
+
+            dependencies {
+                implementation 'test:greeter:1.3'
+            }
+        """
+
+        file("greeter/settings.gradle") << "rootProject.name = 'greeter'"
+        file('greeter/build.gradle') << """
+            apply plugin: 'cpp-library'
+            apply plugin: 'xcode'
+
+            group = 'test'
+        """
+
+        def app = new CppHelloWorldApp()
+        app.library.writeSources(file('greeter/src/main'))
+        app.executable.writeSources(file('src/main'))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemegreeterSharedLibrary",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        xcodeWorkspace("${rootProjectName}.xcworkspace")
+            .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('greeter/greeter.xcodeproj')]*.absolutePath)
+
+        buildSettings(xcodeProject("${rootProjectName}.xcodeproj").projectFile).HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("src/main/headers"), file("greeter/src/main/public"))
+    }
 
     def "create xcode project C++ executable"() {
         given:
