@@ -49,6 +49,7 @@ import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.cpp.tasks.CppCompile;
@@ -224,9 +225,8 @@ public class XcodePlugin extends IdePlugin {
         FileCollection sourceTree = compileTask.getSource();
         xcode.getProject().getSources().from(sourceTree);
 
-        // TODO - These files can't be figured out from the compileTask and need the concept of source set
-        xcode.getProject().getSources().from(project.fileTree("src/main/headers"));
-        xcode.getProject().getSources().from(project.fileTree("src/main/public"));
+        FileCollection headers = compileTask.getIncludes().minus(project.getConfigurations().getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+        xcode.getProject().getSources().from(headers.getAsFileTree());
 
         // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the build task
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);

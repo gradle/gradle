@@ -114,4 +114,25 @@ apply plugin: 'cpp-executable'
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
             .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.allFiles*.name)
     }
+
+    def "changing source location still include them in the project"() {
+        given:
+        buildFile << """
+apply plugin: 'cpp-executable'
+
+def sourceTree = fileTree('src')
+sourceTree.include('**/*.cpp')
+tasks.compileCpp.source(sourceTree)
+tasks.compileCpp.includes(file('include'))
+"""
+
+        when:
+        app.sourceFiles*.writeToDir(file('src'))
+        app.headerFiles*.writeToDir(file('include'))
+        succeeds("xcode")
+
+        then:
+        xcodeProject("${rootProjectName}.xcodeproj").projectFile
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.allFiles*.name)
+    }
 }
