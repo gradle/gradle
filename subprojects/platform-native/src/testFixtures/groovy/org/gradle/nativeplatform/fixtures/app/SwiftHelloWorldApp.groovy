@@ -18,96 +18,40 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftHelloWorldApp extends IncrementalHelloWorldApp {
-    def greeter = new SwiftGreeter()
-    def alternateGreeter = new SwiftAlternateGreeter()
-    def sum = new SwiftSum()
-    def main = new SwiftMain()
-    def alternateMain = new SwiftAlternateMain()
+class SwiftHelloWorldApp extends Element {
+    def lib = new SwiftLib()
+    def alternateLib = new SwiftAlternateLib()
+    def main = new SwiftMain(lib, lib)
+    def mainWithAlternateLib = new SwiftMain(alternateLib, alternateLib)
 
-    @Override
-    List<SourceFile> getAllFiles() {
-        sourceFiles
-    }
-
-    @Override
-    TestNativeComponent getExecutable() {
-        def delegate = super.getExecutable()
-        return new TestNativeComponent() {
-            @Override
-            List<SourceFile> getHeaderFiles() {
-                return delegate.getHeaderFiles()
-            }
-
+    SourceElement getExecutable() {
+        return new SourceElement() {
             @Override
             List<SourceFile> getSourceFiles() {
-                return delegate.getSourceFiles().collect {
+                return main.getSourceFiles().collect {
                     sourceFile(it.path, it.name, "import greeter\n${it.content}")
                 }
             }
         }
     }
 
-    @Override
-    SourceFile getMainSource() {
-        return main.sourceFile
+    String getExpectedOutput() {
+        return main.expectedOutput
     }
 
-    SourceFile getAlternateMainSource() {
-        return alternateMain.sourceFile
+    SwiftLib getLibrary() {
+        return lib
     }
 
-    String alternateOutput = greeter.expectedOutput
-
-    @Override
-    TestNativeComponent getLibrary() {
-        def delegate = super.getLibrary()
-        return new TestNativeComponent() {
-            @Override
-            List<SourceFile> getHeaderFiles() {
-                return Collections.<SourceFile>emptyList()
-            }
-
-            @Override
-            List<SourceFile> getSourceFiles() {
-                return delegate.getSourceFiles()
-            }
-        }
+    SwiftAlternateLib getAlternateLibrary() {
+        return alternateLib
     }
 
-    @Override
-    SourceFile getLibraryHeader() {
-        throw new UnsupportedOperationException()
+    String getAlternateLibraryOutput() {
+        return mainWithAlternateLib.expectedOutput
     }
-
-    @Override
-    SourceFile getCommonHeader() {
-        throw new UnsupportedOperationException()
-    }
-
-    List<SourceFile> librarySources = [
-        greeter.sourceFile,
-        sum.sourceFile
-    ]
-
-    List<SourceFile> alternateLibrarySources = [
-        alternateGreeter.sourceFile,
-        sum.sourceFile
-    ]
-
-    String alternateLibraryOutput = "${alternateGreeter.expectedOutput}${sum.sum(5, 7)}"
 
     SourceFile getBrokenFile() {
         return sourceFile("swift", "broken.swift", """'broken""")
-    }
-
-    @Override
-    String getSourceSetType() {
-        return "SwiftSourceSet"
-    }
-
-    @Override
-    List<SourceFile> getSourceFiles() {
-        librarySources + [mainSource]
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.SourceFile
 class SwiftAlternateGreeter extends SwiftElement implements GreeterElement {
     @Override
     SourceFile getSourceFile() {
-        sourceFile("swift", "hello.swift", """
+        sourceFile("swift", "greeter.swift", """
             public class Greeter {
                 public init() {}
                 public func sayHello() {

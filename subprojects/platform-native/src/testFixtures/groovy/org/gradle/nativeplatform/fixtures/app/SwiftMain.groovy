@@ -18,7 +18,15 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftMain extends SwiftElement {
+class SwiftMain extends SwiftElement implements AppElement {
+    final GreeterElement greeter
+    final SumElement sum
+
+    SwiftMain(GreeterElement greeter, SumElement sum) {
+        this.greeter = greeter
+        this.sum = sum
+    }
+
     @Override
     SourceFile getSourceFile() {
         return sourceFile("swift", "main.swift", """
@@ -32,5 +40,10 @@ class SwiftMain extends SwiftElement {
 
             _ = main()
         """)
+    }
+
+    @Override
+    String getExpectedOutput() {
+        return greeter.expectedOutput + sum.sum(5, 7)
     }
 }

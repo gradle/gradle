@@ -17,15 +17,23 @@
 package org.gradle.nativeplatform.fixtures.app;
 
 import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.test.fixtures.file.TestFile;
 
-import java.util.Collections;
 import java.util.List;
 
-public abstract class SwiftElement extends SourceElement {
-    public abstract SourceFile getSourceFile();
+/**
+ * an element with source files.
+ */
+public abstract class SourceElement extends Element {
+    public abstract List<SourceFile> getSourceFiles();
 
-    @Override
-    public List<SourceFile> getSourceFiles() {
-        return Collections.singletonList(getSourceFile());
+    /**
+     * Writes the source files of this element to the given project.
+     */
+    public void writeToProject(TestFile projectDir) {
+        TestFile srcDir = projectDir.file("src/main");
+        for (SourceFile sourceFile : getSourceFiles()) {
+            sourceFile.writeToDir(srcDir);
+        }
     }
 }

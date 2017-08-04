@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app;
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.integtests.fixtures.SourceFile
 
-import java.util.Collections;
-import java.util.List;
-
-public abstract class SwiftElement extends SourceElement {
-    public abstract SourceFile getSourceFile();
+class SwiftAlternateLib extends SourceElement implements GreeterElement, SumElement {
+    def alternateGreeter = new SwiftAlternateGreeter()
+    def sum = new SwiftSum()
 
     @Override
-    public List<SourceFile> getSourceFiles() {
-        return Collections.singletonList(getSourceFile());
+    List<SourceFile> getSourceFiles() {
+        return [alternateGreeter.sourceFile, sum.sourceFile]
+    }
+
+    @Override
+    String getExpectedOutput() {
+        return alternateGreeter.expectedOutput
+    }
+
+    @Override
+    int sum(int a, int b) {
+        return sum.sum(a, b)
     }
 }

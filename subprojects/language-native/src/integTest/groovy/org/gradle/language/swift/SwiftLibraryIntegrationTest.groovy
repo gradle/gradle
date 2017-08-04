@@ -19,6 +19,7 @@ package org.gradle.language.swift
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -45,11 +46,11 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "sources are compiled with Swift compiler"() {
-        def app = new SwiftHelloWorldApp()
+        def lib = new SwiftLib()
         settingsFile << "rootProject.name = 'hello'"
 
         given:
-        app.library.writeSources(file('src/main'))
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -65,8 +66,8 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     def "honors changes to buildDir"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def app = new SwiftHelloWorldApp()
-        app.library.writeSources(file('src/main'))
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -86,8 +87,8 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     def "honors changes to task output locations"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def app = new SwiftHelloWorldApp()
-        app.library.writeSources(file('src/main'))
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -107,8 +108,8 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     def "can define public library"() {
         settingsFile << "rootProject.name = 'hello'"
         given:
-        def app = new SwiftHelloWorldApp()
-        app.library.writeSources(file("src/main"))
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """

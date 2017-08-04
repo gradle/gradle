@@ -18,7 +18,13 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftAlternateMain extends SwiftElement {
+class SwiftAlternateMain extends SwiftElement implements AppElement {
+    final GreeterElement greeter
+
+    SwiftAlternateMain(GreeterElement greeter) {
+        this.greeter = greeter
+    }
+
     @Override
     SourceFile getSourceFile() {
         sourceFile("swift", "main.swift", """
@@ -30,5 +36,10 @@ class SwiftAlternateMain extends SwiftElement {
 
             _ = main()
         """)
+    }
+
+    @Override
+    String getExpectedOutput() {
+        return greeter.expectedOutput
     }
 }

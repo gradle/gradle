@@ -18,6 +18,7 @@ package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -26,16 +27,16 @@ import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def helloWorldApp = new SwiftHelloWorldApp()
-
     def "build fails when compilation fails"() {
+        def app = new SwiftHelloWorldApp()
+
         given:
         buildFile << """
             apply plugin: 'swift-executable'
          """
 
         and:
-        helloWorldApp.brokenFile.writeToDir(file("src/main"))
+        app.brokenFile.writeToDir(file("src/main"))
 
         expect:
         fails "assemble"
@@ -46,10 +47,10 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
     def "sources are compiled with Swift compiler"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftHelloWorldApp()
+        def app = new SwiftApp()
 
         given:
-        app.writeSources(file('src/main'))
+        app.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -60,15 +61,15 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
         executable("build/exe/app").assertExists()
-        installation("build/install/app").exec().out == app.englishOutput
+        installation("build/install/app").exec().out == app.expectedOutput
     }
 
     def "honors changes to buildDir"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftHelloWorldApp()
+        def app = new SwiftApp()
 
         given:
-        app.writeSources(file('src/main'))
+        app.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -83,15 +84,15 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         !file("build").exists()
         file("output/main/objs").assertIsDir()
         executable("output/exe/app").assertExists()
-        installation("output/install/app").exec().out == app.englishOutput
+        installation("output/install/app").exec().out == app.expectedOutput
     }
 
     def "honors changes to task output locations"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftHelloWorldApp()
+        def app = new SwiftApp()
 
         given:
-        app.writeSources(file('src/main'))
+        app.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -106,7 +107,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
 
         file("build/exe/some-app.exe").assertExists()
-        installation("build/some-app").exec().out == app.englishOutput
+        installation("build/some-app").exec().out == app.expectedOutput
     }
 
     def "can compile and link against a library"() {
@@ -125,15 +126,15 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
                 apply plugin: 'swift-library'
             }
 """
-        app.library.writeSources(file("greeter/src/main"))
-        app.executable.writeSources(file('app/src/main'))
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(":greeter:compileSwift", ":greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
         executable("app/build/exe/app").assertExists()
         sharedLibrary("greeter/build/lib/greeter").assertExists()
-        installation("app/build/install/app").exec().out == app.englishOutput
+        installation("app/build/install/app").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/app/lib/greeter").file.assertExists()
     }
 

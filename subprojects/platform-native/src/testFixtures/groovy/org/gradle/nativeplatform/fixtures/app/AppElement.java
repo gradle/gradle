@@ -16,16 +16,6 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
-import org.gradle.integtests.fixtures.SourceFile;
-
-import java.util.Collections;
-import java.util.List;
-
-public abstract class SwiftElement extends SourceElement {
-    public abstract SourceFile getSourceFile();
-
-    @Override
-    public List<SourceFile> getSourceFiles() {
-        return Collections.singletonList(getSourceFile());
-    }
+public interface AppElement {
+    String getExpectedOutput();
 }

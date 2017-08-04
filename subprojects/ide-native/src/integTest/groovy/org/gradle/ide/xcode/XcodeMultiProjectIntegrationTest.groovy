@@ -45,8 +45,8 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
             }
         """
         def app = new SwiftHelloWorldApp()
-        app.library.writeSources(file('greeter/src/main'))
-        app.executable.writeSources(file('app/src/main'))
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
 
         when:
         succeeds("xcode")
@@ -231,8 +231,8 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         """
 
         def app = new SwiftHelloWorldApp()
-        app.library.writeSources(file('greeter/src/main'))
-        app.executable.writeSources(file('app/src/main'))
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
 
         when:
         buildFile.text = """
@@ -280,8 +280,8 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         """
 
         def app = new SwiftHelloWorldApp()
-        app.library.writeSources(file('greeter/src/main'))
-        app.executable.writeSources(file('app/src/main'))
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
 
         when:
         buildFile.text = """
