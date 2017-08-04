@@ -401,13 +401,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Task doFirst(final Action<? super Task> action) {
+        return doFirst("doFirst {} action", action);
+    }
+
+    @Override
+    public Task doFirst(final String actionName, final Action<? super Task> action) {
         hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doFirst(Action)", new Runnable() {
             public void run() {
-                getTaskActions().add(0, wrap(action, "doFirst(Action)"));
+                getTaskActions().add(0, wrap(action, actionName));
             }
         });
         return this;
@@ -415,13 +420,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Task doLast(final Action<? super Task> action) {
+        return doLast("doLast {} action", action);
+    }
+
+    @Override
+    public Task doLast(final String actionName, final Action<? super Task> action) {
         hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doLast(Action)", new Runnable() {
             public void run() {
-                getTaskActions().add(wrap(action, "doLast(Action)"));
+                getTaskActions().add(wrap(action, actionName));
             }
         });
         return this;
@@ -648,14 +658,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private ContextAwareTaskAction wrap(final Action<? super Task> action) {
-        return wrap(action, "unnamed");
+        return wrap(action, "unnamed action");
     }
 
-    private ContextAwareTaskAction wrap(final Action<? super Task> action, String displayHint) {
+    private ContextAwareTaskAction wrap(final Action<? super Task> action, String actionName) {
         if (action instanceof ContextAwareTaskAction) {
             return (ContextAwareTaskAction) action;
         }
-        return new TaskActionWrapper(action, displayHint);
+        return new TaskActionWrapper(action, actionName);
     }
 
     private static class TaskInfo {
@@ -728,16 +738,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private static class TaskActionWrapper implements ContextAwareTaskAction {
         private final Action<? super Task> action;
-        private final String displayHint;
+        private final String maybeActionName;
 
         /**
-         * The <i>displayHint</i> is used to construct a human readable name for
+         * The <i>action name</i> is used to construct a human readable name for
          * the actions to be used in progress logging. It is only used if
          * the wrapped action does not already implement {@link Describable}.
          */
-        public TaskActionWrapper(Action<? super Task> action, String displayHint) {
+        public TaskActionWrapper(Action<? super Task> action, String maybeActionName) {
             this.action = action;
-            this.displayHint = displayHint;
+            this.maybeActionName = maybeActionName;
         }
 
         @Override
@@ -811,7 +821,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (action instanceof Describable) {
                 return ((Describable) action).getDisplayName();
             }
-            return "Execute " + displayHint + " action";
+            return "Execute " + maybeActionName;
         }
     }
 
