@@ -16,19 +16,12 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
-
-/**
- * A single project Swift app.
- */
-class SwiftAlternateApp extends SourceElement implements AppElement {
-    final greeter = new SwiftGreeter()
-    final sum = new SwiftSum()
-    final main = new SwiftAlternateMain(greeter)
-    final List<SourceFile> sourceFiles = [main.sourceFile, greeter.sourceFile, sum.sourceFile]
+class SwiftAppWithLibrary implements AppElement {
+    final library = new SwiftLib()
+    final executable = new SwiftAppWithDep(library, library)
 
     @Override
     String getExpectedOutput() {
-        return main.expectedOutput
+        return executable.expectedOutput
     }
 }

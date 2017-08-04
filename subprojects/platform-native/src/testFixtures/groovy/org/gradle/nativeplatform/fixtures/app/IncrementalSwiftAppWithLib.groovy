@@ -16,23 +16,27 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
-
-class SwiftHelloWorldApp extends Element {
+/**
+ * A Swift app with library that contains a changed source file.
+ */
+class IncrementalSwiftAppWithLib {
     def lib = new SwiftLib()
     def alternateLib = new SwiftAlternateLib()
-    def main = new SwiftMain(lib, lib)
-    def mainWithAlternateLib = new SwiftMain(alternateLib, alternateLib)
+    def main = new SwiftAppWithDep(lib, lib)
+    def mainWithAlternateLib = new SwiftAppWithDep(alternateLib, alternateLib)
 
-    SourceElement getExecutable() {
-        return new SourceElement() {
-            @Override
-            List<SourceFile> getSourceFiles() {
-                return main.getSourceFiles().collect {
-                    sourceFile(it.path, it.name, "import greeter\n${it.content}")
-                }
-            }
+    IncrementalSwiftAppWithLib() {
+        // Verify some assumptions that the tests make
+        assert lib.sourceFiles.size() > 1
+        assert alternateLib.sourceFiles.size() == lib.sourceFiles.size()
+        assert alternateLib.sourceFiles.first().content != lib.sourceFiles.first().content
+        for (int i = 1; i < lib.sourceFiles.size(); i++) {
+            assert alternateLib.sourceFiles[i].content == lib.sourceFiles[i].content
         }
+    }
+
+    SwiftAppWithDep getExecutable() {
+        return main
     }
 
     String getExpectedOutput() {
@@ -49,9 +53,5 @@ class SwiftHelloWorldApp extends Element {
 
     String getAlternateLibraryOutput() {
         return mainWithAlternateLib.expectedOutput
-    }
-
-    SourceFile getBrokenFile() {
-        return sourceFile("swift", "broken.swift", """'broken""")
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -28,15 +27,13 @@ import static org.gradle.util.Matchers.containsText
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "build fails when compilation fails"() {
-        def app = new SwiftHelloWorldApp()
-
         given:
         buildFile << """
             apply plugin: 'swift-library'
          """
 
         and:
-        app.brokenFile.writeToDir(file("src/main"))
+        file("src/main/swift/broken.swift") << "broken!"
 
         expect:
         fails "assemble"

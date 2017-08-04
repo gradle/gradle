@@ -19,7 +19,7 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.util.CollectionUtils
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
@@ -44,7 +44,7 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
                 apply plugin: 'swift-library'
             }
         """
-        def app = new SwiftHelloWorldApp()
+        def app = new SwiftAppWithLibrary()
         app.library.writeToProject(file("greeter"))
         app.executable.writeToProject(file("app"))
 
@@ -230,7 +230,7 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
             }
         """
 
-        def app = new SwiftHelloWorldApp()
+        def app = new SwiftAppWithLibrary()
         app.library.writeToProject(file("greeter"))
         app.executable.writeToProject(file("app"))
 
@@ -279,7 +279,7 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
             }
         """
 
-        def app = new SwiftHelloWorldApp()
+        def app = new SwiftAppWithLibrary()
         app.library.writeToProject(file("greeter"))
         app.executable.writeToProject(file("app"))
 

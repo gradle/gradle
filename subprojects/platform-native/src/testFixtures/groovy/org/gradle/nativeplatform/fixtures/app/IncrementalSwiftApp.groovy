@@ -16,19 +16,20 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
-
 /**
- * A single project Swift app.
+ * A Swift app with a changed source file
  */
-class SwiftAlternateApp extends SourceElement implements AppElement {
-    final greeter = new SwiftGreeter()
-    final sum = new SwiftSum()
-    final main = new SwiftAlternateMain(greeter)
-    final List<SourceFile> sourceFiles = [main.sourceFile, greeter.sourceFile, sum.sourceFile]
+class IncrementalSwiftApp {
+    def app = new SwiftApp()
+    def alternateApp = new SwiftAlternateApp()
 
-    @Override
-    String getExpectedOutput() {
-        return main.expectedOutput
+    IncrementalSwiftApp() {
+        // Verify some assumptions that the tests make
+        assert app.sourceFiles.size() > 1
+        assert alternateApp.sourceFiles.size() == app.sourceFiles.size()
+        assert alternateApp.sourceFiles.first().content != app.sourceFiles.first().content
+        for (int i = 1; i < app.sourceFiles.size(); i++) {
+            assert alternateApp.sourceFiles[i].content == app.sourceFiles[i].content
+        }
     }
 }

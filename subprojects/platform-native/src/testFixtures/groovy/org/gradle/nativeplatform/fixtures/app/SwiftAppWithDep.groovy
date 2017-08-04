@@ -18,14 +18,19 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-/**
- * A single project Swift app.
- */
-class SwiftAlternateApp extends SourceElement implements AppElement {
-    final greeter = new SwiftGreeter()
-    final sum = new SwiftSum()
-    final main = new SwiftAlternateMain(greeter)
-    final List<SourceFile> sourceFiles = [main.sourceFile, greeter.sourceFile, sum.sourceFile]
+class SwiftAppWithDep extends SourceElement implements AppElement {
+    final SwiftMain main
+
+    SwiftAppWithDep(GreeterElement greeter, SumElement sum) {
+        main = new SwiftMain(greeter, sum)
+    }
+
+    @Override
+    List<SourceFile> getSourceFiles() {
+        return main.getSourceFiles().collect {
+            sourceFile(it.path, it.name, "import greeter\n${it.content}")
+        }
+    }
 
     @Override
     String getExpectedOutput() {

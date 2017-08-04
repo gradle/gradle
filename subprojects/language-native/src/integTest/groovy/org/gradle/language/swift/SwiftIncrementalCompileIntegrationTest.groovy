@@ -17,22 +17,19 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.SwiftAlternateApp
-import org.gradle.nativeplatform.fixtures.app.SwiftApp
-import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftAppWithLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "rebuilds application when a single source file changes"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-        def alternateApp = new SwiftAlternateApp()
+        def app = new IncrementalSwiftApp()
 
         given:
-        app.writeToProject(testDirectory)
+        app.app.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -45,21 +42,21 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         then:
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
         result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        executable("build/exe/app").exec().out == app.expectedOutput
+        executable("build/exe/app").exec().out == app.app.expectedOutput
 
         when:
-        alternateApp.sourceFiles.first().writeToDir(file('src/main'))
+        app.alternateApp.sourceFiles.first().writeToDir(file('src/main'))
         succeeds "assemble"
 
         then:
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
         result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        executable("build/exe/app").exec().out == alternateApp.expectedOutput
+        executable("build/exe/app").exec().out == app.alternateApp.expectedOutput
     }
 
     def "rebuilds application when a single source file in library changes"() {
         settingsFile << "include 'app', 'greeter'"
-        def app = new SwiftHelloWorldApp()
+        def app = new IncrementalSwiftAppWithLib()
 
         given:
         buildFile << """
