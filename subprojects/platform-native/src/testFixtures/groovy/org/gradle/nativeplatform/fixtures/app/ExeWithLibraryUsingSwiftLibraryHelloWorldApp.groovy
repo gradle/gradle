@@ -19,23 +19,21 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile;
 
-public class ExeWithLibraryUsingSwiftLibraryHelloWorldApp extends HelloWorldApp {
+class ExeWithLibraryUsingSwiftLibraryHelloWorldApp extends HelloWorldApp {
 
     void writeSources(TestFile mainSourceDir, TestFile librarySourceDir, TestFile greetingsLibrarySourceDir) {
         getExecutable().writeSources(mainSourceDir)
         getLibrary().writeSources(librarySourceDir)
-        getGreetingsHeader().writeToDir(greetingsLibrarySourceDir);
         for (SourceFile sourceFile : greetingsSources) {
             sourceFile.writeToDir(greetingsLibrarySourceDir);
         }
     }
 
-
     public TestNativeComponent getGreetingsLibrary() {
         return new TestNativeComponent() {
             @Override
             public List<SourceFile> getHeaderFiles() {
-                return Arrays.asList(getGreetingsHeader())
+                return []
             }
 
             @Override
@@ -43,10 +41,6 @@ public class ExeWithLibraryUsingSwiftLibraryHelloWorldApp extends HelloWorldApp 
                 return greetingsSources
             }
         };
-    }
-
-    SourceFile getGreetingsHeader() {
-        sourceFile("headers", "greetings.h", "");
     }
 
     List<SourceFile> greetingsSources = [
