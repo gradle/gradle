@@ -18,6 +18,8 @@ package org.gradle.play.tasks
 
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.VersionNumber
+import org.junit.Assume
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
@@ -133,6 +135,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
     }
 
     def "can build twirl source set with default Java imports" () {
+        Assume.assumeTrue(versionNumber < VersionNumber.parse("2.6.2"))
         withTwirlJavaSourceSets()
         withTemplateSourceExpectingJavaImports(file("twirlJava", "javaTemplate.scala.html"))
         validateThatPlayJavaDependencyIsAdded()
@@ -149,6 +152,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
     }
 
     def "can build twirl source sets both with and without default Java imports" () {
+        Assume.assumeTrue(versionNumber < VersionNumber.parse("2.6.2"))
         withTwirlJavaSourceSets()
         withTemplateSource(file("app", "views", "index.scala.html"))
         withTemplateSourceExpectingJavaImports(file("twirlJava", "javaTemplate.scala.html"))
