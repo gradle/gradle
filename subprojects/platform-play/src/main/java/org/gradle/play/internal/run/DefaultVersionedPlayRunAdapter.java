@@ -52,10 +52,12 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     private static final String PLAY_EXCEPTION_CLASSNAME = "play.api.PlayException";
     private static final Logger LOGGER = Logging.getLogger(DefaultVersionedPlayRunAdapter.class);
 
-    private final AtomicBoolean blockReload = new AtomicBoolean();
+    private final AtomicBoolean block = new AtomicBoolean();
+    private final AtomicBoolean reload = new AtomicBoolean();
+    private final AtomicReference<Throwable> buildFailure = new AtomicReference<Throwable>();
+
     private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
     private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
-    private volatile Throwable buildFailure;
 
     protected abstract Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException;
 
@@ -77,12 +79,12 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     reloadListener.reloadRequested();
 
                     try {
-                        synchronized (blockReload) {
-                            LOGGER.debug("waiting for blockReload to clear {} ", blockReload.get());
-                            while (blockReload.get()) {
-                                blockReload.wait();
+                        synchronized (block) {
+                            LOGGER.debug("waiting for block to clear {} ", block.get());
+                            while (block.get()) {
+                                block.wait();
                             }
-                            LOGGER.debug("blockReload cleared {} ", blockReload.get());
+                            LOGGER.debug("block cleared {} ", block.get());
                         }
 
                         // We can't close replaced loaders immediately, because their classes may be used during shutdown,
@@ -90,13 +92,13 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                         // We have no way of knowing when the loader is actually done with, so we use the request after the request
                         // that triggered the reload as the trigger point to close the replaced loader.
                         closeOldLoaders();
-                        if (buildFailure == null) {
+                        if (reload.compareAndSet(true, false)) {
                             ClassPath classpath = new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
                             URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
                             storeClassLoader(currentClassLoader);
                             return currentClassLoader;
                         } else {
-                            Throwable failure = buildFailure;
+                            Throwable failure = buildFailure.get();
                             if (failure == null) {
                                 return null;
                             } else {
@@ -150,20 +152,24 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
     @Override
     public void outOfDate() {
-        synchronized (blockReload) {
-            blockReload.set(true);
-            blockReload.notifyAll();
+        synchronized (block) {
+            reload.set(false);
+            buildFailure.set(null);
+
+            block.set(true);
+            block.notifyAll();
             LOGGER.debug("notify outOfDate");
         }
     }
 
     @Override
     public void upToDate(Throwable throwable) {
-        buildFailure = throwable;
+        synchronized (block) {
+            reload.set(true);
+            buildFailure.set(throwable);
 
-        synchronized (blockReload) {
-            blockReload.set(false);
-            blockReload.notifyAll();
+            block.set(false);
+            block.notifyAll();
             LOGGER.debug("notify upToDate");
         }
     }

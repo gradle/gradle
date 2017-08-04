@@ -16,8 +16,10 @@
 
 package org.gradle.play.integtest.continuous
 
+import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory
 import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import spock.lang.Unroll
 
 class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
 
@@ -63,10 +65,12 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
         }
     }
 
-    def "wait for changes to be built when a request comes in during initial app startup and there are pending changes"() {
+    @Unroll
+    def "wait for changes to be built when a request comes in during initial app startup and there are pending changes and build is triggered=#triggered"() {
         addPendingChangesHook()
         // Prebuild so we don't timeout waiting for the 'rebuild' trigger
         executer.withTasks("playBinary").run()
+        executer.withArgument("-D" + DefaultFileSystemChangeWaiterFactory.TRIGGER_BUILD_SYSPROP + "=" + triggered)
 
         server.start()
         buildFile << """
@@ -95,6 +99,9 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
         then:
         appIsRunningAndDeployed()
         runningApp.playUrl('hello').text == 'hello world'
+
+        where:
+        triggered << [ true, false ]
     }
 
     def "wait for pending changes to be built if a request comes in during a build and there are pending changes"() {

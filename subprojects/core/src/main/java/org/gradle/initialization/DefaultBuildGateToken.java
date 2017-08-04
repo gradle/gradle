@@ -62,11 +62,10 @@ public class DefaultBuildGateToken implements BuildGateToken {
     public void close(GateKeeper gatekeeper) {
         lock.lock();
         try {
-            // The same gatekeeper that opened it, must close it
+            // The same gatekeeper that opened it must close it
             if (gatekeeper.equals(openedBy)) {
                 openedBy = null;
             }
-            System.out.println("closing by " + gatekeeper);
         } finally {
             lock.unlock();
         }

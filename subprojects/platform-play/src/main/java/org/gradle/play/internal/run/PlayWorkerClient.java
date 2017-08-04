@@ -16,6 +16,8 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildGateToken;
 import org.gradle.internal.UncheckedException;
 
@@ -23,6 +25,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
 public class PlayWorkerClient implements PlayRunWorkerClientProtocol, BuildGateToken.GateKeeper {
+    private static final Logger LOGGER = Logging.getLogger(PlayWorkerClient.class);
 
     private final BuildGateToken gateToken;
     private final BlockingQueue<PlayAppStart> startEvent = new SynchronousQueue<PlayAppStart>();
@@ -36,22 +39,20 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol, BuildGateT
     @Override
     public void update(PlayAppLifecycleUpdate update) {
         try {
-            System.out.println("update = " + update);
+            LOGGER.debug("Update from Play App {}", update);
             if (update instanceof PlayAppStart) {
                 startEvent.put((PlayAppStart)update);
             } else if (update instanceof PlayAppStop) {
                 stopEvent.put((PlayAppStop)update);
             } else if (update instanceof PlayAppReload) {
                 PlayAppReload playAppReload = (PlayAppReload)update;
-                // TODO: Remove
-                System.out.println(gateToken);
                 if (playAppReload.isReloadStart()) {
+                    LOGGER.debug("Opening gate - Play App");
                     gateToken.open(this);
                 } else {
+                    LOGGER.debug("Closing gate - Play App");
                     gateToken.close(this);
                 }
-                // TODO: Remove
-                System.out.println(gateToken);
             } else {
                 throw new IllegalStateException("Unexpected event " + update);
             }
@@ -70,12 +71,9 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol, BuildGateT
 
     public PlayAppStop waitForStop() {
         try {
-            System.out.println("waitForStop");
             return stopEvent.take();
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            System.out.println("waitForStop - done");
         }
     }
 }

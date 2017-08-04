@@ -17,6 +17,7 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.Action;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -30,10 +31,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
 public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, ReloadListener, Serializable {
+    private static final Logger LOGGER = Logging.getLogger(PlayWorkerServer.class);
 
     private PlayRunSpec runSpec;
     private VersionedPlayRunAdapter runAdapter;
 
+    private boolean reloadRequested;
     private boolean stopRequested;
     private final BlockingQueue<PlayAppLifecycleUpdate> events = new SynchronousQueue<PlayAppLifecycleUpdate>();
 
@@ -50,11 +53,15 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         final PlayAppLifecycleUpdate result = start();
         try {
             clientProtocol.update(result);
-            while (!stopRequested) {
+            while (true) {
                 PlayAppLifecycleUpdate update = events.take();
                 clientProtocol.update(update);
+                if (update instanceof PlayAppStop) {
+                    break;
+                }
             }
-            System.out.println("stopping");
+            LOGGER.debug("Play App stopping");
+            events.clear();
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -109,21 +116,31 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
 
     @Override
     public void reloadRequested() {
-        System.out.println("reloadRequested");
-        try {
-            events.put(PlayAppLifecycleUpdate.reloadRequested());
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        if (!stopRequested) {
+            LOGGER.debug("reloadRequested {}", reloadRequested);
+            try {
+                if (!reloadRequested) {
+                    reloadRequested = true;
+                    events.put(PlayAppLifecycleUpdate.reloadRequested());
+                }
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
     }
 
     @Override
     public void reloadComplete() {
-        System.out.println("reloadComplete");
-        try {
-            events.put(PlayAppLifecycleUpdate.reloadCompleted());
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        if (!stopRequested) {
+            try {
+                LOGGER.debug("reloadComplete {}", reloadRequested);
+                if (reloadRequested) {
+                    reloadRequested = false;
+                    events.put(PlayAppLifecycleUpdate.reloadCompleted());
+                }
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
     }
 }

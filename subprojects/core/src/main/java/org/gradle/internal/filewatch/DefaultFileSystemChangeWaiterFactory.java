@@ -151,7 +151,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 if (throwable != null) {
                     throw throwable;
                 }
-                if (triggeredBuild) {
+                if (!cancellationToken.isCancellationRequested() && triggeredBuild) {
                     buildGateToken.waitForOpen();
                 }
             } catch (Throwable e) {
