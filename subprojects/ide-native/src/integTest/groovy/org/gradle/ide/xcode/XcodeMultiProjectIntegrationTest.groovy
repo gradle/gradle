@@ -18,7 +18,7 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.util.CollectionUtils
 
@@ -63,7 +63,7 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     }
 
     def "create xcode project Swift executable with transitive dependencies"() {
-        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+        def app = new SwiftAppWithLibraries()
 
         given:
         settingsFile.text =  """

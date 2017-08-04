@@ -27,9 +27,15 @@ class IncrementalSwiftApp {
         // Verify some assumptions that the tests make
         assert app.sourceFiles.size() > 1
         assert alternateApp.sourceFiles.size() == app.sourceFiles.size()
-        assert alternateApp.sourceFiles.first().content != app.sourceFiles.first().content
-        for (int i = 1; i < app.sourceFiles.size(); i++) {
-            assert alternateApp.sourceFiles[i].content == app.sourceFiles[i].content
+        for (int i = 0; i < app.sourceFiles.size(); i++) {
+            def newSource = alternateApp.sourceFiles[i]
+            def oldSource = app.sourceFiles[i]
+            assert newSource.path == oldSource.path
+            if (i == 0) {
+                assert newSource.content != oldSource.content
+            } else {
+                assert newSource.content == oldSource.content
+            }
         }
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -122,7 +122,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
     def "can compile and link against another library"() {
         settingsFile << "include 'hello', 'log'"
-        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+        def app = new SwiftAppWithLibraries()
 
         given:
         buildFile << """
@@ -143,12 +143,12 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds ":hello:assemble"
         result.assertTasksExecuted(":log:compileSwift", ":log:linkMain", ":hello:compileSwift", ":hello:linkMain", ":hello:assemble")
         sharedLibrary("hello/build/lib/hello").assertExists()
-        sharedLibrary("log/build/lib/greeting").assertExists()
+        sharedLibrary("log/build/lib/log").assertExists()
     }
 
     def "can change default module name and successfully link against library"() {
         settingsFile << "include 'lib1', 'lib2'"
-        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+        def app = new SwiftAppWithLibraries()
 
         given:
         buildFile << """

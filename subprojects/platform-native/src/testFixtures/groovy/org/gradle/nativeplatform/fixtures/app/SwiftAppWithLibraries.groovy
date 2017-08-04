@@ -18,7 +18,10 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class ExeWithLibraryUsingSwiftLibraryHelloWorldApp {
+/**
+ * A Swift app composed of 3 modules: an executable and 2 libraries.
+ */
+class SwiftAppWithLibraries implements AppElement {
     final logger = new SwiftLogger()
     final greeter = new SwiftGreeterWithDep()
     final main = new SwiftAlternateMain(greeter)
@@ -32,7 +35,8 @@ class ExeWithLibraryUsingSwiftLibraryHelloWorldApp {
         }
     }
 
-    String getEnglishOutput() {
+    @Override
+    String getExpectedOutput() {
         return main.expectedOutput
     }
 

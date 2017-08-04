@@ -23,7 +23,7 @@ class SwiftLogger extends SwiftElement {
     SourceFile getSourceFile() {
         return sourceFile("swift", "log.swift", """
             public func log(_ p: String) {
-                print(p, terminator: "")
+                print(p)
             }
         """)
     }

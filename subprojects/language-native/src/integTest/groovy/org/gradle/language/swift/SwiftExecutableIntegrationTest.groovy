@@ -17,7 +17,7 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.util.Requires
@@ -138,7 +138,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
     def "can compile and link against library with API dependencies"() {
         settingsFile << "include 'app', 'hello', 'log'"
-        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+        def app = new SwiftAppWithLibraries()
 
         given:
         buildFile << """
@@ -167,14 +167,14 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":log:compileSwift", ":log:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
         sharedLibrary("hello/build/lib/hello").assertExists()
         sharedLibrary("log/build/lib/log").assertExists()
-        executable("app/build/exe/app").exec().out == app.englishOutput
+        executable("app/build/exe/app").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
         sharedLibrary("app/build/install/app/lib/log").file.assertExists()
     }
 
     def "honors changes to library buildDir"() {
         settingsFile << "include 'app', 'hello', 'log'"
-        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+        def app = new SwiftAppWithLibraries()
 
         given:
         buildFile << """
@@ -206,7 +206,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         !file("log/build").exists()
         sharedLibrary("hello/build/lib/hello").assertExists()
         sharedLibrary("log/out/lib/log").assertExists()
-        executable("app/build/exe/app").exec().out == app.englishOutput
+        executable("app/build/exe/app").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
         sharedLibrary("app/build/install/app/lib/log").file.assertExists()
     }
@@ -220,7 +220,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         file("hello/settings.gradle") << "rootProject.name = 'hello'"
         file("log/settings.gradle") << "rootProject.name = 'log'"
 
-        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+        def app = new SwiftAppWithLibraries()
 
         given:
         buildFile << """
@@ -251,7 +251,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         sharedLibrary("hello/build/lib/hello").assertExists()
         sharedLibrary("log/build/lib/log").assertExists()
         executable("build/exe/app").assertExists()
-        installation("build/install/app").exec().out == app.englishOutput
+        installation("build/install/app").exec().out == app.expectedOutput
         sharedLibrary("build/install/app/lib/hello").file.assertExists()
         sharedLibrary("build/install/app/lib/log").file.assertExists()
     }
