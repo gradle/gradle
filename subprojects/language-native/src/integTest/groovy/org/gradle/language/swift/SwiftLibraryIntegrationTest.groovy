@@ -121,7 +121,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "can compile and link against another library"() {
-        settingsFile << "include 'hello', 'greeting'"
+        settingsFile << "include 'hello', 'log'"
         def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
 
         given:
@@ -129,21 +129,21 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             project(':hello') {
                 apply plugin: 'swift-library'
                 dependencies {
-                    implementation project(':greeting')
+                    implementation project(':log')
                 }
             }
-            project(':greeting') {
+            project(':log') {
                 apply plugin: 'swift-library'
             }
 """
-        app.library.writeSources(file("hello/src/main"))
-        app.greetingsLibrary.writeSources(file("greeting/src/main"))
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
 
         expect:
         succeeds ":hello:assemble"
-        result.assertTasksExecuted(":greeting:compileSwift", ":greeting:linkMain", ":hello:compileSwift", ":hello:linkMain", ":hello:assemble")
+        result.assertTasksExecuted(":log:compileSwift", ":log:linkMain", ":hello:compileSwift", ":hello:linkMain", ":hello:assemble")
         sharedLibrary("hello/build/lib/hello").assertExists()
-        sharedLibrary("greeting/build/lib/greeting").assertExists()
+        sharedLibrary("log/build/lib/greeting").assertExists()
     }
 
     def "can change default module name and successfully link against library"() {
@@ -161,11 +161,11 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             }
             project(':lib2') {
                 apply plugin: 'swift-library'
-                tasks.withType(SwiftCompile)*.moduleName = 'greeting'
+                tasks.withType(SwiftCompile)*.moduleName = 'log'
             }
 """
-        app.library.writeSources(file("lib1/src/main"))
-        app.greetingsLibrary.writeSources(file("lib2/src/main"))
+        app.library.writeToProject(file("lib1"))
+        app.logLibrary.writeToProject(file("lib2"))
 
         expect:
         succeeds ":lib1:assemble"

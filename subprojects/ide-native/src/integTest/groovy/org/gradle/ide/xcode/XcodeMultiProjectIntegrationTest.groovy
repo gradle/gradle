@@ -67,7 +67,7 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
 
         given:
         settingsFile.text =  """
-            include 'app', 'greeting', 'hello'
+            include 'app', 'log', 'hello'
             rootProject.name = "${rootProjectName}"
         """
         buildFile << """
@@ -80,31 +80,31 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
             project(':hello') {
                 apply plugin: 'swift-library'
                 dependencies {
-                    api project(':greeting')
+                    api project(':log')
                 }
             }
-            project(':greeting') {
+            project(':log') {
                 apply plugin: 'swift-library'
             }
         """
-        app.library.writeSources(file("hello/src/main"))
-        app.greetingsLibrary.writeSources(file("greeting/src/main"))
-        app.executable.writeSources(file('app/src/main'))
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.executable.writeToProject(file("app"))
 
         when:
         succeeds("xcode")
 
         then:
         executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeappExecutable", ":app:xcode",
-            ":greeting:xcodeProject", ":greeting:xcodeProjectWorkspaceSettings", ":greeting:xcodeSchemegreetingSharedLibrary", ":greeting:xcode",
+            ":log:xcodeProject", ":log:xcodeProjectWorkspaceSettings", ":log:xcodeSchemelogSharedLibrary", ":log:xcode",
             ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeSchemehelloSharedLibrary", ":hello:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         xcodeWorkspace("${rootProjectName}.xcworkspace")
-            .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('app/app.xcodeproj'), file('greeting/greeting.xcodeproj'), file('hello/hello.xcodeproj')]*.absolutePath)
+            .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('app/app.xcodeproj'), file('log/log.xcodeproj'), file('hello/hello.xcodeproj')]*.absolutePath)
 
-        buildSettings(xcodeProject("app/app.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/main/objs"), file("greeting/build/main/objs"))
-        buildSettings(xcodeProject("hello/hello.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeting/build/main/objs"))
+        buildSettings(xcodeProject("app/app.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/main/objs"), file("log/build/main/objs"))
+        buildSettings(xcodeProject("hello/hello.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("log/build/main/objs"))
     }
 
     def "create xcode project Swift executable inside composite build"() {

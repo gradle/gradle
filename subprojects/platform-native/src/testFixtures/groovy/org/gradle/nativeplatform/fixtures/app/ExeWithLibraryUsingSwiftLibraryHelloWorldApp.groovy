@@ -17,122 +17,44 @@
 package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.test.fixtures.file.TestFile;
 
-class ExeWithLibraryUsingSwiftLibraryHelloWorldApp extends HelloWorldApp {
+class ExeWithLibraryUsingSwiftLibraryHelloWorldApp {
+    final logger = new SwiftLogger()
+    final greeter = new SwiftGreeterWithDep()
+    final main = new SwiftAlternateMain(greeter)
 
-    void writeSources(TestFile mainSourceDir, TestFile librarySourceDir, TestFile greetingsLibrarySourceDir) {
-        getExecutable().writeSources(mainSourceDir)
-        getLibrary().writeSources(librarySourceDir)
-        for (SourceFile sourceFile : greetingsSources) {
-            sourceFile.writeToDir(greetingsLibrarySourceDir);
+    SourceElement getLogLibrary() {
+        return new SourceElement() {
+            @Override
+            List<SourceFile> getSourceFiles() {
+                return [logger.sourceFile]
+            }
         }
     }
 
-    public TestNativeComponent getGreetingsLibrary() {
-        return new TestNativeComponent() {
-            @Override
-            public List<SourceFile> getHeaderFiles() {
-                return []
-            }
-
-            @Override
-            public List<SourceFile> getSourceFiles() {
-                return greetingsSources
-            }
-        };
-    }
-
-    List<SourceFile> greetingsSources = [
-        sourceFile("swift", "greetings.swift", """
-            public func getHello() -> String{
-                #if FRENCH
-                return "${HELLO_WORLD_FRENCH}"
-                #else
-                return "${HELLO_WORLD}"
-                #endif
-            }
-        """)
-    ]
-
-    @Override
     String getEnglishOutput() {
-        return HELLO_WORLD + " " + HELLO_WORLD
+        return main.expectedOutput
     }
 
-    @Override
-    String getFrenchOutput() {
-        return HELLO_WORLD_FRENCH + "\n"
-    }
-
-    @Override
-    TestNativeComponent getLibrary() {
-        def delegate = super.getLibrary()
-        return new TestNativeComponent() {
+    SourceElement getLibrary() {
+        return new SourceElement() {
             @Override
             List<SourceFile> getSourceFiles() {
-                return delegate.getSourceFiles().collect {
-                    sourceFile(it.path, it.name, "import greeting\n${it.content}")
+                return [greeter.sourceFile].collect {
+                    sourceFile(it.path, it.name, "import log\n${it.content}")
                 }
             }
-
-            @Override
-            List<SourceFile> getHeaderFiles() {
-                return delegate.getHeaderFiles()
-            }
         }
     }
 
-    @Override
-    SourceFile getLibraryHeader() {
-        sourceFile("headers", "hello.h", "");
-    }
-
-    List<SourceFile> librarySources = [
-        sourceFile("swift", "hello.swift", """
-            public func sayHello() {
-                print(getHello(), terminator:"")
-            }
-        """)
-    ]
-
-    @Override
-    TestNativeComponent getExecutable() {
-        def delegate = super.getExecutable()
-        return new TestNativeComponent() {
-            @Override
-            List<SourceFile> getHeaderFiles() {
-                return delegate.getHeaderFiles()
-            }
-
+    SourceElement getExecutable() {
+        return new SourceElement() {
             @Override
             List<SourceFile> getSourceFiles() {
-                return delegate.getSourceFiles().collect {
+                return [main.sourceFile].collect {
                     sourceFile(it.path, it.name, "import hello\n${it.content}")
                 }
             }
         }
     }
-
-    @Override
-    SourceFile getMainSource() {
-        sourceFile("swift", "main.swift", """
-            func getExeHello() -> String {
-                #if FRENCH
-                return "${HELLO_WORLD_FRENCH}"
-                #else
-                return "${HELLO_WORLD}"
-                #endif
-            }
-
-            func main() -> Int {
-                print(getExeHello() + " ", terminator:"")
-                sayHello()
-                return 0
-            }
-
-            _ = main()
-        """)
-    }
-
 }

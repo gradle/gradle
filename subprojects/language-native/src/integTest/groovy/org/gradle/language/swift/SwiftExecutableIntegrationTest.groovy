@@ -137,7 +137,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "can compile and link against library with API dependencies"() {
-        settingsFile << "include 'app', 'hello', 'greeting'"
+        settingsFile << "include 'app', 'hello', 'log'"
         def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
 
         given:
@@ -151,29 +151,29 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
             project(':hello') {
                 apply plugin: 'swift-library'
                 dependencies {
-                    api project(':greeting')
+                    api project(':log')
                 }
             }
-            project(':greeting') {
+            project(':log') {
                 apply plugin: 'swift-library'
             }
 """
-        app.library.writeSources(file("hello/src/main"))
-        app.greetingsLibrary.writeSources(file("greeting/src/main"))
-        app.executable.writeSources(file('app/src/main'))
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.executable.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":greeting:compileSwift", ":greeting:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
+        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":log:compileSwift", ":log:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
         sharedLibrary("hello/build/lib/hello").assertExists()
-        sharedLibrary("greeting/build/lib/greeting").assertExists()
+        sharedLibrary("log/build/lib/log").assertExists()
         executable("app/build/exe/app").exec().out == app.englishOutput
         sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
-        sharedLibrary("app/build/install/app/lib/greeting").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/log").file.assertExists()
     }
 
     def "honors changes to library buildDir"() {
-        settingsFile << "include 'app', 'hello', 'greeting'"
+        settingsFile << "include 'app', 'hello', 'log'"
         def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
 
         given:
@@ -187,38 +187,38 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
             project(':hello') {
                 apply plugin: 'swift-library'
                 dependencies {
-                    api project(':greeting')
+                    api project(':log')
                 }
             }
-            project(':greeting') {
+            project(':log') {
                 apply plugin: 'swift-library'
                 buildDir = 'out'
             }
 """
-        app.library.writeSources(file("hello/src/main"))
-        app.greetingsLibrary.writeSources(file("greeting/src/main"))
-        app.executable.writeSources(file('app/src/main'))
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.executable.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":greeting:compileSwift", ":greeting:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
+        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":log:compileSwift", ":log:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
 
-        !file("greeting/build").exists()
+        !file("log/build").exists()
         sharedLibrary("hello/build/lib/hello").assertExists()
-        sharedLibrary("greeting/out/lib/greeting").assertExists()
+        sharedLibrary("log/out/lib/log").assertExists()
         executable("app/build/exe/app").exec().out == app.englishOutput
         sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
-        sharedLibrary("app/build/install/app/lib/greeting").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/log").file.assertExists()
     }
 
     def "can compile and link against libraries in included builds"() {
         settingsFile << """
             rootProject.name = 'app'
             includeBuild 'hello'
-            includeBuild 'greeting'
+            includeBuild 'log'
         """
         file("hello/settings.gradle") << "rootProject.name = 'hello'"
-        file("greeting/settings.gradle") << "rootProject.name = 'greeting'"
+        file("log/settings.gradle") << "rootProject.name = 'log'"
 
         def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
 
@@ -233,26 +233,26 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
             apply plugin: 'swift-library'
             group = 'test'
             dependencies {
-                api 'test:greeting:1.4'
+                api 'test:log:1.4'
             }
         """
-        file("greeting/build.gradle") << """
+        file("log/build.gradle") << """
             apply plugin: 'swift-library'
             group = 'test'
         """
 
-        app.library.writeSources(file("hello/src/main"))
-        app.greetingsLibrary.writeSources(file("greeting/src/main"))
-        app.executable.writeSources(file('src/main'))
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.executable.writeToProject(testDirectory)
 
         expect:
         succeeds ":assemble"
-        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":greeting:compileSwift", ":greeting:linkMain", ":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":log:compileSwift", ":log:linkMain", ":compileSwift", ":linkMain", ":installMain", ":assemble")
         sharedLibrary("hello/build/lib/hello").assertExists()
-        sharedLibrary("greeting/build/lib/greeting").assertExists()
+        sharedLibrary("log/build/lib/log").assertExists()
         executable("build/exe/app").assertExists()
         installation("build/install/app").exec().out == app.englishOutput
         sharedLibrary("build/install/app/lib/hello").file.assertExists()
-        sharedLibrary("build/install/app/lib/greeting").file.assertExists()
+        sharedLibrary("build/install/app/lib/log").file.assertExists()
     }
 }
