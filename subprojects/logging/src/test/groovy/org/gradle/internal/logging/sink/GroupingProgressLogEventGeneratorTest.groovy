@@ -68,9 +68,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def warningMessage = event('Warning: some deprecation or something', LogLevel.WARN, taskStartEvent.buildOperationId)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "STATUS")
 
-        when:
-        listener.onOutput(taskStartEvent)
-        listener.onOutput(warningMessage)
+        when: listener.onOutput([taskStartEvent, warningMessage])
 
         then: 0 * downstreamListener._
 
@@ -86,11 +84,8 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         given:
         def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "STATUS")
-        def listener = new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, logHeaderFormatter, true)
 
-        when:
-        listener.onOutput(taskStartEvent)
-        listener.onOutput(taskCompleteEvent)
+        when: new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, logHeaderFormatter, true).onOutput([taskStartEvent, taskCompleteEvent])
 
         then: 1 * logHeaderFormatter.format(taskStartEvent.loggingHeader, taskStartEvent.description, taskStartEvent.shortDescription, taskCompleteEvent.status) >> {
             [new StyledTextOutputEvent.Span(taskStartEvent.description + ' '), new StyledTextOutputEvent.Span(StyledTextOutput.Style.ProgressStatus, taskCompleteEvent.status)]
@@ -107,11 +102,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def subTaskCompleteEvent = new ProgressCompleteEvent(subtaskStartEvent.progressOperationId, tenAm, 'subtask complete')
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, 'UP-TO-DATE')
 
-        when:
-        listener.onOutput(taskStartEvent)
-        listener.onOutput(subtaskStartEvent)
-        listener.onOutput(warningMessage)
-        listener.onOutput(subTaskCompleteEvent)
+        when: listener.onOutput([taskStartEvent, subtaskStartEvent, warningMessage, subTaskCompleteEvent])
 
         then: 0 * downstreamListener._
 
@@ -129,10 +120,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def warningMessage = event('Warning: some deprecation or something', LogLevel.WARN, taskStartEvent.buildOperationId)
         def endBuildEvent = new EndOutputEvent()
 
-        when:
-        listener.onOutput(taskStartEvent)
-        listener.onOutput(warningMessage)
-        listener.onOutput(endBuildEvent)
+        when: listener.onOutput([taskStartEvent, warningMessage, endBuildEvent])
 
         then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskStartEvent.description</Normal>".toString() })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" })
@@ -149,13 +137,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def taskBCompleteEvent = new ProgressCompleteEvent(taskBStartEvent.progressOperationId, tenAm, null)
         def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, tenAm, 'UP-TO-DATE')
 
-        when:
-        listener.onOutput(taskAStartEvent)
-        listener.onOutput(taskBStartEvent)
-        listener.onOutput(taskAOutput)
-        listener.onOutput(taskBOutput)
-        listener.onOutput(taskBCompleteEvent)
-        listener.onOutput(taskACompleteEvent)
+        when: listener.onOutput([taskAStartEvent, taskBStartEvent, taskAOutput, taskBOutput, taskBCompleteEvent, taskACompleteEvent])
 
         then: 1 * logHeaderFormatter.format(taskBStartEvent.loggingHeader, taskBStartEvent.description, taskBStartEvent.shortDescription, taskBCompleteEvent.status) >> { [new StyledTextOutputEvent.Span("Header $taskBStartEvent.description")] }
         then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskBStartEvent.description</Normal>".toString() })
@@ -174,14 +156,13 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def updateNowEvent = new UpdateNowEvent(timeProvider.currentTime)
 
         when:
-        listener.onOutput(taskAStartEvent)
-        listener.onOutput(taskAOutput)
+        listener.onOutput([taskAStartEvent, taskAOutput])
 
         then:
         0 * downstreamListener.onOutput(_)
 
         when:
-        listener.onOutput(updateNowEvent)
+        listener.onOutput([updateNowEvent])
 
         then:
         0 * downstreamListener.onOutput(_)
@@ -195,14 +176,13 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def updateNowEvent = new UpdateNowEvent(timeProvider.currentTime)
 
         when:
-        listener.onOutput(taskAStartEvent)
-        listener.onOutput(taskAOutput)
+        listener.onOutput([taskAStartEvent, taskAOutput])
 
         then:
         0 * downstreamListener.onOutput(_)
 
         when:
-        listener.onOutput(updateNowEvent)
+        listener.onOutput([updateNowEvent])
 
         then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
@@ -218,16 +198,13 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def updateNowEvent = new UpdateNowEvent(timeProvider.currentTime)
 
         when:
-        listener.onOutput(taskAStartEvent)
-        listener.onOutput(taskBStartEvent)
-        listener.onOutput(taskAOutput)
-        listener.onOutput(taskBOutput)
+        listener.onOutput([taskAStartEvent, taskBStartEvent, taskAOutput, taskBOutput])
 
         then:
         0 * downstreamListener.onOutput(_)
 
         when:
-        listener.onOutput(updateNowEvent)
+        listener.onOutput([updateNowEvent])
 
         then: 1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
         then: 1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })

@@ -16,15 +16,16 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
+import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.EndOutputEvent
-import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.util.MockExecutor
 import org.gradle.util.MockTimeProvider
 import spock.lang.Subject
 
 class ThrottlingOutputEventListenerTest extends OutputSpecification {
-    def listener = Mock(OutputEventListener)
+    def listener = Mock(BatchOutputEventListener)
     def timeProvider = new MockTimeProvider()
     def executor = new MockExecutor()
 
@@ -37,7 +38,7 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(event)
 
         then:
-        1 * listener.onOutput(event)
+        1 * listener.onOutput([event] as ArrayList<OutputEvent>)
         0 * _
     }
 
@@ -53,15 +54,14 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(event3)
 
         then:
-        1 * listener.onOutput(event1)
+        1 * listener.onOutput([event1] as ArrayList<OutputEvent>)
         0 * _
 
         when:
         flushSingleScheduledActions()
 
         then:
-        1 * listener.onOutput(event2)
-        1 * listener.onOutput(event3)
+        1 * listener.onOutput([event2, event3] as ArrayList<OutputEvent>)
         0 * _
 
         when:
@@ -84,7 +84,7 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(event2)
 
         then:
-        1 * listener.onOutput(event2)
+        1 * listener.onOutput([event2] as ArrayList<OutputEvent>)
         0 * _
 
         when:
@@ -106,16 +106,14 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(event3)
 
         then:
-        1 * listener.onOutput(event1)
+        1 * listener.onOutput([event1] as ArrayList<OutputEvent>)
         0 * _
 
         when:
         renderer.onOutput(end)
 
         then:
-        1 * listener.onOutput(event2)
-        1 * listener.onOutput(event3)
-        1 * listener.onOutput(end)
+        1 * listener.onOutput([event2, event3, end] as ArrayList<OutputEvent>)
         0 * _
     }
 
@@ -141,7 +139,11 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         flushFixedScheduledActions()
 
         then:
-        1 * listener.onOutput(_ as UpdateNowEvent)
+        1 * listener.onOutput(_) >> { arguments ->
+            List<OutputEvent> outputEvents = arguments[0]
+            assert outputEvents.size() == 1
+            assert outputEvents[0] instanceof UpdateNowEvent
+        }
     }
 
     def "shuts down executor when receiving end output event"() {
