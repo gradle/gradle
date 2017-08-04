@@ -269,7 +269,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def compileJavaActions = events.operations.findAll { it.descriptor.displayName.matches('Execute task action [0-9]+/[0-9]+ for :compileJava') }
+        def compileJavaActions = events.operations.findAll { it.descriptor.displayName.matches('Execute .*( action [0-9]+/[0-9]+)? for :compileJava') }
         compileJavaActions.size() > 0
         compileJavaActions[0].parent.descriptor.displayName == 'Task :compileJava'
     }
