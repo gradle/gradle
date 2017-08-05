@@ -30,6 +30,7 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol, BuildGateT
     private final BuildGateToken gateToken;
     private final BlockingQueue<PlayAppStart> startEvent = new SynchronousQueue<PlayAppStart>();
     private final BlockingQueue<PlayAppStop> stopEvent = new SynchronousQueue<PlayAppStop>();
+    private int gateCount;
 
     public PlayWorkerClient(BuildGateToken gateToken) {
         this.gateToken = gateToken;
@@ -47,11 +48,17 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol, BuildGateT
             } else if (update instanceof PlayAppReload) {
                 PlayAppReload playAppReload = (PlayAppReload)update;
                 if (playAppReload.isReloadStart()) {
-                    LOGGER.debug("Opening gate - Play App");
-                    gateToken.open(this);
+                    if (gateCount == 0) {
+                        LOGGER.debug("Opening gate - Play App");
+                        gateToken.open(this);
+                    }
+                    gateCount++;
                 } else {
-                    LOGGER.debug("Closing gate - Play App");
-                    gateToken.close(this);
+                    gateCount--;
+                    if (gateCount==0) {
+                        LOGGER.debug("Closing gate - Play App");
+                        gateToken.close(this);
+                    }
                 }
             } else {
                 throw new IllegalStateException("Unexpected event " + update);

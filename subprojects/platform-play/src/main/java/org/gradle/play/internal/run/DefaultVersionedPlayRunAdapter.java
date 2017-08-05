@@ -53,7 +53,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     private static final Logger LOGGER = Logging.getLogger(DefaultVersionedPlayRunAdapter.class);
 
     private final AtomicBoolean block = new AtomicBoolean();
-    private final AtomicBoolean reload = new AtomicBoolean();
+    private final AtomicBoolean reload = new AtomicBoolean(true);
     private final AtomicReference<Throwable> buildFailure = new AtomicReference<Throwable>();
 
     private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
