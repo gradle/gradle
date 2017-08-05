@@ -28,24 +28,19 @@ class DeploymentHandleWrapperTest extends Specification {
         delegate.running >> true
 
         when:
-        wrapper.buildSucceeded()
+        wrapper.upToDate(null)
         then:
-        1 * delegate.buildSucceeded()
+        1 * delegate.upToDate(null)
 
         when:
-        wrapper.buildFailed(failure)
+        wrapper.upToDate(failure)
         then:
-        1 * delegate.buildFailed(failure)
+        1 * delegate.upToDate(failure)
 
         when:
-        wrapper.pendingChanges(true)
+        wrapper.outOfDate()
         then:
-        1 * delegate.pendingChanges(true)
-
-        when:
-        wrapper.pendingChanges(false)
-        then:
-        1 * delegate.pendingChanges(false)
+        1 * delegate.outOfDate()
 
         when:
         wrapper.stop()
@@ -56,17 +51,17 @@ class DeploymentHandleWrapperTest extends Specification {
     def "handle must be running when receiving build status updates"() {
         delegate.running >> false
         when:
-        wrapper.pendingChanges(true)
+        wrapper.upToDate(null)
         then:
         thrown(IllegalStateException)
 
         when:
-        wrapper.buildSucceeded()
+        wrapper.outOfDate()
         then:
         thrown(IllegalStateException)
 
         when:
-        wrapper.buildFailed(failure)
+        wrapper.upToDate(failure)
         then:
         thrown(IllegalStateException)
     }

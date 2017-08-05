@@ -35,15 +35,11 @@ class DefaultDeploymentRegistryTest extends Specification {
         }
 
         @Override
-        void pendingChanges(boolean pendingChanges) {
+        void outOfDate() {
         }
 
         @Override
-        void buildSucceeded() {
-        }
-
-        @Override
-        void buildFailed(Throwable failure) {
+        void upToDate(Throwable failure) {
         }
 
         @Override
@@ -79,7 +75,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         when:
         def handle = registry.start("id", TestDeploymentHandle, "parameter")
         then:
-        objectFactory.newInstance(TestDeploymentHandle, "parameter") >>testHandle
+        objectFactory.newInstance(TestDeploymentHandle, "parameter") >> testHandle
         assert handle == testHandle
         and:
         registry.get("id", TestDeploymentHandle) == testHandle
@@ -90,16 +86,28 @@ class DefaultDeploymentRegistryTest extends Specification {
             registry.start("id${it}", DeploymentHandle)
         }
         testHandle.running >> true
-
+        def failure = new Throwable()
+        
         when:
         registry.onPendingChanges()
         then:
-        10 * testHandle.pendingChanges(true)
+        10 * testHandle.outOfDate()
 
         when:
         registry.buildFinished(new BuildResult(null, null))
         then:
-        10 * testHandle.buildSucceeded()
+        10 * testHandle.upToDate(null)
+
+
+        when:
+        registry.onPendingChanges()
+        then:
+        10 * testHandle.outOfDate()
+
+        when:
+        registry.buildFinished(new BuildResult(null, failure))
+        then:
+        10 * testHandle.upToDate(failure)
     }
 
     def "cannot register a duplicate deployment handle" () {

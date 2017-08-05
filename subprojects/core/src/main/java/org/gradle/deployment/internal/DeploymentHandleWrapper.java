@@ -37,21 +37,15 @@ public class DeploymentHandleWrapper implements DeploymentHandle, Stoppable {
     }
 
     @Override
-    public void pendingChanges(boolean pendingChanges) {
+    public void outOfDate() {
         assertIsRunning();
-        delegate.pendingChanges(pendingChanges);
+        delegate.outOfDate();
     }
 
     @Override
-    public void buildSucceeded() {
+    public void upToDate(Throwable failure) {
         assertIsRunning();
-        delegate.buildSucceeded();
-    }
-
-    @Override
-    public void buildFailed(Throwable failure) {
-        assertIsRunning();
-        delegate.buildFailed(failure);
+        delegate.upToDate(failure);
     }
 
     @Override

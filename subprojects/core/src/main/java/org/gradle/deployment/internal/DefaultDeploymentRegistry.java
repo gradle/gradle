@@ -76,7 +76,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
                         T delegate = objectFactory.newInstance(handleType, params);
                         DeploymentHandleWrapper handle = new DeploymentHandleWrapper(name, delegate);
                         if (pendingChanges.hasRemainingChanges()) {
-                            handle.pendingChanges(true);
+                            handle.outOfDate();
                         }
                         handles.put(name, handle);
                         return delegate;
@@ -111,7 +111,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         try {
             pendingChanges.changesMade();
             for (DeploymentHandle handle : handles.values()) {
-                handle.pendingChanges(true);
+                handle.outOfDate();
             }
         } finally {
             lock.unlock();
@@ -122,15 +122,10 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         lock.lock();
         try {
             pendingChanges.changesIncorporated();
-            for (DeploymentHandle handle : handles.values()) {
-                Throwable failure = buildResult.getFailure();
-                if (failure == null) {
-                    handle.buildSucceeded();
-                } else {
-                    handle.buildFailed(failure);
-                }
-                if (!pendingChanges.hasRemainingChanges()) {
-                    handle.pendingChanges(false);
+            if (!pendingChanges.hasRemainingChanges()) {
+                for (DeploymentHandle handle : handles.values()) {
+                    Throwable failure = buildResult.getFailure();
+                    handle.upToDate(failure);
                 }
             }
         } finally {

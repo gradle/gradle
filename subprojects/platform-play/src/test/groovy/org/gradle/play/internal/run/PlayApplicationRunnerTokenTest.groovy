@@ -36,21 +36,21 @@ class PlayApplicationRunnerTokenTest extends Specification {
         1 * process.waitForStop()
     }
 
-    def "rebuildSuccess sends successful build result to server"() {
+    def "outOfDate forwards to server"() {
         when:
-        runnerToken.rebuildSuccess()
+        runnerToken.outOfDate()
 
         then:
-        1 * server.buildSuccess()
+        1 * server.outOfDate()
     }
 
-    def "rebuildFailure sends failure build result to server"() {
+    def "upToDate forwards to server"() {
         given:
         def failure = new Throwable()
         when:
-        runnerToken.rebuildFailure(failure)
+        runnerToken.upToDate(failure)
 
         then:
-        1 * server.buildError(failure)
+        1 * server.upToDate(failure)
     }
 }
