@@ -22,18 +22,27 @@ import org.gradle.test.fixtures.file.TestFile;
 import java.util.List;
 
 /**
- * an element with source files.
+ * An element with source files.
  */
 public abstract class SourceElement extends Element {
     public abstract List<SourceFile> getSourceFiles();
 
     /**
-     * Writes the source files of this element to the given project.
+     * Writes the source files of this element to the given project, using the Gradle convention for source layout.
      */
     public void writeToProject(TestFile projectDir) {
         TestFile srcDir = projectDir.file("src/main");
         for (SourceFile sourceFile : getSourceFiles()) {
             sourceFile.writeToDir(srcDir);
+        }
+    }
+
+    /**
+     * Writes the source files of this element to the given source directory.
+     */
+    public void writeToSourceDir(TestFile sourceDir) {
+        for (SourceFile sourceFile : getSourceFiles()) {
+            sourceFile.writeToFile(sourceDir.file(sourceFile.getName()));
         }
     }
 }

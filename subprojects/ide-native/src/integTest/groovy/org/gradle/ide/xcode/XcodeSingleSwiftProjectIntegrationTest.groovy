@@ -130,7 +130,8 @@ tasks.compileSwift.source(sourceTree)
 """
 
         when:
-        app.writeSources(file('Sources'))
+        def app = new SwiftApp()
+        app.writeToSourceDir(file('Sources'))
         succeeds("xcode")
 
         then:

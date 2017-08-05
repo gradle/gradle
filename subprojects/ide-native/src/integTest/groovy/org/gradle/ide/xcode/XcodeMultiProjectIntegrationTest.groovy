@@ -130,9 +130,9 @@ class XcodeMultiProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
             group = 'test'
         """
 
-        def app = new SwiftHelloWorldApp()
-        app.library.writeSources(file('greeter/src/main'))
-        app.executable.writeSources(file('src/main'))
+        def app = new SwiftAppWithLibrary()
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(testDirectory)
 
         when:
         succeeds("xcode")
