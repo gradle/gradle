@@ -37,7 +37,7 @@ apply plugin: 'cpp-executable'
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme${rootProjectName}Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.allFiles*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreTools()
         project.targets.every { it.productName == rootProjectName }
@@ -60,7 +60,7 @@ apply plugin: 'cpp-library'
         executedAndNotSkipped(":xcodeProject", ":xcodeScheme${rootProjectName}SharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.allFiles*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreDynamicLibraries()
         project.targets.every { it.productName == rootProjectName }
@@ -80,7 +80,7 @@ apply plugin: 'cpp-executable'
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.allFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.files*.name)
 
         when:
         app.writeSources(file('src/main'))
@@ -88,7 +88,7 @@ apply plugin: 'cpp-executable'
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.allFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
     def "deleted source files are not included in the project"() {
@@ -103,7 +103,7 @@ apply plugin: 'cpp-executable'
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.allFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
 
         when:
         file('src/main').deleteDir()
@@ -112,7 +112,7 @@ apply plugin: 'cpp-executable'
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.allFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.files*.name)
     }
 
     def "changing source location still include them in the project"() {
@@ -133,6 +133,6 @@ tasks.compileCpp.includes(file('include'))
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.allFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 }

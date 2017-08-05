@@ -45,7 +45,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         executable("build/exe/app").exec().out == app.app.expectedOutput
 
         when:
-        app.alternateApp.sourceFiles.first().writeToDir(file('src/main'))
+        app.alternateApp.files.first().writeToDir(file('src/main'))
         succeeds "assemble"
 
         then:
@@ -82,7 +82,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         installation("app/build/install/app").exec().out == app.expectedOutput
 
         when:
-        app.alternateLibrary.sourceFiles.first().writeToDir(file('greeter/src/main/'))
+        app.alternateLibrary.files.first().writeToDir(file('greeter/src/main/'))
         succeeds ":app:assemble"
 
         then:

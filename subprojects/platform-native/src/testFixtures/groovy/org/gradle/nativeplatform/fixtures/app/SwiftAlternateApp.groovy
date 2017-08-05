@@ -25,7 +25,7 @@ class SwiftAlternateApp extends SourceElement implements AppElement {
     final greeter = new SwiftGreeter()
     final sum = new SwiftSum()
     final main = new SwiftAlternateMain(greeter)
-    final List<SourceFile> sourceFiles = [main.sourceFile, greeter.sourceFile, sum.sourceFile]
+    final List<SourceFile> files = [main.sourceFile, greeter.sourceFile, sum.sourceFile]
 
     @Override
     String getExpectedOutput() {

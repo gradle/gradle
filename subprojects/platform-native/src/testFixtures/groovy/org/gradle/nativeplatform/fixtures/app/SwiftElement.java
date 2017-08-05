@@ -25,7 +25,7 @@ public abstract class SwiftElement extends SourceElement {
     public abstract SourceFile getSourceFile();
 
     @Override
-    public List<SourceFile> getSourceFiles() {
+    public List<SourceFile> getFiles() {
         return Collections.singletonList(getSourceFile());
     }
 }

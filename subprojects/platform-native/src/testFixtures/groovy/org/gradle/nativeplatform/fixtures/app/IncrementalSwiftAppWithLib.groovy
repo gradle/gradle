@@ -27,11 +27,11 @@ class IncrementalSwiftAppWithLib {
 
     IncrementalSwiftAppWithLib() {
         // Verify some assumptions that the tests make
-        assert lib.sourceFiles.size() > 1
-        assert alternateLib.sourceFiles.size() == lib.sourceFiles.size()
-        for (int i = 0; i < lib.sourceFiles.size(); i++) {
-            def newSource = alternateLib.sourceFiles[i]
-            def oldSource = lib.sourceFiles[i]
+        assert lib.files.size() > 1
+        assert alternateLib.files.size() == lib.files.size()
+        for (int i = 0; i < lib.files.size(); i++) {
+            def newSource = alternateLib.files[i]
+            def oldSource = lib.files[i]
             assert newSource.path == oldSource.path
             if (i == 0) {
                 assert newSource.content != oldSource.content

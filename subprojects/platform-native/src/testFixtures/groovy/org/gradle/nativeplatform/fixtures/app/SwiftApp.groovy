@@ -25,7 +25,7 @@ class SwiftApp extends SourceElement implements AppElement {
     final greeter = new SwiftGreeter()
     final sum = new SwiftSum()
     final main = new SwiftMain(greeter, sum)
-    final List<SourceFile> sourceFiles = [main.sourceFile, greeter.sourceFile, sum.sourceFile]
+    final List<SourceFile> files = [main.sourceFile, greeter.sourceFile, sum.sourceFile]
 
     @Override
     String getExpectedOutput() {

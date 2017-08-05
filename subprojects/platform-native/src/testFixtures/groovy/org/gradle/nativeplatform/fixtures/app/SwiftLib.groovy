@@ -23,7 +23,7 @@ class SwiftLib extends SourceElement implements GreeterElement, SumElement {
     final sum = new SwiftSum()
 
     @Override
-    List<SourceFile> getSourceFiles() {
+    List<SourceFile> getFiles() {
         return [greeter.sourceFile, sum.sourceFile]
     }
 

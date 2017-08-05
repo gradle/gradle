@@ -29,7 +29,7 @@ class SwiftAppWithLibraries implements AppElement {
     SourceElement getLogLibrary() {
         return new SourceElement() {
             @Override
-            List<SourceFile> getSourceFiles() {
+            List<SourceFile> getFiles() {
                 return [logger.sourceFile]
             }
         }
@@ -43,7 +43,7 @@ class SwiftAppWithLibraries implements AppElement {
     SourceElement getLibrary() {
         return new SourceElement() {
             @Override
-            List<SourceFile> getSourceFiles() {
+            List<SourceFile> getFiles() {
                 return [greeter.sourceFile].collect {
                     sourceFile(it.path, it.name, "import log\n${it.content}")
                 }
@@ -54,7 +54,7 @@ class SwiftAppWithLibraries implements AppElement {
     SourceElement getExecutable() {
         return new SourceElement() {
             @Override
-            List<SourceFile> getSourceFiles() {
+            List<SourceFile> getFiles() {
                 return [main.sourceFile].collect {
                     sourceFile(it.path, it.name, "import hello\n${it.content}")
                 }

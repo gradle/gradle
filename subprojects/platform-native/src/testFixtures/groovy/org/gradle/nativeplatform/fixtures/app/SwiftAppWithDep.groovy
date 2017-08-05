@@ -26,8 +26,8 @@ class SwiftAppWithDep extends SourceElement implements AppElement {
     }
 
     @Override
-    List<SourceFile> getSourceFiles() {
-        return main.getSourceFiles().collect {
+    List<SourceFile> getFiles() {
+        return main.getFiles().collect {
             sourceFile(it.path, it.name, "import greeter\n${it.content}")
         }
     }
