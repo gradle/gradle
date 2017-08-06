@@ -62,6 +62,13 @@ Currently, only outputs within the `build` directory and directories registered 
 
 In Gradle 4.1, the Gradle CLI began displaying tests in-progress. We received feedback that long packages and test names caused the test name to be truncated or omitted. This version will abbreviate java packages of long test names to 60 characters to make it highly likely to fit on terminal screens. 
 
+### Better support for script plugins loaded via HTTP
+
+Script plugins are applied to Gradle settings or projects via the `apply from: 'URL'` syntax. Support for `http://` and `https://` URLs has been improved in this release:
+
+- HTTP script plugins are cached for [`--offline`](userguide/dependency_management.html#sub:cache_offline) use.
+- Download of HTTP script plugins honours [proxy authentication settings](userguide/build_environment.html#sec:accessing_the_web_via_a_proxy).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
