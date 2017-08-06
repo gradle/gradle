@@ -27,6 +27,7 @@ import org.gradle.play.internal.run.PlayRunAdapterV22X
 import org.gradle.play.internal.run.PlayRunAdapterV23X
 import org.gradle.play.internal.run.PlayRunAdapterV24X
 import org.gradle.play.internal.run.PlayRunAdapterV25X
+import org.gradle.play.internal.run.PlayRunAdapterV26X
 import org.gradle.play.platform.PlayPlatform
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.workers.internal.WorkerDaemonFactory
@@ -66,6 +67,7 @@ class DefaultPlayToolProviderTest extends Specification {
         "2.3.x"     | PlayRunAdapterV23X
         "2.4.x"     | PlayRunAdapterV24X
         "2.5.x"     | PlayRunAdapterV25X
+        "2.6.x"     | PlayRunAdapterV26X
     }
 
     def "cannot create tool provider for unsupported play versions"() {
@@ -75,14 +77,14 @@ class DefaultPlayToolProviderTest extends Specification {
 
         then: "fails with meaningful error message"
         def exception = thrown(InvalidUserDataException)
-        exception.message == "Not a supported Play version: ${playVersion}. This plugin is compatible with: [2.5.x, 2.4.x, 2.3.x, 2.2.x]."
+        exception.message == "Not a supported Play version: ${playVersion}. This plugin is compatible with: [2.6.x, 2.5.x, 2.4.x, 2.3.x, 2.2.x]."
 
         and: "no dependencies resolved"
         0 * dependencyHandler.create(_)
         0 * configurationContainer.detachedConfiguration(_)
 
         where:
-        playVersion << ["2.1.x", "2.6.x", "3.0.0"]
+        playVersion << ["2.1.x", "3.0.0"]
     }
 
     def "newCompiler provides decent error for unsupported CompileSpec"() {
