@@ -17,18 +17,22 @@
 package org.gradle.play.internal.twirl;
 
 import org.gradle.language.twirl.TwirlImports;
+import org.gradle.language.twirl.TwirlTemplateFormat;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 
 public interface VersionedTwirlCompilerAdapter extends Serializable {
     String getDependencyNotation();
 
     ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
 
-    Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
+    Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
 
     Iterable<String> getClassLoaderPackages();
+
+    Collection<TwirlTemplateFormat> getDefaultTemplateFormats();
 }
