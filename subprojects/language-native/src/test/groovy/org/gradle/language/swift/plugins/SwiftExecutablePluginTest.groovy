@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins
 
+import org.gradle.language.swift.model.SwiftComponent
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,6 +28,15 @@ class SwiftExecutablePluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.createDir("project"))
+
+    def "adds extension with convention for source layout"() {
+        when:
+        project.pluginManager.apply(SwiftExecutablePlugin)
+
+        then:
+        project.executable instanceof SwiftComponent
+        project.executable.source.files == [project.file('src/main/swift')] as Set
+    }
 
     def "adds compile and link tasks"() {
         when:

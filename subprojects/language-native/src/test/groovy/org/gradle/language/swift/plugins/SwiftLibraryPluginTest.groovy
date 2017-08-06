@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins
 
+import org.gradle.language.swift.model.SwiftComponent
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -26,6 +27,15 @@ class SwiftLibraryPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.createDir("project"))
+
+    def "adds extension with convention for source layout"() {
+        when:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+
+        then:
+        project.library instanceof SwiftComponent
+        project.library.source.files == [project.file('src/main/swift')] as Set
+    }
 
     def "adds compile and link tasks"() {
         when:

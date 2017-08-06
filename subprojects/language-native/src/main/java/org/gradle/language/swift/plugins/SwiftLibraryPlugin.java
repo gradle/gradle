@@ -23,9 +23,11 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -33,6 +35,8 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
+import org.gradle.language.swift.internal.DefaultSwiftComponent;
+import org.gradle.language.swift.model.SwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
@@ -41,25 +45,39 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.inject.Inject;
 import java.util.Collections;
 
 /**
- * <p>A plugin that produces a native library from Swift source.</p>
+ * <p>A plugin that produces a shared library from Swift source.</p>
  *
- * <p>Assumes the source files are located in `src/main/swift`.</p>
+ * <p>Adds compile, link and install tasks to build the shared library. Defaults to looking for source files in `src/main/swift`.</p>
+ *
+ * <p>Adds a {@link SwiftComponent} extension to the project to allow configuration of the library.</p>
  *
  * @since 4.1
  */
 @Incubating
 public class SwiftLibraryPlugin implements Plugin<Project> {
+    private final FileOperations fileOperations;
+
+    @Inject
+    public SwiftLibraryPlugin(FileOperations fileOperations) {
+        this.fileOperations = fileOperations;
+    }
+
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
+        Directory projectDirectory = project.getLayout().getProjectDirectory();
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
+
+        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "library", DefaultSwiftComponent.class, fileOperations);
+        component.getSource().from(projectDirectory.dir("src/main/swift"));
 
         // TODO - extract some common code to setup the compile task and conventions
         // Add a compile task
@@ -67,8 +85,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         compile.includes(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
 
-        ConfigurableFileTree sourceTree = project.fileTree("src/main/swift");
-        sourceTree.include("**/*.swift");
+        FileTree sourceTree = component.getSource().getAsFileTree().matching(new PatternSet().include("**/*.swift"));
         compile.source(sourceTree);
 
         compile.setCompilerArgs(Lists.newArrayList("-g"));

@@ -37,7 +37,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task ':compileSwift'.");
+        failure.assertHasDescription("Execution failed for task ':compileSwift'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }
@@ -60,7 +60,56 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/hello").assertExists()
     }
 
-    def "honors changes to buildDir"() {
+    def "build logic can change source layout convention"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToSourceDir(file("Sources"))
+        file("src/main/swift/broken.swift") << "ignore me!"
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            library {
+                source.from = 'Sources'
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+
+        sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "build logic can add individual source files"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.greeter.writeToSourceDir(file("src/one.swift"))
+        lib.sum.writeToSourceDir(file("src/two.swift"))
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            library {
+                source {
+                    from('src/one.swift')
+                    from('src/two.swift')
+                }
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+
+        sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "build logic can change buildDir"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
         def lib = new SwiftLib()
@@ -81,7 +130,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("output/lib/hello").assertExists()
     }
 
-    def "honors changes to task output locations"() {
+    def "build logic can change task output locations"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
         def lib = new SwiftLib()

@@ -21,17 +21,20 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
+import org.gradle.language.swift.internal.DefaultSwiftComponent;
+import org.gradle.language.swift.model.SwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -41,34 +44,47 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.inject.Inject;
 import java.util.Collections;
 
 /**
- * <p>A plugin that produces a native executable from Swift source.</p>
+ * <p>A plugin that produces an executable from Swift source.</p>
  *
- * <p>Assumes the source files are located in `src/main/swift`.</p>
+ * <p>Adds compile, link and install tasks to build the executable. Defaults to looking for source files in `src/main/swift`.</p>
+ *
+ * <p>Adds a {@link SwiftComponent} extension to the project to allow configuration of the executable.</p>
  *
  * @since 4.1
  */
 @Incubating
 public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
+    private final FileOperations fileOperations;
+
+    @Inject
+    public SwiftExecutablePlugin(FileOperations fileOperations) {
+        this.fileOperations = fileOperations;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        Directory projectDirectory = project.getLayout().getProjectDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
-        ProviderFactory providers = project.getProviders();
+
+        // Add the component extension
+        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "executable", DefaultSwiftComponent.class, fileOperations);
+        component.getSource().from(projectDirectory.dir("src/main/swift"));
 
         // Add a compile task
         SwiftCompile compile = tasks.create("compileSwift", SwiftCompile.class);
 
         compile.includes(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
 
-        ConfigurableFileTree sourceTree = project.fileTree("src/main/swift");
-        sourceTree.include("**/*.swift");
-        compile.source(sourceTree);
+        FileTree sourceFiles = component.getSource().getAsFileTree().matching(new PatternSet().include("**/*.swift"));
+        compile.source(sourceFiles);
 
         compile.setCompilerArgs(Lists.newArrayList("-g"));
         compile.setMacros(Collections.<String, String>emptyMap());
