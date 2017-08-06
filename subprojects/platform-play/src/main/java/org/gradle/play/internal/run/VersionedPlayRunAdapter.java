@@ -16,8 +16,6 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.api.artifacts.Dependency;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
