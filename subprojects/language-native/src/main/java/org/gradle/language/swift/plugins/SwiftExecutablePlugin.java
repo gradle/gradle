@@ -23,7 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -83,7 +83,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
 
         compile.includes(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
 
-        FileTree sourceFiles = component.getSource().getAsFileTree().matching(new PatternSet().include("**/*.swift"));
+        FileCollection sourceFiles = component.getSwiftSource();
         compile.source(sourceFiles);
 
         compile.setCompilerArgs(Lists.newArrayList("-g"));

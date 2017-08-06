@@ -19,6 +19,7 @@ package org.gradle.language.swift.model;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 
 /**
  * Configuration for a Swift library or executable, defining the source files that make up the component.
@@ -28,7 +29,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 @Incubating
 public interface SwiftComponent {
     /**
-     * Defines the Swift source files or directories of the component. You can add files or directories to this collection. When a directory is added, all source files are included for compilation.
+     * Defines the source files or directories of this component. You can add files or directories to this collection. When a directory is added, all source files are included for compilation.
      */
     ConfigurableFileCollection getSource();
 
@@ -36,4 +37,9 @@ public interface SwiftComponent {
      * Configures the source files or directories for this component.
      */
     void source(Action<? super ConfigurableFileCollection> action);
+
+    /**
+     * Returns the Swift source files of this component, as defined in {@link #getSource()}.
+     */
+    FileCollection getSwiftSource();
 }

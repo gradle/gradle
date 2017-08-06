@@ -53,6 +53,7 @@ import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.cpp.tasks.CppCompile;
+import org.gradle.language.swift.model.SwiftComponent;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
@@ -191,13 +192,15 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeForSwift(Project project, PBXTarget.ProductType productType) {
-        // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the sources
-        SwiftCompile compileTask = (SwiftCompile) project.getTasks().getByName("compileSwift");
-        FileCollection sourceTree = compileTask.getSource();
+        SwiftComponent component = project.getExtensions().getByType(SwiftComponent.class);
+        FileCollection sourceTree = component.getSwiftSource();
         xcode.getProject().getSources().from(sourceTree);
 
-        // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the build task
-        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
+        // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the link task
+        // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the dependencies
+        SwiftCompile compileTask = (SwiftCompile) project.getTasks().getByName("compileSwift");
+        Task linkTask = project.getTasks().getByName("linkMain");
+        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), project.file("build/exe/" + project.getName()), sourceTree);
         target.getImportPaths().from(compileTask.getIncludes());
         xcode.getProject().setTarget(target);
 

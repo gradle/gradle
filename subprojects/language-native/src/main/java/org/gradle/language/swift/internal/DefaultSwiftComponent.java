@@ -18,14 +18,19 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.swift.model.SwiftComponent;
 
 public class DefaultSwiftComponent implements SwiftComponent {
     private final ConfigurableFileCollection source;
+    private final FileTree sourceFiles;
 
     public DefaultSwiftComponent(FileOperations fileOperations) {
         source = fileOperations.files();
+        sourceFiles = source.getAsFileTree().matching(new PatternSet().include("**/*.swift"));
     }
 
     @Override
@@ -36,5 +41,10 @@ public class DefaultSwiftComponent implements SwiftComponent {
     @Override
     public void source(Action<? super ConfigurableFileCollection> action) {
         action.execute(source);
+    }
+
+    @Override
+    public FileCollection getSwiftSource() {
+        return sourceFiles;
     }
 }
