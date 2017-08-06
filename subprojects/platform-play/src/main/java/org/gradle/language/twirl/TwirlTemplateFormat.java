@@ -24,12 +24,16 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface TwirlTemplateFormat {
     /**
-     * @return Extension without the leading '.'
+     * Extension without the leading '.'.
+     * 
+     * @return file extension
      */
     String getExtension();
 
     /**
-     * @return Fully qualified class name for the template format
+     * Fully qualified class name for the template format.
+     *
+     * @return class name of the format
      */
     String getFormatType();
 }
