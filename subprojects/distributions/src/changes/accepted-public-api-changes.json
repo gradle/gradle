@@ -62,6 +62,14 @@
             "changes": [
                 "Interface has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftExecutablePlugin",
+            "member": "Constructor SwiftExecutablePlugin",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
