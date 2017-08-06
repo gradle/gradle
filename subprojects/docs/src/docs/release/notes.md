@@ -69,6 +69,10 @@ TODO Placeholder
 
 TODO Placeholder
 
+#### Support for built-in Twirl template types
+
+Gradle now supports Twirl templates that use HTML, JavaScript, txt and XML.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
