@@ -333,10 +333,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                 @Override
                 public void execute(TwirlSourceSet twirlSourceSet) {
                     twirlSourceSet.getSource().srcDir("app");
-                    twirlSourceSet.getSource().include("**/*.html");
-                    twirlSourceSet.getSource().include("**/*.js");
-                    twirlSourceSet.getSource().include("**/*.xml");
-                    twirlSourceSet.getSource().include("**/*.txt");
+                    twirlSourceSet.getSource().include("**/*.scala.html");
+                    twirlSourceSet.getSource().include("**/*.scala.js");
+                    twirlSourceSet.getSource().include("**/*.scala.xml");
+                    twirlSourceSet.getSource().include("**/*.scala.txt");
                 }
             });
         }

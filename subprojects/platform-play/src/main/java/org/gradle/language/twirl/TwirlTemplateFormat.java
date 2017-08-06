@@ -25,7 +25,7 @@ import org.gradle.api.Incubating;
 public interface TwirlTemplateFormat {
     /**
      * Extension without the leading '.'.
-     * 
+     *
      * @return file extension
      */
     String getExtension();
