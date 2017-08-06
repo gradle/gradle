@@ -334,6 +334,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                 public void execute(TwirlSourceSet twirlSourceSet) {
                     twirlSourceSet.getSource().srcDir("app");
                     twirlSourceSet.getSource().include("**/*.html");
+                    twirlSourceSet.getSource().include("**/*.js");
+                    twirlSourceSet.getSource().include("**/*.xml");
+                    twirlSourceSet.getSource().include("**/*.txt");
                 }
             });
         }
