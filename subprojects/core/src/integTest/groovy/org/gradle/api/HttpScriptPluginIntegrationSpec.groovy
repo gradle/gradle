@@ -70,7 +70,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         executer.withDefaultCharacterEncoding("UTF-8")
 
         and:
-        def scriptFile = file("script.gradle")
+        def scriptFile = file("script-encoding.gradle")
         scriptFile.setText("""
 task check {
     doLast {
@@ -95,7 +95,7 @@ task check {
         executer.withDefaultCharacterEncoding("ISO-8859-15")
 
         and:
-        def scriptFile = file("script.gradle")
+        def scriptFile = file("script-assumed-encoding.gradle")
         scriptFile.setText("""
 task check {
     doLast {
@@ -118,7 +118,7 @@ task check {
     @Unroll
     def "will not download cached #source resource when run with --offline"() {
         given:
-        def scriptName = "script.gradle"
+        def scriptName = "script-offline.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
         server.expectGet('/' + scriptName, scriptFile)
@@ -157,7 +157,6 @@ task check {
     @Unroll
     def "can recover from failure to download cached #source resource by running with --offline"() {
         given:
-        def scriptName = "script.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
         server.expectGet('/' + scriptName, scriptFile)
@@ -194,15 +193,15 @@ task check {
         succeeds 'check'
 
         where:
-        source        | sourceFile
-        "buildscript" | "build.gradle"
-        "settings"    | "settings.gradle"
-        "initscript"  | "init.gradle"
+        source        | sourceFile        | scriptName
+        "buildscript" | "build.gradle"    | "build-script-plugin.gradle"
+        "settings"    | "settings.gradle" | "settings-script-plugin.gradle"
+        "initscript"  | "init.gradle"     | "init-script-plugin.gradle"
     }
 
     def "will only request resource once for build invocation"() {
         given:
-        def scriptName = "script.gradle"
+        def scriptName = "script-once.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
         server.expectGet('/' + scriptName, scriptFile)
@@ -228,7 +227,7 @@ task check {
 
     def "will refresh cached value on subsequent build invocation"() {
         given:
-        def scriptName = "script.gradle"
+        def scriptName = "script-cached.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script 1'""", "UTF-8")
         scriptFile.makeOlder()
@@ -262,7 +261,7 @@ task check {
     }
 
     def "reports and recovers from missing remote script"() {
-        String scriptName = "script.gradle"
+        String scriptName = "script-missing.gradle"
         String scriptUrl = "${server.uri}/${scriptName}"
         def scriptFile = file("script.gradle") << """
             println 'loaded remote script'
