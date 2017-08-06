@@ -295,7 +295,7 @@ Source sets
         srcDir: otherSources
     Twirl template source 'play:twirlTemplates'
         srcDir: app
-        includes: **/*.html, **/*.js, **/*.xml, **/*.txt
+        includes: **/*.scala.html, **/*.scala.js, **/*.scala.xml, **/*.scala.txt
 
 Binaries
 """
