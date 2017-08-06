@@ -46,10 +46,7 @@
         <itemizedlist>
             <listitem>
                 <para>
-                    Full support is limited to Play 2.3.x applications.
-                    Limited support is available for Play 2.4.x &amp; 2.5.x applications. Gradle does not include support for a few new build-related features in 2.4.0+
-                    Specifically, Gradle does not yet support aggregate reverse routes.
-                    Future Gradle versions will add more support for Play 2.6.x.
+                    Gradle does not yet support aggregate reverse routes introduced in Play 2.4.x.
                 </para>
             </listitem>
             <listitem>
@@ -360,7 +357,7 @@
         <section id="configuring_play_platform">
             <title>Targeting a certain version of Play</title>
             <para>
-                By default, Gradle uses Play 2.3.9, Scala 2.11 and the version of Java used to start the build.
+                By default, Gradle uses Play 2.3.10, Scala 2.11 and the version of Java used to start the build.
                 A Play application can select a different version by specifying a target <apilink class="org.gradle.play.PlayApplicationSpec" method="platform">platform</apilink> on the Play application component.
             </para>
             <sample id="specifyPlayVersion" dir="play/advanced" title="Selecting a version of the Play Framework">

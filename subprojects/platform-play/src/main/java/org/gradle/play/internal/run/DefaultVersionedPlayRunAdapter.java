@@ -16,7 +16,6 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
@@ -50,7 +49,7 @@ import java.util.jar.JarFile;
 
 public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRunAdapter, Serializable {
 
-    public static final String PLAY_EXCEPTION_CLASSNAME = "play.api.PlayException";
+    private static final String PLAY_EXCEPTION_CLASSNAME = "play.api.PlayException";
     private static final Logger LOGGER = Logging.getLogger(DefaultVersionedPlayRunAdapter.class);
 
     private final AtomicBoolean reload = new AtomicBoolean();
@@ -163,11 +162,6 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
             blockReload.notifyAll();
             LOGGER.debug("notify blockReload {}", blockReload.get());
         }
-    }
-
-    @Override
-    public Iterable<Dependency> getRunsupportClasspathDependencies(String playVersion, String scalaCompatibilityVersion) {
-        return null;
     }
 
     @Override

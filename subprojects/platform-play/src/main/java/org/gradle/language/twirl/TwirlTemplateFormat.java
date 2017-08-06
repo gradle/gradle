@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl;
+package org.gradle.language.twirl;
 
-import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.language.twirl.TwirlImports;
-import org.gradle.language.twirl.TwirlTemplateFormat;
-import org.gradle.play.internal.spec.PlayCompileSpec;
+import org.gradle.api.Incubating;
 
-import java.io.Serializable;
-import java.util.Collection;
+/**
+ * Twirl Template format mapping
+ */
+@Incubating
+public interface TwirlTemplateFormat {
+    /**
+     * Extension without the leading '.'.
+     *
+     * @return file extension
+     */
+    String getExtension();
 
-public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
-    Iterable<RelativeFile> getSources();
-
-    TwirlImports getDefaultImports();
-
-    Collection<TwirlTemplateFormat> getUserTemplateFormats();
+    /**
+     * Fully qualified class name for the template format.
+     *
+     * @return class name of the format
+     */
+    String getFormatType();
 }

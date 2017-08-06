@@ -29,9 +29,4 @@ public class PlayRunAdapterV24X extends PlayRunAdapterV23X {
         Object reloadableServer = runMethod.invoke(buildLink, buildDocHandler, httpPort, "0.0.0.0");
         return JavaReflectionUtil.method(reloadableServer, InetSocketAddress.class, "mainAddress").invoke(reloadableServer);
     }
-
-    @Override
-    protected String getIOSupportDependencyVersion() {
-        return "0.13.8";
-    }
 }

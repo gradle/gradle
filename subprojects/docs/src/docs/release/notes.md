@@ -10,6 +10,16 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Play-on-Gradle Improvements
+
+#### Support for Play 2.6
+
+TODO Placeholder
+
+#### Support for other built-in Twirl template types
+
+TODO Placeholder
+
 ### Support for Google Cloud Storage backed repositories
 
 It is now possible to consume dependencies from, and publish to, [Google Cloud Storage](https://cloud.google.com/storage/) buckets when using [`MavenArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html) or [`IvyArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html).
@@ -112,7 +122,8 @@ We would like to thank the following community members for making contributions 
  - [Lance](https://github.com/uklance) - Fix Maven BOM evaluation order (#2282)
  - [Jokubas Dargis](https://github.com/eleventigerssc) - Add GCS transport protocol support for declaring dependencies (#2258)
  - [Thomas Halm](https://github.com/thhalm) - Maintain order of classpath when generating start scripts (#2513)
- - [Colin Dean](https://github.com/colindean) - Prevent NullPointerException if any of the signing properties is null but signing isn't required (#2268) 
+ - [Colin Dean](https://github.com/colindean) - Prevent NullPointerException if any of the signing properties is null but signing isn't required (#2268)
+ - [Ben McCann](https://github.com/benmccann) - Add support for Play 2.6 (#1992) 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

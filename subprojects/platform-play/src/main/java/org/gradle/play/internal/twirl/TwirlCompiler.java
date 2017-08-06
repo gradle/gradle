@@ -19,10 +19,14 @@ package org.gradle.play.internal.twirl;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.FileUtils;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.twirl.TwirlTemplateFormat;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaOptionInvocationWrapper;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.Serializable;
@@ -30,7 +34,6 @@ import java.util.ArrayList;
 
 /**
  * Twirl compiler uses reflection to load and invoke the actual compiler classes/methods.
- * See spec.versions for individual methods.
  */
 public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
@@ -47,18 +50,39 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             ClassLoader cl = getClass().getClassLoader();
             ScalaMethod compile = adapter.getCompileMethod(cl);
             Iterable<RelativeFile> sources = spec.getSources();
-            for (RelativeFile sourceFile : sources) {
-                Object result = compile.invoke(adapter.createCompileParameters(cl, sourceFile.getFile(), sourceFile.getBaseDir(), spec.getDestinationDir(), spec.getDefaultImports()));
-                ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<File>(result);
-                if (maybeFile.isDefined()) {
-                    outputFiles.add(maybeFile.get());
+            for (final RelativeFile sourceFile : sources) {
+                TwirlTemplateFormat format = findTemplateFormat(spec, sourceFile.getFile());
+                // Only generate files if format for this file's extension is found
+                if (format != null) {
+                    Object result = compile.invoke(adapter.createCompileParameters(cl, sourceFile.getFile(), sourceFile.getBaseDir(), spec.getDestinationDir(), spec.getDefaultImports(), format));
+                    ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<File>(result);
+                    if (maybeFile.isDefined()) {
+                        File outputFile = maybeFile.get();
+                        outputFiles.add(outputFile);
+                    }
                 }
+
             }
         } catch (Exception e) {
             throw new RuntimeException("Error invoking Play Twirl template compiler.", e);
         }
 
         return new SimpleWorkResult(!outputFiles.isEmpty());
+    }
+
+    private TwirlTemplateFormat findTemplateFormat(TwirlCompileSpec spec, final File sourceFile) {
+        Spec<TwirlTemplateFormat> hasExtension = new Spec<TwirlTemplateFormat>() {
+            @Override
+            public boolean isSatisfiedBy(TwirlTemplateFormat format) {
+                return FileUtils.hasExtensionIgnoresCase(sourceFile.getName(), format.getExtension());
+            }
+        };
+
+        TwirlTemplateFormat format = CollectionUtils.findFirst(adapter.getDefaultTemplateFormats(), hasExtension);
+        if (format == null) {
+            format = CollectionUtils.findFirst(spec.getUserTemplateFormats(), hasExtension);
+        }
+        return format;
     }
 
     public Object getDependencyNotation() {

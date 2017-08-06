@@ -65,7 +65,7 @@ Source sets
         includes: **/*.scala
     Twirl template source 'play:twirlTemplates'
         srcDir: app
-        includes: **/*.html
+        includes: **/*.scala.html, **/*.scala.js, **/*.scala.xml, **/*.scala.txt
 
 Binaries
     Play Application Jar 'play:binary'
