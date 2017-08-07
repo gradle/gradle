@@ -109,15 +109,13 @@ class ContinuousBuildGateIntegrationTest extends Java7RequiringContinuousIntegra
         outputFile.text == "start"
 
         when:
-        // Make some file system changes to inputFile
-        inputFile.text = "changed"
-        then:
         // Gradle has detected the changes to inputFile
         def pending = server.expectAndBlock("pending")
+        // Make some file system changes to inputFile
+        inputFile.text = "changed"
         pending.waitForAllPendingCalls()
         pending.releaseAll()
-
-        when:
+        and:
         // command the gate keeper to open the gate and shutdown
         command.releaseAll()
         server.expect(server.resource("command", "stop"))
