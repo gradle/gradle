@@ -34,7 +34,10 @@ class WorkInProgressRendererTest extends OutputSpecification {
 
     def "start and complete events in the same batch are ignored"() {
         when:
-        renderer.onOutput([start(1, ":foo"), start(2, ":bar"), complete(1)])
+        renderer.onOutput(start(1, ":foo"))
+        renderer.onOutput(start(2, ":bar"))
+        renderer.onOutput(complete(1))
+        renderer.onOutput(updateNow())
         console.flush()
 
         then:
@@ -47,7 +50,8 @@ class WorkInProgressRendererTest extends OutputSpecification {
         def completeEvent = complete(1)
 
         when:
-        renderer.onOutput([startEvent, completeEvent])
+        renderer.onOutput(startEvent)
+        renderer.onOutput(completeEvent)
 
         then:
         1 * listener.onOutput(startEvent)
@@ -56,7 +60,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
 
     def "progress operation without message have no effect on progress area"() {
         when:
-        renderer.onOutput([start(1)])
+        renderer.onOutput(start(1))
         console.flush()
 
         then:
@@ -65,14 +69,18 @@ class WorkInProgressRendererTest extends OutputSpecification {
 
     def "parent progress operation without message is ignored when renderable child completes"() {
         when:
-        renderer.onOutput([start(1), start(id: 2, parentId: 1, shortDescription: ":foo"), start(id: 3, parentId: null, shortDescription: ":bar")])
+        renderer.onOutput(start(1))
+        renderer.onOutput(start(id: 2, parentId: 1, shortDescription: ":foo"))
+        renderer.onOutput(start(id: 3, parentId: null, shortDescription: ":bar"))
+        renderer.onOutput(updateNow())
         console.flush()
 
         then:
         progressArea.display == ["> :foo"]
 
         and:
-        renderer.onOutput([complete(2)])
+        renderer.onOutput(complete(2))
+        renderer.onOutput(updateNow())
         console.flush()
 
         then:
@@ -86,7 +94,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(event1)
-        renderer.onOutput([event2])
+        renderer.onOutput(event2)
 
         then:
         1 * listener.onOutput(event1)
