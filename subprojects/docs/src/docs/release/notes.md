@@ -52,11 +52,11 @@ In previous versions of Gradle, it was awkward to declare the output of a task a
 
 TBD: The publish artifact DSL now accepts `Provider<RegularFile>` and `Provider<Directory>` instances, which allows a plugin author to easily wire up a particular task output as a publish artifact in a way that respects configuration changes.
 
-### Better stale output cleanup
+### Safer handling of stale output files
 
-Sometimes, tasks may yield incorrect results since earlier versions of Gradle or other processes created files in their output directories.
-Gradle now is able to detect this situation and cleans up the directories if it is safe to do so.
-Currently, only outputs within the `build` directory and directories registered as targets for the `clean` task are considered safe to remove.
+In previous releases, tasks could produce incorrect results when output files were left behind during upgrades or when processes outside of Gradle created files in a shared output directory.
+Gradle is able to detect these situations and automatically remove stale files, if it is safe to do so.
+Only files within `buildDir` and paths registered as targets for `clean` tasks are considered safe to remove.
 
 ### CLI abbreviates long test names
 
