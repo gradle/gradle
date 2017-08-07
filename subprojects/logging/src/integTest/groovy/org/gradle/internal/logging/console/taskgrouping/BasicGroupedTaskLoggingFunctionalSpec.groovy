@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.fusesource.jansi.Ansi
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
@@ -215,7 +216,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
         fails('failing')
 
         then:
-        result.output.contains("[31;1m> Task :failing")
+        result.output.contains(styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
     }
 
     def "group header is printed white if task succeeds"() {
@@ -230,7 +231,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
         succeeds('succeeding')
 
         then:
-        result.output.contains("[1m> Task :succeeding")
+        result.output.contains(styled("> Task :succeeding", null, Ansi.Attribute.INTENSITY_BOLD))
     }
 
     private void assertOutputContains(GradleHandle gradle, String str) {
