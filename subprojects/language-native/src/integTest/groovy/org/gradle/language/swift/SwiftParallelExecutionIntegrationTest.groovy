@@ -16,35 +16,26 @@
 
 package org.gradle.language.swift
 
-import org.gradle.api.specs.Spec
-import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType
-import org.gradle.internal.operations.trace.BuildOperationRecord
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import org.gradle.language.AbstractNativeParallelIntegrationTest
+import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-class SwiftParallelExecutionIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
-    def helloWorldApp = new SwiftHelloWorldApp()
+class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegrationTest {
+    def app = new SwiftApp()
 
     def "link task is executed in parallel"() {
         settingsFile << "rootProject.name = 'app'"
 
         given:
-        helloWorldApp.writeSources(file('src/main'))
+        app.writeToProject(testDirectory)
 
         and:
         buildFile << """
             apply plugin: 'swift-executable'
-            
-            task parallelTask {
-                dependsOn { tasks.linkMain.taskDependencies }
-                doLast { println "parallel task" }
-            }
-         """
+        """
+        withTaskThatRunsParallelWith("linkMain")
 
         when:
         succeeds "assemble", "parallelTask"
@@ -57,34 +48,18 @@ class SwiftParallelExecutionIntegrationTest extends AbstractInstalledToolChainIn
         settingsFile << "rootProject.name = 'app'"
 
         given:
-        helloWorldApp.writeSources(file('src/main'))
+        app.writeToProject(testDirectory)
 
         and:
         buildFile << """
             apply plugin: 'swift-executable'
-            
-            task parallelTask {
-                dependsOn { tasks.compileSwift.taskDependencies }
-                doLast { println "parallel task" }
-            }
          """
+        withTaskThatRunsParallelWith("compileSwift")
 
         when:
         succeeds "assemble", "parallelTask"
 
         then:
         assertTaskIsParallel("compileSwift")
-    }
-
-    void assertTaskIsParallel(String taskName) {
-        def task = buildOperations.first(ExecuteTaskBuildOperationType, new Spec<BuildOperationRecord>() {
-            @Override
-            boolean isSatisfiedBy(BuildOperationRecord record) {
-                return record.displayName == "Task :${taskName}"
-            }
-        })
-
-        assert task != null
-        assert buildOperations.getOperationsConcurrentWith(ExecuteTaskBuildOperationType, task).size() > 0
     }
 }
