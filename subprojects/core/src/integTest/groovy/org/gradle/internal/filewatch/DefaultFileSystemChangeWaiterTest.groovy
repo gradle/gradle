@@ -25,7 +25,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicReference
 
@@ -132,15 +131,14 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         w.stop()
     }
 
-    @Unroll
-    def "waits until there is a quiet period with triggered builds=#triggered"() {
+    def "waits until there is a quiet period"() {
         when:
         def quietPeriod = 1000L
-        def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem), quietPeriod, triggered)
+        def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem), quietPeriod)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def gateToken = Mock(BuildGateToken)
-        def w = wf.createChangeWaiter(pendingChangesListener, c, gateToken)
+        def buildGate = Mock(BuildGateToken)
+        def w = wf.createChangeWaiter(pendingChangesListener, c, buildGate)
         def testfile = testDirectory.file("testfile")
 
         start {
@@ -166,14 +164,10 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         then:
         waitFor.done
         Math.round((System.nanoTime() - timestampForLastChange) / 1000000L) >= quietPeriod
-        if (triggered) {
-            gateToken.waitForOpen()
-        }
+        buildGate.waitForOpen()
 
         cleanup:
         w.stop()
-        where:
-        triggered << [ true, false ]
     }
 
     private void writeToFileMultipleTimes(instant, testfile) {

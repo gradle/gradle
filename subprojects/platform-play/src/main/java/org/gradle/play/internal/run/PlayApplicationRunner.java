@@ -27,12 +27,12 @@ import java.io.File;
 
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
-    private final BuildGateToken gateToken;
+    private final BuildGateToken buildGate;
     private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(WorkerProcessFactory workerFactory, BuildGateToken gateToken, VersionedPlayRunAdapter adapter) {
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, BuildGateToken buildGate, VersionedPlayRunAdapter adapter) {
         this.workerFactory = workerFactory;
-        this.gateToken = gateToken;
+        this.buildGate = buildGate;
         this.adapter = adapter;
     }
 
@@ -40,7 +40,7 @@ public class PlayApplicationRunner {
         WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 
-        PlayWorkerClient clientCallBack = new PlayWorkerClient(gateToken);
+        PlayWorkerClient clientCallBack = new PlayWorkerClient(buildGate);
         process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, clientCallBack);
         PlayRunWorkerServerProtocol workerServer = process.getConnection().addOutgoing(PlayRunWorkerServerProtocol.class);
         process.getConnection().connect();

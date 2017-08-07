@@ -22,8 +22,8 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 public class PlayApplicationRunnerFactory {
-    public static PlayApplicationRunner create(PlayPlatform playPlatform, BuildGateToken gateToken, WorkerProcessFactory workerFactory) {
-        return new PlayApplicationRunner(workerFactory, gateToken, createPlayRunAdapter(playPlatform));
+    public static PlayApplicationRunner create(PlayPlatform playPlatform, BuildGateToken buildGate, WorkerProcessFactory workerFactory) {
+        return new PlayApplicationRunner(workerFactory, buildGate, createPlayRunAdapter(playPlatform));
     }
 
     public static VersionedPlayRunAdapter createPlayRunAdapter(PlayPlatform playPlatform) {

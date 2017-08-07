@@ -33,9 +33,9 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
     private final BlockingQueue<PlayAppStop> stopEvent = new SynchronousQueue<PlayAppStop>();
     private int gateCount;
 
-    public PlayWorkerClient(BuildGateToken gateToken) {
+    public PlayWorkerClient(BuildGateToken buildGate) {
         if (Boolean.getBoolean(GATED_BUILD_SYSPROP)) {
-            this.gateKeeper = gateToken.createGateKeeper();
+            this.gateKeeper = buildGate.createGateKeeper();
         } else {
             this.gateKeeper = null;
         }

@@ -83,9 +83,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         ServiceRegistry services = parent.getGradle().getServices();
         BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class));
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
-        BuildGateToken gateToken = services.get(BuildGateToken.class);
+        BuildGateToken buildGate = services.get(BuildGateToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
-        return doNewInstance(startParameter, parent, cancellationToken, gateToken, requestMetaData, buildEventConsumer, buildTreeScopeServices, servicesToStop);
+        return doNewInstance(startParameter, parent, cancellationToken, buildGate, requestMetaData, buildEventConsumer, buildTreeScopeServices, servicesToStop);
     }
 
     @Override
@@ -123,7 +123,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private DefaultGradleLauncher doNewInstance(StartParameter startParameter, GradleLauncher parent,
-                                                BuildCancellationToken cancellationToken, BuildGateToken gateToken,
+                                                BuildCancellationToken cancellationToken, BuildGateToken buildGate,
                                                 BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer,
                                                 final BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
         BuildScopeServices serviceRegistry = new BuildScopeServices(buildTreeScopeServices);
@@ -131,7 +131,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
         serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
-        serviceRegistry.add(BuildGateToken.class, gateToken);
+        serviceRegistry.add(BuildGateToken.class, buildGate);
         NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(buildTreeScopeServices);
         serviceRegistry.add(NestedBuildFactory.class, nestedBuildFactory);
 
