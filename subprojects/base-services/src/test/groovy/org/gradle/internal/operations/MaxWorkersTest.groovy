@@ -27,22 +27,25 @@ import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Unroll
+
+import java.util.concurrent.CountDownLatch
 
 class MaxWorkersTest extends ConcurrentSpec {
 
     def "BuildOperationExecutor operation start blocks when there are no leases available, taken by BuildOperationWorkerRegistry"() {
         given:
         def maxWorkers = 1
-        def registry = buildOperationWorkerRegistry(maxWorkers)
+        def workerLeaseService = this.workerLeaseService(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
         def processorWorker = new SimpleWorker()
 
         when:
         async {
             start {
-                def cl = registry.getWorkerLease().start()
+                def cl = workerLeaseService.getWorkerLease().start()
                 instant.worker1
                 thread.blockUntil.worker2Ready
                 thread.block()
@@ -52,7 +55,7 @@ class MaxWorkersTest extends ConcurrentSpec {
             start {
                 thread.blockUntil.worker1
                 instant.worker2Ready
-                def child2 = registry.getWorkerLease().start()
+                def child2 = workerLeaseService.getWorkerLease().start()
                 processor.runAll(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
@@ -69,22 +72,22 @@ class MaxWorkersTest extends ConcurrentSpec {
         instant.worker2 > instant.worker1Finished
 
         cleanup:
-        registry?.stop()
+        workerLeaseService?.stop()
     }
 
     def "BuildOperationWorkerRegistry operation start blocks when there are no leases available, taken by BuildOperationExecutor"() {
         given:
         def maxWorkers = 1
-        def registry = buildOperationWorkerRegistry(maxWorkers)
+        def workerLeaseService = this.workerLeaseService(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
         def processorWorker = new SimpleWorker()
 
         when:
         async {
             start {
-                def cl = registry.getWorkerLease().start()
+                def cl = workerLeaseService.getWorkerLease().start()
                 processor.runAll(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
@@ -101,7 +104,7 @@ class MaxWorkersTest extends ConcurrentSpec {
             start {
                 thread.blockUntil.worker1
                 instant.worker2Ready
-                def cl = registry.getWorkerLease().start()
+                def cl = workerLeaseService.getWorkerLease().start()
                 instant.worker2
                 cl.leaseFinish()
             }
@@ -111,48 +114,110 @@ class MaxWorkersTest extends ConcurrentSpec {
         instant.worker2 > instant.worker1Finished
 
         cleanup:
-        registry?.stop()
+        workerLeaseService?.stop()
     }
 
     def "BuildOperationWorkerRegistry operations nested in BuildOperationExecutor operations borrow parent lease"() {
         given:
         def maxWorkers = 1
-        def registry = buildOperationWorkerRegistry(maxWorkers)
+        def workerLeaseService = this.workerLeaseService(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
         def processorWorker = new SimpleWorker()
 
         when:
-        def outer = registry.getWorkerLease().start()
-        processor.runAll(processorWorker, { queue ->
-            queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
-                @Override
-                void run(BuildOperationContext buildOperationContext) {
-                    instant.child1Started
-                    thread.block()
-                    instant.child1Finished
-                }
+        async {
+            def outer = workerLeaseService.getWorkerLease().start()
+            processor.runAll(processorWorker, { queue ->
+                queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
+                    @Override
+                    void run(BuildOperationContext buildOperationContext) {
+                        instant.child1Started
+                        thread.block()
+                        instant.child1Finished
+                    }
+                })
+                queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
+                    @Override
+                    void run(BuildOperationContext buildOperationContext) {
+                        instant.child2Started
+                        thread.block()
+                        instant.child2Finished
+                    }
+                })
             })
-            queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
-                @Override
-                void run(BuildOperationContext buildOperationContext) {
-                    instant.child2Started
-                    thread.block()
-                    instant.child2Finished
-                }
-            })
-        })
-        outer.leaseFinish()
+            outer.leaseFinish()
+        }
 
         then:
         instant.child2Started > instant.child1Finished || instant.child1Started > instant.child2Finished
 
         cleanup:
-        registry?.stop()
+        workerLeaseService?.stop()
     }
 
-    WorkerLeaseRegistry buildOperationWorkerRegistry(int maxWorkers) {
+    @Unroll
+    def "BuildOperationExecutor can fully utilize worker leases when multiple threads owning worker leases are submitting work (maxWorkers: #maxWorkers)"() {
+        CountDownLatch leaseAcquiredLatch = new CountDownLatch(maxWorkers)
+        CountDownLatch runningLatch = new CountDownLatch(maxWorkers)
+        CountDownLatch fullyUtilizedLatch = new CountDownLatch(1)
+        final Object release = new Object()
+
+        def workerLeaseService = this.workerLeaseService(maxWorkers)
+        def processor = new DefaultBuildOperationExecutor(
+            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
+        def processorWorker = new SimpleWorker()
+
+        expect:
+        async {
+            maxWorkers.times {
+                start {
+                    def lease = workerLeaseService.getWorkerLease().start()
+                    synchronized (release) {
+                        leaseAcquiredLatch.countDown()
+                        release.wait()
+                    }
+
+                    processor.runAll(processorWorker, { queue ->
+                        maxWorkers.times {
+                            queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
+                                @Override
+                                void run(BuildOperationContext buildOperationContext) {
+                                    runningLatch.countDown()
+                                    // block until all worker leases are utilized
+                                    fullyUtilizedLatch.await()
+                                }
+                            })
+                        }
+
+                        // Release the next thread to submit its work
+                        synchronized (release) {
+                            release.notify()
+                        }
+                    })
+                    lease.leaseFinish()
+                }
+            }
+
+            leaseAcquiredLatch.await()
+
+            // release the first queue to submit its work
+            synchronized (release) {
+                release.notify()
+            }
+
+            // Wait for all worker leases to be utilized running work
+            runningLatch.await()
+            fullyUtilizedLatch.countDown()
+        }
+
+        where:
+        maxWorkers << [1, 2, 4]
+    }
+
+    WorkerLeaseRegistry workerLeaseService(int maxWorkers) {
         return new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new ParallelismConfigurationManagerFixture(true, maxWorkers))
     }
 

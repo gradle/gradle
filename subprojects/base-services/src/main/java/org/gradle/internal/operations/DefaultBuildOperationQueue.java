@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations;
 
+import com.google.common.collect.Sets;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -24,28 +25,31 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.concurrent.Executor;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
-    private enum State {
+    private enum QueueState {
         Working, Finishing, Cancelled, Done
+    }
+    private enum WorkerState {
+        NOT_STARTED, STARTED
     }
 
     private final WorkerLeaseService workerLeases;
     private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
-    private final Executor executor;
+    private final ExecutorService executor;
     private final QueueWorker<T> queueWorker;
     private String logLocation;
 
     // Lock protects the following state, using an intentionally simple locking strategy
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
-    private final Condition workDone = lock.newCondition();
-    private State state = State.Working;
-    private int workers;
+    private QueueState queueState = QueueState.Working;
+    private Set<SubmittedWorker> workers = Sets.newConcurrentHashSet();
     private final Deque<T> workQueue = new LinkedList<T>();
     private final LinkedList<Throwable> failures = new LinkedList<Throwable>();
 
@@ -60,18 +64,18 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     public void add(final T operation) {
         lock.lock();
         try {
-            if (state == State.Done) {
+            if (queueState == QueueState.Done) {
                 throw new IllegalStateException("BuildOperationQueue cannot be reused once it has completed.");
             }
-            if (state == State.Cancelled) {
+            if (queueState == QueueState.Cancelled) {
                 return;
             }
             workQueue.add(operation);
             workAvailable.signalAll();
-            if (workers == 0 || workers < workerLeases.getMaxWorkerCount()) {
+            if (workers.size() == 0 || workers.size() < workerLeases.getMaxWorkerCount()) {
                 // TODO This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
-                workers++;
-                executor.execute(new WorkerRunnable());
+                WorkerRunnable worker = new WorkerRunnable();
+                workers.add(new SubmittedWorker(worker, executor.submit(worker)));
             }
         } finally {
             lock.unlock();
@@ -82,10 +86,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     public void cancel() {
         lock.lock();
         try {
-            if (state == State.Cancelled || state == State.Done) {
+            if (queueState == QueueState.Cancelled || queueState == QueueState.Done) {
                 return;
             }
-            state = State.Cancelled;
+            queueState = QueueState.Cancelled;
             workQueue.clear();
             workAvailable.signalAll();
         } finally {
@@ -96,19 +100,34 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     public void waitForCompletion() throws MultipleBuildOperationFailures {
         lock.lock();
         try {
-            if (state == State.Done) {
+            if (queueState == QueueState.Done) {
                 throw new IllegalStateException("Cannot wait for completion more than once.");
             }
-            state = State.Finishing;
+            queueState = QueueState.Finishing;
             workAvailable.signalAll();
-            while (workers > 0) {
-                try {
-                    workDone.await();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            lock.unlock();
+        }
+
+        // Use this thread to process any work - this should only actually process work if none of the
+        // submitted workers make it onto the executor thread pool.
+        new WorkerRunnable().run();
+
+        // Wait for any work still running in other threads
+        while (workers.size() > 0) {
+            for (SubmittedWorker worker : workers) {
+                if (worker.isRunning()) {
+                    worker.waitForCompletion();
+                } else {
+                    worker.cancel();
                 }
+                workers.remove(worker);
             }
-            state = State.Done;
+        }
+
+        lock.lock();
+        try {
+            queueState = QueueState.Done;
             if (!failures.isEmpty()) {
                 throw new MultipleBuildOperationFailures(getFailureMessage(failures), failures, logLocation);
             }
@@ -129,20 +148,52 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         return "Multiple build operations failed.";
     }
 
+    private class SubmittedWorker {
+        private final WorkerRunnable worker;
+        private final Future<?> future;
+
+        SubmittedWorker(WorkerRunnable worker, Future<?> future) {
+            this.worker = worker;
+            this.future = future;
+        }
+
+        void cancel() {
+            future.cancel(false);
+        }
+
+        boolean isRunning() {
+            return worker.getWorkerState() == WorkerState.STARTED;
+        }
+
+        void waitForCompletion() {
+            try {
+                future.get();
+            } catch (Exception e) {
+                worker.addFailure(e);
+            }
+        }
+    }
+
     private class WorkerRunnable implements Runnable {
+        WorkerState workerState = WorkerState.NOT_STARTED;
+
         @Override
         public void run() {
+            workerState = WorkerState.STARTED;
             T operation;
             while ((operation = waitForNextOperation()) != null) {
                 runBatch(operation);
             }
-            shutDown();
+        }
+
+        WorkerState getWorkerState() {
+            return workerState;
         }
 
         private T waitForNextOperation() {
             lock.lock();
             try {
-                while (state == State.Working && workQueue.isEmpty()) {
+                while (queueState == QueueState.Working && workQueue.isEmpty()) {
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
@@ -190,16 +241,6 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             lock.lock();
             try {
                 failures.add(failure);
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        private void shutDown() {
-            lock.lock();
-            try {
-                workers--;
-                workDone.signalAll();
             } finally {
                 lock.unlock();
             }
