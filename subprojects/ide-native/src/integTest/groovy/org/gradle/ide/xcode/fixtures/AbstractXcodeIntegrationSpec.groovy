@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.CollectionUtils
 
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -57,5 +58,9 @@ rootProject.name = "${rootProjectName}"
         return {
             it.isa == 'PBXNativeTarget'
         }
+    }
+
+    private static def buildSettings(def project) {
+        CollectionUtils.single(project.targets.find(indexTargets()).buildConfigurationList.buildConfigurations).buildSettings
     }
 }
