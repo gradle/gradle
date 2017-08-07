@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
+import org.iq80.snappy.SnappyFramedInputStream
 
 class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def "produces incubation warning"() {
@@ -42,9 +43,14 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         then:
         def cacheFiles = listCacheFiles()
         cacheFiles.size() == 1
-        def cacheEntry = new TarTestFixture(cacheFiles[0])
-        cacheEntry.assertContainsFile("property-outputDir/output")
-        def metadata = cacheEntry.content("METADATA")
+        def compressedCacheEntry = cacheFiles[0]
+        def uncompressedCacheEntry = temporaryFolder.file("cache.tar")
+        def input = new FileInputStream(compressedCacheEntry)
+        uncompressedCacheEntry << new SnappyFramedInputStream(input, true)
+        input.close()
+        def cacheEntryFixture = new TarTestFixture(uncompressedCacheEntry)
+        cacheEntryFixture.assertContainsFile("property-outputDir/output")
+        def metadata = cacheEntryFixture.content("METADATA")
         metadata.contains("type=")
         metadata.contains("path=")
         metadata.contains("gradleVersion=")

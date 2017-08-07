@@ -48,12 +48,13 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import javax.annotation.Nullable;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 
 public class DefaultBuildCacheController implements BuildCacheController {
 
@@ -149,6 +150,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
     }
 
+    @SuppressWarnings("Since15")
     private class Unpack<T> implements Action<File> {
         private final BuildCacheLoadCommand<T> command;
 
@@ -163,17 +165,15 @@ public class DefaultBuildCacheController implements BuildCacheController {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    InputStream input;
                     try {
-                        input = new FileInputStream(file);
-                    } catch (FileNotFoundException e) {
+                        InputStream input = new BufferedInputStream(Files.newInputStream(file.toPath()));
+                        try {
+                            result = command.load(input);
+                        } finally {
+                            IOUtils.closeQuietly(input);
+                        }
+                    } catch (IOException e) {
                         throw UncheckedException.throwAsUncheckedException(e);
-                    }
-
-                    try {
-                        result = command.load(input);
-                    } finally {
-                        IOUtils.closeQuietly(input);
                     }
 
                     context.setResult(new UnpackOperationResult(
@@ -222,6 +222,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         });
     }
 
+    @SuppressWarnings("Since15")
     private class Pack implements Action<File> {
 
         private final BuildCacheStoreCommand command;
@@ -236,11 +237,16 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 @Override
                 public void run(BuildOperationContext context) {
                     try {
-                        BuildCacheStoreCommand.Result result = command.store(new FileOutputStream(file));
-                        context.setResult(new PackOperationResult(
-                            result.getArtifactEntryCount(),
-                            file.length()
-                        ));
+                        OutputStream output = new BufferedOutputStream(Files.newOutputStream(file.toPath()));
+                        try {
+                            BuildCacheStoreCommand.Result result = command.store(output);
+                            context.setResult(new PackOperationResult(
+                                result.getArtifactEntryCount(),
+                                file.length()
+                            ));
+                        } finally {
+                            IOUtils.closeQuietly(output);
+                        }
                     } catch (IOException e) {
                         throw UncheckedException.throwAsUncheckedException(e);
                     }

@@ -230,7 +230,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def failedLoadOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
         failedLoadOp.details.cacheKey != null
         failedLoadOp.result == null
-        failedLoadOp.failure.startsWith "org.gradle.api.UncheckedIOException: java.io.FileNotFoundException: not.there"
+        failedLoadOp.failure.startsWith "org.gradle.api.UncheckedIOException: java.nio.file.NoSuchFileException: not.there"
     }
 
     def "records ops for miss then store"() {

@@ -17,8 +17,8 @@
 package org.gradle.testkit.runner
 
 import org.gradle.launcher.daemon.configuration.GradleProperties
-import org.gradle.util.TextUtil
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
+import org.gradle.util.TextUtil
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 /**
@@ -65,7 +65,7 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
         file("input").text = "input file"
 
         when:
-        def result = runner('cacheable').build()
+        def result = runner('cacheable', '-S').build()
 
         then:
         result.tasks.collect { it.path } == [':cacheable']

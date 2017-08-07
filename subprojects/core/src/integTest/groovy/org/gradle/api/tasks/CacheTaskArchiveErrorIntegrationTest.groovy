@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
+import org.iq80.snappy.SnappyFramedInputStream
+import org.iq80.snappy.SnappyFramedOutputStream
 
 class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -137,7 +139,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         executer.withStackTraceChecksDisabled()
         succeeds("clean", "customTask")
         output =~ /Build cache entry .+ from remote build cache is invalid/
-        output =~ /java.util.zip.ZipException: Not in GZIP format/
+        output =~ /Caused by: java.io.EOFException: encountered EOF while reading stream header/
 
         and:
         listCacheFiles().size() == 1
@@ -182,7 +184,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         output =~ /Cleaning outputs for task ':customTask' after failed load from cache/
         output =~ /Failed to load cache entry for task ':customTask', falling back to executing task/
         output =~ /Build cache entry .+ from local build cache is invalid/
-        output =~ /java.io.EOFException: Unexpected end of ZLIB input stream/
+        output =~ /java.io.EOFException: unexpectd EOF when reading frame/
 
         and:
         listCacheFiles().size() == 1
@@ -237,13 +239,23 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         def cacheFiles = listCacheFiles()
         assert cacheFiles.size() == 1
         def cacheEntry = cacheFiles[0]
-        def tgzCacheEntry = temporaryFolder.file("cache.tgz")
-        cacheEntry.copyTo(tgzCacheEntry)
+
+        def uncompressedTarCacheEntry = temporaryFolder.file("cache.tar")
+        def input = new FileInputStream(cacheEntry)
+        uncompressedTarCacheEntry.bytes = new SnappyFramedInputStream(input, true).bytes
+        input.close()
         cacheEntry.delete()
+
         def extractDir = temporaryFolder.file("extract")
-        tgzCacheEntry.untarTo(extractDir)
+        uncompressedTarCacheEntry.untarTo(extractDir)
+        uncompressedTarCacheEntry.delete()
+
         corrupter(extractDir.file("METADATA"))
-        extractDir.tgzTo(cacheEntry)
+
+        extractDir.tarTo(uncompressedTarCacheEntry)
+        def output = new SnappyFramedOutputStream(new FileOutputStream(cacheEntry))
+        output << uncompressedTarCacheEntry.bytes
+        output.close()
     }
 
 }
