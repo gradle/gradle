@@ -24,17 +24,18 @@ import org.gradle.internal.UncheckedException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-public class PlayWorkerClient implements PlayRunWorkerClientProtocol, BuildGateToken.GateKeeper {
+public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
     private static final Logger LOGGER = Logging.getLogger(PlayWorkerClient.class);
 
     private final BuildGateToken gateToken;
+    private final BuildGateToken.GateKeeper gateKeeper;
     private final BlockingQueue<PlayAppStart> startEvent = new SynchronousQueue<PlayAppStart>();
     private final BlockingQueue<PlayAppStop> stopEvent = new SynchronousQueue<PlayAppStop>();
     private int gateCount;
 
     public PlayWorkerClient(BuildGateToken gateToken) {
         this.gateToken = gateToken;
-        gateToken.addGateKeeper(this);
+        this.gateKeeper = gateToken.createGateKeeper();
     }
 
     @Override
@@ -50,14 +51,14 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol, BuildGateT
                 if (playAppReload.isReloadStart()) {
                     if (gateCount == 0) {
                         LOGGER.debug("Opening gate - Play App");
-                        gateToken.open(this);
+                        gateKeeper.open();
                     }
                     gateCount++;
                 } else {
                     gateCount--;
                     if (gateCount==0) {
                         LOGGER.debug("Closing gate - Play App");
-                        gateToken.close(this);
+                        gateKeeper.close();
                     }
                 }
             } else {

@@ -17,12 +17,11 @@
 package org.gradle.initialization;
 
 public interface BuildGateToken {
-    void addGateKeeper(GateKeeper gatekeeper);
-    void open(GateKeeper gatekeeper);
-    void close(GateKeeper gatekeeper);
-
+    GateKeeper createGateKeeper();
     void waitForOpen();
 
     interface GateKeeper {
+        void open();
+        void close();
     }
 }

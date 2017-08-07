@@ -31,17 +31,18 @@ public class DefaultBuildGateToken implements BuildGateToken {
     private GateKeeper openedBy;
 
     @Override
-    public void addGateKeeper(GateKeeper gatekeeper) {
+    public GateKeeper createGateKeeper() {
         lock.lock();
         try {
+            GateKeeper gatekeeper = new DefaultBuildGateKeeper();
             gatekeepers.add(gatekeeper);
+            return gatekeeper;
         } finally {
             lock.unlock();
         }
     }
 
-    @Override
-    public void open(GateKeeper gatekeeper) {
+    private void open(GateKeeper gatekeeper) {
         lock.lock();
         try {
             // gate hasn't been opened yet
@@ -58,8 +59,7 @@ public class DefaultBuildGateToken implements BuildGateToken {
         return openedBy == null;
     }
 
-    @Override
-    public void close(GateKeeper gatekeeper) {
+    private void close(GateKeeper gatekeeper) {
         lock.lock();
         try {
             // The same gatekeeper that opened it must close it
@@ -76,7 +76,7 @@ public class DefaultBuildGateToken implements BuildGateToken {
         lock.lock();
         try {
             if (!gatekeepers.isEmpty()) {
-                if (isClosed()) {
+                while (isClosed()) {
                     // wait for it to open
                     opened.await();
                 }
@@ -91,5 +91,17 @@ public class DefaultBuildGateToken implements BuildGateToken {
     @Override
     public String toString() {
         return "Gate is " + (!isClosed() ? "open" : "closed");
+    }
+
+    private class DefaultBuildGateKeeper implements GateKeeper {
+        @Override
+        public void open() {
+            DefaultBuildGateToken.this.open(this);
+        }
+
+        @Override
+        public void close() {
+            DefaultBuildGateToken.this.close(this);
+        }
     }
 }
