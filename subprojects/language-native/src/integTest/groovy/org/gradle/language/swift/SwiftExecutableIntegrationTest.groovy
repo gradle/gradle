@@ -100,7 +100,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         buildFile << """
             apply plugin: 'swift-executable'
             executable {
-                source.from = 'Sources'
+                source.from 'Sources'
             }
          """
 
@@ -121,6 +121,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         app.main.writeToSourceDir(file("src/main.swift"))
         app.greeter.writeToSourceDir(file("src/one.swift"))
         app.sum.writeToSourceDir(file("src/two.swift"))
+        file("src/main/swift/broken.swift") << "ignore me!"
 
         and:
         buildFile << """
@@ -304,7 +305,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
                     implementation project(':hello')
                 }
                 executable {
-                    source.from = rootProject.file('Sources/${app.main.sourceFile.name}')
+                    source.from '../Sources/${app.main.sourceFile.name}'
                 }
             }
             project(':hello') {
@@ -313,13 +314,13 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
                     api project(':log')
                 }
                 library {
-                    source.from = rootProject.file('Sources/${app.greeter.sourceFile.name}')
+                    source.from '../Sources/${app.greeter.sourceFile.name}'
                 }
             }
             project(':log') {
                 apply plugin: 'swift-library'
                 library {
-                    source.from = rootProject.file('Sources/${app.logger.sourceFile.name}')
+                    source.from '../Sources/${app.logger.sourceFile.name}'
                 }
             }
 """

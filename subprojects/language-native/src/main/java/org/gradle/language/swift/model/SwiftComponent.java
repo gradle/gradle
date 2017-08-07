@@ -30,6 +30,8 @@ import org.gradle.api.file.FileCollection;
 public interface SwiftComponent {
     /**
      * Defines the source files or directories of this component. You can add files or directories to this collection. When a directory is added, all source files are included for compilation.
+     *
+     * <p>When this collection is empty, the directory {@code src/main/swift} is used by default.</p>
      */
     ConfigurableFileCollection getSource();
 

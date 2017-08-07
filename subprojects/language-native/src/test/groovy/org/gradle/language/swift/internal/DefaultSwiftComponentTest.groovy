@@ -24,7 +24,7 @@ import spock.lang.Specification
 class DefaultSwiftComponentTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def component = new DefaultSwiftComponent(TestFiles.fileOperations())
+    def component = new DefaultSwiftComponent(TestFiles.fileOperations(tmpDir.testDirectory))
 
     def "has no source files by default"() {
         expect:
@@ -51,5 +51,20 @@ class DefaultSwiftComponentTest extends Specification {
         expect:
         component.source.from(d)
         component.swiftSource.files == [f1, f2] as Set
+    }
+
+    def "uses source layout convention when no other source files specified"() {
+        def f1 = tmpDir.createFile("src/main/swift/a.swift")
+        def f2 = tmpDir.createFile("src/main/swift/nested/b.swift")
+        tmpDir.createFile("src/main/swift/ignore-me.cpp")
+        tmpDir.createFile("src/main/other/c.swift")
+        def f4 = tmpDir.createFile("d.swift")
+
+        expect:
+        component.source.empty
+        component.swiftSource.files == [f1, f2] as Set
+
+        component.source.from(f1, f4)
+        component.swiftSource.files == [f1, f4] as Set
     }
 }

@@ -66,8 +66,8 @@ public class TestFiles {
         return new DefaultDirectoryFileTreeFactory(getPatternSetFactory(), fileSystem());
     }
 
-    public static FileOperations fileOperations() {
-        return new DefaultFileOperations(resolver(), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory());
+    public static FileOperations fileOperations(File basedDir) {
+        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory());
     }
 
     public static FileCollectionFactory fileCollectionFactory() {

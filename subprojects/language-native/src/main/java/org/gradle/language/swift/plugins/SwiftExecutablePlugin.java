@@ -21,7 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
@@ -70,13 +69,11 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
-        Directory projectDirectory = project.getLayout().getProjectDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
         SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "executable", DefaultSwiftComponent.class, fileOperations);
-        component.getSource().from(projectDirectory.dir("src/main/swift"));
 
         // Add a compile task
         SwiftCompile compile = tasks.create("compileSwift", SwiftCompile.class);

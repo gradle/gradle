@@ -23,7 +23,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
@@ -72,12 +71,10 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
-        Directory projectDirectory = project.getLayout().getProjectDirectory();
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
 
         SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "library", DefaultSwiftComponent.class, fileOperations);
-        component.getSource().from(projectDirectory.dir("src/main/swift"));
 
         // TODO - extract some common code to setup the compile task and conventions
         // Add a compile task

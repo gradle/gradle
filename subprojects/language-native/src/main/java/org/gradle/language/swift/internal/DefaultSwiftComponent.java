@@ -24,13 +24,27 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.swift.model.SwiftComponent;
 
+import java.util.concurrent.Callable;
+
 public class DefaultSwiftComponent implements SwiftComponent {
     private final ConfigurableFileCollection source;
-    private final FileTree sourceFiles;
+    private final FileCollection sourceFiles;
 
-    public DefaultSwiftComponent(FileOperations fileOperations) {
+    public DefaultSwiftComponent(final FileOperations fileOperations) {
+        // TODO - introduce a new 'var' data structure that allows these conventions to be configured explicitly
         source = fileOperations.files();
-        sourceFiles = source.getAsFileTree().matching(new PatternSet().include("**/*.swift"));
+        sourceFiles = fileOperations.files(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                FileTree tree;
+                if (source.isEmpty()) {
+                    tree = fileOperations.fileTree("src/main/swift");
+                } else {
+                    tree = source.getAsFileTree();
+                }
+                return tree.matching(new PatternSet().include("**/*.swift"));
+            }
+        });
     }
 
     @Override

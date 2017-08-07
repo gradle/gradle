@@ -72,7 +72,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         buildFile << """
             apply plugin: 'swift-library'
             library {
-                source.from = 'Sources'
+                source.from 'Sources'
             }
          """
 
@@ -90,6 +90,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         given:
         lib.greeter.writeToSourceDir(file("src/one.swift"))
         lib.sum.writeToSourceDir(file("src/two.swift"))
+        file("src/main/swift/broken.swift") << "ignore me!"
 
         and:
         buildFile << """

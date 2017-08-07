@@ -27,15 +27,19 @@ import spock.lang.Specification
 class SwiftExecutablePluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def project = TestUtil.createRootProject(tmpDir.createDir("project"))
+    def projectDir = tmpDir.createDir("project")
+    def project = TestUtil.createRootProject(projectDir)
 
     def "adds extension with convention for source layout"() {
+        given:
+        def src = projectDir.file("src/main/swift/main.swift").createFile()
+
         when:
         project.pluginManager.apply(SwiftExecutablePlugin)
 
         then:
         project.executable instanceof SwiftComponent
-        project.executable.source.files == [project.file('src/main/swift')] as Set
+        project.executable.swiftSource.files == [src] as Set
     }
 
     def "adds compile and link tasks"() {
