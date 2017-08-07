@@ -175,7 +175,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         0 * _
     }
 
-    def 'does not delete directories when they overlapping outputs'() {
+    def 'does not delete directories when there are overlapping outputs'() {
         given:
         def previousFile = Mock(File)
         def previousDirectory = Mock(File)
