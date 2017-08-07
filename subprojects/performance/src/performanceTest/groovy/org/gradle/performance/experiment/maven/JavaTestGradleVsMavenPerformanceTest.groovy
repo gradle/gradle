@@ -79,8 +79,8 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
             runner.mvnArgs << "-Dmaven.test.skip=true"
         }
         runner.buildExperimentListener = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
-        runner.warmUpRuns = 1
-        runner.runs = 1
+        runner.warmUpRuns = 4
+        runner.runs = 10
 
         when:
         def results = runner.run()
