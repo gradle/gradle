@@ -143,7 +143,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
         final String propertyRoot = propertyPath + "/";
         //noinspection OctalInteger
-        createTarEntry(propertyRoot, System.currentTimeMillis(), 0, UnixStat.DIR_FLAG | 0755, tarOutput);
+        createTarEntry(propertyRoot, directory.lastModified(), 0, UnixStat.DIR_FLAG | 0755, tarOutput);
         tarOutput.closeEntry();
 
         class CountingFileVisitor implements FileVisitor {
