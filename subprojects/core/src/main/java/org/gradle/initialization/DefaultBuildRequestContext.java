@@ -24,7 +24,8 @@ public class DefaultBuildRequestContext implements BuildRequestContext {
     private final BuildEventConsumer buildEventConsumer;
     private final BuildRequestMetaData metaData;
 
-    // TODO: Wire the gate token into other levels
+    // TODO: Decide if we want to push the gate concept into TAPI or other entry points
+    // currently, a gate is only used by continuous build and can only be controlled from within the build.
     public DefaultBuildRequestContext(BuildRequestMetaData metaData, BuildCancellationToken token, BuildEventConsumer buildEventConsumer) {
         this(metaData, token, new DefaultBuildGateToken(), buildEventConsumer);
     }
