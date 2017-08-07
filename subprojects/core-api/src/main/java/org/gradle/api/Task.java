@@ -371,19 +371,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     Task doFirst(String actionName, Action<? super Task> action);
 
     /**
-     * <p>Adds the given closure to the beginning of this task's action list. The closure is passed this task as a
-     * parameter when executed.</p>
-     *
-     * @param actionName An arbitrary string that is used for logging.
-     * @param action The action closure to execute.
-     * @return This task.
-     *
-     * @since 4.2
-     */
-    @Incubating
-    Task doFirst(String actionName, Closure action);
-
-    /**
      * <p>Adds the given {@link Action} to the end of this task's action list.</p>
      *
      * @param action The action to add.
@@ -397,7 +384,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param actionName An arbitrary string that is used for logging.
      * @param action The action to add.
      * @return the task object this method is applied to
-     * 
+     *
      * @since 4.2
      */
     @Incubating
@@ -411,19 +398,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return This task.
      */
     Task doLast(Closure action);
-
-    /**
-     * <p>Adds the given closure to the end of this task's action list.  The closure is passed this task as a parameter
-     * when executed.</p>
-     *
-     * @param actionName An arbitrary string that is used for logging.
-     * @param action The action closure to execute.
-     * @return This task.
-     *
-     * @since 4.2
-     */
-    @Incubating
-    Task doLast(String actionName, Closure action);
 
     /**
      * <p>Adds the given closure to the end of this task's action list.  The closure is passed this task as a parameter

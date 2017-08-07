@@ -566,18 +566,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Task doFirst(final Closure action) {
-        return doFirst("doFirst {} action", action);
-    }
-
-    @Override
-    public Task doFirst(final String actionName, final Closure action) {
         hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doFirst(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(0, convertClosureToAction(action, actionName));
+                getTaskActions().add(0, convertClosureToAction(action, "doFirst {} action"));
             }
         });
         return this;
@@ -585,18 +580,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Task doLast(final Closure action) {
-        return doLast("doLast {} action", action);
-    }
-
-    @Override
-    public Task doLast(final String actionName, final Closure action) {
         hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doLast(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(convertClosureToAction(action, actionName));
+                getTaskActions().add(convertClosureToAction(action, "doLast {} action"));
             }
         });
         return this;
