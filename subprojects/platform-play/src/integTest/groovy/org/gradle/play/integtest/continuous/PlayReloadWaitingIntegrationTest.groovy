@@ -66,11 +66,11 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
     }
 
     @Unroll
-    def "wait for changes to be built when a request comes in during initial app startup and there are pending changes and build is triggered=#triggered"() {
+    def "wait for changes to be built when a request comes in during initial app startup and there are pending changes and build is gated=#gated"() {
         addPendingChangesHook()
         // Prebuild so we don't timeout waiting for the 'rebuild' trigger
         executer.withTasks("playBinary").run()
-        executer.withArgument("-D" + DefaultFileSystemChangeWaiterFactory.TRIGGER_BUILD_SYSPROP + "=" + triggered)
+        executer.withArgument("-D" + DefaultFileSystemChangeWaiterFactory.GATED_BUILD_SYSPROP + "=" + gated)
 
         server.start()
         buildFile << """
@@ -101,7 +101,7 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
         runningApp.playUrl('hello').text == 'hello world'
 
         where:
-        triggered << [ true, false ]
+        gated << [true, false ]
     }
 
     def "wait for pending changes to be built if a request comes in during a build and there are pending changes"() {
