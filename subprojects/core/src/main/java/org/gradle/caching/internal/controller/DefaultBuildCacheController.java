@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.controller.operations.PackOperationDetails;
@@ -167,11 +168,13 @@ public class DefaultBuildCacheController implements BuildCacheController {
                     try {
                         input = new FileInputStream(file);
                     } catch (FileNotFoundException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
+                        throw new UncheckedIOException(e);
                     }
 
                     try {
                         result = command.load(input);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
                     } finally {
                         IOUtils.closeQuietly(input);
                     }
