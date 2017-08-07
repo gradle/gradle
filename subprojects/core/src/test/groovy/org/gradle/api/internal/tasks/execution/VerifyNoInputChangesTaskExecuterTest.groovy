@@ -108,6 +108,11 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
     private static TaskOutputCachingBuildCacheKey cacheKey(String hash) {
         new TaskOutputCachingBuildCacheKey() {
             @Override
+            Path getTaskPath() {
+                return Path.path(":test")
+            }
+
+            @Override
             String getHashCode() {
                 return hash
             }

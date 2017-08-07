@@ -24,6 +24,7 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.util.Path;
 
 import java.util.Collection;
 
@@ -32,16 +33,6 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     public static final TaskArtifactState INSTANCE = new NoHistoryArtifactState();
     private static final TaskOutputCachingBuildCacheKey NO_CACHE_KEY = new TaskOutputCachingBuildCacheKey() {
         @Override
-        public String getHashCode() {
-            return null;
-        }
-
-        @Override
-        public BuildCacheKeyInputs getInputs() {
-            return null;
-        }
-
-        @Override
         public boolean isValid() {
             return false;
         }
@@ -49,6 +40,21 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
         @Override
         public String toString() {
             return "INVALID";
+        }
+
+        @Override
+        public Path getTaskPath() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getHashCode() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public BuildCacheKeyInputs getInputs() {
+            throw new UnsupportedOperationException();
         }
     };
 

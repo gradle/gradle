@@ -133,6 +133,11 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
         }
 
         @Override
+        public Path getTaskPath() {
+            return taskPath;
+        }
+
+        @Override
         public String getHashCode() {
             return Preconditions.checkNotNull(hashCode, "Cannot determine hash code for invalid build cache key").toString();
         }
