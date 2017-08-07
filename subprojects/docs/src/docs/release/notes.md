@@ -56,7 +56,7 @@ TBD: The publish artifact DSL now accepts `Provider<RegularFile>` and `Provider<
 
 In previous releases, tasks could produce incorrect results when output files were left behind during upgrades or when processes outside of Gradle created files in a shared output directory.
 Gradle is able to detect these situations and automatically remove stale files, if it is safe to do so.
-Only files within `buildDir` and paths registered as targets for `clean` tasks are considered safe to remove.
+Only files within `buildDir`, paths registered as targets for the `clean` task and source set outputs are considered safe to remove.
 
 ### CLI abbreviates long test names
 
