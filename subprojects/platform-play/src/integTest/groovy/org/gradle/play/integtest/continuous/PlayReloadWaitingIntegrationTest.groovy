@@ -16,8 +16,8 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory
 import org.gradle.language.scala.tasks.PlatformScalaCompile
+import org.gradle.play.internal.run.PlayWorkerClient
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Unroll
 
@@ -70,7 +70,7 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
         addPendingChangesHook()
         // Prebuild so we don't timeout waiting for the 'rebuild' trigger
         executer.withTasks("playBinary").run()
-        executer.withArgument("-D" + DefaultFileSystemChangeWaiterFactory.GATED_BUILD_SYSPROP + "=" + gated)
+        executer.withArgument("-D" + PlayWorkerClient.GATED_BUILD_SYSPROP + "=" + gated)
 
         server.start()
         buildFile << """

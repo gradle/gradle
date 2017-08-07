@@ -24,13 +24,11 @@ class DefaultGatedChangeWaiter implements FileSystemChangeWaiter {
     private final FileSystemChangeWaiter delegate;
     private final BuildCancellationToken cancellationToken;
     private final BuildGateToken buildGateToken;
-    private final boolean gatedBuild;
 
-    DefaultGatedChangeWaiter(FileSystemChangeWaiter delegate, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken, boolean gatedBuild) {
+    DefaultGatedChangeWaiter(FileSystemChangeWaiter delegate, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken) {
         this.delegate = delegate;
         this.cancellationToken = cancellationToken;
         this.buildGateToken = buildGateToken;
-        this.gatedBuild = gatedBuild;
     }
 
     @Override
@@ -41,7 +39,7 @@ class DefaultGatedChangeWaiter implements FileSystemChangeWaiter {
     @Override
     public void wait(Runnable notifier, FileWatcherEventListener eventListener) {
         delegate.wait(notifier, eventListener);
-        if (!cancellationToken.isCancellationRequested() && gatedBuild) {
+        if (!cancellationToken.isCancellationRequested()) {
             buildGateToken.waitForOpen();
         }
     }

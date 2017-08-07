@@ -21,32 +21,25 @@ import org.gradle.initialization.BuildGateToken;
 
 public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWaiterFactory {
     public static final String QUIET_PERIOD_SYSPROP = "org.gradle.internal.filewatch.quietperiod";
-    public static final String GATED_BUILD_SYSPROP = "org.gradle.internal.continuous.gated";
 
     private final FileWatcherFactory fileWatcherFactory;
     private final long quietPeriodMillis;
-    private final boolean gatedBuild;
 
     public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {
-        this(fileWatcherFactory, getDefaultQuietPeriod(), isGatedBuild());
+        this(fileWatcherFactory, getDefaultQuietPeriod());
     }
 
     private static long getDefaultQuietPeriod() {
         return Long.getLong(QUIET_PERIOD_SYSPROP, 250L);
     }
 
-    private static boolean isGatedBuild() {
-        return Boolean.getBoolean(GATED_BUILD_SYSPROP);
-    }
-
-    public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis, boolean gatedBuild) {
+    public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
         this.fileWatcherFactory = fileWatcherFactory;
         this.quietPeriodMillis = quietPeriodMillis;
-        this.gatedBuild = gatedBuild;
     }
 
     @Override
     public FileSystemChangeWaiter createChangeWaiter(PendingChangesListener listener, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken) {
-        return new DefaultGatedChangeWaiter(new DefaultFileSystemChangeWaiter(fileWatcherFactory, listener, quietPeriodMillis, cancellationToken), cancellationToken, buildGateToken, gatedBuild);
+        return new DefaultGatedChangeWaiter(new DefaultFileSystemChangeWaiter(fileWatcherFactory, listener, quietPeriodMillis, cancellationToken), cancellationToken, buildGateToken);
     }
 }

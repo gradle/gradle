@@ -16,8 +16,12 @@
 
 package org.gradle.initialization;
 
+import javax.annotation.Nonnull;
+
 public interface BuildGateToken {
+    @Nonnull
     GateKeeper createGateKeeper();
+
     void waitForOpen();
 
     interface GateKeeper {
