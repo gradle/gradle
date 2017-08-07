@@ -80,7 +80,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
-        TarOutputStream tarOutput = new TarOutputStream(output);
+        TarOutputStream tarOutput = new TarOutputStream(output, "utf-8");
         try {
             tarOutput.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
             tarOutput.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);

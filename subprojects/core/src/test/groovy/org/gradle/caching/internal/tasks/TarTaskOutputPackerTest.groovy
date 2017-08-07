@@ -148,8 +148,8 @@ class TarTaskOutputPackerTest extends Specification {
         DIRECTORY | "none"
     }
 
-    def "can pack single task output file with long name"() {
-        def propertyName = "prop-" + ("x" * 100)
+    @Unroll
+    def "can pack single task output file with #type name"() {
         def sourceOutputFile = temporaryFolder.file("source.txt")
         sourceOutputFile << "output"
         def targetOutputFile = temporaryFolder.file("target.txt")
@@ -171,6 +171,11 @@ class TarTaskOutputPackerTest extends Specification {
         then:
         targetOutputFile.text == "output"
         0 * _
+
+        where:
+        type      | propertyName
+        "long"    | "prop-" + ("x" * 100)
+        "unicode" | "prop-dezső"
     }
 
     def "can pack task output with all optional, null outputs"() {
