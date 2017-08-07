@@ -56,7 +56,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
         if (task.getInputs().getHasSourceFiles() && sourceFiles.isEmpty()) {
             TaskArtifactState taskArtifactState = context.getTaskArtifactState();
             TaskExecutionHistory executionHistory = taskArtifactState.getExecutionHistory();
-            Set<File> outputFiles = executionHistory.getPreviousOutputs();
+            Set<File> outputFiles = executionHistory.getOutputFiles();
             if (outputFiles == null) {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no history of previous output files.", task);

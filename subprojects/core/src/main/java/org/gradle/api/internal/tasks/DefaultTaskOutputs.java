@@ -39,9 +39,11 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
@@ -249,7 +251,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public FileCollection getPreviousOutputFiles() {
+    public Set<File> getPreviousOutputFiles() {
         if (history == null) {
             throw new IllegalStateException("Task history is currently not available for this task.");
         }

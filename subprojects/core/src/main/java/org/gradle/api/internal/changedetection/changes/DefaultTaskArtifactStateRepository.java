@@ -17,9 +17,7 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -135,21 +133,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public FileCollection getOutputFiles() {
-            TaskExecution lastExecution = history.getPreviousExecution();
-            if (lastExecution != null && lastExecution.getOutputFilesSnapshot() != null) {
-                ImmutableSet.Builder<File> builder = ImmutableSet.builder();
-                for (FileCollectionSnapshot snapshot : lastExecution.getOutputFilesSnapshot().values()) {
-                    builder.addAll(snapshot.getFiles());
-                }
-                return fileCollectionFactory.fixed("Task " + task.getPath() + " outputs", builder.build());
-            } else {
-                return fileCollectionFactory.empty("Task " + task.getPath() + " outputs");
-            }
-        }
-
-        @Override
-        public Set<File> getPreviousOutputs() {
+        public Set<File> getOutputFiles() {
             TaskExecution previousExecution = history.getPreviousExecution();
             if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
                 return Collections.emptySet();

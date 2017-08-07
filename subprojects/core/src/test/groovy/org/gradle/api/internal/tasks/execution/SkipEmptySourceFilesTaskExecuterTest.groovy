@@ -62,7 +62,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
 
         then: 'if no previous output files existed...'
-        1 * taskExecutionHistory.previousOutputs >> null
+        1 * taskExecutionHistory.outputFiles >> null
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
@@ -89,7 +89,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
 
         then: 'if no previous output files existed...'
-        1 * taskExecutionHistory.previousOutputs >> new HashSet<File>()
+        1 * taskExecutionHistory.outputFiles >> new HashSet<File>()
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
@@ -104,7 +104,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     def 'deletes previous output when sourceFiles are empty'() {
         given:
         def previousFile = Mock(File)
-        Set<File> previousOutputs = [previousFile]
+        Set<File> outputFiles = [previousFile]
 
         when:
         executer.execute(task, state, taskContext)
@@ -118,7 +118,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> null
         1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
 
@@ -142,7 +142,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     def 'does not delete previous output when they are not safe to delete'() {
         given:
         def previousFile = Mock(File)
-        Set<File> previousOutputs = [previousFile]
+        Set<File> outputFiles = [previousFile]
 
         when:
         executer.execute(task, state, taskContext)
@@ -156,7 +156,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> null
         1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
 
@@ -179,7 +179,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         given:
         def previousFile = Mock(File)
         def previousDirectory = Mock(File)
-        Set<File> previousOutputs = [previousFile, previousDirectory]
+        Set<File> outputFiles = [previousFile, previousDirectory]
 
         when:
         executer.execute(task, state, taskContext)
@@ -193,7 +193,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> new OverlappingOutputs("outputProperty", "some/path")
         1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
 
@@ -222,7 +222,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     def 'exception thrown when sourceFiles are empty and deletes previous output, but delete fails'() {
         given:
         def previousFile = Mock(File)
-        Set<File> previousOutputs = [previousFile]
+        Set<File> outputFiles = [previousFile]
 
         when:
         executer.execute(task, state, taskContext)
@@ -236,7 +236,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.previousOutputs >> previousOutputs
+        1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> null
         1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
 

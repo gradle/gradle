@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.GradleException
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
@@ -398,7 +397,7 @@ class DefaultTaskOutputsTest extends Specification {
 
     void getPreviousFilesDelegatesToTaskHistory() {
         TaskExecutionHistory history = Mock()
-        FileCollection outputFiles = Mock()
+        Set<File> outputFiles = [new File("some-file")] as Set
 
         setup:
         outputs.history = history
