@@ -166,11 +166,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         }
 
         public void completed() {
-            completed(null);
-        }
-
-        public void completed(String status) {
-            completed(status, false);
+            completed(null, false);
         }
 
         public void completed(String status, boolean failed) {

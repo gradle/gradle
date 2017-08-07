@@ -129,7 +129,7 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.beforeComplete()
 
         then:
-        1 * buildProgress.completed(_)
+        1 * buildProgress.completed(_, false)
         0 * _
     }
 
@@ -168,7 +168,7 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.beforeComplete()
 
         then:
-        1 * buildProgress.completed(_)
+        1 * buildProgress.completed(_, false)
         0 * _
     }
 
@@ -179,7 +179,7 @@ class BuildProgressLoggerTest extends Specification {
 
         then:
         1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _, 0) >> buildProgress
-        1 * buildProgress.completed({it.contains(BuildProgressLogger.WAITING_PHASE_DESCRIPTION)})
+        1 * buildProgress.completed({it.contains(BuildProgressLogger.WAITING_PHASE_DESCRIPTION)}, false)
         0 * _
     }
 }

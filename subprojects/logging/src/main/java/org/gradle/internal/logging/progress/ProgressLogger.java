@@ -141,8 +141,6 @@ public interface ProgressLogger {
      */
     void completed();
 
-    void completed(String status);
-
     /**
      * Logs the completion of the operation, with a final status. This is generally logged along with the description.
      *
