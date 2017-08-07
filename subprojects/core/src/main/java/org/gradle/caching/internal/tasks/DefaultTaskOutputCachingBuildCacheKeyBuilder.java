@@ -25,6 +25,7 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,15 +37,18 @@ import java.util.List;
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputCachingBuildCacheKeyBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskOutputCachingBuildCacheKeyBuilder.class);
 
-    public static final TaskOutputCachingBuildCacheKey NO_CACHE_KEY = new DefaultTaskOutputCachingBuildCacheKeyBuilder().build();
-
-    private BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+    private final BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+    private final Path taskPath;
     private String taskClass;
     private HashCode classLoaderHash;
     private List<HashCode> actionClassLoaderHashes;
     private ImmutableList<String> actionTypes;
     private final ImmutableSortedMap.Builder<String, HashCode> inputHashes = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
+
+    public DefaultTaskOutputCachingBuildCacheKeyBuilder(Path taskPath) {
+        this.taskPath = taskPath;
+    }
 
     @Override
     public void appendTaskImplementation(ImplementationSnapshot taskImplementation) {
@@ -107,18 +111,23 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     @Override
     public TaskOutputCachingBuildCacheKey build() {
         BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionClassLoaderHashes, actionTypes, inputHashes.build(), outputPropertyNames.build());
+        HashCode hash;
         if (classLoaderHash == null || actionClassLoaderHashes.contains(null)) {
-            return new DefaultTaskOutputCachingBuildCacheKey(null, inputs);
+            hash = null;
+        } else {
+            hash = hasher.hash();
         }
-        return new DefaultTaskOutputCachingBuildCacheKey(hasher.hash(), inputs);
+        return new DefaultTaskOutputCachingBuildCacheKey(taskPath, hash, inputs);
     }
 
     private static class DefaultTaskOutputCachingBuildCacheKey implements TaskOutputCachingBuildCacheKey {
 
+        private final Path taskPath;
         private final HashCode hashCode;
         private final BuildCacheKeyInputs inputs;
 
-        private DefaultTaskOutputCachingBuildCacheKey(@Nullable HashCode hashCode, BuildCacheKeyInputs inputs) {
+        private DefaultTaskOutputCachingBuildCacheKey(Path taskPath, @Nullable HashCode hashCode, BuildCacheKeyInputs inputs) {
+            this.taskPath = taskPath;
             this.hashCode = hashCode;
             this.inputs = inputs;
         }
@@ -140,7 +149,10 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
 
         @Override
         public String toString() {
-            return String.valueOf(hashCode);
+            if (hashCode == null) {
+                return "INVALID task cache key";
+            }
+            return hashCode + " for task " + taskPath;
         }
     }
 }

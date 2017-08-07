@@ -26,6 +26,7 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class VerifyNoInputChangesTaskExecuterTest extends Specification {
@@ -124,6 +125,6 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
     }
 
     private static TaskOutputCachingBuildCacheKey invalidCacheKey() {
-        return new DefaultTaskOutputCachingBuildCacheKeyBuilder().build()
+        return new DefaultTaskOutputCachingBuildCacheKeyBuilder(Path.path(":invalid")).build()
     }
 }

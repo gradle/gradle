@@ -50,20 +50,18 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final Instantiator instantiator;
     private final FileCollectionFactory fileCollectionFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final TaskCacheKeyCalculator cacheKeyCalculator;
     private final ValueSnapshotter valueSnapshotter;
     private final TaskOutputFilesRepository taskOutputFilesRepository;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
                                               FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
                                               FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                              TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter, TaskOutputFilesRepository taskOutputFilesRepository) {
+                                              ValueSnapshotter valueSnapshotter, TaskOutputFilesRepository taskOutputFilesRepository) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.fileCollectionSnapshotterRegistry = fileCollectionSnapshotterRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        this.cacheKeyCalculator = cacheKeyCalculator;
         this.valueSnapshotter = valueSnapshotter;
         this.taskOutputFilesRepository = taskOutputFilesRepository;
     }
@@ -127,7 +125,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public TaskOutputCachingBuildCacheKey calculateCacheKey() {
             // Ensure that states are created
             getStates();
-            return cacheKeyCalculator.calculate(history.getCurrentExecution());
+            return TaskCacheKeyCalculator.calculate(task, history.getCurrentExecution());
         }
 
         @Override

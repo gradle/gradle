@@ -21,13 +21,40 @@ import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder;
+import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
 
 import java.util.Collection;
 
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
+
+    public static final TaskArtifactState INSTANCE = new NoHistoryArtifactState();
+    private static final TaskOutputCachingBuildCacheKey NO_CACHE_KEY = new TaskOutputCachingBuildCacheKey() {
+        @Override
+        public String getHashCode() {
+            return null;
+        }
+
+        @Override
+        public BuildCacheKeyInputs getInputs() {
+            return null;
+        }
+
+        @Override
+        public boolean isValid() {
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return "INVALID";
+        }
+    };
+
+    private NoHistoryArtifactState() {
+    }
+
     @Override
     public boolean isUpToDate(Collection<String> messages) {
         messages.add("Task has not declared any outputs.");
@@ -46,7 +73,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
 
     @Override
     public TaskOutputCachingBuildCacheKey calculateCacheKey() {
-        return DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY;
+        return NO_CACHE_KEY;
     }
 
     @Override

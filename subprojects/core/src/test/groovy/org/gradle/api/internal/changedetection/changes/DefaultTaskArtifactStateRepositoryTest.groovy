@@ -42,7 +42,6 @@ import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
-import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.id.RandomLongIdGenerator
@@ -82,7 +81,6 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     DefaultGenericFileCollectionSnapshotter fileCollectionSnapshotter
     DefaultTaskArtifactStateRepository repository
     DefaultFileSystemMirror fileSystemMirror
-    TaskCacheKeyCalculator cacheKeyCalculator = Mock(TaskCacheKeyCalculator)
     TaskOutputFilesRepository taskOutputFilesRepository = Stub(TaskOutputFilesRepository)
 
     def setup() {
@@ -101,7 +99,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry()
         fileCollectionSnapshotter.registerSerializers(serializerRegistry)
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()), stringInterner, buildScopeId)
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, new DefaultFileCollectionSnapshotterRegistry([fileCollectionSnapshotter]), TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher, cacheKeyCalculator, new ValueSnapshotter(classLoaderHierarchyHasher), taskOutputFilesRepository)
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, new DefaultFileCollectionSnapshotterRegistry([fileCollectionSnapshotter]), TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher, new ValueSnapshotter(classLoaderHierarchyHasher), taskOutputFilesRepository)
     }
 
     def "artifacts are not up to date when cache is empty"() {
