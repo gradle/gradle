@@ -18,6 +18,9 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
+/**
+ * A Swift library with 2 source files.
+ */
 class SwiftLib extends SourceElement implements GreeterElement, SumElement {
     final greeter = new SwiftGreeter()
     final sum = new SwiftSum()
