@@ -28,7 +28,8 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.DefaultEventTimer;
+import org.gradle.internal.time.EventTimer;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
@@ -69,14 +70,14 @@ import java.util.UUID;
 public class DaemonServices extends DefaultServiceRegistry {
     private final DaemonServerConfiguration configuration;
     private final LoggingManagerInternal loggingManager;
-    private final Clock runningClock;
+    private final EventTimer daemonRunningTimer;
     private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
     public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
         super(NativeServices.getInstance(), loggingServices);
         this.configuration = configuration;
         this.loggingManager = loggingManager;
-        this.runningClock = new Clock();
+        this.daemonRunningTimer = new DefaultEventTimer();
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
         addProvider(new GlobalScopeServices(true, additionalModuleClassPath));
@@ -111,7 +112,7 @@ public class DaemonServices extends DefaultServiceRegistry {
     }
 
     protected DaemonRunningStats createDaemonRunningStats() {
-        return new DaemonRunningStats(runningClock);
+        return new DaemonRunningStats(daemonRunningTimer);
     }
 
     protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager) {

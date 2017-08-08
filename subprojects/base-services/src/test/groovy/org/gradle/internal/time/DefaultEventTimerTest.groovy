@@ -19,17 +19,17 @@ package org.gradle.internal.time
 
 import spock.lang.Specification
 
-public class ClockTest extends Specification {
+public class DefaultEventTimerTest extends Specification {
 
     private static final long TEST_BASE_TIME = 641353121231L;
 
     private TimeProvider timeProvider = Mock(TimeProvider);
-    private Clock clock;
+    private DefaultEventTimer clock;
 
     void setup() {
         1 * timeProvider.currentTimeForDuration >> TEST_BASE_TIME
         1 * timeProvider.currentTime >> TEST_BASE_TIME;
-        clock = new Clock(timeProvider);
+        clock = new DefaultEventTimer(timeProvider);
     }
 
     def testOnlySecondsTwoDigits() throws Exception {

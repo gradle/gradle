@@ -16,11 +16,13 @@
 
 package org.gradle.util;
 
+import org.gradle.internal.time.DefaultEventTimer;
+
 /**
  * This class remains for backward compatibility. Replaced by `org.gradle.internal.time.Clock`.
  */
 @Deprecated
-public class Clock extends org.gradle.internal.time.Clock {
+public class Clock extends DefaultEventTimer {
     public Clock() {
         super();
     }

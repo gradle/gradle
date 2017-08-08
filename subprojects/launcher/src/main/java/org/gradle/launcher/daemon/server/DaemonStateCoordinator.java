@@ -22,17 +22,16 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -50,7 +49,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private static final Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
     private final Lock lock = new ReentrantLock();
-    private final TimeProvider timeProvider = new TrueTimeProvider();
     private final Condition condition = lock.newCondition();
     private final long cancelTimeoutMs;
 
@@ -268,7 +266,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                         case Canceled:
                         case StopRequested:
                             LOGGER.debug("Cancel: daemon is busy, sleeping until state changes.");
-                            condition.awaitUntil(timer.getExpiryTime());
+                            condition.await(timer.getRemainingMillis(), TimeUnit.MILLISECONDS);
                             break;
                         case Broken:
                             throw new IllegalStateException("This daemon is in a broken state.");
