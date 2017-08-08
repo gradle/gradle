@@ -49,6 +49,7 @@ import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
@@ -193,14 +194,14 @@ public class XcodePlugin extends IdePlugin {
 
     private void configureXcodeForSwift(Project project, PBXTarget.ProductType productType) {
         SwiftComponent component = project.getExtensions().getByType(SwiftComponent.class);
-        FileCollection sourceTree = component.getSwiftSource();
-        xcode.getProject().getSources().from(sourceTree);
+        FileCollection sources = component.getSwiftSource();
+        xcode.getProject().getSources().from(sources);
 
-        // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the link task
-        // TODO - Reuse the logic from `swift-executable` or `swift-library` to find the dependencies
+        // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
+        // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the header dirs
         SwiftCompile compileTask = (SwiftCompile) project.getTasks().getByName("compileSwift");
         Task linkTask = project.getTasks().getByName("linkMain");
-        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), project.file("build/exe/" + project.getName()), sourceTree);
+        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), project.file("build/exe/" + project.getName()), sources);
         target.getImportPaths().from(compileTask.getIncludes());
         xcode.getProject().setTarget(target);
 
@@ -224,15 +225,18 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeForCpp(Project project, PBXTarget.ProductType productType) {
-        CppCompile compileTask = (CppCompile) project.getTasks().getByName("compileCpp");
-        FileCollection sourceTree = compileTask.getSource();
-        xcode.getProject().getSources().from(sourceTree);
+        CppComponent component = project.getExtensions().getByType(CppComponent.class);
+        FileCollection sources = component.getCppSource();
+        xcode.getProject().getSources().from(sources);
 
+        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the header files and include paths
+        CppCompile compileTask = (CppCompile) project.getTasks().getByName("compileCpp");
         FileCollection headers = compileTask.getIncludes().minus(project.getConfigurations().getByName(CppBasePlugin.CPP_INCLUDE_PATH));
         xcode.getProject().getSources().from(headers.getAsFileTree());
 
-        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the build task
-        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), project.getTasks().getByName("linkMain").getPath(), project.file("build/exe/" + project.getName()), sourceTree);
+        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the link task path
+        Task linkTask = project.getTasks().getByName("linkMain");
+        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), project.file("build/exe/" + project.getName()), sources);
         target.getHeaderSearchPaths().from(compileTask.getIncludes());
         xcode.getProject().setTarget(target);
 

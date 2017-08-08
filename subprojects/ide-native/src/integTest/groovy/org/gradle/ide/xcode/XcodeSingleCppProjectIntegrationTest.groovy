@@ -17,7 +17,9 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CppLib
 
 class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def app = new CppHelloWorldApp()
@@ -115,24 +117,45 @@ apply plugin: 'cpp-executable'
             .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.files*.name)
     }
 
-    def "changing source location still include them in the project"() {
+    def "executable source files in a non-default location are included in the project"() {
         given:
         buildFile << """
 apply plugin: 'cpp-executable'
 
-def sourceTree = fileTree('src')
-sourceTree.include('**/*.cpp')
-tasks.compileCpp.source(sourceTree)
-tasks.compileCpp.includes(file('include'))
+executable {
+    source.from 'Sources'
+}
 """
 
         when:
-        app.sourceFiles*.writeToDir(file('src'))
-        app.headerFiles*.writeToDir(file('include'))
+        def app = new CppApp()
+        app.headers.writeToProject(testDirectory)
+        app.sources.writeToSourceDir(file('Sources'))
         succeeds("xcode")
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
             .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+    }
+
+    def "library source files in a non-default location are included in the project"() {
+        given:
+        buildFile << """
+apply plugin: 'cpp-library'
+
+library {
+    source.from 'Sources'
+}
+"""
+
+        when:
+        def lib = new CppLib()
+        lib.headers.writeToProject(testDirectory)
+        lib.sources.writeToSourceDir(file('Sources'))
+        succeeds("xcode")
+
+        then:
+        xcodeProject("${rootProjectName}.xcodeproj").projectFile
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
     }
 }
