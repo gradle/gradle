@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftAlternateMain extends SwiftElement implements AppElement {
+class SwiftAlternateMain extends SingleSourceFileElement implements AppElement {
     final GreeterElement greeter
 
     SwiftAlternateMain(GreeterElement greeter) {

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.SourceFile;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class SwiftElement extends SourceElement {
+public abstract class SingleSourceFileElement extends SourceElement {
     public abstract SourceFile getSourceFile();
 
     @Override

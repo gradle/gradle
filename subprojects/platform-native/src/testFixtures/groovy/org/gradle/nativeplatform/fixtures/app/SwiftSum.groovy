@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftSum extends SwiftElement implements SumElement {
+class SwiftSum extends SingleSourceFileElement implements SumElement {
     @Override
     SourceFile getSourceFile() {
         sourceFile("swift", "sum.swift", """
