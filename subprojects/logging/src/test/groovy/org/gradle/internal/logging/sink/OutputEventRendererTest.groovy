@@ -25,6 +25,7 @@ import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.progress.BuildOperationCategory
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Unroll
@@ -36,7 +37,7 @@ class OutputEventRendererTest extends OutputSpecification {
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer()
+        renderer = new OutputEventRenderer(new TrueTimeProvider())
         renderer.configure(LogLevel.INFO)
     }
 

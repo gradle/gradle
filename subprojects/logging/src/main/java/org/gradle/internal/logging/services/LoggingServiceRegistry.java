@@ -142,8 +142,8 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
                 stderr);
     }
 
-    protected OutputEventRenderer createOutputEventRenderer() {
-        return new OutputEventRenderer();
+    protected OutputEventRenderer createOutputEventRenderer(TimeProvider timeProvider) {
+        return new OutputEventRenderer(timeProvider);
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {
