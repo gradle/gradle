@@ -21,14 +21,16 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@SuppressWarnings("Since15")
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
 
     private final FileResolver fileResolver;
     private final Set<FileCollection> outputs = Sets.newHashSet();
-    private Set<String> resolvedPaths;
+    private Set<Path> resolvedPaths;
 
     public DefaultBuildOutputCleanupRegistry(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
@@ -44,18 +46,18 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     @Override
     public boolean isOutputOwnedByBuild(File file) {
-        Set<String> safeToDelete = getResolvedPaths();
-        File absoluteFile = file.getAbsoluteFile();
-        while (absoluteFile != null) {
-            if (safeToDelete.contains(absoluteFile.getPath())) {
+        Set<Path> safeToDelete = getResolvedPaths();
+        Path absolutePath = file.toPath().toAbsolutePath();
+        while (absolutePath != null) {
+            if (safeToDelete.contains(absolutePath)) {
                 return true;
             }
-            absoluteFile = absoluteFile.getParentFile();
+            absolutePath = absolutePath.getParent();
         }
         return false;
     }
 
-    private Set<String> getResolvedPaths() {
+    private Set<Path> getResolvedPaths() {
         if (resolvedPaths == null) {
             doResolvePaths();
         }
@@ -64,10 +66,10 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     private synchronized void doResolvePaths() {
         if (resolvedPaths == null) {
-            Set<String> result = new LinkedHashSet<String>();
+            Set<Path> result = new LinkedHashSet<Path>();
             for (FileCollection output : outputs) {
                 for (File file : output.getFiles()) {
-                    result.add(file.getAbsolutePath());
+                    result.add(file.toPath().toAbsolutePath());
                 }
             }
             resolvedPaths = result;
