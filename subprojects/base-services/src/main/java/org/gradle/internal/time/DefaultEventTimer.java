@@ -46,6 +46,12 @@ public class DefaultEventTimer extends DefaultTimer implements EventTimer {
     @Override
     public void reset() {
         super.reset();
+        // TODO:DAZ This ignores our process-wide wall clock, and could result in a less reliable start time.
         startTime = getWallClockMillis();
     }
+
+    private long getWallClockMillis() {
+        return timeSource.currentTimeMillis();
+    }
+
 }

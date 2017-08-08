@@ -64,6 +64,7 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.time.TimeProvider
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
@@ -87,6 +88,7 @@ class BuildScopeServicesTest extends Specification {
     BuildScopeServices registry
 
     def setup() {
+        sessionServices.get(TimeProvider) >> Mock(TimeProvider)
         sessionServices.getFactory(CacheFactory) >> cacheFactoryFactory
         cacheFactoryFactory.create() >> cacheFactory
         sessionServices.get(ClassLoaderRegistry) >> classLoaderRegistry

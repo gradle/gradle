@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultTimer implements Timer {
     private static final long MS_PER_MINUTE = 60000;
     private static final long MS_PER_HOUR = MS_PER_MINUTE * 60;
-    private TimeSource timeSource;
+    protected TimeSource timeSource;
     protected long startInstantMillis;
 
     DefaultTimer(TimeSource timeSource) {
@@ -55,12 +55,7 @@ public class DefaultTimer implements Timer {
         startInstantMillis = getInstantMillis();
     }
 
-    protected long getInstantMillis() {
-        long nanos = timeSource.nanoTime();
-        return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS);
-    }
-
-    protected long getWallClockMillis() {
-        return timeSource.currentTimeMillis();
+    private long getInstantMillis() {
+        return TimeUnit.NANOSECONDS.toMillis(timeSource.nanoTime());
     }
 }

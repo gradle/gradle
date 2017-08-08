@@ -97,8 +97,9 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.ReliableTimeProvider;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
+import org.gradle.internal.time.TimeSource;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -298,7 +299,7 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     TimeProvider createTimeProvider() {
-        return new TrueTimeProvider();
+        return new ReliableTimeProvider(new TimeSource.True());
     }
 
     OsMemoryInfo createOsMemoryInfo() {
