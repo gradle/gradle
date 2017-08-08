@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,28 +38,28 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         file('src/test/java/example/Issue1618Test.java') << '''
-        package example;
-
-        import org.junit.Test;
-
-        import static org.mockito.Mockito.doThrow;
-        import static org.mockito.Mockito.mock;
-
-        public class Issue1618Test {
-
-            public static class Bugger {
-                public void run() {
+            package example;
+    
+            import org.junit.Test;
+    
+            import static org.mockito.Mockito.doThrow;
+            import static org.mockito.Mockito.mock;
+    
+            public class Issue1618Test {
+    
+                public static class Bugger {
+                    public void run() {
+                    }
+                }
+    
+                @Test(expected = RuntimeException.class)
+                public void thisTestShouldBeMarkedAsFailed() {
+                    RuntimeException mockedException = mock(RuntimeException.class);
+                    Bugger bugger = mock(Bugger.class);
+                    doThrow(mockedException).when(bugger).run();
+                    bugger.run();
                 }
             }
-
-            @Test(expected = RuntimeException.class)
-            public void thisTestShouldBeMarkedAsFailed() {
-                RuntimeException mockedException = mock(RuntimeException.class);
-                Bugger bugger = mock(Bugger.class);
-                doThrow(mockedException).when(bugger).run();
-                bugger.run();
-            }
-        }
         '''
 
         expect:
