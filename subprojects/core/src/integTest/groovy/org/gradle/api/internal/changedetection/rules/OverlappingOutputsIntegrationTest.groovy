@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.changedetection.rules
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -302,7 +302,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     // This fails because cleanDirTask will remove fileTask's outputs.
     // So, unless we change this to only clean the *real* outputs of dirTask, this won't work.
-    @NotYetImplemented
+    @ToBeImplemented
     def "overlapping output with fileTask, dirTask then fileTask, cleanDirTask, dirTask"() {
         def cleanDirTask = ":cleanDirTask"
         def (fileTask, fileTaskOutput,
@@ -310,7 +310,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         withBuildCache().succeeds(fileTask, cleanDirTask, dirTask)
         then:
-        fileTaskOutput.assertExists()
+        // TODO fileTaskOutput should exist
+        fileTaskOutput.assertDoesNotExist()
         dirTaskOutput.assertExists()
         // Both tasks can be cached since fileTask's outputs are removed before dirTask executes
         listCacheFiles().size() == 2

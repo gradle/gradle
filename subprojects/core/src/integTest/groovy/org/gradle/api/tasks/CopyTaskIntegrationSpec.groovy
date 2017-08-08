@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Matchers
+import org.gradle.util.ToBeImplemented
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -1080,7 +1080,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         skippedTasks.empty
     }
 
-    @NotYetImplemented
+    @ToBeImplemented
     @Issue("https://issues.gradle.org/browse/GRADLE-1276")
     def "changing expansion makes task out-of-date"() {
         given:
@@ -1103,10 +1103,11 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         when:
         run "copy"
         then:
-        skippedTasks.empty
+        // TODO Task should not be skipped
+        !!! skippedTasks.empty
     }
 
-    @NotYetImplemented
+    @ToBeImplemented
     @Issue("https://issues.gradle.org/browse/GRADLE-1298")
     def "changing filter makes task out-of-date"() {
         given:
@@ -1129,10 +1130,11 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         when:
         run "copy"
         then:
-        skippedTasks.empty
+        // TODO Task should not be skipped
+        !!! skippedTasks.empty
     }
 
-    @NotYetImplemented
+    @ToBeImplemented
     @Issue("https://issues.gradle.org/browse/GRADLE-3549")
     def "changing rename makes task out-of-date"() {
         given:
@@ -1155,7 +1157,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         when:
         run "copy"
         then:
-        skippedTasks.empty
+        // TODO Task should not be skipped
+        !!! skippedTasks.empty
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3554")
