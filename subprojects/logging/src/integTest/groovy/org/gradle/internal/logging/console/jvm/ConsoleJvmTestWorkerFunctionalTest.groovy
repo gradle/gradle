@@ -30,7 +30,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
     private static final String SERVER_RESOURCE_2 = 'test-2'
 
     @Rule
-    BlockingHttpServer server = new BlockingHttpServer(40000)
+    BlockingHttpServer server = new BlockingHttpServer(50000)
 
     def setup() {
         server.start()
