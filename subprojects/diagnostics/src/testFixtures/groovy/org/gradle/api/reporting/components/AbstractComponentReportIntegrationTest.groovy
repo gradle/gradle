@@ -48,6 +48,7 @@ Root project
 """ + normalised + """
 Note: currently not all plugins register their components, so some components may not be visible here.
 
+
 """
         return formatter.transform(raw)
     }
