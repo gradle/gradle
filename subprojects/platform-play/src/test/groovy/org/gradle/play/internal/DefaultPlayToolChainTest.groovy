@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.initialization.BuildGateToken
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform
 import org.gradle.play.internal.toolchain.DefaultPlayToolChain
@@ -43,8 +42,7 @@ class DefaultPlayToolChainTest extends Specification {
     PlayPlatform playPlatform = Stub(PlayPlatform)
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
     WorkerDirectoryProvider workerDirectoryProvider = Mock()
-    BuildGateToken buildGate = Mock()
-    def toolChain = new DefaultPlayToolChain(fileResolver, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, buildGate)
+    def toolChain = new DefaultPlayToolChain(fileResolver, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider)
 
     def setup() {
         playPlatform.playVersion >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION

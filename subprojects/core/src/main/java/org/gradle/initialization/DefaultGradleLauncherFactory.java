@@ -23,6 +23,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.configuration.BuildConfigurer;
@@ -113,6 +114,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         final DefaultDeploymentRegistry deploymentRegistry = parentRegistry.get(DefaultDeploymentRegistry.class);
         launcher.getGradle().addBuildListener(new BuildAdapter() {
+            @Override
+            public void buildStarted(Gradle gradle) {
+                deploymentRegistry.buildStarted((GradleInternal)gradle);
+            }
+
             @Override
             public void buildFinished(BuildResult result) {
                 deploymentRegistry.buildFinished(result);

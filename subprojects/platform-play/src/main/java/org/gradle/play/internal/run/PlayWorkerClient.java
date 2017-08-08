@@ -18,7 +18,7 @@ package org.gradle.play.internal.run;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.BuildGateToken;
+import org.gradle.deployment.internal.DeploymentActivity;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.BlockingQueue;
@@ -26,19 +26,13 @@ import java.util.concurrent.SynchronousQueue;
 
 public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
     private static final Logger LOGGER = Logging.getLogger(PlayWorkerClient.class);
-    public static final String GATED_BUILD_SYSPROP = "org.gradle.internal.play.gated";
 
-    private final BuildGateToken.GateKeeper gateKeeper;
     private final BlockingQueue<PlayAppStart> startEvent = new SynchronousQueue<PlayAppStart>();
     private final BlockingQueue<PlayAppStop> stopEvent = new SynchronousQueue<PlayAppStop>();
-    private int gateCount;
+    private final DeploymentActivity activity;
 
-    public PlayWorkerClient(BuildGateToken buildGate) {
-        if (Boolean.getBoolean(GATED_BUILD_SYSPROP)) {
-            this.gateKeeper = buildGate.createGateKeeper();
-        } else {
-            this.gateKeeper = null;
-        }
+    public PlayWorkerClient(DeploymentActivity activity) {
+        this.activity = activity;
     }
 
     @Override
@@ -50,22 +44,7 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
             } else if (update instanceof PlayAppStop) {
                 stopEvent.put((PlayAppStop)update);
             } else if (update instanceof PlayAppReload) {
-                if (gateKeeper != null) {
-                    PlayAppReload playAppReload = (PlayAppReload) update;
-                    if (playAppReload.isReloadStart()) {
-                        if (gateCount == 0) {
-                            LOGGER.debug("Opening gate - Play App");
-                            gateKeeper.open();
-                        }
-                        gateCount++;
-                    } else {
-                        gateCount--;
-                        if (gateCount == 0) {
-                            LOGGER.debug("Closing gate - Play App");
-                            gateKeeper.close();
-                        }
-                    }
-                }
+                activity.alive();
             } else {
                 throw new IllegalStateException("Unexpected event " + update);
             }

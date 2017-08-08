@@ -16,10 +16,10 @@
 
 package org.gradle.play.integtest.continuous
 
+import org.gradle.deployment.internal.DefaultDeploymentActivity
 import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener
-import org.gradle.play.internal.run.PlayWorkerClient
 import spock.lang.Unroll
 
 class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
@@ -142,7 +142,7 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
     @Unroll
     def "wait for changes to be built when a request comes in during initial app startup and there are pending changes and build is gated=#gated"() {
         given:
-        executer.withArgument("-D" + PlayWorkerClient.GATED_BUILD_SYSPROP + "=" + gated)
+        executer.withArgument("-D" + DefaultDeploymentActivity.GATED_BUILD_SYSPROP + "=" + gated)
 
         when:
         def rebuild = blockBuildWaitingForChanges()

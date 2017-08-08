@@ -19,9 +19,11 @@ package org.gradle.deployment.internal;
 import com.google.common.collect.Maps;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.initialization.BuildGateToken;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -46,6 +48,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     private final BuildOperationExecutor buildOperationExecutor;
     private final ObjectFactory objectFactory;
     private boolean stopped;
+    private BuildGateToken buildGate;
 
     public DefaultDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
@@ -75,6 +78,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
                     public T call(BuildOperationContext context) {
                         T delegate = objectFactory.newInstance(handleType, params);
                         DeploymentHandleWrapper handle = new DeploymentHandleWrapper(name, delegate);
+                        handle.start(new DefaultDeploymentActivity(buildGate));
                         if (pendingChanges.hasRemainingChanges()) {
                             handle.outOfDate();
                         }
@@ -116,6 +120,10 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         } finally {
             lock.unlock();
         }
+    }
+
+    public void buildStarted(GradleInternal gradle) {
+        buildGate = gradle.getServices().get(BuildGateToken.class);
     }
 
     public void buildFinished(BuildResult buildResult) {

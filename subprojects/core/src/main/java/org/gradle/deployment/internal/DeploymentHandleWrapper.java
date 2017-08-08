@@ -25,6 +25,7 @@ public class DeploymentHandleWrapper implements DeploymentHandle, Stoppable {
 
     private final String id;
     private final DeploymentHandle delegate;
+    private DeploymentActivity deploymentActivity;
 
     public DeploymentHandleWrapper(String id, DeploymentHandle delegate) {
         this.id = id;
@@ -37,6 +38,12 @@ public class DeploymentHandleWrapper implements DeploymentHandle, Stoppable {
     }
 
     @Override
+    public void start(DeploymentActivity deploymentActivity) {
+        this.deploymentActivity = deploymentActivity;
+        delegate.start(deploymentActivity);
+    }
+
+    @Override
     public void outOfDate() {
         assertIsRunning();
         delegate.outOfDate();
@@ -46,6 +53,7 @@ public class DeploymentHandleWrapper implements DeploymentHandle, Stoppable {
     public void upToDate(Throwable failure) {
         assertIsRunning();
         delegate.upToDate(failure);
+        deploymentActivity.reset();
     }
 
     @Override

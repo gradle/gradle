@@ -17,7 +17,7 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
-import org.gradle.initialization.BuildGateToken;
+import org.gradle.deployment.internal.DeploymentActivity;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -27,20 +27,18 @@ import java.io.File;
 
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
-    private final BuildGateToken buildGate;
     private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(WorkerProcessFactory workerFactory, BuildGateToken buildGate, VersionedPlayRunAdapter adapter) {
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter) {
         this.workerFactory = workerFactory;
-        this.buildGate = buildGate;
         this.adapter = adapter;
     }
 
-    public PlayApplicationRunnerToken start(PlayRunSpec spec) {
+    public PlayApplicationRunnerToken start(PlayRunSpec spec, DeploymentActivity deploymentActivity) {
         WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 
-        PlayWorkerClient clientCallBack = new PlayWorkerClient(buildGate);
+        PlayWorkerClient clientCallBack = new PlayWorkerClient(deploymentActivity);
         process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, clientCallBack);
         PlayRunWorkerServerProtocol workerServer = process.getConnection().addOutgoing(PlayRunWorkerServerProtocol.class);
         process.getConnection().connect();

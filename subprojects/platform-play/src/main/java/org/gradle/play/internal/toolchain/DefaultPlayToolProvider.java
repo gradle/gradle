@@ -17,7 +17,6 @@
 package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.initialization.BuildGateToken;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -44,7 +43,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
 
     private final FileResolver fileResolver;
     private final WorkerDaemonFactory workerDaemonFactory;
-    private final BuildGateToken buildGate;
     private final File daemonWorkingDir;
     private final PlayPlatform targetPlatform;
     private WorkerProcessFactory workerProcessBuilderFactory;
@@ -52,11 +50,10 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final Set<File> routesClasspath;
     private final Set<File> javaScriptClasspath;
 
-    public DefaultPlayToolProvider(FileResolver fileResolver, BuildGateToken buildGate, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory,
+    public DefaultPlayToolProvider(FileResolver fileResolver, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory,
                                    WorkerProcessFactory workerProcessBuilderFactory, PlayPlatform targetPlatform,
                                    Set<File> twirlClasspath, Set<File> routesClasspath, Set<File> javaScriptClasspath) {
         this.fileResolver = fileResolver;
-        this.buildGate = buildGate;
         this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
@@ -86,7 +83,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     @Override
     public <T> T get(Class<T> toolType) {
         if (PlayApplicationRunner.class.isAssignableFrom(toolType)) {
-            return toolType.cast(PlayApplicationRunnerFactory.create(targetPlatform, buildGate, workerProcessBuilderFactory));
+            return toolType.cast(PlayApplicationRunnerFactory.create(targetPlatform, workerProcessBuilderFactory));
         }
         throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }

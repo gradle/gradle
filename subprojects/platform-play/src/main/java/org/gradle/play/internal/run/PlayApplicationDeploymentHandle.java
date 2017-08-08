@@ -16,26 +16,31 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.deployment.internal.DeploymentActivity;
 import org.gradle.deployment.internal.DeploymentHandle;
 
 import javax.inject.Inject;
 import java.net.InetSocketAddress;
 
 public class PlayApplicationDeploymentHandle implements DeploymentHandle {
+    private final PlayRunSpec spec;
+    private final PlayApplicationRunner playApplicationRunner;
     private PlayApplicationRunnerToken runnerToken;
 
     @Inject
     public PlayApplicationDeploymentHandle(PlayRunSpec spec, PlayApplicationRunner playApplicationRunner) {
-        this(playApplicationRunner.start(spec));
-    }
-
-    protected PlayApplicationDeploymentHandle(PlayApplicationRunnerToken runnerToken) {
-        this.runnerToken = runnerToken;
+        this.spec = spec;
+        this.playApplicationRunner = playApplicationRunner;
     }
 
     @Override
     public boolean isRunning() {
         return runnerToken != null && runnerToken.isRunning();
+    }
+
+    @Override
+    public void start(DeploymentActivity deploymentActivity) {
+        runnerToken = playApplicationRunner.start(spec, deploymentActivity);
     }
 
     @Override

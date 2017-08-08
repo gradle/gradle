@@ -30,6 +30,10 @@ class DefaultDeploymentRegistryTest extends Specification {
         }
 
         @Override
+        void start(DeploymentActivity deploymentActivity) {
+        }
+
+        @Override
         boolean isRunning() {
             return false
         }
@@ -87,7 +91,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         }
         testHandle.running >> true
         def failure = new Throwable()
-        
+
         when:
         registry.onPendingChanges()
         then:

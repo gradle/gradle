@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.gradle.deployment.internal;
 
-public interface DeploymentHandle {
-    boolean isRunning();
-    void start(DeploymentActivity deploymentActivity);
-    void outOfDate();
-    void upToDate(Throwable failure);
-    void stop();
+public interface DeploymentActivity {
+    void alive();
+
+    void reset();
 }
