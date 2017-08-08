@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.Map;
 import org.gradle.api.internal.cache.Stash;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.hash.FileHasher;
@@ -28,6 +30,13 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnal
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.incap.IncapBuildClientFactory;
+import org.gradle.incap.impl.data.GeneratedClassFile;
+import org.gradle.incap.impl.data.GeneratedFile;
+import org.gradle.incap.impl.data.GeneratedFile.GeneratedFileType;
+import org.gradle.incap.impl.data.GeneratedSourceFile;
+import org.gradle.incap.impl.data.InputType;
+import org.gradle.incap.impl.data.StateGraph;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 
@@ -65,8 +74,39 @@ public class ClassSetAnalysisUpdater {
         for (File baseDir : baseDirs) {
             fileOperations.fileTree(baseDir).visit(analyzer);
         }
+        recordGeneratedTypeDependencies(analyzer, spec);
         ClassSetAnalysisData data = analyzer.getAnalysis();
         stash.put(data);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
+    }
+
+    private void recordGeneratedTypeDependencies(ClassFilesAnalyzer analyzer, JavaCompileSpec spec) {
+        try {
+            Map<InputType, Set<GeneratedFile>> mappings = IncapBuildClientFactory.getBuildClient()
+                .readMappingFile(spec.getIncrementalAnnotationProcessorWorkingDir())
+                .getMapInputTypeToGeneratedFiles();
+            for (Map.Entry<InputType, Set<GeneratedFile>> entry : mappings.entrySet()) {
+                String generatingType = entry.getKey().getName();
+                String generatedType = null;
+                for (GeneratedFile output : entry.getValue()) {
+                    switch (output.getType()) {
+                        case CLASS:
+                            generatedType = ((GeneratedClassFile)output).getName().toString();
+                            break;
+                        case SOURCE:
+                            // TODO: Need to get either full filename or (ideally) qname from INCAP.
+                            generatedType = ((GeneratedSourceFile)output).getName().toString();
+                            break;
+                        case RESOURCE:
+                            // TODO:  At some point, we need to care about resources.
+                            // In the short term we should refuse to allow APs that generate resources.
+                            continue;
+                    }
+                    analyzer.addGeneratorMapping(generatingType, generatedType);
+                }
+            }
+        } catch (IOException iox) {
+            // TODO
+        }
     }
 }

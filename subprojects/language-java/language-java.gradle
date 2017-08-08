@@ -7,6 +7,9 @@ dependencies {
     compile project(":platformJvm")
     compile project(":languageJvm")
 
+    // // INCAP!
+    compile 'com.github.gradle:incap:-SNAPSHOT'
+
     // TODO - get rid of this cycle
     integTestRuntime project(':plugins')
 }
@@ -14,7 +17,14 @@ dependencies {
 // These public packages have classes that are tangled with the corresponding internal package.
 useClassycle(exclude: ["org/gradle/api/tasks/compile/**", "org/gradle/external/javadoc/**", ])
 
-strictCompile()
+// jitpack seems to put incap test projects on the classpath,
+// which results in "no annotation processor claimed these" errors.
+// To get things compiling.
+compileJava.options.annotationProcessorPath = project.files()
+
+// Commenting this out was necessary for compileTestGroovy, as the fix above didn't work. -stevey
+// strictCompile()
+
 useTestFixtures()
 useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
 useTestFixtures(project: ":platformBase")
