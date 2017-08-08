@@ -30,7 +30,7 @@ import spock.lang.Specification
 import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class DefaultFunctionalTestSupportTest extends Specification {
+class DefaultFunctionalTestSupportIntegrationTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
