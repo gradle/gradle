@@ -53,7 +53,7 @@ public class TestFile extends File {
     }
 
     /**
-     * Returns a new file handle for given path. Does not automatically create it. To create a new directory or file for path use the methods {@see #createDirectory()} or {@see #createFile()}.
+     * Returns a new file handle for given path. Does not automatically create it. To create a new directory or file for path use the methods {@link #createDirectory()} or {@link #createFile()}.
      *
      * @param path Path as array of Strings or Files
      * @return file handle
