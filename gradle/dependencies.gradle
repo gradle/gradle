@@ -159,6 +159,12 @@ libraries.jmock = [
     libraries.objenesis,
     libraries.cglib
 ]
+libraries.junit = [
+    'junit:junit:4.12'
+]
+libraries.testng = [
+    'org.testng:testng:6.3.1'
+]
 
 versions.findbugs = "2.0.1"
 libraries.findbugs = dependencies.module("com.google.code.findbugs:findbugs:${versions.findbugs}") {

@@ -79,4 +79,32 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
 
         }
     }
+
+    @UsesSample("testKit/gradleRunner/fixtures/junitQuickstart")
+    def junitQuickstartFixture() {
+        expect:
+        executer.inDirectory(sample.dir)
+        succeeds "check"
+    }
+
+    @UsesSample("testKit/gradleRunner/fixtures/testngQuickstart")
+    def testngQuickstartFixture() {
+        expect:
+        executer.inDirectory(sample.dir)
+        succeeds "check"
+    }
+
+    @UsesSample("testKit/gradleRunner/fixtures/groovyQuickstart")
+    def groovyQuickstartFixture() {
+        expect:
+        executer.inDirectory(sample.dir)
+        succeeds "check"
+    }
+
+    @UsesSample("testKit/gradleRunner/fixtures/spockQuickstart")
+    def spockQuickstartFixture() {
+        expect:
+        executer.inDirectory(sample.dir)
+        succeeds "check"
+    }
 }

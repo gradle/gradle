@@ -1,0 +1,10 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile gradleTestKit()
+    testCompile 'junit:junit:4.12'
+}
