@@ -543,7 +543,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public boolean dependsOnTaskDidWork() {
         DeprecationLogger.nagUserOfDiscontinuedMethod(
             "Task.dependsOnTaskDidWork()",
-            "instead, carefully declare the task inputs and outputs and let Gradle decide what needs to be run");
+            "Instead, carefully declare the task inputs and outputs and let Gradle decide what needs to be run.");
         TaskDependency dependency = getTaskDependencies();
         for (Task depTask : dependency.getDependencies(this)) {
             if (depTask.getDidWork()) {
