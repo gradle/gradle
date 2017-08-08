@@ -26,6 +26,7 @@ import org.gradle.internal.id.UniqueId;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
@@ -74,7 +75,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
 
     @Override
     public Set<File> getOutputFiles() {
-        return null;
+        return Collections.emptySet();
     }
 
     @Override

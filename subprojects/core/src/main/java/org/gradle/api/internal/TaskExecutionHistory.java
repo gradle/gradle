@@ -21,9 +21,8 @@ import java.util.Set;
 
 public interface TaskExecutionHistory {
     /**
-     * Returns the set of output files which the task produced.
+     * Returns the set of output files and directories which the task produced.
      */
-    @Nullable
     Set<File> getOutputFiles();
 
     /**

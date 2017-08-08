@@ -47,33 +47,6 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskOutputsGenerationListener = Mock(TaskOutputsGenerationListener)
     final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, taskOutputsGenerationListener, target)
 
-    def 'skips task when sourceFiles are empty and no previous output existed'() {
-        when:
-        executer.execute(task, state, taskContext)
-
-        then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
-        1 * sourceFiles.empty >> true
-
-        then:
-        1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.executionHistory >> taskExecutionHistory
-
-        then: 'if no previous output files existed...'
-        1 * taskExecutionHistory.outputFiles >> null
-
-        then:
-        1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
-
-        then:
-        1 * taskInputsListener.onExecute(task, sourceFiles)
-
-        then:
-        0 * _
-    }
-
     def 'skips task when sourceFiles are empty and previous output is empty'() {
         when:
         executer.execute(task, state, taskContext)

@@ -31,7 +31,7 @@ public interface TaskOutputsInternal extends TaskOutputs {
     ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties();
 
     /**
-     * Returns the output files recorded during the previous execution of the task.
+     * Returns the output files and directories recorded during the previous execution of the task.
      */
     Set<File> getPreviousOutputFiles();
 

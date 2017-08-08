@@ -57,17 +57,13 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
             TaskArtifactState taskArtifactState = context.getTaskArtifactState();
             TaskExecutionHistory executionHistory = taskArtifactState.getExecutionHistory();
             Set<File> outputFiles = executionHistory.getOutputFiles();
-            if (outputFiles == null) {
-                state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
-                LOGGER.info("Skipping {} as it has no source files and no history of previous output files.", task);
-            } else if (outputFiles.isEmpty()) {
+            if (outputFiles.isEmpty()) {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
-                boolean cleanupDirectories = true;
-                if (executionHistory.getOverlappingOutputs() != null) {
-                    LOGGER.info("No leftover directories for {} will be deleted since overlapping outputs where detected.", task);
-                    cleanupDirectories = false;
+                boolean cleanupDirectories = executionHistory.getOverlappingOutputs() == null;
+                if (!cleanupDirectories) {
+                    LOGGER.info("No leftover directories for {} will be deleted since overlapping outputs were detected.", task);
                 }
                 taskOutputsGenerationListener.beforeTaskOutputsGenerated();
                 boolean deletedFiles = false;
