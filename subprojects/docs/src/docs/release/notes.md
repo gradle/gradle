@@ -132,6 +132,7 @@ We would like to thank the following community members for making contributions 
  - [Colin Dean](https://github.com/colindean) - Prevent NullPointerException if any of the signing properties is null but signing isn't required (#2268)
  - [Ben McCann](https://github.com/benmccann) - Add support for Play 2.6 (#1992)
  - [Ethan Hall](https://github.com/ethankhall) - Cache script plugins loaded via HTTP (#1944)
+ - [Bo Zhang](https://github.com/blindpirate) - Handle null Throwable stack trace to avoid NullPointerException (#2168)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
