@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,28 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':core')
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingBase')
-    compile project(':testingJvm')
+package org.gradle.nativeplatform.fixtures.app;
 
-    integTestRuntime project(':ideNative')
+import org.gradle.api.Named;
+
+import java.util.List;
+
+public interface TestElement {
+    int getFailureCount();
+    int getPassCount();
+    int getTestCount();
+
+    List<TestSuite> getTestSuites();
+
+    interface TestSuite extends Named {
+        List<TestCase> getTestCases();
+    }
+
+    interface TestCase extends Named {
+        enum Result {
+            PASS, FAIL
+        }
+
+        Result getExpectedResult();
+    }
 }
-
-useTestFixtures()
-useTestFixtures(project: ':platformNative')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ":platformBase")
-
-useClassycle()
-strictCompile()

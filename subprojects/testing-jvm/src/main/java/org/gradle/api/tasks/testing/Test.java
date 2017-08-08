@@ -22,6 +22,8 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -61,6 +63,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.specs.Spec;
@@ -167,10 +170,10 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private final TestLoggingContainer testLogging;
     private final DefaultJavaForkOptions forkOptions;
     private final DefaultTestFilter filter;
+    private final DirectoryVar binResultsDir;
 
     private TestExecuter testExecuter;
     private FileCollection testClassesDirs;
-    private File binResultsDir;
     private PatternFilterable patternSet;
     private boolean ignoreFailures;
     private FileCollection classpath;
@@ -197,6 +200,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         reports.getHtml().setEnabled(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
+
+        binResultsDir = newOutputDirectory();
     }
 
     @Inject
@@ -261,7 +266,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         this.testReporter = testReporter;
     }
 
-    void setTestExecuter(TestExecuter testExecuter) {
+    protected void setTestExecuter(TestExecuter testExecuter) {
         this.testExecuter = testExecuter;
     }
 
@@ -1006,7 +1011,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @OutputDirectory
     @Incubating
     public File getBinResultsDir() {
-        return binResultsDir;
+        return binResultsDir.getAsFile().getOrNull();
     }
 
     /**
@@ -1016,7 +1021,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Incubating
     public void setBinResultsDir(File binResultsDir) {
-        this.binResultsDir = binResultsDir;
+        this.binResultsDir.set(binResultsDir);
+    }
+
+    /**
+     * Sets the root folder for the test results in internal binary format.
+     *
+     * @param binResultsDir The provider of the root folder
+     * @since 4.2
+     */
+    @Incubating
+    public void setBinResultsDir(Provider<? extends Directory> binResultsDir) {
+        this.binResultsDir.set(binResultsDir);
     }
 
     /**

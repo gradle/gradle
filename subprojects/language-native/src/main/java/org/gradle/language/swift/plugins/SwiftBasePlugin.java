@@ -43,9 +43,23 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
     public static final String API = "api";
 
     /**
-     * The name of the Swift compile classpath configuration.
+     * The name of the Swift compile import path configuration.
      */
     public static final String SWIFT_IMPORT_PATH = "swiftImportPath";
+
+    /**
+     * The name of the test implementation configuration.
+     *
+     * @since 4.2
+     */
+    public static final String TEST_IMPLEMENTATION = "testImplementation";
+
+    /**
+     * The name of the Swift test compile import path configuration.
+     *
+     * @since 4.2
+     */
+    public static final String SWIFT_TEST_IMPORT_PATH = "swiftTestImportPath";
 
     @Override
     public void apply(ProjectInternal project) {
@@ -76,5 +90,25 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         nativeRuntime.extendsFrom(implementation);
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_RUNTIME));
+
+        Configuration testImplementation = project.getConfigurations().create(TEST_IMPLEMENTATION);
+        testImplementation.extendsFrom(implementation);
+        testImplementation.setCanBeConsumed(false);
+        testImplementation.setCanBeResolved(false);
+
+        Configuration testImportPath = project.getConfigurations().create(SWIFT_TEST_IMPORT_PATH);
+        testImportPath.extendsFrom(implementation);
+        testImportPath.setCanBeConsumed(false);
+        testImportPath.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.SWIFT_API));
+
+        Configuration testNativeLink = project.getConfigurations().create(CppBasePlugin.NATIVE_TEST_LINK);
+        testNativeLink.extendsFrom(testImplementation);
+        testNativeLink.setCanBeConsumed(false);
+        testNativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_LINK));
+
+        Configuration testNativeRuntime = project.getConfigurations().create(CppBasePlugin.NATIVE_TEST_RUNTIME);
+        testNativeRuntime.extendsFrom(testImplementation);
+        testNativeRuntime.setCanBeConsumed(false);
+        testNativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_RUNTIME));
     }
 }
