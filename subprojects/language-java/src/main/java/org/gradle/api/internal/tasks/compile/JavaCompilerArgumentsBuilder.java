@@ -24,6 +24,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.incap.MappingFileConstants;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
@@ -175,6 +176,11 @@ public class JavaCompilerArgumentsBuilder {
             } else {
                 args.add("-processorpath");
                 args.add(Joiner.on(File.pathSeparator).join(annotationProcessorPath));
+                // TODO:  Do we also need to pass -Aincremental?  Does the Annotation Processor need to differentiate?
+                args.add("-A"
+                         + MappingFileConstants.MAPPING_FILE_FOLDER_OPTION
+                         + "="
+                         + spec.getIncrementalAnnotationProcessorWorkingDir());
             }
         }
 
