@@ -92,6 +92,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.process.JavaForkOptions;
@@ -658,7 +659,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
                 getServices().get(WorkerLeaseRegistry.class),
                 getServices().get(BuildOperationExecutor.class),
-                getServices().get(StartParameter.class).getMaxWorkerCount());
+                getServices().get(StartParameter.class).getMaxWorkerCount(),
+                getServices().get(TimeProvider.class));
         }
 
         JavaVersion javaVersion = getJavaVersion();
