@@ -26,6 +26,10 @@ public class ReliableTimeProvider implements TimeProvider {
     private final long startMillis;
     private final long startNanos;
 
+    public ReliableTimeProvider() {
+        this(new TimeSource.True());
+    }
+
     public ReliableTimeProvider(TimeSource timeSource) {
         this.timeSource = timeSource;
         startMillis = timeSource.currentTimeMillis();

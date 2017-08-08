@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.time.TimeProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.events.FinishEvent
@@ -33,7 +34,7 @@ class DistributionFactoryTest extends Specification {
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
     final BuildCancellationToken cancellationToken = Mock()
-    final DistributionFactory factory = new DistributionFactory()
+    final DistributionFactory factory = new DistributionFactory(Mock(TimeProvider))
     final InternalBuildProgressListener buildProgressListener = Mock()
 
     def setup() {
