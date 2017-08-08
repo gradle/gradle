@@ -18,6 +18,7 @@ package org.gradle.language.swift.plugins
 
 import org.gradle.language.swift.model.SwiftComponent
 import org.gradle.language.swift.tasks.SwiftCompile
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -42,11 +43,18 @@ class SwiftLibraryPluginTest extends Specification {
     }
 
     def "adds compile and link tasks"() {
+        given:
+        def src = projectDir.file("src/main/swift/main.swift").createFile()
+
         when:
         project.pluginManager.apply(SwiftLibraryPlugin)
 
         then:
         def compileSwift = project.tasks.compileSwift
         compileSwift instanceof SwiftCompile
+        compileSwift.source.files == [src] as Set
+
+        def link = project.tasks.linkMain
+        link instanceof LinkSharedLibrary
     }
 }

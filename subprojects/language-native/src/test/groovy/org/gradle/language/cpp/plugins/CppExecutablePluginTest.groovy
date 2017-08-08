@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.plugins
 
+import org.gradle.language.cpp.CppComponent
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -24,20 +25,36 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-
 class CppExecutablePluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def project = TestUtil.createRootProject(tmpDir.createDir("project"))
+    def projectDir = tmpDir.createDir("project")
+    def project = TestUtil.createRootProject(projectDir)
+
+    def "adds extension with convention for source layout"() {
+        given:
+        def src = projectDir.file("src/main/cpp/main.cpp").createFile()
+
+        when:
+        project.pluginManager.apply(CppExecutablePlugin)
+
+        then:
+        project.executable instanceof CppComponent
+        project.executable.cppSource.files == [src] as Set
+    }
 
     def "adds compile, link and install tasks"() {
         given:
+        def src = projectDir.file("src/main/cpp/main.cpp").createFile()
+
+        when:
         project.pluginManager.apply(CppExecutablePlugin)
 
-        expect:
+        then:
         def compileCpp = project.tasks.compileCpp
         compileCpp instanceof CppCompile
-        compileCpp.includes.files as List == [project.file("src/main/headers")]
+        compileCpp.includes.files == [project.file("src/main/headers")] as Set
+        compileCpp.source.files == [src] as Set
 
         def link = project.tasks.linkMain
         link instanceof LinkExecutable

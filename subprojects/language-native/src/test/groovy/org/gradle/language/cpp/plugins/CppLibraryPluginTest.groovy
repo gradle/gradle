@@ -26,9 +26,13 @@ import spock.lang.Specification
 class CppLibraryPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def project = TestUtil.createRootProject(tmpDir.createDir("project"))
+    def projectDir = tmpDir.createDir("project")
+    def project = TestUtil.createRootProject(projectDir)
 
     def "adds compile and link tasks"() {
+        given:
+        def src = projectDir.file("src/main/cpp/lib.cpp").createFile()
+
         when:
         project.pluginManager.apply(CppLibraryPlugin)
 
@@ -36,6 +40,7 @@ class CppLibraryPluginTest extends Specification {
         def compileCpp = project.tasks.compileCpp
         compileCpp instanceof CppCompile
         compileCpp.includes.files as List == [project.file("src/main/public"), project.file("src/main/headers")]
+        compileCpp.source.files as List == [src]
 
         def link = project.tasks.linkMain
         link instanceof LinkSharedLibrary

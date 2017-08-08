@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.internal;
+package org.gradle.language.cpp.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
-import org.gradle.language.swift.model.SwiftComponent;
 
-import java.util.Collections;
+import javax.inject.Inject;
+import java.util.Arrays;
 
-public class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
+public class DefaultCppComponent extends DefaultNativeComponent implements CppComponent {
     private final FileCollection sourceFiles;
 
-    public DefaultSwiftComponent(FileOperations fileOperations) {
+    @Inject
+    public DefaultCppComponent(FileOperations fileOperations) {
         super(fileOperations);
-        sourceFiles = createSourceView("src/main/swift", Collections.singletonList("swift"));
+        sourceFiles = createSourceView("src/main/cpp", Arrays.asList("cpp", "c++"));
     }
 
     @Override
-    public FileCollection getSwiftSource() {
+    public FileCollection getCppSource() {
         return sourceFiles;
     }
 }

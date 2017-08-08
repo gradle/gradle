@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.model;
+package org.gradle.language.cpp;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -22,18 +22,18 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 
 /**
- * Configuration for a Swift library or executable, defining the source files that make up the component.
+ * Configuration for a C++ library or executable, defining the source files that make up the component.
  *
- * <p>An instance of this type is added as a project extension by the Swift plugins.</p>
+ * <p>An instance of this type is added as a project extension by the C++ plugins.</p>
  *
  * @since 4.2
  */
 @Incubating
-public interface SwiftComponent {
+public interface CppComponent {
     /**
      * Defines the source files or directories of this component. You can add files or directories to this collection. When a directory is added, all source files are included for compilation.
      *
-     * <p>When this collection is empty, the directory {@code src/main/swift} is used by default.</p>
+     * <p>When this collection is empty, the directory {@code src/main/cpp} is used by default.</p>
      */
     ConfigurableFileCollection getSource();
 
@@ -43,7 +43,7 @@ public interface SwiftComponent {
     void source(Action<? super ConfigurableFileCollection> action);
 
     /**
-     * Returns the Swift source files of this component, as defined in {@link #getSource()}.
+     * Returns the C++ source files of this component, as defined in {@link #getSource()}.
      */
-    FileCollection getSwiftSource();
+    FileCollection getCppSource();
 }

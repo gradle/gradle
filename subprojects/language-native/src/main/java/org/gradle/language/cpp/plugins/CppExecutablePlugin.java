@@ -20,16 +20,18 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -39,6 +41,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.inject.Inject;
 import java.util.Collections;
 
 /**
@@ -50,6 +53,13 @@ import java.util.Collections;
  */
 @Incubating
 public class CppExecutablePlugin implements Plugin<ProjectInternal> {
+    private final FileOperations fileOperations;
+
+    @Inject
+    public CppExecutablePlugin(FileOperations fileOperations) {
+        this.fileOperations = fileOperations;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
@@ -57,7 +67,9 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
-        ProviderFactory providers = project.getProviders();
+
+        // Add the component extension
+        CppComponent component = project.getExtensions().create(CppComponent.class, "executable", DefaultCppComponent.class, fileOperations);
 
         // Add a compile task
         CppCompile compile = tasks.create("compileCpp", CppCompile.class);
@@ -65,10 +77,8 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         compile.includes("src/main/headers");
         compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
 
-        ConfigurableFileTree sourceTree = project.fileTree("src/main/cpp");
-        sourceTree.include("**/*.cpp");
-        sourceTree.include("**/*.c++");
-        compile.source(sourceTree);
+        FileCollection sources = component.getCppSource();
+        compile.source(sources);
 
         compile.setCompilerArgs(Collections.<String>emptyList());
         compile.setMacros(Collections.<String, String>emptyMap());
