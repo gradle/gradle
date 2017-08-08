@@ -18,6 +18,7 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
@@ -153,7 +154,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("build/install/app").exec().out == app.expectedOutput
     }
 
-    def "honors changes to buildDir"() {
+    def "build logic can change buildDir"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
 
@@ -176,7 +177,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("output/install/app").exec().out == app.expectedOutput
     }
 
-    def "honors changes to task output locations"() {
+    def "build logic can change task output locations"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
 
@@ -307,6 +308,52 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("app/build/install/app").exec().out == app.englishOutput
         sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
         sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
+    }
+
+    def "multiple components can share the same source directory"() {
+        settingsFile << "include 'app', 'hello', 'sum'"
+        def app = new CppAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':hello')
+                    implementation project(':sum')
+                }
+                executable {
+                    source.from '../Sources/${app.main.sourceFile.name}'
+                }
+            }
+            project(':hello') {
+                apply plugin: 'cpp-library'
+                library {
+                    source.from '../Sources/${app.greeterLib.source.sourceFile.name}'
+                }
+            }
+            project(':sum') {
+                apply plugin: 'cpp-library'
+                library {
+                    source.from '../Sources/${app.sumLib.source.sourceFile.name}'
+                }
+            }
+"""
+        app.main.writeToSourceDir(file("Sources"))
+        app.greeterLib.source.writeToSourceDir(file("Sources"))
+        app.greeterLib.header.writeToProject(file("hello"))
+        app.sumLib.source.writeToSourceDir(file("Sources"))
+        app.sumLib.header.writeToProject(file("sum"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":hello:compileCpp", ":hello:linkMain", ":sum:compileCpp", ":sum:linkMain", ":app:compileCpp", ":app:linkMain", ":app:installMain", ":app:assemble")
+
+        sharedLibrary("hello/build/lib/hello").assertExists()
+        sharedLibrary("sum/build/lib/sum").assertExists()
+        executable("app/build/exe/app").exec().out == app.expectedOutput
+        sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/sum").file.assertExists()
     }
 
     def "can compile and link against libraries in included builds"() {

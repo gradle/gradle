@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.plugins
 
+import org.gradle.language.cpp.CppComponent
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -28,6 +29,18 @@ class CppLibraryPluginTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
     def project = TestUtil.createRootProject(projectDir)
+
+    def "adds extension with convention for source layout"() {
+        given:
+        def src = projectDir.file("src/main/cpp/main.cpp").createFile()
+
+        when:
+        project.pluginManager.apply(CppLibraryPlugin)
+
+        then:
+        project.library instanceof CppComponent
+        project.library.cppSource.files == [src] as Set
+    }
 
     def "adds compile and link tasks"() {
         given:

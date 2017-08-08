@@ -18,6 +18,7 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.junit.Assume
 
@@ -63,6 +64,58 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "build logic can change source layout convention"() {
+        def lib = new CppLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.sources.writeToSourceDir(file("srcs"))
+        lib.headers.writeToProject(testDirectory)
+        file("src/main/cpp/broken.cpp") << "ignore me!"
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            library {
+                source.from 'srcs'
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+
+        sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "build logic can add individual source files"() {
+        def lib = new CppLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.headers.writeToProject(testDirectory)
+        lib.greeter.source.writeToSourceDir(file("src/one.cpp"))
+        lib.sum.source.writeToSourceDir(file("src/two.cpp"))
+        file("src/main/cpp/broken.cpp") << "ignore me!"
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            library {
+                source {
+                    from('src/one.cpp')
+                    from('src/two.cpp')
+                }
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+
         sharedLibrary("build/lib/hello").assertExists()
     }
 
