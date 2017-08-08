@@ -70,6 +70,22 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.language.cpp.plugins.CppExecutablePlugin",
+            "member": "Constructor CppExecutablePlugin",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.cpp.plugins.CppLibraryPlugin",
+            "member": "Constructor CppLibraryPlugin",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
