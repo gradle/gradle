@@ -78,7 +78,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
                     public T call(BuildOperationContext context) {
                         T delegate = objectFactory.newInstance(handleType, params);
                         DeploymentHandleWrapper handle = new DeploymentHandleWrapper(name, delegate);
-                        handle.start(new DefaultDeploymentActivity(buildGate));
+                        handle.start(new DefaultDeployment(buildGate));
                         if (pendingChanges.hasRemainingChanges()) {
                             handle.outOfDate();
                         }
@@ -114,7 +114,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         lock.lock();
         try {
             pendingChanges.changesMade();
-            for (DeploymentHandle handle : handles.values()) {
+            for (DeploymentHandleWrapper handle : handles.values()) {
                 handle.outOfDate();
             }
         } finally {
@@ -131,7 +131,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         try {
             pendingChanges.changesIncorporated();
             if (!pendingChanges.hasRemainingChanges()) {
-                for (DeploymentHandle handle : handles.values()) {
+                for (DeploymentHandleWrapper handle : handles.values()) {
                     Throwable failure = buildResult.getFailure();
                     handle.upToDate(failure);
                 }

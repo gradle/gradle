@@ -17,7 +17,7 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
-import org.gradle.deployment.internal.DeploymentActivity;
+import org.gradle.deployment.internal.Deployment;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -34,13 +34,13 @@ public class PlayApplicationRunner {
         this.adapter = adapter;
     }
 
-    public PlayApplicationRunnerToken start(PlayRunSpec spec, DeploymentActivity deploymentActivity) {
+    public PlayApplicationRunnerToken start(PlayRunSpec spec, Deployment deployment) {
         WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 
-        PlayWorkerClient clientCallBack = new PlayWorkerClient(deploymentActivity);
-        process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, clientCallBack);
         PlayRunWorkerServerProtocol workerServer = process.getConnection().addOutgoing(PlayRunWorkerServerProtocol.class);
+        PlayWorkerClient clientCallBack = new PlayWorkerClient(deployment, workerServer);
+        process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, clientCallBack);
         process.getConnection().connect();
         PlayAppStart result = clientCallBack.waitForRunning();
         if (result.isRunning()) {

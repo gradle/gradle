@@ -45,14 +45,6 @@ public class PlayApplicationRunnerToken {
         return update;
     }
 
-    public void outOfDate() {
-        workerServer.outOfDate();
-    }
-
-    public void upToDate(Throwable failure) {
-        workerServer.upToDate(failure);
-    }
-
     public boolean isRunning() {
         return !stopped.get();
     }

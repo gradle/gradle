@@ -16,7 +16,7 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.deployment.internal.DeploymentActivity;
+import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentHandle;
 
 import javax.inject.Inject;
@@ -39,18 +39,8 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     }
 
     @Override
-    public void start(DeploymentActivity deploymentActivity) {
-        runnerToken = playApplicationRunner.start(spec, deploymentActivity);
-    }
-
-    @Override
-    public void outOfDate() {
-        runnerToken.outOfDate();
-    }
-
-    @Override
-    public void upToDate(Throwable failure) {
-        runnerToken.upToDate(failure);
+    public void start(Deployment deployment) {
+        runnerToken = playApplicationRunner.start(spec, deployment);
     }
 
     public InetSocketAddress getPlayAppAddress() {

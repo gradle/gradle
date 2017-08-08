@@ -30,20 +30,12 @@ class DefaultDeploymentRegistryTest extends Specification {
         }
 
         @Override
-        void start(DeploymentActivity deploymentActivity) {
+        void start(Deployment deploymentActivity) {
         }
 
         @Override
         boolean isRunning() {
             return false
-        }
-
-        @Override
-        void outOfDate() {
-        }
-
-        @Override
-        void upToDate(Throwable failure) {
         }
 
         @Override

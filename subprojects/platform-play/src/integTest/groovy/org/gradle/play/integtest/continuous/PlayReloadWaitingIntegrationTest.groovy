@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.deployment.internal.DefaultDeploymentActivity
+import org.gradle.deployment.internal.DefaultDeployment
 import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener
@@ -142,7 +142,7 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
     @Unroll
     def "wait for changes to be built when a request comes in during initial app startup and there are pending changes and build is gated=#gated"() {
         given:
-        executer.withArgument("-D" + DefaultDeploymentActivity.GATED_BUILD_SYSPROP + "=" + gated)
+        executer.withArgument("-D" + DefaultDeployment.GATED_BUILD_SYSPROP + "=" + gated)
 
         when:
         def rebuild = blockBuildWaitingForChanges()

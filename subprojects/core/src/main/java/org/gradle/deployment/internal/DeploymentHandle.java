@@ -18,8 +18,6 @@ package org.gradle.deployment.internal;
 
 public interface DeploymentHandle {
     boolean isRunning();
-    void start(DeploymentActivity deploymentActivity);
-    void outOfDate();
-    void upToDate(Throwable failure);
+    void start(Deployment deployment);
     void stop();
 }

@@ -18,7 +18,7 @@ package org.gradle.play.internal.run;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.deployment.internal.DeploymentActivity;
+import org.gradle.deployment.internal.Deployment;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.BlockingQueue;
@@ -29,10 +29,12 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
 
     private final BlockingQueue<PlayAppStart> startEvent = new SynchronousQueue<PlayAppStart>();
     private final BlockingQueue<PlayAppStop> stopEvent = new SynchronousQueue<PlayAppStop>();
-    private final DeploymentActivity activity;
+    private final Deployment activity;
+    private final PlayRunWorkerServerProtocol workerServer;
 
-    public PlayWorkerClient(DeploymentActivity activity) {
+    public PlayWorkerClient(Deployment activity, PlayRunWorkerServerProtocol workerServer) {
         this.activity = activity;
+        this.workerServer = workerServer;
     }
 
     @Override
@@ -44,7 +46,10 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
             } else if (update instanceof PlayAppStop) {
                 stopEvent.put((PlayAppStop)update);
             } else if (update instanceof PlayAppReload) {
-                activity.alive();
+                // TODO:
+                workerServer.outOfDate();
+                Deployment.Status status = activity.status();
+                workerServer.upToDate(status.getFailure());
             } else {
                 throw new IllegalStateException("Unexpected event " + update);
             }

@@ -20,13 +20,17 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildGateToken;
 
-public class DefaultDeploymentActivity implements DeploymentActivity {
-    private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentActivity.class);
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class DefaultDeployment implements Deployment {
+    private static final Logger LOGGER = Logging.getLogger(DefaultDeployment.class);
 
     private final BuildGateToken.GateKeeper gateKeeper;
+    private Status status;
+    private AtomicBoolean block = new AtomicBoolean();
     public static final String GATED_BUILD_SYSPROP = "org.gradle.internal.play.gated";
 
-    DefaultDeploymentActivity(BuildGateToken buildGate) {
+    DefaultDeployment(BuildGateToken buildGate) {
         if (Boolean.getBoolean(GATED_BUILD_SYSPROP)) {
             this.gateKeeper = buildGate.createGateKeeper();
         } else {
@@ -34,18 +38,56 @@ public class DefaultDeploymentActivity implements DeploymentActivity {
         }
     }
     @Override
-    public void alive() {
+    public Status status() {
         if (gateKeeper != null) {
             LOGGER.debug("Opening gate - Play App");
             gateKeeper.open();
         }
+        synchronized (block) {
+            while (block.get()) {
+                try {
+                    block.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return status;
     }
 
     @Override
-    public void reset() {
+    public void outOfDate() {
+        synchronized (block) {
+            block.set(true);
+            block.notifyAll();
+        }
+    }
+
+    @Override
+    public void upToDate(Throwable failure) {
+        status = new DefaultDeploymentStatus(failure);
+
+        synchronized (block) {
+            block.set(false);
+            block.notifyAll();
+        }
+
         if (gateKeeper != null) {
             LOGGER.debug("Closing gate - Play App");
             gateKeeper.close();
+        }
+    }
+
+    private static class DefaultDeploymentStatus implements Status {
+        private final Throwable failure;
+
+        private DefaultDeploymentStatus(Throwable failure) {
+            this.failure = failure;
+        }
+
+        @Override
+        public Throwable getFailure() {
+            return failure;
         }
     }
 }

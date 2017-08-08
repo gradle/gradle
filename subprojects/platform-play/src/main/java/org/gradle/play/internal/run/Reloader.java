@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.deployment.internal;
+package org.gradle.play.internal.run;
 
-public interface DeploymentActivity {
-    void alive();
+public interface Reloader {
+    Result requireUpToDate() throws InterruptedException;
 
-    void reset();
+    class Result {
+        Throwable failure;
+        boolean changed;
+        Result(boolean changed, Throwable failure) {
+            this.changed = changed;
+            this.failure = failure;
+        }
+    }
 }

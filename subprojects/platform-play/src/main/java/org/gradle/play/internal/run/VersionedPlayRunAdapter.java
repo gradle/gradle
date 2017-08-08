@@ -21,11 +21,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 public interface VersionedPlayRunAdapter {
-    void upToDate(Throwable throwable);
-
-    void outOfDate();
-
-    Object getBuildLink(ClassLoader classLoader, ReloadListener reloadListener, File projectPath, File applicationJar, Iterable<File> changingClasspath, File assetsJar, Iterable<File> assetsDirs) throws ClassNotFoundException;
+    Object getBuildLink(ClassLoader classLoader, Reloader reloader, File projectPath, File applicationJar, Iterable<File> changingClasspath, File assetsJar, Iterable<File> assetsDirs) throws ClassNotFoundException;
 
     Object getBuildDocHandler(ClassLoader docsClassLoader, Iterable<File> classpath) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException;
 

@@ -29,16 +29,20 @@ import java.net.InetSocketAddress;
 import java.net.URLClassLoader;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, ReloadListener, Serializable {
+public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Reloader, Serializable {
     private static final Logger LOGGER = Logging.getLogger(PlayWorkerServer.class);
 
-    private PlayRunSpec runSpec;
-    private VersionedPlayRunAdapter runAdapter;
-
-    private boolean reloadRequested;
-    private boolean stopRequested;
+    private final PlayRunSpec runSpec;
+    private final VersionedPlayRunAdapter runAdapter;
+    private final AtomicBoolean block = new AtomicBoolean();
+    private final AtomicBoolean reload = new AtomicBoolean(true);
+    private final AtomicReference<Throwable> buildFailure = new AtomicReference<Throwable>();
     private final BlockingQueue<PlayAppLifecycleUpdate> events = new SynchronousQueue<PlayAppLifecycleUpdate>();
+
+    private boolean stopRequested;
 
     public PlayWorkerServer(PlayRunSpec runSpec, VersionedPlayRunAdapter runAdapter) {
         this.runSpec = runSpec;
@@ -53,12 +57,9 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         final PlayAppLifecycleUpdate result = start();
         try {
             clientProtocol.update(result);
-            while (true) {
+            while (!stopRequested) {
                 PlayAppLifecycleUpdate update = events.take();
                 clientProtocol.update(update);
-                if (update instanceof PlayAppStop) {
-                    break;
-                }
             }
             LOGGER.debug("Play App stopping");
             events.clear();
@@ -106,41 +107,44 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
 
     @Override
     public void upToDate(Throwable throwable) {
-        runAdapter.upToDate(throwable);
+        synchronized (block) {
+            reload.set(true);
+            buildFailure.set(throwable);
+
+            block.set(false);
+            block.notifyAll();
+            LOGGER.debug("notify upToDate");
+        }
     }
 
     @Override
     public void outOfDate() {
-        runAdapter.outOfDate();
-    }
+        synchronized (block) {
+            reload.set(false);
+            buildFailure.set(null);
 
-    @Override
-    public void reloadRequested() {
-        if (!stopRequested) {
-            LOGGER.debug("reloadRequested {}", reloadRequested);
-            try {
-                if (!reloadRequested) {
-                    reloadRequested = true;
-                    events.put(PlayAppLifecycleUpdate.reloadRequested());
-                }
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            block.set(true);
+            block.notifyAll();
+            LOGGER.debug("notify outOfDate");
         }
     }
 
     @Override
-    public void reloadComplete() {
+    public Result requireUpToDate() throws InterruptedException {
         if (!stopRequested) {
-            try {
-                LOGGER.debug("reloadComplete {}", reloadRequested);
-                if (reloadRequested) {
-                    reloadRequested = false;
-                    events.put(PlayAppLifecycleUpdate.reloadCompleted());
+            LOGGER.debug("requireUpToDate");
+            events.put(PlayAppLifecycleUpdate.reloadRequested());
+
+            synchronized (block) {
+                LOGGER.debug("waiting for block to clear {} ", block.get());
+                while (block.get()) {
+                    block.wait();
                 }
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+                LOGGER.debug("block cleared {} ", block.get());
+                boolean changed = reload.compareAndSet(true, false);
+                return new Result(changed, buildFailure.get());
             }
         }
+        return new Result(false, null);
     }
 }
