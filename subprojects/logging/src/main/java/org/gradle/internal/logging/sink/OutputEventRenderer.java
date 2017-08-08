@@ -127,7 +127,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 configure(snapshot.logLevel);
             }
 
-            onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
+            onOutput(new UpdateNowEvent(0L));
 
             // TODO - also close console when it is replaced
             if (snapshot.console != console) {
