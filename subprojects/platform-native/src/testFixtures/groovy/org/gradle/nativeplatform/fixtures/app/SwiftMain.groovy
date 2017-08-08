@@ -18,7 +18,10 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftMain extends SingleSourceFileElement implements AppElement {
+/**
+ * A Swift app main class with dependencies on greeter and sum implementations.
+ */
+class SwiftMain extends SourceFileElement implements AppElement {
     final GreeterElement greeter
     final SumElement sum
 
@@ -27,9 +30,7 @@ class SwiftMain extends SingleSourceFileElement implements AppElement {
         this.sum = sum
     }
 
-    @Override
-    SourceFile getSourceFile() {
-        return sourceFile("swift", "main.swift", """
+    final SourceFile sourceFile = sourceFile("swift", "main.swift", """
             // Simple hello world app
             func main() -> Int {
               let greeter = Greeter()
@@ -40,7 +41,6 @@ class SwiftMain extends SingleSourceFileElement implements AppElement {
 
             _ = main()
         """)
-    }
 
     @Override
     String getExpectedOutput() {

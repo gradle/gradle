@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftLogger extends SingleSourceFileElement {
+class SwiftLogger extends SourceFileElement {
     @Override
     SourceFile getSourceFile() {
         return sourceFile("swift", "log.swift", """

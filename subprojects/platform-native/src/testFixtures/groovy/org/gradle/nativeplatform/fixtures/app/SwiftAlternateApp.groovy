@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 /**
- * A single project Swift app.
+ * A single module Swift app.
  */
 class SwiftAlternateApp extends SourceElement implements AppElement {
     final greeter = new SwiftGreeter()

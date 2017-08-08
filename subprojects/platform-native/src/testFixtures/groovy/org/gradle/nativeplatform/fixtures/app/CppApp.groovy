@@ -19,87 +19,35 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 /**
- * A single module C++ app, with several source files.
+ * A single project C++ app, with several source files.
  */
-class CppApp extends SourceElement implements AppElement {
-    final greeterHeader = new SingleSourceFileElement() {
-        @Override
-        SourceFile getSourceFile() {
-            return sourceFile("headers", "greeter.h", """
-class Greeter {
-public:
-    void sayHello();
-};
-""")
-        }
-    }
-    final greeter = new SingleSourceFileElement() {
-        @Override
-        SourceFile getSourceFile() {
-            return sourceFile("cpp", "greeter.cpp", """
-#include <iostream>
-#include "greeter.h"
+class CppApp extends CppSourceElement implements AppElement {
+    final greeter = new CppGreeter()
+    final sum = new CppSum()
+    final main = new CppMain(greeter, sum)
 
-void Greeter::sayHello() {
-    std::cout << "${HelloWorldApp.HELLO_WORLD}" << std::endl;
-}
-""")
+    @Override
+    SourceElement getSources() {
+        return new SourceElement() {
+            @Override
+            List<SourceFile> getFiles() {
+                return [main.sourceFile] + greeter.sources.files + sum.sources.files
+            }
         }
     }
-    final sumHeader = new SingleSourceFileElement() {
-        @Override
-        SourceFile getSourceFile() {
-            return sourceFile("headers", "sum.h", """
-class Sum {
-public:
-    int sum(int a, int b);
-};
-""")
-        }
-    }
-    final sum = new SingleSourceFileElement() {
-        @Override
-        SourceFile getSourceFile() {
-            return sourceFile("cpp", "sum.cpp", """
-#include "sum.h"
 
-int Sum::sum(int a, int b) {
-    return a + b;
-}
-""")
-        }
-    }
-    final main = new SingleSourceFileElement() {
-        @Override
-        SourceFile getSourceFile() {
-            return sourceFile("cpp", "main.cpp", """
-#include <iostream>
-#include "sum.h"
-#include "greeter.h"
-
-int main(int argc, char** argv) {
-    Greeter greeter;
-    greeter.sayHello();
-    Sum sum;
-    std::cout << sum.sum(5, 7) << std::endl;
-    return 0;
-}
-""")
-        }
-    }
-    final List<SourceFile> files = [main.sourceFile, greeterHeader.sourceFile, greeter.sourceFile, sumHeader.sourceFile, sum.sourceFile]
-
+    @Override
     SourceElement getHeaders() {
         return new SourceElement() {
             @Override
             List<SourceFile> getFiles() {
-                return [greeterHeader.sourceFile, sumHeader.sourceFile]
+                return greeter.headers.files + sum.headers.files
             }
         }
     }
 
     @Override
     String getExpectedOutput() {
-        return "${HelloWorldApp.HELLO_WORLD}\n12\n"
+        return main.expectedOutput
     }
 }

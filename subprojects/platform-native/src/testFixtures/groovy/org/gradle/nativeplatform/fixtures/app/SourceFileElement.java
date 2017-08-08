@@ -21,7 +21,10 @@ import org.gradle.integtests.fixtures.SourceFile;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class SingleSourceFileElement extends SourceElement {
+/**
+ * A single source file.
+ */
+public abstract class SourceFileElement extends SourceElement {
     public abstract SourceFile getSourceFile();
 
     @Override

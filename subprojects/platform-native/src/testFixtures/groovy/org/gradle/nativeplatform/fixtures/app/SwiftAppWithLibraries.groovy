@@ -27,12 +27,7 @@ class SwiftAppWithLibraries implements AppElement {
     final main = new SwiftAlternateMain(greeter)
 
     SourceElement getLogLibrary() {
-        return new SourceElement() {
-            @Override
-            List<SourceFile> getFiles() {
-                return [logger.sourceFile]
-            }
-        }
+        return logger
     }
 
     @Override

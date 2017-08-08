@@ -18,18 +18,36 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftSum extends SourceFileElement implements SumElement {
-    @Override
-    SourceFile getSourceFile() {
-        sourceFile("swift", "sum.swift", """
-             public func sum(a: Int, b: Int) -> Int {
-                 return a + b
-             }
-         """)
+
+class CppGreeter extends CppSourceFileElement implements GreeterElement {
+    final SourceFileElement header = new SourceFileElement() {
+        @Override
+        SourceFile getSourceFile() {
+            return sourceFile("headers", "greeter.h", """
+class Greeter {
+public:
+    void sayHello();
+};
+""")
+        }
+    }
+
+    final SourceFileElement source = new SourceFileElement() {
+        @Override
+        SourceFile getSourceFile() {
+            return sourceFile("cpp", "greeter.cpp", """
+#include <iostream>
+#include "greeter.h"
+
+void Greeter::sayHello() {
+    std::cout << "${HelloWorldApp.HELLO_WORLD}" << std::endl;
+}
+""")
+        }
     }
 
     @Override
-    int sum(int a, int b) {
-        return a + b
+    String getExpectedOutput() {
+        return "${HelloWorldApp.HELLO_WORLD}\n"
     }
 }

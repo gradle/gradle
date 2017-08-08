@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app
+package org.gradle.nativeplatform.fixtures.app;
 
-import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.integtests.fixtures.SourceFile;
 
-class SwiftSum extends SourceFileElement implements SumElement {
-    @Override
-    SourceFile getSourceFile() {
-        sourceFile("swift", "sum.swift", """
-             public func sum(a: Int, b: Int) -> Int {
-                 return a + b
-             }
-         """)
-    }
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class CppSourceElement extends SourceElement {
+    public abstract SourceElement getHeaders();
+
+    public abstract SourceElement getSources();
 
     @Override
-    int sum(int a, int b) {
-        return a + b
+    public List<SourceFile> getFiles() {
+        List<SourceFile> files = new ArrayList<SourceFile>();
+        files.addAll(getSources().getFiles());
+        files.addAll(getHeaders().getFiles());
+        return files;
     }
 }

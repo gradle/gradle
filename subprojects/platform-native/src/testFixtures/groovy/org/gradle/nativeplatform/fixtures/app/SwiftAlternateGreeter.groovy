@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftAlternateGreeter extends SingleSourceFileElement implements GreeterElement {
+class SwiftAlternateGreeter extends SourceFileElement implements GreeterElement {
     @Override
     SourceFile getSourceFile() {
         sourceFile("swift", "greeter.swift", """
