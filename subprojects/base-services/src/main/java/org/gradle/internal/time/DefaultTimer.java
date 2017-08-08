@@ -15,14 +15,16 @@
  */
 package org.gradle.internal.time;
 
+import java.util.concurrent.TimeUnit;
+
 public class DefaultTimer implements Timer {
     private static final long MS_PER_MINUTE = 60000;
     private static final long MS_PER_HOUR = MS_PER_MINUTE * 60;
-    protected long startInstant;
-    protected TimeProvider timeProvider;
+    private TimeSource timeSource;
+    protected long startInstantMillis;
 
-    protected DefaultTimer(TimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
+    DefaultTimer(TimeSource timeSource) {
+        this.timeSource = timeSource;
         reset();
     }
 
@@ -46,10 +48,19 @@ public class DefaultTimer implements Timer {
 
     @Override
     public long getElapsedMillis() {
-        return Math.max(timeProvider.getCurrentTimeForDuration() - startInstant, 0);
+        return Math.max(getInstantMillis() - startInstantMillis, 0);
     }
 
     public void reset() {
-        startInstant = timeProvider.getCurrentTimeForDuration();
+        startInstantMillis = getInstantMillis();
+    }
+
+    protected long getInstantMillis() {
+        long nanos = timeSource.nanoTime();
+        return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS);
+    }
+
+    protected long getWallClockMillis() {
+        return timeSource.currentTimeMillis();
     }
 }

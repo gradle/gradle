@@ -23,8 +23,8 @@ import java.util.concurrent.TimeUnit;
 class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
     private final long timeoutMillis;
 
-    DefaultCountdownTimer(TimeProvider timeProvider, long timeout, TimeUnit unit) {
-        super(timeProvider);
+    DefaultCountdownTimer(TimeSource timeSource, long timeout, TimeUnit unit) {
+        super(timeSource);
         Preconditions.checkArgument(timeout > 0);
         this.timeoutMillis = unit.toMillis(timeout);
     }

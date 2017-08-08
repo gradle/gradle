@@ -19,16 +19,18 @@ package org.gradle.internal.time
 
 import spock.lang.Specification
 
-public class DefaultEventTimerTest extends Specification {
+import java.util.concurrent.TimeUnit
+
+class DefaultEventTimerTest extends Specification {
 
     private static final long TEST_BASE_TIME = 641353121231L;
 
-    private TimeProvider timeProvider = Mock(TimeProvider);
+    private TimeSource timeProvider = Mock(TimeSource);
     private DefaultEventTimer clock;
 
     void setup() {
-        1 * timeProvider.currentTimeForDuration >> TEST_BASE_TIME
-        1 * timeProvider.currentTime >> TEST_BASE_TIME;
+        1 * timeProvider.currentTimeMillis() >> TEST_BASE_TIME
+        1 * timeProvider.nanoTime() >> TEST_BASE_TIME;
         clock = new DefaultEventTimer(timeProvider);
     }
 
@@ -73,11 +75,11 @@ public class DefaultEventTimerTest extends Specification {
     }
 
     private void setDtMs(final long deltaT) {
-        1 * timeProvider.currentTimeForDuration >> TEST_BASE_TIME + deltaT;
+        1 * timeProvider.nanoTime() >> TEST_BASE_TIME + TimeUnit.NANOSECONDS.convert(deltaT, TimeUnit.MILLISECONDS);
     }
 
     private void setDtHrsMinsSecsMillis(int hours, int minutes, int seconds, int millis) {
         long dt = (hours * 3600 * 1000) + (minutes * 60 * 1000) + (seconds * 1000) + millis;
-        1 * timeProvider.currentTimeForDuration >> TEST_BASE_TIME + dt;
+        setDtMs(dt)
     }
 }

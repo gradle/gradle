@@ -19,5 +19,8 @@ package org.gradle.internal.time;
  * A timer with a designated start instant.
  */
 public interface EventTimer extends Timer {
+    /**
+     * The instant that the timer was started, in ms since Epoch.
+     */
     long getStartTime();
 }

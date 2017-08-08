@@ -25,17 +25,17 @@ public class DefaultEventTimer extends DefaultTimer implements EventTimer {
      * However, this correction is susceptible to clock-shift, as well clocks that are not synchronized.
      */
     public DefaultEventTimer(long startTime) {
-        super(new TrueTimeProvider());
+        super(new TimeSource.True());
         this.startTime = startTime;
-        long msSinceStart = Math.max(timeProvider.getCurrentTime() - startTime, 0);
-        this.startInstant = timeProvider.getCurrentTimeForDuration() - msSinceStart;
+        long msSinceStart = Math.max(getWallClockMillis() - startTime, 0);
+        this.startInstantMillis = this.startInstantMillis - msSinceStart;
     }
 
     public DefaultEventTimer() {
-        super(new TrueTimeProvider());
+        super(new TimeSource.True());
     }
 
-    protected DefaultEventTimer(TimeProvider timeProvider) {
+    protected DefaultEventTimer(TimeSource timeProvider) {
         super(timeProvider);
     }
 
@@ -46,6 +46,6 @@ public class DefaultEventTimer extends DefaultTimer implements EventTimer {
     @Override
     public void reset() {
         super.reset();
-        startTime = timeProvider.getCurrentTime();
+        startTime = getWallClockMillis();
     }
 }

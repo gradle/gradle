@@ -19,14 +19,14 @@ package org.gradle.internal.time;
 import java.util.concurrent.TimeUnit;
 
 public class Timers {
-    private static final TimeProvider TIME_PROVIDER = new TrueTimeProvider();
+    private static final TimeSource TIME_SOURCE = new TimeSource.True();
 
     public static Timer startTimer() {
-        return new DefaultTimer(TIME_PROVIDER);
+        return new DefaultTimer(TIME_SOURCE);
     }
 
     public static CountdownTimer startTimer(long timeoutMillis) {
-        return new DefaultCountdownTimer(TIME_PROVIDER, timeoutMillis, TimeUnit.MILLISECONDS);
+        return new DefaultCountdownTimer(TIME_SOURCE, timeoutMillis, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -34,6 +34,6 @@ public class Timers {
      * When created with a zero or negative timeout, will never expire.
      */
     public static CountdownTimer startTimer(long timeout, TimeUnit unit) {
-        return new DefaultCountdownTimer(TIME_PROVIDER, timeout, unit);
+        return new DefaultCountdownTimer(TIME_SOURCE, timeout, unit);
     }
 }
