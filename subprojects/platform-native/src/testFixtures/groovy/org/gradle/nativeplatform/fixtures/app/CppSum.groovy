@@ -23,9 +23,15 @@ class CppSum extends CppSourceFileElement implements SumElement {
         @Override
         SourceFile getSourceFile() {
             return sourceFile("headers", "sum.h", """
+#ifdef _WIN32
+#define EXPORT_FUNC __declspec(dllexport)
+#else
+#define EXPORT_FUNC
+#endif
+
 class Sum {
 public:
-    int sum(int a, int b);
+    int EXPORT_FUNC sum(int a, int b);
 };
 """)
         }

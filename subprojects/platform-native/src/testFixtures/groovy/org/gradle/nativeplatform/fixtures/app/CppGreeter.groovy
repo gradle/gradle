@@ -24,9 +24,15 @@ class CppGreeter extends CppSourceFileElement implements GreeterElement {
         @Override
         SourceFile getSourceFile() {
             return sourceFile("headers", "greeter.h", """
+#ifdef _WIN32
+#define EXPORT_FUNC __declspec(dllexport)
+#else
+#define EXPORT_FUNC
+#endif
+
 class Greeter {
 public:
-    void sayHello();
+    void EXPORT_FUNC sayHello();
 };
 """)
         }
