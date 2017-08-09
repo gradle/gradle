@@ -62,6 +62,17 @@ fi]]></param>
       <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
     <build-triggers />
+    <build-extensions>
+      <extension id="BUILD_EXT_2" type="commit-status-publisher">
+        <parameters>
+          <param name="github_authentication_type" value="token" />
+          <param name="github_host" value="https://api.github.com" />
+          <param name="publisherId" value="githubStatusPublisher" />
+          <param name="secure:github_access_token" value="credentialsJSON:5306bfc7-041e-46e8-8d61-1d49424e7b04" />
+          <param name="vcsRootId" value="Gradle_Branches_GradlePersonalBranches" />
+        </parameters>
+      </extension>
+    </build-extensions>
     <cleanup />
   </settings>
 </build-type>
