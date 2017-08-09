@@ -51,7 +51,7 @@ public class BlockingHttpServer extends ExternalResource {
     private boolean running;
 
     public BlockingHttpServer() throws IOException {
-        this(30000);
+        this(120000);
     }
 
     public BlockingHttpServer(int timeoutMs) throws IOException {
