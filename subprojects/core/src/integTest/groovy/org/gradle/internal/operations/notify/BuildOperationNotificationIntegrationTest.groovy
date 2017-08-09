@@ -135,26 +135,21 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     // This test simulates what the build scan plugin does.
-    def "can ignore buildSrc events by deferring registration"() {
+    def "listener receives recorded operations happen before registration"() {
         given:
-        executer.requireOwnGradleUserHomeDir()
-        executer.gradleUserHomeDir.file("init.d/init.gradle") << """
-            if (parent == null) {
-                rootProject {
-                    ${registerListener()}
-                }
-            }
-        """
-
         file("buildSrc/build.gradle") << ""
-        file("build.gradle") << "task t"
+        file("build.gradle") << """
+            ${registerListener()}
+            task t
+        """
 
         when:
         succeeds "t"
 
         then:
         output.contains(":buildSrc:compileJava") // executedTasks check fails with in process executer
-        output.count(ConfigureProjectBuildOperationType.Details.name) == 1
+        output.count(ConfigureProjectBuildOperationType.Details.name) == 2
+        output.count(ExecuteTaskBuildOperationType.Details.name) == 15 // including all buildSrc task execution events
     }
 
     void started(Class<?> type, Map<String, ?> payload) {

@@ -16,12 +16,16 @@
 
 package org.gradle.internal.operations.notify
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.operations.recorder.BuildOperationRecorder
+import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationListenerManager
 import org.gradle.internal.progress.DefaultBuildOperationListenerManager
 import org.gradle.internal.progress.OperationFinishEvent
+import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.testing.internal.util.Specification
 
 class BuildOperationNotificationBridgeTest extends Specification {
@@ -31,6 +35,8 @@ class BuildOperationNotificationBridgeTest extends Specification {
     BuildOperationNotificationBridge bridge
     def broadcast = rawListenerManager.getBroadcaster(BuildOperationListener)
     def listener = Mock(BuildOperationNotificationListener)
+    def recorder = Mock(BuildOperationRecorder)
+    def gradle = Mock(GradleInternal)
 
     def "removes listener when stopped"() {
         given:
@@ -61,6 +67,17 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
         then:
         thrown IllegalStateException
+    }
+
+    def "passes recorded events to listeners registering"() {
+        when:
+        register(listener, [recordedBuildOperation(new OperationStartEvent(0)),
+                            recordedBuildOperation(new OperationFinishEvent(1, 2, null, null))])
+
+        then:
+        1 * listener.started(_)
+        1 * listener.finished(_)
+        1 * recorder.stop()
     }
 
     def "forwards operations with details"() {
@@ -239,9 +256,21 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     }
 
-    void register(BuildOperationNotificationListener listener) {
+    BuildOperationRecorder.RecordedBuildOperation recordedBuildOperation(Object buildOperationEvent) {
+        def operationDescriptor = new BuildOperationDescriptor(1,
+            null,
+            "name",
+            "displayName",
+            "progress",
+            "Details",
+            BuildOperationCategory.UNCATEGORIZED)
+        return new BuildOperationRecorder.RecordedBuildOperation(operationDescriptor, buildOperationEvent)
+    }
+
+    void register(BuildOperationNotificationListener listener, List<BuildOperationRecorder.RecordedBuildOperation> recordedBuildOps = []) {
+        _ * recorder.getRecordedEvents() >> recordedBuildOps
         if (bridge == null) {
-            bridge = new BuildOperationNotificationBridge(listenerManager)
+            bridge = new BuildOperationNotificationBridge(listenerManager, recorder, gradle)
         }
         bridge.registerBuildScopeListener(listener)
     }
