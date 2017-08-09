@@ -45,7 +45,9 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractIntegrationTest() 
                 .useInstallation(customInstallation())
                 .connect()
             try {
-                connection.getModel(KotlinBuildScriptTemplateModel::class.java)
+                connection.model(KotlinBuildScriptTemplateModel::class.java)
+                    .setJvmArguments("-Xms128m", "-Xmx128m")
+                    .get()
             } finally {
                 connection.close()
             }
