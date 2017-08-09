@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
-import org.gradle.initialization.DefaultBuildGateToken
+import org.gradle.initialization.DefaultContinuousExecutionGate
 import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.initialization.ReportedException
@@ -50,10 +50,10 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def delegate = Mock(BuildActionExecuter)
     def action = Mock(BuildAction)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def buildGate = new DefaultBuildGateToken()
+    def continuousExecutionGate = new DefaultContinuousExecutionGate()
     def clock = Mock(Clock)
     def requestMetadata = Stub(BuildRequestMetaData)
-    def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, buildGate, new NoOpBuildEventConsumer())
+    def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, continuousExecutionGate, new NoOpBuildEventConsumer())
     def actionParameters = Stub(BuildActionParameters)
     def waiterFactory = Mock(FileSystemChangeWaiterFactory)
     def waiter = Mock(FileSystemChangeWaiter)

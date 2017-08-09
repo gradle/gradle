@@ -30,5 +30,5 @@ public interface BuildRequestContext extends BuildRequestMetaData {
      */
     BuildEventConsumer getEventConsumer();
 
-    BuildGateToken getGateToken();
+    ContinuousExecutionGate getGateToken();
 }

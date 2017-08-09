@@ -18,7 +18,7 @@ package org.gradle.initialization;
 
 import javax.annotation.Nonnull;
 
-public interface BuildGateToken {
+public interface ContinuousExecutionGate {
     @Nonnull
     GateKeeper createGateKeeper();
 

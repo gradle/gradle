@@ -17,7 +17,7 @@
 package org.gradle.internal.filewatch;
 
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildGateToken;
+import org.gradle.initialization.ContinuousExecutionGate;
 
 public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWaiterFactory {
     public static final String QUIET_PERIOD_SYSPROP = "org.gradle.internal.filewatch.quietperiod";
@@ -39,7 +39,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
     }
 
     @Override
-    public FileSystemChangeWaiter createChangeWaiter(PendingChangesListener listener, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken) {
-        return new DefaultGatedChangeWaiter(new DefaultFileSystemChangeWaiter(fileWatcherFactory, listener, quietPeriodMillis, cancellationToken), cancellationToken, buildGateToken);
+    public FileSystemChangeWaiter createChangeWaiter(PendingChangesListener listener, BuildCancellationToken cancellationToken, ContinuousExecutionGate continuousExecutionGate) {
+        return new DefaultGatedChangeWaiter(new DefaultFileSystemChangeWaiter(fileWatcherFactory, listener, quietPeriodMillis, cancellationToken), cancellationToken, continuousExecutionGate);
     }
 }

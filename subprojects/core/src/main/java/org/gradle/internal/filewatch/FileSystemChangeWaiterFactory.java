@@ -17,8 +17,8 @@
 package org.gradle.internal.filewatch;
 
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildGateToken;
+import org.gradle.initialization.ContinuousExecutionGate;
 
 public interface FileSystemChangeWaiterFactory {
-    FileSystemChangeWaiter createChangeWaiter(PendingChangesListener listenerManager, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken);
+    FileSystemChangeWaiter createChangeWaiter(PendingChangesListener listenerManager, BuildCancellationToken cancellationToken, ContinuousExecutionGate continuousExecutionGate);
 }

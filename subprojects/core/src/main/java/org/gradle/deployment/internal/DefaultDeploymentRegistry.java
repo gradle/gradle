@@ -23,7 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.initialization.BuildGateToken;
+import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -50,7 +50,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     private final BuildOperationExecutor buildOperationExecutor;
     private final ObjectFactory objectFactory;
     private boolean stopped;
-    private BuildGateToken buildGate;
+    private ContinuousExecutionGate continuousExecutionGate;
 
     public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
@@ -75,7 +75,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
                     @Override
                     public T call(BuildOperationContext context) {
                         T handle = objectFactory.newInstance(handleType, params);
-                        DefaultDeployment deployment = DeploymentFactory.createDeployment(name, sensitivity, buildGate, handle);
+                        DefaultDeployment deployment = DeploymentFactory.createDeployment(name, sensitivity, continuousExecutionGate, handle);
                         handle.start(deployment);
                         if (pendingChanges.hasRemainingChanges()) {
                             deployment.outOfDate();
@@ -137,7 +137,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     public void buildStarted(GradleInternal gradle) {
-        buildGate = gradle.getServices().get(BuildGateToken.class);
+        continuousExecutionGate = gradle.getServices().get(ContinuousExecutionGate.class);
     }
 
     public void buildFinished(BuildResult buildResult) {

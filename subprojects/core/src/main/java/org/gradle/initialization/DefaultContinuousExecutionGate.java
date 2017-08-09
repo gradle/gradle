@@ -24,7 +24,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DefaultBuildGateToken implements BuildGateToken {
+public class DefaultContinuousExecutionGate implements ContinuousExecutionGate {
     private final Lock lock = new ReentrantLock();
     private final Condition opened = lock.newCondition();
     private final List<GateKeeper> gatekeepers = Lists.newArrayList();
@@ -96,12 +96,12 @@ public class DefaultBuildGateToken implements BuildGateToken {
     private class DefaultBuildGateKeeper implements GateKeeper {
         @Override
         public void open() {
-            DefaultBuildGateToken.this.open(this);
+            DefaultContinuousExecutionGate.this.open(this);
         }
 
         @Override
         public void close() {
-            DefaultBuildGateToken.this.close(this);
+            DefaultContinuousExecutionGate.this.close(this);
         }
     }
 }

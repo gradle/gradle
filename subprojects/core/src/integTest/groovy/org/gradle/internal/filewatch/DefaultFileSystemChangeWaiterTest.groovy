@@ -18,7 +18,7 @@ package org.gradle.internal.filewatch
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
-import org.gradle.initialization.BuildGateToken
+import org.gradle.initialization.ContinuousExecutionGate
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -39,7 +39,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c, Mock(BuildGateToken))
+        def w = wf.createChangeWaiter(pendingChangesListener, c, Mock(ContinuousExecutionGate))
 
         start {
             w.watch(f)
@@ -68,7 +68,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c, Mock(BuildGateToken))
+        def w = wf.createChangeWaiter(pendingChangesListener, c, Mock(ContinuousExecutionGate))
 
         start {
             w.watch(f)
@@ -105,7 +105,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def w = wf.createChangeWaiter(pendingChangesListener, c, Mock(BuildGateToken))
+        def w = wf.createChangeWaiter(pendingChangesListener, c, Mock(ContinuousExecutionGate))
 
         start {
             try {
@@ -137,8 +137,8 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory, fileSystem), quietPeriod)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
-        def buildGate = Mock(BuildGateToken)
-        def w = wf.createChangeWaiter(pendingChangesListener, c, buildGate)
+        def continuousExecutionGate = Mock(ContinuousExecutionGate)
+        def w = wf.createChangeWaiter(pendingChangesListener, c, continuousExecutionGate)
         def testfile = testDirectory.file("testfile")
 
         start {
@@ -164,7 +164,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         then:
         waitFor.done
         Math.round((System.nanoTime() - timestampForLastChange) / 1000000L) >= quietPeriod
-        buildGate.waitForOpen()
+        continuousExecutionGate.waitForOpen()
 
         cleanup:
         w.stop()

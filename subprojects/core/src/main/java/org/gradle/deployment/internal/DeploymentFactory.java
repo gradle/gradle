@@ -16,17 +16,17 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.initialization.BuildGateToken;
+import org.gradle.initialization.ContinuousExecutionGate;
 
 class DeploymentFactory {
-    static DefaultDeployment createDeployment(String id, DeploymentRegistry.DeploymentSensitivity sensitivity, BuildGateToken buildGate, DeploymentHandle deploymentHandle) {
+    static DefaultDeployment createDeployment(String id, DeploymentRegistry.DeploymentSensitivity sensitivity, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
         switch(sensitivity) {
             case NONE:
                 return new DefaultDeployment(id, new InsensitiveDeployment(), deploymentHandle);
             case BLOCK:
                 return new DefaultDeployment(id, new SimpleBlockingDeployment(), deploymentHandle);
             case REQUEST:
-                return new DefaultDeployment(id, new GateControllingDeployment(buildGate, new SimpleBlockingDeployment()), deploymentHandle);
+                return new DefaultDeployment(id, new GateControllingDeployment(continuousExecutionGate, new SimpleBlockingDeployment()), deploymentHandle);
             default:
                 throw new IllegalArgumentException("Unknown sensitivity " + sensitivity);
         }

@@ -25,7 +25,7 @@ import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.execution.PassThruCancellableOperationManager;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildGateToken;
+import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.UncheckedException;
@@ -132,7 +132,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices, CancellableOperationManager cancellableOperationManager) {
         SingleMessageLogger.incubatingFeatureUsed("Continuous build");
 
-        BuildGateToken buildGateToken = requestContext.getGateToken();
+        ContinuousExecutionGate continuousExecutionGate = requestContext.getGateToken();
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
         Object lastResult = null;
@@ -145,7 +145,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             }
 
             PendingChangesListener pendingChangesListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(PendingChangesListener.class);
-            final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, buildGateToken);
+            final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
             try {
                 try {
                     lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, waiter, buildSessionScopeServices);

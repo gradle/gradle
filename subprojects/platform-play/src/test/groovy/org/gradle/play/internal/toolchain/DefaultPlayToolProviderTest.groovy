@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.initialization.BuildGateToken
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.run.PlayApplicationRunner
@@ -46,7 +45,6 @@ class DefaultPlayToolProviderTest extends Specification {
     Set<File> twirlClasspath = Stub(Set)
     Set<File> routesClasspath = Stub(Set)
     Set<File> javascriptClasspath = Stub(Set)
-    BuildGateToken buildGate = Mock()
 
     DefaultPlayToolProvider playToolProvider
 

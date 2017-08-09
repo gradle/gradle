@@ -18,17 +18,17 @@ package org.gradle.internal.filewatch;
 
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildGateToken;
+import org.gradle.initialization.ContinuousExecutionGate;
 
 class DefaultGatedChangeWaiter implements FileSystemChangeWaiter {
     private final FileSystemChangeWaiter delegate;
     private final BuildCancellationToken cancellationToken;
-    private final BuildGateToken buildGateToken;
+    private final ContinuousExecutionGate continuousExecutionGate;
 
-    DefaultGatedChangeWaiter(FileSystemChangeWaiter delegate, BuildCancellationToken cancellationToken, BuildGateToken buildGateToken) {
+    DefaultGatedChangeWaiter(FileSystemChangeWaiter delegate, BuildCancellationToken cancellationToken, ContinuousExecutionGate continuousExecutionGate) {
         this.delegate = delegate;
         this.cancellationToken = cancellationToken;
-        this.buildGateToken = buildGateToken;
+        this.continuousExecutionGate = continuousExecutionGate;
     }
 
     @Override
@@ -40,7 +40,7 @@ class DefaultGatedChangeWaiter implements FileSystemChangeWaiter {
     public void wait(Runnable notifier, FileWatcherEventListener eventListener) {
         delegate.wait(notifier, eventListener);
         if (!cancellationToken.isCancellationRequested()) {
-            buildGateToken.waitForOpen();
+            continuousExecutionGate.waitForOpen();
         }
     }
 

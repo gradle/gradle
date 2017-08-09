@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.initialization.BuildGateToken
+import org.gradle.initialization.ContinuousExecutionGate
 import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener
@@ -29,15 +29,15 @@ class ContinuousBuildGateIntegrationTest extends Java7RequiringContinuousIntegra
     def setup() {
         server.start()
         buildFile << """
-            import ${BuildGateToken.canonicalName}
-            import ${BuildGateToken.GateKeeper.canonicalName}
+            import ${ContinuousExecutionGate.canonicalName}
+            import ${ContinuousExecutionGate.GateKeeper.canonicalName}
 
             class BuildGateKeeper implements Runnable {
-                final BuildGateToken buildGate
-                final BuildGateToken.GateKeeper gateKeeper
-                BuildGateKeeper(BuildGateToken buildGate) {
-                    this.buildGate = buildGate
-                    this.gateKeeper = buildGate.createGateKeeper()
+                final ContinuousExecutionGate continuousExecutionGate
+                final ContinuousExecutionGate.GateKeeper gateKeeper
+                BuildGateKeeper(ContinuousExecutionGate continuousExecutionGate) {
+                    this.continuousExecutionGate = continuousExecutionGate
+                    this.gateKeeper = continuousExecutionGate.createGateKeeper()
                 }
                 void run() {
                     boolean stop = false
@@ -60,17 +60,17 @@ class ContinuousBuildGateIntegrationTest extends Java7RequiringContinuousIntegra
             }
             class BuildGateKeeperStarter {
                 static BuildGateKeeper gateKeeper
-                static void start(BuildGateToken buildGate) {
+                static void start(ContinuousExecutionGate continuousExecutionGate) {
                     if (gateKeeper == null) {
                         println "Starting gatekeeper"
-                        gateKeeper = new BuildGateKeeper(buildGate)
+                        gateKeeper = new BuildGateKeeper(continuousExecutionGate)
                         new Thread(gateKeeper).start()
                     }
                 }
             }
 
-            def buildGate = gradle.services.get(BuildGateToken)
-            BuildGateKeeperStarter.start(buildGate)
+            def continuousExecutionGate = gradle.services.get(ContinuousExecutionGate)
+            BuildGateKeeperStarter.start(continuousExecutionGate)
 
             class SimpleTask extends DefaultTask {
                 @InputFile
