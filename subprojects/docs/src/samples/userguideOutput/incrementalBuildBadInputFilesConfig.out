@@ -1,5 +1,7 @@
-:clean UP-TO-DATE
-:badInstrumentClasses NO-SOURCE
+
+> Task :clean UP-TO-DATE
+
+> Task :badInstrumentClasses NO-SOURCE
 
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 up-to-date

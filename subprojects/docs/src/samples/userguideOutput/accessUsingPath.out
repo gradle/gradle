@@ -1,4 +1,8 @@
-:hello
-:hello
-:projectA:hello
-:projectA:hello
+
+> Task :hello
+
+> Task :hello
+
+> Task :projectA:hello
+
+> Task :projectA:hello

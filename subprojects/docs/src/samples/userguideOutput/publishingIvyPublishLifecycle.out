@@ -1,10 +1,17 @@
-:generateDescriptorFileForIvyJavaPublication
-:compileJava NO-SOURCE
-:processResources NO-SOURCE
-:classes UP-TO-DATE
-:jar
-:publishIvyJavaPublicationToIvyRepository
-:publish
+
+> Task :generateDescriptorFileForIvyJavaPublication
+
+> Task :compileJava NO-SOURCE
+
+> Task :processResources NO-SOURCE
+
+> Task :classes UP-TO-DATE
+
+> Task :jar
+
+> Task :publishIvyJavaPublicationToIvyRepository
+
+> Task :publish
 
 BUILD SUCCESSFUL in 0s
 3 actionable tasks: 3 executed

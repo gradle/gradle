@@ -1,10 +1,17 @@
-:compileMainJarMainJava
-:processMainJarMainResources
-:mainApiJar
-:compileClientJarClientJava
-:clientApiJar
-:createClientJar
-:clientJar
+
+> Task :compileMainJarMainJava
+
+> Task :processMainJarMainResources
+
+> Task :mainApiJar
+
+> Task :compileClientJarClientJava
+
+> Task :clientApiJar
+
+> Task :createClientJar
+
+> Task :clientJar
 
 BUILD SUCCESSFUL in 0s
 6 actionable tasks: 6 executed

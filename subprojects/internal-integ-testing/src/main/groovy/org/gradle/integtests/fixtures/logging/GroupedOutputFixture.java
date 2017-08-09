@@ -35,7 +35,7 @@ public class GroupedOutputFixture {
     /**
      * All tasks will start with > Task, captures everything starting with : and going until a control char
      */
-    private final static String TASK_HEADER = "> Task (:[\\w:]*)\\n?";
+    private final static String TASK_HEADER = "> Task (:[\\w:]*)(?: \\w+)?\\n?";
 
     private final static String EMBEDDED_BUILD_START = "> :\\w* > root project";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";

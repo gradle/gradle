@@ -1,31 +1,59 @@
-:shared:compileJava
-:shared:processResources
-:shared:classes
-:shared:jar
-:api:compileJava
-:api:processResources
-:api:classes
-:api:jar
-:api:assemble
-:api:compileTestJava
-:api:processTestResources
-:api:testClasses
-:api:test
-:api:check
-:api:build
-:services:personService:compileJava
-:services:personService:processResources
-:services:personService:classes
-:services:personService:jar
-:services:personService:assemble
-:services:personService:compileTestJava
-:services:personService:processTestResources
-:services:personService:testClasses
-:services:personService:test
-:services:personService:check
-:services:personService:build
-:services:personService:buildDependents
-:api:buildDependents
+
+> Task :shared:compileJava
+
+> Task :shared:processResources
+
+> Task :shared:classes
+
+> Task :shared:jar
+
+> Task :api:compileJava
+
+> Task :api:processResources
+
+> Task :api:classes
+
+> Task :api:jar
+
+> Task :api:assemble
+
+> Task :api:compileTestJava
+
+> Task :api:processTestResources
+
+> Task :api:testClasses
+
+> Task :api:test
+
+> Task :api:check
+
+> Task :api:build
+
+> Task :services:personService:compileJava
+
+> Task :services:personService:processResources
+
+> Task :services:personService:classes
+
+> Task :services:personService:jar
+
+> Task :services:personService:assemble
+
+> Task :services:personService:compileTestJava
+
+> Task :services:personService:processTestResources
+
+> Task :services:personService:testClasses
+
+> Task :services:personService:test
+
+> Task :services:personService:check
+
+> Task :services:personService:build
+
+> Task :services:personService:buildDependents
+
+> Task :api:buildDependents
 
 BUILD SUCCESSFUL in 0s
 17 actionable tasks: 17 executed

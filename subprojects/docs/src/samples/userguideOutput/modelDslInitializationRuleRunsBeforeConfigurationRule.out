@@ -1,7 +1,9 @@
+> Configure project :
 creating person
 configuring person
 last name is Smith, should be Smythe
-:showPerson
+
+> Task :showPerson
 Hello John Smythe!
 
 BUILD SUCCESSFUL in 0s

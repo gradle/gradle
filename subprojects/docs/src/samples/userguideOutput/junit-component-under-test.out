@@ -1,7 +1,11 @@
-:compileMainJarMainJava
-:processMainJarMainResources
-:compileTestMainJarBinaryTestJava
-:testMainJarBinaryTest
+
+> Task :compileMainJarMainJava
+
+> Task :processMainJarMainResources
+
+> Task :compileTestMainJarBinaryTestJava
+
+> Task :testMainJarBinaryTest
 
 BUILD SUCCESSFUL in 0s
 4 actionable tasks: 4 executed

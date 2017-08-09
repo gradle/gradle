@@ -20,6 +20,7 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
@@ -29,7 +30,16 @@ public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
         if (message != null) {
             StyledTextOutput.Style messageStyle = failed ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.Header;
             // Visually indicate group by adding surrounding lines
-            return Lists.newArrayList(new StyledTextOutputEvent.Span(EOL), new StyledTextOutputEvent.Span(messageStyle, "> " + message), new StyledTextOutputEvent.Span(EOL));
+            ArrayList<StyledTextOutputEvent.Span> spans = Lists.newArrayList(
+                new StyledTextOutputEvent.Span(EOL),
+                new StyledTextOutputEvent.Span(messageStyle, "> " + message));
+
+            if (status != null && !status.equals("")) {
+                spans.add(new StyledTextOutputEvent.Span(StyledTextOutput.Style.ProgressStatus, " " + status));
+            }
+            spans.add(new StyledTextOutputEvent.Span(EOL));
+
+            return spans;
         } else {
             return Lists.newArrayList();
         }

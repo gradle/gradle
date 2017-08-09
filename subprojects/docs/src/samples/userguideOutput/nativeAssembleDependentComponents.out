@@ -1,14 +1,25 @@
-:compileOperatorsTestPassingCUnitExeOperatorsC
-:operatorsTestCUnitLauncher
-:compileOperatorsTestPassingCUnitExeOperatorsTestC
-:compileOperatorsTestPassingCUnitExeOperatorsTestCunitLauncher
-:linkOperatorsTestPassingCUnitExe
-:operatorsTestPassingCUnitExe
-:assembleDependentsOperatorsTestPassingCUnitExe
-:compileOperatorsPassingStaticLibraryOperatorsC
-:createOperatorsPassingStaticLibrary
-:operatorsPassingStaticLibrary
-:assembleDependentsOperatorsPassingStaticLibrary
+
+> Task :compileOperatorsTestPassingCUnitExeOperatorsC
+
+> Task :operatorsTestCUnitLauncher
+
+> Task :compileOperatorsTestPassingCUnitExeOperatorsTestC
+
+> Task :compileOperatorsTestPassingCUnitExeOperatorsTestCunitLauncher
+
+> Task :linkOperatorsTestPassingCUnitExe
+
+> Task :operatorsTestPassingCUnitExe
+
+> Task :assembleDependentsOperatorsTestPassingCUnitExe
+
+> Task :compileOperatorsPassingStaticLibraryOperatorsC
+
+> Task :createOperatorsPassingStaticLibrary
+
+> Task :operatorsPassingStaticLibrary
+
+> Task :assembleDependentsOperatorsPassingStaticLibrary
 
 BUILD SUCCESSFUL in 0s
 7 actionable tasks: 7 executed

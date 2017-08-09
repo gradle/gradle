@@ -18,9 +18,11 @@ package org.gradle.internal.logging
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.logging.events.OutputEventGroup
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.logging.events.RenderableOutputEvent
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.util.TextUtil
@@ -112,6 +114,10 @@ abstract class OutputSpecification extends Specification {
 
     ProgressCompleteEvent complete(Long id, status='STATUS') {
         new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, status, false)
+    }
+
+    OutputEventGroup group(ProgressStartEvent event, List<RenderableOutputEvent> logs, String status) {
+        new OutputEventGroup(event.getTimestamp(), event.getCategory(), event.getLoggingHeader(), event.getDescription(), event.getShortDescription(), status, logs, event.getBuildOperationId(), event.getBuildOperationCategory())
     }
 
     UpdateNowEvent updateNow() {

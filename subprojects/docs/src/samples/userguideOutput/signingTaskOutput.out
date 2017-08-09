@@ -1,5 +1,7 @@
-:stuffZip
-:signStuffZip
+
+> Task :stuffZip
+
+> Task :signStuffZip
 
 BUILD SUCCESSFUL in 0s
 2 actionable tasks: 2 executed

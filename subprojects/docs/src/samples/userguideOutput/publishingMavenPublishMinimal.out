@@ -1,10 +1,17 @@
-:generatePomFileForMavenJavaPublication
-:compileJava
-:processResources NO-SOURCE
-:classes
-:jar
-:publishMavenJavaPublicationToMavenRepository
-:publish
+
+> Task :generatePomFileForMavenJavaPublication
+
+> Task :compileJava
+
+> Task :processResources NO-SOURCE
+
+> Task :classes
+
+> Task :jar
+
+> Task :publishMavenJavaPublicationToMavenRepository
+
+> Task :publish
 
 BUILD SUCCESSFUL in 0s
 4 actionable tasks: 4 executed

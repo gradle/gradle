@@ -1,5 +1,7 @@
-:compileJava UP-TO-DATE
-:alwaysInstrumentClasses
+
+> Task :compileJava UP-TO-DATE
+
+> Task :alwaysInstrumentClasses
 
 BUILD SUCCESSFUL in 0s
 2 actionable tasks: 1 executed, 1 up-to-date

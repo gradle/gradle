@@ -20,6 +20,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
@@ -35,6 +36,8 @@ import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
 import org.gradle.internal.logging.events.EndOutputEvent;
+import org.gradle.internal.logging.events.LogGroupHeaderEvent;
+import org.gradle.internal.logging.events.LogHeaderFilterOutputEventListener;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -46,6 +49,7 @@ import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.progress.BuildOperationCategory;
 import org.gradle.internal.time.TimeProvider;
 
 import java.io.OutputStream;
@@ -71,20 +75,45 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
     private OutputEventListener console;
+    private OutputEventListener commonOutputChain;
+
+    public OutputEventRenderer() {
+        this(new TrueTimeProvider());
+    }
 
     public OutputEventRenderer(TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
+        // common output chain
+        // log level filtering -> buffer/grouping -> header generator -> log event generator -> styled text rendering
+        //                                                            \> batching -> header filtering -> console rendering
+
+        this.commonOutputChain = new BuildLogLevelFilterRenderer(new OperationGroupingOutputEventListener(
+                new HeaderPrependingOutputEventGroupListener(formatters.getSource(), new PrettyPrefixedLogHeaderFormatter()),
+                timeProvider));
+
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onNonError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)));
+                return onNonError(new LogHeaderFilterOutputEventListener(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), new Spec<LogGroupHeaderEvent>() {
+                    public boolean isSatisfiedBy(LogGroupHeaderEvent element) {
+                        return element.getBuildOperationCategory() == BuildOperationCategory.TASK || element.isGroupHasLogs();
+                    }
+                }));
             }
         });
         formatters.add(stdOutChain);
+
         OutputEventListener stdErrChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false)));
+                return onError(
+                    new LogHeaderFilterOutputEventListener(
+                        new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())),
+                        new Spec<LogGroupHeaderEvent>() {
+                            public boolean isSatisfiedBy(LogGroupHeaderEvent element) {
+                                return false;
+                            }
+                        }));
             }
         });
         formatters.add(stdErrChain);
@@ -209,14 +238,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
-        final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
-            new BuildStatusRenderer(
-                new WorkInProgressRenderer(
-                    new BuildLogLevelFilterRenderer(
-                        new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), timeProvider, new PrettyPrefixedLogHeaderFormatter(), false)),
-                    console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                console.getStatusBar(), console, consoleMetaData, timeProvider),
-            timeProvider);
+        final Spec<LogGroupHeaderEvent> logHeaderHasContentSpec = new Spec<LogGroupHeaderEvent>() {
+            public boolean isSatisfiedBy(LogGroupHeaderEvent event) {
+                return event.isGroupHasLogs() && event.getBuildOperationCategory() != BuildOperationCategory.UNCATEGORIZED;
+            }
+        };
+        final OutputEventListener logsRenderer = new LogHeaderFilterOutputEventListener(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), logHeaderHasContentSpec);
+        final OutputEventListener workInProgressRenderer = new WorkInProgressRenderer(logsRenderer, console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData));
+        final OutputEventListener buildStatusRenderer = new BuildStatusRenderer(workInProgressRenderer, console.getStatusBar(), console, consoleMetaData, timeProvider);
+        final OutputEventListener consoleChain = new ThrottlingOutputEventListener(buildStatusRenderer, timeProvider);
+
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;
@@ -306,7 +337,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             this.logLevel.set(newLogLevel);
         }
         synchronized (lock) {
-            formatters.getSource().onOutput(event);
+            commonOutputChain.onOutput(event);
         }
     }
 

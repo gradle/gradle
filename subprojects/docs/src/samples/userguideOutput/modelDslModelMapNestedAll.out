@@ -1,8 +1,11 @@
+
+> Configure project :
 creating Person 'people.barry'
 configuring Person 'people.barry'
 creating Person 'people.john'
 configuring Person 'people.john'
-:listPeople
+
+> Task :listPeople
 Hello Barry Barry!
 Hello John Smith!
 

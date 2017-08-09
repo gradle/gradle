@@ -108,13 +108,10 @@ dependencies {
     }
 }
 """
-        String expected = """:eclipseClasspath
-Could not resolve: myGroup:missing-artifact:1.0
-Could not resolve: myGroup:missing-extra-artifact:1.0
-:eclipseJdt
-:eclipseProject
-:eclipse
-"""
+        String expected = """Could not resolve: myGroup:missing-artifact:1.0
+Could not resolve: myGroup:missing-extra-artifact:1.0"""
+
+        result.assertTasksExecuted(':eclipseClasspath', ':eclipseJdt', ':eclipseProject', ':eclipse')
         result.assertOutputContains(expected)
     }
 

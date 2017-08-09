@@ -1,23 +1,43 @@
-:core:clean UP-TO-DATE
-:server:clean UP-TO-DATE
-:core:compileMainJava5JarMainJava
-:core:processMainJava5JarMainResources
-:core:mainJava5ApiJar
-:server:compileMainJava5JarMainJava
-:server:createMainJava5Jar
-:server:mainJava5ApiJar
-:server:mainJava5Jar
-:core:compileMainJava6JarMainJava
-:core:compileMainJava6JarMainJava6JarJava
-:core:processMainJava6JarMainResources
-:core:mainJava6ApiJar
-:server:compileMainJava6JarMainJava
-:server:createMainJava6Jar
-:server:mainJava6ApiJar
-:server:mainJava6Jar
-:server:assemble
-:server:check UP-TO-DATE
-:server:build
+
+> Task :core:clean UP-TO-DATE
+
+> Task :server:clean UP-TO-DATE
+
+> Task :core:compileMainJava5JarMainJava
+
+> Task :core:processMainJava5JarMainResources
+
+> Task :core:mainJava5ApiJar
+
+> Task :server:compileMainJava5JarMainJava
+
+> Task :server:createMainJava5Jar
+
+> Task :server:mainJava5ApiJar
+
+> Task :server:mainJava5Jar
+
+> Task :core:compileMainJava6JarMainJava
+
+> Task :core:compileMainJava6JarMainJava6JarJava
+
+> Task :core:processMainJava6JarMainResources
+
+> Task :core:mainJava6ApiJar
+
+> Task :server:compileMainJava6JarMainJava
+
+> Task :server:createMainJava6Jar
+
+> Task :server:mainJava6ApiJar
+
+> Task :server:mainJava6Jar
+
+> Task :server:assemble
+
+> Task :server:check UP-TO-DATE
+
+> Task :server:build
 
 BUILD SUCCESSFUL in 0s
 15 actionable tasks: 13 executed, 2 up-to-date

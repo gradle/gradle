@@ -91,17 +91,19 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
 
         then:
         def t = thrown UnexpectedBuildSuccess
-        def expectedOutput = """:helloWorld
+        def expectedOutput = """Task :helloWorld
 Hello world!
+
 
 BUILD SUCCESSFUL"""
         def expectedMessage = """Unexpected build execution success in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
 
-Output:
-$expectedOutput"""
+Output:"""
 
-        normalize(t.message).startsWith(expectedMessage)
-        normalize(t.buildResult.output).startsWith(expectedOutput)
+        def normalizedMessage = normalize(t.message)
+        normalizedMessage.startsWith(expectedMessage)
+        normalizedMessage.contains(expectedOutput)
+        normalize(t.buildResult.output.trim()).startsWith(expectedOutput)
         t.buildResult.taskPaths(SUCCESS) == [':helloWorld']
     }
 
@@ -125,7 +127,7 @@ $expectedOutput"""
 
     @InspectsExecutedTasks
     @InspectsBuildOutput
-    def "exposes result with build is expected to succeed but fails "() {
+    def "exposes result with build is expected to succeed but fails"() {
         given:
         buildScript """
             task helloWorld {
@@ -141,7 +143,7 @@ $expectedOutput"""
 
         then:
         UnexpectedBuildFailure t = thrown(UnexpectedBuildFailure)
-        String expectedOutput = """:helloWorld FAILED
+        String expectedOutput = """Task :helloWorld FAILED
 
 FAILURE: Build failed with an exception.
 
@@ -151,17 +153,13 @@ Build file '${buildFile.canonicalPath}' line: 4
 * What went wrong:
 Execution failed for task ':helloWorld'.
 > Unexpected exception
-
 """
-        String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
+        String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments ${runner.arguments}"""
 
-Output:
-$expectedOutput"""
-
-        normalize(t.message).startsWith(expectedMessage)
+        def normalizedMessage = normalize(t.message)
+        normalizedMessage.startsWith(expectedMessage)
         def result = t.buildResult
-        normalize(result.output).startsWith(expectedOutput)
+        normalize(result.output.trim()).startsWith(expectedOutput)
         result.taskPaths(FAILED) == [':helloWorld']
     }
-
 }

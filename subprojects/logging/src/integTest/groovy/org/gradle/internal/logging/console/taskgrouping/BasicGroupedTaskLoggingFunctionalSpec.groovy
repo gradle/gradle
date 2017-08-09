@@ -18,8 +18,6 @@ package org.gradle.internal.logging.console.taskgrouping
 
 import org.fusesource.jansi.Ansi
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.internal.SystemProperties
-import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -29,46 +27,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    def "multi-project build tasks logs are grouped"() {
-        given:
-        settingsFile << "include '1', '2', '3'"
-
-        buildFile << """
-            subprojects {
-                task log { doFirst { logger.quiet "Output from " + project.name } }
-            }
-        """
-
-        when:
-        succeeds('log')
-
-        then:
-        result.groupedOutput.taskCount == 3
-        result.groupedOutput.task(':1:log').output == "Output from 1"
-        result.groupedOutput.task(':2:log').output == "Output from 2"
-        result.groupedOutput.task(':3:log').output == "Output from 3"
-    }
-
-    def "logs at execution time are grouped"() {
-        given:
-        buildFile << """
-            task log {
-                logger.quiet 'Logged during configuration'
-                doFirst {
-                    logger.quiet 'First line of text'
-                    logger.quiet 'Second line of text'
-                }
-            }
-        """
-
-        when:
-        succeeds('log')
-
-        then:
-        result.groupedOutput.task(':log').output == "First line of text\nSecond line of text"
-    }
-
-    def "system out and err gets grouped"() {
+    def "system out and err gets grouped together in rich console"() {
         given:
         buildFile << """
             task log {
@@ -88,7 +47,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
     }
 
     @Issue("gradle/gradle#2038")
-    def "tasks with no actions are not displayed"() {
+    def "tasks with no actions are not displayed in rich console"() {
         given:
         buildFile << "task log"
 
@@ -113,94 +72,12 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
                 }
             }
         """
+
         when:
         fails('log')
 
         then:
         result.groupedOutput.task(':log').output =~ /First line of text\n{3,}Last line of text/
-    }
-
-    def "long running task output correctly interleave with other tasks in parallel"() {
-        given:
-        def sleepTime = GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT / 2 * 3
-        buildFile << """import java.util.concurrent.Semaphore
-            project(":a") {
-                ext.lock = new Semaphore(0)
-                task log {
-                    doLast {
-                        logger.quiet 'Before'
-                        sleep($sleepTime)
-                        lock.release()
-                        project(':b').lock.acquire()
-                        logger.quiet 'After'
-                    }
-                }
-            }
-
-            project(":b") {
-                ext.lock = new Semaphore(0)
-
-                task finalizer {
-                    doLast {
-                        lock.release()
-                    }
-                }
-
-                task log {
-                    finalizedBy finalizer
-                    doLast {
-                        project(':a').lock.acquire()
-                        logger.quiet 'Interrupting output'
-                    }
-                }
-            }
-
-
-            task run {
-                dependsOn project(':a').log, project(':b').log
-            }
-        """
-
-        settingsFile << """
-        include 'a', 'b'
-        """
-
-        when:
-        succeeds('run')
-
-        then:
-        result.groupedOutput.task(':a:log').outputs == ['Before', 'After']
-        result.groupedOutput.task(':b:log').output == 'Interrupting output'
-    }
-
-    def "long running task output are flushed after delay"() {
-        server.start()
-
-        given:
-        buildFile << """
-            task log {
-                doLast {
-                    logger.quiet 'Before'
-                    new URL('${server.uri('running')}').text
-                    logger.quiet 'After'
-                }
-            }
-        """
-        GradleHandle gradle = executer.withTasks('log').start()
-        def handle = server.expectAndBlock(server.resource('running'))
-
-        when:
-        handle.waitForAllPendingCalls()
-        assertOutputContains(gradle, "Before${SystemProperties.instance.lineSeparator}")
-        handle.releaseAll()
-        result = gradle.waitForFinish()
-
-        then:
-        result.groupedOutput.task(':log').outputs.size() == 1
-        result.groupedOutput.task(':log').outputs[0] =~ /Before\n+After/
-
-        cleanup:
-        gradle?.waitForFinish()
     }
 
     def "group header is printed red if task failed"() {

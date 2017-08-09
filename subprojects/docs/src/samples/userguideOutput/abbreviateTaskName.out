@@ -1,10 +1,14 @@
-:compile
+
+> Task :compile
 compiling source
-:compileTest
+
+> Task :compileTest
 compiling unit tests
-:test
+
+> Task :test
 running unit tests
-:dist
+
+> Task :dist
 building the distribution
 
 BUILD SUCCESSFUL in 0s

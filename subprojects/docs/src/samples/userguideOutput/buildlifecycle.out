@@ -2,9 +2,11 @@ This is executed during the initialization phase.
 This is executed during the configuration phase.
 This is also executed during the configuration phase.
 This is executed during the configuration phase as well.
-:test
+
+> Task :test
 This is executed during the execution phase.
-:testBoth
+
+> Task :testBoth
 This is executed first during the execution phase.
 This is executed last during the execution phase.
 

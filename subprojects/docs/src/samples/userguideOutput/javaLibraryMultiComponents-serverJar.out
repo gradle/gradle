@@ -1,14 +1,25 @@
-:compileCollectionsJarCollectionsJava
-:collectionsApiJar
-:compileCommonsJarCommonsJava
-:commonsApiJar
-:compileCoreJarCoreJava
-:processCoreJarCoreResources
-:coreApiJar
-:compileServerJarServerJava
-:createServerJar
-:serverApiJar
-:serverJar
+
+> Task :compileCollectionsJarCollectionsJava
+
+> Task :collectionsApiJar
+
+> Task :compileCommonsJarCommonsJava
+
+> Task :commonsApiJar
+
+> Task :compileCoreJarCoreJava
+
+> Task :processCoreJarCoreResources
+
+> Task :coreApiJar
+
+> Task :compileServerJarServerJava
+
+> Task :createServerJar
+
+> Task :serverApiJar
+
+> Task :serverJar
 
 BUILD SUCCESSFUL in 0s
 10 actionable tasks: 10 executed

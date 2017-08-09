@@ -45,6 +45,7 @@ To see a list of command-line options, run gradle --help
 
 To see more detail about a task, run gradle help --task <task>
 
+
 BUILD SUCCESSFUL"""
     }
 
@@ -69,6 +70,7 @@ Description
 Group
      help
 
+
 BUILD SUCCESSFUL"""
     }
 
@@ -92,6 +94,7 @@ Description
 
 Group
      help
+
 
 BUILD SUCCESSFUL"""
     }
@@ -129,6 +132,7 @@ Descriptions
 
 Group
      -
+
 
 BUILD SUCCESSFUL"""
     }
@@ -175,6 +179,7 @@ Groups
      (:someproj1:hello) group of subproject task
      (:someproj2:hello) group of subproject task
 
+
 BUILD SUCCESSFUL"""
     }
 
@@ -199,6 +204,7 @@ Description
 Group
      build
 
+
 BUILD SUCCESSFUL"""
 
         when:
@@ -219,8 +225,8 @@ Description
 Group
      build
 
-BUILD SUCCESSFUL"""
 
+BUILD SUCCESSFUL"""
     }
 
     def "multipleMatchingTasksOfDifferentType"() {
@@ -269,6 +275,7 @@ Group
 
 ----------------------
 
+
 BUILD SUCCESSFUL"""
     }
 
@@ -303,6 +310,7 @@ Description
 
 Group
      -
+
 
 BUILD SUCCESSFUL"""
 
@@ -347,6 +355,7 @@ Description
 Group
      -
 
+
 BUILD SUCCESSFUL"""
     }
 
@@ -375,6 +384,7 @@ Description
 
 Group
      -
+
 
 BUILD SUCCESSFUL"""
     }

@@ -1,11 +1,19 @@
-:compileMainJarMainJava
-:processMainJarMainResources
-:createMainJar
-:mainApiJar
-:mainJar
-:assemble
-:check UP-TO-DATE
-:build
+
+> Task :compileMainJarMainJava
+
+> Task :processMainJarMainResources
+
+> Task :createMainJar
+
+> Task :mainApiJar
+
+> Task :mainJar
+
+> Task :assemble
+
+> Task :check UP-TO-DATE
+
+> Task :build
 
 BUILD SUCCESSFUL in 0s
 4 actionable tasks: 4 executed
