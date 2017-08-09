@@ -106,12 +106,12 @@ task check {
         private static final String HEAD_METHOD = 'HEAD'
         private static final String METADATA_FILE_PATH = '/org.gradle/changing/1.0/ivy-1.0.xml'
         private static final String JAR_FILE_PATH = '/org.gradle/changing/1.0/changing-1.0.jar'
-        final Server server = new Server(0)
-        final Resources resources = new Resources()
+        private final Server server = new Server(0)
+        private final SelectChannelConnector connector = new SelectChannelConnector()
+        private final Resources resources = new Resources()
 
         @Override
         protected void before() {
-            SelectChannelConnector connector = new SelectChannelConnector()
             server.setConnectors([connector] as Connector[])
             server.addHandler(new AbstractHandler() {
                 void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
@@ -170,7 +170,7 @@ task check {
         }
 
         URI getUri() {
-            return new URI("http://localhost:${server.connectors[0].localPort}/")
+            return new URI("http://localhost:${connector.localPort}/")
         }
     }
 
