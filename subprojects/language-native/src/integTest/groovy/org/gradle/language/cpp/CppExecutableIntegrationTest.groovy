@@ -351,7 +351,8 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         sharedLibrary("hello/build/lib/hello").assertExists()
         sharedLibrary("sum/build/lib/sum").assertExists()
-        executable("app/build/exe/app").exec().out == app.expectedOutput
+        executable("app/build/exe/app").assertExists()
+        installation("app/build/install/app").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
         sharedLibrary("app/build/install/app/lib/sum").file.assertExists()
     }
