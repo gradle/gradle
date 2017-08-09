@@ -1,6 +1,7 @@
 package plugins
 
 import build.kotlinDslDebugPropertyName
+import build.withTestWorkersMemoryLimits
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -55,6 +56,8 @@ open class GskModule : Plugin<Project> {
                         "${rootProject.buildDir}/custom/test-kit-user-home")
                 }
             }
+
+            withTestWorkersMemoryLimits()
         }
     }
 

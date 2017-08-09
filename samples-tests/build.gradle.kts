@@ -18,4 +18,5 @@ tasks {
     }
 }
 
+withTestWorkersMemoryLimits()
 withParallelTests()
