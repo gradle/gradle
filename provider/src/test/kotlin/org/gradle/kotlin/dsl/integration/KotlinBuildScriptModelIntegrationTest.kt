@@ -313,7 +313,7 @@ fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): Kotli
                         projectDir = projectDir,
                         scriptFile = scriptFile,
                         gradleInstallation = GradleInstallation.Local(customInstallation()),
-                        jvmOptions = listOf("-Xms128m", "-Xmx128m"))) {
+                        jvmOptions = listOf("-Xms128m", "-Xmx256m"))) {
 
                     setStandardOutput(System.out)
                     setStandardError(System.err)
