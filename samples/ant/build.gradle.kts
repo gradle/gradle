@@ -25,3 +25,31 @@ tasks {
         }
     }
 }
+
+
+// Using custom Ant tasks from resolved dependency
+
+repositories {
+    jcenter()
+}
+
+val pmd by configurations.creating
+
+dependencies {
+    pmd("pmd:pmd:4.2.5")
+}
+
+tasks {
+    "pmd" {
+        group = "sample"
+        doLast {
+            ant.withGroovyBuilder {
+                "taskdef"("name" to "pmd", "classname" to "net.sourceforge.pmd.ant.PMDTask", "classpath" to pmd.asPath)
+                "pmd"("shortFilenames" to true, "failonruleviolation" to true, "rulesetfiles" to "") {
+                    "formatter"("type" to "text", "toConsole" to "true")
+                    "fileset"("dir" to "src")
+                }
+            }
+        }
+    }
+}

@@ -25,4 +25,11 @@ class AntSampleTest : AbstractSampleTest("ant") {
         // then:
         File(projectRoot, "build/archive.zip").isFile
     }
+
+    @Test
+    fun `custom pmd ant task`() {
+
+        // expect:
+        build("pmd")
+    }
 }
