@@ -35,7 +35,7 @@ public interface DeploymentRegistry {
      *
      * @throws IllegalStateException if deployment handle with the given name already exists
      */
-    <T extends DeploymentHandle> T start(String name, Class<T> handleType, Object... params);
+    <T extends DeploymentHandle> T start(String name, DeploymentSensitivity sensitivity, Class<T> handleType, Object... params);
 
     /**
      * Retrieves a deployment handle from the registry with the given name and type.
@@ -46,4 +46,10 @@ public interface DeploymentRegistry {
     <T extends DeploymentHandle> T get(String name, Class<T> handleType);
 
     Collection<DeploymentHandle> getRunningDeployments();
+
+    enum DeploymentSensitivity {
+        REQUEST,
+        BLOCK,
+        NONE
+    }
 }

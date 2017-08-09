@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.deployment.internal.DefaultDeployment
+
 import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener
@@ -142,14 +142,18 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
     @Unroll
     def "wait for changes to be built when a request comes in during initial app startup and there are pending changes and build is gated=#gated"() {
         given:
-        executer.withArgument("-D" + DefaultDeployment.GATED_BUILD_SYSPROP + "=" + gated)
         // prebuild so the build doesn't timeout waiting for rebuild signal
         executer.withTasks("playBinary").run()
         when:
         def rebuild = blockBuildWaitingForChanges()
 
         // Start up the Play app, block waiting for changes before completion
-        start("runPlayBinary")
+        if (gated) {
+            start("runPlayBinary", "--no-eager-rebuild")
+        } else {
+            start("runPlayBinary")
+        }
+
         rebuild.waitForAllPendingCalls()
 
         // Trigger a change
@@ -161,7 +165,7 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
         checkRoute 'hello'
 
         where:
-        gated << [true, false ]
+        gated << [ true, false ]
     }
 
     def blockBuildWaitingForChanges() {

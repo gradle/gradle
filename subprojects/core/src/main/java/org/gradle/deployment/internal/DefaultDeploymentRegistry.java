@@ -18,7 +18,6 @@ package org.gradle.deployment.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -53,7 +52,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     private boolean stopped;
     private BuildGateToken buildGate;
 
-    public DefaultDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
+    public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
         this.buildOperationExecutor = buildOperationExecutor;
         this.objectFactory = objectFactory;
@@ -64,7 +63,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     @Override
-    public <T extends DeploymentHandle> T start(final String name, final Class<T> handleType, final Object... params) {
+    public <T extends DeploymentHandle> T start(final String name, final DeploymentSensitivity sensitivity, final Class<T> handleType, final Object... params) {
         lock.lock();
         try {
             failIfStopped();
@@ -79,7 +78,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
                     public T call(BuildOperationContext context) {
                         T delegate = objectFactory.newInstance(handleType, params);
                         DeploymentHandleWrapper handle = new DeploymentHandleWrapper(name, delegate);
-                        handle.start(new DefaultDeployment(buildGate));
+                        handle.start(DeploymentFactory.createDeployment(sensitivity, buildGate));
                         if (pendingChanges.hasRemainingChanges()) {
                             handle.outOfDate();
                         }

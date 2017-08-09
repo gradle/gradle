@@ -16,36 +16,18 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.initialization.BuildGateToken;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DefaultDeployment implements Deployment {
-    private static final Logger LOGGER = Logging.getLogger(DefaultDeployment.class);
-    public static final String GATED_BUILD_SYSPROP = "org.gradle.internal.play.gated";
-
-    private final BuildGateToken.GateKeeper gateKeeper;
+public class SimpleBlockingDeployment implements Deployment {
     private final AtomicBoolean block = new AtomicBoolean();
 
     private boolean changed;
     private Throwable failure;
 
-    DefaultDeployment(BuildGateToken buildGate) {
-        if (Boolean.getBoolean(GATED_BUILD_SYSPROP)) {
-            this.gateKeeper = buildGate.createGateKeeper();
-        } else {
-            this.gateKeeper = null;
-        }
-    }
     @Override
     public Status status() {
-        if (gateKeeper != null) {
-            LOGGER.debug("Opening gate - Play App");
-            gateKeeper.open();
-        }
         synchronized (block) {
             while (block.get()) {
                 try {
@@ -76,31 +58,6 @@ public class DefaultDeployment implements Deployment {
             this.failure = failure;
             block.set(false);
             block.notifyAll();
-        }
-
-        if (gateKeeper != null) {
-            LOGGER.debug("Closing gate - Play App");
-            gateKeeper.close();
-        }
-    }
-
-    private static class DefaultDeploymentStatus implements Status {
-        private final boolean changed;
-        private final Throwable failure;
-
-        private DefaultDeploymentStatus(boolean changed, Throwable failure) {
-            this.changed = changed;
-            this.failure = failure;
-        }
-
-        @Override
-        public Throwable getFailure() {
-            return failure;
-        }
-
-        @Override
-        public boolean hasChanged() {
-            return changed;
         }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.deployment.internal
 
-import org.gradle.StartParameter
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -49,15 +48,13 @@ class DefaultDeploymentRegistryTest extends Specification {
     }
 
     def objectFactory = Mock(ObjectFactory)
-    def startParameter = Mock(StartParameter)
     def pendingChangesManager = Mock(PendingChangesManager)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def registry = new DefaultDeploymentRegistry(startParameter, pendingChangesManager, buildOperationExecutor, objectFactory)
+    def registry = new DefaultDeploymentRegistry(pendingChangesManager, buildOperationExecutor, objectFactory)
 
     def "creating registry registers with pending changes listener"() {
-        startParameter.continuous >> true
         when:
-        def registry = new DefaultDeploymentRegistry(startParameter, pendingChangesManager, buildOperationExecutor, objectFactory)
+        def registry = new DefaultDeploymentRegistry(pendingChangesManager, buildOperationExecutor, objectFactory)
         then:
         1 * pendingChangesManager.addListener(_)
         when:

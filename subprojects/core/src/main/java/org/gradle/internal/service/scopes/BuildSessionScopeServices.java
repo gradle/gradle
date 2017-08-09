@@ -118,8 +118,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new PendingChangesManager(listenerManager);
     }
 
-    DefaultDeploymentRegistry createDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
-        return new DefaultDeploymentRegistry(startParameter, pendingChangesManager, buildOperationExecutor, objectFactory);
+    DefaultDeploymentRegistry createDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
+        return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationExecutor, objectFactory);
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
