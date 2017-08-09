@@ -57,8 +57,6 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         this.buildOperationExecutor = buildOperationExecutor;
         this.objectFactory = objectFactory;
         this.pendingChanges = new PendingChanges();
-        // TODO: Detangle pending changes handling and continuous build
-        pendingChanges.changesMade();
         pendingChangesManager.addListener(this);
     }
 
@@ -180,7 +178,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     private static class PendingChanges {
-        private int pendingChanges;
+        private int pendingChanges = 1;
 
         void changesMade() {
             pendingChanges++;
