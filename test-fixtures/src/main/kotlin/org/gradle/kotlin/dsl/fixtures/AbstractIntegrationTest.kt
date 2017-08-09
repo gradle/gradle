@@ -157,6 +157,11 @@ fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
 
 
 inline
+fun <T> withDaemonIdleTimeout(seconds: Int, block: () -> T) =
+    withSystemProperty("org.gradle.daemon.idletimeout", (seconds * 1000).toString(), block)
+
+
+inline
 fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
     val originalValue = System.getProperty(key)
     try {

@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.customDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.customInstallation
+import org.gradle.kotlin.dsl.fixtures.withDaemonIdleTimeout
 import org.gradle.kotlin.dsl.fixtures.withDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.matching
 
@@ -305,16 +306,18 @@ fun classPathFor(projectDir: File, scriptFile: File?) =
 internal
 fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
     withDaemonRegistry(customDaemonRegistry()) {
-        future {
-            fetchKotlinBuildScriptModelFor(
-                KotlinBuildScriptModelRequest(
-                    projectDir = projectDir,
-                    scriptFile = scriptFile,
-                    gradleInstallation = GradleInstallation.Local(customInstallation()),
-                    jvmOptions = listOf("-Xms128m", "-Xmx128m"))) {
+        withDaemonIdleTimeout(1) {
+            future {
+                fetchKotlinBuildScriptModelFor(
+                    KotlinBuildScriptModelRequest(
+                        projectDir = projectDir,
+                        scriptFile = scriptFile,
+                        gradleInstallation = GradleInstallation.Local(customInstallation()),
+                        jvmOptions = listOf("-Xms128m", "-Xmx128m"))) {
 
-                setStandardOutput(System.out)
-                setStandardError(System.err)
-            }
-        }.get()
+                    setStandardOutput(System.out)
+                    setStandardError(System.err)
+                }
+            }.get()
+        }
     }
