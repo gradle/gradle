@@ -8,6 +8,9 @@ matrix:
     - os: linux
       sudo: false
       jdk: openjdk8
+    - os: linux
+      sudo: false
+      jdk: oraclejdk9 # JDK 9+175 or newer
 
 script: ./gradlew :provider:check --info --stacktrace --console=plain --max-workers=1 --no-daemon -Dkotlin.compiler.execution.strategy=in-proces -Dkotlin.colors.enabled=false
 
