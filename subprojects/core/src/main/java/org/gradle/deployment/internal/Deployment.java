@@ -19,10 +19,6 @@ package org.gradle.deployment.internal;
 public interface Deployment {
     Status status();
 
-    // These should be internal
-    void outOfDate();
-    void upToDate(Throwable failure);
-
     interface Status {
         Throwable getFailure();
         boolean hasChanged();

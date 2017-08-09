@@ -16,13 +16,13 @@
 
 package org.gradle.deployment.internal;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildGateToken;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -33,9 +33,9 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -44,7 +44,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
 
     private final Lock lock = new ReentrantLock();
-    private final Map<String, DeploymentHandleWrapper> handles = Maps.newHashMap();
+    private final Map<String, DefaultDeployment> deployments = Maps.newHashMap();
     private final PendingChangesManager pendingChangesManager;
     private final PendingChanges pendingChanges;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -67,7 +67,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         lock.lock();
         try {
             failIfStopped();
-            if (!handles.containsKey(name)) {
+            if (!deployments.containsKey(name)) {
                 return buildOperationExecutor.call(new CallableBuildOperation<T>() {
                     @Override
                     public BuildOperationDescriptor.Builder description() {
@@ -76,14 +76,14 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
 
                     @Override
                     public T call(BuildOperationContext context) {
-                        T delegate = objectFactory.newInstance(handleType, params);
-                        DeploymentHandleWrapper handle = new DeploymentHandleWrapper(name, delegate);
-                        handle.start(DeploymentFactory.createDeployment(sensitivity, buildGate));
+                        T handle = objectFactory.newInstance(handleType, params);
+                        DefaultDeployment deployment = DeploymentFactory.createDeployment(name, sensitivity, buildGate, handle);
+                        handle.start(deployment);
                         if (pendingChanges.hasRemainingChanges()) {
-                            handle.outOfDate();
+                            deployment.outOfDate();
                         }
-                        handles.put(name, handle);
-                        return delegate;
+                        deployments.put(name, deployment);
+                        return handle;
                     }
                 });
             } else {
@@ -99,8 +99,8 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         lock.lock();
         try {
             failIfStopped();
-            if (handles.containsKey(name)) {
-                return Cast.cast(handleType, handles.get(name).getDelegate());
+            if (deployments.containsKey(name)) {
+                return Cast.cast(handleType, deployments.get(name).getHandle());
             } else {
                 return null;
             }
@@ -110,15 +110,16 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     @Override
-    public Collection<DeploymentHandle> getRunningDeployments() {
+    public Collection<Deployment> getRunningDeployments() {
         lock.lock();
         try {
-            return CollectionUtils.filter(handles.values().toArray(new DeploymentHandle[0]), new Spec<DeploymentHandle>() {
-                @Override
-                public boolean isSatisfiedBy(DeploymentHandle handle) {
-                    return handle.isRunning();
+            List<Deployment> runningDeployments = Lists.newArrayList();
+            for (DefaultDeployment deployment : deployments.values()) {
+                if (deployment.isRunning()) {
+                    runningDeployments.add(deployment);
                 }
-            });
+            }
+            return runningDeployments;
         } finally {
             lock.unlock();
         }
@@ -129,8 +130,8 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         lock.lock();
         try {
             pendingChanges.changesMade();
-            for (DeploymentHandleWrapper handle : handles.values()) {
-                handle.outOfDate();
+            for (DeploymentInternal deployment : deployments.values()) {
+                deployment.outOfDate();
             }
         } finally {
             lock.unlock();
@@ -146,9 +147,9 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         try {
             pendingChanges.changesIncorporated();
             if (!pendingChanges.hasRemainingChanges()) {
-                for (DeploymentHandleWrapper handle : handles.values()) {
-                    Throwable failure = buildResult.getFailure();
-                    handle.upToDate(failure);
+                Throwable failure = buildResult.getFailure();
+                for (DeploymentInternal deployment : deployments.values()) {
+                    deployment.upToDate(failure);
                 }
             }
         } finally {
@@ -161,12 +162,12 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     public void stop() {
         lock.lock();
         try {
-            LOGGER.debug("Stopping {} deployment handles", handles.size());
-            CompositeStoppable.stoppable(handles.values()).stop();
+            LOGGER.debug("Stopping {} deployment handles", deployments.size());
+            CompositeStoppable.stoppable(deployments.values()).stop();
         } finally {
             LOGGER.debug("Stopped deployment handles");
             stopped = true;
-            handles.clear();
+            deployments.clear();
             lock.unlock();
         }
         pendingChangesManager.removeListener(this);

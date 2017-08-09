@@ -19,14 +19,14 @@ package org.gradle.deployment.internal;
 import org.gradle.initialization.BuildGateToken;
 
 class DeploymentFactory {
-    static Deployment createDeployment(DeploymentRegistry.DeploymentSensitivity sensitivity, BuildGateToken buildGate) {
+    static DefaultDeployment createDeployment(String id, DeploymentRegistry.DeploymentSensitivity sensitivity, BuildGateToken buildGate, DeploymentHandle deploymentHandle) {
         switch(sensitivity) {
             case NONE:
-                return new InsensitiveDeployment();
+                return new DefaultDeployment(id, new InsensitiveDeployment(), deploymentHandle);
             case BLOCK:
-                return new SimpleBlockingDeployment();
+                return new DefaultDeployment(id, new SimpleBlockingDeployment(), deploymentHandle);
             case REQUEST:
-                return new GateControllingDeployment(buildGate, new SimpleBlockingDeployment());
+                return new DefaultDeployment(id, new GateControllingDeployment(buildGate, new SimpleBlockingDeployment()), deploymentHandle);
             default:
                 throw new IllegalArgumentException("Unknown sensitivity " + sensitivity);
         }

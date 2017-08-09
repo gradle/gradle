@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider
 import org.gradle.api.execution.internal.DefaultTaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildGateToken
@@ -62,6 +63,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def globalServices = Stub(ServiceRegistry)
     def listenerManager = Stub(ListenerManager)
     def pendingChangesListener = Mock(PendingChangesListener)
+    def deploymentRegistry = Mock(DeploymentRegistry)
     def executer = executer()
 
     private File file = new File('file')
@@ -71,6 +73,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         listenerManager.getBroadcaster(PendingChangesListener) >> pendingChangesListener
         requestMetadata.getBuildTimeClock() >> clock
         waiterFactory.createChangeWaiter(_, _, _) >> waiter
+        globalServices.get(DeploymentRegistry) >> deploymentRegistry
         waiter.isWatching() >> true
     }
 
@@ -81,6 +84,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(action, requestContext, actionParameters, _)
+        1 * deploymentRegistry.runningDeployments >> []
         0 * waiterFactory._
     }
 

@@ -16,21 +16,7 @@
 
 package org.gradle.deployment.internal;
 
-public class InsensitiveDeployment implements DeploymentInternal {
-    private final static DefaultDeploymentStatus INSENSITIVE = new DefaultDeploymentStatus(false, null);
-
-    @Override
-    public Status status() {
-        return INSENSITIVE;
-    }
-
-    @Override
-    public void outOfDate() {
-
-    }
-
-    @Override
-    public void upToDate(Throwable failure) {
-
-    }
+public interface DeploymentInternal extends Deployment {
+    void outOfDate();
+    void upToDate(Throwable failure);
 }

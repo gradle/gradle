@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.deployment.internal.DeploymentHandle;
+import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
@@ -91,7 +91,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             try {
                 return delegate.execute(action, requestContext, actionParameters, contextServices);
             } finally {
-                final Collection<DeploymentHandle> runningDeployments = contextServices.get(DeploymentRegistry.class).getRunningDeployments();
+                final Collection<Deployment> runningDeployments = contextServices.get(DeploymentRegistry.class).getRunningDeployments();
                 final Lock lock = new ReentrantLock();
                 final Condition cancelled = lock.newCondition();
                 final Runnable cancellationHandler = new Runnable() {

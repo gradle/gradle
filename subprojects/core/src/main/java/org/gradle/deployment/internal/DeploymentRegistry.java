@@ -45,7 +45,7 @@ public interface DeploymentRegistry {
     @Nullable
     <T extends DeploymentHandle> T get(String name, Class<T> handleType);
 
-    Collection<DeploymentHandle> getRunningDeployments();
+    Collection<Deployment> getRunningDeployments();
 
     enum DeploymentSensitivity {
         REQUEST,

@@ -16,59 +16,58 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.Stoppable;
 
-public class DeploymentHandleWrapper implements DeploymentHandle, Stoppable {
-    private static final Logger LOGGER = Logging.getLogger(DeploymentHandleWrapper.class);
-
+public class DefaultDeployment implements DeploymentInternal, DeploymentHandle, Stoppable {
     private final String id;
-    private final DeploymentHandle delegate;
-    private Deployment deployment;
+    private final DeploymentInternal delegate;
+    private final DeploymentHandle handle;
 
-    public DeploymentHandleWrapper(String id, DeploymentHandle delegate) {
+    public DefaultDeployment(String id, DeploymentInternal delegate, DeploymentHandle handle) {
         this.id = id;
         this.delegate = delegate;
+        this.handle = handle;
+    }
+
+    @Override
+    public void outOfDate() {
+        assertIsRunning();
+        delegate.outOfDate();
+    }
+
+    @Override
+    public void upToDate(Throwable failure) {
+        assertIsRunning();
+        delegate.upToDate(failure);
+    }
+
+    public DeploymentHandle getHandle() {
+        return handle;
+    }
+
+    @Override
+    public Status status() {
+        return delegate.status();
     }
 
     @Override
     public boolean isRunning() {
-        return delegate.isRunning();
+        return handle.isRunning();
     }
 
     @Override
     public void start(Deployment deployment) {
-        this.deployment = deployment;
-        delegate.start(deployment);
-    }
-
-    public void outOfDate() {
-        assertIsRunning();
-        deployment.outOfDate();
-    }
-
-    public void upToDate(Throwable failure) {
-        assertIsRunning();
-        deployment.upToDate(failure);
+        handle.start(deployment);
     }
 
     @Override
     public void stop() {
-        if (isRunning()) {
-            LOGGER.info("Stopping deployment handle for {}", id);
-            delegate.stop();
-            LOGGER.info("Stopped deployment handle for {}", id);
-        }
+        handle.stop();
     }
 
     private void assertIsRunning() {
         if (!isRunning()) {
             throw new IllegalStateException(id + " needs to be started first.");
         }
-    }
-
-    public DeploymentHandle getDelegate() {
-        return delegate;
     }
 }

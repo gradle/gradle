@@ -20,13 +20,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildGateToken;
 
-public class GateControllingDeployment implements Deployment {
+public class GateControllingDeployment implements DeploymentInternal {
     private static final Logger LOGGER = Logging.getLogger(GateControllingDeployment.class);
 
     private final BuildGateToken.GateKeeper gateKeeper;
-    private final Deployment delegate;
+    private final DeploymentInternal delegate;
 
-    public GateControllingDeployment(BuildGateToken buildGate, Deployment delegate) {
+    public GateControllingDeployment(BuildGateToken buildGate, DeploymentInternal delegate) {
         this.gateKeeper = buildGate.createGateKeeper();
         this.delegate = delegate;
     }

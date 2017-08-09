@@ -20,7 +20,7 @@ import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class SimpleBlockingDeployment implements Deployment {
+public class SimpleBlockingDeployment implements DeploymentInternal {
     private final AtomicBoolean block = new AtomicBoolean();
 
     private boolean changed;
