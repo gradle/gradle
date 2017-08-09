@@ -69,7 +69,9 @@ configurations {
 }
 
 dependencies {
-    compile 'org.gradle:changing:1.0'
+    compile('org.gradle:changing:1.0') {
+        changing = true
+    }
 }
 
 task check {
