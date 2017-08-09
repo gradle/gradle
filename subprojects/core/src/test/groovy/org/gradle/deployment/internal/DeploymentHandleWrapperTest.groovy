@@ -21,6 +21,7 @@ import org.gradle.testing.internal.util.Specification
 class DeploymentHandleWrapperTest extends Specification {
     def delegate = Mock(DeploymentHandle)
     def id = "id"
+    def deployment = Mock(Deployment)
     def wrapper = new DeploymentHandleWrapper(id, delegate)
     def failure = new Throwable()
 
@@ -28,19 +29,9 @@ class DeploymentHandleWrapperTest extends Specification {
         delegate.running >> true
 
         when:
-        wrapper.upToDate(null)
+        wrapper.start(deployment)
         then:
-        1 * delegate.upToDate(null)
-
-        when:
-        wrapper.upToDate(failure)
-        then:
-        1 * delegate.upToDate(failure)
-
-        when:
-        wrapper.outOfDate()
-        then:
-        1 * delegate.outOfDate()
+        1 * delegate.start(deployment)
 
         when:
         wrapper.stop()

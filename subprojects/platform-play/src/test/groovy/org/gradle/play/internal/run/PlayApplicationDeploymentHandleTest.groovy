@@ -16,24 +16,21 @@
 
 package org.gradle.play.internal.run
 
+import org.gradle.deployment.internal.Deployment
 import spock.lang.Specification
 
 class PlayApplicationDeploymentHandleTest extends Specification {
+    PlayRunSpec spec = Mock()
+    PlayApplicationRunner runner = Mock()
     PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
-    PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle(runnerToken)
+    PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle(spec, runner)
 
     def failure = new Throwable()
 
-    def "upToDate deployment handle forwards to runnerToken" () {
-        when:
-        deploymentHandle.upToDate(null)
-        then:
-        1 * runnerToken.upToDate(null)
-
-        when:
-        deploymentHandle.upToDate(failure)
-        then:
-        1 * runnerToken.upToDate(failure)
+    def setup() {
+        def deployment = Mock(Deployment)
+        runner.start(spec, deployment) >> runnerToken
+        deploymentHandle.start(deployment)
     }
 
     def "running comes from runnerToken"() {
@@ -49,13 +46,6 @@ class PlayApplicationDeploymentHandleTest extends Specification {
         deploymentHandle.stop()
         then:
         1 * runnerToken.stop()
-    }
-
-    def "outOfDate forwards to runnerToken"() {
-        when:
-        deploymentHandle.outOfDate()
-        then:
-        1 * runnerToken.outOfDate()
     }
 
     def "gets application IP from runner"() {

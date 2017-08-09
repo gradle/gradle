@@ -70,7 +70,6 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                 if (method.getName().equals("projectPath")) {
                     return projectPath;
                 } else if (method.getName().equals("reload")) {
-
                     Reloader.Result result = reloader.requireUpToDate();
 
                     // We can't close replaced loaders immediately, because their classes may be used during shutdown,

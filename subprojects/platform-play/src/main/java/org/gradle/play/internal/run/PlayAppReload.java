@@ -17,20 +17,8 @@
 package org.gradle.play.internal.run;
 
 public class PlayAppReload extends PlayAppLifecycleUpdate {
-    private final boolean reloadStart;
-
-    public PlayAppReload(boolean reloadStart) {
-        this.reloadStart = reloadStart;
-    }
-
-    public boolean isReloadStart() {
-        return reloadStart;
-    }
-
     @Override
     public String toString() {
-        return "PlayAppReload{"
-            + "reloadStart=" + reloadStart
-            + '}';
+        return "PlayAppReload{}";
     }
 }

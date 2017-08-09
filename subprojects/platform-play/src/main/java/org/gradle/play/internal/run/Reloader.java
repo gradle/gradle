@@ -26,5 +26,13 @@ public interface Reloader {
             this.changed = changed;
             this.failure = failure;
         }
+
+        @Override
+        public String toString() {
+            return "Result{"
+                + "failure=" + failure
+                + ", changed=" + changed
+                + '}';
+        }
     }
 }

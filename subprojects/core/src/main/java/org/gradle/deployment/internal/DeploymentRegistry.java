@@ -19,6 +19,7 @@ package org.gradle.deployment.internal;
 import net.jcip.annotations.ThreadSafe;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 /**
  * A registry of deployment handles.
@@ -43,4 +44,6 @@ public interface DeploymentRegistry {
      */
     @Nullable
     <T extends DeploymentHandle> T get(String name, Class<T> handleType);
+
+    Collection<DeploymentHandle> getRunningDeployments();
 }

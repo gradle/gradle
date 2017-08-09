@@ -46,10 +46,8 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
             } else if (update instanceof PlayAppStop) {
                 stopEvent.put((PlayAppStop)update);
             } else if (update instanceof PlayAppReload) {
-                // TODO:
-                workerServer.outOfDate();
                 Deployment.Status status = activity.status();
-                workerServer.upToDate(status.getFailure());
+                workerServer.currentStatus(status.hasChanged(), status.getFailure());
             } else {
                 throw new IllegalStateException("Unexpected event " + update);
             }

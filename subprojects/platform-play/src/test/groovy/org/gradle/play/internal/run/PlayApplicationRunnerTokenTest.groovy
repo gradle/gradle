@@ -36,21 +36,11 @@ class PlayApplicationRunnerTokenTest extends Specification {
         1 * process.waitForStop()
     }
 
-    def "outOfDate forwards to server"() {
+    def "no longer running when stopping runnerToken"() {
+        assert runnerToken.running
         when:
-        runnerToken.outOfDate()
-
+        runnerToken.stop()
         then:
-        1 * server.outOfDate()
-    }
-
-    def "upToDate forwards to server"() {
-        given:
-        def failure = new Throwable()
-        when:
-        runnerToken.upToDate(failure)
-
-        then:
-        1 * server.upToDate(failure)
+        !runnerToken.running
     }
 }

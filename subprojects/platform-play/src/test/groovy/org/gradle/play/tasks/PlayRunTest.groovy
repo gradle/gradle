@@ -15,17 +15,16 @@
  */
 
 package org.gradle.play.tasks
+
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.deployment.internal.Deployment
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.RedirectStdIn
 import org.gradle.util.TestUtil
-import org.junit.ClassRule
 import org.junit.Rule
-import spock.lang.Shared
 import spock.lang.Specification
 
 class PlayRunTest extends Specification {
@@ -35,10 +34,7 @@ class PlayRunTest extends Specification {
     PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
     PlayToolProvider playToolProvider = Mock(PlayToolProvider)
     PlayApplicationRunner playApplicationRunner = Mock(PlayApplicationRunner)
-    InputStream systemInputStream = Mock()
-
-    @Shared @ClassRule
-    RedirectStdIn redirectStdIn
+    def address = InetSocketAddress.createUnresolved("localhost", 12345)
 
     PlayRun playRun
 
@@ -47,20 +43,19 @@ class PlayRunTest extends Specification {
         playRun.applicationJar = new File("application.jar")
         playRun.runtimeClasspath = new SimpleFileCollection()
         playRun.playToolProvider = playToolProvider
-        System.in = systemInputStream
+        runnerToken.isRunning() >> true
+        runnerToken.playAppAddress >> address
     }
 
     def "can customize memory"() {
         given:
-        1 * systemInputStream.read() >> 4
-        1 * runnerToken.isRunning() >> true
         playRun.forkOptions.memoryInitialSize = "1G"
         playRun.forkOptions.memoryMaximumSize = "5G"
         when:
         playRun.run()
         then:
         1 * playToolProvider.get(PlayApplicationRunner) >> playApplicationRunner
-        1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
+        1 * playApplicationRunner.start(_, _) >> { PlayRunSpec spec, Deployment deployment ->
             assert spec.getForkOptions().memoryInitialSize == "1G"
             assert spec.getForkOptions().memoryMaximumSize == "5G"
             runnerToken
@@ -68,13 +63,11 @@ class PlayRunTest extends Specification {
     }
 
     def "passes forkOptions never null"() {
-        1 * systemInputStream.read() >> 4
-        1 * runnerToken.isRunning() >> true
         when:
         playRun.run()
         then:
         1 * playToolProvider.get(PlayApplicationRunner) >> playApplicationRunner
-        1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
+        1 * playApplicationRunner.start(_, _) >> { PlayRunSpec spec, Deployment deployment ->
             assert spec.getForkOptions() != null
             runnerToken
         }

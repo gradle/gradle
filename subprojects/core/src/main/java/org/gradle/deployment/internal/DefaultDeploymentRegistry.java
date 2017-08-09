@@ -23,6 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildGateToken;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -33,7 +34,9 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -56,9 +59,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         this.objectFactory = objectFactory;
         this.pendingChanges = new PendingChanges();
         // TODO: Detangle pending changes handling and continuous build
-        if (startParameter.isContinuous()) {
-            pendingChanges.changesMade();
-        }
+        pendingChanges.changesMade();
         pendingChangesManager.addListener(this);
     }
 
@@ -104,6 +105,21 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
             } else {
                 return null;
             }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public Collection<DeploymentHandle> getRunningDeployments() {
+        lock.lock();
+        try {
+            return CollectionUtils.filter(handles.values().toArray(new DeploymentHandle[0]), new Spec<DeploymentHandle>() {
+                @Override
+                public boolean isSatisfiedBy(DeploymentHandle handle) {
+                    return handle.isRunning();
+                }
+            });
         } finally {
             lock.unlock();
         }

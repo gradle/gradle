@@ -143,7 +143,8 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
     def "wait for changes to be built when a request comes in during initial app startup and there are pending changes and build is gated=#gated"() {
         given:
         executer.withArgument("-D" + DefaultDeployment.GATED_BUILD_SYSPROP + "=" + gated)
-
+        // prebuild so the build doesn't timeout waiting for rebuild signal
+        executer.withTasks("playBinary").run()
         when:
         def rebuild = blockBuildWaitingForChanges()
 

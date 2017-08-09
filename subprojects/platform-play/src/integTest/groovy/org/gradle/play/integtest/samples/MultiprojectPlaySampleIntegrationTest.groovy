@@ -58,7 +58,7 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
 
         when:
         sample playSample
-        executer.usingInitScript(initScript).withStdinPipe()
+        executer.usingInitScript(initScript).withStdinPipe().withForceInteractive(true)
         GradleHandle gradleHandle = executer.withTasks(":admin:runPlayBinary").start()
         runningPlayApp.initialize(gradleHandle)
 

@@ -60,7 +60,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
 
         when:
         sample playSample
-        executer.usingInitScript(initScript).withStdinPipe()
+        executer.usingInitScript(initScript).withStdinPipe().withForceInteractive(true)
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
         runningPlayApp.initialize(gradleHandle)
 

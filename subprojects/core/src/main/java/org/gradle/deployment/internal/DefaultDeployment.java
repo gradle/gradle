@@ -19,16 +19,19 @@ package org.gradle.deployment.internal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildGateToken;
+import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultDeployment implements Deployment {
     private static final Logger LOGGER = Logging.getLogger(DefaultDeployment.class);
+    public static final String GATED_BUILD_SYSPROP = "org.gradle.internal.play.gated";
 
     private final BuildGateToken.GateKeeper gateKeeper;
-    private Status status;
-    private AtomicBoolean block = new AtomicBoolean();
-    public static final String GATED_BUILD_SYSPROP = "org.gradle.internal.play.gated";
+    private final AtomicBoolean block = new AtomicBoolean();
+
+    private boolean changed;
+    private Throwable failure;
 
     DefaultDeployment(BuildGateToken buildGate) {
         if (Boolean.getBoolean(GATED_BUILD_SYSPROP)) {
@@ -48,16 +51,20 @@ public class DefaultDeployment implements Deployment {
                 try {
                     block.wait();
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
+            Status result = new DefaultDeploymentStatus(changed, failure);
+            changed = false;
+            return result;
         }
-        return status;
     }
 
     @Override
     public void outOfDate() {
         synchronized (block) {
+            changed = true;
+            failure = null;
             block.set(true);
             block.notifyAll();
         }
@@ -65,9 +72,8 @@ public class DefaultDeployment implements Deployment {
 
     @Override
     public void upToDate(Throwable failure) {
-        status = new DefaultDeploymentStatus(failure);
-
         synchronized (block) {
+            this.failure = failure;
             block.set(false);
             block.notifyAll();
         }
@@ -79,15 +85,22 @@ public class DefaultDeployment implements Deployment {
     }
 
     private static class DefaultDeploymentStatus implements Status {
+        private final boolean changed;
         private final Throwable failure;
 
-        private DefaultDeploymentStatus(Throwable failure) {
+        private DefaultDeploymentStatus(boolean changed, Throwable failure) {
+            this.changed = changed;
             this.failure = failure;
         }
 
         @Override
         public Throwable getFailure() {
             return failure;
+        }
+
+        @Override
+        public boolean hasChanged() {
+            return changed;
         }
     }
 }

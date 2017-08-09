@@ -25,5 +25,6 @@ public interface Deployment {
 
     interface Status {
         Throwable getFailure();
+        boolean hasChanged();
     }
 }

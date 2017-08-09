@@ -33,10 +33,6 @@ abstract class PlayAppLifecycleUpdate implements Serializable {
     }
 
     static PlayAppLifecycleUpdate reloadRequested() {
-        return new PlayAppReload(true);
-    }
-
-    static PlayAppLifecycleUpdate reloadCompleted() {
-        return new PlayAppReload(false);
+        return new PlayAppReload();
     }
 }
