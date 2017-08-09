@@ -91,41 +91,46 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             try {
                 return delegate.execute(action, requestContext, actionParameters, contextServices);
             } finally {
-                final Collection<Deployment> runningDeployments = contextServices.get(DeploymentRegistry.class).getRunningDeployments();
-                final Lock lock = new ReentrantLock();
-                final Condition cancelled = lock.newCondition();
-                final Runnable cancellationHandler = new Runnable() {
-                    @Override
-                    public void run() {
-                        lock.lock();
-                        try {
-                            cancelled.signalAll();
-                        } finally {
-                            lock.unlock();
-                        }
-                    }
-                };
-                if (!runningDeployments.isEmpty()) {
-                    cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
-                        @Override
-                        public void execute(BuildCancellationToken cancellationToken) {
-                            logger.println().println("Build started " + runningDeployments.size() + " deployment(s)..." + determineExitHint(actionParameters));
-                            cancellationToken.addCallback(cancellationHandler);
-                            lock.lock();
-                            try {
-                                while (!cancellationToken.isCancellationRequested()) {
-                                    cancelled.await();
-                                }
-                            } catch (InterruptedException e) {
-                                throw UncheckedException.throwAsUncheckedException(e);
-                            } finally {
-                                lock.unlock();
-                                cancellationToken.removeCallback(cancellationHandler);
-                            }
-                        }
-                    });
+                waitForDeployments(actionParameters, contextServices, cancellableOperationManager);
+            }
+        }
+    }
+
+    private void waitForDeployments(final BuildActionParameters actionParameters, ServiceRegistry contextServices, CancellableOperationManager cancellableOperationManager) {
+        final Lock lock = new ReentrantLock();
+        final Condition cancelled = lock.newCondition();
+        final Runnable cancellationHandler = new Runnable() {
+            @Override
+            public void run() {
+                lock.lock();
+                try {
+                    cancelled.signalAll();
+                } finally {
+                    lock.unlock();
                 }
             }
+        };
+        final DeploymentRegistry deploymentRegistry = contextServices.get(DeploymentRegistry.class);
+        final Collection<Deployment> runningDeployments = deploymentRegistry.getRunningDeployments();
+        if (!runningDeployments.isEmpty()) {
+            cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
+                @Override
+                public void execute(BuildCancellationToken cancellationToken) {
+                    cancellationToken.addCallback(cancellationHandler);
+                    logger.println().println("Build started " + runningDeployments.size() + " deployment(s)..." + determineExitHint(actionParameters));
+                    lock.lock();
+                    try {
+                        while (!cancellationToken.isCancellationRequested()) {
+                            cancelled.await();
+                        }
+                    } catch (InterruptedException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    } finally {
+                        lock.unlock();
+                        cancellationToken.removeCallback(cancellationHandler);
+                    }
+                }
+            });
         }
     }
 
