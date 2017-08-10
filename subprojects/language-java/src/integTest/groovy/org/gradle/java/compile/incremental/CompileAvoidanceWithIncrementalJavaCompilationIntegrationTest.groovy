@@ -22,17 +22,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        buildFile << '''
+        buildFile << """
             allprojects {
                 tasks.withType(JavaCompile) {
                     options.incremental = true
                 }
                 
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
             }
-        '''
+       """
     }
 
     @NotYetImplemented

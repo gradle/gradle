@@ -371,12 +371,12 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     @NotYetImplemented
     def "doesn't recompile if external dependency has ABI incompatible change but not on class we use"() {
         given:
-        buildFile << '''
+        buildFile << """
             project(':impl') {
-                repositories { jcenter() }
+                ${jcenterRepository()}     
                 dependencies { compile 'org.apache.commons:commons-lang3:3.3' }
             }
-        '''
+        """
         java api: ["class A {}", "class B { }"], impl: ["class ImplA extends A {}", """import org.apache.commons.lang3.StringUtils;
 
             class ImplB extends B { 

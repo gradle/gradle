@@ -494,7 +494,7 @@ compileTestJava.options.incremental = true
         java "class A {}"
 
         buildFile << """
-repositories { jcenter() }
+        ${jcenterRepository()}
 dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
 """
         expect:
@@ -506,7 +506,7 @@ dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
         java "class A {}"
 
         buildFile << """
-repositories { jcenter() }
+${jcenterRepository()}
 dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
 """
         expect:

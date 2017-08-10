@@ -35,9 +35,7 @@ class BuildProgressLoggerIntegrationTest extends AbstractConsoleFunctionalSpec {
         file("buildSrc/build.gradle") << """
             // NOTE: groovy plugin is automatically applied to buildSrc
             
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
             dependencies {
                 testCompile 'junit:junit:4.12'
             }

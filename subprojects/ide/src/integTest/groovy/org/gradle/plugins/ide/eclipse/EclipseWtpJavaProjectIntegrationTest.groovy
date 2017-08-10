@@ -26,9 +26,7 @@ class EclipseWtpJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpe
         """apply plugin: 'eclipse-wtp'
            apply plugin: 'java'
 
-           repositories {
-               jcenter()
-           }
+           ${jcenterRepository()}
 
            sourceCompatibility = 1.6
 

@@ -24,7 +24,7 @@ class BuildSrcSpockIntegrationTest extends AbstractIntegrationSpec {
 apply plugin: 'groovy'
 
 repositories {
-    jcenter()
+    ${jcenterRepository()}
 }
 
 dependencies {

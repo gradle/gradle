@@ -221,9 +221,9 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
     def "can avoid building a jar when compiling against another project with transitive dependencies"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
-        file('a/build.gradle') << '''
+        file('a/build.gradle') << """
 
-        repositories { jcenter() }
+        ${jcenterRepository()}
 
         apply plugin: 'java'
 
@@ -231,7 +231,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
             compile project(path: ':b', configuration: 'compile_output')
         }
 
-        '''
+        """
         file('a/src/main/java/World.java') << '''import org.apache.commons.lang3.StringUtils;
 
         public class World extends Hello {
@@ -242,11 +242,11 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
 
         '''
 
-        file('b/build.gradle') << '''
+        file('b/build.gradle') << """
 
         apply plugin: 'java'
 
-        repositories { jcenter() }
+        ${jcenterRepository()}
 
         configurations {
             compile_output {
@@ -261,7 +261,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         artifacts {
             compile_output file:compileJava.destinationDir, builtBy: compileJava
         }
-        '''
+        """
         file('b/src/main/java/Hello.java') << '''import org.apache.commons.lang3.StringUtils;
             public class Hello {
                 String greet(String name) { return "Hello, " + StringUtils.capitalize(name); }

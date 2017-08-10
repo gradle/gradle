@@ -36,9 +36,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id 'com.github.johnrengelman.shadow' version '1.2.3'
             }
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 compile 'commons-collections:commons-collections:3.2.2'
@@ -64,9 +62,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
                 dependencies {
                     classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.3"                
                 }
@@ -323,7 +319,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id "org.xtext.xtend" version "1.0.17"
             }
 
-            repositories.jcenter()
+            ${jcenterRepository()}
 
             dependencies {
                 compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0'

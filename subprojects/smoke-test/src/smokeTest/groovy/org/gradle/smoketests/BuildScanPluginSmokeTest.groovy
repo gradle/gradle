@@ -101,7 +101,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             }
 
             apply plugin: 'java'
-            repositories { jcenter() }
+            ${jcenterRepository()}
 
             dependencies { 
                 testCompile 'junit:junit:4.12' 

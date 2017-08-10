@@ -30,9 +30,7 @@ class CheckstyleEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest
                 id "org.gradle.java-gradle-plugin"
                 id "org.gradle.groovy"
             }
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
             dependencies {
                 testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
                     exclude module: 'groovy-all'

@@ -59,9 +59,7 @@ class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegratio
         when:
         buildScript """
             plugins { id "org.gradle.java" }
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
             dependencies {
                 testCompile gradleTestKit()
                 testCompile 'com.google.guava:guava-jdk5:13.0'

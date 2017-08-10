@@ -250,18 +250,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "test runtime classpath includes implementation dependencies"() {
         given:
-        buildFile << '''
+        buildFile << """
             apply plugin: 'java'
 
-            repositories {
-                jcenter()
-            }
+             ${jcenterRepository()}
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
                 testCompile 'junit:junit:4.12' // not using testImplementation intentionally, that's not what we want to test
             }
-        '''
+        """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
             public class Text {
                 public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
@@ -288,18 +286,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "test runtime classpath includes test implementation dependencies"() {
         given:
-        buildFile << '''
+        buildFile << """
             apply plugin: 'java'
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
                 testImplementation 'junit:junit:4.12'
             }
-        '''
+        """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
             public class Text {
                 public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
@@ -326,18 +322,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "test compile classpath includes implementation dependencies"() {
         given:
-        buildFile << '''
+        buildFile << """
             apply plugin: 'java'
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
                 testImplementation 'junit:junit:4.12'
             }
-        '''
+        """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
             public class Text {
                 public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }

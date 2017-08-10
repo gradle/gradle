@@ -26,9 +26,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
                 id "nebula.dependency-recommender" version "4.1.2"
             }
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencyRecommendations {
                 mavenBom module: 'netflix:platform:latest.release'
@@ -71,9 +69,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
             }
 
             plugins {

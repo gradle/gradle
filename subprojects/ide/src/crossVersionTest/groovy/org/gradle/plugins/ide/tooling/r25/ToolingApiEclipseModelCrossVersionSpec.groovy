@@ -33,14 +33,12 @@ include 'a'
 rootProject.name = 'root'
 '''
 
-        projectDir.file('build.gradle').text = '''
+        projectDir.file('build.gradle').text = """
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-repositories {
-    jcenter()
-}
+${jcenterRepository()}
 
 configurations {
     provided
@@ -60,7 +58,7 @@ eclipse {
 
 configure(project(':a')){
     apply plugin:'java'
-}'''
+}"""
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)

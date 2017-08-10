@@ -31,9 +31,7 @@ class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec
 
            sourceCompatibility = 1.6
 
-           repositories {
-               jcenter()
-           }
+           ${jcenterRepository()}
 
            dependencies {
                compile 'com.google.guava:guava:18.0'
