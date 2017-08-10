@@ -43,6 +43,7 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -86,7 +87,13 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
-        TarArchiveOutputStream tarOutput = new TarArchiveOutputStream(output, "utf-8");
+        BufferedOutputStream bufferedOutput;
+        if (output instanceof BufferedOutputStream) {
+            bufferedOutput = (BufferedOutputStream) output;
+        } else {
+            bufferedOutput = new BufferedOutputStream(output);
+        }
+        TarArchiveOutputStream tarOutput = new TarArchiveOutputStream(bufferedOutput, "utf-8");
         try {
             tarOutput.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
             tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
