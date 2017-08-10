@@ -46,7 +46,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         buildFile << testableJavaProject()
         file("src/test/java/${testClass1.fileRepresentation}") << junitTest(testClass1.classNameWithoutPackage, SERVER_RESOURCE_1)
         file("src/test/java/${testClass2.fileRepresentation}") << junitTest(testClass2.classNameWithoutPackage, SERVER_RESOURCE_2)
-        def testExecution = server.expectConcurrentAndBlock(SERVER_RESOURCE_1, SERVER_RESOURCE_2)
+        def testExecution = server.expectConcurrentAndBlock(2, SERVER_RESOURCE_1, SERVER_RESOURCE_2)
 
         when:
         def gradleHandle = executer.withTasks('test').start()
@@ -58,7 +58,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
             assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', testClass2.renderedClassName)
         }
 
-        testExecution.releaseAll()
+        testExecution.release(2)
         gradleHandle.waitForFinish()
 
         where:
@@ -79,7 +79,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         """
         file("project1/src/test/java/${testClass1.fileRepresentation}") << junitTest(testClass1.classNameWithoutPackage, SERVER_RESOURCE_1)
         file("project2/src/test/java/${testClass2.fileRepresentation}") << junitTest(testClass2.classNameWithoutPackage, SERVER_RESOURCE_2)
-        def testExecution = server.expectConcurrentAndBlock(SERVER_RESOURCE_1, SERVER_RESOURCE_2)
+        def testExecution = server.expectConcurrentAndBlock(2, SERVER_RESOURCE_1, SERVER_RESOURCE_2)
 
         when:
         def gradleHandle = executer.withTasks('test').start()
@@ -91,7 +91,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
             assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project2:test', testClass2.renderedClassName)
         }
 
-        testExecution.releaseAll()
+        testExecution.release(2)
         gradleHandle.waitForFinish()
 
         where:
