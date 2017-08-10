@@ -434,7 +434,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskArtifactState state = repository.getStateFor(task)
 
         then:
-        state.getExecutionHistory().getOutputFiles().getFiles().isEmpty()
+        state.getExecutionHistory().getOutputFiles().isEmpty()
     }
 
     def "has task history from previous execution"() {
@@ -445,7 +445,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskArtifactState state = repository.getStateFor(task)
 
         then:
-        state.getExecutionHistory().getOutputFiles().getFiles() == [outputFile, outputDirFile, outputDirFile2] as Set
+        state.getExecutionHistory().getOutputFiles() == [outputFile, outputDir, outputDirFile, outputDirFile2] as Set
     }
 
     def "multiple tasks can produce files into the same output directory"() {
@@ -490,7 +490,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         then:
         TaskArtifactState state = repository.getStateFor(task)
         state.isUpToDate([])
-        !state.getExecutionHistory().getOutputFiles().getFiles().contains(otherFile)
+        !state.getExecutionHistory().getOutputFiles().contains(otherFile)
     }
 
     def "considers existing file in output directory which is updated by the task as produced by task"() {
@@ -511,7 +511,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         then:
         def stateAfter = repository.getStateFor(task)
         !stateAfter.upToDate
-        stateAfter.executionHistory.outputFiles.files.contains(otherFile)
+        stateAfter.executionHistory.outputFiles.contains(otherFile)
     }
 
     def "file is no longer considered produced by task once it is deleted"() {
@@ -529,7 +529,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         then:
         def stateAfter = repository.getStateFor(task)
         stateAfter.isUpToDate([])
-        !stateAfter.executionHistory.outputFiles.files.contains(outputDirFile)
+        !stateAfter.executionHistory.outputFiles.contains(outputDirFile)
     }
 
     def "artifacts are up to date when task does not accept any inputs"() {
@@ -578,12 +578,12 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         then:
         def state1 = repository.getStateFor(task1)
         state1.isUpToDate([])
-        state1.executionHistory.outputFiles.files == [outputDirFile] as Set
+        state1.executionHistory.outputFiles == [outputDir, outputDirFile] as Set
 
         and:
         def state2 = repository.getStateFor(task2)
         state2.isUpToDate([])
-        state2.executionHistory.outputFiles.files == [outputDirFile2] as Set
+        state2.executionHistory.outputFiles == [outputDirFile2] as Set
     }
 
     def "has no origin build ID when not executed"() {

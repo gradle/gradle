@@ -46,14 +46,14 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskWithSources.taskPath)
 
         then:
-        !taskWithSources.outputFile.exists()
+        taskWithSources.outputsHaveBeenRemoved()
         executedAndNotSkipped(taskWithSources.taskPath)
 
         and:
         succeeds(taskWithSources.taskPath)
 
         then:
-        !taskWithSources.outputFile.exists()
+        taskWithSources.outputsHaveBeenRemoved()
         skipped(taskWithSources.taskPath)
     }
 
@@ -107,7 +107,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         overlappingOutputFile.exists()
-        !taskWithSources.outputFile.exists()
+        taskWithSources.onlyOutputFileHasBeenRemoved()
         executedAndNotSkipped(taskWithSources.taskPath)
     }
 
@@ -350,6 +350,16 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         void createInputs() {
             inputFile.text = "input"
+        }
+
+        void outputsHaveBeenRemoved() {
+            assert !outputFile.exists()
+            assert !file(outputDir).exists()
+        }
+
+        void onlyOutputFileHasBeenRemoved() {
+            assert !outputFile.exists()
+            assert file(outputDir).exists()
         }
     }
 
