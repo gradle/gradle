@@ -22,7 +22,7 @@ import spock.lang.FailsWith
 
 class ConcurrentSpecificationTest extends ConcurrentSpecification {
     def setup() {
-        shortTimeout = 1000
+        shortTimeout = 2000
     }
 
     def "can check that an action calls a mock method asynchronously"() {
