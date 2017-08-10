@@ -41,7 +41,7 @@ public class SnappyTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
-        OutputStream compressedOutput = new SnappyFramedOutputStream(output);
+        OutputStream compressedOutput = new SnappyFramedOutputStream(output, SnappyFramedOutputStream.DEFAULT_BLOCK_SIZE, 1.0);
         try {
             return delegate.pack(propertySpecs, compressedOutput, writeOrigin);
         } finally {
