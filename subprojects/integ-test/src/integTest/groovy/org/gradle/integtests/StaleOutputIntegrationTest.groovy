@@ -46,14 +46,14 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskWithSources.taskPath)
 
         then:
-        !taskWithSources.outputFile.exists()
+        taskWithSources.outputsHaveBeenRemoved()
         executedAndNotSkipped(taskWithSources.taskPath)
 
         and:
         succeeds(taskWithSources.taskPath)
 
         then:
-        !taskWithSources.outputFile.exists()
+        taskWithSources.outputsHaveBeenRemoved()
         skipped(taskWithSources.taskPath)
     }
 
@@ -107,7 +107,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         overlappingOutputFile.exists()
-        !taskWithSources.outputFile.exists()
+        taskWithSources.onlyOutputFileHasBeenRemoved()
         executedAndNotSkipped(taskWithSources.taskPath)
     }
 
@@ -246,6 +246,20 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         operations.hasOperation(CleanupStaleOutputsExecuter.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
     }
 
+    def "no build operations are created for stale outputs cleanup if no files are removed"() {
+        def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
+        def fixture = new StaleOutputFixture()
+        fixture.createInputs()
+        buildScript(fixture.buildScript)
+
+        when:
+        succeeds(fixture.taskPath, '-PassertRemoved=true')
+
+        then:
+        executedAndNotSkipped(fixture.taskPath)
+        !operations.first(CleanupStaleOutputsExecuter.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
+    }
+
     def "overlapping outputs between 'build/outputs' and '#overlappingOutputDir' are not cleaned up"() {
         def fixture = new StaleOutputFixture(buildDir: 'build/outputs', overlappingOutputDir: overlappingOutputDir)
         fixture.createInputs()
@@ -336,6 +350,16 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         void createInputs() {
             inputFile.text = "input"
+        }
+
+        void outputsHaveBeenRemoved() {
+            assert !outputFile.exists()
+            assert !file(outputDir).exists()
+        }
+
+        void onlyOutputFileHasBeenRemoved() {
+            assert !outputFile.exists()
+            assert file(outputDir).exists()
         }
     }
 

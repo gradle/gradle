@@ -199,7 +199,7 @@ task checkArtifacts {
         succeeds("checkArtifacts")
     }
 
-    def "can declare build dependency on artifact using String notation"() {
+    def "can declare build dependency of artifact using String notation"() {
         given:
         settingsFile << "include 'a', 'b'"
         buildFile << """
@@ -215,20 +215,24 @@ task checkArtifacts {
                     compile project(':a')
                 }
                 task checkArtifacts {
+                    inputs.files configurations.compile
                     doLast {
                         assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { 
                             it.buildDependencies.getDependencies(null) 
-                        }*.name.flatten() == ['jar']
+                        }*.path.flatten() == [':a:jar']
                     }
                 }
             }
         """
 
-        expect:
+        when:
         succeeds ':b:checkArtifacts'
+
+        then:
+        result.assertTasksExecuted(":a:jar", ":b:checkArtifacts")
     }
 
-    def "can declare build dependency on outgoing artifact using String notation"() {
+    def "can declare build dependency of outgoing artifact using String notation"() {
         given:
         settingsFile << "include 'a', 'b'"
         buildFile << """
@@ -250,22 +254,24 @@ task checkArtifacts {
                     compile project(':a')
                 }
                 task checkArtifacts {
+                    inputs.files configurations.compile
                     doLast {
                         assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { 
                             it.buildDependencies.getDependencies(null) 
-                        }*.name.flatten() == ['jar']
+                        }*.path.flatten() == [':a:jar']
                     }
                 }
             }
 """
 
-
-        expect:
+        when:
         succeeds ':b:checkArtifacts'
 
+        then:
+        result.assertTasksExecuted(":a:jar", ":b:checkArtifacts")
     }
 
-    def "can declare build dependency on outgoing variant artifact using String notation"() {
+    def "can declare build dependency of outgoing variant artifact using String notation"() {
         given:
         settingsFile << "include 'a', 'b'"
         buildFile << """
@@ -291,19 +297,85 @@ task checkArtifacts {
                     compile project(':a')
                 }
                 task checkArtifacts {
+                    inputs.files configurations.compile
                     doLast {
                         assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { 
                             it.buildDependencies.getDependencies(null) 
-                        }*.name.flatten() == ['classes']
+                        }*.path.flatten() == [':a:classes']
                     }
                 }
             }
 """
 
-
-        expect:
+        when:
         succeeds ':b:checkArtifacts'
 
+        then:
+        result.assertTasksExecuted(":a:classes", ":b:checkArtifacts")
+    }
+
+    def "can define artifact using RegularFile task output"() {
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            project(':a') {
+                task classes {
+                    ext.outputFile = newOutputFile()
+                    outputFile.set(layout.buildDirectory.file("a.jar"))
+                }
+                artifacts {
+                    compile classes.outputFile
+                }
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+                task checkArtifacts {
+                    inputs.files configurations.compile
+                    doLast {
+                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["a.jar"]
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':b:checkArtifacts'
+
+        then:
+        result.assertTasksExecuted(":a:classes", ":b:checkArtifacts")
+    }
+
+    def "can define artifact using Directory task output"() {
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            project(':a') {
+                task classes {
+                    ext.outputDir = newOutputDirectory()
+                    outputDir.set(layout.buildDirectory.dir("classes"))
+                }
+                artifacts {
+                    compile classes.outputDir
+                }
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+                task checkArtifacts {
+                    inputs.files configurations.compile
+                    doLast {
+                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["classes"]
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':b:checkArtifacts'
+
+        then:
+        result.assertTasksExecuted(":a:classes", ":b:checkArtifacts")
     }
 
     // This isn't strictly supported and will be deprecated later

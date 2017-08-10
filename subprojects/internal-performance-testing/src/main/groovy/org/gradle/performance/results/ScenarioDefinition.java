@@ -36,6 +36,11 @@ public interface ScenarioDefinition {
     List<String> getTasks();
 
     /**
+     * The clean tasks executed.
+     */
+    List<String> getCleanTasks();
+
+    /**
      * The Gradle arguments.
      */
     List<String> getArgs();

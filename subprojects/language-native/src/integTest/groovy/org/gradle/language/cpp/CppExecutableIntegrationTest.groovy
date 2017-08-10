@@ -17,6 +17,8 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppApp
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
@@ -50,7 +52,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
-    def "sources are compiled with C++ compiler"() {
+    def "sources are compiled and linked with with C++ tools"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppCompilerDetectingTestApp()
 
@@ -65,16 +67,99 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+
         executable("build/exe/app").assertExists()
         installation("build/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
-    def "honors changes to buildDir"() {
+    def "ignores non-C++ source files in source directory"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new CppCompilerDetectingTestApp()
+        def app = new CppApp()
 
         given:
-        app.writeSources(file('src/main'))
+        app.writeToProject(testDirectory)
+        file("src/main/cpp/ignore.swift") << 'broken!'
+        file("src/main/cpp/ignore.c") << 'broken!'
+        file("src/main/cpp/ignore.m") << 'broken!'
+        file("src/main/cpp/ignore.h") << 'broken!'
+        file("src/main/cpp/ignore.java") << 'broken!'
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+
+        executable("build/exe/app").assertExists()
+        installation("build/install/app").exec().out == app.expectedOutput
+    }
+
+    def "build logic can change source layout convention"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToSourceDir(file("srcs"))
+        file("src/main/cpp/broken.cpp") << "ignore me!"
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+            executable {
+                source.from 'srcs'
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+
+        file("build/main/objs").assertIsDir()
+        executable("build/exe/app").assertExists()
+        installation("build/install/app").exec().out == app.expectedOutput
+    }
+
+    def "build logic can add individual source files"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.headers.writeToProject(testDirectory)
+        app.main.writeToSourceDir(file("srcs/main.cpp"))
+        app.greeter.writeToSourceDir(file("srcs/one.cpp"))
+        app.sum.writeToSourceDir(file("srcs/two.cpp"))
+        file("src/main/cpp/broken.cpp") << "ignore me!"
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+            executable {
+                source {
+                    from('srcs/main.cpp')
+                    from('srcs/one.cpp')
+                    from('srcs/two.cpp')
+                }
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+
+        file("build/main/objs").assertIsDir()
+        executable("build/exe/app").assertExists()
+        installation("build/install/app").exec().out == app.expectedOutput
+    }
+
+    def "build logic can change buildDir"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -87,16 +172,17 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
 
         !file("build").exists()
+        file("output/main/objs").assertIsDir()
         executable("output/exe/app").assertExists()
-        installation("output/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        installation("output/install/app").exec().out == app.expectedOutput
     }
 
-    def "honors changes to task output locations"() {
+    def "build logic can change task output locations"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new CppCompilerDetectingTestApp()
+        def app = new CppApp()
 
         given:
-        app.writeSources(file('src/main'))
+        app.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -111,7 +197,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
 
         file("build/exe/some-app.exe").assertExists()
-        installation("build/some-app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        installation("build/some-app").exec().out == app.expectedOutput
     }
 
     def "can compile and link against a library"() {
@@ -180,6 +266,95 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("app/build/install/app").exec().out == app.englishOutput
         sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
         sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
+    }
+
+    def "honors changes to library buildDir"() {
+        settingsFile << "include 'app', 'lib1', 'lib2'"
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':lib1')
+                }
+            }
+            project(':lib1') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    implementation project(':lib2')
+                }
+            }
+            project(':lib2') {
+                apply plugin: 'cpp-library'
+                buildDir = 'out'
+            }
+"""
+        app.library.headerFiles.each { it.writeToFile(file("lib1/src/main/public/$it.name")) }
+        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/cpp/$it.name")) }
+        app.greetingsLibrary.headerFiles.each { it.writeToFile(file("lib2/src/main/public/$it.name")) }
+        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/cpp/$it.name")) }
+        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":lib1:compileCpp", ":lib1:linkMain", ":lib2:compileCpp", ":lib2:linkMain", ":app:compileCpp", ":app:linkMain", ":app:installMain", ":app:assemble")
+
+        !file("lib2/build").exists()
+        sharedLibrary("lib1/build/lib/lib1").assertExists()
+        sharedLibrary("lib2/out/lib/lib2").assertExists()
+        executable("app/build/exe/app").assertExists()
+        installation("app/build/install/app").exec().out == app.englishOutput
+        sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
+    }
+
+    def "multiple components can share the same source directory"() {
+        settingsFile << "include 'app', 'hello', 'sum'"
+        def app = new CppAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':hello')
+                    implementation project(':sum')
+                }
+                executable {
+                    source.from '../Sources/${app.main.sourceFile.name}'
+                }
+            }
+            project(':hello') {
+                apply plugin: 'cpp-library'
+                library {
+                    source.from '../Sources/${app.greeterLib.source.sourceFile.name}'
+                }
+            }
+            project(':sum') {
+                apply plugin: 'cpp-library'
+                library {
+                    source.from '../Sources/${app.sumLib.source.sourceFile.name}'
+                }
+            }
+"""
+        app.main.writeToSourceDir(file("Sources"))
+        app.greeterLib.source.writeToSourceDir(file("Sources"))
+        app.greeterLib.header.writeToProject(file("hello"))
+        app.sumLib.source.writeToSourceDir(file("Sources"))
+        app.sumLib.header.writeToProject(file("sum"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":hello:compileCpp", ":hello:linkMain", ":sum:compileCpp", ":sum:linkMain", ":app:compileCpp", ":app:linkMain", ":app:installMain", ":app:assemble")
+
+        sharedLibrary("hello/build/lib/hello").assertExists()
+        sharedLibrary("sum/build/lib/sum").assertExists()
+        executable("app/build/exe/app").assertExists()
+        installation("app/build/install/app").exec().out == app.expectedOutput
+        sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/sum").file.assertExists()
     }
 
     def "can compile and link against libraries in included builds"() {

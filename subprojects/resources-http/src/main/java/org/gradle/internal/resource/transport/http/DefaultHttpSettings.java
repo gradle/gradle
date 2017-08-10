@@ -21,10 +21,10 @@ import org.gradle.authentication.Authentication;
 import java.util.Collection;
 
 public class DefaultHttpSettings implements HttpSettings {
-    private final HttpProxySettings proxySettings = new JavaSystemPropertiesHttpProxySettings();
-    private final HttpProxySettings secureProxySettings = new JavaSystemPropertiesSecureHttpProxySettings();
     private final Collection<Authentication> authenticationSettings;
     private final SslContextFactory sslContextFactory;
+    private HttpProxySettings proxySettings;
+    private HttpProxySettings secureProxySettings;
 
     public DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory) {
         if (authenticationSettings == null) {
@@ -37,11 +37,17 @@ public class DefaultHttpSettings implements HttpSettings {
 
     @Override
     public HttpProxySettings getProxySettings() {
+        if (proxySettings == null) {
+            proxySettings = new JavaSystemPropertiesHttpProxySettings();
+        }
         return proxySettings;
     }
 
     @Override
     public HttpProxySettings getSecureProxySettings() {
+        if (secureProxySettings == null) {
+            secureProxySettings = new JavaSystemPropertiesSecureHttpProxySettings();
+        }
         return secureProxySettings;
     }
 

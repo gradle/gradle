@@ -16,10 +16,9 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.concurrent.Stoppable;
-
-public interface DeploymentHandle extends Stoppable {
+public interface DeploymentHandle {
     boolean isRunning();
-    void onNewBuild(Gradle gradle);
+    void outOfDate();
+    void upToDate(Throwable failure);
+    void stop();
 }

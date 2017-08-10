@@ -51,7 +51,7 @@ public class BlockingHttpServer extends ExternalResource {
     private boolean running;
 
     public BlockingHttpServer() throws IOException {
-        this(30000);
+        this(120000);
     }
 
     public BlockingHttpServer(int timeoutMs) throws IOException {
@@ -91,7 +91,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public String callFromBuild(String resource) {
         URI uri = uri(resource);
-        return "System.out.println(\"calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"response received\");";
+        return "System.out.println(\"calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received\");";
     }
 
     /**
@@ -99,7 +99,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public String callFromBuildUsingExpression(String expression) {
         String uriExpression = "\"" + getUri() + "/\" + " + expression;
-        return "System.out.println(\"calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"response received\");";
+        return "System.out.println(\"calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received\");";
     }
 
     public void withBasicAuthentication(final String username, final String password) {
@@ -172,6 +172,13 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public ExpectedRequest missing(String path) {
         return new ExpectGetMissing(path);
+    }
+
+    /**
+     * Expect a HEAD request to the given path.
+     */
+    public ExpectedRequest head(String path) {
+        return new ExpectHead(path);
     }
 
     /**

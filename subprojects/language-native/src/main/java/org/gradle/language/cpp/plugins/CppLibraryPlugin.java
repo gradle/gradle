@@ -23,14 +23,18 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
@@ -39,8 +43,8 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.inject.Inject;
 import java.util.Collections;
-import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -51,16 +55,27 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class CppLibraryPlugin implements Plugin<ProjectInternal> {
+    private final FileOperations fileOperations;
+
+    @Inject
+    public CppLibraryPlugin(FileOperations fileOperations) {
+        this.fileOperations = fileOperations;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
-        TaskContainerInternal tasks = project.getTasks();
+        TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
 
         // TODO - extract some common code to setup the compile task and conventions
+
+        // Add the component extension
+        CppComponent component = project.getExtensions().create(CppComponent.class, "library", DefaultCppComponent.class, fileOperations);
+
         // Add a compile task
         CppCompile compile = tasks.create("compileCpp", CppCompile.class);
 
@@ -68,10 +83,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         compile.includes("src/main/headers");
         compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
 
-        ConfigurableFileTree sourceTree = project.fileTree("src/main/cpp");
-        sourceTree.include("**/*.cpp");
-        sourceTree.include("**/*.c++");
-        compile.source(sourceTree);
+        FileCollection sources = component.getCppSource();
+        compile.source(sources);
 
         compile.setCompilerArgs(Collections.<String>emptyList());
         compile.setPositionIndependentCode(true);
@@ -89,18 +102,12 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         // Add a link task
         final LinkSharedLibrary link = tasks.create("linkMain", LinkSharedLibrary.class);
-        // TODO - include only object files
-        link.source(compile.getObjectFileDirectory().getAsFileTree());
+        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - need to set basename and soname
-        String linkFileName = platformToolChain.getSharedLibraryLinkFileName("build/lib/" + project.getName());
-        Provider<RegularFile> runtimeFile = buildDirectory.file(project.getProviders().provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return platformToolChain.getSharedLibraryName("lib/" + project.getName());
-            }
-        }));
+        Provider<RegularFile> linkFile = buildDirectory.file(platformToolChain.getSharedLibraryLinkFileName("lib/" + project.getName()));
+        Provider<RegularFile> runtimeFile = buildDirectory.file(platformToolChain.getSharedLibraryName("lib/" + project.getName()));
         link.setOutputFile(runtimeFile);
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);
@@ -120,8 +127,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         linkElements.extendsFrom(implementation);
         linkElements.setCanBeResolved(false);
         linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should be lazy and reflect changes to task output file
-        linkElements.getOutgoing().artifact(project.file(linkFileName), new Action<ConfigurablePublishArtifact>() {
+        // TODO - should reflect changes to task output file
+        linkElements.getOutgoing().artifact(linkFile, new Action<ConfigurablePublishArtifact>() {
             @Override
             public void execute(ConfigurablePublishArtifact artifact) {
                 artifact.builtBy(link);
@@ -132,12 +139,6 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         runtimeElements.extendsFrom(implementation);
         runtimeElements.setCanBeResolved(false);
         runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        // TODO - should be lazy and reflect changes to task output file
-        runtimeElements.getOutgoing().artifact(link.getOutputFile(), new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(link);
-            }
-        });
+        runtimeElements.getOutgoing().artifact(link.getBinaryFile());
     }
 }

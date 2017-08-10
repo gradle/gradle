@@ -26,10 +26,13 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.filewatch.DefaultFileWatcherEventListener;
 import org.gradle.internal.filewatch.FileSystemChangeWaiter;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileWatcherEventListener;
-import org.gradle.internal.filewatch.FileWatcherEventListenerFactory;
+import org.gradle.internal.filewatch.PendingChangesListener;
+import org.gradle.internal.filewatch.SingleFirePendingChangesListener;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -46,17 +49,15 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     private final TaskInputsListener inputsListener;
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
-    private final FileWatcherEventListenerFactory changeWatcherFactory;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
-    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileSystemChangeWaiterFactory changeWaiterFactory, FileWatcherEventListenerFactory changeWatcherFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
+    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileSystemChangeWaiterFactory changeWaiterFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
         this.delegate = delegate;
         this.inputsListener = inputsListener;
         this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
         this.changeWaiterFactory = changeWaiterFactory;
-        this.changeWatcherFactory = changeWatcherFactory;
         this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.QUIET);
     }
 
@@ -69,7 +70,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         }
     }
 
-    private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices) {
+    private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices) {
         SingleMessageLogger.incubatingFeatureUsed("Continuous build");
 
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
@@ -94,7 +95,8 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                 logger.println("Change detected, executing build...").println();
             }
 
-            final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(cancellationToken);
+            PendingChangesListener pendingChangesListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(PendingChangesListener.class);
+            final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken);
             try {
                 try {
                     lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, waiter, buildSessionScopeServices);
@@ -112,7 +114,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                     cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
                         @Override
                         public void execute(BuildCancellationToken cancellationToken) {
-                            FileWatcherEventListener reporter = changeWatcherFactory.create();
+                            FileWatcherEventListener reporter = new DefaultFileWatcherEventListener();
                             waiter.wait(new Runnable() {
                                 @Override
                                 public void run() {

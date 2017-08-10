@@ -17,7 +17,9 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CppLib
 
 class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def app = new CppHelloWorldApp()
@@ -37,7 +39,7 @@ apply plugin: 'cpp-executable'
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme${rootProjectName}Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.allFiles*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreTools()
         project.targets.every { it.productName == rootProjectName }
@@ -60,7 +62,7 @@ apply plugin: 'cpp-library'
         executedAndNotSkipped(":xcodeProject", ":xcodeScheme${rootProjectName}SharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.allFiles*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreDynamicLibraries()
         project.targets.every { it.productName == rootProjectName }
@@ -80,7 +82,7 @@ apply plugin: 'cpp-executable'
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.allFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.files*.name)
 
         when:
         app.writeSources(file('src/main'))
@@ -88,7 +90,7 @@ apply plugin: 'cpp-executable'
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.allFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
     def "deleted source files are not included in the project"() {
@@ -103,7 +105,7 @@ apply plugin: 'cpp-executable'
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.allFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
 
         when:
         file('src/main').deleteDir()
@@ -112,6 +114,48 @@ apply plugin: 'cpp-executable'
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.allFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.files*.name)
+    }
+
+    def "executable source files in a non-default location are included in the project"() {
+        given:
+        buildFile << """
+apply plugin: 'cpp-executable'
+
+executable {
+    source.from 'Sources'
+}
+"""
+
+        when:
+        def app = new CppApp()
+        app.headers.writeToProject(testDirectory)
+        app.sources.writeToSourceDir(file('Sources'))
+        succeeds("xcode")
+
+        then:
+        xcodeProject("${rootProjectName}.xcodeproj").projectFile
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+    }
+
+    def "library source files in a non-default location are included in the project"() {
+        given:
+        buildFile << """
+apply plugin: 'cpp-library'
+
+library {
+    source.from 'Sources'
+}
+"""
+
+        when:
+        def lib = new CppLib()
+        lib.headers.writeToProject(testDirectory)
+        lib.sources.writeToSourceDir(file('Sources'))
+        succeeds("xcode")
+
+        then:
+        xcodeProject("${rootProjectName}.xcodeproj").projectFile
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
     }
 }

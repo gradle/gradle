@@ -33,9 +33,6 @@ configurations {
 
 jmh {
     includeTests = false
-    warmupIterations = 10
-    threads = 2
-    synchronizeIterations = false
-    fork = 4
+    resultFormat = 'CSV'
 }
 

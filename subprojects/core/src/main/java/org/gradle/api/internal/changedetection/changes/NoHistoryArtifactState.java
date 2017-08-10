@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -25,7 +24,10 @@ import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBu
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
 
+import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
     @Override
@@ -72,12 +74,13 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public FileCollection getOutputFiles() {
-        return null;
+    public Set<File> getOutputFiles() {
+        return Collections.emptySet();
     }
 
     @Override
     public OverlappingOutputs getOverlappingOutputs() {
         return null;
     }
+
 }

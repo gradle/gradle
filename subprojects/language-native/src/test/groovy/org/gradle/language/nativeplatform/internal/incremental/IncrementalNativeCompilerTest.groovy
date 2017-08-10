@@ -17,11 +17,11 @@ package org.gradle.language.nativeplatform.internal.incremental
 
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
+import com.google.common.collect.Sets
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.toolchain.Clang
@@ -87,7 +87,7 @@ class IncrementalNativeCompilerTest extends Specification {
 
         then:
         1 * spec.getObjectFileDir() >> outputFile.parentFile
-        1 * outputs.previousOutputFiles >> new SimpleFileCollection(outputFile)
+        1 * outputs.previousOutputFiles >> Sets.newHashSet(outputFile)
         0 * spec._
         1 * delegateCompiler.execute(spec) >> new SimpleWorkResult(false)
 

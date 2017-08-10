@@ -53,6 +53,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             h2().text(String.format("Test: %s", testHistory.getDisplayName())).end();
             text(getReproductionInstructions(testHistory));
             p().text("Tasks: " + getTasks(testHistory)).end();
+            p().text("Clean tasks: " + getCleanTasks(testHistory)).end();
 
             addPerformanceGraph("Average total time", "totalTimeChart", "totalTime", "total time", "s");
 
@@ -65,6 +66,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 th().text("Scenario").end();
                 th().text("Test project").end();
                 th().text("Tasks").end();
+                th().text("Clean tasks").end();
                 th().text("Gradle args").end();
                 th().text("Gradle JVM args").end();
                 th().text("Daemon").end();
@@ -74,6 +76,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                     textCell(scenario.getDisplayName());
                     textCell(scenario.getTestProject());
                     textCell(scenario.getTasks());
+                    textCell(scenario.getCleanTasks());
                     textCell(scenario.getArgs());
                     textCell(scenario.getGradleOpts());
                     textCell(scenario.getDaemon());
@@ -102,6 +105,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             th().text("JVM").end();
             th().text("Test project").end();
             th().text("Tasks").end();
+            th().text("Clean tasks").end();
             th().text("Gradle args").end();
             th().text("Gradle JVM opts").end();
             th().text("Daemon").end();
@@ -130,6 +134,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 textCell(results.getJvm());
                 textCell(results.getTestProject());
                 textCell(results.getTasks());
+                textCell(results.getCleanTasks());
                 textCell(results.getArgs());
                 textCell(results.getGradleOpts());
                 textCell(results.getDaemon());
@@ -183,16 +188,28 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         };
     }
 
-    private String getTasks(PerformanceTestHistory testHistory) {
-        List<? extends PerformanceTestExecution> executions = testHistory.getExecutions();
-        if (executions.isEmpty()) {
-            return "";
-        }
-        PerformanceTestExecution performanceTestExecution = executions.get(0);
+    private static String getTasks(PerformanceTestHistory testHistory) {
+        PerformanceTestExecution performanceTestExecution = getExecution(testHistory);
         if (performanceTestExecution == null || performanceTestExecution.getTasks() == null) {
             return "";
         }
         return Joiner.on(" ").join(performanceTestExecution.getTasks());
+    }
+
+    private static String getCleanTasks(PerformanceTestHistory testHistory) {
+        PerformanceTestExecution performanceTestExecution = getExecution(testHistory);
+        if (performanceTestExecution == null || performanceTestExecution.getCleanTasks() == null) {
+            return "";
+        }
+        return Joiner.on(" ").join(performanceTestExecution.getCleanTasks());
+    }
+
+    private static PerformanceTestExecution getExecution(PerformanceTestHistory testHistory) {
+        List<? extends PerformanceTestExecution> executions = testHistory.getExecutions();
+        if (executions.isEmpty()) {
+            return null;
+        }
+        return executions.get(0);
     }
 
     private String getReproductionInstructions(PerformanceTestHistory history) {

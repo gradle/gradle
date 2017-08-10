@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -54,8 +55,9 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
                 .toType(ConfigurablePublishArtifact.class)
                 .converter(new DecoratingConverter())
                 .converter(new ArchiveTaskNotationConverter())
-                .converter(new FileMapNotationConverter(fileConverter))
+                .converter(new FileProviderNotationConverter())
                 .converter(fileConverter)
+                .converter(new FileMapNotationConverter(fileConverter))
                 .toComposite();
     }
 
@@ -93,8 +95,31 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
             this.fileConverter = fileConverter;
         }
 
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Maps with 'file' key");
+        }
+
         protected PublishArtifact parseMap(@MapKey("file") File file) {
             return fileConverter.parseType(file);
+        }
+    }
+
+    private class FileProviderNotationConverter extends TypedNotationConverter<Provider, ConfigurablePublishArtifact> {
+        FileProviderNotationConverter() {
+            super(Provider.class);
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Instances of Provider<RegularFile>");
+            visitor.candidate("Instances of Provider<Directory>");
+        }
+
+        @Override
+        protected ConfigurablePublishArtifact parseType(Provider notation) {
+            Module module = metaDataProvider.getModule();
+            return instantiator.newInstance(DecoratingPublishArtifact.class, new LazyPublishArtifact(notation, module.getVersion()));
         }
     }
 
@@ -107,8 +132,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         protected ConfigurablePublishArtifact parseType(File file) {
             Module module = metaDataProvider.getModule();
             ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
-            return instantiator.newInstance(DefaultPublishArtifact.class, taskResolver, artifactFile.getName(), artifactFile.getExtension(),
-                artifactFile.getExtension(), artifactFile.getClassifier(), null, file, new Task[0]);
+            return instantiator.newInstance(DefaultPublishArtifact.class, taskResolver, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file, new Task[0]);
         }
     }
 }

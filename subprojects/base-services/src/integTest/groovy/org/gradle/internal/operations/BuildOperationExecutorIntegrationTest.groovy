@@ -77,6 +77,7 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/2622")
     def "build operations have unique ids within the global scope"() {
         when:
+        settingsFile << ""
         buildFile << """
             import org.gradle.internal.operations.BuildOperationExecutor
             
@@ -85,11 +86,17 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
                     file(resultFile) << gradle.services.get(BuildOperationExecutor).currentOperation.id
                 }
             }
+            
+            task build1(type: GradleBuild) {
+                tasks = ['checkOpId']
+                startParameter.projectProperties = [resultFile: 'build1result.txt']
+            }
+            task build2(type: GradleBuild) {
+                tasks = ['checkOpId']
+                startParameter.projectProperties = [resultFile: 'build2result.txt']
+            }
         """
-        executer.withArguments("-PresultFile=build1result.txt")
-        succeeds "checkOpId"
-        executer.withArguments("-PresultFile=build2result.txt")
-        succeeds "checkOpId"
+        succeeds "build1", "build2"
 
         then:
         file("build1result.txt").text != file("build2result.txt").text

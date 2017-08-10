@@ -151,7 +151,7 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec 
             apply plugin: 'java'
             
             repositories {
-                mavenCentral()
+                jcenter()
             }
             
             dependencies {

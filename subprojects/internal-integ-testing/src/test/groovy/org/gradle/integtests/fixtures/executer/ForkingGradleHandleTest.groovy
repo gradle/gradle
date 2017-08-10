@@ -37,7 +37,7 @@ class ForkingGradleHandleTest extends Specification {
     def forkingGradleHandle = new ForkingGradleHandle(null, false, resultAssertion, 'UTF-8', null, null)
 
     def setup() {
-        forkingGradleHandle.execHandle = execHandle
+        forkingGradleHandle.execHandleRef.set(execHandle)
     }
 
     def "wait for finish for successful execution"() {
@@ -135,14 +135,14 @@ java.lang.IllegalArgumentException: The exception message
 
     static String createUnexpectedBuildFailureMessage(String failureResult, String executionResultMessage) {
         """Gradle execution $failureResult in $EXEC_HANDLE_DIR with: $EXEC_HANDLE_CMD $EXEC_HANDLE_ARGS
+Process ExecResult:
+$executionResultMessage
+-----
 Output:
 
 -----
 Error:
 
------
-Execution result:
-$executionResultMessage
 -----
 """
     }

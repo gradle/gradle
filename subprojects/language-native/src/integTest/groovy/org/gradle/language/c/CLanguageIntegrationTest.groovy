@@ -98,7 +98,7 @@ class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
     def "uses headers co-located with sources"() {
         given:
         // Write headers so they sit with sources
-        helloWorldApp.allFiles.each {
+        helloWorldApp.files.each {
             it.writeToFile(file("src/main/c/${it.name}"))
         }
         buildFile << """

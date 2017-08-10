@@ -43,7 +43,7 @@ public class PlayApplicationRunner {
         process.getConnection().connect();
         PlayAppLifecycleUpdate result = clientCallBack.waitForRunning();
         if (result.isRunning()) {
-            return new PlayApplicationRunnerToken(workerServer, clientCallBack, process);
+            return new PlayApplicationRunnerToken(workerServer, clientCallBack, process, result.getAddress());
         } else {
             throw new GradleException("Unable to start Play application.", result.getException());
         }

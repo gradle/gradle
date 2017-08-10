@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
@@ -56,8 +57,12 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
         }
 
-        describer.type(DIRECTORY_BUILD_CACHE_TYPE).config("location", target.getAbsolutePath());
+        long targetSizeInMB = configuration.getTargetSizeInMB();
+        String humanReadableCacheSize = FileUtils.byteCountToDisplaySize(targetSizeInMB *1024*1024);
+        describer.type(DIRECTORY_BUILD_CACHE_TYPE).
+            config("location", target.getAbsolutePath()).
+            config("targetSize", humanReadableCacheSize);
 
-        return new DirectoryBuildCacheService(cacheRepository, buildOperationExecutor, target, configuration.getTargetSizeInMB());
+        return new DirectoryBuildCacheService(cacheRepository, buildOperationExecutor, target, targetSizeInMB);
     }
 }

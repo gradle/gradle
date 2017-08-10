@@ -72,6 +72,30 @@
             "type": "org.gradle.testkit.runner.fixtures.FunctionalTestSupportTrait$Trait$FieldHelper",
             "member": "Method org.gradle.testkit.runner.fixtures.FunctionalTestSupportTrait$Trait$FieldHelper.org_gradle_testkit_runner_fixtures_FunctionalTestSupportTrait__delegate$set(org.gradle.testkit.runner.fixtures.FunctionalTestSupport)",
             "acceptation": "Functional test fixture needs to be written in Groovy to support Groovy-based tests"
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftExecutablePlugin",
+            "member": "Constructor SwiftExecutablePlugin",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.cpp.plugins.CppExecutablePlugin",
+            "member": "Constructor CppExecutablePlugin",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.cpp.plugins.CppLibraryPlugin",
+            "member": "Constructor CppLibraryPlugin",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }

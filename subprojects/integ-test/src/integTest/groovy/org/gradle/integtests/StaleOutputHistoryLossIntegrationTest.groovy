@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.junit.Assume
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -43,11 +43,13 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << "apply plugin: 'base'\n"
+        // Update mostRecentFinalReleaseExecuter as soon as 4.2 is released
+        assert releasedVersionDistributions.mostRecentFinalRelease.version < GradleVersion.version("4.2")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/821")
     @Unroll
-    def "production sources files are removed in a single project build for #description"() {
+    def "production class files are removed in a single project build for #description"() {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory, buildDirName)
         buildFile << "apply plugin: 'java'"
@@ -85,6 +87,41 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         buildDirName | defaultDir | description
         'build'      | true       | 'default build directory'
         'out'        | false      | 'reconfigured build directory'
+    }
+
+    def "production class files outside of 'build' are removed"() {
+        given:
+        def javaProject = new StaleOutputJavaProject(testDirectory, 'out')
+        buildFile << """
+            apply plugin: 'java'
+            
+            sourceSets {
+                main {
+                    java.outputDir = file('out/classes/java/main')
+                }
+            }
+        """.stripIndent()
+
+        when:
+        result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
+
+        then:
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertIsFile()
+
+        when:
+        forceDelete(javaProject.redundantSourceFile)
+        succeeds JAR_TASK_NAME
+
+        then:
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertDoesNotExist()
+
+        when:
+        succeeds JAR_TASK_NAME
+
+        then:
+        javaProject.assertBuildTasksSkipped(result)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1274")
@@ -128,7 +165,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     // We register the output directory before task execution and would have deleted output files at the end of configuration.
     @Issue("https://github.com/gradle/gradle/issues/821")
-    def "production sources files are removed even if output directory is reconfigured during execution phase"() {
+    def "production class files are removed even if output directory is reconfigured during execution phase"() {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory)
         buildFile << """
@@ -173,10 +210,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/821")
-    def "production sources files are removed in a multi-project build executed #description"(String[] arguments, String description) {
+    def "production class files are removed in a multi-project build executed #description"(String[] arguments, String description) {
         given:
-        Assume.assumeFalse("This doesn't work with configure on demand since not all projects are configured, so not all outputs are registered.", arguments.contains("--configure-on-demand"))
-
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
@@ -213,15 +248,15 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         succeeds arguments
 
         where:
-        arguments                                                | description
-        [JAR_TASK_NAME]                                          | 'without additional argument'
-        [JAR_TASK_NAME, '--parallel']                            | 'in parallel'
-        [JAR_TASK_NAME, '--parallel', '--configure-on-demand']   | 'in parallel and configure on demand enabled'
+        arguments                                              | description
+        [JAR_TASK_NAME]                                        | 'without additional argument'
+        [JAR_TASK_NAME, '--parallel']                          | 'in parallel'
+        [JAR_TASK_NAME, '--parallel', '--configure-on-demand'] | 'in parallel and configure on demand enabled'
     }
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/821")
-    def "production sources files are removed in a multi-project build executed when a single project is built #description"(String singleTask, List arguments, String description) {
+    def "production class files are removed in a multi-project build executed when a single project is built #description"(String singleTask, List arguments, String description) {
         given:
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
@@ -349,7 +384,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertIsFile()
     }
 
-    @NotYetImplemented // We don't clean anything which is not safe to delete
+    @NotYetImplemented
+    // We don't clean anything which is not safe to delete
     def "tasks have output directories outside of build directory"() {
         given:
         def sourceFile1 = file('source/source1.txt')

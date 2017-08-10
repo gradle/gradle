@@ -17,6 +17,13 @@ dependencies {
     implementation libraries.jcip
 }
 
+jmh {
+    threads = 2
+    warmupIterations = 10
+    synchronizeIterations = false
+    fork = 4
+}
+
 task buildReceiptResource(type: Copy) {
     from {
         tasks.getByPath(':createBuildReceipt').outputs.files

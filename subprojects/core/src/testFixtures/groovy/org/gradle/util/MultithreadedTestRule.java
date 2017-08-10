@@ -124,7 +124,7 @@ public class MultithreadedTestRule extends ExternalResource {
         return start(task).waitFor();
     }
 
-    protected ThreadHandle expectTimesOut(int value, TimeUnit units, Closure closure) {
+    public ThreadHandle expectTimesOut(int value, TimeUnit units, Closure closure) {
         Date start = new Date();
         ThreadHandle threadHandle = start(closure);
         threadHandle.waitFor();

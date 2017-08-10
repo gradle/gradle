@@ -30,7 +30,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
     private static final String SERVER_RESOURCE_2 = 'test-2'
 
     @Rule
-    BlockingHttpServer server = new BlockingHttpServer(40000)
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         server.start()
@@ -84,6 +84,27 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         gradleHandle.waitForFinish()
     }
 
+    def "shows abbreviated package when qualified test class is longer than 60 characters"() {
+        given:
+        buildFile << testableJavaProject()
+        file('src/test/java/org/gradle/AdvancedJavaPackageAbbreviatingClassFunctionalTest.java') << junitTest('AdvancedJavaPackageAbbreviatingClassFunctionalTest', SERVER_RESOURCE_1)
+        file('src/test/java/org/gradle/EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest.java') << junitTest('EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest', SERVER_RESOURCE_2)
+        def testExecution = server.expectConcurrentAndBlock(SERVER_RESOURCE_1, SERVER_RESOURCE_2)
+
+        when:
+        def gradleHandle = executer.withTasks('test').start()
+        testExecution.waitForAllPendingCalls()
+
+        then:
+        ConcurrentTestUtil.poll {
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', 'org...AdvancedJavaPackageAbbreviatingClassFunctionalTest')
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', '...EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest')
+        }
+
+        testExecution.releaseAll()
+        gradleHandle.waitForFinish()
+    }
+
     private String junitTest(String testClassName, String serverResource) {
         """
             package org.gradle;
@@ -104,7 +125,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
             apply plugin: 'java'
             
             repositories {
-                mavenCentral()
+                jcenter()
             }
             
             dependencies {

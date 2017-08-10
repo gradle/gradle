@@ -17,12 +17,15 @@
 package org.gradle.play.internal.twirl;
 
 import org.gradle.language.twirl.TwirlImports;
+import org.gradle.language.twirl.TwirlTemplateFormat;
+import org.gradle.language.twirl.internal.DefaultTwirlTemplateFormat;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Collection;
 
 class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
     private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.templates");
@@ -78,12 +81,12 @@ class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
     }
 
     @Override
-    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return new Object[] {
                 file,
                 sourceDirectory,
                 destinationDirectory,
-                "play.api.templates.HtmlFormat",
+                templateFormat.getFormatType(),
                 defaultImports == TwirlImports.JAVA ? DEFAULT_JAVA_IMPORTS : DEFAULT_SCALA_IMPORTS
         };
     }
@@ -96,5 +99,15 @@ class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
     @Override
     public String getDependencyNotation() {
         return "com.typesafe.play:templates-compiler_" + scalaVersion + ":" + twirlVersion;
+    }
+
+    @Override
+    public Collection<TwirlTemplateFormat> getDefaultTemplateFormats() {
+        return Arrays.<TwirlTemplateFormat>asList(
+            new DefaultTwirlTemplateFormat("html", "play.api.templates.HtmlFormat"),
+            new DefaultTwirlTemplateFormat("txt", "play.api.templates.TxtFormat"),
+            new DefaultTwirlTemplateFormat("xml", "play.api.templates.XmlFormat"),
+            new DefaultTwirlTemplateFormat("js", "play.api.templates.JavaScriptFormat")
+        );
     }
 }

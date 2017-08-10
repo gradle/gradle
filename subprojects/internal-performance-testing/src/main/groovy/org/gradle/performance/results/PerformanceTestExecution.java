@@ -59,6 +59,12 @@ public interface PerformanceTestExecution {
     List<String> getTasks();
 
     /**
+     * The clean tasks executed. Null if not known or not constant for all experiments
+     */
+    @Nullable
+    List<String> getCleanTasks();
+
+    /**
      * The Gradle arguments. Null if not known or not constant for all experiments
      */
     @Nullable

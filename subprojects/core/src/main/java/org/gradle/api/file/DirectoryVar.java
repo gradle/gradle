@@ -58,7 +58,7 @@ public interface DirectoryVar extends Provider<Directory>, PropertyState<Directo
     /**
      * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.
      *
-     * @param path The path. Can be absolute.
+     * @param path The path. Can have a value that is an absolute path.
      * @return The directory.
      */
     Provider<Directory> dir(Provider<? extends CharSequence> path);
@@ -67,15 +67,15 @@ public interface DirectoryVar extends Provider<Directory>, PropertyState<Directo
      * Returns a {@link RegularFile} whose value is the given path resolved relative to the value of this directory.
      *
      * @param path The path. Can be absolute.
-     * @return The directory.
+     * @return The file.
      */
     Provider<RegularFile> file(String path);
 
     /**
      * Returns a {@link RegularFile} whose value is the given path resolved relative to the value of this directory.
      *
-     * @param path The path. Can be absolute.
-     * @return The directory.
+     * @param path The path. Can have a value that is an absolute path.
+     * @return The file.
      */
     Provider<RegularFile> file(Provider<? extends CharSequence> path);
 }

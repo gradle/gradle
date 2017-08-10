@@ -49,6 +49,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
+        result.local.config.targetSize == "5 GB"
         result.local.type == 'directory'
         result.local.push == true
 

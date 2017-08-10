@@ -638,8 +638,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <ul>
      *
-     * <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory. A string
-     * that starts with {@code file:} is treated as a file URL.</li>
+     * <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory. A string that starts with {@code file:} is treated as a file URL.</li>
      *
      * <li>A {@link File}. If the file is an absolute file, it is returned as is. Otherwise, the file's path is
      * interpreted relative to the project directory.</li>
@@ -712,15 +711,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned collection.</li>
      *
-     * <li>A {@link Provider} of any supported type. The provider's value is recursively converted to files.
+     * <li>A {@link Provider} of any supported type. The provider's value is recursively converted to files. If the provider represents an output of a task, that task is executed if the file collection is used as an input to another task.
      *
      * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
      *
      * <li>A {@link Closure} that returns any of the types listed here. The return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
      *
-     * <li>A {@link Task}. Converted to the task's output files.</li>
+     * <li>A {@link Task}. Converted to the task's output files. The task is executed if the file collection is used as an input to another task.</li>
      *
-     * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task.</li>
+     * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task. The task is executed if the file collection is used as an input to another task.</li>
      *
      * <li>Anything else is treated as a failure.</li>
      *
@@ -731,6 +730,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * of the collection is queried.</p>
      *
      * <p>The returned file collection maintains the iteration order of the supplied paths.</p>
+     *
+     * <p>The returned file collection maintains the details of the tasks that produce the files, so that these tasks are executed if this file collection is used as an input to some task.</p>
+     *
+     * <p>This method can also be used to create an empty collection, which can later be mutated to add elements.</p>
      *
      * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.

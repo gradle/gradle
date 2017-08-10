@@ -210,8 +210,8 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("tasks", "--info")
         then:
-        result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${file("buildSrc/local-cache")})."
-        result.assertOutputContains "Using local directory build cache for the root build (location = ${file("local-cache")})."
+        result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${file("buildSrc/local-cache")}, targetSize = 5 GB)."
+        result.assertOutputContains "Using local directory build cache for the root build (location = ${file("local-cache")}, targetSize = 5 GB)."
     }
 
     def "command-line --no-build-cache wins over system property"() {
@@ -273,7 +273,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("customTask", "--info")
         then:
-        result.assertOutputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}).")
+        result.assertOutputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}, targetSize = 5 GB).")
         and:
         !file("local-cache").listFiles().any { it.name ==~ /\p{XDigit}{32}/}
     }

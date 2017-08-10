@@ -62,7 +62,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         withBuildCache().succeeds "jacocoTestReport"
         then:
         skippedTasks.containsAll ":test", ":jacocoTestReport"
-        reportFile.assertHasNotChangedSince(snapshot)
+        reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 
     def "jacoco file results are not cached when sharing output with another task"() {

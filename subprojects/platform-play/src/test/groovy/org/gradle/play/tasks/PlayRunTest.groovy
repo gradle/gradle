@@ -53,10 +53,11 @@ class PlayRunTest extends Specification {
     def "can customize memory"() {
         given:
         1 * systemInputStream.read() >> 4
+        1 * runnerToken.isRunning() >> true
         playRun.forkOptions.memoryInitialSize = "1G"
         playRun.forkOptions.memoryMaximumSize = "5G"
         when:
-        playRun.run();
+        playRun.run()
         then:
         1 * playToolProvider.get(PlayApplicationRunner) >> playApplicationRunner
         1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
@@ -68,8 +69,9 @@ class PlayRunTest extends Specification {
 
     def "passes forkOptions never null"() {
         1 * systemInputStream.read() >> 4
+        1 * runnerToken.isRunning() >> true
         when:
-        playRun.run();
+        playRun.run()
         then:
         1 * playToolProvider.get(PlayApplicationRunner) >> playApplicationRunner
         1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->

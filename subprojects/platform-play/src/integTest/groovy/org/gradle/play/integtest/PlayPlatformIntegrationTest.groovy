@@ -143,7 +143,7 @@ model {
         fails "assemble"
 
         and:
-        failure.assertHasCause "Not a supported Play version: 2.1.0. This plugin is compatible with: [2.5.x, 2.4.x, 2.3.x, 2.2.x]."
+        failure.assertHasCause "Not a supported Play version: 2.1.0. This plugin is compatible with: [2.6.x, 2.5.x, 2.4.x, 2.3.x, 2.2.x]."
     }
 
     def "fails when trying to build for an invalid scala platform"() {

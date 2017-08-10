@@ -17,9 +17,8 @@
 package org.gradle.ide.xcode.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.ide.xcode.XcodeWorkspace;
-import org.gradle.ide.xcode.internal.DefaultXcodeProject;
-import org.gradle.ide.xcode.internal.DefaultXcodeWorkspace;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.Internal;
 import org.gradle.ide.xcode.tasks.internal.XcodeWorkspaceFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
@@ -32,12 +31,16 @@ import java.io.File;
  */
 @Incubating
 public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorkspaceFile> {
-    private DefaultXcodeWorkspace xcodeWorkspace;
+    private FileCollection xcodeProjectLocations;
+
+    public GenerateXcodeWorkspaceFileTask() {
+        this.xcodeProjectLocations = getProject().files();
+    }
 
     @Override
     protected void configure(XcodeWorkspaceFile workspaceFile) {
-        for (DefaultXcodeProject xcodeProject : xcodeWorkspace.getProjects()) {
-            workspaceFile.addLocation(xcodeProject.getLocationDir().getAbsolutePath());
+        for (File xcodeProjectDir : xcodeProjectLocations) {
+            workspaceFile.addLocation(xcodeProjectDir.getAbsolutePath());
         }
     }
 
@@ -46,8 +49,13 @@ public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorksp
         return new XcodeWorkspaceFile(getXmlTransformer());
     }
 
-    public void setXcodeWorkspace(XcodeWorkspace xcodeWorkspace) {
-        this.xcodeWorkspace = (DefaultXcodeWorkspace) xcodeWorkspace;
+    @Internal
+    public FileCollection getXcodeProjectLocations() {
+        return xcodeProjectLocations;
+    }
+
+    public void setXcodeProjectLocations(FileCollection xcodeProjectLocations) {
+        this.xcodeProjectLocations = xcodeProjectLocations;
     }
 
     @Override

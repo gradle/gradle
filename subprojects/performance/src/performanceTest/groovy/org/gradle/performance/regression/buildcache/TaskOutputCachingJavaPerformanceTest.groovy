@@ -22,6 +22,7 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.InvocationSpec
+import org.gradle.performance.generator.JavaTestProject
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
@@ -29,11 +30,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 @Unroll
+@Ignore
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
     private TestFile cacheDir
@@ -75,9 +78,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
     }
 
     def "clean #tasks on #testProject with remote http cache"() {
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ')
+        setupTestProject(testProject, tasks)
         protocol = "http"
         pushToRemote = true
         runner.addBuildExperimentListener(cleanLocalCache())
@@ -93,10 +94,8 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
     }
 
     def "clean #tasks on #testProject with remote https cache"() {
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ')
-        firstWarmupWithCache = 3 // Do one run without the cache to populate the dependency cache from maven central
+        setupTestProject(testProject, tasks)
+        firstWarmupWithCache = 2 // Do one run without the cache to populate the dependency cache from maven central
         protocol = "https"
         pushToRemote = true
         runner.addBuildExperimentListener(cleanLocalCache())
@@ -135,9 +134,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
 
     def "clean #tasks on #testProject with empty local cache"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ')
+        setupTestProject(testProject, tasks)
         runner.warmUpRuns = 6
         runner.runs = 8
         pushToRemote = false
@@ -155,9 +152,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
 
     def "clean #tasks on #testProject with empty remote http cache"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ')
+        setupTestProject(testProject, tasks)
         runner.warmUpRuns = 6
         runner.runs = 8
         pushToRemote = true
@@ -179,9 +174,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         if (!parallel) {
             runner.previousTestIds = ["clean $tasks on $testProject with local cache"]
         }
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ') as List
+        setupTestProject(testProject, tasks)
         if (parallel) {
             runner.args += "--parallel"
         }
@@ -194,15 +187,16 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        [testProject, tasks] << scenarios * 2
-        parallel << [true] * scenarios.size() + [false] * scenarios.size()
+        testScenario << [scenarios, [true, false]].combinations()
+        projectInfo = testScenario[0]
+        parallel = testScenario[1]
+        testProject = projectInfo[0]
+        tasks = projectInfo[1]
     }
 
     def "clean #tasks for abi change on #testProject with local cache (parallel: true)"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ') as List
+        setupTestProject(testProject, tasks)
         runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
         runner.args += "--parallel"
         pushToRemote = false
@@ -214,14 +208,14 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
+        // We only test the multiproject here since for the monolitic project we would have no cache hits.
+        // This would mean we actually would test incremental compilation.
         [testProject, tasks] << [[LARGE_JAVA_MULTI_PROJECT, 'assemble']]
     }
 
     def "clean #tasks for non-abi change on #testProject with local cache (parallel: true)"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ') as List
+        setupTestProject(testProject, tasks)
         runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
         runner.args += "--parallel"
         pushToRemote = false
@@ -233,6 +227,8 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
+        // We only test the multiproject here since for the monolitic project we would have no cache hits.
+        // This would mean we actually would test incremental compilation.
         [testProject, tasks] << [[LARGE_JAVA_MULTI_PROJECT, 'assemble']]
     }
 
@@ -240,9 +236,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (isCleanupRun(invocationInfo)) {
-                    cacheDir.deleteDir().mkdirs()
-                }
+                cacheDir.deleteDir().mkdirs()
             }
         }
     }
@@ -251,9 +245,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (isCleanupRun(invocationInfo)) {
-                    buildCacheServer.cacheDir.deleteDir().mkdirs()
-                }
+                buildCacheServer.cacheDir.deleteDir().mkdirs()
             }
         }
     }
@@ -272,4 +264,12 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
             }
         """.stripIndent()
     }
+
+    private def setupTestProject(JavaTestProject testProject, String tasks) {
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.tasksToRun = tasks.split(' ') as List
+        runner.cleanTasks = ["clean"]
+    }
+
 }

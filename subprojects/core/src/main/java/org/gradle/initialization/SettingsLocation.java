@@ -16,8 +16,9 @@
 package org.gradle.initialization;
 
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.groovy.scripts.TextResourceScriptSource;
+import org.gradle.internal.resource.BasicTextResourceLoader;
+import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
 
@@ -27,9 +28,8 @@ public class SettingsLocation {
 
     public SettingsLocation(File settingsDir, File settingsFile) {
         this.settingsDir = settingsDir;
-        this.settingsScriptSource = settingsFile == null
-                ? new StringScriptSource("empty settings script", "")
-                : UriScriptSource.file("settings file", settingsFile);
+        TextResource settingsResource = new BasicTextResourceLoader().loadFile("settings file", settingsFile);
+        this.settingsScriptSource = new TextResourceScriptSource(settingsResource);
     }
 
     /**

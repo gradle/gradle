@@ -24,7 +24,7 @@ class PlayApplicationRunnerTokenTest extends Specification {
     def process = Mock(WorkerProcess)
     def client = Mock(PlayWorkerClient)
     def server = Mock(PlayRunWorkerServerProtocol)
-    def runnerToken = new PlayApplicationRunnerToken(server, client, process)
+    def runnerToken = new PlayApplicationRunnerToken(server, client, process, Mock(InetSocketAddress))
 
     def "stops all participants when stopped"() {
         when:
@@ -36,21 +36,21 @@ class PlayApplicationRunnerTokenTest extends Specification {
         1 * process.waitForStop()
     }
 
-    def "rebuildSuccess sends successful build result to server"() {
+    def "outOfDate forwards to server"() {
         when:
-        runnerToken.rebuildSuccess()
+        runnerToken.outOfDate()
 
         then:
-        1 * server.buildSuccess()
+        1 * server.outOfDate()
     }
 
-    def "rebuildFailure sends failure build result to server"() {
+    def "upToDate forwards to server"() {
         given:
         def failure = new Throwable()
         when:
-        runnerToken.rebuildFailure(failure)
+        runnerToken.upToDate(failure)
 
         then:
-        1 * server.buildError(failure)
+        1 * server.upToDate(failure)
     }
 }

@@ -23,21 +23,14 @@ import javax.inject.Inject;
 
 public class DefaultXcodeExtension implements XcodeExtension {
     private final DefaultXcodeProject project;
-    private final DefaultXcodeWorkspace workspace;
 
     @Inject
     public DefaultXcodeExtension(ObjectFactory objectFactory) {
         project = objectFactory.newInstance(DefaultXcodeProject.class);
-        workspace = objectFactory.newInstance(DefaultXcodeWorkspace.class);
     }
 
     @Override
     public DefaultXcodeProject getProject() {
         return project;
-    }
-
-    @Override
-    public DefaultXcodeWorkspace getWorkspace() {
-        return workspace;
     }
 }

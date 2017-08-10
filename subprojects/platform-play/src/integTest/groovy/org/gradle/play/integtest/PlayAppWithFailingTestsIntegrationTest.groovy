@@ -20,10 +20,12 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.play.integtest.fixtures.app.WithFailingTestsApp
+import org.gradle.util.VersionNumber
+import org.junit.Assume
 
 class PlayAppWithFailingTestsIntegrationTest extends PlayMultiVersionIntegrationTest {
 
-    PlayApp playApp = new WithFailingTestsApp();
+    PlayApp playApp = new WithFailingTestsApp()
 
     def setup() {
         playApp.writeSources(testDirectory)
@@ -39,6 +41,7 @@ model {
     }
 
     def "reports failing run play app tests"() {
+        Assume.assumeTrue(versionNumber < VersionNumber.parse("2.6.2"))
         when:
         fails("testPlayBinary")
         then:

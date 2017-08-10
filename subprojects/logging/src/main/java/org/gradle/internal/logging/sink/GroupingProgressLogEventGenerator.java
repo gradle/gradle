@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.sink;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
@@ -46,7 +45,7 @@ import java.util.concurrent.TimeUnit;
  * An {@code org.gradle.logging.internal.OutputEventListener} implementation which generates output events to log the
  * progress of operations.
  */
-public class GroupingProgressLogEventGenerator extends BatchOutputEventListener {
+public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
     private final OutputEventListener listener;

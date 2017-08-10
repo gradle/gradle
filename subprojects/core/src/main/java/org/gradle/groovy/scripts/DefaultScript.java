@@ -46,6 +46,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -102,6 +103,7 @@ public abstract class DefaultScript extends BasicScript {
             __scriptServices.get(ScriptPluginFactory.class),
             __scriptServices.get(ScriptHandlerFactory.class),
             classLoaderScope,
+            __scriptServices.get(TextResourceLoader.class),
             getScriptTarget()
         );
     }
