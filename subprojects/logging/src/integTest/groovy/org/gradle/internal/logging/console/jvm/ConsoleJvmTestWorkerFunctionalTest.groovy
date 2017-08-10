@@ -68,7 +68,8 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
     }
 
-    def "shows test class execution in work-in-progress area of console for multi-project build"() {
+    @Unroll
+    def "shows test class execution #description test class name in work-in-progress area of console for multi-project build"() {
         given:
         settingsFile << "include 'project1', 'project2'"
         buildFile << """
@@ -76,8 +77,8 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
                 ${testableJavaProject()}
             }
         """
-        file('project1/src/test/java/org/gradle/Test1.java') << junitTest('Test1', SERVER_RESOURCE_1)
-        file('project2/src/test/java/org/gradle/Test2.java') << junitTest('Test2', SERVER_RESOURCE_2)
+        file("project1/src/test/java/${testClass1.fileRepresentation}") << junitTest(testClass1.classNameWithoutPackage, SERVER_RESOURCE_1)
+        file("project2/src/test/java/${testClass2.fileRepresentation}") << junitTest(testClass2.classNameWithoutPackage, SERVER_RESOURCE_2)
         def testExecution = server.expectConcurrentAndBlock(SERVER_RESOURCE_1, SERVER_RESOURCE_2)
 
         when:
@@ -86,12 +87,17 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
         then:
         ConcurrentTestUtil.poll {
-            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project1:test', 'org.gradle.Test1')
-            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project2:test', 'org.gradle.Test2')
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project1:test', testClass1.renderedClassName)
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project2:test', testClass2.renderedClassName)
         }
 
         testExecution.releaseAll()
         gradleHandle.waitForFinish()
+
+        where:
+        testClass1                    | testClass2                    | description
+        JavaTestClass.PRESERVED_TEST1 | JavaTestClass.PRESERVED_TEST2 | 'preserved'
+        JavaTestClass.SHORTENED_TEST1 | JavaTestClass.SHORTENED_TEST2 | 'shortened'
     }
 
     private String junitTest(String testClassName, String serverResource) {
