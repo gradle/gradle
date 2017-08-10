@@ -111,7 +111,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
         // Use this thread to process any work - this should only actually process work if none of the
         // submitted workers make it onto the executor thread pool.
-        new WorkerRunnable().run();
+        try {
+            new WorkerRunnable().run();
+        } catch (Throwable t) {
+            addFailure(t);
+        }
 
         // Wait for any work still running in other threads
         while (workers.size() > 0) {
@@ -131,6 +135,15 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             if (!failures.isEmpty()) {
                 throw new MultipleBuildOperationFailures(getFailureMessage(failures), failures, logLocation);
             }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void addFailure(Throwable failure) {
+        lock.lock();
+        try {
+            failures.add(failure);
         } finally {
             lock.unlock();
         }
@@ -169,7 +182,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             try {
                 future.get();
             } catch (Exception e) {
-                worker.addFailure(e);
+                addFailure(e);
             }
         }
     }
@@ -234,15 +247,6 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 queueWorker.execute(operation);
             } catch (Throwable t) {
                 addFailure(t);
-            }
-        }
-
-        private void addFailure(Throwable failure) {
-            lock.lock();
-            try {
-                failures.add(failure);
-            } finally {
-                lock.unlock();
             }
         }
     }
