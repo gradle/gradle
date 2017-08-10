@@ -28,12 +28,12 @@ import org.junit.Before;
 import java.util.List;
 
 /**
- * Test fixture for functional testing with TestKit compatible with JUnit.
+ * Test fixture for functional testing with TestKit compatible with JUnit 4.x.
  *
  * @since 4.2
  */
 @Incubating
-public abstract class JUnitFunctionalTest implements FunctionalTestSupport {
+public abstract class JUnit4FunctionalTest implements FunctionalTestSupport {
 
     private final FunctionalTestSupport delegate = new DefaultFunctionalTestSupport(new JUnitTemporaryDirectoryProvider());
 

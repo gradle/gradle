@@ -27,7 +27,7 @@ class FixturesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
         file("src/test/java/EndUserFunctionalTest.java") << """
             import org.gradle.testkit.runner.BuildResult;
-            import org.gradle.testkit.runner.fixtures.JUnitFunctionalTest;
+            import org.gradle.testkit.runner.fixtures.JUnit4FunctionalTest;
 
             import org.junit.Test;
             
@@ -36,7 +36,7 @@ class FixturesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
             import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
             
-            public class EndUserFunctionalTest extends JUnitFunctionalTest {
+            public class EndUserFunctionalTest extends JUnit4FunctionalTest {
                 ${javaBasedTestCase()}
             }
         """

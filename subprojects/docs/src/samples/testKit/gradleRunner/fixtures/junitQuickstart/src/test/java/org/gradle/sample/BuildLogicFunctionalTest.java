@@ -18,7 +18,7 @@ package org.gradle.sample;
 
 // START SNIPPET functional-test-junit-fixture
 import org.gradle.testkit.runner.BuildResult;
-import org.gradle.testkit.runner.fixtures.JUnitFunctionalTest;
+import org.gradle.testkit.runner.fixtures.JUnit4FunctionalTest;
 
 import org.junit.Test;
 
@@ -27,7 +27,7 @@ import static org.junit.Assert.assertTrue;
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
 
-public class BuildLogicFunctionalTest extends JUnitFunctionalTest {
+public class BuildLogicFunctionalTest extends JUnit4FunctionalTest {
     @Test
     public void testHelloWorldTask() {
         String buildFileContent = "task helloWorld {" +

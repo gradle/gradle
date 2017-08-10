@@ -27,7 +27,7 @@ import java.util.List;
  * Indicates functional test support for TestKit fixtures.
  *
  * @since 4.2
- * @see JUnitFunctionalTest
+ * @see JUnit4FunctionalTest
  * @see TestNGFunctionalTest
  * @see SpockFunctionalTest
  * @see FunctionalTestSupportTrait

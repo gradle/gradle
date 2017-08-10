@@ -371,7 +371,7 @@
                     <link linkend="http://junit.org/junit4/">JUnit 4</link>
                 </td>
                 <td>
-                    <apilink class="org.gradle.testkit.runner.fixtures.JUnitFunctionalTest"/>
+                    <apilink class="org.gradle.testkit.runner.fixtures.JUnit4FunctionalTest"/>
                 </td>
                 <td>Tests based on JUnit 4.x</td>
             </tr>
