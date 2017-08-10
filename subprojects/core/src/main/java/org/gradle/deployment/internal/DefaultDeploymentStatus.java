@@ -34,4 +34,12 @@ class DefaultDeploymentStatus implements Deployment.Status {
     public boolean hasChanged() {
         return changed;
     }
+
+    @Override
+    public String toString() {
+        return "DefaultDeploymentStatus{"
+            + "changed=" + changed
+            + ", failure=" + failure
+            + '}';
+    }
 }
