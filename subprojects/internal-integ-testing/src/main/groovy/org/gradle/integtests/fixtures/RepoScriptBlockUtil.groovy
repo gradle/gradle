@@ -22,58 +22,86 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepository() {
-        """repositories {
-               ${jcenterRepositoryDefinition()}
-           }
-        """
-    }
-
-    static String mavenCentralRepository() {
-        """repositories {
-               ${mavenCentralRepositoryDefinition()}
-           }
-        """
-    }
-
-    static String jcenterRepositoryDefinition() {
-        mavenRepositoryDefinition('org.gradle.integtest.mirrors.jcenter', 'jcenter-remote', 'jcenter()')
-    }
-
-    static mavenCentralRepositoryDefinition() {
-        mavenRepositoryDefinition('org.gradle.integtest.mirrors.mavencentral', 'repo1-remote', 'mavenCentral()')
-    }
-
-    static typesafeMavenRepositoryDefinition() {
-        String defaultRepo = '''
-           maven {
-               name "typesafe-maven-release"
-               url "https://repo.typesafe.com/typesafe/maven-releases"
-           }'''
-        mavenRepositoryDefinition('org.gradle.integtest.mirrors.typesafemaven', 'typesafe-maven-release-remote', defaultRepo)
-    }
-
-    static typesafeIvyRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafeivy')
-        repoUrl = repoUrl ?: "https://repo.typesafe.com/typesafe/ivy-releases"
-        """
-            ivy {
-                name "typesafe-ivy-release"
-                url ${repoUrl}
-                layout "ivy"
+        return """
+            repositories {
+                ${jcenterRepositoryDefinition()}
             }
         """
     }
 
-    private static mavenRepositoryDefinition(String repoUrlProperty, String repoName, String defaultRepo) {
-        String repoUrl = System.getProperty(repoUrlProperty)
+    static String mavenCentralRepository() {
+        return """
+            repositories {
+                ${mavenCentralRepositoryDefinition()}
+            }
+        """
+    }
+
+    static String jcenterRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.jcenter')
         if (repoUrl) {
-            """maven {
-                   name '${repoName}'
-                   url '${repoUrl}'
-               }
+            return """
+                maven {
+                    name "jcenter-remote"
+                    url "${repoUrl}"
+                }
             """
         } else {
-            defaultRepo
+            return 'jcenter()'
+        }
+    }
+
+    static String mavenCentralRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.mavencentral')
+        if (repoUrl) {
+            return """
+                maven {
+                    name "repo1-remote"
+                    url "${repoUrl}"
+                }
+            """
+        } else {
+            return 'mavenCentral()'
+        }
+    }
+
+    static String typesafeMavenRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafemaven')
+        if (repoUrl) {
+            return """
+                maven {
+                    name "typesafe-maven-release-remote'"
+                    url "${repoUrl}"
+                }
+            """
+        } else {
+            return """
+                maven {
+                    name "typesafe-maven-release"
+                    url "https://repo.typesafe.com/typesafe/maven-releases"
+                }
+            """
+        }
+    }
+
+    static String typesafeIvyRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafeivy')
+        if (repoUrl) {
+            return """
+                ivy {
+                    name "typesafe-ivy-release-remote"
+                    url "${repoUrl}"
+                    layout "ivy"
+                }
+            """
+        } else {
+            return """
+                ivy {
+                    name "typesafe-ivy-release"
+                    url "https://repo.typesafe.com/typesafe/ivy-releases"
+                    layout "ivy"
+                }
+            """
         }
     }
 }

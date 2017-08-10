@@ -35,12 +35,14 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {
         file('settings.gradle') << 'rootProject.name = "sharedSource"'
-        file('build.gradle') << """
+        file('build.gradle') << '''
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'scala'
 
-${mavenCentralRepository()}
+repositories {
+    mavenCentral()
+}
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.10'
     compile 'org.scala-lang:scala-library:2.11.1'
@@ -62,7 +64,7 @@ sourceSets.each {
         scala.include "org/gradle/$name/**/*.scala"
     }
 }
-"""
+'''
         file('src/org/gradle/main/resource.txt') << 'some text'
         file('src/org/gradle/test/resource.txt') << 'some text'
         file('src/resources/org/gradle/main/resource2.txt') << 'some text'

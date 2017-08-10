@@ -167,11 +167,11 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
     def canUseTestSuperClassesFromAnotherProject() {
         given:
         testDirectory.file('settings.gradle').write("include 'a', 'b'")
-        testDirectory.file('b/build.gradle') << """
+        testDirectory.file('b/build.gradle') << '''
             apply plugin: 'java'
-            ${mavenCentralRepository()}
+            repositories { mavenCentral() }
             dependencies { compile 'junit:junit:4.12' }
-        """
+        '''
         testDirectory.file('b/src/main/java/org/gradle/AbstractTest.java') << '''
             package org.gradle;
             public abstract class AbstractTest {
@@ -179,11 +179,11 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
         TestFile buildFile = testDirectory.file('a/build.gradle')
-        buildFile << """
+        buildFile << '''
             apply plugin: 'java'
-            ${mavenCentralRepository()}
+            repositories { mavenCentral() }
             dependencies { testCompile project(':b') }
-        """
+        '''
         testDirectory.file('a/src/test/java/org/gradle/SomeTest.java') << '''
             package org.gradle;
             public class SomeTest extends AbstractTest {
@@ -202,12 +202,12 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
     def canExcludeSuperClassesFromExecution() {
         given:
         TestFile buildFile = testDirectory.file('build.gradle')
-        buildFile << """
+        buildFile << '''
             apply plugin: 'java'
-            ${mavenCentralRepository()}
+            repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
             test { exclude '**/BaseTest.*' }
-        """
+        '''
         testDirectory.file('src/test/java/org/gradle/BaseTest.java') << '''
             package org.gradle;
             public class BaseTest {
@@ -257,7 +257,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
         given:
         testDirectory.file('build.gradle').writelns(
                 "apply plugin: 'java'",
-                "${mavenCentralRepository()}",
+                "repositories { mavenCentral() }",
                 "dependencies { compile 'junit:junit:4.12' }"
         )
         testDirectory.file('src/test/java/org/gradle/AbstractTest.java').writelns(
@@ -292,7 +292,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
         given:
         testDirectory.file('build.gradle').writelns(
                 "apply plugin: 'java'",
-                "${mavenCentralRepository()}",
+                "repositories { mavenCentral() }",
                 "dependencies { compile 'junit:junit:4.12' }",
                 "test.forkEvery = 1"
         )
@@ -344,9 +344,9 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
                 "}"
         )
 
-        testDirectory.file('build.gradle') << """
+        testDirectory.file('build.gradle') << '''
             apply plugin: 'java'
-            ${mavenCentralRepository()}
+            repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
             def listener = new TestListenerImpl()
             test.addTestListener(listener)
@@ -357,7 +357,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
                 void beforeTest(TestDescriptor test) { println "START [$test] [$test.name]" }
                 void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.resultType] [$result.testCount] [$result.exception]" }
             }
-        """
+        '''
 
         when:
         ExecutionResult result = executer.withTasks("test").run()
@@ -394,9 +394,9 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
                 "}"
         )
 
-        testDirectory.file('build.gradle') << """
+        testDirectory.file('build.gradle') << '''
             apply plugin: 'java'
-            ${mavenCentralRepository()}
+            repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:3.8' }
             def listener = new TestListenerImpl()
             test.addTestListener(listener)
@@ -407,7 +407,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
                 void beforeTest(TestDescriptor test) { println "START [$test] [$test.name]" }
                 void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.exception]" }
             }
-        """
+        '''
 
         when:
         ExecutionResult result = executer.withTasks("test").run()

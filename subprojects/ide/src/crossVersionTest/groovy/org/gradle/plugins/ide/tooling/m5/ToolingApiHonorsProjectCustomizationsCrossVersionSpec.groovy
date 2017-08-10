@@ -101,7 +101,7 @@ sourceSets {
     }
 
     def "can enable download of Javadoc for external dependencies"() {
-        file('build.gradle').text = '''
+        file('build.gradle').text = """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 ${mavenCentralRepository()}
@@ -110,7 +110,7 @@ dependencies {
     runtime 'commons-io:commons-io:1.4'
 }
 eclipse { classpath { downloadJavadoc = true } }
-'''
+"""
 
         when:
         EclipseProject eclipseProject = loadToolingModel(EclipseProject)
