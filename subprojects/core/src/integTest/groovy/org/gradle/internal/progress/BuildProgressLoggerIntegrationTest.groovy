@@ -24,7 +24,7 @@ class BuildProgressLoggerIntegrationTest extends AbstractConsoleFunctionalSpec {
     private static final String SERVER_RESOURCE = 'test-resource'
 
     @Rule
-    BlockingHttpServer server = new BlockingHttpServer(40000)
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         server.start()
