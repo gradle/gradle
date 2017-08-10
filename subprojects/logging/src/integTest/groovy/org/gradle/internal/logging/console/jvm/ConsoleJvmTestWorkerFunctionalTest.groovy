@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 @IgnoreIf({ GradleContextualExecuter.isParallel() })
 class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
@@ -39,11 +40,12 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         server.start()
     }
 
-    def "shows test class execution in work-in-progress area of console for single project build"() {
+    @Unroll
+    def "shows test class execution #description test class name in work-in-progress area of console for single project build"() {
         given:
         buildFile << testableJavaProject()
-        file('src/test/java/org/gradle/Test1.java') << junitTest('Test1', SERVER_RESOURCE_1)
-        file('src/test/java/org/gradle/Test2.java') << junitTest('Test2', SERVER_RESOURCE_2)
+        file("src/test/java/${testClass1.fileRepresentation}") << junitTest(testClass1.classNameWithoutPackage, SERVER_RESOURCE_1)
+        file("src/test/java/${testClass2.fileRepresentation}") << junitTest(testClass2.classNameWithoutPackage, SERVER_RESOURCE_2)
         def testExecution = server.expectConcurrentAndBlock(SERVER_RESOURCE_1, SERVER_RESOURCE_2)
 
         when:
@@ -52,12 +54,18 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
         then:
         ConcurrentTestUtil.poll {
-            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', 'org.gradle.Test1')
-            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', 'org.gradle.Test2')
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', testClass1.renderedClassName)
+            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', testClass2.renderedClassName)
         }
 
         testExecution.releaseAll()
         gradleHandle.waitForFinish()
+
+        where:
+        testClass1                    | testClass2                    | description
+        JavaTestClass.PRESERVED_TEST1 | JavaTestClass.PRESERVED_TEST2 | 'preserved'
+        JavaTestClass.SHORTENED_TEST1 | JavaTestClass.SHORTENED_TEST2 | 'shortened'
+
     }
 
     def "shows test class execution in work-in-progress area of console for multi-project build"() {
@@ -80,27 +88,6 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         ConcurrentTestUtil.poll {
             assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project1:test', 'org.gradle.Test1')
             assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project2:test', 'org.gradle.Test2')
-        }
-
-        testExecution.releaseAll()
-        gradleHandle.waitForFinish()
-    }
-
-    def "shows abbreviated package when qualified test class is longer than 60 characters"() {
-        given:
-        buildFile << testableJavaProject()
-        file('src/test/java/org/gradle/AdvancedJavaPackageAbbreviatingClassFunctionalTest.java') << junitTest('AdvancedJavaPackageAbbreviatingClassFunctionalTest', SERVER_RESOURCE_1)
-        file('src/test/java/org/gradle/EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest.java') << junitTest('EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest', SERVER_RESOURCE_2)
-        def testExecution = server.expectConcurrentAndBlock(SERVER_RESOURCE_1, SERVER_RESOURCE_2)
-
-        when:
-        def gradleHandle = executer.withTasks('test').start()
-        testExecution.waitForAllPendingCalls()
-
-        then:
-        ConcurrentTestUtil.poll {
-            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', 'org...AdvancedJavaPackageAbbreviatingClassFunctionalTest')
-            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', '...EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest')
         }
 
         testExecution.releaseAll()
@@ -142,5 +129,32 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
     static boolean containsTestExecutionWorkInProgressLine(GradleHandle gradleHandle, String taskPath, String testName) {
         gradleHandle.standardOutput.contains(workInProgressLine("> $taskPath > Executing test $testName"))
+    }
+
+    private static class JavaTestClass {
+        public static final PRESERVED_TEST1 = new JavaTestClass('org.gradle.Test1', 'org.gradle.Test1')
+        public static final PRESERVED_TEST2 = new JavaTestClass('org.gradle.Test2', 'org.gradle.Test2')
+        public static final SHORTENED_TEST1 = new JavaTestClass('org.gradle.AdvancedJavaPackageAbbreviatingClassFunctionalTest', 'org...AdvancedJavaPackageAbbreviatingClassFunctionalTest')
+        public static final SHORTENED_TEST2 = new JavaTestClass('org.gradle.EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest', '...EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest')
+
+        private final String fullyQualifiedClassName
+        private final String renderedClassName
+
+        JavaTestClass(String fullyQualifiedClassName, String renderedClassName) {
+            this.fullyQualifiedClassName = fullyQualifiedClassName
+            this.renderedClassName = renderedClassName
+        }
+
+        String getFileRepresentation() {
+            fullyQualifiedClassName.replace('.', '/') + '.java'
+        }
+
+        String getClassNameWithoutPackage() {
+            fullyQualifiedClassName.substring(fullyQualifiedClassName.lastIndexOf('.') + 1, fullyQualifiedClassName.length())
+        }
+
+        String getRenderedClassName() {
+            renderedClassName
+        }
     }
 }
