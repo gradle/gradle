@@ -139,28 +139,28 @@ task check {
         private void handleGetIvy(HttpServletResponse response) {
             println "* GET IVY FILE"
             def ivy = resources.ivy
-            setResourceInfo(response, ivy)
+            provideHeadersForResource(response, ivy)
             ivy.writeContentTo(response.outputStream)
         }
 
         private void handleHeadIvy(HttpServletResponse response) {
             println "* HEAD IVY FILE"
-            setResourceInfo(response, resources.ivy)
+            provideHeadersForResource(response, resources.ivy)
         }
 
         private void handleGetJar(HttpServletResponse response) {
             println "* GET JAR"
             def jar = resources.jar
-            setResourceInfo(response, jar)
+            provideHeadersForResource(response, jar)
             jar.writeContentTo(response.outputStream)
         }
 
         private void handleHeadJar(HttpServletResponse response) {
             println "* HEAD JAR"
-            setResourceInfo(response, resources.jar)
+            provideHeadersForResource(response, resources.jar)
         }
 
-        private void setResourceInfo(HttpServletResponse response, Resource resource) {
+        private void provideHeadersForResource(HttpServletResponse response, Resource resource) {
             response.setDateHeader(HttpHeaders.LAST_MODIFIED, resource.lastModified)
             response.setContentLength(resource.contentLength)
             response.setContentType(resource.contentType)
