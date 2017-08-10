@@ -92,4 +92,9 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
     void kill() {
         new ProcessFixture(context.pid).kill(true);
     }
+
+    @Override
+    String toString() {
+        "Daemon with context $context"
+    }
 }
