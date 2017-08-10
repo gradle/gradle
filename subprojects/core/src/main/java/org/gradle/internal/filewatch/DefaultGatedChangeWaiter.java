@@ -20,6 +20,8 @@ import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ContinuousExecutionGate;
 
+// TODO: Extract the non-filesystem parts of the FileSystemChangeWaiter into a separate interface
+// This isn't really tied to file system watching, we just need another type of waiter.
 class DefaultGatedChangeWaiter implements FileSystemChangeWaiter {
     private final FileSystemChangeWaiter delegate;
     private final BuildCancellationToken cancellationToken;
