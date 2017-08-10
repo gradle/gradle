@@ -227,9 +227,6 @@ task check {
         when:
         server.resetExpectations()
         server.expectHead('/' + scriptName, scriptFile)
-        server.expectHead('/' + scriptName, scriptFile)
-        server.expectHead('/' + scriptName, scriptFile)
-        server.expectHead('/' + scriptName, scriptFile)
         args('-I', 'init.gradle')
 
         then:
