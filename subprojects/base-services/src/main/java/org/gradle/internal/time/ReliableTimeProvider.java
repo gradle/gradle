@@ -42,8 +42,4 @@ public class ReliableTimeProvider implements TimeProvider {
         return startMillis + elapsedMills;
     }
 
-    @Override
-    public long getCurrentTimeForDuration() {
-        return getCurrentTime();
-    }
 }

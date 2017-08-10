@@ -20,6 +20,4 @@ import java.io.Serializable;
 public interface TimeProvider extends Serializable {
 
     long getCurrentTime();
-
-    long getCurrentTimeForDuration();
 }

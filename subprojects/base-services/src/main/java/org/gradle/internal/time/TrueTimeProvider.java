@@ -16,16 +16,9 @@
 
 package org.gradle.internal.time;
 
-import java.util.concurrent.TimeUnit;
-
 public class TrueTimeProvider implements TimeProvider {
     @Override
     public long getCurrentTime() {
         return System.currentTimeMillis();
-    }
-
-    @Override
-    public long getCurrentTimeForDuration() {
-        return TimeUnit.MILLISECONDS.convert(System.nanoTime(), TimeUnit.NANOSECONDS);
     }
 }
