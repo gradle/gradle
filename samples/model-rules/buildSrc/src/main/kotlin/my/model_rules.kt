@@ -15,16 +15,18 @@ import org.gradle.model.RuleSource
  */
 open class Rules : RuleSource() {
 
-    @Model fun person(p: Person) {}
+    @Model fun Person.person() = Unit
 
-    @Mutate fun setSomeName(p: Person) {
-        p.firstName = "John"
-        p.lastName = "Smith"
+    @Mutate fun Person.setSomeName() {
+        firstName = "John"
+        lastName = "Smith"
     }
 
     // Create a rule that modifies a ModelMap<Task> and takes as input a Person
-    @Mutate fun createHelloTask(tasks: ModelMap<Task>, p: Person) {
-        tasks.create("hello") {
+    @Mutate fun ModelMap<Task>.createHelloTask(p: Person) {
+        create("hello") {
+            group = "sample"
+            description = "Prints a greeting to the console."
             doLast {
                 println("Hello ${p.firstName} ${p.lastName}!")
             }
