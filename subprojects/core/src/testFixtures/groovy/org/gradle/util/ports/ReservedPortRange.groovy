@@ -109,4 +109,9 @@ class ReservedPortRange {
         result = 31 * result + endPort
         return result
     }
+
+    @Override
+    String toString() {
+        return "ReservedPortRange[" + startPort + ":" + endPort + "]"
+    }
 }
