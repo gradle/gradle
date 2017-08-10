@@ -20,58 +20,72 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
 class StoppingDaemonIntegrationSpec extends DaemonIntegrationSpec {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
+    private static final String UNBLOCK = 'unblock'
+
+    def setup() {
+        server.start()
+    }
 
     def "daemon process exits and client logs nice error message when daemon stopped"() {
         buildFile << """
 task block {
     doLast {
-        new URL("$server.uri").text
+        ${server.callFromBuild(UNBLOCK)}
     }
 }
 """
 
         when:
+        def blockingHandler = server.expectAndBlock(UNBLOCK)
         def build = executer.withTasks("block").start()
-        server.waitFor()
+        blockingHandler.waitForAllPendingCalls()
         daemons.daemon.assertBusy()
         executer.withArguments("--stop").run()
         def failure = build.waitForFailure()
 
         then:
-        daemons.daemon.stops()
+        stopsSingleDaemon()
         failure.assertHasDescription(DaemonStoppedException.MESSAGE)
+
+        blockingHandler.releaseAll()
+        build.waitForFailure()
     }
 
     def "can handle multiple concurrent stop requests"() {
         buildFile << """
 task block {
     doLast {
-        new URL("$server.uri").text
+        ${server.callFromBuild(UNBLOCK)}
     }
 }
 """
 
         when:
+        def blockingHandler = server.expectAndBlock(UNBLOCK)
         def build = executer.withTasks("block").start()
-        server.waitFor()
+        blockingHandler.waitForAllPendingCalls()
 
         def stopExecutions = []
         5.times { idx ->
             stopExecutions << executer.withArguments("--stop").start()
         }
         stopExecutions.each { it.waitForFinish() }
-        build.waitForFailure()
         def out = executer.withArguments("--stop").run().output
 
         then:
-        daemons.daemon.stops()
+        stopsSingleDaemon()
         out.contains(DaemonMessages.NO_DAEMONS_RUNNING)
+
+        blockingHandler.releaseAll()
+        build.waitForFailure()
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null})
@@ -85,7 +99,7 @@ task block {
         executer.withArguments("--stop").run()
 
         then:
-        daemons.daemon.stops()
+        stopsSingleDaemon()
     }
 
     def "reports exact number of daemons stopped and keeps console output clean"() {
@@ -107,5 +121,9 @@ task block {
         then:
         out == """$DaemonMessages.NO_DAEMONS_RUNNING
 """
+    }
+
+    private void stopsSingleDaemon() {
+        daemons.daemon.stops()
     }
 }
