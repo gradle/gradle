@@ -22,7 +22,7 @@ class DeploymentFactory {
     static DefaultDeployment createDeployment(String id, DeploymentRegistry.DeploymentSensitivity sensitivity, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
         switch(sensitivity) {
             case NONE:
-                return new DefaultDeployment(id, new InsensitiveDeployment(), deploymentHandle);
+                return new DefaultDeployment(id, new IgnoreChangesDeployment(), deploymentHandle);
             case BLOCK:
                 return new DefaultDeployment(id, new SimpleBlockingDeployment(), deploymentHandle);
             case REQUEST:

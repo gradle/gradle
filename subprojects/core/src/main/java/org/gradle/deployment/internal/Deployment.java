@@ -16,11 +16,39 @@
 
 package org.gradle.deployment.internal;
 
+import org.gradle.api.Incubating;
+
+/**
+ * A deployed application
+ *
+ * @since 4.2
+ */
+@Incubating
 public interface Deployment {
+    /**
+     * Returns the latest status for this deployment.
+     *
+     * <p>
+     * This method may block until all pending changes have been incorporated.
+     * </p>
+     * @return
+     */
     Status status();
 
+    /**
+     * Status of a Deployment
+     */
     interface Status {
+        /**
+         * Returns a Throwable if the latest build failed.
+         * @return
+         */
         Throwable getFailure();
+
+        /**
+         * Returns true if the deployment's runtime may have changed since the previous status was reported.
+         * @return
+         */
         boolean hasChanged();
     }
 }

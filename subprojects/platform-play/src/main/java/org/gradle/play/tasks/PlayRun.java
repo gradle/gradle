@@ -156,6 +156,9 @@ public class PlayRun extends ConventionTask {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * TODO: Make this a command-line option for all continuous builds
+     */
     @Option(option = "no-eager-rebuild", description = "Do not rebuild eagerly; instead, wait for a reload request before rebuilding.")
     public void setNoEagerRebuild(boolean gatedBuild) {
         if (gatedBuild) {

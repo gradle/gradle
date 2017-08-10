@@ -20,13 +20,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.ContinuousExecutionGate;
 
-public class GateControllingDeployment implements DeploymentInternal {
+class GateControllingDeployment implements DeploymentInternal {
     private static final Logger LOGGER = Logging.getLogger(GateControllingDeployment.class);
 
     private final ContinuousExecutionGate.GateKeeper gateKeeper;
     private final DeploymentInternal delegate;
 
-    public GateControllingDeployment(ContinuousExecutionGate continuousExecutionGate, DeploymentInternal delegate) {
+    GateControllingDeployment(ContinuousExecutionGate continuousExecutionGate, DeploymentInternal delegate) {
         this.gateKeeper = continuousExecutionGate.createGateKeeper();
         this.delegate = delegate;
     }

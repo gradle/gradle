@@ -17,19 +17,24 @@
 package org.gradle.deployment.internal;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
  * A registry of deployment handles.
+ * 
+ * @since 4.2
  */
+@Incubating
 @ThreadSafe
 public interface DeploymentRegistry {
     /**
      * Creates and starts a given deployment handle in the registry.
      *
      * @param name name of deployment
+     * @param sensitivity how the deployment responds to potential changes
      * @param handleType type of deployment handle
      * @param params constructor arguments
      *
@@ -45,11 +50,26 @@ public interface DeploymentRegistry {
     @Nullable
     <T extends DeploymentHandle> T get(String name, Class<T> handleType);
 
+    /**
+     * Returns all running deployments
+     */
     Collection<Deployment> getRunningDeployments();
 
+    /**
+     * Sensitivity to changes
+     */
     enum DeploymentSensitivity {
+        /**
+         * Request a build, if applicable, and then block until any pending changes are incorporated.
+         */
         REQUEST,
+        /**
+         * Block until any pending changes are incorporated.
+         */
         BLOCK,
+        /**
+         * Do not block, ignore pending changes.
+         */
         NONE
     }
 }

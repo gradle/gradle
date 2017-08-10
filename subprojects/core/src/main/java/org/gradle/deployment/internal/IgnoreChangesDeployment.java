@@ -16,21 +16,20 @@
 
 package org.gradle.deployment.internal;
 
-public class InsensitiveDeployment implements DeploymentInternal {
-    private final static DefaultDeploymentStatus INSENSITIVE = new DefaultDeploymentStatus(false, null);
+// TODO: This may make more sense as a "non-blocking" deployment that still reports the correct status
+class IgnoreChangesDeployment implements DeploymentInternal {
+    private final static DefaultDeploymentStatus IGNORE = new DefaultDeploymentStatus(false, null);
 
     @Override
     public Status status() {
-        return INSENSITIVE;
+        return IGNORE;
     }
 
     @Override
     public void outOfDate() {
-
     }
 
     @Override
     public void upToDate(Throwable failure) {
-
     }
 }
