@@ -19,7 +19,6 @@ package org.gradle.deployment.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.BuildResult;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -136,8 +135,8 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         }
     }
 
-    public void buildStarted(GradleInternal gradle) {
-        continuousExecutionGate = gradle.getServices().get(ContinuousExecutionGate.class);
+    public void useContinuousExecutionGate(ContinuousExecutionGate continuousExecutionGate) {
+        this.continuousExecutionGate = continuousExecutionGate;
     }
 
     public void buildFinished(BuildResult buildResult) {
