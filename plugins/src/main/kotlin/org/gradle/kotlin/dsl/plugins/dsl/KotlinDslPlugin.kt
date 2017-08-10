@@ -31,9 +31,9 @@ import javax.inject.Inject
 /**
  * The `kotlin-dsl` plugin.
  *
- * Applies the `embedded-kotlin` plugin,
- * adds the `gradleKotlinDsl()` dependency
- * and configures the Kotlin DSL compiler plugins.
+ * - Applies the `embedded-kotlin` plugin
+ * - Adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testRuntimeOnly` configurations
+ * - Configures the Kotlin DSL compiler plugins
  *
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  */
@@ -44,7 +44,7 @@ open class KotlinDslPlugin @Inject internal constructor(
         project.run {
 
             applyEmbeddedKotlinPlugin()
-            addGradleKotlinDslDependency()
+            addGradleKotlinDslDependencyTo("compileOnly", "testRuntimeOnly")
             configureCompilerPlugins()
         }
     }
@@ -55,9 +55,10 @@ open class KotlinDslPlugin @Inject internal constructor(
     }
 
     private
-    fun Project.addGradleKotlinDslDependency() {
-        dependencies.add("compileOnly", gradleKotlinDsl())
-        dependencies.add("testRuntimeOnly", gradleKotlinDsl())
+    fun Project.addGradleKotlinDslDependencyTo(vararg configurations: String) {
+        configurations.forEach {
+            dependencies.add(it, gradleKotlinDsl())
+        }
     }
 
     private
