@@ -36,7 +36,7 @@ class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSp
             import org.gradle.internal.jvm.Jvm
 
             apply plugin: "groovy"
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             tasks.withType(GroovyCompile) {
                 options.forkOptions.executable = "${differentJavacExecutablePath}"
                 options.forkOptions.memoryInitialSize = "128m"

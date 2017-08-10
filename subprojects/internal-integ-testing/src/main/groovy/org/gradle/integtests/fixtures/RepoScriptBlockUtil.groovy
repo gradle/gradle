@@ -28,16 +28,31 @@ class RepoScriptBlockUtil {
         """
     }
 
+    static String mavenCentralRepository() {
+        """repositories {
+               ${mavenCentralRepositoryDefinition()}
+           }
+        """
+    }
+
     static String jcenterRepositoryDefinition() {
-        String mirrorUrl = System.getProperty('org.gradle.integtest.mirrors.jcenter')
-        if (mirrorUrl) {
+        repositoryDefinition('org.gradle.integtest.mirrors.jcenter', 'jcenter-remote', 'jcenter()')
+    }
+
+    static mavenCentralRepositoryDefinition() {
+        repositoryDefinition('org.gradle.integtest.mirrors.mavencentral', 'repo1-remote', 'mavenCentral()')
+    }
+
+    private static repositoryDefinition(String repoUrlProperty, String repoName, String defaultRepo) {
+        String repoUrl = System.getProperty(repoUrlProperty)
+        if (repoUrl) {
             """maven {
-                   name 'jcenter-mirror'
-                   url '${mirrorUrl}'
+                   name '${repoName}'
+                   url '${repoUrl}'
                }
             """
         } else {
-            'jcenter()'
+            defaultRepo
         }
     }
 }

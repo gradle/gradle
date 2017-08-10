@@ -157,7 +157,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """

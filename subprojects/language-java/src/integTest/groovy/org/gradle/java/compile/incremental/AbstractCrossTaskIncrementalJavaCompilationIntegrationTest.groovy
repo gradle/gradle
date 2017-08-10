@@ -38,7 +38,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
                     options.incremental = true
                     options.fork = true
                 }
-                repositories { mavenCentral() }
+                ${mavenCentralRepository()}
             }
             $projectDependencyBlock
         """

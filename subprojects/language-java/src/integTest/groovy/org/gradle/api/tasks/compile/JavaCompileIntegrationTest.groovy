@@ -144,9 +144,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "java"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 testCompile "junit:junit:4.12"

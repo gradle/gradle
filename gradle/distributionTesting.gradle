@@ -41,6 +41,7 @@ distributionTestTasks.all { DistributionTest task ->
 
     systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 
+    systemProperties['org.gradle.integtest.mirrors.mavencentral'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/repo1' : ''
     systemProperties['org.gradle.integtest.mirrors.jcenter'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/jcenter' : ''
 
     dependsOn project.task("configure${task.name.capitalize()}") {

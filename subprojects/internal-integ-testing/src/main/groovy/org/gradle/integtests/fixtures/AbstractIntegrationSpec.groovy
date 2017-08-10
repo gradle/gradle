@@ -374,4 +374,8 @@ class AbstractIntegrationSpec extends Specification {
     static String jcenterRepository() {
         RepoScriptBlockUtil.jcenterRepository()
     }
+
+    static String mavenCentralRepository() {
+        RepoScriptBlockUtil.mavenCentralRepository()
+    }
 }

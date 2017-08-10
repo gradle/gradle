@@ -164,9 +164,7 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
             apply plugin: 'java'
             apply plugin: 'osgi'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile 'org.eclipse:osgi:3.10.0-v20140606-1445'

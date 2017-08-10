@@ -104,7 +104,7 @@ sourceSets {
         file('build.gradle').text = '''
 apply plugin: 'java'
 apply plugin: 'eclipse'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
     runtime 'commons-io:commons-io:1.4'

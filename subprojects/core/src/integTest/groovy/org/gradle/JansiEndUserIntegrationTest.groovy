@@ -142,9 +142,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             buildscript {
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
                 dependencies {
                     classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion'
                 }
@@ -152,9 +150,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
             apply plugin: 'kotlin'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile 'org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion'
@@ -188,9 +184,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
         """
             apply plugin: 'java'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
         """
     }
 

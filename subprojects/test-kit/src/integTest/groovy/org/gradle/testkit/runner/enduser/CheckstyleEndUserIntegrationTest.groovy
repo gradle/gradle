@@ -54,9 +54,7 @@ class Test extends Specification {
 apply plugin: 'java'
 apply plugin: 'checkstyle'
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     testCompile 'junit:junit:4.11'

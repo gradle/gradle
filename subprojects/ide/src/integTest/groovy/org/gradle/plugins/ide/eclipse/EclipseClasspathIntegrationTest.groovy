@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
@@ -47,7 +48,7 @@ apply plugin: 'eclipse'
 
 repositories {
     maven { url "${mavenRepo.uri}" }
-    mavenCentral()
+    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
 }
 
 dependencies {
@@ -1028,7 +1029,7 @@ apply plugin: 'eclipse'
 
 repositories {
     maven { url "${mavenRepo.uri}" }
-    mavenCentral()
+    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
 }
 
 dependencies {

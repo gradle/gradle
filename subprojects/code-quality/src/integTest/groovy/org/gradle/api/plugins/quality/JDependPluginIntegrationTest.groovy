@@ -198,9 +198,7 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
 apply plugin: "java"
 apply plugin: "jdepend"
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
         """
     }
 }

@@ -26,10 +26,8 @@ public class MavenDependencyManagementImportOrderTest extends AbstractIntegratio
     @Requires(TestPrecondition.ONLINE)
 	def "Verify that gradle resolves org.wildfly.swarm:undertow the same as maven"() {
 		when:
-		buildFile.text = '''
-repositories {
-	mavenCentral()
-}
+		buildFile.text = """
+${mavenCentralRepository()}
 configurations {
 	test
 }
@@ -44,8 +42,8 @@ task verifyUndertowVersion {
 		assert fileNames.contains('undertow-servlet-1.4.11.Final.jar')
 		assert !fileNames.contains('undertow-servlet-1.2.9.Final.jar')
 	}
-}
-		'''
+
+		"""
 
 		then:
 		succeeds 'verifyUndertowVersion'

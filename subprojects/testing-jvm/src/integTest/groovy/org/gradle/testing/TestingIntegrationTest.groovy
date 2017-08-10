@@ -37,7 +37,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile "junit:junit:4.12" }
         """
 
@@ -127,7 +127,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         """
         file('build.gradle') << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
         """
 
@@ -169,7 +169,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         """
         file('build.gradle') << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 testCompile 'junit:junit:4.12'
             }
@@ -199,7 +199,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile "junit:junit:4.12" }
             test.workingDir = "${testWorkingDir.toURI()}"
         """

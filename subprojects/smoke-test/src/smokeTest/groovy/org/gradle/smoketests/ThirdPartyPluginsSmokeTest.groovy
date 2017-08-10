@@ -121,9 +121,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id 'io.spring.dependency-management' version '1.0.1.RELEASE'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencyManagement {
                 dependencies {

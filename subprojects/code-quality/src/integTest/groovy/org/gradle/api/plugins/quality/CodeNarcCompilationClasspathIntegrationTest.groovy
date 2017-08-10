@@ -55,9 +55,7 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
             apply plugin: "codenarc"
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             codenarc {
                 toolVersion = '$codeNarcVersion'

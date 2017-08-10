@@ -70,7 +70,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
@@ -188,7 +188,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
             test.ignoreFailures = true
@@ -313,7 +313,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
@@ -427,7 +427,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
             test.maxParallelForks = 2
@@ -511,7 +511,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         [projectDir.createDir('sub1'), projectDir.createDir('sub2')].eachWithIndex { TestFile it, def index ->
             it.file('build.gradle') << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true
             test.maxParallelForks = 2
@@ -616,7 +616,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """

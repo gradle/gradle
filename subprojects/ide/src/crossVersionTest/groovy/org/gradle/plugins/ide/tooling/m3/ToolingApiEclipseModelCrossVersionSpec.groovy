@@ -146,15 +146,15 @@ gradle.taskGraph.beforeTask { throw new RuntimeException() }
 include "a"
 rootProject.name = 'root'
 '''
-        projectDir.file('build.gradle').text = '''
+        projectDir.file('build.gradle').text = """
 allprojects { apply plugin: 'java' }
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
     compile project(':a')
     runtime 'commons-io:commons-io:1.4'
 }
-'''
+"""
 
         when:
         EclipseProject eclipseProject = loadToolingModel(EclipseProject)

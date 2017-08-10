@@ -68,9 +68,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     def "can scan Annotations for public API"() {
         when:
         buildFile << """
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             model {
                 components {
