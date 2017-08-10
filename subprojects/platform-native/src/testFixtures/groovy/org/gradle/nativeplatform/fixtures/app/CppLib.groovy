@@ -16,29 +16,17 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
-
 class CppLib extends CppSourceElement {
     final greeter = new CppGreeter()
     final sum = new CppSum()
 
     @Override
     SourceElement getHeaders() {
-        return new SourceElement() {
-            @Override
-            List<SourceFile> getFiles() {
-                return [greeter.header.sourceFile, sum.header.sourceFile]
-            }
-        }
+        ofElements(greeter.headers, sum.headers)
     }
 
     @Override
     SourceElement getSources() {
-        return new SourceElement() {
-            @Override
-            List<SourceFile> getFiles() {
-                return [greeter.source.sourceFile, sum.source.sourceFile]
-            }
-        }
+        ofElements(greeter.source, sum.source)
     }
 }

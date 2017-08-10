@@ -17,7 +17,6 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.junit.Assume
@@ -53,8 +52,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     def "sources are compiled with C++ compiler"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def app = new CppHelloWorldApp()
-        app.library.writeSources(file('src/main'))
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -73,7 +72,9 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         given:
         lib.sources.writeToSourceDir(file("srcs"))
-        lib.headers.writeToProject(testDirectory)
+        lib.headers.writeToSourceDir(file("include"))
+        file("src/main/public/${lib.greeter.header.sourceFile.name}") << "ignore me!"
+        file("src/main/headers/${lib.greeter.header.sourceFile.name}") << "ignore me!"
         file("src/main/cpp/broken.cpp") << "ignore me!"
 
         and:
@@ -81,6 +82,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
             apply plugin: 'cpp-library'
             library {
                 source.from 'srcs'
+                publicHeaders.from 'include'
             }
          """
 
@@ -122,8 +124,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     def "honors changes to buildDir"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def app = new CppHelloWorldApp()
-        app.library.writeSources(file('src/main'))
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -143,8 +145,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     def "honors changes to task output locations"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def app = new CppHelloWorldApp()
-        app.library.writeSources(file('src/main'))
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -161,12 +163,14 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         file("build/some-lib/main.bin").assertIsFile()
     }
 
-    def "can define public headers"() {
+    def "library can define public and implementation headers"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def app = new CppHelloWorldApp()
-        app.library.headerFiles.each { it.writeToFile(file("src/main/public/$it.name")) }
-        app.library.sourceFiles.each { it.writeToFile(file("src/main/cpp/$it.name")) }
+        def lib = new CppLib()
+        lib.greeter.header.writeToSourceDir(file("src/main/public"))
+        lib.greeter.privateHeader.writeToSourceDir(file("src/main/headers"))
+        lib.sum.header.writeToSourceDir(file("src/main/public"))
+        lib.sources.writeToProject(testDirectory)
 
         and:
         buildFile << """

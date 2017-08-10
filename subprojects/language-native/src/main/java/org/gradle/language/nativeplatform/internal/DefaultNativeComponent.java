@@ -45,6 +45,7 @@ public class DefaultNativeComponent {
         action.execute(source);
     }
 
+    // TODO - this belongs with the 'var' data structure
     protected FileCollection createSourceView(final String defaultLocation, List<String> sourceExtensions) {
         final PatternSet patternSet = new PatternSet();
         for (String sourceExtension : sourceExtensions) {
@@ -54,7 +55,7 @@ public class DefaultNativeComponent {
             @Override
             public Object call() throws Exception {
                 FileTree tree;
-                if (source.isEmpty()) {
+                if (source.getFrom().isEmpty()) {
                     tree = fileOperations.fileTree(defaultLocation);
                 } else {
                     tree = source.getAsFileTree();

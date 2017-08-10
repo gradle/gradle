@@ -16,8 +16,6 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
-
 /**
  * A single project C++ app, with several source files.
  */
@@ -28,22 +26,12 @@ class CppApp extends CppSourceElement implements AppElement {
 
     @Override
     SourceElement getSources() {
-        return new SourceElement() {
-            @Override
-            List<SourceFile> getFiles() {
-                return [main.sourceFile] + greeter.sources.files + sum.sources.files
-            }
-        }
+        return ofElements(main, greeter.source, sum.source)
     }
 
     @Override
     SourceElement getHeaders() {
-        return new SourceElement() {
-            @Override
-            List<SourceFile> getFiles() {
-                return greeter.headers.files + sum.headers.files
-            }
-        }
+        return ofElements(greeter.headers, sum.headers)
     }
 
     @Override

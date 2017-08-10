@@ -67,4 +67,14 @@ class DefaultCppComponentTest extends Specification {
         component.source.from(f1, f4)
         component.cppSource.files == [f1, f4] as Set
     }
+
+    def "does not use the convention when specified directory is empty"() {
+        tmpDir.createFile("src/main/cpp/a.cpp")
+        tmpDir.createFile("src/main/cpp/nested/b.cpp")
+        def d = tmpDir.createDir("other")
+
+        expect:
+        component.source.from(d)
+        component.cppSource.files.empty
+    }
 }

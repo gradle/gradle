@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp.plugins
 
-import org.gradle.language.cpp.CppComponent
+import org.gradle.language.cpp.CppLibrary
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,18 +33,22 @@ class CppLibraryPluginTest extends Specification {
     def "adds extension with convention for source layout"() {
         given:
         def src = projectDir.file("src/main/cpp/main.cpp").createFile()
+        def publicHeaders = projectDir.file("src/main/public").createDir()
 
         when:
         project.pluginManager.apply(CppLibraryPlugin)
 
         then:
-        project.library instanceof CppComponent
+        project.library instanceof CppLibrary
         project.library.cppSource.files == [src] as Set
+        project.library.publicHeaderDirs.files == [publicHeaders] as Set
     }
 
     def "adds compile and link tasks"() {
         given:
         def src = projectDir.file("src/main/cpp/lib.cpp").createFile()
+        def publicHeaders = projectDir.file("src/main/public").createDir()
+        def privateHeaders = projectDir.file("src/main/headers").createDir()
 
         when:
         project.pluginManager.apply(CppLibraryPlugin)
@@ -52,7 +56,7 @@ class CppLibraryPluginTest extends Specification {
         then:
         def compileCpp = project.tasks.compileCpp
         compileCpp instanceof CppCompile
-        compileCpp.includes.files as List == [project.file("src/main/public"), project.file("src/main/headers")]
+        compileCpp.includes.files as List == [publicHeaders, privateHeaders]
         compileCpp.source.files as List == [src]
 
         def link = project.tasks.linkMain

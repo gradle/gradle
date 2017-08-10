@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 
-class CppGreeter extends CppSourceFileElement implements GreeterElement {
+class CppGreeter extends CppSourceElement implements GreeterElement {
     final SourceFileElement header = new SourceFileElement() {
         @Override
         SourceFile getSourceFile() {
@@ -38,22 +38,49 @@ public:
         }
     }
 
+    final SourceFileElement privateHeader = new SourceFileElement() {
+        @Override
+        SourceFile getSourceFile() {
+            return sourceFile("headers", "greeter_consts.h", """
+#define GREETING "${HelloWorldApp.HELLO_WORLD}"
+""")
+        }
+    }
+
     final SourceFileElement source = new SourceFileElement() {
         @Override
         SourceFile getSourceFile() {
             return sourceFile("cpp", "greeter.cpp", """
 #include <iostream>
 #include "greeter.h"
+#include "greeter_consts.h"
 
 void Greeter::sayHello() {
-    std::cout << "${HelloWorldApp.HELLO_WORLD}" << std::endl;
+    std::cout << GREETING << std::endl;
 }
 """)
         }
     }
 
+    final SourceElement headers = ofElements(header, privateHeader)
+    final SourceElement sources = ofElements(source)
+
     @Override
     String getExpectedOutput() {
         return "${HelloWorldApp.HELLO_WORLD}\n"
+    }
+
+    CppSourceElement asLib() {
+        return new CppSourceElement() {
+            @Override
+            SourceElement getHeaders() {
+                return ofFiles(sourceFile("public", header.sourceFile.name, header.sourceFile.content), privateHeader.sourceFile)
+            }
+
+            @Override
+            SourceElement getSources() {
+                return sources
+            }
+        }
     }
 }

@@ -341,9 +341,9 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 """
         app.main.writeToSourceDir(file("Sources"))
         app.greeterLib.source.writeToSourceDir(file("Sources"))
-        app.greeterLib.header.writeToProject(file("hello"))
+        app.greeterLib.headers.writeToProject(file("hello"))
         app.sumLib.source.writeToSourceDir(file("Sources"))
-        app.sumLib.header.writeToProject(file("sum"))
+        app.sumLib.headers.writeToProject(file("sum"))
 
         expect:
         succeeds ":app:assemble"

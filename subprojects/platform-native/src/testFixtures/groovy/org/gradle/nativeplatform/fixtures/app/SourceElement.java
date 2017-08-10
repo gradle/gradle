@@ -19,6 +19,8 @@ package org.gradle.nativeplatform.fixtures.app;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.test.fixtures.file.TestFile;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -47,5 +49,33 @@ public abstract class SourceElement extends Element {
         for (SourceFile sourceFile : getFiles()) {
             sourceFile.writeToFile(sourceDir.file(sourceFile.getName()));
         }
+    }
+
+    /**
+     * Returns a source element that contains the union of the given elements.
+     */
+    public static SourceElement ofElements(final SourceElement... elements) {
+        return new SourceElement() {
+            @Override
+            public List<SourceFile> getFiles() {
+                List<SourceFile> files = new ArrayList<SourceFile>();
+                for (SourceElement element : elements) {
+                    files.addAll(element.getFiles());
+                }
+                return files;
+            }
+        };
+    }
+
+    /**
+     * Returns a source element that contains the given files
+     */
+    public static SourceElement ofFiles(final SourceFile... files) {
+        return new SourceElement() {
+            @Override
+            public List<SourceFile> getFiles() {
+                return Arrays.asList(files);
+            }
+        };
     }
 }

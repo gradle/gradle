@@ -33,8 +33,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.internal.DefaultCppComponent;
+import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
@@ -50,6 +50,8 @@ import java.util.Collections;
  * <p>A plugin that produces a native library from C++ source.</p>
  *
  * <p>Assumes the source files are located in `src/main/cpp`, public headers are located in `src/main/public` and implementation header files are located in `src/main/headers`.</p>
+ *
+ * <p>Adds a {@link CppLibrary} extension to the project to allow configuration of the library.</p>
  *
  * @since 4.1
  */
@@ -74,12 +76,12 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // TODO - extract some common code to setup the compile task and conventions
 
         // Add the component extension
-        CppComponent component = project.getExtensions().create(CppComponent.class, "library", DefaultCppComponent.class, fileOperations);
+        CppLibrary component = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, fileOperations);
 
         // Add a compile task
         CppCompile compile = tasks.create("compileCpp", CppCompile.class);
 
-        compile.includes("src/main/public");
+        compile.includes(component.getPublicHeaderDirs());
         compile.includes("src/main/headers");
         compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
 
