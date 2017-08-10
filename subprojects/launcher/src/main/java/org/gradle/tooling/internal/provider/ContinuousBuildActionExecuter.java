@@ -48,6 +48,7 @@ import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -116,12 +117,14 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
                 @Override
                 public void execute(BuildCancellationToken cancellationToken) {
+                    // TODO: extract this in a similar way to the "waiter" used for watching for filesystem changes
                     cancellationToken.addCallback(cancellationHandler);
                     logger.println().println("Build started " + runningDeployments.size() + " deployment(s)..." + determineExitHint(actionParameters));
                     lock.lock();
                     try {
-                        while (!cancellationToken.isCancellationRequested()) {
-                            cancelled.await();
+                        while (!cancellationToken.isCancellationRequested() && !deploymentRegistry.getRunningDeployments().isEmpty()) {
+                            // periodically check if the deployments have stopped on their own
+                            cancelled.await(5000, TimeUnit.MILLISECONDS);
                         }
                     } catch (InterruptedException e) {
                         throw UncheckedException.throwAsUncheckedException(e);
