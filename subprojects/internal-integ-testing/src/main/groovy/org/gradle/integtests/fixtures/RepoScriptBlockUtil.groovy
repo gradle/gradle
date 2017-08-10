@@ -36,14 +36,35 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepositoryDefinition() {
-        repositoryDefinition('org.gradle.integtest.mirrors.jcenter', 'jcenter-remote', 'jcenter()')
+        mavenRepositoryDefinition('org.gradle.integtest.mirrors.jcenter', 'jcenter-remote', 'jcenter()')
     }
 
     static mavenCentralRepositoryDefinition() {
-        repositoryDefinition('org.gradle.integtest.mirrors.mavencentral', 'repo1-remote', 'mavenCentral()')
+        mavenRepositoryDefinition('org.gradle.integtest.mirrors.mavencentral', 'repo1-remote', 'mavenCentral()')
     }
 
-    private static repositoryDefinition(String repoUrlProperty, String repoName, String defaultRepo) {
+    static typesafeMavenRepositoryDefinition() {
+        String defaultRepo = '''
+           maven {
+               name "typesafe-maven-release"
+               url "https://repo.typesafe.com/typesafe/maven-releases"
+           }'''
+        mavenRepositoryDefinition('org.gradle.integtest.mirrors.typesafemaven', 'typesafe-maven-release-remote', defaultRepo)
+    }
+
+    static typesafeIvyRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafeivy')
+        repoUrl = repoUrl ?: "https://repo.typesafe.com/typesafe/ivy-releases"
+        """
+            ivy {
+                name "typesafe-ivy-release"
+                url ${repoUrl}
+                layout "ivy"
+            }
+        """
+    }
+
+    private static mavenRepositoryDefinition(String repoUrlProperty, String repoName, String defaultRepo) {
         String repoUrl = System.getProperty(repoUrlProperty)
         if (repoUrl) {
             """maven {

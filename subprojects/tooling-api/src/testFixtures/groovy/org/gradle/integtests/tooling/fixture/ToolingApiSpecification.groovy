@@ -249,7 +249,7 @@ abstract class ToolingApiSpecification extends Specification {
         RepoScriptBlockUtil.jcenterRepository()
     }
 
-    pritected static String mavenCentralRepository() {
+    protected static String mavenCentralRepository() {
         RepoScriptBlockUtil.mavenCentralRepository()
     }
 }

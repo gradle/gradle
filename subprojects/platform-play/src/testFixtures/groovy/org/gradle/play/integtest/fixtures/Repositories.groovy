@@ -23,15 +23,8 @@ class Repositories {
     public static final String PLAY_REPOSITORIES = """
         repositories {
             ${RepoScriptBlockUtil.jcenterRepositoryDefinition()}
-            maven {
-                name "typesafe-maven-release"
-                url "https://repo.typesafe.com/typesafe/maven-releases"
-            }
-            ivy {
-                name "typesafe-ivy-release"
-                url "https://repo.typesafe.com/typesafe/ivy-releases"
-                layout "ivy"
-            }
+            ${RepoScriptBlockUtil.typesafeMavenRepositoryDefinition()}
+            ${RepoScriptBlockUtil.typesafeIvyRepositoryDefinition()}
         }
     """
 
