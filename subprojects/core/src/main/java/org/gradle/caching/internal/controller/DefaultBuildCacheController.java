@@ -49,6 +49,8 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import javax.annotation.Nullable;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -166,7 +168,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 public void run(BuildOperationContext context) {
                     InputStream input;
                     try {
-                        input = new FileInputStream(file);
+                        input = new BufferedInputStream(new FileInputStream(file));
                     } catch (FileNotFoundException e) {
                         throw new UncheckedIOException(e);
                     }
@@ -239,7 +241,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 @Override
                 public void run(BuildOperationContext context) {
                     try {
-                        BuildCacheStoreCommand.Result result = command.store(new FileOutputStream(file));
+                        BuildCacheStoreCommand.Result result = command.store(new BufferedOutputStream(new FileOutputStream(file)));
                         context.setResult(new PackOperationResult(
                             result.getArtifactEntryCount(),
                             file.length()
