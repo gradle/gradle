@@ -155,9 +155,9 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
         @Override
         public String getDisplayName() {
             if (hashCode == null) {
-                return "INVALID cache key for task " + taskPath;
+                return "INVALID cache key for task '" + taskPath + "'";
             }
-            return hashCode + " for task " + taskPath;
+            return hashCode + " for task '" + taskPath + "'";
         }
 
         @Override

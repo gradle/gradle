@@ -31,6 +31,16 @@ import java.util.Collection;
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
 
     public static final TaskArtifactState INSTANCE = new NoHistoryArtifactState();
+
+    private static final BuildCacheKeyInputs NO_CACHE_KEY_INPUTS = new BuildCacheKeyInputs(
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    );
+
     private static final TaskOutputCachingBuildCacheKey NO_CACHE_KEY = new TaskOutputCachingBuildCacheKey() {
         @Override
         public boolean isValid() {
@@ -49,12 +59,12 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
 
         @Override
         public String getHashCode() {
-            throw new UnsupportedOperationException();
+            return null;
         }
 
         @Override
         public BuildCacheKeyInputs getInputs() {
-            throw new UnsupportedOperationException();
+            return NO_CACHE_KEY_INPUTS;
         }
 
         @Override
