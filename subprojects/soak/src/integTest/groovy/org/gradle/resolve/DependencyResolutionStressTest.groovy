@@ -23,15 +23,14 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.ExternalResource
+import org.mortbay.jetty.Connector
 import org.mortbay.jetty.HttpHeaders
 import org.mortbay.jetty.Server
-import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
+import org.mortbay.jetty.nio.SelectChannelConnector
 import spock.lang.Specification
 
 import javax.servlet.http.HttpServletRequest
@@ -40,7 +39,6 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 @Category(SoakTest)
-@Requires(TestPrecondition.NOT_WINDOWS) // This test is really flaky on Windows.
 class DependencyResolutionStressTest extends Specification {
     @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider()
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
@@ -68,7 +66,9 @@ configurations {
 }
 
 dependencies {
-    compile 'org.gradle:changing:1.0'
+    compile('org.gradle:changing:1.0') {
+        changing = true
+    }
 }
 
 task check {
@@ -90,7 +90,7 @@ task check {
                 GradleExecuter executer = distribution.executer(workspace, IntegrationTestBuildContext.INSTANCE).
                         requireGradleDistribution().
                         withGradleUserHomeDir(workspace.file("user-home"))
-                10.times {
+                8.times {
                     executer.inDirectory(buildDir).withArgument("--refresh-dependencies").withTasks('check').run()
                 }
             }
@@ -99,26 +99,31 @@ task check {
     }
 
     static class StressHttpServer extends ExternalResource {
-        final Server server = new Server(0)
-        final Resources resources = new Resources()
+        private static final String GET_METHOD = 'GET'
+        private static final String HEAD_METHOD = 'HEAD'
+        private static final String METADATA_FILE_PATH = '/org.gradle/changing/1.0/ivy-1.0.xml'
+        private static final String JAR_FILE_PATH = '/org.gradle/changing/1.0/changing-1.0.jar'
+        private final Server server = new Server(0)
+        private final SelectChannelConnector connector = new SelectChannelConnector()
+        private final Resources resources = new Resources()
 
         @Override
         protected void before() {
-            server.addConnector(new SocketConnector())
+            server.setConnectors([connector] as Connector[])
             server.addHandler(new AbstractHandler() {
                 void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                     println "* Handling $request.method $request.pathInfo"
-                    if (request.method == 'GET' && request.pathInfo == '/org.gradle/changing/1.0/ivy-1.0.xml') {
-                        handleGetIvy(request, response)
+                    if (request.method == GET_METHOD && request.pathInfo == METADATA_FILE_PATH) {
+                        handleGetIvy(response)
                         request.handled = true
-                    } else if (request.method == 'HEAD' && request.pathInfo == '/org.gradle/changing/1.0/ivy-1.0.xml') {
-                        handleHeadIvy(request, response)
+                    } else if (request.method == HEAD_METHOD && request.pathInfo == METADATA_FILE_PATH) {
+                        handleHeadIvy(response)
                         request.handled = true
-                    } else if (request.method == 'GET' && request.pathInfo == '/org.gradle/changing/1.0/changing-1.0.jar') {
-                        handleGetJar(request, response)
+                    } else if (request.method == GET_METHOD && request.pathInfo == JAR_FILE_PATH) {
+                        handleGetJar(response)
                         request.handled = true
-                    } else if (request.method == 'HEAD' && request.pathInfo == '/org.gradle/changing/1.0/changing-1.0.jar') {
-                        handleHeadJar(request, response)
+                    } else if (request.method == HEAD_METHOD && request.pathInfo == JAR_FILE_PATH) {
+                        handleHeadJar(response)
                         request.handled = true
                     }
                 }
@@ -126,47 +131,43 @@ task check {
             server.start()
         }
 
-        private void handleGetIvy(HttpServletRequest request, HttpServletResponse response) {
-            println "* GET IVY FILE"
-            def ivy = resources.ivy
-            response.setDateHeader(HttpHeaders.LAST_MODIFIED, ivy.lastModified)
-            response.setContentLength(ivy.contentLength)
-            response.setContentType(ivy.contentType)
-            ivy.writeContentTo(response.outputStream)
-        }
-
-        private void handleHeadIvy(HttpServletRequest request, HttpServletResponse response) {
-            println "* HEAD IVY FILE"
-            def ivy = resources.ivy
-            response.setDateHeader(HttpHeaders.LAST_MODIFIED, ivy.lastModified)
-            response.setContentLength(ivy.contentLength)
-            response.setContentType(ivy.contentType)
-        }
-
-        private void handleGetJar(HttpServletRequest request, HttpServletResponse response) {
-            println "* GET JAR"
-            def jar = resources.jar
-            response.setDateHeader(HttpHeaders.LAST_MODIFIED, jar.lastModified)
-            response.setContentLength(jar.contentLength)
-            response.setContentType(jar.contentType)
-            jar.writeContentTo(response.outputStream)
-        }
-
-        private void handleHeadJar(HttpServletRequest request, HttpServletResponse response) {
-            println "* HEAD JAR"
-            def jar = resources.jar
-            response.setDateHeader(HttpHeaders.LAST_MODIFIED, jar.lastModified)
-            response.setContentLength(jar.contentLength)
-            response.setContentType(jar.contentType)
-        }
-
         @Override
         protected void after() {
             server.stop()
         }
 
+        private void handleGetIvy(HttpServletResponse response) {
+            println "* GET IVY FILE"
+            def ivy = resources.ivy
+            provideHeadersForResource(response, ivy)
+            ivy.writeContentTo(response.outputStream)
+        }
+
+        private void handleHeadIvy(HttpServletResponse response) {
+            println "* HEAD IVY FILE"
+            provideHeadersForResource(response, resources.ivy)
+        }
+
+        private void handleGetJar(HttpServletResponse response) {
+            println "* GET JAR"
+            def jar = resources.jar
+            provideHeadersForResource(response, jar)
+            jar.writeContentTo(response.outputStream)
+        }
+
+        private void handleHeadJar(HttpServletResponse response) {
+            println "* HEAD JAR"
+            provideHeadersForResource(response, resources.jar)
+        }
+
+        private void provideHeadersForResource(HttpServletResponse response, Resource resource) {
+            response.setDateHeader(HttpHeaders.LAST_MODIFIED, resource.lastModified)
+            response.setContentLength(resource.contentLength)
+            response.setContentType(resource.contentType)
+        }
+
         URI getUri() {
-            return new URI("http://localhost:${server.connectors[0].localPort}/")
+            return new URI("http://localhost:${connector.localPort}/")
         }
     }
 
@@ -230,7 +231,7 @@ task check {
     }
 
     static abstract class ResourceGenerator {
-        private final Random random = new Random();
+        private final Random random = new Random()
 
         Resource regenerate() {
             def str = new ByteArrayOutputStream()
@@ -284,8 +285,10 @@ task check {
             def zipStream = new ZipOutputStream(outputStream)
             zipStream.putNextEntry(new ZipEntry("a"))
             writeLongString(zipStream)
+            zipStream.closeEntry()
             zipStream.putNextEntry(new ZipEntry("b"))
             writeLongString(zipStream)
+            zipStream.closeEntry()
             zipStream.finish()
         }
     }
