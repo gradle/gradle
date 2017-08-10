@@ -204,7 +204,6 @@ task check {
         def scriptName = "script-once.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
-        server.expectGet('/' + scriptName, scriptFile)
 
         and:
         settingsFile << """
@@ -218,10 +217,23 @@ task check {
         }
 
         when:
+        server.expectGet('/' + scriptName, scriptFile)
         args('-I', 'init.gradle')
-        succeeds 'tasks'
 
         then:
+        succeeds 'tasks'
+        output.count('loaded external script') == 4
+
+        when:
+        server.resetExpectations()
+        server.expectHead('/' + scriptName, scriptFile)
+        server.expectHead('/' + scriptName, scriptFile)
+        server.expectHead('/' + scriptName, scriptFile)
+        server.expectHead('/' + scriptName, scriptFile)
+        args('-I', 'init.gradle')
+
+        then:
+        succeeds 'tasks'
         output.count('loaded external script') == 4
     }
 
