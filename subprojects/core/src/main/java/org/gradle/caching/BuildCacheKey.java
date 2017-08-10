@@ -16,6 +16,7 @@
 
 package org.gradle.caching;
 
+import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 
 /**
@@ -24,7 +25,7 @@ import org.gradle.api.Incubating;
  * @since 3.3
  */
 @Incubating
-public interface BuildCacheKey {
+public interface BuildCacheKey extends Describable {
     /**
      * Returns the string representation of the cache key.
      */

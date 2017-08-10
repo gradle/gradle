@@ -83,7 +83,7 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
 
         TaskExecutionException e = thrown(TaskExecutionException)
         e.task == task
-        e.cause.message == "The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs."
+        e.cause.message == "The inputs for the task changed during the execution! Check if you have a task action changing the inputs."
     }
 
     def 'exception if cache key became invalid'() {
@@ -125,6 +125,16 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
             @Override
             boolean isValid() {
                 return true
+            }
+
+            @Override
+            String getDisplayName() {
+                return "test: $hash"
+            }
+
+            @Override
+            String toString() {
+                return getDisplayName()
             }
         }
     }

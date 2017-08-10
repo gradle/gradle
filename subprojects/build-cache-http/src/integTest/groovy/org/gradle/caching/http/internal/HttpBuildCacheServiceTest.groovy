@@ -67,6 +67,11 @@ class HttpBuildCacheServiceTest extends Specification {
         String toString() {
             return getHashCode()
         }
+
+        @Override
+        String getDisplayName() {
+            return getHashCode()
+        }
     }
 
     def setup() {

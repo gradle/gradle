@@ -56,6 +56,11 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
         public BuildCacheKeyInputs getInputs() {
             throw new UnsupportedOperationException();
         }
+
+        @Override
+        public String getDisplayName() {
+            return toString();
+        }
     };
 
     private NoHistoryArtifactState() {
