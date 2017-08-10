@@ -30,11 +30,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 @Unroll
+@Ignore
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
     private TestFile cacheDir
