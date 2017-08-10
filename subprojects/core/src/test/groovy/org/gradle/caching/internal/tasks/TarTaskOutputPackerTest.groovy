@@ -53,7 +53,6 @@ class TarTaskOutputPackerTest extends Specification {
 
         then:
         1 * fileSystem.getUnixMode(sourceOutputFile) >> unixMode
-        _ * sourceOutputFile.lastModified() >> fileDate
         _ * sourceOutputFile._
         0 * _
 
@@ -64,19 +63,13 @@ class TarTaskOutputPackerTest extends Specification {
 
         then:
         1 * fileSystem.chmod(targetOutputFile, unixMode)
-        1 * targetOutputFile.setLastModified(_) >> { long time ->
-            assert time == fileDate
-            return true
-        }
         _ * targetOutputFile._
         then:
         targetOutputFile.text == "output"
         0 * _
 
         where:
-        mode   | fileDate
-        "0644" | 123456789000L
-        "0755" | 123456789012L
+        mode << [ "0644", "0755" ]
     }
 
     def "can pack task output directory"() {
