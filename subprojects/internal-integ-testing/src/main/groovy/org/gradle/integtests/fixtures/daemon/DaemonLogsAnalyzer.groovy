@@ -77,7 +77,9 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
 
     DaemonFixture getDaemon() {
         def daemons = getDaemons()
-        assert daemons.size() == 1
+        if (daemons.size() != 1) {
+            throw new IllegalStateException("Expected exactly one daemon, but got " + daemons.collect { it.context })
+        }
         daemons[0]
     }
 
