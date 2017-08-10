@@ -125,7 +125,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
             apply plugin: 'java'
             
             repositories {
-                mavenCentral()
+                jcenter()
             }
             
             dependencies {
