@@ -34,7 +34,7 @@ public class DefaultContinuousExecutionGate implements ContinuousExecutionGate {
     public GateKeeper createGateKeeper() {
         lock.lock();
         try {
-            GateKeeper gatekeeper = new DefaultBuildGateKeeper();
+            GateKeeper gatekeeper = new DefaultExecutionGateKeeper(this);
             gatekeepers.add(gatekeeper);
             return gatekeeper;
         } finally {
@@ -93,15 +93,21 @@ public class DefaultContinuousExecutionGate implements ContinuousExecutionGate {
         return "Gate is " + (!isClosed() ? "open" : "closed");
     }
 
-    private class DefaultBuildGateKeeper implements GateKeeper {
+    private static class DefaultExecutionGateKeeper implements GateKeeper {
+        private final DefaultContinuousExecutionGate continuousExecutionGate;
+
+        private DefaultExecutionGateKeeper(DefaultContinuousExecutionGate continuousExecutionGate) {
+            this.continuousExecutionGate = continuousExecutionGate;
+        }
+
         @Override
         public void open() {
-            DefaultContinuousExecutionGate.this.open(this);
+            continuousExecutionGate.open(this);
         }
 
         @Override
         public void close() {
-            DefaultContinuousExecutionGate.this.close(this);
+            continuousExecutionGate.close(this);
         }
     }
 }
