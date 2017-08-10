@@ -28,7 +28,7 @@ public class DefaultProjectAccessListener implements ProjectAccessListener {
         evaluateProjectAndDiscoverTasks(targetProject);
     }
 
-    private void evaluateProjectAndDiscoverTasks(ProjectInternal targetProject) {
+    private synchronized void evaluateProjectAndDiscoverTasks(final ProjectInternal targetProject) {
         targetProject.evaluate();
         targetProject.getTasks().discoverTasks();
     }
