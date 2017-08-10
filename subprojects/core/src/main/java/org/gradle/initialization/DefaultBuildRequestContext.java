@@ -43,7 +43,7 @@ public class DefaultBuildRequestContext implements BuildRequestContext {
     }
 
     @Override
-    public ContinuousExecutionGate getGateToken() {
+    public ContinuousExecutionGate getExecutionGate() {
         return gate;
     }
 

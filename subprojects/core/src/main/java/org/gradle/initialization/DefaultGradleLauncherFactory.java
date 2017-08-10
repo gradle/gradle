@@ -102,7 +102,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildTreeScopeServices buildTreeScopeServices = (BuildTreeScopeServices) parentRegistry;
 
         DefaultGradleLauncher launcher = doNewInstance(startParameter, null,
-            requestContext.getCancellationToken(), requestContext.getGateToken(),
+            requestContext.getCancellationToken(), requestContext.getExecutionGate(),
             requestContext, requestContext.getEventConsumer(), buildTreeScopeServices,
             ImmutableList.of(new Stoppable() {
             @Override

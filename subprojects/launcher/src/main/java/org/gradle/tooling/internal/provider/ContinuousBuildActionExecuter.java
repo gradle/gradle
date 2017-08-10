@@ -137,7 +137,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices, CancellableOperationManager cancellableOperationManager) {
         SingleMessageLogger.incubatingFeatureUsed("Continuous build");
 
-        ContinuousExecutionGate continuousExecutionGate = requestContext.getGateToken();
+        ContinuousExecutionGate continuousExecutionGate = requestContext.getExecutionGate();
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
         Object lastResult = null;
