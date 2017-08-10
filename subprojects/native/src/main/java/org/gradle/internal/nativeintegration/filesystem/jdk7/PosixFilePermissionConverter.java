@@ -22,9 +22,10 @@ import java.util.Set;
 
 import static java.nio.file.attribute.PosixFilePermission.*;
 
+@SuppressWarnings("Since15")
 public class PosixFilePermissionConverter {
 
-    static Set<PosixFilePermission> convertToPermissionsSet(int mode) {
+    public static Set<PosixFilePermission> convertToPermissionsSet(int mode) {
         Set<PosixFilePermission> result = EnumSet.noneOf(PosixFilePermission.class);
 
         if (isSet(mode, 0400)) {

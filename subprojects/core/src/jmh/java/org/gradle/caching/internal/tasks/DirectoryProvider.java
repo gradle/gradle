@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.4'
-    }
+package org.gradle.caching.internal.tasks;
+
+import org.openjdk.jmh.annotations.Level;
+
+import java.nio.file.Path;
+
+@SuppressWarnings("Since15")
+public interface DirectoryProvider {
+    Path getRoot(Level level);
 }
-
-apply plugin: me.champeau.gradle.JMHPlugin
-
-configurations {
-    jmhImplementation.extendsFrom(implementation)
-}
-
-jmh {
-    includeTests = false
-    resultFormat = 'CSV'
-}
-
