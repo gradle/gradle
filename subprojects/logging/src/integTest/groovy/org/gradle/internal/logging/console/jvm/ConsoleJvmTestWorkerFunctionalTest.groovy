@@ -24,8 +24,10 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
+@IgnoreIf({ GradleContextualExecuter.isParallel() })
 class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
+    private static final int MAX_WORKERS = 4
     private static final String SERVER_RESOURCE_1 = 'test-1'
     private static final String SERVER_RESOURCE_2 = 'test-2'
 
@@ -33,6 +35,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
     BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
+        executer.withArguments('--parallel', "--max-workers=$MAX_WORKERS")
         server.start()
     }
 
@@ -57,7 +60,6 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         gradleHandle.waitForFinish()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isParallel() })
     def "shows test class execution in work-in-progress area of console for multi-project build"() {
         given:
         settingsFile << "include 'project1', 'project2'"
@@ -71,7 +73,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         def testExecution = server.expectConcurrentAndBlock(SERVER_RESOURCE_1, SERVER_RESOURCE_2)
 
         when:
-        def gradleHandle = executer.withArguments('--parallel', '--max-workers=4').withTasks('test').start()
+        def gradleHandle = executer.withTasks('test').start()
         testExecution.waitForAllPendingCalls()
 
         then:
@@ -133,7 +135,7 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
             }
             
             tasks.withType(Test) {
-                maxParallelForks = 3
+                maxParallelForks = $MAX_WORKERS
             }
         """
     }
