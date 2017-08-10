@@ -57,6 +57,7 @@ open class KotlinDslPlugin @Inject internal constructor(
     private
     fun Project.addGradleKotlinDslDependency() {
         dependencies.add("compileOnly", gradleKotlinDsl())
+        dependencies.add("testRuntimeOnly", gradleKotlinDsl())
     }
 
     private
