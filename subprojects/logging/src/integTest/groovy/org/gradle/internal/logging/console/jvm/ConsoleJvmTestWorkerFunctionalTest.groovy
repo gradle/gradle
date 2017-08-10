@@ -28,7 +28,7 @@ import spock.lang.Unroll
 @IgnoreIf({ GradleContextualExecuter.isParallel() })
 class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
-    private static final int MAX_WORKERS = 4
+    private static final int MAX_WORKERS = 2
     private static final String SERVER_RESOURCE_1 = 'test-1'
     private static final String SERVER_RESOURCE_2 = 'test-2'
 
