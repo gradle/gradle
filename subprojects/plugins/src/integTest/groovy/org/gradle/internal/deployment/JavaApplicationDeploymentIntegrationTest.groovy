@@ -1,0 +1,116 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.deployment
+
+import org.gradle.deployment.internal.DeploymentRegistry
+import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
+
+class JavaApplicationDeploymentIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+    TestFile messageSrc
+
+    def setup() {
+        buildFile << """
+            apply plugin: 'java'
+            
+            task run(type: ${RunApplication.canonicalName}) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClassName = "org.gradle.deployment.Main"
+                arguments = [ file("log").absolutePath, "Hello, World!" ]
+            }
+        """
+
+        file("src/main/java/org/gradle/deployment/Main.java") << """
+            package org.gradle.deployment;
+            
+            import java.io.File;
+            import java.io.FileOutputStream;
+            import java.io.PrintWriter;
+            
+            public class Main {
+                public static void main(String... args) throws Exception {
+                    PrintWriter writer = new PrintWriter(new FileOutputStream(args[0], true));
+                    for (String arg : args) {
+                        writer.println(Message.message + " > " + arg);
+                    }
+                    writer.close();
+                    
+                    // wait forever
+                    Object lock = new Object();
+                    synchronized(lock) {
+                        while (true) {
+                            lock.wait();
+                        }
+                    }
+                }
+            }
+        """
+        messageSrc = file("src/main/java/org/gradle/deployment/Message.java") << """
+            package org.gradle.deployment;
+            public class Message {
+                public static final String message = "[APP]";
+            }
+        """
+    }
+
+    def "can run application"() {
+        when:
+        succeeds("run")
+        then:
+        assertLogHasMessage("[APP] > Hello, World!")
+    }
+
+    def "deployment is automatically restarted"() {
+        when:
+        succeeds("run")
+        then:
+        assertLogHasMessage("[APP] > Hello, World!")
+
+        when:
+        messageSrc.text = messageSrc.text.replace("APP", "NEW")
+        succeeds()
+        then:
+        assertLogHasMessage("[NEW] > Hello, World!")
+    }
+
+    def "deployment is not automatically restarted with sensitivity=NONE"() {
+        buildFile << """
+            import ${DeploymentRegistry.DeploymentSensitivity.canonicalName}
+            run {
+                sensitivity = DeploymentSensitivity.NONE
+            }
+        """
+        when:
+        succeeds("run")
+        then:
+        assertLogHasMessage("[APP] > Hello, World!")
+
+        when:
+        messageSrc.text = messageSrc.text.replace("APP", "NEW")
+        succeeds()
+        then:
+        assertLogDoesNotHasMessage("[NEW] > Hello, World!")
+    }
+
+    void assertLogHasMessage(String message) {
+        assert file("log").text.contains(message)
+    }
+
+    void assertLogDoesNotHasMessage(String message) {
+        assert !file("log").text.contains(message)
+    }
+}
