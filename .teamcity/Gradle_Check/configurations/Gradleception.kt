@@ -24,7 +24,7 @@ class Gradleception(model: CIBuildModel) : BuildType({
         }
         gradle {
             name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-            tasks = "clean quickCheck"
+            tasks = "clean sanityCheck test"
             gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
             gradleParams = gradleParameters.joinToString(separator = " ")
             param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
