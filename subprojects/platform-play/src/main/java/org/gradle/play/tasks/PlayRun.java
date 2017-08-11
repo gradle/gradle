@@ -161,7 +161,7 @@ public class PlayRun extends ConventionTask {
             int httpPort = getHttpPort();
             PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
             PlayApplicationRunner playApplicationRunner = playToolProvider.get(PlayApplicationRunner.class);
-            deploymentHandle = deploymentRegistry.start(deploymentId, DeploymentRegistry.DeploymentSensitivity.BLOCK, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
+            deploymentHandle = deploymentRegistry.start(deploymentId, DeploymentRegistry.ChangeBehavior.BLOCK, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
         }
         return deploymentHandle;
     }

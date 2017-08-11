@@ -19,8 +19,8 @@ package org.gradle.deployment.internal;
 import org.gradle.initialization.ContinuousExecutionGate;
 
 class DeploymentFactory {
-    static DefaultDeployment createDeployment(String id, DeploymentRegistry.DeploymentSensitivity sensitivity, boolean eagerBuild, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
-        switch(sensitivity) {
+    static DefaultDeployment createDeployment(String id, DeploymentRegistry.ChangeBehavior changeBehavior, boolean eagerBuild, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
+        switch(changeBehavior) {
             case NONE:
                 return new DefaultDeployment(id, false, deploymentHandle, new OutOfDateTrackingDeployment());
             case RESTART:
@@ -32,7 +32,7 @@ class DeploymentFactory {
                     return new DefaultDeployment(id, false, deploymentHandle, new GateControllingDeployment(continuousExecutionGate, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment())));
                 }
             default:
-                throw new IllegalArgumentException("Unknown sensitivity " + sensitivity);
+                throw new IllegalArgumentException("Unknown changeBehavior " + changeBehavior);
         }
     }
 }

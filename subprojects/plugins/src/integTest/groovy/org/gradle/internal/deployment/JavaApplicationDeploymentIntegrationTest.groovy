@@ -16,7 +16,6 @@
 
 package org.gradle.internal.deployment
 
-import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
@@ -87,11 +86,10 @@ class JavaApplicationDeploymentIntegrationTest extends Java7RequiringContinuousI
         assertLogHasMessage("[NEW] > Hello, World!")
     }
 
-    def "deployment is not automatically restarted with sensitivity=NONE"() {
+    def "deployment is not automatically restarted with changeBehavior=NONE"() {
         buildFile << """
-            import ${DeploymentRegistry.DeploymentSensitivity.canonicalName}
             run {
-                sensitivity = DeploymentSensitivity.NONE
+                changeBehavior = "NONE"
             }
         """
         when:

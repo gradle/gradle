@@ -36,7 +36,7 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
             import org.gradle.deployment.internal.DeploymentHandle
             import org.gradle.deployment.internal.Deployment
             import org.gradle.deployment.internal.DeploymentRegistry
-            import org.gradle.deployment.internal.DeploymentRegistry.DeploymentSensitivity
+            import org.gradle.deployment.internal.DeploymentRegistry.ChangeBehavior
 
             task runDeployment(type: RunTestDeployment) {
                 triggerFile = file('${triggerFile.name}')
@@ -89,7 +89,7 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
                     if (handle == null) {
                         // This should only happen once (1st build), so if we get a different value in keyFile between
                         // builds then we know we can detect if we didn't get the same handle
-                        handle = getDeploymentRegistry().start('test', DeploymentRegistry.DeploymentSensitivity.NONE, TestDeploymentHandle.class, key, keyFile)
+                        handle = getDeploymentRegistry().start('test', DeploymentRegistry.ChangeBehavior.NONE, TestDeploymentHandle.class, key, keyFile)
                     }
 
                     println "\\nCurrent Key: \$key, Deployed Key: \$handle.keyFile.text"

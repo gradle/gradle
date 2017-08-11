@@ -39,12 +39,12 @@ class ContinuousBuildDeploymentIntegrationTest extends Java7RequiringContinuousI
             import java.util.concurrent.atomic.AtomicBoolean
             import ${DeploymentRegistry.canonicalName}
             import ${DeploymentHandle.canonicalName}
-            import ${DeploymentRegistry.DeploymentSensitivity.canonicalName}
+            import ${DeploymentRegistry.ChangeBehavior.canonicalName}
             import ${Deployment.canonicalName}
             import ${ExecutorFactory.canonicalName}
 
             class RunApp extends DefaultTask {
-                DeploymentSensitivity sensitivity = DeploymentSensitivity.NONE
+                ChangeBehavior changeBehavior = ChangeBehavior.NONE
 
                 @Inject
                 protected DeploymentRegistry getDeploymentRegistry() {
@@ -60,8 +60,8 @@ class ContinuousBuildDeploymentIntegrationTest extends Java7RequiringContinuousI
                 void runApp() {
                     TestDeploymentHandle handle = deploymentRegistry.get('test', TestDeploymentHandle)
                     if (handle == null) {
-                        println "Using sensitvity = " + sensitivity
-                        handle = deploymentRegistry.start('test', sensitivity, TestDeploymentHandle, executorFactory)
+                        println "Using sensitvity = " + changeBehavior
+                        handle = deploymentRegistry.start('test', changeBehavior, TestDeploymentHandle, executorFactory)
                     }
                     assert handle.running
                 }
@@ -120,9 +120,9 @@ class ContinuousBuildDeploymentIntegrationTest extends Java7RequiringContinuousI
                 }
             }
             task run(type: RunApp) {
-                def prop = project.findProperty("sensitivity")
+                def prop = project.findProperty("changeBehavior")
                 if (prop) {
-                    sensitivity = DeploymentSensitivity.valueOf(prop)
+                    changeBehavior = ChangeBehavior.valueOf(prop)
                 }
             }
             gradle.buildFinished {
@@ -132,9 +132,9 @@ class ContinuousBuildDeploymentIntegrationTest extends Java7RequiringContinuousI
     }
 
     @Unroll
-    def "can run app with #sensitivity"() {
+    def "can run app with #changeBehavior"() {
         def build = server.expectConcurrentAndBlock(server.resource("buildFinished"), server.resource("command", "echo"))
-        executer.withArgument("-Psensitivity=${sensitivity}")
+        executer.withArgument("-PchangeBehavior=${changeBehavior}")
         when:
         startBuild("run")
         build.waitForAllPendingCalls()
@@ -150,7 +150,7 @@ class ContinuousBuildDeploymentIntegrationTest extends Java7RequiringContinuousI
         gradle.waitForFinish()
 
         where:
-        sensitivity << DeploymentRegistry.DeploymentSensitivity.values()
+        changeBehavior << DeploymentRegistry.ChangeBehavior.values()
     }
 
     private void startBuild(String... tasks) {

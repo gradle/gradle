@@ -64,7 +64,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     @Override
-    public <T extends DeploymentHandle> T start(final String name, final DeploymentSensitivity sensitivity, final Class<T> handleType, final Object... params) {
+    public <T extends DeploymentHandle> T start(final String name, final ChangeBehavior changeBehavior, final Class<T> handleType, final Object... params) {
         lock.lock();
         try {
             failIfStopped();
@@ -78,7 +78,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
                     @Override
                     public T call(BuildOperationContext context) {
                         T handle = objectFactory.newInstance(handleType, params);
-                        DefaultDeployment deployment = DeploymentFactory.createDeployment(name, sensitivity, eagerBuild, continuousExecutionGate, handle);
+                        DefaultDeployment deployment = DeploymentFactory.createDeployment(name, changeBehavior, eagerBuild, continuousExecutionGate, handle);
                         handle.start(deployment);
                         if (pendingChanges.hasRemainingChanges()) {
                             deployment.outOfDate();

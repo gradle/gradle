@@ -67,7 +67,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         def testHandle = new ParametersDeploymentHandle("parameter")
         objectFactory.newInstance(ParametersDeploymentHandle, "parameter") >> testHandle
         when:
-        def handle = registry.start("id", DeploymentRegistry.DeploymentSensitivity.NONE, ParametersDeploymentHandle, "parameter")
+        def handle = registry.start("id", DeploymentRegistry.ChangeBehavior.NONE, ParametersDeploymentHandle, "parameter")
         then:
         assert handle == testHandle
         and:
@@ -78,13 +78,13 @@ class DefaultDeploymentRegistryTest extends Specification {
         def testHandle = new TestDeploymentHandle()
         objectFactory.newInstance(TestDeploymentHandle) >> testHandle
         when:
-        registry.start("id", DeploymentRegistry.DeploymentSensitivity.NONE, TestDeploymentHandle)
+        registry.start("id", DeploymentRegistry.ChangeBehavior.NONE, TestDeploymentHandle)
         then:
         noExceptionThrown()
         registry.get("id", TestDeploymentHandle) == testHandle
 
         when:
-        registry.start("id", DeploymentRegistry.DeploymentSensitivity.NONE, TestDeploymentHandle)
+        registry.start("id", DeploymentRegistry.ChangeBehavior.NONE, TestDeploymentHandle)
         then:
         IllegalStateException e = thrown()
         e.message == "A deployment with id 'id' is already registered."
@@ -95,9 +95,9 @@ class DefaultDeploymentRegistryTest extends Specification {
         objectFactory.newInstance(TestDeploymentHandle) >> testHandle
         testHandle.running >> true
 
-        registry.start("id1", DeploymentRegistry.DeploymentSensitivity.NONE, TestDeploymentHandle)
-        registry.start("id2", DeploymentRegistry.DeploymentSensitivity.NONE, TestDeploymentHandle)
-        registry.start("id3", DeploymentRegistry.DeploymentSensitivity.NONE, TestDeploymentHandle)
+        registry.start("id1", DeploymentRegistry.ChangeBehavior.NONE, TestDeploymentHandle)
+        registry.start("id2", DeploymentRegistry.ChangeBehavior.NONE, TestDeploymentHandle)
+        registry.start("id3", DeploymentRegistry.ChangeBehavior.NONE, TestDeploymentHandle)
 
         when:
         registry.stop()
@@ -108,7 +108,7 @@ class DefaultDeploymentRegistryTest extends Specification {
     def "cannot get a handle once the registry is stopped" () {
         objectFactory.newInstance(TestDeploymentHandle) >> new TestDeploymentHandle()
         given:
-        registry.start("id", DeploymentRegistry.DeploymentSensitivity.NONE, TestDeploymentHandle)
+        registry.start("id", DeploymentRegistry.ChangeBehavior.NONE, TestDeploymentHandle)
         registry.stop()
 
         when:
@@ -123,7 +123,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         registry.stop()
 
         when:
-        registry.start("id", DeploymentRegistry.DeploymentSensitivity.NONE, TestDeploymentHandle)
+        registry.start("id", DeploymentRegistry.ChangeBehavior.NONE, TestDeploymentHandle)
         then:
         def e = thrown(IllegalStateException)
         e.message == "Cannot modify deployment handles once the registry has been stopped."

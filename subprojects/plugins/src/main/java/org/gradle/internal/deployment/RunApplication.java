@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.process.internal.DefaultExecActionFactory;
@@ -32,7 +33,7 @@ public class RunApplication extends DefaultTask {
     private String mainClassName;
     private Collection<String> arguments;
     private FileCollection classpath;
-    private DeploymentRegistry.DeploymentSensitivity sensitivity = DeploymentRegistry.DeploymentSensitivity.RESTART;
+    private DeploymentRegistry.ChangeBehavior changeBehavior = DeploymentRegistry.ChangeBehavior.RESTART;
 
     @Classpath
     public FileCollection getClasspath() {
@@ -70,7 +71,7 @@ public class RunApplication extends DefaultTask {
             builder.setClasspath(classpath);
             builder.setMain(mainClassName);
             builder.setArgs(arguments);
-            registry.start(getPath(), sensitivity, JavaApplicationHandle.class, builder);
+            registry.start(getPath(), changeBehavior, JavaApplicationHandle.class, builder);
         }
     }
 
@@ -84,11 +85,12 @@ public class RunApplication extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
-    public DeploymentRegistry.DeploymentSensitivity getSensitivity() {
-        return sensitivity;
+    @Internal
+    public DeploymentRegistry.ChangeBehavior getChangeBehavior() {
+        return changeBehavior;
     }
 
-    public void setSensitivity(DeploymentRegistry.DeploymentSensitivity sensitivity) {
-        this.sensitivity = sensitivity;
+    public void setChangeBehavior(DeploymentRegistry.ChangeBehavior changeBehavior) {
+        this.changeBehavior = changeBehavior;
     }
 }
