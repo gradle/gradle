@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -45,7 +44,7 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
             @Override
             public SettingsInternal call(BuildOperationContext context) {
                 SettingsInternal settingsInternal = settingsProcessor.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
-                context.setResult(new OperationResult(toDetails(settingsInternal.getRootProject())));
+                context.setResult(new OperationResult(convertDescriptors(settingsInternal.getRootProject()), settingsInternal.getGradle().getIdentityPath().absolutePath(":")));
                 return settingsInternal;
             }
 
@@ -53,41 +52,55 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Configure settings").
                     progressDisplayName("settings").
-                    details(OPERATION_DETAILS);
+                    details(new ConfigureSettingsBuildOperationType.Details(){
+                        @Override
+                        public String getSettingsDir() {
+                            return settingsLocation.getSettingsDir().getAbsolutePath();
+                        }
+
+                        @Override
+                        public String getSettingsFile() {
+                            return settingsLocation.getSettingsScriptSource().getFileName();
+                        }
+                    });
             }
         });
     }
 
-    private ConfigureSettingsBuildOperationType.ProjectDetails toDetails(ProjectDescriptor projectDescriptor) {
-        return new ConfigureSettingsBuildOperationType.ProjectDetails(projectDescriptor.getName(),
+    private ConfigureSettingsBuildOperationType.ProjectDescriptor convertDescriptors(org.gradle.api.initialization.ProjectDescriptor projectDescriptor) {
+        return new ConfigureSettingsBuildOperationType.ProjectDescriptor(projectDescriptor.getName(),
             projectDescriptor.getPath(),
-            projectDescriptor.getProjectDir(),
-            projectDescriptor.getBuildFile(),
-            toDetails(projectDescriptor.getChildren()));
+            projectDescriptor.getProjectDir().getAbsolutePath(),
+            projectDescriptor.getBuildFile().getAbsolutePath(),
+            convertDescriptors(projectDescriptor.getChildren()));
     }
 
-    private Set<ConfigureSettingsBuildOperationType.ProjectDetails> toDetails(Set<ProjectDescriptor> children) {
-        return CollectionUtils.collect(children, new Transformer<ConfigureSettingsBuildOperationType.ProjectDetails, ProjectDescriptor>() {
+    private Set<ConfigureSettingsBuildOperationType.ProjectDescriptor> convertDescriptors(Set<org.gradle.api.initialization.ProjectDescriptor> children) {
+        return CollectionUtils.collect(children, new Transformer<ConfigureSettingsBuildOperationType.ProjectDescriptor, org.gradle.api.initialization.ProjectDescriptor>() {
             @Override
-            public ConfigureSettingsBuildOperationType.ProjectDetails transform(ProjectDescriptor projectDescriptor) {
-                return toDetails(projectDescriptor);
+            public ConfigureSettingsBuildOperationType.ProjectDescriptor transform(org.gradle.api.initialization.ProjectDescriptor projectDescriptor) {
+                return convertDescriptors(projectDescriptor);
             }
         });
     }
-
-    static final ConfigureSettingsBuildOperationType.Details OPERATION_DETAILS = new ConfigureSettingsBuildOperationType.Details() {
-    };
 
     private class OperationResult implements ConfigureSettingsBuildOperationType.Result {
-        private final ConfigureSettingsBuildOperationType.ProjectDetails rootProject;
+        private final ConfigureSettingsBuildOperationType.ProjectDescriptor rootProject;
+        private final String buildPath;
 
-        public OperationResult(ConfigureSettingsBuildOperationType.ProjectDetails rootProject) {
+        public OperationResult(ConfigureSettingsBuildOperationType.ProjectDescriptor rootProject, String buildPath) {
             this.rootProject = rootProject;
+            this.buildPath = buildPath;
         }
 
         @Override
-        public ConfigureSettingsBuildOperationType.ProjectDetails getRootProjectDescriptor() {
+        public ConfigureSettingsBuildOperationType.ProjectDescriptor getRootProject() {
             return rootProject;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath;
         }
     }
 }

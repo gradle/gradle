@@ -17,8 +17,8 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.io.File;
 import java.util.Set;
 
 /**
@@ -27,26 +27,60 @@ import java.util.Set;
  * @since 4.2
  */
 public final class ConfigureSettingsBuildOperationType implements BuildOperationType<ConfigureSettingsBuildOperationType.Details, ConfigureSettingsBuildOperationType.Result> {
+
+    @UsedByScanPlugin
     public interface Details {
+        /**
+         * The absolute path to the settings directory.
+         */
+        String getSettingsDir();
+
+        /**
+         * The absolute path to the settings file.
+         */
+        String getSettingsFile();
     }
 
     public interface Result {
-        ProjectDetails getRootProjectDescriptor();
+
+        ProjectDescriptor getRootProject();
+
+        String getBuildPath();
     }
 
-    public static class ProjectDetails {
-        public final String name;
-        public final String path;
-        public final File projectDir;
-        public final File buildFile;
-        public final Set<ProjectDetails> children;
+    public static class ProjectDescriptor {
+        final String name;
+        final String path;
+        final String projectDir;
+        final String buildFile;
+        final Set<ProjectDescriptor> children;
 
-        public ProjectDetails(String name, String path, File projectDir, File buildFile, Set<ProjectDetails> children){
+        public ProjectDescriptor(String name, String path, String projectDir, String buildFile, Set<ProjectDescriptor> children){
             this.name = name;
             this.path = path;
             this.projectDir = projectDir;
             this.buildFile = buildFile;
             this.children = children;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getProjectDir() {
+            return projectDir;
+        }
+
+        public String getBuildFile() {
+            return buildFile;
+        }
+
+        public Set<ProjectDescriptor> getChildren() {
+            return children;
         }
     }
 }
