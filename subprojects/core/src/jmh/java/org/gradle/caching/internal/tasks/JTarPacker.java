@@ -16,18 +16,19 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.apache.tools.tar.TarEntry;
-import org.apache.tools.tar.TarInputStream;
-import org.apache.tools.tar.TarOutputStream;
+import org.kamranzafar.jtar.TarEntry;
+import org.kamranzafar.jtar.TarHeader;
+import org.kamranzafar.jtar.TarInputStream;
+import org.kamranzafar.jtar.TarOutputStream;
 
 import java.io.IOException;
 import java.util.List;
 
-public class TarPacker implements Packer {
+public class JTarPacker implements Packer {
 
     private final byte[] buffer;
 
-    public TarPacker(int bufferSizeInKBytes) {
+    public JTarPacker(int bufferSizeInKBytes) {
         this.buffer = new byte[bufferSizeInKBytes * 1024];
     }
 
@@ -35,11 +36,11 @@ public class TarPacker implements Packer {
     public void pack(List<DataSource> inputs, DataTarget output) throws IOException {
         TarOutputStream tarOutput = new TarOutputStream(output.openOutput());
         for (DataSource input : inputs) {
-            TarEntry entry = new TarEntry(input.getName());
-            entry.setSize(input.getLength());
+            @SuppressWarnings("OctalInteger")
+            TarHeader header = TarHeader.createHeader(input.getName(), input.getLength(), 0, false, 0644);
+            TarEntry entry = new TarEntry(header);
             tarOutput.putNextEntry(entry);
             PackerUtils.packEntry(input, tarOutput, buffer);
-            tarOutput.closeEntry();
         }
         tarOutput.close();
     }

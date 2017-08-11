@@ -19,12 +19,12 @@ package org.gradle.caching.internal.tasks;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
-import org.apache.tools.tar.TarEntry;
-import org.apache.tools.tar.TarInputStream;
-import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
@@ -43,6 +43,7 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -86,34 +87,38 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
-        TarOutputStream tarOutput = new TarOutputStream(output, "utf-8");
+        BufferedOutputStream bufferedOutput;
+        if (output instanceof BufferedOutputStream) {
+            bufferedOutput = (BufferedOutputStream) output;
+        } else {
+            bufferedOutput = new BufferedOutputStream(output);
+        }
+        TarArchiveOutputStream tarOutput = new TarArchiveOutputStream(bufferedOutput, "utf-8");
         try {
-            tarOutput.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
-            tarOutput.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
+            tarOutput.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
+            tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
             tarOutput.setAddPaxHeadersForNonAsciiNames(true);
             packMetadata(writeOrigin, tarOutput);
-            return new PackResult(pack(propertySpecs, tarOutput) + 1);
+            long entryCount = pack(propertySpecs, tarOutput);
+            return new PackResult(entryCount + 1);
         } finally {
             IOUtils.closeQuietly(tarOutput);
         }
     }
 
-    private void packMetadata(TaskOutputOriginWriter writeMetadata, TarOutputStream outputStream) throws IOException {
-        TarEntry entry = new TarEntry(METADATA_PATH);
-        entry.setMode(UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM);
+    private void packMetadata(TaskOutputOriginWriter writeMetadata, TarArchiveOutputStream tarOutput) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         writeMetadata.execute(baos);
-        entry.setSize(baos.size());
-        outputStream.putNextEntry(entry);
-        outputStream.write(baos.toByteArray());
-        outputStream.closeEntry();
+        createTarEntry(METADATA_PATH, baos.size(), UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM, tarOutput);
+        tarOutput.write(baos.toByteArray());
+        tarOutput.closeArchiveEntry();
     }
 
-    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarOutputStream outputStream) {
+    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarArchiveOutputStream tarOutput) {
         long entries = 0;
         for (ResolvedTaskOutputFilePropertySpec spec : propertySpecs) {
             try {
-                entries += packProperty(spec, outputStream);
+                entries += packProperty(spec, tarOutput);
             } catch (Exception ex) {
                 throw new GradleException(String.format("Could not pack property '%s': %s", spec.getPropertyName(), ex.getMessage()), ex);
             }
@@ -121,7 +126,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         return entries;
     }
 
-    private long packProperty(CacheableTaskOutputFilePropertySpec propertySpec, TarOutputStream outputStream) throws IOException {
+    private long packProperty(CacheableTaskOutputFilePropertySpec propertySpec, TarArchiveOutputStream tarOutput) throws IOException {
         String propertyName = propertySpec.getPropertyName();
         File outputFile = propertySpec.getOutputFile();
         if (outputFile == null) {
@@ -129,28 +134,27 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
         String propertyPath = "property-" + propertyName;
         if (!outputFile.exists()) {
-            storeMissingProperty(propertyPath, outputStream);
+            storeMissingProperty(propertyPath, tarOutput);
             return 1;
         }
         switch (propertySpec.getOutputType()) {
             case DIRECTORY:
-                return 1 + storeDirectoryProperty(propertyPath, outputFile, outputStream);
+                return 1 + storeDirectoryProperty(propertyPath, outputFile, tarOutput);
             case FILE:
-                storeFileProperty(propertyPath, outputFile, outputStream);
+                storeFileProperty(propertyPath, outputFile, tarOutput);
                 return 1;
             default:
                 throw new AssertionError();
         }
     }
 
-    private long storeDirectoryProperty(String propertyPath, File directory, final TarOutputStream tarOutput) throws IOException {
+    private long storeDirectoryProperty(String propertyPath, File directory, final TarArchiveOutputStream tarOutput) throws IOException {
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", directory));
         }
         final String propertyRoot = propertyPath + "/";
-        //noinspection OctalInteger
-        createTarEntry(propertyRoot, 0, UnixStat.DIR_FLAG | 0755, tarOutput);
-        tarOutput.closeEntry();
+        createTarEntry(propertyRoot, 0, UnixStat.DIR_FLAG | UnixStat.DEFAULT_DIR_PERM, tarOutput);
+        tarOutput.closeArchiveEntry();
 
         class CountingFileVisitor implements FileVisitor {
 
@@ -183,26 +187,25 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         return visitor.entries;
     }
 
-    private void storeFileProperty(String propertyPath, File file, TarOutputStream tarOutput) throws IOException {
+    private void storeFileProperty(String propertyPath, File file, TarArchiveOutputStream tarOutput) throws IOException {
         if (!file.isFile()) {
             throw new IllegalArgumentException(String.format("Expected '%s' to be a file", file));
         }
         storeFileEntry(file, propertyPath, file.length(), fileSystem.getUnixMode(file), tarOutput);
     }
 
-    private void storeMissingProperty(String propertyPath, TarOutputStream outputStream) throws IOException {
-        TarEntry entry = new TarEntry("missing-" + propertyPath);
-        outputStream.putNextEntry(entry);
-        outputStream.closeEntry();
+    private void storeMissingProperty(String propertyPath, TarArchiveOutputStream tarOutput) throws IOException {
+        createTarEntry("missing-" + propertyPath, 0, UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM, tarOutput);
+        tarOutput.closeArchiveEntry();
     }
 
-    private void storeDirectoryEntry(FileVisitDetails dirDetails, String propertyRoot, TarOutputStream outputStream) throws IOException {
+    private void storeDirectoryEntry(FileVisitDetails dirDetails, String propertyRoot, TarArchiveOutputStream tarOutput) throws IOException {
         String path = dirDetails.getRelativePath().getPathString();
-        createTarEntry(propertyRoot + path + "/", 0, UnixStat.DIR_FLAG | dirDetails.getMode(), outputStream);
-        outputStream.closeEntry();
+        createTarEntry(propertyRoot + path + "/", 0, UnixStat.DIR_FLAG | dirDetails.getMode(), tarOutput);
+        tarOutput.closeArchiveEntry();
     }
 
-    private void storeFileEntry(File inputFile, String path, long size, int mode, TarOutputStream tarOutput) throws IOException {
+    private void storeFileEntry(File inputFile, String path, long size, int mode, TarArchiveOutputStream tarOutput) throws IOException {
         createTarEntry(path, size, UnixStat.FILE_FLAG | mode, tarOutput);
         FileInputStream input = new FileInputStream(inputFile);
         try {
@@ -210,19 +213,19 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         } finally {
             IOUtils.closeQuietly(input);
         }
-        tarOutput.closeEntry();
+        tarOutput.closeArchiveEntry();
     }
 
-    private static void createTarEntry(String path, long size, int mode, TarOutputStream outputStream) throws IOException {
-        TarEntry entry = new TarEntry(path);
+    private static void createTarEntry(String path, long size, int mode, TarArchiveOutputStream tarOutput) throws IOException {
+        TarArchiveEntry entry = new TarArchiveEntry(path, true);
         entry.setSize(size);
         entry.setMode(mode);
-        outputStream.putNextEntry(entry);
+        tarOutput.putArchiveEntry(entry);
     }
 
     @Override
     public UnpackResult unpack(final SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, final InputStream input, final TaskOutputOriginReader readOrigin) throws IOException {
-        TarInputStream tarInput = new TarInputStream(input);
+        TarArchiveInputStream tarInput = new TarArchiveInputStream(input);
         try {
             return unpack(propertySpecs, tarInput, readOrigin);
         } finally {
@@ -230,18 +233,18 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
+    private UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarArchiveInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
         Map<String, ResolvedTaskOutputFilePropertySpec> propertySpecsMap = Maps.uniqueIndex(propertySpecs, new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
                 return propertySpec.getPropertyName();
             }
         });
-        TarEntry entry;
+        TarArchiveEntry entry;
         TaskOutputOriginMetadata originMetadata = null;
 
         long entries = 0;
-        while ((entry = tarInput.getNextEntry()) != null) {
+        while ((entry = tarInput.getNextTarEntry()) != null) {
             ++entries;
             String name = entry.getName();
 
@@ -273,7 +276,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         return new UnpackResult(originMetadata, entries);
     }
 
-    private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarEntry entry, String childPath, boolean missing) throws IOException {
+    private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarArchiveEntry entry, String childPath, boolean missing) throws IOException {
         File propertyRoot = propertySpec.getOutputFile();
         if (propertyRoot == null) {
             throw new IllegalStateException("Optional property should have a value: " + propertySpec.getPropertyName());

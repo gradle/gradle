@@ -44,15 +44,17 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
     private static final DefaultDirectoryProvider DIRECTORY_PROVIDER = new DefaultDirectoryProvider();
 
     private static final Map<String, Packer> PACKERS = ImmutableMap.<String, Packer>builder()
-        .put("tar.snappy", new SnappyPacker(new TarPacker(4)))
-        .put("tar.snappy.commons", new SnappyCommonsPacker(new TarPacker(4)))
-        .put("tar.snappy.dain", new SnappyDainPacker(new TarPacker(4)))
-        .put("tar.snappy.small", new SnappyPacker(new TarPacker(2)))
-        .put("tar.snappy.large", new SnappyPacker(new TarPacker(64)))
-        .put("tar", new TarPacker(4))
-        .put("tar.small", new TarPacker(2))
-        .put("tar.large", new TarPacker(64))
-        .put("tar.gz", new GzipPacker(new TarPacker(4)))
+        .put("tar.snappy", new SnappyPacker(new AntTarPacker(4)))
+        .put("tar.snappy.commons", new SnappyCommonsPacker(new AntTarPacker(4)))
+        .put("tar.snappy.dain", new SnappyDainPacker(new AntTarPacker(4)))
+        .put("tar.snappy.small", new SnappyPacker(new AntTarPacker(2)))
+        .put("tar.snappy.large", new SnappyPacker(new AntTarPacker(64)))
+        .put("tar", new AntTarPacker(4))
+        .put("tar.commons", new CommonsTarPacker(4))
+        .put("tar.jtar", new JTarPacker(4))
+        .put("tar.small", new AntTarPacker(2))
+        .put("tar.large", new AntTarPacker(64))
+        .put("tar.gz", new GzipPacker(new AntTarPacker(4)))
         .put("zip", new ZipPacker(4))
         .build();
 
