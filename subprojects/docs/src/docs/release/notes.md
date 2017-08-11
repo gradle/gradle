@@ -10,13 +10,7 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Play-on-Gradle Improvements
-
-#### Support for Play 2.6
-
-TODO Placeholder
-
-#### Support for other built-in Twirl template types
+### Support for Play 2.6
 
 TODO Placeholder
 

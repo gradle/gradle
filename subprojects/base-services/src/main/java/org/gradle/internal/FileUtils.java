@@ -108,13 +108,12 @@ public class FileUtils {
     }
 
     /**
-     * Checks if the given file path ends with the given extension (ignoring case).
-     * @param fileName the file name
-     * @param extension candidate extension including leading dot
-     * @return true if the file name ends with extension, ignoring case
+     * Returns true if the given file name can represent a Jar archive
+     * @param fileName the file name to test
+     * @return true if the file name ends with ".jar", ignoring case
      */
-    public static boolean hasExtensionIgnoresCase(String fileName, String extension) {
-        return endsWithIgnoreCase(fileName, extension);
+    public static boolean isJar(String fileName) {
+        return endsWithIgnoreCase(fileName, ".jar");
     }
 
     private static boolean endsWithIgnoreCase(String subject, String suffix) {

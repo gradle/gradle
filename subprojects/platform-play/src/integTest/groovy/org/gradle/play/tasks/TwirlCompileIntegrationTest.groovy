@@ -25,7 +25,8 @@ import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
 
-    def destinationDir = file("build/src/play/binary/twirlTemplatesScalaSources/views")
+    def destinationDirPath = "build/src/play/binary/twirlTemplatesScalaSources/views/html"
+    def destinationDir = file(destinationDirPath)
 
     def setup() {
         settingsFile << """ rootProject.name = 'twirl-play-app' """
@@ -46,102 +47,18 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         """
     }
 
-    def "can run TwirlCompile with html template"() {
+    def "can run TwirlCompile"() {
         given:
         withTwirlTemplate()
         when:
         succeeds("compilePlayBinaryPlayTwirlTemplates")
         then:
-        destinationDir.assertHasDescendants("html/index.template.scala")
+        destinationDir.assertHasDescendants("index.template.scala")
 
         when:
         succeeds("compilePlayBinaryPlayTwirlTemplates")
         then:
-        skipped(":compilePlayBinaryPlayTwirlTemplates")
-    }
-
-    def "can run TwirlCompile with javascript template"() {
-        given:
-        twirlTemplate("test.scala.js") << """
-            @(jsFile: String, payload: String)
-            
-            (function() {
-            @*
-             * Inject the PAYLOAD
-             *@
-            var PAYLOAD = @JavaScript(payload);
-            
-            @*
-             * Inject the jsFile
-             *@
-            @JavaScript(jsFile)
-            }());
-        """
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        destinationDir.assertHasDescendants("js/test.template.scala")
-
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        skipped(":compilePlayBinaryPlayTwirlTemplates")
-    }
-
-    def "can run TwirlCompile with xml template"() {
-        given:
-        twirlTemplate("test.scala.xml") << """
-            @(jsFile: String, payload: String)
-            
-            (function() {
-            @*
-             * Inject the PAYLOAD
-             *@
-            var PAYLOAD = @JavaScript(payload);
-            
-            @*
-             * Inject the jsFile
-             *@
-            @JavaScript(jsFile)
-            }());
-        """
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        destinationDir.assertHasDescendants("xml/test.template.scala")
-
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        skipped(":compilePlayBinaryPlayTwirlTemplates")
-    }
-
-    def "can run TwirlCompile with txt template"() {
-        given:
-        twirlTemplate("test.scala.txt") << """
-            @(jsFile: String, payload: String)
-            
-            (function() {
-            @*
-             * Inject the PAYLOAD
-             *@
-            var PAYLOAD = @JavaScript(payload);
-            
-            @*
-             * Inject the jsFile
-             *@
-            @JavaScript(jsFile)
-            }());
-        """
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        destinationDir.assertHasDescendants("txt/test.template.scala")
-
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        skipped(":compilePlayBinaryPlayTwirlTemplates")
+        skipped(":compilePlayBinaryPlayTwirlTemplates");
     }
 
     def "runs compiler incrementally"() {
@@ -150,24 +67,24 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         then:
         succeeds("compilePlayBinaryPlayTwirlTemplates")
         and:
-        destinationDir.assertHasDescendants("html/input1.template.scala")
-        def input1FirstCompileSnapshot = destinationDir.file("html/input1.template.scala").snapshot()
+        destinationDir.assertHasDescendants("input1.template.scala")
+        def input1FirstCompileSnapshot = file("${destinationDirPath}/input1.template.scala").snapshot();
 
         when:
         withTwirlTemplate("input2.scala.html")
         and:
         succeeds("compilePlayBinaryPlayTwirlTemplates")
         then:
-        destinationDir.assertHasDescendants("html/input1.template.scala", "html/input2.template.scala")
+        destinationDir.assertHasDescendants("input1.template.scala", "input2.template.scala")
         and:
-        destinationDir.file("html/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot)
+        file("${destinationDirPath}/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot)
 
         when:
         file("app/views/input2.scala.html").delete()
         then:
         succeeds("compilePlayBinaryPlayTwirlTemplates")
         and:
-        destinationDir.assertHasDescendants("html/input1.template.scala")
+        destinationDir.assertHasDescendants("input1.template.scala")
     }
 
     def "removes stale output files in incremental compile"(){
@@ -177,8 +94,8 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         succeeds("compilePlayBinaryPlayTwirlTemplates")
 
         and:
-        destinationDir.assertHasDescendants("html/input1.template.scala", "html/input2.template.scala")
-        def input1FirstCompileSnapshot = destinationDir.file("html/input1.template.scala").snapshot()
+        destinationDir.assertHasDescendants("input1.template.scala", "input2.template.scala")
+        def input1FirstCompileSnapshot = file("${destinationDirPath}/input1.template.scala").snapshot();
 
         when:
         file("app/views/input2.scala.html").delete()
@@ -186,9 +103,9 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         then:
         succeeds("compilePlayBinaryPlayTwirlTemplates")
         and:
-        destinationDir.assertHasDescendants("html/input1.template.scala")
-        destinationDir.file("html/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot)
-        destinationDir.file("html/input2.template.scala").assertDoesNotExist()
+        destinationDir.assertHasDescendants("input1.template.scala")
+        file("${destinationDirPath}/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot);
+        file("${destinationDirPath}/input2.template.scala").assertDoesNotExist()
     }
 
     def "builds multiple twirl source sets as part of play build" () {
@@ -208,7 +125,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         )
 
         and:
-        destinationDir.assertHasDescendants("html/index.template.scala")
+        destinationDir.assertHasDescendants("index.template.scala")
         file("build/src/play/binary/otherTwirlScalaSources").assertHasDescendants("templates/html/other.template.scala")
         file("build/src/play/binary/extraTwirlScalaSources").assertHasDescendants("html/extra.template.scala")
 
@@ -295,12 +212,13 @@ Source sets
         srcDir: otherSources
     Twirl template source 'play:twirlTemplates'
         srcDir: app
-        includes: **/*.scala.html, **/*.scala.js, **/*.scala.xml, **/*.scala.txt
+        includes: **/*.html
 
 Binaries
 """
 
     }
+
 
     def withTemplateSource(File templateFile) {
         templateFile << """@(message: String)
@@ -308,10 +226,6 @@ Binaries
             <h1>@message</h1>
 
         """
-    }
-
-    def twirlTemplate(String fileName) {
-        file("app", "views", fileName)
     }
 
     def withTwirlTemplate(String fileName = "index.scala.html") {

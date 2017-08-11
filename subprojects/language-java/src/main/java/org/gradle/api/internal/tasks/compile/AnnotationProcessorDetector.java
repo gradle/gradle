@@ -121,7 +121,7 @@ public class AnnotationProcessorDetector {
                 return new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile();
             }
 
-            if (fileType == FileType.RegularFile && FileUtils.hasExtensionIgnoresCase(file.getName(), ".jar")) {
+            if (fileType == FileType.RegularFile && FileUtils.isJar(file.getName())) {
                 try {
                     ZipFile zipFile = new ZipFile(file);
                     try {
