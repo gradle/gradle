@@ -79,7 +79,9 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
         };
 
         TwirlTemplateFormat format = CollectionUtils.findFirst(adapter.getDefaultTemplateFormats(), hasExtension);
-
+        if (format == null) {
+            format = CollectionUtils.findFirst(spec.getUserTemplateFormats(), hasExtension);
+        }
         return format;
     }
 
