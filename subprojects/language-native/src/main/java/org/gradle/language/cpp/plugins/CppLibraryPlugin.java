@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -44,7 +46,10 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -71,12 +76,14 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        Directory projectDirectory = project.getLayout().getProjectDirectory();
         ObjectFactory objectFactory = project.getObjects();
+        ProviderFactory providers = project.getProviders();
 
         // TODO - extract some common code to setup the compile task and conventions
 
         // Add the component extension
-        CppLibrary component = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, fileOperations);
+        final CppLibrary component = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, fileOperations);
 
         // Add a compile task
         CppCompile compile = tasks.create("compileCpp", CppCompile.class);
@@ -121,7 +128,18 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         Configuration apiElements = configurations.create("cppApiElements");
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API));
-        apiElements.getOutgoing().artifact(project.file("src/main/public"));
+        // TODO - deal with more than one header dir, e.g. generated public headers
+        Provider<File> publicHeaders = providers.provider(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                Set<File> files = component.getPublicHeaderDirs().getFiles();
+                if (files.size() != 1) {
+                    throw new UnsupportedOperationException(String.format("The C++ library plugin currently requires exactly one public header directory, however there are %d directories are configured: %s", files.size(), files));
+                }
+                return files.iterator().next();
+            }
+        });
+        apiElements.getOutgoing().artifact(publicHeaders);
 
         Configuration implementation = configurations.getByName(CppBasePlugin.IMPLEMENTATION);
 

@@ -16,18 +16,28 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-/**
- * A C++ app composed of 3 modules: an executable and 2 libraries.
- */
-class CppAppWithLibraries implements AppElement {
-    private final greeter = new CppGreeterUsesLogger()
-    private final logger = new CppLogger()
-    final main = new CppAlternateMain(greeter)
-    final greeterLib = greeter.asLib()
-    final loggerLib = logger.asLib()
+import org.gradle.integtests.fixtures.SourceFile
+
+
+class CppAlternateMain extends SourceFileElement implements AppElement {
+    final GreeterElement greeter
+
+    CppAlternateMain(GreeterElement greeter) {
+        this.greeter = greeter
+    }
+
+    final SourceFile sourceFile = sourceFile("cpp", "main.cpp", """
+    #include "greeter.h"
+    
+    int main(int argc, char** argv) {
+        Greeter greeter;
+        greeter.sayHello();
+        return 0;
+    }
+    """)
 
     @Override
     String getExpectedOutput() {
-        return main.expectedOutput
+        return greeter.expectedOutput
     }
 }

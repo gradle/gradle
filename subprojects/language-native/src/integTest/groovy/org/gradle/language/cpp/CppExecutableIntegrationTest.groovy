@@ -21,7 +21,6 @@ import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
@@ -231,7 +230,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
     def "can compile and link against library with dependencies"() {
         settingsFile << "include 'app', 'lib1', 'lib2'"
-        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        def app = new CppAppWithLibraries()
 
         given:
         buildFile << """
@@ -251,11 +250,9 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
                 apply plugin: 'cpp-library'
             }
 """
-        app.library.headerFiles.each { it.writeToFile(file("lib1/src/main/public/$it.name")) }
-        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/cpp/$it.name")) }
-        app.greetingsLibrary.headerFiles.each { it.writeToFile(file("lib2/src/main/public/$it.name")) }
-        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/cpp/$it.name")) }
-        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
+        app.greeterLib.writeToProject(file("lib1"))
+        app.loggerLib.writeToProject(file("lib2"))
+        app.main.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
@@ -263,14 +260,14 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary("lib1/build/lib/lib1").assertExists()
         sharedLibrary("lib2/build/lib/lib2").assertExists()
         executable("app/build/exe/app").assertExists()
-        installation("app/build/install/app").exec().out == app.englishOutput
+        installation("app/build/install/app").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
         sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
     }
 
     def "honors changes to library buildDir"() {
         settingsFile << "include 'app', 'lib1', 'lib2'"
-        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        def app = new CppAppWithLibraries()
 
         given:
         buildFile << """
@@ -291,11 +288,9 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
                 buildDir = 'out'
             }
 """
-        app.library.headerFiles.each { it.writeToFile(file("lib1/src/main/public/$it.name")) }
-        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/cpp/$it.name")) }
-        app.greetingsLibrary.headerFiles.each { it.writeToFile(file("lib2/src/main/public/$it.name")) }
-        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/cpp/$it.name")) }
-        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
+        app.greeterLib.writeToProject(file("lib1"))
+        app.loggerLib.writeToProject(file("lib2"))
+        app.main.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
@@ -305,13 +300,13 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary("lib1/build/lib/lib1").assertExists()
         sharedLibrary("lib2/out/lib/lib2").assertExists()
         executable("app/build/exe/app").assertExists()
-        installation("app/build/install/app").exec().out == app.englishOutput
+        installation("app/build/install/app").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
         sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
     }
 
-    def "multiple components can share the same source directory"() {
-        settingsFile << "include 'app', 'hello', 'sum'"
+    def "honors changes to library public header location"() {
+        settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
 
         given:
@@ -319,42 +314,91 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
             project(':app') {
                 apply plugin: 'cpp-executable'
                 dependencies {
-                    implementation project(':hello')
-                    implementation project(':sum')
+                    implementation project(':lib1')
+                }
+            }
+            project(':lib1') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    implementation project(':lib2')
+                }
+                library {
+                    publicHeaders.from('include')
+                }
+            }
+            project(':lib2') {
+                apply plugin: 'cpp-library'
+                library {
+                    publicHeaders.from('include')
+                }
+            }
+"""
+        app.greeterLib.publicHeaders.writeToSourceDir(file("lib1/include"))
+        app.greeterLib.privateHeaders.writeToProject(file("lib1"))
+        app.greeterLib.sources.writeToProject(file("lib1"))
+        app.loggerLib.publicHeaders.writeToSourceDir(file("lib2/include"))
+        app.loggerLib.sources.writeToProject(file("lib2"))
+        app.main.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":lib1:compileCpp", ":lib1:linkMain", ":lib2:compileCpp", ":lib2:linkMain", ":app:compileCpp", ":app:linkMain", ":app:installMain", ":app:assemble")
+
+        sharedLibrary("lib1/build/lib/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/lib2").assertExists()
+        executable("app/build/exe/app").assertExists()
+        installation("app/build/install/app").exec().out == app.expectedOutput
+        sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
+    }
+
+    def "multiple components can share the same source directory"() {
+        settingsFile << "include 'app', 'greeter', 'logger'"
+        def app = new CppAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':greeter')
                 }
                 executable {
-                    source.from '../Sources/${app.main.sourceFile.name}'
+                    source.from '../Sources/main.cpp'
                 }
             }
-            project(':hello') {
+            project(':greeter') {
                 apply plugin: 'cpp-library'
+                dependencies {
+                    implementation project(':logger')
+                }
                 library {
-                    source.from '../Sources/${app.greeterLib.source.sourceFile.name}'
+                    source.from '../Sources/greeter.cpp'
                 }
             }
-            project(':sum') {
+            project(':logger') {
                 apply plugin: 'cpp-library'
                 library {
-                    source.from '../Sources/${app.sumLib.source.sourceFile.name}'
+                    source.from '../Sources/logger.cpp'
                 }
             }
 """
         app.main.writeToSourceDir(file("Sources"))
-        app.greeterLib.source.writeToSourceDir(file("Sources"))
-        app.greeterLib.headers.writeToProject(file("hello"))
-        app.sumLib.source.writeToSourceDir(file("Sources"))
-        app.sumLib.headers.writeToProject(file("sum"))
+        app.greeterLib.sources.writeToSourceDir(file("Sources"))
+        app.greeterLib.headers.writeToProject(file("greeter"))
+        app.loggerLib.sources.writeToSourceDir(file("Sources"))
+        app.loggerLib.headers.writeToProject(file("logger"))
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":hello:compileCpp", ":hello:linkMain", ":sum:compileCpp", ":sum:linkMain", ":app:compileCpp", ":app:linkMain", ":app:installMain", ":app:assemble")
+        result.assertTasksExecuted(":greeter:compileCpp", ":greeter:linkMain", ":logger:compileCpp", ":logger:linkMain", ":app:compileCpp", ":app:linkMain", ":app:installMain", ":app:assemble")
 
-        sharedLibrary("hello/build/lib/hello").assertExists()
-        sharedLibrary("sum/build/lib/sum").assertExists()
+        sharedLibrary("greeter/build/lib/greeter").assertExists()
+        sharedLibrary("logger/build/lib/logger").assertExists()
         executable("app/build/exe/app").assertExists()
         installation("app/build/install/app").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
-        sharedLibrary("app/build/install/app/lib/sum").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/greeter").file.assertExists()
+        sharedLibrary("app/build/install/app/lib/logger").file.assertExists()
     }
 
     def "can compile and link against libraries in included builds"() {
@@ -366,7 +410,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         file("lib1/settings.gradle") << "rootProject.name = 'lib1'"
         file("lib2/settings.gradle") << "rootProject.name = 'lib2'"
 
-        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        def app = new CppAppWithLibraries()
 
         given:
         buildFile << """
@@ -387,11 +431,9 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
             group = 'test'
         """
 
-        app.library.headerFiles.each { it.writeToFile(file("lib1/src/main/public/$it.name")) }
-        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/cpp/$it.name")) }
-        app.greetingsLibrary.headerFiles.each { it.writeToFile(file("lib2/src/main/public/$it.name")) }
-        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/cpp/$it.name")) }
-        app.executable.sourceFiles.each { it.writeToDir(file('src/main')) }
+        app.greeterLib.writeToProject(file("lib1"))
+        app.loggerLib.writeToProject(file("lib2"))
+        app.main.writeToProject(testDirectory)
 
         expect:
         succeeds ":assemble"
@@ -399,7 +441,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary("lib1/build/lib/lib1").assertExists()
         sharedLibrary("lib2/build/lib/lib2").assertExists()
         executable("build/exe/app").assertExists()
-        installation("build/install/app").exec().out == app.englishOutput
+        installation("build/install/app").exec().out == app.expectedOutput
         sharedLibrary("build/install/app/lib/lib1").file.assertExists()
         sharedLibrary("build/install/app/lib/lib2").file.assertExists()
     }

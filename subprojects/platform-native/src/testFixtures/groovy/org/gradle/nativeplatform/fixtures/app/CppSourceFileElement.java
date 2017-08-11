@@ -16,54 +16,21 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
-import org.gradle.integtests.fixtures.SourceFile;
-
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * A C++ source file and corresponding header file.
  */
-public abstract class CppSourceFileElement extends CppSourceElement {
+public abstract class CppSourceFileElement extends CppLibraryElement {
     public abstract SourceFileElement getHeader();
 
     public abstract SourceFileElement getSource();
 
     @Override
-    public SourceElement getHeaders() {
+    public SourceElement getPublicHeaders() {
         return getHeader();
     }
 
     @Override
     public SourceElement getSources() {
         return getSource();
-    }
-
-    @Override
-    public List<SourceFile> getFiles() {
-        return Arrays.asList(getHeader().getSourceFile(), getSource().getSourceFile());
-    }
-
-    /**
-     * Returns a copy of this element, with the header treated as a public library header
-     */
-    public CppSourceFileElement asLib() {
-        return new CppSourceFileElement() {
-            @Override
-            public SourceFileElement getHeader() {
-                return new SourceFileElement() {
-                    @Override
-                    public SourceFile getSourceFile() {
-                        SourceFile header = CppSourceFileElement.this.getHeader().getSourceFile();
-                        return sourceFile("public", header.getName(), header.getContent());
-                    }
-                };
-            }
-
-            @Override
-            public SourceFileElement getSource() {
-                return CppSourceFileElement.this.getSource();
-            }
-        };
     }
 }

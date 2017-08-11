@@ -49,6 +49,8 @@ import java.util.Collections;
  *
  * <p>Assumes the source files are located in `src/main/cpp` and header files are located in `src/main/headers`.</p>
  *
+ * <p>Adds a {@link CppComponent} extension to the project to allow configuration of the executable.</p>
+ *
  * @since 4.1
  */
 @Incubating

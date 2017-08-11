@@ -26,7 +26,7 @@ class CppApp extends CppSourceElement implements AppElement {
 
     @Override
     SourceElement getSources() {
-        return ofElements(main, greeter.source, sum.source)
+        return ofElements(main, greeter.sources, sum.sources)
     }
 
     @Override

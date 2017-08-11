@@ -19,11 +19,11 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 /**
- * A Swift app composed of 3 modules: an executable and 2 libraries.
+ * A Swift app composed of 3 modules: an executable and 2 libraries. Executable depends on one library only, so that the other library is a transitive dependency of the executable.
  */
 class SwiftAppWithLibraries implements AppElement {
     final logger = new SwiftLogger()
-    final greeter = new SwiftGreeterWithDep()
+    final greeter = new SwiftGreeterUsesLogger()
     final main = new SwiftAlternateMain(greeter)
 
     SourceElement getLogLibrary() {

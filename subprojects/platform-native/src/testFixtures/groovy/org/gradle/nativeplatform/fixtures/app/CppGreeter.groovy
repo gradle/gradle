@@ -16,14 +16,10 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
+import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
-
-class CppGreeter extends CppSourceElement implements GreeterElement {
-    final SourceFileElement header = new SourceFileElement() {
-        @Override
-        SourceFile getSourceFile() {
-            return sourceFile("headers", "greeter.h", """
+class CppGreeter extends CppLibraryElement implements GreeterElement {
+    final SourceFileElement header = ofFile(sourceFile("headers", "greeter.h", """
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
@@ -34,23 +30,13 @@ class Greeter {
 public:
     void EXPORT_FUNC sayHello();
 };
-""")
-        }
-    }
+"""))
 
-    final SourceFileElement privateHeader = new SourceFileElement() {
-        @Override
-        SourceFile getSourceFile() {
-            return sourceFile("headers", "greeter_consts.h", """
+    final SourceFileElement privateHeader = ofFile(sourceFile("headers", "greeter_consts.h", """
 #define GREETING "${HelloWorldApp.HELLO_WORLD}"
-""")
-        }
-    }
+"""))
 
-    final SourceFileElement source = new SourceFileElement() {
-        @Override
-        SourceFile getSourceFile() {
-            return sourceFile("cpp", "greeter.cpp", """
+    final SourceFileElement source = ofFile(sourceFile("cpp", "greeter.cpp", """
 #include <iostream>
 #include "greeter.h"
 #include "greeter_consts.h"
@@ -58,29 +44,14 @@ public:
 void Greeter::sayHello() {
     std::cout << GREETING << std::endl;
 }
-""")
-        }
-    }
+"""))
 
-    final SourceElement headers = ofElements(header, privateHeader)
-    final SourceElement sources = ofElements(source)
+    final SourceElement publicHeaders = header
+    final SourceElement privateHeaders = privateHeader
+    final SourceElement sources = source
 
     @Override
     String getExpectedOutput() {
         return "${HelloWorldApp.HELLO_WORLD}\n"
-    }
-
-    CppSourceElement asLib() {
-        return new CppSourceElement() {
-            @Override
-            SourceElement getHeaders() {
-                return ofFiles(sourceFile("public", header.sourceFile.name, header.sourceFile.content), privateHeader.sourceFile)
-            }
-
-            @Override
-            SourceElement getSources() {
-                return sources
-            }
-        }
     }
 }

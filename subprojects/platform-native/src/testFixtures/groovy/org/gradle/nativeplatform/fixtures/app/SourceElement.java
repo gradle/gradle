@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -51,6 +52,15 @@ public abstract class SourceElement extends Element {
         }
     }
 
+    public static SourceElement empty() {
+        return new SourceElement() {
+            @Override
+            public List<SourceFile> getFiles() {
+                return Collections.emptyList();
+            }
+        };
+    }
+
     /**
      * Returns a source element that contains the union of the given elements.
      */
@@ -75,6 +85,18 @@ public abstract class SourceElement extends Element {
             @Override
             public List<SourceFile> getFiles() {
                 return Arrays.asList(files);
+            }
+        };
+    }
+
+    /**
+     * Returns a source element that contains the given files
+     */
+    public static SourceElement ofFiles(final List<SourceFile> files) {
+        return new SourceElement() {
+            @Override
+            public List<SourceFile> getFiles() {
+                return files;
             }
         };
     }

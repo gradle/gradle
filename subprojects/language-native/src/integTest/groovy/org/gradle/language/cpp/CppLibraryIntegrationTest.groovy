@@ -17,8 +17,8 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppLib
-import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
@@ -185,7 +185,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
     def "can compile and link against another library"() {
         settingsFile << "include 'lib1', 'lib2'"
-        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        def app = new CppAppWithLibraries()
 
         given:
         buildFile << """
@@ -199,10 +199,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
                 apply plugin: 'cpp-library'
             }
 """
-        app.library.headerFiles.each { it.writeToFile(file("lib1/src/main/headers/$it.name")) }
-        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/cpp/$it.name")) }
-        app.greetingsLibrary.headerFiles.each { it.writeToFile(file("lib2/src/main/public/$it.name")) }
-        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/cpp/$it.name")) }
+        app.greeterLib.writeToProject(file("lib1"))
+        app.loggerLib.writeToProject(file("lib2"))
 
         expect:
         succeeds ":lib1:assemble"

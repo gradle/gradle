@@ -16,23 +16,30 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
+import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
-class SwiftGreeterWithDep extends SourceFileElement implements GreeterElement {
-    @Override
-    SourceFile getSourceFile() {
-        return sourceFile("swift", "greeter.swift", """
-            public class Greeter {
-                public init() { }
-                public func sayHello() {
-                    log("${HelloWorldApp.HELLO_WORLD}")
-                }
-            }
-        """)
-    }
+class CppLogger extends CppSourceFileElement {
+    final SourceFileElement header = ofFile(sourceFile("headers", "logger.h", """
+#include <string>
 
-    @Override
-    String getExpectedOutput() {
-        return "${HelloWorldApp.HELLO_WORLD}\n"
-    }
+#ifdef _WIN32
+#define EXPORT_FUNC __declspec(dllexport)
+#else
+#define EXPORT_FUNC
+#endif
+
+class Logger {
+    public:
+    void EXPORT_FUNC log(std::string &str);
+};
+"""))
+
+    final SourceFileElement source = ofFile(sourceFile("cpp", "logger.cpp", """
+#include <iostream>
+#include "logger.h"
+
+void Logger::log(std::string &str) {
+    std::cout << str << std::endl;
+}
+"""))
 }

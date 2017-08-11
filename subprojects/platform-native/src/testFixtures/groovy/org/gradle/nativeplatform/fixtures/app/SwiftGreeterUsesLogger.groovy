@@ -14,30 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app;
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.integtests.fixtures.SourceFile
 
-import java.util.Collections;
-import java.util.List;
-
-/**
- * A single source file.
- */
-public abstract class SourceFileElement extends SourceElement {
-    public abstract SourceFile getSourceFile();
-
+class SwiftGreeterUsesLogger extends SourceFileElement implements GreeterElement {
     @Override
-    public List<SourceFile> getFiles() {
-        return Collections.singletonList(getSourceFile());
+    SourceFile getSourceFile() {
+        return sourceFile("swift", "greeter.swift", """
+            public class Greeter {
+                public init() { }
+                public func sayHello() {
+                    log("${HelloWorldApp.HELLO_WORLD}")
+                }
+            }
+        """)
     }
 
-    public static SourceFileElement ofFile(final SourceFile file) {
-        return new SourceFileElement() {
-            @Override
-            public SourceFile getSourceFile() {
-                return file;
-            }
-        };
+    @Override
+    String getExpectedOutput() {
+        return "${HelloWorldApp.HELLO_WORLD}\n"
     }
 }

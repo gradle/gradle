@@ -18,30 +18,45 @@ package org.gradle.nativeplatform.fixtures.app
 
 import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
-class CppSum extends CppSourceFileElement implements SumElement {
-    final SourceFileElement header = ofFile(sourceFile("headers", "sum.h", """
+class CppGreeterUsesLogger extends CppLibraryElement implements GreeterElement {
+    final SourceFileElement header = ofFile(sourceFile("headers", "greeter.h", """
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
 #define EXPORT_FUNC
 #endif
 
-class Sum {
+class Greeter {
 public:
-    int EXPORT_FUNC sum(int a, int b);
+    void EXPORT_FUNC sayHello();
 };
 """))
 
-    final SourceFileElement source = ofFile(sourceFile("cpp", "sum.cpp", """
-#include "sum.h"
+    final SourceFileElement privateHeader = ofFile(sourceFile("headers", "greeter_consts.h", """
+#define GREETING "${HelloWorldApp.HELLO_WORLD}"
+"""))
 
-int Sum::sum(int a, int b) {
-    return a + b;
+    final SourceFileElement source = ofFile(sourceFile("cpp", "greeter.cpp", """
+#include <iostream>
+#include <string>
+#include "greeter.h"
+#include "logger.h"
+#include "greeter_consts.h"
+
+void Greeter::sayHello() {
+    Logger logger;
+    std::string str(GREETING);
+    logger.log(str);
 }
 """))
 
+    final SourceElement publicHeaders = header
+    final SourceElement privateHeaders = privateHeader
+    final SourceElement sources = source
+
     @Override
-    int sum(int a, int b) {
-        return a + b
+    String getExpectedOutput() {
+        return "${HelloWorldApp.HELLO_WORLD}\n"
     }
+
 }
