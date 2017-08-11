@@ -18,19 +18,17 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Unroll
 
+@Unroll
 class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    private final String fooPath = TextUtil.normaliseFileSeparators(file('foo').absolutePath)
 
     @Rule
     public final BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @Unroll
     def "can create and use a worker runnable defined in buildSrc in #isolationMode"() {
         withRunnableClassInBuildSrc()
 
@@ -50,7 +48,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "can create and use a worker runnable defined in build script in #isolationMode"() {
         withRunnableClassInBuildScript()
 
@@ -70,7 +67,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "can create and use a worker runnable defined in an external jar in #isolationMode"() {
         def runnableJarName = "runnable.jar"
         withRunnableClassInExternalJar(file(runnableJarName))
@@ -198,7 +194,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertSameDaemonWasUsed("runInDaemon", "reuseDaemon")
     }
 
-    @Unroll
     def "throws if worker used from a thread with no current build operation in #isolationMode"() {
         given:
         withRunnableClassInBuildSrc()
@@ -248,7 +243,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "can set a custom display name for work items in #isolationMode"() {
         withRunnableClassInBuildSrc()
 

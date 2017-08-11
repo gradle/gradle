@@ -309,7 +309,7 @@ public class BlockingHttpServer extends ExternalResource {
         stop();
     }
 
-    private int getPort() {
+    public int getPort() {
         if (!running) {
             throw new IllegalStateException("Cannot get HTTP port as server is not running.");
         }
