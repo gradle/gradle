@@ -46,7 +46,8 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
 
     def "can receive lock id"() {
         start {
-            receivedId = communicator.receive()
+            def packet = communicator.receive()
+            receivedId = communicator.decodeLockId(packet)
         }
 
         poll {

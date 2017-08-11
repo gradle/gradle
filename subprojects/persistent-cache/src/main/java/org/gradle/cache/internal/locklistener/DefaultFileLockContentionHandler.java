@@ -23,20 +23,28 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.DatagramPacket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultFileLockContentionHandler implements FileLockContentionHandler, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockContentionHandler.class);
+    private static final int PING_DELAY = 1000;
     private final Lock lock = new ReentrantLock();
     private final Map<Long, Runnable> contendedActions = new HashMap<Long, Runnable>();
+    private final List<Long> contendedActionsRunning = new ArrayList<Long>();
+    private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<Long, Integer>();
+    private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<Long, Integer>();
     private final ExecutorFactory executorFactory;
     private final InetAddressFactory addressFactory;
 
     private FileLockCommunicator communicator;
-    private ManagedExecutor executor;
+    private ManagedExecutor fileLockRequestListener;
+    private ManagedExecutor unlockActionExecutor;
     private boolean stopped;
 
     public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory addressFactory) {
@@ -60,24 +68,37 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
             private void doRun() {
                 while (true) {
+                    DatagramPacket packet;
                     long lockId;
                     try {
-                        lockId = communicator.receive();
+                        packet = communicator.receive();
+                        lockId = communicator.decodeLockId(packet);
                     } catch (GracefullyStoppedException e) {
                         return;
                     }
-                    lock.lock();
                     Runnable action;
-                    try {
+
+                    lock.lock();
+                    if (contendedActionsRunning.contains(lockId)) {
+                        action = null;
+                    } else {
                         action = contendedActions.get(lockId);
                         if (action == null) {
-                            //received access request for lock that is already closed
-                            continue;
+                            // The other side has the action and confirmed now that it started it
+                            unlocksConfirmedFrom.put(lockId, packet.getPort());
+                            LOGGER.debug("Gradle process at port {} confirmed unlock request for lock with id {}.", packet.getPort(), lockId);
+                        } else {
+                            contendedActionsRunning.add(lockId);
                         }
-                    } finally {
-                        lock.unlock();
+
                     }
-                    action.run();
+                    lock.unlock();
+
+                    if (action != null) {
+                        // I have the action, I execute it and tell the other side that I am on it
+                        unlockActionExecutor.execute(action);
+                        communicator.confirmUnlockRequest(packet);
+                    }
                 }
             }
         };
@@ -85,14 +106,19 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     public void start(long lockId, Runnable whenContended) {
         lock.lock();
+        unlocksRequestedFrom.remove(lockId);
+        unlocksConfirmedFrom.remove(lockId);
         try {
             assertNotStopped();
             if (communicator == null) {
                 throw new IllegalStateException("Must initialize the handler by reserving the port first.");
             }
-            if (executor == null) {
-                executor = executorFactory.create("File lock request listener");
-                executor.execute(listener());
+            if (fileLockRequestListener == null) {
+                fileLockRequestListener = executorFactory.create("File lock request listener");
+                fileLockRequestListener.execute(listener());
+            }
+            if (unlockActionExecutor == null) {
+                unlockActionExecutor = executorFactory.create("File lock release action executor");
             }
             if (contendedActions.containsKey(lockId)) {
                 throw new UnsupportedOperationException("Multiple contention actions for a given lock are currently not supported.");
@@ -103,8 +129,23 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
-    public void pingOwner(int port, long lockId, String displayName) {
-        getCommunicator().pingOwner(port, lockId, displayName);
+    public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed) {
+        if (unlocksConfirmedFrom.containsKey(lockId) && unlocksConfirmedFrom.get(lockId) == port) {
+            //the unlock was confirmed we are waiting
+            return false;
+        }
+        if (unlocksRequestedFrom.containsKey(lockId) && unlocksRequestedFrom.get(lockId) == port && timeElapsed < PING_DELAY) {
+            //the unlock was just requested but not yet confirmed, give it some more time
+            return false;
+        }
+
+        boolean pingSentSuccessfully = getCommunicator().pingOwner(port, lockId, displayName);
+        if (pingSentSuccessfully) {
+            lock.lock();
+            unlocksRequestedFrom.put(lockId, port);
+            lock.unlock();
+        }
+        return pingSentSuccessfully;
     }
 
     private void assertNotStopped() {
@@ -118,6 +159,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         lock.lock();
         try {
             contendedActions.remove(lockId);
+            contendedActionsRunning.remove(lockId);
         } finally {
             lock.unlock();
         }
@@ -134,8 +176,11 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         } finally {
             lock.unlock();
         }
-        if (executor != null) {
-            executor.stop();
+        if (fileLockRequestListener != null) {
+            fileLockRequestListener.stop();
+        }
+        if (unlockActionExecutor != null) {
+            unlockActionExecutor.stop();
         }
     }
 

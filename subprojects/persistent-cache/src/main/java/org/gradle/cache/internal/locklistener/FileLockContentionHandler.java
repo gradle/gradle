@@ -23,5 +23,13 @@ public interface FileLockContentionHandler {
 
     int reservePort();
 
-    void pingOwner(int port, long lockId, String displayName);
+    /**
+     * Pings the lock owner with the give port to start the lock releasing
+     * process in the owner. May not ping the owner if:
+     * - The owner was already pinged about the given lock before and the lock release is in progress
+     * - The ping through the underlying socket failed
+     *
+     * @return true if the owner was pinged in this call
+     */
+    boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed);
 }

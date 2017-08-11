@@ -330,6 +330,8 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private java.nio.channels.FileLock lockStateRegion(final LockMode lockMode, final CountdownTimer timer) throws IOException, InterruptedException {
             return backoff.retryUntil(timer, new IOQuery<java.nio.channels.FileLock>() {
+                private long lastPingTime;
+
                 @Override
                 public java.nio.channels.FileLock run() throws IOException, InterruptedException {
                     java.nio.channels.FileLock fileLock = lockFileAccess.tryLockState(lockMode == LockMode.Shared);
@@ -339,8 +341,10 @@ public class DefaultFileLockManager implements FileLockManager {
                     if (port != -1) { //we don't like the assumption about the port very much
                         LockInfo lockInfo = readInformationRegion(timer);
                         if (lockInfo.port != -1) {
-                            LOGGER.debug("The file lock is held by a different Gradle process (pid: {}, operation: {}). Will attempt to ping owner at port {}", lockInfo.pid, lockInfo.operation, lockInfo.port);
-                            fileLockContentionHandler.pingOwner(lockInfo.port, lockInfo.lockId, displayName);
+                            if (fileLockContentionHandler.maybePingOwner(lockInfo.port, lockInfo.lockId, displayName, timer.getElapsedMillis() - lastPingTime) && LOGGER.isDebugEnabled()) {
+                                lastPingTime = timer.getElapsedMillis();
+                                LOGGER.debug("The file lock is held by a different Gradle process (pid: {}, lockId: {}). Pinged owner at port {}", lockInfo.pid, lockInfo.lockId, lockInfo.port);
+                            }
                         } else {
                             LOGGER.debug("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
                         }
