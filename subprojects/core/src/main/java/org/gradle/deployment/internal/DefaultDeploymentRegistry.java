@@ -145,7 +145,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
             pendingChanges.changesIncorporated();
             if (!pendingChanges.hasRemainingChanges()) {
                 Throwable failure = buildResult.getFailure();
-                for (DeploymentInternal deployment : deployments.values()) {
+                for (DefaultDeployment deployment : deployments.values()) {
                     deployment.upToDate(failure);
                 }
             }

@@ -24,7 +24,7 @@ import java.util.Collection;
 
 /**
  * A registry of deployment handles.
- * 
+ *
  * @since 4.2
  */
 @Incubating
@@ -63,10 +63,17 @@ public interface DeploymentRegistry {
          * Request a build, if applicable, and then block until any pending changes are incorporated.
          */
         REQUEST,
+
         /**
          * Block until any pending changes are incorporated.
          */
         BLOCK,
+
+        /**
+         * Automatically stops and starts a deployment when changes are incorporated.
+         */
+        RESTART,
+
         /**
          * Do not block, ignore pending changes.
          */

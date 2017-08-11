@@ -22,11 +22,13 @@ class DeploymentFactory {
     static DefaultDeployment createDeployment(String id, DeploymentRegistry.DeploymentSensitivity sensitivity, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
         switch(sensitivity) {
             case NONE:
-                return new DefaultDeployment(id, new IgnoreChangesDeployment(), deploymentHandle);
+                return new DefaultDeployment(id, false, new IgnoreChangesDeployment(), deploymentHandle);
+            case RESTART:
+                return new DefaultDeployment(id, true, new SimpleBlockingDeployment(), deploymentHandle);
             case BLOCK:
-                return new DefaultDeployment(id, new SimpleBlockingDeployment(), deploymentHandle);
+                return new DefaultDeployment(id, false, new SimpleBlockingDeployment(), deploymentHandle);
             case REQUEST:
-                return new DefaultDeployment(id, new GateControllingDeployment(continuousExecutionGate, new SimpleBlockingDeployment()), deploymentHandle);
+                return new DefaultDeployment(id, false, new GateControllingDeployment(continuousExecutionGate, new SimpleBlockingDeployment()), deploymentHandle);
             default:
                 throw new IllegalArgumentException("Unknown sensitivity " + sensitivity);
         }

@@ -18,27 +18,28 @@ package org.gradle.deployment.internal;
 
 import org.gradle.internal.concurrent.Stoppable;
 
-public class DefaultDeployment implements DeploymentInternal, DeploymentHandle, Stoppable {
+class DefaultDeployment implements DeploymentInternal, DeploymentHandle, Stoppable {
     private final String id;
     private final DeploymentInternal delegate;
     private final DeploymentHandle handle;
+    private final boolean restartable;
 
-    public DefaultDeployment(String id, DeploymentInternal delegate, DeploymentHandle handle) {
+    DefaultDeployment(String id, boolean restartable, DeploymentInternal delegate, DeploymentHandle handle) {
         this.id = id;
+        this.restartable = restartable;
         this.delegate = delegate;
         this.handle = handle;
     }
 
     @Override
     public void outOfDate() {
-        assertIsRunning();
         delegate.outOfDate();
     }
 
     @Override
     public void upToDate(Throwable failure) {
-        assertIsRunning();
         delegate.upToDate(failure);
+        restart();
     }
 
     public DeploymentHandle getHandle() {
@@ -65,9 +66,19 @@ public class DefaultDeployment implements DeploymentInternal, DeploymentHandle, 
         handle.stop();
     }
 
-    private void assertIsRunning() {
-        if (!isRunning()) {
-            throw new IllegalStateException(id + " needs to be started first.");
+    private void restart() {
+        if (restartable) {
+            handle.stop();
+            handle.start(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Deployment{"
+            + "id='" + id + '\''
+            + ", handle=" + handle
+            + ", restartable=" + restartable
+            + '}';
     }
 }
