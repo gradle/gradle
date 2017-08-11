@@ -16,6 +16,10 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Transformer;
+import org.gradle.cache.FileAccess;
+import org.gradle.cache.FileIntegrityViolationException;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.internal.Factory;
 

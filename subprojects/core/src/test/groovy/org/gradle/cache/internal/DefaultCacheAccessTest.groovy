@@ -15,8 +15,13 @@
  */
 package org.gradle.cache.internal
 
+import org.gradle.cache.AsyncCacheAccess
+import org.gradle.cache.CacheDecorator
+import org.gradle.cache.CrossProcessCacheAccess
+import org.gradle.cache.FileLock
+import org.gradle.cache.FileLockManager
+import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.cache.PersistentIndexedCacheParameters
-import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.serialize.BaseSerializerFactory
@@ -26,7 +31,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.*
+import static org.gradle.cache.FileLockManager.LockMode.*
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheAccessTest extends ConcurrentSpec {
@@ -41,7 +46,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     final FileLock lock = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
 
-    private DefaultCacheAccess newAccess(LockMode lockMode) {
+    private DefaultCacheAccess newAccess(FileLockManager.LockMode lockMode) {
         new DefaultCacheAccess("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, cleanupAction, executorFactory) {
             @Override
             <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {

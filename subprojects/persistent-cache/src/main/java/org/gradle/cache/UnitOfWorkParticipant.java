@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal;
+package org.gradle.cache;
 
 /**
  * Participates in a unit of work that accesses the cache. Implementations do not need to be thread-safe and are accessed by a single thread at a time.

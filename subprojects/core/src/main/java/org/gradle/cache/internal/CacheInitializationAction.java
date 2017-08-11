@@ -16,6 +16,8 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.FileLock;
+
 public interface CacheInitializationAction {
     /**
      * Determines if this action should run. Called when the cache is opened, holding either a shared or exclusive lock. May be called multiple times.

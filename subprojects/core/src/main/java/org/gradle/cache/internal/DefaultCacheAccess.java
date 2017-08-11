@@ -21,10 +21,17 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.AsyncCacheAccess;
+import org.gradle.cache.CacheDecorator;
+import org.gradle.cache.FileAccess;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
+import org.gradle.cache.LockTimeoutException;
+import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
-import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
@@ -44,7 +51,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {

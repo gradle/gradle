@@ -15,7 +15,10 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.cache.FileAccess
+import org.gradle.cache.FileLock
+import org.gradle.cache.FileLockManager
+import org.gradle.cache.FileLockManager.LockMode
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

@@ -16,6 +16,8 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.CrossProcessCacheAccess;
+
 import java.io.Closeable;
 
 public abstract class AbstractCrossProcessCacheAccess implements CrossProcessCacheAccess, Closeable {

@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal
 
+import org.gradle.cache.FileAccess
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.nativeintegration.filesystem.Chmod
 import org.gradle.internal.serialize.DefaultSerializer

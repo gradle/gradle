@@ -16,6 +16,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Transformer;
+import org.gradle.cache.UnitOfWorkParticipant;
 
 import javax.annotation.Nullable;
 

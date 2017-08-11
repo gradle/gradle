@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.cache;
 
-import org.gradle.internal.Factory;
-
-public interface CrossProcessCacheAccess {
+public interface CacheDecorator {
     /**
-     * Runs the given action while this process is holding an exclusive file lock on the cache. Multiple threads may run concurrently.
+     * @param cacheId Unique id for this cache instance.
+     * @param cacheName Name for the type of contents stored in this cache instance.
      */
-    <T> T withFileLock(Factory<T> factory);
-
-    /**
-     * Acquires an exclusive file lock on the cache. The caller is responsible for running the resulting action to release the lock.
-     * The lock may be released by any thread.
-     */
-    Runnable acquireFileLock();
+    <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess);
 }

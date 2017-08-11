@@ -26,7 +26,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.None
+import static org.gradle.cache.FileLockManager.LockMode.None
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {

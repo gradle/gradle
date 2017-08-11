@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal.filelock;
 
-import org.gradle.cache.internal.FileLock;
+import org.gradle.cache.FileLock;
 
 /**
  * An immutable snapshot of the state of a lock.

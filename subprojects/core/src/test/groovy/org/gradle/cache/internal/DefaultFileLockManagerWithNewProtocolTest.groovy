@@ -16,11 +16,12 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
-import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive
+import static org.gradle.cache.FileLockManager.LockMode.Shared
 
 class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerTest {
     @Override

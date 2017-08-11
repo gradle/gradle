@@ -17,7 +17,10 @@
 package org.gradle.cache.internal
 
 import org.apache.commons.lang.RandomStringUtils
-import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.cache.FileIntegrityViolationException
+import org.gradle.cache.FileLock
+import org.gradle.cache.FileLockManager
+import org.gradle.cache.InsufficientLockModeException
 import org.gradle.cache.internal.filelock.LockInfoSerializer
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
@@ -31,8 +34,8 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
-import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive
+import static org.gradle.cache.FileLockManager.LockMode.Shared
 
 abstract class AbstractFileLockManagerTest extends Specification {
     @Rule
@@ -496,7 +499,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
     abstract void isVersionLockFileWithInfoRegion(TestFile lockFile, boolean dirty, String processIdentifier, String operationalName)
 
-    FileLock createLock(LockMode lockMode, File file = testFile, FileLockManager lockManager = manager) {
+    FileLock createLock(FileLockManager.LockMode lockMode, File file = testFile, FileLockManager lockManager = manager) {
         def lock = lockManager.lock(file, options().withMode(lockMode), "foo", "operation")
         openedLocks << lock
         lock

@@ -15,7 +15,8 @@
  */
 package org.gradle.cache.internal.filelock;
 
-import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 
 public class LockOptionsBuilder implements LockOptions {
 

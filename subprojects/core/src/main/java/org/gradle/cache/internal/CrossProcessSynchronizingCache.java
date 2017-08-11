@@ -17,6 +17,9 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Transformer;
+import org.gradle.cache.CrossProcessCacheAccess;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
 import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;

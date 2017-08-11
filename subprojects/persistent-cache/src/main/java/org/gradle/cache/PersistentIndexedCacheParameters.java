@@ -15,7 +15,6 @@
  */
 package org.gradle.cache;
 
-import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Serializer;
 

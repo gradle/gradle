@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal.filelock;
 
-import org.gradle.cache.internal.FileLockManager;
+package org.gradle.cache;
 
-public interface LockOptions {
+import org.gradle.internal.Factory;
 
-    FileLockManager.LockMode getMode();
-
-    boolean isUseCrossVersionImplementation();
+public interface CrossProcessCacheAccess {
+    /**
+     * Runs the given action while this process is holding an exclusive file lock on the cache. Multiple threads may run concurrently.
+     */
+    <T> T withFileLock(Factory<T> factory);
 
     /**
-     * Creates a copy of these options with the given mode.
+     * Acquires an exclusive file lock on the cache. The caller is responsible for running the resulting action to release the lock.
+     * The lock may be released by any thread.
      */
-    LockOptions withMode(FileLockManager.LockMode mode);
+    Runnable acquireFileLock();
 }

@@ -31,9 +31,10 @@ import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
+import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CacheDecorator
 import org.gradle.cache.internal.CacheFactory
+import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.initialization.GradleUserHomeDirProvider
@@ -42,7 +43,6 @@ import org.gradle.internal.classloader.HashingClassLoaderFactory
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
-import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -59,7 +59,6 @@ import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import spock.lang.Specification
 import spock.lang.Unroll
-
 
 class GradleUserHomeScopeServicesTest extends Specification {
     ServiceRegistry parent = Stub(ServiceRegistry)

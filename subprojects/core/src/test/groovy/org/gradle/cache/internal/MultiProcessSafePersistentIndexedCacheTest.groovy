@@ -15,8 +15,9 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.internal.Factory
+import org.gradle.cache.FileAccess
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
+import org.gradle.internal.Factory
 import spock.lang.Specification
 
 class MultiProcessSafePersistentIndexedCacheTest extends Specification {

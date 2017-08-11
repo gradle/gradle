@@ -17,7 +17,9 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
-import org.gradle.cache.internal.filelock.LockOptions;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
