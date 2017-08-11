@@ -2,6 +2,7 @@ package projects
 
 import configurations.FunctionalTest
 import configurations.PerformanceTest
+import configurations.buildReportTab
 import jetbrains.buildServer.configs.kotlin.v10.Project
 import model.CIBuildModel
 import model.SpecificBuild
@@ -16,26 +17,11 @@ class StageProject(model: CIBuildModel, stage: Stage) : Project({
 
     features {
         if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
-            feature {
-                type = "ReportTab"
-                param("startPage", "report-distributions-binary-compatibility-report.html")
-                param("title", "API Compatibility Report")
-                param("type", "BuildReportTab")
-            }
+            buildReportTab("API Compatibility Report", "report-distributions-binary-compatibility-report.html")
         }
         if (!stage.performanceTests.isEmpty()) {
-            feature {
-                type = "ReportTab"
-                param("startPage", "report-performance-performance-tests.zip!report/index.html")
-                param("title", "Performance")
-                param("type", "BuildReportTab")
-            }
-            feature {
-                type = "ReportTab"
-                param("startPage", "report-performance-performance-tests.zip!scenario-report.html")
-                param("title", "Performance Failures")
-                param("type", "BuildReportTab")
-            }
+            buildReportTab("Performance", "report-performance-performance-tests.zip!report/index.html")
+            buildReportTab("Performance Failures", "report-performance-performance-tests.zip!scenario-report.html")
         }
     }
 

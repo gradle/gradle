@@ -1,10 +1,7 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.BuildStep
-import jetbrains.buildServer.configs.kotlin.v10.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v10.BuildType
-import jetbrains.buildServer.configs.kotlin.v10.CheckoutMode
-import jetbrains.buildServer.configs.kotlin.v10.FailureAction
+import jetbrains.buildServer.configs.kotlin.v10.*
+import jetbrains.buildServer.configs.kotlin.v10.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import model.CIBuildModel
@@ -88,6 +85,26 @@ fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, t
     }
 }
 
+fun BuildFeatures.publishBuildStatusToGithub() {
+    commitStatusPublisher {
+        vcsRootExtId = "Gradle_Branches_GradlePersonalBranches"
+        publisher = github {
+            githubUrl = "https://api.github.com"
+            authType = personalToken {
+                token = "credentialsJSON:5306bfc7-041e-46e8-8d61-1d49424e7b04"
+            }
+        }
+    }
+}
+
+fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
+    feature {
+        type = "ReportTab"
+        param("startPage", startPage)
+        param("title", title)
+        param("type", "BuildReportTab")
+    }
+}
 
 fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String, subProject: String = "", requiresDistribution: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
     applyDefaultSettings(buildType, runsOnWindows, timeout)

@@ -3,7 +3,6 @@ package configurations
 import jetbrains.buildServer.configs.kotlin.v10.BuildStep
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
 import jetbrains.buildServer.configs.kotlin.v10.FailureAction
-import jetbrains.buildServer.configs.kotlin.v10.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v10.triggers.ScheduleTrigger
@@ -30,15 +29,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BuildT
     val masterReleaseFiler = model.masterAndReleaseBranches.joinToString(prefix = "+:", separator = "\n+:")
 
     features {
-        commitStatusPublisher {
-            vcsRootExtId = "Gradle_Branches_GradlePersonalBranches"
-            publisher = github {
-                githubUrl = "https://api.github.com"
-                authType = personalToken {
-                    token = "credentialsJSON:5306bfc7-041e-46e8-8d61-1d49424e7b04"
-                }
-            }
-        }
+        publishBuildStatusToGithub()
     }
 
     if (stage.trigger == Trigger.eachCommit) {
