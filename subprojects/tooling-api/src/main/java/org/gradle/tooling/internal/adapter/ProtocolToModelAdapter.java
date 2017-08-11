@@ -170,6 +170,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             } else {
                 literal = sourceObject.toString();
             }
+            @SuppressWarnings({"rawtypes", "unchecked"})
             NotationParser<String, T> parser = new NotationConverterToNotationParserAdapter<String, T>(new EnumFromCharSequenceNotationParser(targetType));
             T parsedLiteral = parser.parseNotation(literal);
             return targetType.cast(parsedLiteral);
