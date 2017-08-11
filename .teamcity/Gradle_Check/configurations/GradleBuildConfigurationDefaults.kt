@@ -24,8 +24,7 @@ val gradleParameters: List<String> = asList(
 
 val gradleBuildCacheParameters: List<String> = asList(
         "--build-cache",
-        "-Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password%",
-        "-I ./gradle/taskCacheDetailedStatsInit.gradle"
+        "-Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password%"
 )
 
 val m2CleanScriptLinux = """
