@@ -56,21 +56,23 @@ public interface DeploymentRegistry {
     Collection<Deployment> getRunningDeployments();
 
     /**
-     * Sensitivity to changes
+     * Behavior when a deployment is out-of-date.
      */
     enum DeploymentSensitivity {
         /**
-         * Block until any pending changes are incorporated.
+         * When changes are pending, block the deployment until all changes are incorporated.
+         *
+         * The deployment needs to call {@link Deployment#status()} to wait for changes.
          */
         BLOCK,
 
         /**
-         * Automatically stops and starts a deployment when changes are incorporated.
+         * When changes are incorporated, automatically stop and start the deployment.
          */
         RESTART,
 
         /**
-         * Do not block, ignore pending changes.
+         * Do nothing.
          */
         NONE
     }

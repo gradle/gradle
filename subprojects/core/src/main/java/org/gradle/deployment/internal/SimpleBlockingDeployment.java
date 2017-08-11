@@ -18,46 +18,60 @@ package org.gradle.deployment.internal;
 
 import org.gradle.internal.UncheckedException;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class SimpleBlockingDeployment implements DeploymentInternal {
-    private final AtomicBoolean block = new AtomicBoolean();
+    private final Lock lock = new ReentrantLock();
+    private final Condition upToDate = lock.newCondition();
 
-    private boolean changed;
-    private Throwable failure;
+    private final DeploymentInternal delegate;
+
+    private boolean outOfDate;
+
+    SimpleBlockingDeployment(DeploymentInternal delegate) {
+        this.delegate = delegate;
+    }
 
     @Override
     public Status status() {
-        synchronized (block) {
-            while (block.get()) {
+        lock.lock();
+        try {
+            while (outOfDate) {
                 try {
-                    block.wait();
+                    upToDate.await();
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
-            Status result = new DefaultDeploymentStatus(changed, failure);
-            changed = false;
-            return result;
+            return delegate.status();
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void outOfDate() {
-        synchronized (block) {
-            changed = true;
-            failure = null;
-            block.set(true);
-            block.notifyAll();
+        lock.lock();
+        try {
+            delegate.outOfDate();
+            outOfDate = true;
+            upToDate.signalAll();
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void upToDate(Throwable failure) {
-        synchronized (block) {
-            this.failure = failure;
-            block.set(false);
-            block.notifyAll();
+        lock.lock();
+        try {
+            delegate.upToDate(failure);
+            outOfDate = false;
+            upToDate.signalAll();
+        } finally {
+            lock.unlock();
         }
     }
 }

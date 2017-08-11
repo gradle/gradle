@@ -24,7 +24,7 @@ class DefaultDeployment implements DeploymentInternal, DeploymentHandle, Stoppab
     private final DeploymentHandle handle;
     private final boolean restartable;
 
-    DefaultDeployment(String id, boolean restartable, DeploymentInternal delegate, DeploymentHandle handle) {
+    DefaultDeployment(String id, boolean restartable, DeploymentHandle handle, DeploymentInternal delegate) {
         this.id = id;
         this.restartable = restartable;
         this.delegate = delegate;

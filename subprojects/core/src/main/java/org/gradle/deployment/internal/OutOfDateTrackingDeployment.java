@@ -16,20 +16,25 @@
 
 package org.gradle.deployment.internal;
 
-// TODO: This may make more sense as a "non-blocking" deployment that still reports the correct status
-class IgnoreChangesDeployment implements DeploymentInternal {
-    private final static DefaultDeploymentStatus IGNORE = new DefaultDeploymentStatus(false, null);
+class OutOfDateTrackingDeployment implements DeploymentInternal {
+    private boolean changed;
+    private Throwable failure;
 
     @Override
-    public Status status() {
-        return IGNORE;
+    public synchronized Status status() {
+        Status result = new DefaultDeploymentStatus(changed, failure);
+        changed = false;
+        return result;
     }
 
     @Override
-    public void outOfDate() {
+    public synchronized void outOfDate() {
+        changed = true;
+        failure = null;
     }
 
     @Override
-    public void upToDate(Throwable failure) {
+    public synchronized void upToDate(Throwable failure) {
+        this.failure = failure;
     }
 }
