@@ -24,7 +24,7 @@ import org.gradle.testkit.runner.fixtures.file.TestFile;
 import java.util.List;
 
 /**
- * Indicates functional test support for TestKit fixtures.
+ * Provides functional test support for TestKit fixtures.
  *
  * @since 4.2
  * @see JUnit4FunctionalTest
