@@ -25,8 +25,12 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.file.collections.*;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.file.collections.SingletonFileTree;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
@@ -41,16 +45,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final File zipFile;
+    private final File tmpDir;
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final File tmpDir;
+    private final FileHasher fileHasher;
 
-    public ZipFileTree(File zipFile, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public ZipFileTree(File zipFile, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory, FileHasher fileHasher) {
         this.zipFile = zipFile;
+        this.tmpDir = tmpDir;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        String expandDirName = zipFile.getName() + "_" + HashUtil.createCompactMD5(zipFile.getAbsolutePath());
-        this.tmpDir = new File(tmpDir, expandDirName);
+        this.fileHasher = fileHasher;
     }
 
     public String getDisplayName() {
@@ -58,7 +63,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     public DirectoryFileTree getMirror() {
-        return directoryFileTreeFactory.create(tmpDir);
+        return directoryFileTreeFactory.create(getUnzippedFolder());
     }
 
     public void visit(FileVisitor visitor) {
@@ -73,6 +78,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
         try {
             ZipFile zip = new ZipFile(zipFile);
+            File unzippedFolder = getUnzippedFolder();
             try {
                 // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
                 // to us. So, collect the entries in a map and iterate over them in alphabetical order.
@@ -86,9 +92,9 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
                 while (!stopFlag.get() && sortedEntries.hasNext()) {
                     ZipEntry entry = sortedEntries.next();
                     if (entry.isDirectory()) {
-                        visitor.visitDir(new DetailsImpl(entry, zip, stopFlag, chmod));
+                        visitor.visitDir(new DetailsImpl(zipFile, unzippedFolder, entry, zip, stopFlag, chmod));
                     } else {
-                        visitor.visitFile(new DetailsImpl(entry, zip, stopFlag, chmod));
+                        visitor.visitFile(new DetailsImpl(zipFile, unzippedFolder, entry, zip, stopFlag, chmod));
                     }
                 }
             } finally {
@@ -103,21 +109,30 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         return zipFile;
     }
 
-    private class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
+    private File getUnzippedFolder() {
+        String unzippedFolderName = zipFile.getName() + "_" + fileHasher.hash(zipFile);
+        return new File(tmpDir, unzippedFolderName);
+    }
+
+    private static class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
+        private final File originalFile;
+        private final File unzippedFolder;
         private final ZipEntry entry;
         private final ZipFile zip;
         private final AtomicBoolean stopFlag;
         private File file;
 
-        public DetailsImpl(ZipEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
+        public DetailsImpl(File originalFile, File unzippedFolder, ZipEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
             super(chmod);
+            this.originalFile = originalFile;
+            this.unzippedFolder = unzippedFolder;
             this.entry = entry;
             this.zip = zip;
             this.stopFlag = stopFlag;
         }
 
         public String getDisplayName() {
-            return String.format("zip entry %s!%s", zipFile, entry.getName());
+            return String.format("zip entry %s!%s", originalFile, entry.getName());
         }
 
         public void stopVisiting() {
@@ -126,11 +141,10 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
         public File getFile() {
             if (file == null) {
-                file = new File(tmpDir, entry.getName());
-                if (file.exists()) {
-                    file.setWritable(true);
+                file = new File(unzippedFolder, entry.getName());
+                if (!file.exists()) {
+                    copyTo(file);
                 }
-                copyTo(file);
             }
             return file;
         }

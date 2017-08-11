@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
+import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskResolver
@@ -160,7 +161,8 @@ class DefaultProjectSpec extends Specification {
         def tempFileProvider = Mock(TemporaryFileProvider)
         def fileLookup = Mock(FileLookup)
         def directoryFileTreeFactory = Mock(DefaultDirectoryFileTreeFactory)
-        def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory)
+        def fileHasher = Mock(FileHasher)
+        def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory, fileHasher)
 
         return Spy(DefaultProject, constructorArgs: [name, parent, new File("project"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
             getFileOperations() >> fileOperations

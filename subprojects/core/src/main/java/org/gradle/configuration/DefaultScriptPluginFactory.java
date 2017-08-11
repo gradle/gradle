@@ -23,6 +23,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
@@ -74,6 +75,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final PluginRepositoryFactory pluginRepositoryFactory;
     private final ProviderFactory providerFactory;
     private final TextResourceLoader textResourceLoader;
+    private final FileHasher fileHasher;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -88,7 +90,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       PluginRepositoryRegistry pluginRepositoryRegistry,
                                       PluginRepositoryFactory pluginRepositoryFactory,
                                       ProviderFactory providerFactory,
-                                      TextResourceLoader textResourceLoader) {
+                                      TextResourceLoader textResourceLoader, FileHasher fileHasher) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -103,6 +105,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.providerFactory = providerFactory;
         this.textResourceLoader = textResourceLoader;
         this.scriptPluginFactory = this;
+        this.fileHasher = fileHasher;
     }
 
     public void setScriptPluginFactory(ScriptPluginFactory scriptPluginFactory) {
@@ -151,6 +154,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(PluginRepositoryFactory.class, pluginRepositoryFactory);
             services.add(ProviderFactory.class, providerFactory);
             services.add(TextResourceLoader.class, textResourceLoader);
+            services.add(FileHasher.class, fileHasher);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

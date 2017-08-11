@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
 import org.gradle.api.internal.plugins.PluginRegistry
@@ -108,6 +109,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ToolingModelBuilderRegistry) >> Mock(ToolingModelBuilderRegistry)
         parent.get(InstantiatorFactory) >> instantiatorFactory
         parent.get(ScriptClassPathResolver) >> Mock(ScriptClassPathResolver)
+        parent.get(FileHasher) >> Mock(FileHasher)
         parent.hasService(_) >> true
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }

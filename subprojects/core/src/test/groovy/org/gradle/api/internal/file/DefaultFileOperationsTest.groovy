@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
+import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.reflect.DirectInstantiator
@@ -54,10 +55,11 @@ public class DefaultFileOperationsTest extends Specification {
     private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     private final FileLookup fileLookup = Mock()
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
+    private final FileHasher fileHasher = Mock()
     private DefaultFileOperations fileOperations = instance()
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory)
+        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, fileHasher)
     }
 
     @Rule

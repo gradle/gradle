@@ -23,12 +23,12 @@ import org.gradle.util.Resources;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.api.file.FileVisitorUtil.*;
-import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
-import static org.gradle.api.internal.file.TestFiles.fileSystem;
+import static org.gradle.api.internal.file.TestFiles.*;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
@@ -41,7 +41,7 @@ public class ZipFileTreeTest {
     private final TestFile zipFile = tmpDir.getTestDirectory().file("test.zip");
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
     private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
-    private final ZipFileTree tree = new ZipFileTree(zipFile, expandDir, fileSystem(), directoryFileTreeFactory());
+    private final ZipFileTree tree = new ZipFileTree(zipFile, expandDir, fileSystem(), directoryFileTreeFactory(), fileHasher());
 
     @Test
     public void displayName() {
@@ -121,5 +121,15 @@ public class ZipFileTreeTest {
         expected.put("folder", 0755);
 
         assertVisitsPermissions(tree, expected);
+    }
+
+    @Test
+    public void doesNotOverwriteFilesOnSecondVisit() {
+        rootDir.file("file1.txt").write("content");
+        rootDir.zipTo(zipFile);
+
+        assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
+        expandDir.listFiles()[0].listFiles()[0].setWritable(false);
+        assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
     }
 }

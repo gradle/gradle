@@ -291,7 +291,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(PluginRepositoryRegistry.class),
             get(PluginRepositoryFactory.class),
             get(ProviderFactory.class),
-            get(TextResourceLoader.class));
+            get(TextResourceLoader.class),
+            get(FileHasher.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
