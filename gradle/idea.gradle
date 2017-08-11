@@ -248,7 +248,6 @@ idea {
         '''))
 
         def gradleRunners = [
-                "Quick Check (precommit)": "quickCheck",
                 "Regenerate IDEA metadata": "idea",
                 "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives"
         ]
