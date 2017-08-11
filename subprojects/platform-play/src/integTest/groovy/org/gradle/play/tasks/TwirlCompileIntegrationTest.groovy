@@ -20,8 +20,10 @@ import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.VersionNumber
 import org.junit.Assume
+import spock.lang.Unroll
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
+import static org.hamcrest.Matchers.containsString
 
 class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
 
@@ -46,102 +48,24 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         """
     }
 
-    def "can run TwirlCompile with html template"() {
+    @Unroll
+    def "can run TwirlCompile with #format template"() {
         given:
-        withTwirlTemplate()
+        twirlTemplate("test.scala.${format}") << template
         when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
+        succeeds("compilePlayBinaryScala")
         then:
-        destinationDir.assertHasDescendants("html/index.template.scala")
+        def generatedFile = destinationDir.file("${format}/test.template.scala")
+        generatedFile.assertIsFile()
+        generatedFile.assertContents(containsString("import views.${format}._;"))
+        generatedFile.assertContents(containsString(templateFormat))
 
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        skipped(":compilePlayBinaryPlayTwirlTemplates")
-    }
-
-    def "can run TwirlCompile with javascript template"() {
-        given:
-        twirlTemplate("test.scala.js") << """
-            @(jsFile: String, payload: String)
-            
-            (function() {
-            @*
-             * Inject the PAYLOAD
-             *@
-            var PAYLOAD = @JavaScript(payload);
-            
-            @*
-             * Inject the jsFile
-             *@
-            @JavaScript(jsFile)
-            }());
-        """
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        destinationDir.assertHasDescendants("js/test.template.scala")
-
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        skipped(":compilePlayBinaryPlayTwirlTemplates")
-    }
-
-    def "can run TwirlCompile with xml template"() {
-        given:
-        twirlTemplate("test.scala.xml") << """
-            @(jsFile: String, payload: String)
-            
-            (function() {
-            @*
-             * Inject the PAYLOAD
-             *@
-            var PAYLOAD = @JavaScript(payload);
-            
-            @*
-             * Inject the jsFile
-             *@
-            @JavaScript(jsFile)
-            }());
-        """
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        destinationDir.assertHasDescendants("xml/test.template.scala")
-
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        skipped(":compilePlayBinaryPlayTwirlTemplates")
-    }
-
-    def "can run TwirlCompile with txt template"() {
-        given:
-        twirlTemplate("test.scala.txt") << """
-            @(jsFile: String, payload: String)
-            
-            (function() {
-            @*
-             * Inject the PAYLOAD
-             *@
-            var PAYLOAD = @JavaScript(payload);
-            
-            @*
-             * Inject the jsFile
-             *@
-            @JavaScript(jsFile)
-            }());
-        """
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        destinationDir.assertHasDescendants("txt/test.template.scala")
-
-        when:
-        succeeds("compilePlayBinaryPlayTwirlTemplates")
-        then:
-        skipped(":compilePlayBinaryPlayTwirlTemplates")
+        where:
+        format | templateFormat     | template
+        "js"   | 'JavaScriptFormat' | '@(username: String) alert(@helper.json(username));'
+        "xml"  | 'XmlFormat'        | '@(username: String) <xml> <username> @username </username>'
+        "txt"  | 'TxtFormat'        | '@(username: String) @username'
+        "html" | 'HtmlFormat'       | '@(username: String) <html> <body> <h1>Hello @username</h1> </body> </html>'
     }
 
     def "runs compiler incrementally"() {
@@ -152,6 +76,11 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         and:
         destinationDir.assertHasDescendants("html/input1.template.scala")
         def input1FirstCompileSnapshot = destinationDir.file("html/input1.template.scala").snapshot()
+
+        when:
+        succeeds("compilePlayBinaryPlayTwirlTemplates")
+        then:
+        skipped(":compilePlayBinaryPlayTwirlTemplates")
 
         when:
         withTwirlTemplate("input2.scala.html")
