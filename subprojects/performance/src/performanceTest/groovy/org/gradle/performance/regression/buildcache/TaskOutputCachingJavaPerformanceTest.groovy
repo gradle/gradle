@@ -36,7 +36,6 @@ import spock.lang.Unroll
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 @Unroll
-@Ignore
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
     private TestFile cacheDir
