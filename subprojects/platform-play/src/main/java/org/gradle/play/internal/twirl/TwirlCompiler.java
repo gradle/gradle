@@ -52,7 +52,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             Iterable<RelativeFile> sources = spec.getSources();
             for (final RelativeFile sourceFile : sources) {
                 TwirlTemplateFormat format = findTemplateFormat(spec, sourceFile.getFile());
-                // Only generate files if format for this file's extension is found
+                // Only generate files if a format for this file's extension is found
                 if (format != null) {
                     Object result = compile.invoke(adapter.createCompileParameters(cl, sourceFile.getFile(), sourceFile.getBaseDir(), spec.getDestinationDir(), spec.getDefaultImports(), format));
                     ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<File>(result);
@@ -82,6 +82,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
         if (format == null) {
             format = CollectionUtils.findFirst(spec.getUserTemplateFormats(), hasExtension);
         }
+
         return format;
     }
 

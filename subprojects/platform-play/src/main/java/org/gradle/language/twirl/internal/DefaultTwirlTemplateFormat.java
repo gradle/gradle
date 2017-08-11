@@ -18,9 +18,10 @@ package org.gradle.language.twirl.internal;
 
 import org.gradle.language.twirl.TwirlTemplateFormat;
 
+import java.io.Serializable;
 import java.util.Collection;
 
-public class DefaultTwirlTemplateFormat implements TwirlTemplateFormat {
+public class DefaultTwirlTemplateFormat implements TwirlTemplateFormat, Serializable {
     private final String extension;
     private final String formatType;
     private final Collection<String> imports;

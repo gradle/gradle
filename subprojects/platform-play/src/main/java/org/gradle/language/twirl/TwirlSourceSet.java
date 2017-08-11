@@ -27,10 +27,11 @@ public interface TwirlSourceSet extends LanguageSourceSet {
     /**
      * The default imports that should be added to generated source files
      */
-    public TwirlImports getDefaultImports();
+    TwirlImports getDefaultImports();
 
     /**
      * Sets the default imports that should be added to generated source files to the given language
      */
-    public void setDefaultImports(TwirlImports defaultImports);
+    void setDefaultImports(TwirlImports defaultImports);
+
 }
