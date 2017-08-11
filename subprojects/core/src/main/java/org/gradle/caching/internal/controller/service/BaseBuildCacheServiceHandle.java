@@ -56,7 +56,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     @Override
     public final void load(BuildCacheKey key, LoadTarget loadTarget) {
-        String description = "Load entry " + key + " from " + role.getDisplayName() + " build cache";
+        String description = "Load entry " + key.getHashCode() + " from " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         try {
             loadInner(description, key, loadTarget);
@@ -80,7 +80,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     @Override
     public final void store(BuildCacheKey key, StoreTarget storeTarget) {
-        String description = "Store entry " + key + " in " + role.getDisplayName() + " build cache";
+        String description = "Store entry " + key.getHashCode() + " in " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         try {
             storeInner(description, key, storeTarget);
@@ -96,7 +96,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     private void failure(String verb, String preposition, BuildCacheKey key, Throwable e) {
         disabled = true;
 
-        String description = "Could not " + verb + " entry " + key + " " + preposition + " " + role.getDisplayName() + " build cache";
+        String description = "Could not " + verb + " entry " + key.getDisplayName() + " " + preposition + " " + role.getDisplayName() + " build cache";
         if (LOGGER.isWarnEnabled()) {
             if (logStackTraces) {
                 LOGGER.warn(description, e);

@@ -28,7 +28,6 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
-import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.testing.internal.util.Specification
@@ -94,20 +93,21 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     }
 
     def "does not calculate cache key when task has no outputs"() {
+        def noCacheKey = Mock(TaskOutputCachingBuildCacheKey)
         when:
         executer.execute(task, taskState, taskContext)
 
         then:
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
+        1 * taskArtifactState.calculateCacheKey() >> noCacheKey
 
         then:
         1 * task.getOutputs() >> taskOutputs
         1 * taskOutputs.getHasOutput() >> false
 
         then:
-        1 * taskContext.setBuildCacheKey(DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY)
+        1 * taskContext.setBuildCacheKey(noCacheKey)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -115,7 +115,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         and:
         with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultImpl) {
-            key == DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
+            key == noCacheKey
         }
     }
 

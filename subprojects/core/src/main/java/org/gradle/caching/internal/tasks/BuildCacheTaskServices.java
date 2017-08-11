@@ -38,10 +38,6 @@ import java.io.File;
 
 public class BuildCacheTaskServices {
 
-    TaskCacheKeyCalculator createTaskCacheKeyCalculator() {
-        return new TaskCacheKeyCalculator();
-    }
-
     TaskOutputPacker createTaskResultPacker(
         FileSystem fileSystem
     ) {
