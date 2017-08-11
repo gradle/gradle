@@ -15,6 +15,9 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.cache.FileAccess;
+import org.gradle.cache.FileIntegrityViolationException;
+import org.gradle.cache.LockTimeoutException;
 import org.gradle.internal.Factory;
 
 import java.util.concurrent.Callable;

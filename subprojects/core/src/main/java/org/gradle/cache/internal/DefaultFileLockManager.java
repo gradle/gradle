@@ -17,10 +17,15 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.FileIntegrityViolationException;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.InsufficientLockModeException;
+import org.gradle.cache.LockOptions;
+import org.gradle.cache.LockTimeoutException;
 import org.gradle.cache.internal.filelock.DefaultLockStateSerializer;
 import org.gradle.cache.internal.filelock.LockFileAccess;
 import org.gradle.cache.internal.filelock.LockInfo;
-import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.cache.internal.filelock.LockState;
 import org.gradle.cache.internal.filelock.LockStateAccess;
 import org.gradle.cache.internal.filelock.LockStateSerializer;
@@ -264,7 +269,7 @@ public class DefaultFileLockManager implements FileLockManager {
             return mode;
         }
 
-        private LockState lock(FileLockManager.LockMode lockMode) throws Throwable {
+        private LockState lock(LockMode lockMode) throws Throwable {
             LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
             CountdownTimer timer = Timers.startTimer(lockTimeoutMs);
 

@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
+import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;

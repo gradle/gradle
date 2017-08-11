@@ -23,10 +23,10 @@ import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFacto
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.serialize.HashCodeSerializer;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.cache;
 
 import org.gradle.internal.Factory;
 

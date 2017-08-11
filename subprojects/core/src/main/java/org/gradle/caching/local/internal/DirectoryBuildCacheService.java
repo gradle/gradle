@@ -40,7 +40,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.None;
+import static org.gradle.cache.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DirectoryBuildCacheService implements LocalBuildCacheService, BuildCacheService {

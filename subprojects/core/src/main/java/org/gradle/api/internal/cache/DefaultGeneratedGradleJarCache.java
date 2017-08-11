@@ -18,8 +18,8 @@ package org.gradle.api.internal.cache;
 
 import org.gradle.api.Action;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.FileLockManager;
 
 import java.io.Closeable;
 import java.io.File;

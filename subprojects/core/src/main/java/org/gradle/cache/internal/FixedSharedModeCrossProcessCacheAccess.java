@@ -18,14 +18,17 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
 import org.gradle.cache.CacheOpenException;
-import org.gradle.cache.internal.filelock.LockOptions;
+import org.gradle.cache.CrossProcessCacheAccess;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
-import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.FileLockManager.LockMode.Shared;
 
 /**
  * A {@link CrossProcessCacheAccess} implementation used when a cache is opened with a shared lock that is held until the cache is closed. The contract for {@link CrossProcessCacheAccess} requires an

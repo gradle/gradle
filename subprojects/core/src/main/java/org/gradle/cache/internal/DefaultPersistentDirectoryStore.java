@@ -17,9 +17,11 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.serialize.Serializer;

@@ -15,7 +15,7 @@
  */
 package org.gradle.cache.internal.filelock;
 
-import org.gradle.cache.internal.FileLock;
+import org.gradle.cache.FileLock;
 
 import java.io.DataInput;
 import java.io.DataOutput;

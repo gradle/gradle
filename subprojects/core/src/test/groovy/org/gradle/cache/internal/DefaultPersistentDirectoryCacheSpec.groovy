@@ -19,6 +19,7 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheValidator
+import org.gradle.cache.FileLockManager
 import org.gradle.internal.Actions
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

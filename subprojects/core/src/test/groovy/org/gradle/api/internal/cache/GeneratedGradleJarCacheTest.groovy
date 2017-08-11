@@ -18,22 +18,18 @@ package org.gradle.api.internal.cache
 
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.FileLockManager
-import org.gradle.util.GFileUtils
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
-
-import org.gradle.util.GradleVersion
-
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-
+import org.gradle.util.GFileUtils
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.cache.GeneratedGradleJarCache.CACHE_DISPLAY_NAME
 import static org.gradle.api.internal.cache.GeneratedGradleJarCache.CACHE_KEY
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class GeneratedGradleJarCacheTest extends Specification {
 

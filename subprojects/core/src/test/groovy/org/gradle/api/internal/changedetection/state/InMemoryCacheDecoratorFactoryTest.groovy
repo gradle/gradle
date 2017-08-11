@@ -17,9 +17,9 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory
-import org.gradle.cache.internal.AsyncCacheAccess
-import org.gradle.cache.internal.CrossProcessCacheAccess
-import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache
+import org.gradle.cache.AsyncCacheAccess
+import org.gradle.cache.CrossProcessCacheAccess
+import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.event.DefaultListenerManager
 import spock.lang.Specification

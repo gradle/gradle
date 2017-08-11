@@ -16,13 +16,15 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.CacheBuilder
+import org.gradle.cache.FileLock
+import org.gradle.cache.FileLockManager
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.None
-import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
+import static org.gradle.cache.FileLockManager.LockMode.None
+import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultPersistentDirectoryStoreTest extends Specification {

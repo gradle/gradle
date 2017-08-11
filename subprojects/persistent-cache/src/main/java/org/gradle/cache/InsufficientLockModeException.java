@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal.filelock
+package org.gradle.cache;
 
-import spock.lang.Specification
-
-import static org.gradle.cache.FileLockManager.LockMode.*
-
-class LockOptionsBuilderTest extends Specification {
-    def "can make copy of options"() {
-        def builder = LockOptionsBuilder.mode(Exclusive).useCrossVersionImplementation()
-
-        when:
-        def copy = builder.withMode(Shared)
-
-        then:
-        !copy.is(builder)
-        copy.mode == Shared
-        copy.useCrossVersionImplementation
+public class InsufficientLockModeException extends RuntimeException {
+    public InsufficientLockModeException(String message) {
+        super(message);
     }
 }

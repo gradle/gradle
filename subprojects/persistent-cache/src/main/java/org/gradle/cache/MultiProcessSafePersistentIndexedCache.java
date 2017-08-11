@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal;
-
-import org.gradle.cache.PersistentIndexedCache;
+package org.gradle.cache;
 
 /**
  * A {@link PersistentIndexedCache} implementation that is aware of file locking.

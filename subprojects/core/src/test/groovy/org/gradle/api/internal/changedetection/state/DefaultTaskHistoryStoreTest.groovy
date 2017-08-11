@@ -19,8 +19,8 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.internal.event.DefaultListenerManager
 import spock.lang.Specification

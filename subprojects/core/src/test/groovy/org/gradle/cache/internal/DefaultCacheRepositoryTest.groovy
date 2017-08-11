@@ -24,8 +24,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.None
-import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
+import static org.gradle.cache.FileLockManager.LockMode.None
+import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheRepositoryTest extends Specification {

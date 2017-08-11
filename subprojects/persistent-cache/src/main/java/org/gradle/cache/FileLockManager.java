@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal;
-
-import org.gradle.cache.internal.filelock.LockOptions;
+package org.gradle.cache;
 
 import java.io.File;
 
 public interface FileLockManager {
     /**
      * Creates a locks for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
-     * released by calling {@link org.gradle.cache.internal.FileLock#close()}. This method blocks until the lock can be acquired.
+     * released by calling {@link FileLock#close()}. This method blocks until the lock can be acquired.
      *
      * @param target The file to be locked.
      * @param options The lock options.
@@ -32,7 +30,7 @@ public interface FileLockManager {
 
     /**
      * Creates a locks for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
-     * released by calling {@link org.gradle.cache.internal.FileLock#close()}. This method blocks until the lock can be acquired.
+     * released by calling {@link FileLock#close()}. This method blocks until the lock can be acquired.
      *
      * @param target The file to be locked.
      * @param options The lock options.

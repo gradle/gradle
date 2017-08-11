@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.Factory;
 

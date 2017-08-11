@@ -17,7 +17,6 @@
 package org.gradle.cache;
 
 import org.gradle.api.Action;
-import org.gradle.cache.internal.filelock.LockOptions;
 
 import java.util.Map;
 
@@ -93,10 +92,10 @@ public interface CacheBuilder {
      * Opens the cache. It is the caller's responsibility to close the cache when finished with it.
      *
      * <p>
-     *     NOTE: The <em>initial</em> lock option is {@link org.gradle.cache.internal.FileLockManager.LockMode#Shared}.
+     *     NOTE: The <em>initial</em> lock option is {@link org.gradle.cache.FileLockManager.LockMode#Shared}.
      * <ul>
-     *     <li>Using {@link org.gradle.cache.internal.FileLockManager.LockMode#Exclusive} will lock the cache on open() and keep it locked until {@link PersistentCache#close()} is called.</li>
-     *     <li>Using {@link org.gradle.cache.internal.FileLockManager.LockMode#None} or {@link org.gradle.cache.internal.FileLockManager.LockMode#Shared} will <em>not</em> lock the cache on open().</li>
+     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Exclusive} will lock the cache on open() and keep it locked until {@link PersistentCache#close()} is called.</li>
+     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#None} or {@link org.gradle.cache.FileLockManager.LockMode#Shared} will <em>not</em> lock the cache on open().</li>
      * </ul>
      * </p>
      *

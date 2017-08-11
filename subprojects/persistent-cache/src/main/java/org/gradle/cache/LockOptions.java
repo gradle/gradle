@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.cache;
 
-package org.gradle.cache.internal;
+public interface LockOptions {
 
-/**
- * Indicates that the integrity of a file has been violated or cannot be guaranteed.
- */
-public class FileIntegrityViolationException extends RuntimeException {
+    FileLockManager.LockMode getMode();
 
-    public FileIntegrityViolationException(String message) {
-        super(message);
-    }
+    boolean isUseCrossVersionImplementation();
+
+    /**
+     * Creates a copy of these options with the given mode.
+     */
+    LockOptions withMode(FileLockManager.LockMode mode);
 }

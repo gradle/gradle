@@ -18,13 +18,16 @@ package org.gradle.cache.internal;
 
 import com.google.common.util.concurrent.Runnables;
 import org.gradle.api.Action;
-import org.gradle.cache.internal.filelock.LockOptions;
+import org.gradle.cache.CrossProcessCacheAccess;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 /**
  * A {@link CrossProcessCacheAccess} implementation used when a cache is opened with an exclusive lock that is held until the cache is closed. This implementation is simply a no-op for these methods.

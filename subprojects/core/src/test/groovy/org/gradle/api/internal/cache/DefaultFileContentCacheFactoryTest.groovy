@@ -23,12 +23,12 @@ import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
 import org.gradle.api.invocation.Gradle
-import org.gradle.cache.internal.AsyncCacheAccess
-import org.gradle.cache.internal.CacheDecorator
-import org.gradle.cache.internal.CrossProcessCacheAccess
+import org.gradle.cache.AsyncCacheAccess
+import org.gradle.cache.CacheDecorator
+import org.gradle.cache.CrossProcessCacheAccess
+import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.DefaultCacheScopeMapping
-import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.nativeintegration.filesystem.FileType
 import org.gradle.internal.serialize.BaseSerializerFactory

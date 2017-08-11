@@ -19,14 +19,14 @@ import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.filelock.LockOptions;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheRepository implements CacheRepository {
@@ -58,7 +58,7 @@ public class DefaultCacheRepository implements CacheRepository {
         CacheValidator validator;
         Action<? super PersistentCache> initializer;
         Action<? super PersistentCache> cleanup;
-        LockOptions lockOptions = mode(LockMode.Shared);
+        LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
         LockTarget lockTarget = LockTarget.DefaultTarget;
