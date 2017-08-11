@@ -112,8 +112,9 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Instances of Provider<RegularFile>");
-            visitor.candidate("Instances of Provider<Directory>");
+            visitor.candidate("Instances of Provider<RegularFile>.");
+            visitor.candidate("Instances of Provider<Directory>.");
+            visitor.candidate("Instances of Provider<File>.");
         }
 
         @Override

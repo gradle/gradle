@@ -98,6 +98,12 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact.type == 'zip'
         publishArtifact.extension == 'zip'
         publishArtifact.classifier == null
+
+        when:
+        def deps = publishArtifact.buildDependencies
+
+        then:
+        deps.getDependencies(null).empty
     }
 
     def "creates artifact from extension-less file"() {
@@ -113,6 +119,29 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact.type == ''
         publishArtifact.extension == ''
         publishArtifact.classifier == null
+    }
+
+    def "create artifact from File provider"() {
+        def provider = Mock(BuildableProvider)
+        def file1 = new File("classes-1.zip")
+
+        _ * provider.get() >> file1
+
+        when:
+        def publishArtifact = publishArtifactNotationParser.parseNotation(provider)
+
+        then:
+        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact.file == file1
+        publishArtifact.name == "classes-1"
+        publishArtifact.extension == "zip"
+        publishArtifact.classifier == null
+
+        when:
+        def deps = publishArtifact.buildDependencies
+
+        then:
+        deps.getDependencies(null).empty
     }
 
     def "create artifact from buildable RegularFile provider"() {
@@ -222,8 +251,9 @@ The following types/formats are supported:
   - Instances of ConfigurablePublishArtifact.
   - Instances of PublishArtifact.
   - Instances of AbstractArchiveTask, for example jar.
-  - Instances of Provider<RegularFile>
-  - Instances of Provider<Directory>
+  - Instances of Provider<RegularFile>.
+  - Instances of Provider<Directory>.
+  - Instances of Provider<File>.
   - Instances of File.
   - Maps with 'file' key"""))
     }

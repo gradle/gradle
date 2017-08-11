@@ -69,6 +69,9 @@ public class LazyPublishArtifact implements PublishArtifact {
             Directory directory = (Directory) value;
             return directory.get();
         }
+        if (value instanceof File) {
+            return (File) value;
+        }
         throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
     }
 

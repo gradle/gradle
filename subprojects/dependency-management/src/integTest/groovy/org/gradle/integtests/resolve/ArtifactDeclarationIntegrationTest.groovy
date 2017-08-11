@@ -314,6 +314,35 @@ task checkArtifacts {
         result.assertTasksExecuted(":a:classes", ":b:checkArtifacts")
     }
 
+    def "can define artifact using File provider"() {
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            project(':a') {
+                artifacts {
+                    def jar = file("a.jar")
+                    compile providers.provider { jar }
+                }
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+                task checkArtifacts {
+                    inputs.files configurations.compile
+                    doLast {
+                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["a.jar"]
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':b:checkArtifacts'
+
+        then:
+        result.assertTasksExecuted(":b:checkArtifacts")
+    }
+
     def "can define artifact using RegularFile task output"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """
