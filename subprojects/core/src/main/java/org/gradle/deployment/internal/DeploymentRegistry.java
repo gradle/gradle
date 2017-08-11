@@ -60,11 +60,6 @@ public interface DeploymentRegistry {
      */
     enum DeploymentSensitivity {
         /**
-         * Request a build, if applicable, and then block until any pending changes are incorporated.
-         */
-        REQUEST,
-
-        /**
          * Block until any pending changes are incorporated.
          */
         BLOCK,

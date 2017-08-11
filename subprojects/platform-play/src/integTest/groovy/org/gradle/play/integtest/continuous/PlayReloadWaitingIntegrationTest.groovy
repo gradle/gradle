@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.continuous
 
-
+import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener
@@ -149,7 +149,7 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
 
         // Start up the Play app, block waiting for changes before completion
         if (gated) {
-            start("runPlayBinary", "--no-eager-rebuild")
+            start("runPlayBinary", "-D${DefaultDeploymentRegistry.EAGER_SYS_PROP}=false")
         } else {
             start("runPlayBinary")
         }

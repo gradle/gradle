@@ -19,7 +19,6 @@ package org.gradle.play.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
@@ -68,8 +67,6 @@ public class PlayRun extends ConventionTask {
     private BaseForkOptions forkOptions;
 
     private PlayToolProvider playToolProvider;
-
-    private DeploymentRegistry.DeploymentSensitivity sensitivity = DeploymentRegistry.DeploymentSensitivity.BLOCK;
 
     /**
      * fork options for the running a Play application.
@@ -156,18 +153,6 @@ public class PlayRun extends ConventionTask {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * TODO: Make this a command-line option for all continuous builds
-     */
-    @Option(option = "no-eager-rebuild", description = "Do not rebuild eagerly; instead, wait for a reload request before rebuilding.")
-    public void setNoEagerRebuild(boolean gatedBuild) {
-        if (gatedBuild) {
-            sensitivity = DeploymentRegistry.DeploymentSensitivity.REQUEST;
-        } else {
-            sensitivity = DeploymentRegistry.DeploymentSensitivity.BLOCK;
-        }
-    }
-
     private PlayApplicationDeploymentHandle startOrFindDeploymentHandle(String deploymentId) {
         DeploymentRegistry deploymentRegistry = getDeploymentRegistry();
         PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(deploymentId, PlayApplicationDeploymentHandle.class);
@@ -176,7 +161,7 @@ public class PlayRun extends ConventionTask {
             int httpPort = getHttpPort();
             PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
             PlayApplicationRunner playApplicationRunner = playToolProvider.get(PlayApplicationRunner.class);
-            deploymentHandle = deploymentRegistry.start(deploymentId, sensitivity, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
+            deploymentHandle = deploymentRegistry.start(deploymentId, DeploymentRegistry.DeploymentSensitivity.BLOCK, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
         }
         return deploymentHandle;
     }

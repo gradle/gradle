@@ -41,6 +41,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingChangesListener, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
+    // TODO: Wire this into a command-line option (like --no-eager-rebuild)
+    public static final String EAGER_SYS_PROP = "org.gradle.internal.continuous.eager";
 
     private final Lock lock = new ReentrantLock();
     private final Map<String, DefaultDeployment> deployments = Maps.newHashMap();
@@ -48,6 +50,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     private final PendingChanges pendingChanges;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ObjectFactory objectFactory;
+    private final boolean eagerBuild;
     private boolean stopped;
     private ContinuousExecutionGate continuousExecutionGate;
 
@@ -55,6 +58,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         this.pendingChangesManager = pendingChangesManager;
         this.buildOperationExecutor = buildOperationExecutor;
         this.objectFactory = objectFactory;
+        this.eagerBuild = Boolean.valueOf(System.getProperty(EAGER_SYS_PROP, "true"));
         this.pendingChanges = new PendingChanges();
         pendingChangesManager.addListener(this);
     }
@@ -74,7 +78,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
                     @Override
                     public T call(BuildOperationContext context) {
                         T handle = objectFactory.newInstance(handleType, params);
-                        DefaultDeployment deployment = DeploymentFactory.createDeployment(name, sensitivity, continuousExecutionGate, handle);
+                        DefaultDeployment deployment = DeploymentFactory.createDeployment(name, sensitivity, eagerBuild, continuousExecutionGate, handle);
                         handle.start(deployment);
                         if (pendingChanges.hasRemainingChanges()) {
                             deployment.outOfDate();
