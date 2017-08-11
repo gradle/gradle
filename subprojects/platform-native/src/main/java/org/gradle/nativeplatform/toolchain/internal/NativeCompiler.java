@@ -64,9 +64,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
     }
 
     // TODO(daniel): Should support in a better way multi file invocation.
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final T spec) {
-        final List<String> genericArgs = getArguments(spec);
-
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final T spec, final List<String> genericArgs) {
         final File objectDir = spec.getObjectFileDir();
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override

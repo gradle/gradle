@@ -48,7 +48,8 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
 
     @Override
     public WorkResult execute(final T spec) {
-        final Action<BuildOperationQueue<CommandLineToolInvocation>> invocationAction = newInvocationAction(spec);
+        List<String> commonArguments = getArguments(spec);
+        final Action<BuildOperationQueue<CommandLineToolInvocation>> invocationAction = newInvocationAction(spec, commonArguments);
 
         workerLeaseService.withoutProjectLock(new Runnable() {
             @Override
@@ -62,7 +63,7 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
 
     // TODO(daniel): Should support in a better way multi file invocation.
     // Override this method to have multi file invocation
-    protected abstract Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(T spec);
+    protected abstract Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(T spec, List<String> commonArguments);
 
     protected List<String> getArguments(T spec) {
         List<String> args = argsTransformer.transform(spec);

@@ -51,8 +51,7 @@ class LibExeStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiver
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final StaticLibraryArchiverSpec spec) {
-        final List<String> args = getArguments(spec);
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final StaticLibraryArchiverSpec spec, List<String> args) {
         final CommandLineToolInvocation invocation = newInvocation(
             "archiving " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
 

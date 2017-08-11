@@ -75,9 +75,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final SwiftCompileSpec spec) {
-        final List<String> genericArgs = getArguments(spec);
-
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final SwiftCompileSpec spec, final List<String> genericArgs) {
         final File objectDir = spec.getObjectFileDir();
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
