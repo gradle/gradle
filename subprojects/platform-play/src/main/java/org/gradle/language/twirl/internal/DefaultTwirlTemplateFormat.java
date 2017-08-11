@@ -18,13 +18,17 @@ package org.gradle.language.twirl.internal;
 
 import org.gradle.language.twirl.TwirlTemplateFormat;
 
+import java.util.Collection;
+
 public class DefaultTwirlTemplateFormat implements TwirlTemplateFormat {
     private final String extension;
     private final String formatType;
+    private final Collection<String> imports;
 
-    public DefaultTwirlTemplateFormat(String extension, String formatType) {
+    public DefaultTwirlTemplateFormat(String extension, String formatType, Collection<String> imports) {
         this.extension = "." + extension;
         this.formatType = formatType;
+        this.imports = imports;
     }
 
     @Override
@@ -38,9 +42,16 @@ public class DefaultTwirlTemplateFormat implements TwirlTemplateFormat {
     }
 
     @Override
+    public Collection<String> getTemplateImports() {
+        return imports;
+    }
+
+    @Override
     public String toString() {
         return "DefaultTwirlTemplateFormat{"
             + "extension='" + extension + '\''
+            + ", formatType='" + formatType + '\''
+            + ", imports=" + imports
             + '}';
     }
 }
