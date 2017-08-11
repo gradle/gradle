@@ -164,8 +164,8 @@ public class JacocoPluginExtension {
      *
      * @param tasks the tasks to apply Jacoco to
      */
-    public <T extends Task & JavaForkOptions> void applyTo(TaskCollection tasks) {
-        tasks.withType(JavaForkOptions.class, new Action<JavaForkOptions>() {
+    public <T extends Task & JavaForkOptions> void applyTo(TaskCollection<T> tasks) {
+        ((TaskCollection) tasks).withType(JavaForkOptions.class, new Action<JavaForkOptions>() {
             @Override
             public void execute(JavaForkOptions task) {
                 applyTo(Cast.<T>uncheckedCast(task));
