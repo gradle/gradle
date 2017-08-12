@@ -101,7 +101,9 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         def app = new CppApp()
 
         given:
-        app.writeToSourceDir(file("srcs"))
+        app.sources.writeToSourceDir(file("srcs"))
+        app.headers.writeToSourceDir(file("include"))
+        file("src/main/headers/${app.greeter.header.sourceFile.name}") << 'broken!'
         file("src/main/cpp/broken.cpp") << "ignore me!"
 
         and:
@@ -109,6 +111,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
             apply plugin: 'cpp-executable'
             executable {
                 source.from 'srcs'
+                privateHeaders.from 'include'
             }
          """
 

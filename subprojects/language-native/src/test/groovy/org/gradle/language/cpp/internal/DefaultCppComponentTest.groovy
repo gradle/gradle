@@ -77,4 +77,19 @@ class DefaultCppComponentTest extends Specification {
         component.source.from(d)
         component.cppSource.files.empty
     }
+
+    def "uses convention for private headers when nothing specified"() {
+        def d = tmpDir.file("src/main/headers")
+
+        expect:
+        component.privateHeaderDirs.files == [d] as Set
+    }
+
+    def "does not include the convention for private headers when some other location specified"() {
+        def d = tmpDir.file("other")
+
+        expect:
+        component.privateHeaders.from(d)
+        component.privateHeaderDirs.files == [d] as Set
+    }
 }

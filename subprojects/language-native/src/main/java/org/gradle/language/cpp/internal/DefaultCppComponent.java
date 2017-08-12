@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.language.cpp.CppComponent;
@@ -23,18 +25,52 @@ import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 
 public class DefaultCppComponent extends DefaultNativeComponent implements CppComponent {
-    private final FileCollection sourceFiles;
+    private final FileCollection cppSource;
+    private final FileOperations fileOperations;
+    private final ConfigurableFileCollection privateHeaders;
+    private final FileCollection privateHeadersWithConvention;
 
     @Inject
     public DefaultCppComponent(FileOperations fileOperations) {
         super(fileOperations);
-        sourceFiles = createSourceView("src/main/cpp", Arrays.asList("cpp", "c++"));
+        this.fileOperations = fileOperations;
+        cppSource = createSourceView("src/main/cpp", Arrays.asList("cpp", "c++"));
+        privateHeaders = fileOperations.files();
+        privateHeadersWithConvention = createDirView(privateHeaders, "src/main/headers");
+    }
+
+    protected FileCollection createDirView(final ConfigurableFileCollection dirs, final String conventionLocation) {
+        return fileOperations.files(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                if (dirs.getFrom().isEmpty()) {
+                    return fileOperations.files(conventionLocation);
+                }
+                return dirs;
+            }
+        });
     }
 
     @Override
     public FileCollection getCppSource() {
-        return sourceFiles;
+        return cppSource;
+    }
+
+    @Override
+    public ConfigurableFileCollection getPrivateHeaders() {
+        return privateHeaders;
+    }
+
+    @Override
+    public void privateHeaders(Action<? super ConfigurableFileCollection> action) {
+        action.execute(privateHeaders);
+    }
+
+    @Override
+    public FileCollection getPrivateHeaderDirs() {
+        return privateHeadersWithConvention;
     }
 }

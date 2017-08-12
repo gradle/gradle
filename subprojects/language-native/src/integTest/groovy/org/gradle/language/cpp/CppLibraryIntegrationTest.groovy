@@ -72,9 +72,10 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         given:
         lib.sources.writeToSourceDir(file("srcs"))
-        lib.headers.writeToSourceDir(file("include"))
+        lib.privateHeaders.writeToSourceDir(file("include"))
+        lib.publicHeaders.writeToSourceDir(file("pub"))
         file("src/main/public/${lib.greeter.header.sourceFile.name}") << "ignore me!"
-        file("src/main/headers/${lib.greeter.header.sourceFile.name}") << "ignore me!"
+        file("src/main/headers/${lib.greeter.privateHeader.sourceFile.name}") << "ignore me!"
         file("src/main/cpp/broken.cpp") << "ignore me!"
 
         and:
@@ -82,7 +83,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
             apply plugin: 'cpp-library'
             library {
                 source.from 'srcs'
-                publicHeaders.from 'include'
+                publicHeaders.from 'pub'
+                privateHeaders.from 'include'
             }
          """
 

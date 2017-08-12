@@ -22,24 +22,14 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.language.cpp.CppLibrary;
 
-import java.util.concurrent.Callable;
-
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
     private final ConfigurableFileCollection publicHeaders;
-    private final ConfigurableFileCollection headersWithConvention;
+    private final FileCollection headersWithConvention;
 
     public DefaultCppLibrary(final FileOperations fileOperations) {
         super(fileOperations);
         publicHeaders = fileOperations.files();
-        headersWithConvention = fileOperations.files(new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                if (publicHeaders.getFrom().isEmpty()) {
-                    return fileOperations.files("src/main/public");
-                }
-                return publicHeaders;
-            }
-        });
+        headersWithConvention = createDirView(publicHeaders, "src/main/public");
     }
 
     @Override

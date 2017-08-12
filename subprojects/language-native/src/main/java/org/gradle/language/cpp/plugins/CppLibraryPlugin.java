@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
@@ -76,7 +75,6 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
-        Directory projectDirectory = project.getLayout().getProjectDirectory();
         ObjectFactory objectFactory = project.getObjects();
         ProviderFactory providers = project.getProviders();
 
@@ -89,7 +87,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         CppCompile compile = tasks.create("compileCpp", CppCompile.class);
 
         compile.includes(component.getPublicHeaderDirs());
-        compile.includes("src/main/headers");
+        compile.includes(component.getPrivateHeaderDirs());
         compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
 
         FileCollection sources = component.getCppSource();

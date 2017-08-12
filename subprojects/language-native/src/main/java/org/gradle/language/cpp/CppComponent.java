@@ -46,4 +46,21 @@ public interface CppComponent {
      * Returns the C++ source files of this component, as defined in {@link #getSource()}.
      */
     FileCollection getCppSource();
+
+    /**
+     * Defines the private header file directories of this library.
+     *
+     * <p>When this collection is empty, the directory {@code src/main/headers} is used by default.</p>
+     */
+    ConfigurableFileCollection getPrivateHeaders();
+
+    /**
+     * Configures the private header directories for this component.
+     */
+    void privateHeaders(Action<? super ConfigurableFileCollection> action);
+
+    /**
+     * Returns the private header files of this component, as defined in {@link #getPrivateHeaders()}.
+     */
+    FileCollection getPrivateHeaderDirs();
 }

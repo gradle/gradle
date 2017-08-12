@@ -25,6 +25,14 @@ class CppLib extends CppSourceElement {
         ofElements(greeter.headers, sum.headers)
     }
 
+    SourceElement getPublicHeaders() {
+        ofElements(greeter.publicHeaders, sum.publicHeaders)
+    }
+
+    SourceElement getPrivateHeaders() {
+        ofElements(greeter.privateHeaders, sum.privateHeaders)
+    }
+
     @Override
     SourceElement getSources() {
         ofElements(greeter.source, sum.source)

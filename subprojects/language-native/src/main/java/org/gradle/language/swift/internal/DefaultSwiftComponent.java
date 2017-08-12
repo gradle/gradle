@@ -24,15 +24,15 @@ import org.gradle.language.swift.model.SwiftComponent;
 import java.util.Collections;
 
 public class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
-    private final FileCollection sourceFiles;
+    private final FileCollection swiftSource;
 
     public DefaultSwiftComponent(FileOperations fileOperations) {
         super(fileOperations);
-        sourceFiles = createSourceView("src/main/swift", Collections.singletonList("swift"));
+        swiftSource = createSourceView("src/main/swift", Collections.singletonList("swift"));
     }
 
     @Override
     public FileCollection getSwiftSource() {
-        return sourceFiles;
+        return swiftSource;
     }
 }

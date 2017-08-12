@@ -27,14 +27,14 @@ class DefaultCppLibraryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def library = new DefaultCppLibrary(TestFiles.fileOperations(tmpDir.testDirectory))
 
-    def "uses convention when nothing specified"() {
+    def "uses convention for public headers when nothing specified"() {
         def d = tmpDir.file("src/main/public")
 
         expect:
         library.publicHeaderDirs.files == [d] as Set
     }
 
-    def "does not include the convention when some other location specified"() {
+    def "does not include the convention for public headers when some other location specified"() {
         def d = tmpDir.file("other")
 
         expect:

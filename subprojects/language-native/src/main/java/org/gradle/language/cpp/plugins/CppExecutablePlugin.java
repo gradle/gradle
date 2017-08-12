@@ -76,7 +76,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         // Add a compile task
         CppCompile compile = tasks.create("compileCpp", CppCompile.class);
 
-        compile.includes("src/main/headers");
+        compile.includes(component.getPrivateHeaderDirs());
         compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
 
         FileCollection sources = component.getCppSource();
