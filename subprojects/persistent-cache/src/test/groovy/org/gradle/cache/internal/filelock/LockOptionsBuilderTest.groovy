@@ -18,7 +18,8 @@ package org.gradle.cache.internal.filelock
 
 import spock.lang.Specification
 
-import static org.gradle.cache.FileLockManager.LockMode.*
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive
+import static org.gradle.cache.FileLockManager.LockMode.Shared
 
 class LockOptionsBuilderTest extends Specification {
     def "can make copy of options"() {
