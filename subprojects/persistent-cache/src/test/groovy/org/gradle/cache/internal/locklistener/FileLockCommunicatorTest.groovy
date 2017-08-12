@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.cache.internal
+package org.gradle.cache.internal.locklistener
 
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.util.ConcurrentSpecification

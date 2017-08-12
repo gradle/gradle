@@ -16,8 +16,6 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.gradle.cache.internal.FileLockCommunicator;
-import org.gradle.cache.internal.GracefullyStoppedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
