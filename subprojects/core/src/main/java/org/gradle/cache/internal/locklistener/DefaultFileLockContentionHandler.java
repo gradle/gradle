@@ -16,14 +16,14 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.FileLockCommunicator;
 import org.gradle.cache.internal.GracefullyStoppedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultFileLockContentionHandler implements FileLockContentionHandler, Stoppable {
-    private static final Logger LOGGER = Logging.getLogger(DefaultFileLockContentionHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockContentionHandler.class);
     private final Lock lock = new ReentrantLock();
     private final Map<Long, Runnable> contendedActions = new HashMap<Long, Runnable>();
     private final ExecutorFactory executorFactory;

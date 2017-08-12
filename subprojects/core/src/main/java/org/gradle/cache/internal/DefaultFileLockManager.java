@@ -15,8 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -40,6 +38,8 @@ import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Timers;
 import org.gradle.util.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,7 +53,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
  * Uses file system locks on a lock file per target file.
  */
 public class DefaultFileLockManager implements FileLockManager {
-    private static final Logger LOGGER = Logging.getLogger(DefaultFileLockManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     public static final int DEFAULT_LOCK_TIMEOUT = 60000;
 
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
