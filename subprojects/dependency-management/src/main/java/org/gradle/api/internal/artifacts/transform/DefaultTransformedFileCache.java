@@ -35,9 +35,9 @@ import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.FileStoreAddActionException;
-import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.ListSerializer;
@@ -64,7 +64,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         File transformsStoreDirectory = artifactCacheMetaData.getTransformsStoreDirectory();
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
-        fileStore = new PathKeyFileStore(filesOutputDirectory);
+        fileStore = new DefaultPathKeyFileStore(filesOutputDirectory);
         cache = cacheRepository
                 .cache(transformsStoreDirectory)
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
