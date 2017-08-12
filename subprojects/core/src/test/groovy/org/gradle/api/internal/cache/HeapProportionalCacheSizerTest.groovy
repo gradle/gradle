@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.cache
 
+import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
