@@ -124,13 +124,16 @@ apply plugin: 'cpp-executable'
 
 executable {
     source.from 'Sources'
+    privateHeaders.from 'Sources/include'
 }
 """
 
         when:
         def app = new CppApp()
-        app.headers.writeToProject(testDirectory)
+        app.headers.writeToSourceDir(file('Sources/include'))
         app.sources.writeToSourceDir(file('Sources'))
+        file("src/main/headers/ignore.h") << 'broken!'
+        file('src/main/cpp/ignore.cpp') << 'broken!'
         succeeds("xcode")
 
         then:
@@ -145,13 +148,19 @@ apply plugin: 'cpp-library'
 
 library {
     source.from 'Sources'
+    privateHeaders.from 'Sources/include'
+    publicHeaders.from 'Includes'
 }
 """
 
         when:
         def lib = new CppLib()
-        lib.headers.writeToProject(testDirectory)
+        lib.publicHeaders.writeToSourceDir(file('Includes'))
+        lib.privateHeaders.writeToSourceDir(file('Sources/include'))
         lib.sources.writeToSourceDir(file('Sources'))
+        file('src/main/headers/ignore.h') << 'broken!'
+        file('src/main/public/ignore.h') << 'broken!'
+        file('src/main/cpp/ignore.cpp') << 'broken!'
         succeeds("xcode")
 
         then:

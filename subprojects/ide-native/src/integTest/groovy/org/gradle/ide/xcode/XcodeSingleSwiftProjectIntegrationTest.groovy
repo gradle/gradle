@@ -132,6 +132,7 @@ executable {
         when:
         def app = new SwiftApp()
         app.writeToSourceDir(file('Sources'))
+        file('src/main/swift/ignore.swift') << 'broken!'
         succeeds("xcode")
 
         then:
@@ -152,6 +153,7 @@ library {
         when:
         def lib = new SwiftLib()
         lib.writeToSourceDir(file('Sources'))
+        file('src/main/swift/ignore.swift') << 'broken!'
         succeeds("xcode")
 
         then:
