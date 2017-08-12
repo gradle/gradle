@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.RelativePathUtil;
 
 import java.io.File;
 import java.util.Collections;
@@ -199,7 +200,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     }
 
     protected LocallyAvailableResource entryAt(File file) {
-        return entryAt(GFileUtils.relativePath(baseDir, file));
+        return entryAt(RelativePathUtil.relativePath(baseDir, file));
     }
 
     protected LocallyAvailableResource entryAt(final String path) {

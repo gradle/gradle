@@ -17,16 +17,16 @@
 package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
 import org.gradle.api.Transformer;
-import org.gradle.internal.resource.local.FileStore;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
+import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome;
-import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.RelativePathUtil;
 
 import java.io.File;
 import java.util.Arrays;
@@ -79,7 +79,7 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
     private void addFileBuildOutcome(GradleFileBuildOutcome outcome, ProjectOutcomes rootProject, Set<BuildOutcome> translatedOutcomes) {
         if (zipArchiveTypes.contains(outcome.getTypeIdentifier())) {
             File originalFile = outcome.getFile();
-            String relativePath = GFileUtils.relativePath(rootProject.getProjectDirectory(), originalFile);
+            String relativePath = RelativePathUtil.relativePath(rootProject.getProjectDirectory(), originalFile);
 
             LocallyAvailableResource resource = null;
             if (originalFile.exists()) {
@@ -92,7 +92,7 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
         } else {
             String outcomeName = outcome.getTaskPath();
             if (isEmpty(outcomeName)) {
-                outcomeName = GFileUtils.relativePath(rootProject.getProjectDirectory(), outcome.getFile());
+                outcomeName = RelativePathUtil.relativePath(rootProject.getProjectDirectory(), outcome.getFile());
             }
             translatedOutcomes.add(new UnknownBuildOutcome(outcomeName, outcome.getDescription()));
         }

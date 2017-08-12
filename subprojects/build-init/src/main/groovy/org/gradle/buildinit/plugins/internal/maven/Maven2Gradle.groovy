@@ -21,7 +21,7 @@ package org.gradle.buildinit.plugins.internal.maven
 import org.apache.maven.project.MavenProject
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.util.GFileUtils
+import org.gradle.util.RelativePathUtil
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>
@@ -457,7 +457,7 @@ artifacts.archives packageTests
                 File projectDirectory = projectDir(project)
                 // don't add project if it's the rootproject
                 if (!workingDir.equals(projectDirectory)) {
-                    artifactIdToDir[fqn] = GFileUtils.relativePath(workingDir, projectDirectory)
+                    artifactIdToDir[fqn] = RelativePathUtil.relativePath(workingDir, projectDirectory)
                     moduleNames.add(fqn)
                 }
             }

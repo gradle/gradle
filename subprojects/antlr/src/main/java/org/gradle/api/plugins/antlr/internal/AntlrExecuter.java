@@ -24,7 +24,7 @@ import org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtracter;
 import org.gradle.api.plugins.antlr.internal.antlr2.XRef;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.RelativePathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,7 +134,7 @@ public class AntlrExecuter implements AntlrWorker {
                     arguments.add("-o");
                     arguments.add(spec.getOutputDirectory().getAbsolutePath());
                     for (File grammarFile : spec.getGrammarFiles()) {
-                        String relativeGrammarFilePath = GFileUtils.relativePath(inputDirectory, grammarFile);
+                        String relativeGrammarFilePath = RelativePathUtil.relativePath(inputDirectory, grammarFile);
                         if (onWindows) {
                             relativeGrammarFilePath = relativeGrammarFilePath.replace('/', File.separatorChar);
                         }

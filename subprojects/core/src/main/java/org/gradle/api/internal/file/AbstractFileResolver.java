@@ -31,7 +31,7 @@ import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -108,7 +108,7 @@ public abstract class AbstractFileResolver implements FileResolver {
     protected abstract File doResolve(Object path);
 
     protected URI convertObjectToURI(Object path) {
-        Object object = GFileUtils.unpack(path);
+        Object object = DeferredUtil.unpack(path);
         Object converted = fileNotationParser.parseNotation(object);
         if (converted instanceof File) {
             return resolve(converted).toURI();
@@ -118,7 +118,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     @Nullable
     protected File convertObjectToFile(Object path) {
-        Object object = GFileUtils.unpack(path);
+        Object object = DeferredUtil.unpack(path);
         if (object == null) {
             return null;
         }

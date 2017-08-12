@@ -18,8 +18,9 @@ package org.gradle.play.integtest.fixtures
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
-import static org.gradle.play.integtest.fixtures.Repositories.*
+import org.gradle.util.RelativePathUtil
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 abstract class PlayApp {
 
@@ -90,7 +91,7 @@ abstract class PlayApp {
             baseDirFile.eachFileRecurse { File source ->
                 if(!source.isDirectory()){
                     String fileName = source.getName()
-                    def subpath = GFileUtils.relativePath(baseDirFile, source.parentFile);
+                    def subpath = RelativePathUtil.relativePath(baseDirFile, source.parentFile);
                     sourceFiles.add(sourceFile("$baseDir/$subpath", fileName, rootDir))
                 }
             }
