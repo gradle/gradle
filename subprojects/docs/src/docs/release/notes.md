@@ -73,6 +73,10 @@ TODO Placeholder
 
 Gradle now supports Twirl templates that use HTML, JavaScript, txt and XML.
 
+#### Support for custom Twirl template formats
+
+The `TwirlCompile` task can now be configured to use special custom template formats.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
