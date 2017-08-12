@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @UsesNativeServices
-class PathKeyFileStoreTest extends Specification {
+class DefaultPathKeyFileStoreTest extends Specification {
     @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
     TestFile fsBase
     PathKeyFileStore store
@@ -33,7 +33,7 @@ class PathKeyFileStoreTest extends Specification {
 
     def setup() {
         fsBase = dir.file("fs")
-        store = new PathKeyFileStore(fsBase)
+        store = new DefaultPathKeyFileStore(fsBase)
     }
 
     def "can copy file to filestore"() {

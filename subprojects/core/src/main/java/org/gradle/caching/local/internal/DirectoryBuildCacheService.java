@@ -19,10 +19,7 @@ package org.gradle.caching.local.internal;
 import com.google.common.io.Closer;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.FixedSizeOldestCacheCleanup;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -30,7 +27,6 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.util.GFileUtils;
@@ -40,47 +36,18 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import static org.gradle.cache.FileLockManager.LockMode.None;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
 public class DirectoryBuildCacheService implements LocalBuildCacheService, BuildCacheService {
-
-    public static final String FAILED_READ_SUFFIX = ".failed";
 
     private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
     private final BuildCacheTempFileStore tempFileStore;
+    private final String failedFileSuffix;
 
-    public DirectoryBuildCacheService(CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, File baseDir, long targetCacheSize) {
-        this.fileStore = new PathKeyFileStore(baseDir);
-        this.persistentCache = cacheRepository
-            .cache(checkDirectory(baseDir))
-            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetCacheSize, PARTIAL_FILE_SUFFIX))
-            .withDisplayName("Build cache")
-            .withLockOptions(mode(None))
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .open();
-
-        tempFileStore = new DefaultBuildCacheTempFileStore(baseDir);
-    }
-
-    private static File checkDirectory(File directory) {
-        if (directory.exists()) {
-            if (!directory.isDirectory()) {
-                throw new IllegalArgumentException(String.format("Cache directory %s must be a directory", directory));
-            }
-            if (!directory.canRead()) {
-                throw new IllegalArgumentException(String.format("Cache directory %s must be readable", directory));
-            }
-            if (!directory.canWrite()) {
-                throw new IllegalArgumentException(String.format("Cache directory %s must be writable", directory));
-            }
-        } else {
-            if (!directory.mkdirs()) {
-                throw new UncheckedIOException(String.format("Could not create cache directory: %s", directory));
-            }
-        }
-        return directory;
+    public DirectoryBuildCacheService(PathKeyFileStore fileStore, PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, String failedFileSuffix) {
+        this.fileStore = fileStore;
+        this.persistentCache = persistentCache;
+        this.tempFileStore = tempFileStore;
+        this.failedFileSuffix = failedFileSuffix;
     }
 
     private static class LoadAction implements Action<File> {
@@ -134,7 +101,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
                     } catch (Exception e) {
                         // Try to move the file out of the way in case its permanently corrupt
                         // Don't delete, so that it can be potentially used for debugging
-                        File failedFile = new File(file.getAbsolutePath() + FAILED_READ_SUFFIX);
+                        File failedFile = new File(file.getAbsolutePath() + failedFileSuffix);
                         GFileUtils.deleteQuietly(failedFile);
                         //noinspection ResultOfMethodCallIgnored
                         file.renameTo(failedFile);

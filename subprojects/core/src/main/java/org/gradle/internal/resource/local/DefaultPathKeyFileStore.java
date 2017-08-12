@@ -47,7 +47,7 @@ import static org.gradle.internal.FileUtils.hasExtension;
  * <p>
  * This file store also provides searching via relative ant path patterns.
  */
-public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<String> {
+public class DefaultPathKeyFileStore implements PathKeyFileStore {
 
     /*
         When writing a file into the filestore a marker file with this suffix is written alongside,
@@ -59,7 +59,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     private File baseDir;
     private final Deleter deleter;
 
-    public PathKeyFileStore(File baseDir) {
+    public DefaultPathKeyFileStore(File baseDir) {
         this.baseDir = baseDir;
         IdentityFileResolver fileResolver = new IdentityFileResolver();
         deleter = new Deleter(fileResolver, fileResolver.getFileSystem());
@@ -69,10 +69,12 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return baseDir;
     }
 
+    @Override
     public LocallyAvailableResource move(String path, File source) {
         return saveIntoFileStore(source, getFile(path), true);
     }
 
+    @Override
     public LocallyAvailableResource copy(String path, File source) {
         return saveIntoFileStore(source, getFile(path), false);
     }
@@ -91,6 +93,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return file;
     }
 
+    @Override
     public void moveFilestore(File destination) {
         if (baseDir.exists()) {
             GFileUtils.moveDirectory(baseDir, destination);
@@ -98,6 +101,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         baseDir = destination;
     }
 
+    @Override
     public LocallyAvailableResource add(final String path, final Action<File> addAction) {
         try {
             return doAdd(getFile(path), new Action<File>() {
@@ -163,6 +167,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return entryAt(destination);
     }
 
+    @Override
     public Set<? extends LocallyAvailableResource> search(String pattern) {
         if (!getBaseDir().exists()) {
             return Collections.emptySet();
@@ -207,6 +212,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return new RelativeToBaseDirResource(path);
     }
 
+    @Override
     public LocallyAvailableResource get(String key) {
         final File file = getFileWhileCleaningInProgress(key);
         if (file.exists()) {
